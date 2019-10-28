@@ -212,34 +212,6 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     return np.array([xs, ys, zs]).T
 
 
-def plot_points_in_weyl_chamber(points: np.ndarray, plot_bounds: bool = True
-                                , **kwargs) -> pyplot.Axes:
-    fig = pyplot.figure()
-    ax = fig.add_subplot(111, projection='3d')
-
-    ax.scatter(*points.T, **kwargs)
-
-    # Weyl chamber vertices
-    if plot_bounds:
-        vertices = np.array([[0, 0, 0],
-                             [1, 0, 0],
-                             [1, 1, -1],
-                             [1, 1, 1]]) * np.pi / 4
-
-        path = (0, 1, 2, 3, 0, 2, 3, 1)
-        path_mat = np.zeros((len(path), 4))
-        path_mat[range(len(path)), path] = 1
-        vertices = path_mat @ vertices
-
-        ax.plot(vertices[:, 0], vertices[:, 1], vertices[:, 2], color='k',
-                label='Bounds')
-
-    ax.set_xlabel(r'$k_x$')
-    ax.set_ylabel(r'$k_y$')
-    ax.set_zlabel(r'$k_z$')
-    return ax
-
-
 _XX = np.zeros((4, 4))
 _XX[(0, 1, 2, 3), (3, 2, 1, 0)] = 1
 _ZZ = np.diag([1, -1, -1, 1])

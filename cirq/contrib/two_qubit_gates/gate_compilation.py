@@ -193,7 +193,23 @@ def _tabulate_KAK_vectors(
 
 
 def gate_product_tabulation(base_gate: np.ndarray,
-                            max_infidelity: float) -> GateTabulation:
+                            max_infidelity: float,
+                            include_warnings: bool = True) -> GateTabulation:
+    r"""Generate a GateTabulation for a base two qubit unitary.
+
+    Args:
+        base_gate: The base gate of the tabulation.
+        max_infidelity: Sets the desired density of tabulated product unitaries.
+            The typical nearest neighbor Euclidean spacing (of the KAK vectors)
+            will be on the order of \sqrt(max_infidelity). Thus the number of
+            tabulated points will scale as max_infidelity^{-3/2}.
+        include_warnings: If True, warn the user if a point in the Weyl
+            chamber has no tabulated points within the desired distance.
+
+    Returns:
+        A GateTabulation object used to compile new two-qubit gates from
+        products of the base gate with 1-local unitaries.
+    """
     assert 1 / 2 > max_infidelity > 0
     spacing = np.sqrt(max_infidelity / 3)
     mesh_points = weyl_chamber_mesh(spacing)
@@ -287,7 +303,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
             sq_cycles.append((old_sq_cycle, kL))
             kak_vecs.append(
                 kak_vector(base_gate @ actual, check_preconditions=False))
-        else:
+        elif include_warnings:
             warn(f'Failed to tabulate a KAK vector near {missing_vec}')
 
     kak_vecs = np.array(kak_vecs)
