@@ -45,7 +45,9 @@ from cirq.google.engine import (
 )
 
 from cirq.google.gate_sets import (
-    XMON,)
+    XMON,
+    SYC_GATESET,
+)
 
 from cirq.google.known_devices import (
     Bristlecone,
