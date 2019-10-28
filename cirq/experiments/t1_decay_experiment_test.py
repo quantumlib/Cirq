@@ -75,7 +75,7 @@ def test_sudden_decay_results():
         def noisy_moment(self, moment, system_qubits):
             duration = max((op.gate.duration
                             for op in moment.operations
-                            if cirq.op_gate_isinstance(op, cirq.WaitGate)),
+                            if isinstance(op.gate, cirq.WaitGate)),
                            default=cirq.Duration())
             if duration > cirq.Duration(nanos=500):
                 yield cirq.amplitude_damp(1).on_each(system_qubits)
