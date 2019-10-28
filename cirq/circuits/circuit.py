@@ -1961,8 +1961,7 @@ def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
 
 
 def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':
-    if (isinstance(op, ops.Operation) and
-            isinstance(op.gate, ops.MeasurementGate)):
+    if isinstance(op.gate, ops.MeasurementGate):
         return [ops.X(q) for q, b in zip(op.qubits, op.gate.invert_mask) if b]
     return NotImplemented
 
