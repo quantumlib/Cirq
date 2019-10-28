@@ -1,7 +1,7 @@
 from time import time
 
-from matplotlib import pyplot as plt
 import numpy as np
+from matplotlib import pyplot as plt
 
 # pylint: disable=line-too-long
 from cirq import FSimGate, unitary
