@@ -188,24 +188,7 @@ class Sampler(metaclass=abc.ABCMeta):
         the result via the asyncio event loop. However, child classes are free
         to override it to use other strategies.
 
-        Args:, '
-                f'columns={repr(value.columns)}, '
-                columns=['s', 't', 'out'],
-            index=[0, 1, 2] * 4,
-            data=[
-                [0, 0, 0],
-                [0, 0, 0],
-                [0, 0, 0],
-                [0, 1, 1],
-                [0, 1, 1],
-                [0, 1, 1],
-                [1, 0, 2],
-                [1, 0, 2],
-                [1, 0, 2],
-                [1, 1, 3],
-                [1, 1, 3],
-                [1, 1, 3],
-            ])
+        Args:
             program: The circuit or schedule to sample from.
             params: One or more mappings from parameter keys to parameter values
                 to use. For each parameter assignment, `repetitions` samples
