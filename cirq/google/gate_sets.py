@@ -13,8 +13,6 @@
 # limitations under the License.
 """Gate sets supported by Google's apis."""
 from typing import cast, List
-import numpy as np
-import sympy
 
 from cirq import ops, protocols
 from cirq.google import op_serializer, op_deserializer, serializable_gate_set
