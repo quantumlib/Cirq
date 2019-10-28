@@ -18,8 +18,7 @@ import cirq
 import cirq.google as cg
 
 from cirq.testing import (
-    assert_circuits_with_terminal_measurements_are_equivalent,
-)
+    assert_circuits_with_terminal_measurements_are_equivalent,)
 
 
 @pytest.mark.parametrize('n,d', [
@@ -38,10 +37,11 @@ def test_swap_field(n: int, d: int):
 
     after = cg.optimized_for_xmon(before)
 
-    assert len(after) == d*4 + 2
+    assert len(after) == d * 4 + 2
     if n <= 5:
-        assert_circuits_with_terminal_measurements_are_equivalent(
-            before, after, atol=1e-4)
+        assert_circuits_with_terminal_measurements_are_equivalent(before,
+                                                                  after,
+                                                                  atol=1e-4)
 
 
 def test_ccz():
@@ -52,49 +52,54 @@ def test_ccz():
     after = cg.optimized_for_xmon(before)
 
     assert len(after) <= 22
-    assert_circuits_with_terminal_measurements_are_equivalent(
-        before, after, atol=1e-4)
+    assert_circuits_with_terminal_measurements_are_equivalent(before,
+                                                              after,
+                                                              atol=1e-4)
 
 
 def test_adjacent_cz_get_split_apart():
-    before = cirq.Circuit([cirq.Moment([
-        cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
-        cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))])])
+    before = cirq.Circuit([
+        cirq.Moment([
+            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+            cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))
+        ])
+    ])
 
-    after = cg.optimized_for_xmon(before,
-                                  new_device=cg.Foxtail)
+    after = cg.optimized_for_xmon(before, new_device=cg.Foxtail)
 
     assert after == cirq.Circuit([
-        cirq.Moment([
-            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
-        cirq.Moment([
-            cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))])],
-        device=cg.Foxtail)
+        cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
+        cirq.Moment([cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(1, 1))])
+    ],
+                                 device=cg.Foxtail)
 
 
 def test_remap_qubits():
-    before = cirq.Circuit([cirq.Moment([
-        cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))])])
+    before = cirq.Circuit(
+        [cirq.Moment([cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))])])
 
     after = cg.optimized_for_xmon(before,
                                   new_device=cg.Foxtail,
                                   qubit_map=lambda q: cirq.GridQubit(q.x, 0))
 
-    assert after == cirq.Circuit([
-        cirq.Moment([
-            cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
+    assert after == cirq.Circuit(
+        [cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
         device=cg.Foxtail)
 
 
 def test_dont_allow_partial_czs():
-    before = cirq.Circuit([cirq.Moment([
-        cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6)) ** 0.5])])
+    before = cirq.Circuit([
+        cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
+    ])
 
     after = cg.optimized_for_xmon(before, allow_partial_czs=False)
 
-    cz_gates = [op.gate for op in after.all_operations()
-                if isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.CZPowGate)]
+    cz_gates = [
+        op.gate
+        for op in after.all_operations()
+        if isinstance(op, cirq.GateOperation) and
+        isinstance(op.gate, cirq.CZPowGate)
+    ]
     num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 2
@@ -102,14 +107,18 @@ def test_dont_allow_partial_czs():
 
 
 def test_allow_partial_czs():
-    before = cirq.Circuit([cirq.Moment([
-        cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6)) ** 0.5])])
+    before = cirq.Circuit([
+        cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
+    ])
 
     after = cg.optimized_for_xmon(before, allow_partial_czs=True)
 
-    cz_gates = [op.gate for op in after.all_operations()
-                if isinstance(op, cirq.GateOperation) and
-                isinstance(op.gate, cirq.CZPowGate)]
+    cz_gates = [
+        op.gate
+        for op in after.all_operations()
+        if isinstance(op, cirq.GateOperation) and
+        isinstance(op.gate, cirq.CZPowGate)
+    ]
     num_full_cz = sum(1 for cz in cz_gates if cz.exponent % 2 == 1)
     num_part_cz = sum(1 for cz in cz_gates if cz.exponent % 2 != 1)
     assert num_full_cz == 0
