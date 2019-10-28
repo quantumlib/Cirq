@@ -185,10 +185,10 @@ class Tag:
                 isinstance(self, other.__class__) and self.value == other.value)
 
     def __str__(self):
-        return f'Tag(\'{self.value}\')'
+        return f"Tag('{self.value}')"
 
     def __repr__(self):
-        return f'Tag(\'{self.value}\')'
+        return f"Tag('{self.value}')"
 
     def _json_dict_(self):
         # TODO(dstrain): Properly json serialize tags that are added on gates.

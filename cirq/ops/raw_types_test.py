@@ -471,5 +471,5 @@ def test_tags_on_gates():
 
 
 def test_tags_consistent_protocol():
-    assert str(cirq.Tag('zen')) == 'Tag(\'zen\')'
-    assert repr(cirq.Tag('zen')) == 'Tag(\'zen\')'
+    assert str(cirq.Tag('zen')) == "Tag('zen')"
+    assert repr(cirq.Tag('zen')) == "Tag('zen')"
