@@ -64,8 +64,9 @@ class GateTabulation(object):
         inner_gates = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
-            return _outer_locals_for_unitary(unitary, self.base_gate) + (
-                success,)
+            outer_locals, actual = _outer_locals_for_unitary(unitary,
+                                                             self.base_gate)
+            return outer_locals, actual, success
 
         # reshape to operators on 2 qubits, (n,4,4)
         inner_gates = vector_kron(inner_gates[..., 0, :, :],
@@ -120,17 +121,16 @@ def _outer_locals_for_unitary(
 
     actual = np.kron(*k_L) @ base
     actual = actual @ np.kron(*k_R)
-    actual *= target_decomp.global_phase.conj()
+    actual *= np.conj(target_decomp.global_phase)
 
     return (k_R, k_L), actual
 
 
 def _tabulate_KAK_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
-        base_gate: np.ndarray, max_dist: float, KAK_mesh,
+        base_gate: np.ndarray, max_dist: float, KAK_mesh: np.ndarray,
         *local_unitary_pairs: _SingleQubitGatePair,
-) -> Tuple[
-    List[np.ndarray], List[Sequence[_SingleQubitGatePair]]]:
+) -> Tuple[List[np.ndarray], List[Tuple[_SingleQubitGatePair, ...]]]:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
 
     Args:
@@ -204,7 +204,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     u_locals_0 = random_qubit_unitary(num_samples)
     u_locals_1 = random_qubit_unitary(num_samples)
 
-    u_locals_for_gate = {}
+    u_locals_for_gate: Dict[int, Tuple[_SingleQubitGatePair, ...]] = {}
     tabulation_cutoff = 0.5 * spacing
     kak_vecs, sq_cycles = _tabulate_KAK_vectors(u_locals_for_gate, base_gate,
                                                 tabulation_cutoff, mesh_points,
@@ -292,6 +292,6 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     kak_vecs = np.array(kak_vecs)
     print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
-          f': {kak_vecs.shape[0] / mesh_points.shape[0]:.3f}')
+          f': {len(kak_vecs) / mesh_points.shape[0]:.3f}')
 
     return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity)
