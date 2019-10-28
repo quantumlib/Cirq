@@ -27,10 +27,10 @@ if TYPE_CHECKING:
 class _GateDefinition:
     """Class for keeping track of gate definitions within SerializableDevice"""
 
-    def __init__(self, duration: Duration,
+    def __init__(self, duration: 'cirq.DURATION_LIKE',
                  target_set: Set[Tuple['cirq.Qid', ...]], number_of_qubits: int,
                  is_permutation: bool):
-        self.duration = duration
+        self.duration = Duration(duration)
         self.target_set = target_set
         self.is_permutation = is_permutation
         self.number_of_qubits = number_of_qubits
