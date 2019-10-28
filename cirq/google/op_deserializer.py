@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence, \
-    TYPE_CHECKING
+from typing import (Any, Callable, Dict, NamedTuple, Optional, Sequence,
+                    TYPE_CHECKING)
 
 import sympy
 from google.protobuf import json_format

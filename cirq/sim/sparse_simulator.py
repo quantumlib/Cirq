@@ -264,7 +264,7 @@ class Simulator(simulator.SimulatesSamples,
             return (protocols.has_unitary(potential_op) or
                     protocols.has_mixture(potential_op) or
                     protocols.is_measurement(potential_op) or
-                    ops.op_gate_isinstance(potential_op, ops.ResetChannel))
+                    isinstance(potential_op.gate, ops.ResetChannel))
 
         data = _StateAndBuffer(state=np.reshape(state, qid_shape),
                                buffer=np.empty(qid_shape, dtype=self._dtype))
@@ -277,7 +277,7 @@ class Simulator(simulator.SimulatesSamples,
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if ops.op_gate_isinstance(op, ops.ResetChannel):
+                if isinstance(op.gate, ops.ResetChannel):
                     self._simulate_reset(op, data, indices)
                 elif protocols.has_unitary(op):
                     self._simulate_unitary(op, data, indices)
@@ -313,8 +313,8 @@ class Simulator(simulator.SimulatesSamples,
     def _simulate_reset(self, op: ops.Operation, data: _StateAndBuffer,
                         indices: List[int]) -> None:
         """Simulate an op that is a reset to the |0> state."""
-        reset = ops.op_gate_of_type(op, ops.ResetChannel)
-        if reset:
+        if isinstance(op.gate, ops.ResetChannel):
+            reset = op.gate
             # Do a silent measurement.
             bits, _ = wave_function.measure_state_vector(
                 data.state, indices, out=data.state, qid_shape=data.state.shape)
@@ -330,9 +330,9 @@ class Simulator(simulator.SimulatesSamples,
                               measurements: Dict[str, List[int]],
                               num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computational basis."""
-        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
-        if meas:
+        if isinstance(op.gate, ops.MeasurementGate):
+            meas = op.gate
             invert_mask = meas.full_invert_mask()
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(

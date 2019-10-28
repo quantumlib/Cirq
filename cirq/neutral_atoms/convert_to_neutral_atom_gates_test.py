@@ -59,8 +59,7 @@ def test_avoids_decompose_fallback_when_matrix_available_single_qubit():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
     cirq.neutral_atoms.ConvertToNeutralAtomGates().optimize_circuit(c)
-    cirq.testing.assert_has_diagram(
-        c, '(0, 0): ───PhasedX(1.0)───PhasedX(1.0)───')
+    cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1.0)───PhX(1.0)───')
 
 
 def test_avoids_decompose_fallback_when_matrix_available_two_qubit():

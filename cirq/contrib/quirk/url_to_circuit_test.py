@@ -14,10 +14,12 @@
 import json
 import urllib
 
+import numpy as np
 import pytest
 
 import cirq
 from cirq.contrib.quirk import quirk_url_to_circuit, quirk_json_to_circuit
+from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
 
 
 def test_parse_simple_cases():
@@ -76,11 +78,6 @@ def test_parse_not_supported_yet():
         _ = quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols": [[]], "gates": []}')
 
-    with pytest.raises(NotImplementedError,
-                       match='initial states not supported yet'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [[]], "init": []}')
-
 
 def test_parse_with_qubits():
     a = cirq.GridQubit(0, 0)
@@ -119,3 +116,42 @@ def test_extra_cell_makers():
         'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
         extra_cell_makers={'iswap': cirq.ISWAP}) == cirq.Circuit(
             cirq.ISWAP(*cirq.LineQubit.range(2)))
+
+
+def test_init():
+    b, c, d, e, f = cirq.LineQubit.range(1, 6)
+    assert_url_to_circuit_returns(
+        '{"cols":[],"init":[0,1,"+","-","i","-i"]}',
+        cirq.Circuit(cirq.X(b),
+                     cirq.Ry(np.pi / 2).on(c),
+                     cirq.Ry(-np.pi / 2).on(d),
+                     cirq.Rx(-np.pi / 2).on(e),
+                     cirq.Rx(np.pi / 2).on(f)))
+
+    assert_url_to_circuit_returns('{"cols":[],"init":["+"]}',
+                                  output_amplitudes_from_quirk=[{
+                                      "r": 0.7071067690849304,
+                                      "i": 0
+                                  }, {
+                                      "r": 0.7071067690849304,
+                                      "i": 0
+                                  }])
+
+    assert_url_to_circuit_returns('{"cols":[],"init":["i"]}',
+                                  output_amplitudes_from_quirk=[{
+                                      "r": 0.7071067690849304,
+                                      "i": 0
+                                  }, {
+                                      "r":
+                                      0,
+                                      "i":
+                                      0.7071067690849304
+                                  }])
+
+    with pytest.raises(ValueError, match="init must be a list"):
+        _ = cirq.contrib.quirk.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[],"init":0}')
+
+    with pytest.raises(ValueError, match="Unrecognized init state"):
+        _ = cirq.contrib.quirk.quirk_url_to_circuit(
+            'http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
