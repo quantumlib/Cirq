@@ -630,7 +630,7 @@ class PauliString(raw_types.Operation):
         if not self.keys() <= set(qubits):
             raise ValueError('not self.keys() <= set(qubits)')
         # pylint: disable=too-many-function-args
-        pauli_mask = [self.get(q, common_gates.I) for q in qubits]
+        pauli_mask = [self.get(q, identity.I) for q in qubits]
         # pylint: enable=too-many-function-args
         return DensePauliString(pauli_mask, coefficient=self.coefficient)
 
