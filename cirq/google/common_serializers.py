@@ -218,3 +218,20 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
                                              value_func=lambda _: 0.5),
         ]),
 ]
+"""CZ Serializer"""
+CZ_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.CZPowGate,
+    serialized_gate_id='cz',
+    args=[
+        op_serializer.SerializingArg(serialized_name='half_turns',
+                                     serialized_type=float,
+                                     gate_getter='exponent')
+    ])
+"""CZ Deserializer"""
+CZ_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='cz',
+    gate_constructor=ops.CZPowGate,
+    args=[
+        op_deserializer.DeserializingArg(serialized_name='half_turns',
+                                         constructor_arg_name='exponent')
+    ])

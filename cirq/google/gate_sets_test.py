@@ -33,7 +33,7 @@ def test_serialize_exp_w(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -66,7 +66,7 @@ def test_serialize_exp_w_parameterized_half_turns(gate, axis_half_turns,
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -91,7 +91,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -120,12 +120,17 @@ def test_serialize_exp_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
     assert cg.XMON.serialize_op_dict(gate.on(q)) == {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
+                }
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
                 }
             }
         },
@@ -140,11 +145,16 @@ def test_serialize_exp_z_parameterized():
     gate = cirq.Z**sympy.Symbol('x')
     assert cg.XMON.serialize_op_dict(gate.on(q)) == {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'symbol': 'x'
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
+                }
             }
         },
         'qubits': [{
@@ -162,14 +172,14 @@ def test_serialize_exp_11(gate, half_turns):
     t = cirq.GridQubit(1, 3)
     assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
                 }
-            }
+            },
         },
         'qubits': [{
             'id': '1_2'
@@ -185,7 +195,7 @@ def test_serialize_exp_11_parameterized():
     gate = cirq.CZ**sympy.Symbol('x')
     assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
@@ -321,7 +331,7 @@ def test_serialize_schedule():
 def test_deserialize_exp_w(axis_half_turns, half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -348,7 +358,7 @@ def test_deserialize_exp_w(axis_half_turns, half_turns):
 def test_deserialize_exp_w_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -372,12 +382,17 @@ def test_deserialize_exp_w_parameterized():
 def test_deserialize_exp_z(half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
+                }
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
                 }
             }
         },
@@ -393,11 +408,16 @@ def test_deserialize_exp_z(half_turns):
 def test_deserialize_exp_z_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'symbol': 'x'
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
+                }
             }
         },
         'qubits': [{
@@ -413,7 +433,7 @@ def test_deserialize_exp_z_parameterized():
 def test_deserialize_exp_11(half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
@@ -437,7 +457,7 @@ def test_deserialize_exp_11(half_turns):
 def test_deserialize_exp_11_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {

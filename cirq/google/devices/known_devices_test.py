@@ -27,7 +27,7 @@ def test_foxtail_device_proto():
 valid_gate_sets {
   name: "xmon"
   valid_gates {
-    id: "exp_w"
+    id: "xy"
     number_of_qubits: 1
     valid_args {
       name: "axis_half_turns"
@@ -40,15 +40,19 @@ valid_gate_sets {
     gate_duration_picos: 20000
   }
   valid_gates {
-    id: "exp_z"
+    id: "z"
     number_of_qubits: 1
     valid_args {
       name: "half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
   }
   valid_gates {
-    id: "exp_11"
+    id: "cz"
     number_of_qubits: 2
     valid_args {
       name: "half_turns"
