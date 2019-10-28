@@ -7,45 +7,51 @@ from cirq import FSimGate, unitary
 from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
 from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity
 
-theta = np.pi / 4
-phi = np.pi / 24
-base = unitary(FSimGate(theta, phi))
 
-max_infidelity = 1e-2
-start = time()
-tabulation = gate_product_tabulation(base, max_infidelity)
-print(f'Gate tabulation time : {time() - start} seconds.')
+def main():
+    theta = np.pi / 4
+    phi = np.pi / 24
+    base = unitary(FSimGate(theta, phi))
 
-samples = 1000
-unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(samples)
-target = unitaries[0]
+    max_infidelity = 1e-2
+    start = time()
+    tabulation = gate_product_tabulation(base, max_infidelity, verbose=True)
+    print(f'Gate tabulation time : {time() - start} seconds.')
 
-infidelities = []
-failed_infidelities = []
-start = time()
-for target in unitaries:
-    local_us, actual, success = tabulation.compile_two_qubit_gate(target)
-    infidelity = 1 - unitary_entanglement_fidelity(target, actual)
-    if success:
-        infidelities.append(infidelity)
-    else:
-        failed_infidelities.append(infidelity)
-t_comp = time() - start
-print(f'Gate compilation time : {t_comp:.3f} seconds '
-      f'({t_comp / samples:.4f} s per gate)')
+    samples = 1000
+    unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(samples)
+    target = unitaries[0]
 
-infidelities = np.array(infidelities)
-failed_infidelities = np.array(failed_infidelities)
+    infidelities = []
+    failed_infidelities = []
+    start = time()
+    for target in unitaries:
+        local_us, actual, success = tabulation.compile_two_qubit_gate(target)
+        infidelity = 1 - unitary_entanglement_fidelity(target, actual)
+        if success:
+            infidelities.append(infidelity)
+        else:
+            failed_infidelities.append(infidelity)
+    t_comp = time() - start
+    print(f'Gate compilation time : {t_comp:.3f} seconds '
+          f'({t_comp / samples:.4f} s per gate)')
 
-plt.figure()
-plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])
-ylim = plt.ylim()
-plt.plot([max_infidelity] * 2,
-         ylim,
-         '--',
-         label='Maximum tabulation infidelity')
-plt.xlabel('Compiled gate infidelity vs target')
-plt.ylabel('Counts')
-plt.legend()
-plt.title(f'Base FSim(theta={theta:.4f}, phi={phi:.4f})')
-plt.show()
+    infidelities = np.array(infidelities)
+    failed_infidelities = np.array(failed_infidelities)
+
+    plt.figure()
+    plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])
+    ylim = plt.ylim()
+    plt.plot([max_infidelity] * 2,
+             ylim,
+             '--',
+             label='Maximum tabulation infidelity')
+    plt.xlabel('Compiled gate infidelity vs target')
+    plt.ylabel('Counts')
+    plt.legend()
+    plt.title(f'Base FSim(theta={theta:.4f}, phi={phi:.4f})')
+    plt.show()
+
+
+if __name__ == '__main__':
+    main()
