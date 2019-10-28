@@ -51,7 +51,7 @@ from cirq.protocols.decompose_protocol import (
     SupportsDecompose,
     SupportsDecomposeWithQubits,
 )
-from cirq.protocols.equal_up_to_global_phase import (
+from cirq.protocols.equal_up_to_global_phase_protocol import (
     equal_up_to_global_phase,)
 from cirq.protocols.inverse_protocol import (
     inverse,)
@@ -64,7 +64,7 @@ from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
 )
-from cirq.protocols.mixture import (
+from cirq.protocols.mixture_protocol import (
     has_mixture,
     has_mixture_channel,
     mixture,
@@ -72,16 +72,13 @@ from cirq.protocols.mixture import (
     SupportsMixture,
     validate_mixture,
 )
-from cirq.protocols.mul import (
-    mul,
-)
-from cirq.protocols.pauli_expansion import (
-    pauli_expansion,
-)
+from cirq.protocols.mul_protocol import (
+    mul,)
+from cirq.protocols.pauli_expansion_protocol import (
+    pauli_expansion,)
 # pylint: disable=redefined-builtin
-from cirq.protocols.pow import (
-    pow,
-)
+from cirq.protocols.pow_protocol import (
+    pow,)
 # pylint: enable=redefined-builtin
 from cirq.protocols.qasm import (
     qasm,
@@ -100,7 +97,7 @@ from cirq.protocols.resolve_parameters import (
     resolve_parameters,
     SupportsParameterization,
 )
-from cirq.protocols.phase import (
+from cirq.protocols.phase_protocol import (
     phase_by,
     SupportsPhase,
 )
@@ -114,7 +111,7 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
-from cirq.protocols.has_unitary import (
+from cirq.protocols.has_unitary_protocol import (
     has_unitary,
     SupportsExplicitHasUnitary,
 )

@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq.linalg import operator_spaces
-from cirq.ops import common_gates, raw_types, pauli_gates, pauli_string
+from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 from cirq.value.linear_dict import _format_terms
 
@@ -107,7 +107,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         if self.num_qubits() != 1:
             return NotImplemented
         pauli_basis = {
-            common_gates.I,
+            identity.I,
             pauli_gates.X,
             pauli_gates.Y,
             pauli_gates.Z,
@@ -115,14 +115,14 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         if not set(self.keys()).issubset(pauli_basis):
             return NotImplemented
 
-        ai = self[common_gates.I]
+        ai = self[identity.I]
         ax = self[pauli_gates.X]
         ay = self[pauli_gates.Y]
         az = self[pauli_gates.Z]
         bi, bx, by, bz = operator_spaces.pow_pauli_combination(
             ai, ax, ay, az, exponent)
         return LinearCombinationOfGates({
-            common_gates.I: bi,
+            identity.I: bi,
             pauli_gates.X: bx,
             pauli_gates.Y: by,
             pauli_gates.Z: bz
@@ -204,7 +204,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         if len(self.qubits) != 1:
             return NotImplemented
         qubit = self.qubits[0]
-        i = common_gates.I(qubit)
+        i = identity.I(qubit)
         x = pauli_gates.X(qubit)
         y = pauli_gates.Y(qubit)
         z = pauli_gates.Z(qubit)
