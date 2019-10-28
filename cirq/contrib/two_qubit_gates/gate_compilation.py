@@ -266,7 +266,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         missing_unitary = KAK_vector_to_unitary(missing_vec)
 
         products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals,
-                                missing_unitary)
+                             missing_unitary)
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
@@ -289,7 +289,6 @@ def gate_product_tabulation(base_gate: np.ndarray,
                 kak_vector(base_gate @ actual, check_preconditions=False))
         else:
             warn(f'Failed to tabulate a KAK vector near {missing_vec}')
-
 
     kak_vecs = np.array(kak_vecs)
     print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
