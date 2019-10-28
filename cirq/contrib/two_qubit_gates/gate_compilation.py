@@ -176,7 +176,7 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((KAK_mesh - vec)**2, axis=-1))
+        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -221,19 +221,24 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     num_samples = mesh_points.shape[0] * 50
 
+    # include the base gate itself
+    kak_vecs = [kak_vector(base_gate, check_preconditions=False)]
+    sq_cycles: List[Tuple[_SingleQubitGatePair, ...]] = [()]
+
     # Tabulate gates that are close to gates in the mesh
     u_locals_0 = random_qubit_unitary(num_samples)
     u_locals_1 = random_qubit_unitary(num_samples)
 
     u_locals_for_gate: Dict[int, Tuple[_SingleQubitGatePair, ...]] = {}
     tabulation_cutoff = 0.5 * spacing
-    kak_vecs, sq_cycles = _tabulate_KAK_vectors(u_locals_for_gate, base_gate,
-                                                tabulation_cutoff, mesh_points,
-                                                (u_locals_0, u_locals_1))
+    out = _tabulate_KAK_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
+                                mesh_points, (u_locals_0, u_locals_1))
+    kak_vecs.extend(out[0])
+    sq_cycles.extend(out[1])
 
     # Will be used later for getting missing KAK vectors.
-    kak_vecs_single = np.array(kak_vecs)
-    sq_cycles_single = list(sq_cycles)
+    kak_vecs_single = np.array(kak_vecs[1:])
+    sq_cycles_single = list(sq_cycles[1:])
 
     if verbose:
         print(f'fraction satisfied with 2 gates'
@@ -247,10 +252,6 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     kak_vecs.extend(out[0])
     sq_cycles.extend(out[1])
-
-    # include the base gate itself
-    kak_vecs.append(kak_vector(base_gate, check_preconditions=False))
-    sq_cycles.append(())
 
     if verbose:
         print(f'fraction satisfied with 2 gates and 3 gates(same single qubit)'
@@ -292,7 +293,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
@@ -315,6 +316,6 @@ def gate_product_tabulation(base_gate: np.ndarray,
     kak_vecs = np.array(kak_vecs)
     if verbose:
         print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
-              f': {len(kak_vecs) / mesh_points.shape[0]:.3f}')
+              f': {(len(kak_vecs) - 1) / mesh_points.shape[0]:.3f}')
 
     return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity)

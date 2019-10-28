@@ -32,7 +32,20 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
 
 @pytest.mark.parametrize('tabulation',
                          [sycamore_tabulation, sqrt_iswap_tabulation])
-def test_gate_compilation_on_base_gate(tabulation):
+def test_gate_compilation_on_base_gate_standard(tabulation):
+    base_gate = tabulation.base_gate
+
+    local_gates, actual, success = tabulation.compile_two_qubit_gate(base_gate)
+
+    assert len(local_gates) == 2
+    assert success
+    assert unitary_entanglement_fidelity(actual, base_gate) > 0.99999
+
+
+def test_gate_compilation_on_base_gate_identity():
+    tabulation = gate_product_tabulation(numpy.eye(4),
+                                         0.25,
+                                         include_warnings=False)
     base_gate = tabulation.base_gate
 
     local_gates, actual, success = tabulation.compile_two_qubit_gate(base_gate)
