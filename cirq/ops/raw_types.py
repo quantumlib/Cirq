@@ -164,8 +164,8 @@ class Tag:
     prevent optimization or decomposing special gates).
 
     Example:
-        >>> gate1 = cirq.XPowGate(exponent=1.0)
-        >>> gate1.add_tag(cirq.Tag('do_not_touch'))
+        >>> gate1 = cirq.XPowGate(exponent=1.0).add_tag(
+        ...     cirq.Tag('do_not_touch'))
         >>> gate1.tags()
         [Tag('do_not_touch')]
         >>> class NoTouchy(cirq.Tag):
