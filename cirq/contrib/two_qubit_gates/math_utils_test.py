@@ -20,8 +20,8 @@ def _four_2Q_unitaries():
     g = numpy.random.random((4, 4)) + numpy.random.random((4, 4)) * 1j
     g += g.conj().T
     evals, evecs = numpy.linalg.eigh(g)
-    unitaries.append(numpy.einsum('ab,b,cb->ac', evecs, numpy.exp(1j * evals),
-                                  evecs.conj()))
+    unitaries.append(
+        numpy.einsum('ab,b,cb->ac', evecs, numpy.exp(1j * evals), evecs.conj()))
 
     theta = 1.3
     c, s = numpy.cos(theta), numpy.sin(theta)
@@ -33,9 +33,6 @@ def _four_2Q_unitaries():
 
 
 _unitaries, _k_vecs = random_two_qubit_unitaries_and_kak_vecs(100)
-
-
-
 
 CNOT = numpy.zeros((4, 4))
 CNOT[(0, 1, 2, 3), (0, 1, 3, 2)] = 1
@@ -51,14 +48,8 @@ XX[(0, 1, 2, 3), (3, 2, 1, 0)] = 1.0
 invs = [(0, 0, 1), (-1, 0, -3), (0, 0, 1), (1, 0, 3)]
 cases = tuple(zip((CNOT, SWAP, CZ, CZ @ CZ), invs))
 
-
-cases = [(numpy.eye(4), (0, 0, 0)),
-         (SWAP, numpy.ones((3,)) * numpy.pi / 4),
+cases = [(numpy.eye(4), (0, 0, 0)), (SWAP, numpy.ones((3,)) * numpy.pi / 4),
          (ISWAP, [numpy.pi / 4, numpy.pi / 4, 0]),
          (ISWAP.conj(), [numpy.pi / 4, numpy.pi / 4, 0]),
          (CNOT, [numpy.pi / 4, 0, 0]),
-         (CNOT @ SWAP, [numpy.pi / 4, numpy.pi / 4, 0]),
-         (XX, [0, 0, 0])
-         ]
-
-
+         (CNOT @ SWAP, [numpy.pi / 4, numpy.pi / 4, 0]), (XX, [0, 0, 0])]

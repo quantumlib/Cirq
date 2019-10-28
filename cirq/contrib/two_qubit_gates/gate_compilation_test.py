@@ -8,8 +8,10 @@ from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_a
 
 numpy.random.seed(11)  # for determinism
 
-sycamore_tabulation = gate_product_tabulation(
-    unitary(FSimGate(numpy.pi / 2, numpy.pi / 6)), 2e-2, include_warnings=False)
+sycamore_tabulation = gate_product_tabulation(unitary(
+    FSimGate(numpy.pi / 2, numpy.pi / 6)),
+                                              2e-2,
+                                              include_warnings=False)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
     unitary(FSimGate(numpy.pi / 4, numpy.pi / 24)), 1e-2)

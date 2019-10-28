@@ -54,7 +54,8 @@ class GateTabulation(object):
         """
         unitary = np.asarray(unitary)
         kak_vec = kak_vector(unitary, check_preconditions=False)
-        infidelities = KAK_vector_infidelity(kak_vec, self.KAK_vecs,
+        infidelities = KAK_vector_infidelity(kak_vec,
+                                             self.KAK_vecs,
                                              ignore_equivalent_vectors=True)
         nearest_ind = infidelities.argmin()
 
@@ -64,8 +65,8 @@ class GateTabulation(object):
         inner_gates = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
-            outer_locals, actual = _outer_locals_for_unitary(unitary,
-                                                             self.base_gate)
+            outer_locals, actual = _outer_locals_for_unitary(
+                unitary, self.base_gate)
             return outer_locals, actual, success
 
         # reshape to operators on 2 qubits, (n,4,4)
@@ -73,8 +74,8 @@ class GateTabulation(object):
                                   inner_gates[..., 1, :, :])
 
         assert inner_gates.ndim == 3
-        inner_product = reduce(lambda a, b: self.base_gate @ b @ a,
-                               inner_gates, self.base_gate)
+        inner_product = reduce(lambda a, b: self.base_gate @ b @ a, inner_gates,
+                               self.base_gate)
         outer_locals, actual = _outer_locals_for_unitary(unitary, inner_product)
 
         out = [outer_locals[0]]
@@ -128,7 +129,9 @@ def _outer_locals_for_unitary(
 
 def _tabulate_KAK_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
-        base_gate: np.ndarray, max_dist: float, KAK_mesh: np.ndarray,
+        base_gate: np.ndarray,
+        max_dist: float,
+        KAK_mesh: np.ndarray,
         *local_unitary_pairs: _SingleQubitGatePair,
 ) -> Tuple[List[np.ndarray], List[Tuple[_SingleQubitGatePair, ...]]]:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
@@ -173,11 +176,11 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((KAK_mesh - vec)**2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
-        cycles_for_gate = tuple((k_0[ind], k_1[ind])
-                                for k_0, k_1 in local_unitary_pairs)
+        cycles_for_gate = tuple(
+            (k_0[ind], k_1[ind]) for k_0, k_1 in local_unitary_pairs)
 
         kept = False
         for mesh_ind in close:
@@ -250,8 +253,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
           f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
 
     # If all KAK vectors in the mesh have been tabulated, return.
-    missing_vec_inds = set(range(mesh_points.shape[0])) - set(
-        u_locals_for_gate)
+    missing_vec_inds = set(range(mesh_points.shape[0])) - set(u_locals_for_gate)
 
     if not missing_vec_inds:
         return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
@@ -286,7 +288,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
@@ -297,8 +299,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
             base_product = base_gate @ old_k @ base_gate
             new_product = products[new_ind]
 
-            (kR, kL), actual = _outer_locals_for_unitary(new_product,
-                                                         base_product)
+            (kR,
+             kL), actual = _outer_locals_for_unitary(new_product, base_product)
             # Add to the enumeration
             sq_cycles.append((old_sq_cycle, kL))
             kak_vecs.append(

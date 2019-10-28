@@ -40,7 +40,9 @@ failed_infidelities = np.array(failed_infidelities)
 plt.figure()
 plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])
 ylim = plt.ylim()
-plt.plot([max_infidelity] * 2, ylim, '--',
+plt.plot([max_infidelity] * 2,
+         ylim,
+         '--',
          label='Maximum tabulation infidelity')
 plt.xlabel('Compiled gate infidelity vs target')
 plt.ylabel('Counts')
