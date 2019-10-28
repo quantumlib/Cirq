@@ -34,9 +34,10 @@ class SycamoreGate(ops.FSimGate):
          [0, -1j, 0, 0],
          [0, 0, 0, exp(- 1j * π/6)]]
 
-    This gate can be performed on the Sycamore chip by Google and
-    was used to demonstrate quantum supremacy as can be seen in
-    this paper: https://www.nature.com/articles/s41586-019-1666-5.
+    This gate can be performed on the Google's Sycamore chip and
+    is close to the gates that were used to demonstrate quantum
+    supremacy used in this paper:
+    https://www.nature.com/articles/s41586-019-1666-5.
     """
 
     def __init__(self):
