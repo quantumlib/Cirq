@@ -278,6 +278,10 @@ TEST_OBJECTS = {
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'SYC':
+    cirq.SYC,
+    'SycamoreGate':
+    cirq.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
@@ -500,6 +504,7 @@ NOT_YET_SERIALIZABLE = [
     'SparseSimulatorStep',
     'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
