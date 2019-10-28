@@ -19,8 +19,7 @@ def test_foxtail_qubits():
     for i in range(0, 2):
         for j in range(0, 11):
             expected_qubits.append(cirq.GridQubit(i, j))
-    assert set(
-        expected_qubits) == cirq.google.devices.known_devices.Foxtail.qubits
+    assert set(expected_qubits) == cirq.google.Foxtail.qubits
 
 
 def test_foxtail_device_proto():
