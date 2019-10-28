@@ -343,6 +343,10 @@ class Operation(metaclass=abc.ABCMeta):
     """
 
     @property
+    def gate(self) -> Optional[Gate]:
+        return None
+
+    @property
     @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()

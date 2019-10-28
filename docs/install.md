@@ -83,6 +83,14 @@ That way you have control over when a breaking change affects you.
     python -m pip install cirq[contrib]
     ```
 
+    Install system dependencies that pip can't handle.
+
+    ```bash
+    brew cask install mactex
+    ```
+
+    - Without `mactex`, pdf writing functionality will not work.
+
 4. Check that it works!
 
     ```bash

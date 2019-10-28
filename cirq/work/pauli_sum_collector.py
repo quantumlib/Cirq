@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import collections
-from typing import Optional, MutableMapping, cast, Union
+from typing import cast, Dict, Optional, Union
 
 import numpy as np
 
@@ -54,10 +54,10 @@ class PauliSumCollector(collector.Collector):
             if not p:
                 self._identity_offset += p.coefficient
 
-        self._zeros = collections.defaultdict(
-            lambda: 0)  # type: MutableMapping[ops.PauliString, int]
-        self._ones = collections.defaultdict(
-            lambda: 0)  # type: MutableMapping[ops.PauliString, int]
+        self._zeros: Dict[ops.PauliString, int] = collections.defaultdict(
+            lambda: 0)
+        self._ones: Dict[ops.PauliString, int] = collections.defaultdict(lambda:
+                                                                         0)
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
