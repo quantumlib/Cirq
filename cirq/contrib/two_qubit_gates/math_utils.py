@@ -5,6 +5,8 @@ from typing import Tuple, Union
 import numpy as np
 from matplotlib import pyplot
 
+from cirq import kak_vector
+
 TWO_PI = np.pi * 2
 
 _RealArraylike = Union[np.ndarray, float]
@@ -90,61 +92,19 @@ _gamma = np.array([[1, 1, 1, 1],
                    [1, -1, -1, 1]]) * 0.25
 
 
-def canonicalize_kak_vector(k_vec: np.ndarray,
-                            atol: float = 1e-8) -> np.ndarray:
-    r"""Map a KAK vector into its Weyl chamber equivalent vector.
-
-    This implementation is vectorized but does not produce the single qubit
-    unitaries required to bring the KAK vector into canonical form.
-
-    Args:
-        k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
-            with shape (...,3), where the final axis denotes the k_vector and
-            all other axes are broadcast.
-        atol: How close x2 must be to π/4 to guarantee z2 >= 0.
-
-    Returns:
-        The canonicalized decomposition, with vector coefficients (x2, y2, z2)
-        satisfying:
-
-            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
-            if x2 = π/4, z2 >= 0
-        The output is vectorized, with shape k_vec.shape[:-1] + (3,).
-    """
-    k_vec = np.asarray(k_vec)
-    # Get all strengths to (-¼π, ¼π]
-    k_vec = np.mod(k_vec + np.pi / 4, np.pi / 2) - np.pi / 4
-
-    # Sort in descending order with respect to absolute value.
-    order = np.argsort(np.abs(k_vec), axis=-1)
-    k_vec = np.take_along_axis(k_vec, order, axis=-1)[..., ::-1]
-
-    # Multiply x,z and y,z components by -1 to fix x,y sign.
-    x_negative = k_vec[..., 0] < 0
-    k_vec[x_negative, 0] *= -1
-    k_vec[x_negative, 2] *= -1
-    y_negative = k_vec[..., 1] < 0
-    k_vec[y_negative, 1] *= -1
-    k_vec[y_negative, 2] *= -1
-
-    # If x = π/4, force z to be positive.
-    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=atol)
-    z_is_negative = k_vec[..., 2] < 0
-    need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
-    # -1 to x and z components, then shift x up by pi/2. Since x is pi/4, we
-    # actually do nothing to that index.
-    k_vec[need_diff, 2] *= -1
-
-    return k_vec
-
-
 def KAK_infidelity(unitary_a: np.ndarray,
                    unitary_b: np.ndarray,
                    ignore_equivalent_vectors: bool = False) -> np.ndarray:
     """Minimum entanglement infidelity between two unitaries, up to local gates.
+
+    This is the minimum of
+    1 - F_e(U_a, k_L U_b k_R)
+    where F_e is the entanglement fidelity, taken over all 1-local unitaries
+    k_L and k_R.
     """
-    return KAK_vector_infidelity(KAK_vector(unitary_a), KAK_vector(unitary_b),
-                                 ignore_equivalent_vectors)
+    kak_a = kak_vector(unitary_a, check_preconditions=False)
+    kak_b = kak_vector(unitary_b, check_preconditions=False)
+    return KAK_vector_infidelity(kak_a, kak_b, ignore_equivalent_vectors)
 
 
 # all permutations of (1,2,3)
@@ -165,7 +125,7 @@ _offsets[1, (0, 1)] = np.pi / 2
 
 
 def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
-    """Generates all KAK vectors equivalent under a given KAK decomposition."""
+    """Generates all KAK vectors equivalent under single qubit unitaries."""
     kak_vec = np.asarray(kak_vec)
     # Produce all shift-negations of the kak vector
     out = np.einsum('nab,...b->...na', _negations, kak_vec,
@@ -183,7 +143,7 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
                           ) -> np.ndarray:
-    """Minimum entanglement fidelity error between two KAK vectors. """
+    """Minimum entanglement infidelity between two KAK vectors. """
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
         out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
@@ -191,7 +151,7 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
         return out
 
     # We must take the minimum infidelity over all possible locally equivalent
-    # KAK vectors
+    # KAK vectors. We need only consider equivalent vectors of one input.
     k_vec_a = np.asarray(k_vec_a)[..., np.newaxis, :]  # (...,1,3)
     k_vec_b = _kak_equivalent_vectors(np.asarray(k_vec_b))  # (...,24,3)
 
@@ -233,7 +193,7 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
     """Cubic mesh of points in the Weyl chamber.
 
     Args:
-        spacing: Distance between neighboring KAK vectors.
+        spacing: Euclidean distance between neighboring KAK vectors.
 
     Returns:
         np.ndarray of shape (N,3) corresponding to the points in the Weyl
