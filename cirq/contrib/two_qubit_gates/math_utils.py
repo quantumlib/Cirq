@@ -1,5 +1,4 @@
-from functools import reduce
-from itertools import chain, permutations, product
+from itertools import permutations
 from typing import Tuple, Union
 
 import numpy as np
