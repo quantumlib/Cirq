@@ -135,13 +135,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         self._dtype = dtype
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-
-        if seed is None:
-            self.prng = None
-        elif isinstance(seed, np.random.RandomState):
-            self.prng = seed
-        else:
-            self.prng = np.random.RandomState(seed)
+        self._seed = seed
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -170,7 +164,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                ops.MeasurementGate)]
         return step_result.sample_measurement_ops(measurement_ops,
                                                   repetitions,
-                                                  seed=self.prng)
+                                                  seed=self._seed)
 
     def _run_sweep_repeat(self,
                           circuit: circuits.Circuit,
@@ -285,7 +279,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             indices,
                             qid_shape=qid_shape,
                             out=state.tensor,
-                            seed=self.prng)
+                            seed=self._seed)
                         corrected = [
                             bit ^ (bit < 2 and mask)
                             for bit, mask in zip(bits, invert_mask)

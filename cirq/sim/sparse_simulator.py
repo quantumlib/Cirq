@@ -21,7 +21,7 @@ from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
-from cirq.sim import simulator, wave_function, wave_function_simulator
+from cirq.sim import random, simulator, wave_function, wave_function_simulator
 
 
 class _FlipGate(ops.SingleQubitGate):
@@ -147,13 +147,7 @@ class Simulator(simulator.SimulatesSamples,
             raise ValueError(
                 'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
-
-        if seed is None:
-            self.prng = None
-        elif isinstance(seed, np.random.RandomState):
-            self.prng = seed
-        else:
-            self.prng = np.random.RandomState(seed)
+        self._seed = seed
 
     def _run(
         self,
@@ -188,7 +182,7 @@ class Simulator(simulator.SimulatesSamples,
                                    ops.MeasurementGate)]
         return step_result.sample_measurement_ops(measurement_ops,
                                                   repetitions,
-                                                  seed=self.prng)
+                                                  seed=self._seed)
 
     def _run_sweep_repeat(
         self,
@@ -340,7 +334,7 @@ class Simulator(simulator.SimulatesSamples,
                 indices,
                 out=data.state,
                 qid_shape=data.state.shape,
-                seed=self.prng)
+                seed=self._seed)
             corrected = [
                 bit ^ (bit < 2 and mask)
                 for bit, mask in zip(bits, invert_mask)
@@ -355,7 +349,7 @@ class Simulator(simulator.SimulatesSamples,
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
-        prng = self.prng or np.random
+        prng = random.prng_from_seed(self._seed)
         index = prng.choice(range(len(unitaries)), p=probs)
         shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)

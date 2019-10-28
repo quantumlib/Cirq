@@ -19,7 +19,7 @@ import numpy as np
 from scipy.stats import entropy
 
 from cirq import linalg, value
-from cirq.sim import wave_function
+from cirq.sim import random, wave_function
 
 
 def to_valid_density_matrix(
@@ -136,12 +136,7 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = random.prng_from_seed(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -218,12 +213,7 @@ def measure_density_matrix(
         return ([], out)
         # Final else: if out is matrix then matrix will be modified in place.
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = random.prng_from_seed(seed)
 
     # Cache initial shape.
     initial_shape = density_matrix.shape

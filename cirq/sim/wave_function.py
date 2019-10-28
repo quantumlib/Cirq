@@ -21,7 +21,7 @@ import abc
 import numpy as np
 
 from cirq import linalg, ops, value
-from cirq.sim import simulator
+from cirq.sim import random, simulator
 
 
 class StateVectorMixin():
@@ -443,12 +443,7 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = random.prng_from_seed(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, qid_shape)
@@ -519,12 +514,7 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = random.prng_from_seed(seed)
 
     # Cache initial shape.
     initial_shape = state.shape

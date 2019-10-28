@@ -34,6 +34,9 @@ from cirq.sim.mux import (
     sample_sweep,
 )
 
+from cirq.sim.random import (
+    prng_from_seed,)
+
 from cirq.sim.simulator import (
     SimulatesAmplitudes,
     SimulatesFinalState,
