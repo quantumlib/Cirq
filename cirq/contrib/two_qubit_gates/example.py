@@ -1,6 +1,7 @@
+from time import time
+
 from matplotlib import pyplot as plt
 import numpy as np
-from tqdm import tqdm
 
 from cirq import FSimGate, unitary
 from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
@@ -11,20 +12,27 @@ phi = np.pi / 24
 base = unitary(FSimGate(theta, phi))
 
 max_infidelity = 1e-2
+start = time()
 tabulation = gate_product_tabulation(base, max_infidelity)
+print(f'Gate tabulation time : {time() - start} seconds.')
 
-unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(1000)
+samples = 1000
+unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(samples)
 target = unitaries[0]
 
 infidelities = []
 failed_infidelities = []
-for target in tqdm(unitaries):
+start = time()
+for target in unitaries:
     local_us, actual, success = tabulation.compile_two_qubit_gate(target)
     infidelity = 1 - unitary_entanglement_fidelity(target, actual)
     if success:
         infidelities.append(infidelity)
     else:
         failed_infidelities.append(infidelity)
+t_comp = time() - start
+print(f'Gate compilation time : {t_comp:.3f} seconds '
+      f'({t_comp / samples:.4f} s per gate)')
 
 infidelities = np.array(infidelities)
 failed_infidelities = np.array(failed_infidelities)
