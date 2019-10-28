@@ -32,9 +32,9 @@ class _TestDevice(cirq.Device):
         self.qubits = [cirq.LineQubit(x) for x in range(10)]
 
     def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
-        if cirq.op_gate_of_type(operation, cirq.HPowGate):
+        if isinstance(operation.gate, cirq.HPowGate):
             return cirq.Duration(nanos=20)
-        if cirq.op_gate_of_type(operation, cirq.CZPowGate):
+        if isinstance(operation.gate, cirq.CZPowGate):
             return cirq.Duration(nanos=40)
         raise ValueError('Unsupported operation: {!r}'.format(operation))
 
@@ -66,7 +66,7 @@ class _TestDevice(cirq.Device):
             scheduled_operation: cirq.ScheduledOperation):
         op = scheduled_operation.operation
         self.validate_operation(op)
-        if cirq.op_gate_of_type(op, cirq.CZPowGate):
+        if isinstance(op.gate, cirq.CZPowGate):
             for other in schedule.operations_happening_at_same_time_as(
                     scheduled_operation):
                 if self.check_if_cz_adjacent(op, other.operation):
@@ -75,7 +75,7 @@ class _TestDevice(cirq.Device):
 
     def check_if_cz_adjacent(self, cz_op: cirq.Operation,
                              other_op: cirq.Operation):
-        if cirq.op_gate_of_type(other_op, cirq.HPowGate):
+        if isinstance(other_op.gate, cirq.HPowGate):
             return False
         return any(cast(cirq.LineQubit, q).is_adjacent(cast(cirq.LineQubit, p))
                    for q in cz_op.qubits

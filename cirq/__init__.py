@@ -86,10 +86,15 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
+    linear_xeb_fidelity_from_probabilities,
+    log_xeb_fidelity,
+    log_xeb_fidelity_from_probabilities,
     generate_boixo_2018_supremacy_circuits_v2,
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
+    xeb_fidelity,
 )
 
 from cirq.linalg import (
@@ -144,7 +149,6 @@ from cirq.linalg import (
 from cirq.ops import (
     amplitude_damp,
     AmplitudeDampingChannel,
-    ApproxPauliStringExpectation,
     ArithmeticOperation,
     asymmetric_depolarize,
     AsymmetricDepolarizingChannel,
@@ -166,7 +170,6 @@ from cirq.ops import (
     CZ,
     CZPowGate,
     DensePauliString,
-    DensityMatrixDisplay,
     depolarize,
     DepolarizingChannel,
     EigenGate,
@@ -185,8 +188,9 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
-    identity,
+    identity_each,
     IdentityGate,
+    IdentityOperation,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
@@ -204,7 +208,6 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    approx_pauli_string_expectation,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -231,13 +234,14 @@ from cirq.ops import (
     Ry,
     Rz,
     S,
-    SamplesDisplay,
     SingleQubitCliffordGate,
     SingleQubitGate,
     SingleQubitPauliStringGateOperation,
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
+    SYC,
+    SycamoreGate,
     T,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
@@ -246,7 +250,6 @@ from cirq.ops import (
     TwoQubitGate,
     TwoQubitMatrixGate,
     WaitGate,
-    WaveFunctionDisplay,
     X,
     XPowGate,
     XX,
@@ -288,6 +291,12 @@ from cirq.schedules import (
 
 from cirq.sim import (
     bloch_vector_from_state_vector,
+    StabilizerStateChForm,
+    CliffordSimulator,
+    CliffordState,
+    CliffordSimulatorStepResult,
+    CliffordTableau,
+    CliffordTrialResult,
     density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -321,7 +330,6 @@ from cirq.sim import (
 )
 
 from cirq.study import (
-    ComputeDisplaysResult,
     ExpressionMap,
     flatten,
     flatten_with_params,

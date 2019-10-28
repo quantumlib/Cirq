@@ -108,7 +108,7 @@ def fallback_qcircuit_diagram_info(
     args = args.with_args(use_unicode_characters=False)
     info = protocols.circuit_diagram_info(op, args, default=None)
     if info is None:
-        name = str(op.gate if isinstance(op, ops.GateOperation) else op)
+        name = str(op.gate or op)
         n_qubits = len(op.qubits)
         symbols = tuple('#{}'.format(i + 1) if i else name
                 for i in range( n_qubits))
