@@ -24,7 +24,7 @@ from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
 )
 
-from cirq.protocols.mixture import mixture
+from cirq.protocols.mixture_protocol import mixture
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -233,7 +233,7 @@ def apply_mixture(val: Any,
 
     # Verify that val has the same qid shape as the selected axes of the density
     # matrix tensor.
-    val, args, is_dm = _validate_input(val, args)
+    val, args, is_density_matrix = _validate_input(val, args)
 
     # Check if the specialized method is present. (STEP A)
     func = getattr(val, '_apply_mixture_', None)
@@ -252,18 +252,19 @@ def apply_mixture(val: Any,
             return result
 
     # Possibly use `cirq.apply_unitary`. (STEP B)
-    result = _apply_unitary_strat(val, args, is_dm)
+    result = _apply_unitary_strat(val, args, is_density_matrix)
     if result is not None:
         return result
 
     # Fallback to using the object's `_mixture_` matrices. (STEP C)
     prob_mix = mixture(val, None)
     if prob_mix is not None:
-        return _mixture_strat(prob_mix, args, is_dm)
+        return _mixture_strat(prob_mix, args, is_density_matrix)
 
     # Don't know how to apply mixture. Fallback to specified default behavior.
     # (STEP D)
     if default is not RaiseTypeErrorIfNotProvided:
+        print('HERE!')
         return default
     raise TypeError(
         "object of type '{}' has no _apply_mixture_, _apply_unitary_, "
@@ -277,7 +278,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs'
     density matrix or a wavefunction.
     """
 
-    is_dm = False
+    is_density_matrix = False
     val_qid_shape = qid_shape_protocol.qid_shape(val,
                                                  (2,) * len(args.left_axes))
     left_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
@@ -288,7 +289,7 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs'
                              val_qid_shape, left_shape))
 
     if args.right_axes is not None:
-        is_dm = True
+        is_density_matrix = True
 
         right_shape = tuple(
             args.target_tensor.shape[i] for i in args.right_axes)
@@ -299,11 +300,11 @@ def _validate_input(val: Any, args: 'ApplyMixtureArgs'
                 'target_tensor are not equal. Got {!r} and {!r}.'.format(
                     left_shape, right_shape))
 
-    return val, args, is_dm
+    return val, args, is_density_matrix
 
 
 def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
-                         is_dm: bool) -> Optional[np.ndarray]:
+                         is_density_matrix: bool) -> Optional[np.ndarray]:
     """Attempt to use `apply_unitary` and return the result.
 
     If `val` does not support `apply_unitary` returns None.
@@ -315,10 +316,10 @@ def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
     if left_result is None:
         return None
 
-    if not is_dm:
+    if not is_density_matrix:
         return left_result
 
-    # cast is ok to do since is_dm being false tells us right_axes isn't None.
+    # cast is ok, is_density_matrix being false tells us right_axes isn't None.
     right_args = ApplyUnitaryArgs(target_tensor=np.conjugate(left_result),
                                   available_buffer=args.auxiliary_buffer0,
                                   axes=cast(Tuple[int], args.right_axes))
@@ -328,7 +329,8 @@ def _apply_unitary_strat(val: Any, args: 'ApplyMixtureArgs',
 
 
 def _apply_unitary_from_matrix_strat(val: np.ndarray, args: 'ApplyMixtureArgs',
-                                     is_dm: bool) -> Optional[np.ndarray]:
+                                     is_density_matrix: bool
+                                    ) -> Optional[np.ndarray]:
     """Used to enact mixture tuples that are given as (probability, np.ndarray)
 
     If `val` does not support `apply_unitary` returns None.
@@ -341,7 +343,7 @@ def _apply_unitary_from_matrix_strat(val: np.ndarray, args: 'ApplyMixtureArgs',
                                   args.left_axes,
                                   out=args.auxiliary_buffer0)
 
-    if not is_dm:
+    if not is_density_matrix:
         return args.auxiliary_buffer0
     # No need to transpose as we are acting on the tensor
     # representation of matrix, so transpose is done for us.
@@ -353,15 +355,16 @@ def _apply_unitary_from_matrix_strat(val: np.ndarray, args: 'ApplyMixtureArgs',
 
 
 def _mixture_strat(val: Any, args: 'ApplyMixtureArgs',
-                   is_dm: bool) -> Optional[np.ndarray]:
+                   is_density_matrix: bool) -> Optional[np.ndarray]:
     """Attempt to use unitary matrices in _mixture_ and return the result."""
     args.out_buffer[:] = 0
     np.copyto(dst=args.auxiliary_buffer1, src=args.target_tensor)
     for prob, op in val:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer1)
-        right_result = _apply_unitary_strat(op, args, is_dm)
+        right_result = _apply_unitary_strat(op, args, is_density_matrix)
         if right_result is None:
-            right_result = _apply_unitary_from_matrix_strat(op, args, is_dm)
+            right_result = _apply_unitary_from_matrix_strat(
+                op, args, is_density_matrix)
 
         args.out_buffer += prob * right_result
 

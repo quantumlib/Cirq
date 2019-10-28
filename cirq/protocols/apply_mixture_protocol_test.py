@@ -24,12 +24,14 @@ def make_buffers(shape, dtype):
             np.empty(shape, dtype=dtype))
 
 
-def apply_mixture(val: Any,
-                  rho: np.ndarray,
-                  left_axes: Iterable[int],
-                  right_axes: Optional[Iterable[int]],
-                  assert_result_is_out_buf: bool = False
-                 ) -> Optional[np.ndarray]:
+def assert_apply_mixture_returns(
+        val: Any,
+        rho: np.ndarray,
+        left_axes: Iterable[int],
+        right_axes: Optional[Iterable[int]],
+        assert_result_is_out_buf: bool = False,
+        expected_result: np.ndarray = None,
+) -> Optional[np.ndarray]:
     out_buf, buf0, buf1 = make_buffers(rho.shape, rho.dtype)
     result = cirq.apply_mixture(val,
                                 args=cirq.ApplyMixtureArgs(
@@ -38,13 +40,13 @@ def apply_mixture(val: Any,
                                     right_axes=right_axes,
                                     out_buffer=out_buf,
                                     auxiliary_buffer0=buf0,
-                                    auxiliary_buffer1=buf1),
-                                default=np.array([]))
+                                    auxiliary_buffer1=buf1))
     if assert_result_is_out_buf:
         assert result is out_buf
     else:
         assert result is not out_buf
-    return result
+
+    np.testing.assert_array_almost_equal(result, expected_result)
 
 
 def test_apply_mixture_bad_args():
@@ -97,10 +99,10 @@ def test_apply_mixture_simple():
             return args.out_buffer
 
     rho = np.copy(x)
-    result = apply_mixture(HasApplyMixture(),
-                           rho, [0], [1],
-                           assert_result_is_out_buf=True)
-    np.testing.assert_almost_equal(result, x)
+    assert_apply_mixture_returns(HasApplyMixture(),
+                                 rho, [0], [1],
+                                 assert_result_is_out_buf=True,
+                                 expected_result=x)
 
 
 def test_apply_mixture_inline():
@@ -114,8 +116,9 @@ def test_apply_mixture_inline():
             return args.target_tensor
 
     rho = np.copy(x)
-    result = apply_mixture(HasApplyMixture(), rho, [0], [1])
-    np.testing.assert_almost_equal(result, x)
+    assert_apply_mixture_returns(HasApplyMixture(),
+                                 rho, [0], [1],
+                                 expected_result=x)
 
 
 def test_apply_mixture_returns_aux_buffer():
@@ -127,7 +130,7 @@ def test_apply_mixture_returns_aux_buffer():
             return args.auxiliary_buffer0
 
     with pytest.raises(AssertionError, match='ReturnsAuxBuffer0'):
-        _ = apply_mixture(ReturnsAuxBuffer0(), rho, [0], [1])
+        assert_apply_mixture_returns(ReturnsAuxBuffer0(), rho, [0], [1])
 
     class ReturnsAuxBuffer1():
 
@@ -135,7 +138,7 @@ def test_apply_mixture_returns_aux_buffer():
             return args.auxiliary_buffer1
 
     with pytest.raises(AssertionError, match='ReturnsAuxBuffer1'):
-        _ = apply_mixture(ReturnsAuxBuffer1(), rho, [0], [1])
+        assert_apply_mixture_returns(ReturnsAuxBuffer1(), rho, [0], [1])
 
 
 def test_apply_mixture_simple_wavefunction():
@@ -153,12 +156,11 @@ def test_apply_mixture_simple_wavefunction():
             def _mixture_(self):
                 return ((p1, u1), (p2, cirq.X))
 
-        result = apply_mixture(HasMixture(),
-                               state, [0],
-                               None,
-                               assert_result_is_out_buf=True)
-
-        np.testing.assert_almost_equal(result, expected)
+        assert_apply_mixture_returns(HasMixture(),
+                                     state, [0],
+                                     None,
+                                     assert_result_is_out_buf=True,
+                                     expected_result=expected)
 
 
 def test_apply_mixture_simple_split_fallback():
@@ -170,10 +172,10 @@ def test_apply_mixture_simple_split_fallback():
             return ((0.5, np.eye(2, dtype=np.complex128)), (0.5, cirq.X))
 
     rho = np.copy(x)
-    result = apply_mixture(HasMixture(),
-                           rho, [0], [1],
-                           assert_result_is_out_buf=True)
-    np.testing.assert_almost_equal(result, x)
+    assert_apply_mixture_returns(HasMixture(),
+                                 rho, [0], [1],
+                                 assert_result_is_out_buf=True,
+                                 expected_result=x)
 
 
 def test_apply_mixture_fallback_one_qubit_random_on_qubit():
@@ -191,11 +193,10 @@ def test_apply_mixture_fallback_one_qubit_random_on_qubit():
             def _mixture_(self):
                 return ((0.5, np.eye(2, dtype=np.complex128)), (0.5, u))
 
-        result = apply_mixture(HasMixture(),
-                               rho, [0], [1],
-                               assert_result_is_out_buf=True)
-
-        np.testing.assert_almost_equal(result, expected)
+        assert_apply_mixture_returns(HasMixture(),
+                                     rho, [0], [1],
+                                     assert_result_is_out_buf=True,
+                                     expected_result=expected)
 
 
 def test_apply_mixture_fallback_two_qubit_random():
@@ -216,11 +217,10 @@ def test_apply_mixture_fallback_two_qubit_random():
             def _mixture_(self):
                 return ((0.5, np.eye(4, dtype=np.complex128)), (0.5, u))
 
-        result = apply_mixture(HasMixture(),
-                               rho, [0, 1], [2, 3],
-                               assert_result_is_out_buf=True)
-
-        np.testing.assert_almost_equal(result, expected)
+        assert_apply_mixture_returns(HasMixture(),
+                                     rho, [0, 1], [2, 3],
+                                     assert_result_is_out_buf=True,
+                                     expected_result=expected)
 
 
 def test_apply_mixture_no_protocols_implemented():
@@ -230,8 +230,11 @@ def test_apply_mixture_no_protocols_implemented():
 
     rho = np.ones((2, 2, 2, 2), dtype=np.complex128)
 
-    with pytest.raises(TypeError):
-        apply_mixture(NoProtocols(), rho, left_axes=[1], right_axes=[1])
+    with pytest.raises(TypeError, match='has no'):
+        assert_apply_mixture_returns(NoProtocols(),
+                                     rho,
+                                     left_axes=[1],
+                                     right_axes=[1])
 
 
 def test_apply_mixture_no_protocols_implemented_default():
@@ -266,16 +269,14 @@ def test_apply_mixture_unitary():
             return NotImplemented
 
     for val in (HasUnitary(), HasUnitaryButReturnsNotImplemented()):
-        result = apply_mixture(val,
-                               rho,
-                               left_axes=[1],
-                               right_axes=[3],
-                               assert_result_is_out_buf=False)
-
-        np.testing.assert_almost_equal(
-            result,
-            np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]), shape),
-        )
+        assert_apply_mixture_returns(val,
+                                     rho,
+                                     left_axes=[1],
+                                     right_axes=[3],
+                                     assert_result_is_out_buf=False,
+                                     expected_result=np.reshape(
+                                         np.outer([1, 1j, 1, 1j],
+                                                  [1, -1j, 1, -1j]), shape))
 
 
 def test_apply_mixture_apply_unitary():
@@ -299,14 +300,14 @@ def test_apply_mixture_apply_unitary():
             return args.target_tensor
 
     for val in (HasApplyUnitaryOutputInBuffer(), HasApplyUnitaryMutateInline()):
-        result = apply_mixture(val,
-                               rho,
-                               left_axes=[1],
-                               right_axes=[3],
-                               assert_result_is_out_buf=False)
-        np.testing.assert_almost_equal(
-            result, np.reshape(np.outer([1, 1j, 1, 1j], [1, -1j, 1, -1j]),
-                               shape))
+        assert_apply_mixture_returns(val,
+                                     rho,
+                                     left_axes=[1],
+                                     right_axes=[3],
+                                     assert_result_is_out_buf=False,
+                                     expected_result=np.reshape(
+                                         np.outer([1, 1j, 1, 1j],
+                                                  [1, -1j, 1, -1j]), shape))
 
 
 def test_apply_mixture_apply_unitary_not_implemented():
@@ -319,7 +320,7 @@ def test_apply_mixture_apply_unitary_not_implemented():
     rho = np.ones((2, 2, 2, 2), dtype=np.complex128)
     out_buf, aux_buf0, aux_buf1 = make_buffers((2, 2, 2, 2), dtype=rho.dtype)
 
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='has no'):
         cirq.apply_mixture(ApplyUnitaryNotImplemeneted(),
                            args=cirq.ApplyMixtureArgs(
                                target_tensor=rho,
