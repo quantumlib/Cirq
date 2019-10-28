@@ -18,83 +18,29 @@ import sympy
 
 from cirq import ops, protocols
 from cirq.google import op_serializer, op_deserializer, serializable_gate_set
-from cirq.google.common_serializers import (SINGLE_QUBIT_SERIALIZERS,
-                                            SINGLE_QUBIT_DESERIALIZERS,
-                                            SINGLE_QUBIT_HALF_PI_SERIALIZERS,
-                                            SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-                                            MEASUREMENT_SERIALIZER,
-                                            MEASUREMENT_DESERIALIZER)
-
-
-def _near_mod_n(e, t, n, atol=1e-8):
-    if isinstance(e, sympy.Symbol):
-        return False
-    return abs((e - t + 1) % n - 1) <= atol
-
-
-def _near_mod_2pi(e, t, atol=1e-8):
-    return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
-
-
-_SYC_SERIALIZER = op_serializer.GateOpSerializer(
-    gate_type=ops.FSimGate,
-    serialized_gate_id='syc',
-    args=[],
-    can_serialize_predicate=(
-        lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 2) and
-        _near_mod_2pi(cast(ops.FSimGate, e).phi, np.pi / 6)))
-
-_SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
-    serialized_gate_id='syc',
-    gate_constructor=lambda: ops.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
-    args=[])
-
-_SQRT_ISWAP_SERIALIZERS = [
-    op_serializer.GateOpSerializer(
-        gate_type=ops.FSimGate,
-        serialized_gate_id='fsim_pi_4',
-        args=[],
-        can_serialize_predicate=(lambda e: _near_mod_2pi(e.theta, np.pi / 4) and
-                                 _near_mod_2pi(e.phi, 0))),
-    op_serializer.GateOpSerializer(
-        gate_type=ops.ISwapPowGate,
-        serialized_gate_id='fsim_pi_4',
-        args=[],
-        can_serialize_predicate=(lambda e: _near_mod_n(e.exponent, -0.5, 4))),
-    op_serializer.GateOpSerializer(
-        gate_type=ops.FSimGate,
-        serialized_gate_id='inv_fsim_pi_4',
-        args=[],
-        can_serialize_predicate=(lambda e: _near_mod_2pi(e.theta, -np.pi / 4)
-                                 and _near_mod_2pi(e.phi, 0))),
-    op_serializer.GateOpSerializer(
-        gate_type=ops.ISwapPowGate,
-        serialized_gate_id='inv_fsim_pi_4',
-        args=[],
-        can_serialize_predicate=(lambda e: _near_mod_n(e.exponent, +0.5, 4))),
-]
-
-_SQRT_ISWAP_DESERIALIZERS = [
-    op_deserializer.GateOpDeserializer(
-        serialized_gate_id='fsim_pi_4',
-        gate_constructor=lambda: ops.FSimGate(theta=np.pi / 4, phi=0),
-        args=[]),
-    op_deserializer.GateOpDeserializer(
-        serialized_gate_id='inv_fsim_pi_4',
-        gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
-        args=[]),
-]
+from cirq.google.common_serializers import (
+    SINGLE_QUBIT_SERIALIZERS,
+    SINGLE_QUBIT_DESERIALIZERS,
+    SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+    SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+    MEASUREMENT_SERIALIZER,
+    MEASUREMENT_DESERIALIZER,
+    SYC_SERIALIZER,
+    SYC_DESERIALIZER,
+    SQRT_ISWAP_SERIALIZERS,
+    SQRT_ISWAP_DESERIALIZERS,
+)
 
 SYC_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sycamore',
     serializers=[
-        _SYC_SERIALIZER,
+        SYC_SERIALIZER,
         *SINGLE_QUBIT_SERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
     ],
     deserializers=[
-        _SYC_DESERIALIZER,
+        SYC_DESERIALIZER,
         *SINGLE_QUBIT_DESERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
@@ -104,12 +50,12 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
 SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sqrt_iswap',
     serializers=[
-        *_SQRT_ISWAP_SERIALIZERS,
+        *SQRT_ISWAP_SERIALIZERS,
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
     ],
     deserializers=[
-        *_SQRT_ISWAP_DESERIALIZERS,
+        *SQRT_ISWAP_DESERIALIZERS,
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
     ])
