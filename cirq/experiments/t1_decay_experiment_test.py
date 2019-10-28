@@ -101,11 +101,11 @@ def test_sudden_decay_results():
 
 def test_all_on_results():
     results = cirq.experiments.t1_decay(sampler=cirq.Simulator(),
-                       qubit=cirq.GridQubit(0, 0),
-                       num_points=4,
-                       repetitions=10,
-                       min_delay=cirq.Duration(nanos=100),
-                       max_delay=cirq.Duration(micros=1))
+                                        qubit=cirq.GridQubit(0, 0),
+                                        num_points=4,
+                                        repetitions=10,
+                                        min_delay=cirq.Duration(nanos=100),
+                                        max_delay=cirq.Duration(micros=1))
     assert results == cirq.experiments.T1DecayResult(
         data=pd.DataFrame(columns=['delay_ns', 'false_count', 'true_count'],
                           index=range(4),
@@ -139,26 +139,26 @@ def test_all_off_results():
 def test_bad_args():
     with pytest.raises(ValueError, match='repetitions <= 0'):
         _ = cirq.experiments.t1_decay(sampler=cirq.Simulator(),
-                     qubit=cirq.GridQubit(0, 0),
-                     num_points=4,
-                     repetitions=0,
-                     max_delay=cirq.Duration(micros=1))
+                                      qubit=cirq.GridQubit(0, 0),
+                                      num_points=4,
+                                      repetitions=0,
+                                      max_delay=cirq.Duration(micros=1))
 
     with pytest.raises(ValueError, match='max_delay < min_delay'):
         _ = cirq.experiments.t1_decay(sampler=cirq.Simulator(),
-                     qubit=cirq.GridQubit(0, 0),
-                     num_points=4,
-                     repetitions=10,
-                     min_delay=cirq.Duration(micros=1),
-                     max_delay=cirq.Duration(micros=0))
+                                      qubit=cirq.GridQubit(0, 0),
+                                      num_points=4,
+                                      repetitions=10,
+                                      min_delay=cirq.Duration(micros=1),
+                                      max_delay=cirq.Duration(micros=0))
 
     with pytest.raises(ValueError, match='min_delay < 0'):
         _ = cirq.experiments.t1_decay(sampler=cirq.Simulator(),
-                     qubit=cirq.GridQubit(0, 0),
-                     num_points=4,
-                     repetitions=10,
-                     max_delay=cirq.Duration(micros=1),
-                     min_delay=cirq.Duration(micros=-1))
+                                      qubit=cirq.GridQubit(0, 0),
+                                      num_points=4,
+                                      repetitions=10,
+                                      max_delay=cirq.Duration(micros=1),
+                                      min_delay=cirq.Duration(micros=-1))
 
 
 def test_str():

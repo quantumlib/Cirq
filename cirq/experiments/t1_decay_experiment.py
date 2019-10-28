@@ -121,7 +121,8 @@ class T1DecayResult:
         fs = self._data['false_count']
 
         ax.plot(xs, ts / (fs + ts), 'ro-', **plot_kwargs)
-        ax.set_xlabel(r"Delay between initialization and measurement (nanoseconds)")
+        ax.set_xlabel(
+            r"Delay between initialization and measurement (nanoseconds)")
         ax.set_ylabel('Excited State Probability')
         ax.set_title('T1 Decay Experiment Data')
         if show_plot:
