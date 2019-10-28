@@ -15,7 +15,7 @@
 from typing import cast, Iterable, List, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, value
-from cirq.google import convert_to_xmon_gates
+from cirq.google.optimizers import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
 if TYPE_CHECKING:
@@ -77,12 +77,9 @@ class XmonDevice(devices.Device):
         Raises:
             ValueError: Unsupported gate.
         """
-        if not isinstance(gate, (ops.CZPowGate,
-                                 ops.XPowGate,
-                                 ops.YPowGate,
-                                 ops.PhasedXPowGate,
-                                 ops.MeasurementGate,
-                                 ops.ZPowGate)):
+        if not isinstance(
+                gate, (ops.CZPowGate, ops.XPowGate, ops.YPowGate,
+                       ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate)):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation: 'cirq.Operation'):
@@ -97,9 +94,8 @@ class XmonDevice(devices.Device):
             if q not in self.qubits:
                 raise ValueError('Qubit not on device: {!r}'.format(q))
 
-        if (len(operation.qubits) == 2
-                and not isinstance(operation.gate,
-                                   ops.MeasurementGate)):
+        if (len(operation.qubits) == 2 and
+                not isinstance(operation.gate, ops.MeasurementGate)):
             p, q = operation.qubits
             if not cast(GridQubit, p).is_adjacent(q):
                 raise ValueError(
@@ -108,23 +104,23 @@ class XmonDevice(devices.Device):
     def _check_if_exp11_operation_interacts_with_any(
             self, exp11_op: 'cirq.GateOperation',
             others: Iterable['cirq.GateOperation']) -> bool:
-        return any(self._check_if_exp11_operation_interacts(exp11_op, op)
-                   for op in others)
+        return any(
+            self._check_if_exp11_operation_interacts(exp11_op, op)
+            for op in others)
 
     def _check_if_exp11_operation_interacts(self,
                                             exp11_op: 'cirq.GateOperation',
                                             other_op: 'cirq.GateOperation'
                                            ) -> bool:
-        if isinstance(other_op.gate, (ops.XPowGate,
-                                      ops.YPowGate,
-                                      ops.PhasedXPowGate,
-                                      ops.MeasurementGate,
-                                      ops.ZPowGate)):
+        if isinstance(other_op.gate,
+                      (ops.XPowGate, ops.YPowGate, ops.PhasedXPowGate,
+                       ops.MeasurementGate, ops.ZPowGate)):
             return False
 
-        return any(cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
-                   for q in exp11_op.qubits
-                   for p in other_op.qubits)
+        return any(
+            cast(GridQubit, q).is_adjacent(cast(GridQubit, p))
+            for q in exp11_op.qubits
+            for p in other_op.qubits)
 
     def validate_scheduled_operation(self, schedule, scheduled_operation):
         self.validate_operation(scheduled_operation.operation)
@@ -204,16 +200,13 @@ class XmonDevice(devices.Device):
             for q2 in self.neighbors_of(q):
                 diagram.grid_line(q.col, q.row, q2.col, q2.row)
 
-        return diagram.render(
-            horizontal_spacing=3,
-            vertical_spacing=2,
-            use_unicode_characters=True)
+        return diagram.render(horizontal_spacing=3,
+                              vertical_spacing=2,
+                              use_unicode_characters=True)
 
     def _value_equality_values_(self):
-        return (self._measurement_duration,
-                self._exp_w_duration,
-                self._exp_z_duration,
-                self.qubits)
+        return (self._measurement_duration, self._exp_w_duration,
+                self._exp_z_duration, self.qubits)
 
 
 def _verify_unique_measurement_keys(operations: Iterable['cirq.Operation']):
