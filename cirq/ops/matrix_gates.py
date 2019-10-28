@@ -157,6 +157,16 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
         return 'cirq.SingleQubitMatrixGate({})'.format(
             proper_repr(self._matrix))
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix, **kwargs):
+        return cls(matrix=np.array(matrix))
+
 
 class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
     """A 2-qubit gate defined only by its matrix.
@@ -177,6 +187,16 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
             matrix: The matrix that defines the gate.
         """
         super().__init__(matrix, qid_shape=(2, 2))
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix, **kwargs):
+        return cls(matrix=np.array(matrix))
 
     def __repr__(self):
         return 'cirq.TwoQubitMatrixGate({})'.format(

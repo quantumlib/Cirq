@@ -30,8 +30,12 @@ from cirq.google.api.v1.programs import (
     xmon_op_from_proto_dict,
 )
 
-from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,)
+from cirq.google.devices import (
+    Bristlecone,
+    Foxtail,
+    SerializableDevice,
+    XmonDevice,
+)
 
 from cirq.google.engine import (
     Calibration,
@@ -45,11 +49,8 @@ from cirq.google.engine import (
 )
 
 from cirq.google.gate_sets import (
-    XMON,)
-
-from cirq.google.known_devices import (
-    Bristlecone,
-    Foxtail,
+    XMON,
+    SYC_GATESET,
 )
 
 from cirq.google.line import (
@@ -59,8 +60,10 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.optimize import (
-    optimized_for_xmon,)
+from cirq.google.optimizers import (
+    ConvertToXmonGates,
+    optimized_for_xmon,
+)
 
 from cirq.google.op_deserializer import (
     DeserializingArg,
@@ -72,11 +75,5 @@ from cirq.google.op_serializer import (
     SerializingArg,
 )
 
-from cirq.google.serializable_device import (
-    SerializableDevice,)
-
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
-
-from cirq.google.xmon_device import (
-    XmonDevice,)
