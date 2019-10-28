@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cirq
+import cirq.google as cg
 import cirq.google.common_serializers as cgc
 
 
@@ -230,7 +231,7 @@ valid_targets {
 
 
 def test_multiple_gate_sets():
-    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+    halfPiGateSet = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
         serializers=[
             *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER
@@ -247,8 +248,8 @@ def test_multiple_gate_sets():
         'exp_11': 11_000,
         'meas': 14_141
     }
-    test_proto = cirq.google.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq.google.gate_sets.XMON, halfPiGateSet], durations_dict)
+    test_proto = cg.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cg.gate_sets.XMON, halfPiGateSet], durations_dict)
     assert str(test_proto) == """\
 valid_gate_sets {
   name: "xmon"
@@ -363,7 +364,7 @@ valid_targets {
 
 
 def test_json_dict():
-    assert cirq.google.Foxtail._json_dict_() == {
+    assert cg.Foxtail._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Foxtail',
         'measurement_duration': cirq.Duration(nanos=1000),

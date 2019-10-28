@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, List, Set, Tuple
+from typing import Dict, Optional, Iterable, List, Set, Tuple
 
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
@@ -56,7 +56,8 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
 
 def create_device_proto_from_diagram(
         ascii_grid: str,
-        gate_sets: Iterable[serializable_gate_set.SerializableGateSet] = None,
+        gate_sets: Optional[Iterable[
+            serializable_gate_set.SerializableGateSet]] = None,
         durations_picos: Dict[str, int] = None,
 ) -> device_pb2.DeviceSpecification:
     """

@@ -118,7 +118,7 @@ def test_duration_of():
 
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
-        gate_set=[cg.gate_sets.XMON])
+        gate_sets=[cg.gate_sets.XMON])
 
     assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=20)
 
@@ -277,32 +277,45 @@ def test_multiple_gatesets():
         deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
     )
     allAnglesGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
-        gate_set_name='half_pi_gateset',
+        gate_set_name='all_angles_gateset',
         serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
         deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
     )
     durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 20_000, 'xy': 20_000}
-    spec = cirq.google.known_devices.create_device_proto_from_diagram(
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
         "aa\naa", [allAnglesGateSet, halfPiGateSet], durations_dict)
     dev = cg.SerializableDevice.from_proto(
         proto=spec, gate_sets=[allAnglesGateSet, halfPiGateSet])
-    dev.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
-    dev.validate_operation(cirq.X(cirq.GridQubit(1, 0)))
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(1, 0)
+    dev.validate_operation(cirq.X(q0))
+    dev.validate_operation(cirq.X(q1))
+    dev.validate_operation(cirq.XPowGate(exponent=0.1234)(q0))
+    dev.validate_operation(cirq.XPowGate(exponent=0.2345)(q1))
 
     with pytest.raises(ValueError):
         dev.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
 
 
 def test_multiple_gatesets_conflicting_definitions():
-    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
-        gate_set_name='half_pi_gateset',
+    conflictingSet = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='conflicting_phased_xpow',
         serializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS, cgc.MEASUREMENT_SERIALIZER
+            cg.op_serializer.GateOpSerializer(
+                gate_type=cirq.PhasedXPowGate,
+                serialized_gate_id='not_xy',
+                args=[
+                    cg.op_serializer.SerializingArg(
+                        serialized_name='axis_half_turns',
+                        serialized_type=float,
+                        gate_getter='phase_exponent'),
+                    cg.op_serializer.SerializingArg(
+                        serialized_name='half_turns',
+                        serialized_type=float,
+                        gate_getter='exponent'),
+                ]),
         ],
-        deserializers=[
-            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
-            cgc.MEASUREMENT_DESERIALIZER
-        ],
+        deserializers=[],
     )
     durations_dict = {
         'xy_pi': 20_000,
@@ -311,8 +324,10 @@ def test_multiple_gatesets_conflicting_definitions():
         'exp_11': 11_000,
         'meas': 14_141
     }
-    spec = cirq.google.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq.google.gate_sets.XMON, halfPiGateSet], durations_dict)
-    with pytest.raises(ValueError):
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cirq.google.XMON, conflictingSet], durations_dict)
+
+    # The two gate sets define two different serializations for PhasedXPowGate
+    with pytest.raises(ValueError, match='conflicting definitions'):
         _ = cg.SerializableDevice.from_proto(
-            proto=spec, gate_sets=[_JUST_MEAS, halfPiGateSet])
+            proto=spec, gate_sets=[cirq.google.XMON, conflictingSet])
