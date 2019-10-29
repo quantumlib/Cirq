@@ -98,15 +98,15 @@ def naive_order_finder(x: int, n: int) -> Optional[int]:
 class ModularExp(cirq.ArithmeticOperation):
     """Quantum modular exponentiation.
 
-    This class represents the unitary which multiplies a given exponent of
-    x into the ancilla register. More precisely, it represents the unitary V
-    which computes modular exponentiation x**e mod n:
+    This class represents the unitary which multiplies base raised to exponent
+    into the target modulo the given modulus. More precisely, it represents the
+    unitary V which computes modular exponentiation x**e mod n:
 
         V|y⟩|e⟩ = |y * x**e mod n⟩ |e⟩     0 <= y < n
         V|y⟩|e⟩ = |y⟩ |e⟩                  n <= y
 
-    where y is the ancilla register, e is the exponent register and x and n are
-    non-negative integer constants. Consequently,
+    where y is the target register, e is the exponent register, x is the base
+    and n is the modulus. Consequently,
 
         V|y⟩|e⟩ = (U**e|r⟩)|e⟩
 
@@ -122,15 +122,15 @@ class ModularExp(cirq.ArithmeticOperation):
     Phase Estimation to compute the order of x modulo n.
     """
 
-    def __init__(self, ancilla_register: Sequence[cirq.Qid],
-                 exponent_register: Sequence[cirq.Qid], x: int, n: int) -> None:
-        self.ancilla_register = ancilla_register
-        self.exponent_register = exponent_register
-        self.x = x
-        self.n = n
+    def __init__(self, target: Sequence[cirq.Qid], exponent: Sequence[cirq.Qid],
+                 base: int, modulus: int) -> None:
+        self.target = target
+        self.exponent = exponent
+        self.base = base
+        self.modulus = modulus
 
     def registers(self) -> Sequence[Sequence[cirq.Qid]]:
-        return self.ancilla_register, self.exponent_register
+        return self.target, self.exponent
 
     def with_registers(
             self,
@@ -140,14 +140,15 @@ class ModularExp(cirq.ArithmeticOperation):
         assert len(new_registers) == 2
         assert isinstance(new_registers[0], Sequence)
         assert isinstance(new_registers[1], Sequence)
-        return ModularExp(new_registers[0], new_registers[1], self.x, self.n)
+        return ModularExp(new_registers[0], new_registers[1], self.base,
+                          self.modulus)
 
     def apply(self, *register_values: int) -> int:
         assert len(register_values) == 2
         result, exponent = register_values
-        if result >= self.n:
+        if result >= self.modulus:
             return result
-        return (result * self.x**exponent) % self.n
+        return (result * self.base**exponent) % self.modulus
 
     def _circuit_diagram_info_(
             self,
@@ -155,15 +156,16 @@ class ModularExp(cirq.ArithmeticOperation):
     ) -> cirq.CircuitDiagramInfo:
         assert args.known_qubits is not None
         wire_symbols: List[str] = []
-        a, e = 0, 0
+        t, e = 0, 0
         for qubit in args.known_qubits:
-            if qubit in self.ancilla_register:
-                if a == 0:
-                    wire_symbols.append(f'ModularExp(a*{self.x}**e % {self.n})')
+            if qubit in self.target:
+                if t == 0:
+                    wire_symbols.append(
+                        f'ModularExp(t*{self.base}**e % {self.modulus})')
                 else:
-                    wire_symbols.append('a' + str(a))
-                a += 1
-            if qubit in self.exponent_register:
+                    wire_symbols.append('t' + str(t))
+                t += 1
+            if qubit in self.exponent:
                 wire_symbols.append('e' + str(e))
                 e += 1
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
@@ -179,11 +181,11 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
         U|y⟩ = |y⟩                n <= y
 
     discussed in the header of this file. The circuit uses two registers:
-    the ancilla register which is acted on by U and the exponent register
+    the target register which is acted on by U and the exponent register
     from which an eigenvalue is read out after measurement at the end. The
     circuit consists of three steps:
 
-    1. Initialization of the ancilla register to |0..01⟩ and the exponent
+    1. Initialization of the target register to |0..01⟩ and the exponent
        register to a superposition state.
     2. Multiple controlled-U**2**j operations implemented efficiently using
        modular exponentiation.
@@ -198,14 +200,14 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
         Quantum circuit for finding the order of x modulo n
     """
     L = n.bit_length()
-    ancilla_register = cirq.LineQubit.range(L)
-    exponent_register = cirq.LineQubit.range(L, 3 * L + 3)
+    target = cirq.LineQubit.range(L)
+    exponent = cirq.LineQubit.range(L, 3 * L + 3)
     return cirq.Circuit(
-        cirq.X(ancilla_register[L - 1]),
-        cirq.H.on_each(*exponent_register),
-        ModularExp(ancilla_register, exponent_register, x, n),
-        cirq.QFT(*exponent_register, inverse=True),
-        cirq.measure(*exponent_register, key='exponent'),
+        cirq.X(target[L - 1]),
+        cirq.H.on_each(*exponent),
+        ModularExp(target, exponent, x, n),
+        cirq.QFT(*exponent, inverse=True),
+        cirq.measure(*exponent, key='exponent'),
     )
 
 

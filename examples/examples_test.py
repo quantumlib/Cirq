@@ -115,15 +115,15 @@ def test_example_noisy_simulation():
 
 
 def test_example_shor_modular_exp_diagram():
-    ancilla = cirq.LineQubit.range(2)
+    target = cirq.LineQubit.range(2)
     exponent = cirq.LineQubit.range(2, 5)
-    operation = examples.shor.ModularExp(ancilla, exponent, x=4, n=5)
+    operation = examples.shor.ModularExp(target, exponent, base=4, modulus=5)
     circuit = cirq.Circuit(operation)
     cirq.testing.assert_has_diagram(
         circuit, """
-0: ───ModularExp(a*4**e % 5)───
+0: ───ModularExp(t*4**e % 5)───
       │
-1: ───a1───────────────────────
+1: ───t1───────────────────────
       │
 2: ───e0───────────────────────
       │
