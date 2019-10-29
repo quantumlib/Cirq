@@ -141,9 +141,6 @@ class SerializableDevice(devices.Device):
                         raise ValueError(f'Serializer has {gate_id} which is '
                                          'not supported by the device '
                                          'specification')
-                    if (gate_type in gates_by_type):
-                        print(gate_definitions[gate_id].__dict__)
-                        print(gates_by_type[gate_type].__dict__)
                     if (gate_type in gates_by_type and gate_definitions[gate_id]
                             != gates_by_type[gate_type]):
                         raise ValueError('Two conflicting definitions for '
