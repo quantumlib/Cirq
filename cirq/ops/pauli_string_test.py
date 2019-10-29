@@ -1317,6 +1317,32 @@ def test_conjugated_by_global_phase():
     assert cirq.Z(a).conjugated_by(cirq.GlobalPhaseOperation(
         np.exp(1.1j))) == cirq.Z(a)
 
+    class DecomposeGlobal(cirq.Gate):
+
+        def num_qubits(self):
+            return 1
+
+        def _decompose_(self, qubits):
+            yield cirq.GlobalPhaseOperation(1j)
+
+    assert cirq.X(a).conjugated_by(DecomposeGlobal().on(a)) == cirq.X(a)
+
+
+def test_conjugated_by_composite_with_disjoint_sub_gates():
+    a, b = cirq.LineQubit.range(2)
+
+    class DecomposeDisjoint(cirq.Gate):
+
+        def num_qubits(self):
+            return 2
+
+        def _decompose_(self, qubits):
+            yield cirq.H(qubits[1])
+
+    assert cirq.X(a).conjugated_by(DecomposeDisjoint().on(a, b)) == cirq.X(a)
+    assert cirq.X(a).pass_operations_over([DecomposeDisjoint().on(a, b)
+                                          ]) == cirq.X(a)
+
 
 def test_conjugated_by_clifford_composite():
 
