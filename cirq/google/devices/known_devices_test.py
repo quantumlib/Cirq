@@ -248,8 +248,8 @@ def test_multiple_gate_sets():
     durations_dict = {
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
-        'exp_w': 53_000,
-        'exp_11': 11_000,
+        'xy': 53_000,
+        'cz': 11_000,
         'meas': 14_141
     }
     test_proto = cg.devices.known_devices.create_device_proto_from_diagram(
@@ -258,7 +258,7 @@ def test_multiple_gate_sets():
 valid_gate_sets {
   name: "xmon"
   valid_gates {
-    id: "exp_w"
+    id: "xy"
     number_of_qubits: 1
     valid_args {
       name: "axis_half_turns"
@@ -271,15 +271,19 @@ valid_gate_sets {
     gate_duration_picos: 53000
   }
   valid_gates {
-    id: "exp_z"
+    id: "z"
     number_of_qubits: 1
     valid_args {
       name: "half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "type"
+      type: STRING
+    }
   }
   valid_gates {
-    id: "exp_11"
+    id: "cz"
     number_of_qubits: 2
     valid_args {
       name: "half_turns"

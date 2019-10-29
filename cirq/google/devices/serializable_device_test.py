@@ -347,8 +347,9 @@ def test_multiple_gatesets_conflicting_definitions():
     durations_dict = {
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
-        'exp_w': 53_000,
-        'exp_11': 11_000,
+        'not_xy': 52_000,
+        'xy': 53_000,
+        'cz': 11_000,
         'meas': 14_141
     }
     spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
