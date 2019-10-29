@@ -339,10 +339,10 @@ def test_controlled_operation_gate():
 
         @property
         def qubits(self):
-            return ()
+            return ()  # coverage: ignore
 
         def with_qubits(self, *new_qubits):
-            return self
+            return self  # coverage: ignore
 
     op = Gateless().controlled_by(cirq.LineQubit(0))
     assert op.gate is None
