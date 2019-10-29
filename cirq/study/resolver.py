@@ -49,6 +49,7 @@ class ParamResolver(object):
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
+        self._param_hash = None
         self.param_dict = cast(
             Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
             {} if param_dict is None else param_dict)
@@ -131,7 +132,7 @@ class ParamResolver(object):
         return self.value_of(key)
 
     def __hash__(self):
-        if not hasattr(self, '_param_hash'):
+        if self._param_hash is None:
             self._param_hash = hash(frozenset(self.param_dict.items()))
         return self._param_hash
 
