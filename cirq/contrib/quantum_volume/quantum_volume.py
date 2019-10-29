@@ -14,7 +14,7 @@ import cirq.contrib.routing as ccr
 def generate_model_circuit(num_qubits: int,
                            depth: int,
                            *,
-                           random_state: Optional[np.random.RandomState] = None
+                           random_state: cirq.value.RANDOM_STATE_LIKE = None
                           ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -25,7 +25,7 @@ def generate_model_circuit(num_qubits: int,
     Args:
         num_qubits: The number of qubits in the generated circuit.
         depth: The number of layers in the circuit.
-        random_state: A way to seed the RandomState.
+        random_state: Random state or random state seed.
 
     Returns:
         The generated circuit.
@@ -33,8 +33,7 @@ def generate_model_circuit(num_qubits: int,
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    if random_state is None:
-        random_state = np.random
+    random_state = cirq.value.parse_random_state(random_state)
 
     # For each layer.
     for _ in range(depth):
@@ -220,7 +219,7 @@ def prepare_circuits(
         num_qubits: int,
         depth: int,
         num_circuits: int,
-        random_state: Optional[np.random.RandomState] = None,
+        random_state: cirq.value.RANDOM_STATE_LIKE = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
 
@@ -228,7 +227,7 @@ def prepare_circuits(
         num_qubits: The number of qubits in the generated circuits.
         depth: The number of layers in the circuits.
         num_circuits: The number of circuits to create.
-        random_state: A way to seed the RandomState.
+        random_state: Random state or random state seed.
 
     Returns:
         A list of tuples where the first element is a generated model
@@ -310,9 +309,9 @@ def calculate_quantum_volume(
         num_qubits: int,
         depth: int,
         num_circuits: int,
-        seed: int,
         device: cirq.google.XmonDevice,
         samplers: List[cirq.Sampler],
+        random_state: cirq.value.RANDOM_STATE_LIKE = None,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         repetitions=10_000,
         routing_attempts=30,
@@ -330,7 +329,7 @@ def calculate_quantum_volume(
         num_qubits: The number of qubits for the circuit.
         depth: The number of gate layers to generate.
         num_circuits: The number of random circuits to run.
-        seed: A seed to pass into the RandomState.
+        random_state: Random state or random state seed.
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
@@ -344,7 +343,6 @@ def calculate_quantum_volume(
         for running the algorithm and its results.
 
     """
-    random_state = np.random.RandomState(seed)
     circuits = prepare_circuits(num_qubits=num_qubits,
                                 depth=depth,
                                 num_circuits=num_circuits,
