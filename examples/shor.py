@@ -169,11 +169,6 @@ class ModularExp(cirq.ArithmeticOperation):
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
 
 
-def bitlength(n: int) -> int:
-    """Returns minimum number of bits needed to specify a positive integer."""
-    return int(math.ceil(math.log(n) / math.log(2)))
-
-
 def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
     """Returns quantum circuit which computes the order of x modulo n.
 
@@ -202,7 +197,7 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
     Returns:
         Quantum circuit for finding the order of x modulo n
     """
-    L = bitlength(n)
+    L = n.bit_length()
     ancilla_register = cirq.LineQubit.range(L)
     exponent_register = cirq.LineQubit.range(L, 3 * L + 3)
     return cirq.Circuit(
