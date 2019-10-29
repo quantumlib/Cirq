@@ -9,21 +9,39 @@ branches:
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
+- quick_test
 - test
 - name: deploy
   if: type = push AND branch = master
 matrix:
   include:
+  - stage: quick_test
+    os: linux
+    env: NAME=pytest-changed-files
+    python: '3.6'
+    install:
+    - dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
+    script: check/pytest-changed-files
+  - stage: quick_test
+    os: linux
+    env: NAME=format
+    python: '3.6'
+    install:
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
+    script: check/format-incremental
+  - stage: quick_test
+    os: linux
+    env: NAME=mypy
+    python: '3.6'
+    install:
+      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
+    script: check/mypy
   - stage: test
     os: windows
     env: NAME=pytest (Windows)
     language: sh
     python: '3.7.3'
     before_install:
-      - # TODO(craiggidney): re-enable after https://github.com/quantumlib/Cirq/issues/2283 is resolved
-      - # powershell -command 'Set-MpPreference -DisableArchiveScanning $true'
-      - # powershell -command 'Set-MpPreference -DisableBehaviorMonitoring $true'
-      - # powershell -command 'Set-MpPreference -DisableRealtimeMonitoring $true'
       - choco install python --version 3.7.3
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
       - python -m pip install --upgrade pip wheel
@@ -89,13 +107,6 @@ matrix:
     script: check/pylint
   - stage: test
     os: linux
-    env: NAME=mypy
-    python: '3.6'
-    install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
-    script: check/mypy
-  - stage: test
-    os: linux
     env: NAME=build-protos
     python: '3.6'
     install:
@@ -103,13 +114,6 @@ matrix:
       - wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
       - sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
     script: check/build-protos
-  - stage: test
-    os: linux
-    env: NAME=format
-    python: '3.6'
-    install:
-      - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
-    script: check/format-incremental
   - stage: deploy
     os: linux
     env: NAME=dev-release
