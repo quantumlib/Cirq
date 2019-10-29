@@ -16,7 +16,6 @@ from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
                     TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
-import sympy
 from google.protobuf import json_format
 
 from cirq import devices, ops
