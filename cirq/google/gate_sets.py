@@ -12,14 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
-from typing import cast
-
 import numpy as np
 import sympy
 
 
 from cirq import ops
-from cirq.google import op_serializer, op_deserializer, serializable_gate_set
+from cirq.google import serializable_gate_set
 from cirq.google.common_serializers import (
     SINGLE_QUBIT_SERIALIZERS,
     SINGLE_QUBIT_DESERIALIZERS,
@@ -34,16 +32,6 @@ from cirq.google.common_serializers import (
     SQRT_ISWAP_SERIALIZERS,
     SQRT_ISWAP_DESERIALIZERS,
 )
-
-
-def _near_mod_n(e, t, n, atol=1e-8):
-    if isinstance(e, sympy.Symbol):
-        return False
-    return abs((e - t + 1) % n - 1) <= atol
-
-
-def _near_mod_2pi(e, t, atol=1e-8):
-    return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
 SYC_GATESET = serializable_gate_set.SerializableGateSet(
