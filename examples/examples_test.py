@@ -114,6 +114,21 @@ def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
 
+def test_example_shor_modular_exp_registers():
+    target = cirq.LineQubit.range(3)
+    exponent = cirq.LineQubit.range(3, 5)
+    operation = examples.shor.ModularExp(target, exponent, base=4, modulus=5)
+    assert operation.registers() == (target, exponent)
+
+    new_target = cirq.LineQubit.range(5, 8)
+    new_exponent = cirq.LineQubit.range(8, 12)
+    new_operation = operation.with_registers(new_target, new_exponent)
+    assert new_operation.registers() != (target, exponent)
+    assert new_operation.registers() == (new_target, new_exponent)
+    assert new_operation.base == 4
+    assert new_operation.modulus == 5
+
+
 def test_example_shor_modular_exp_diagram():
     target = cirq.LineQubit.range(2)
     exponent = cirq.LineQubit.range(2, 5)

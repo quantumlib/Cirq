@@ -136,7 +136,6 @@ class ModularExp(cirq.ArithmeticOperation):
             self,
             *new_registers: Union[int, Sequence['cirq.Qid']],
     ) -> cirq.ArithmeticOperation:
-        # coverage: ignore
         assert len(new_registers) == 2
         assert isinstance(new_registers[0], Sequence)
         assert isinstance(new_registers[1], Sequence)
