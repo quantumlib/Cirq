@@ -152,7 +152,7 @@ def test_example_shor_naive_order_finder(x, n):
 @pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8)))
 def test_example_shor_quantum_order_finder(x, n):
     r = None
-    for _ in range(10):
+    for _ in range(15):
         r = examples.shor.quantum_order_finder(x, n)
         if r is not None:
             break
