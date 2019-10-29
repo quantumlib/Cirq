@@ -32,7 +32,7 @@ class ControlledGate(raw_types.Gate):
             num_controls: int = None,
             control_values: Optional[Sequence[
                 Union[int, Collection[int]]]] = None,
-            control_qid_shape: Optional[Tuple[int, ...]] = None,
+            control_qid_shape: Optional[Sequence[int]] = None,
     ) -> None:
         """Initializes the controlled gate. If no arguments are specified for
            the controls, defaults to a single qubit control.
@@ -229,3 +229,11 @@ class ControlledGate(raw_types.Gate):
                 'control_qid_shape={!r})'.format(self.sub_gate,
                                                  self.control_values,
                                                  self.control_qid_shape))
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'control_values': self.control_values,
+            'control_qid_shape': self.control_qid_shape,
+            'sub_gate': self.sub_gate,
+        }
