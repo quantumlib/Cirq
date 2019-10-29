@@ -328,3 +328,21 @@ def test_bounded_effect():
     assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
     mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
     assert cirq.approx_eq(cirq.trace_distance_bound(mock), 1)
+
+
+def test_controlled_operation_gate():
+    gate = cirq.X.controlled(control_values=[0, 1], control_qid_shape=[2, 3])
+    op = gate.on(cirq.LineQubit(0), cirq.LineQid(1, 3), cirq.LineQubit(2))
+    assert op.gate == gate
+
+    class Gateless(cirq.Operation):
+
+        @property
+        def qubits(self):
+            return ()  # coverage: ignore
+
+        def with_qubits(self, *new_qubits):
+            return self  # coverage: ignore
+
+    op = Gateless().controlled_by(cirq.LineQubit(0))
+    assert op.gate is None
