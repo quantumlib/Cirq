@@ -56,9 +56,6 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    I,
-    identity,
-    IdentityGate,
     Rx,
     Ry,
     Rz,
@@ -71,14 +68,6 @@ from cirq.ops.common_gates import (
 
 from cirq.ops.controlled_gate import (
     ControlledGate,)
-
-from cirq.ops.display import (
-    ApproxPauliStringExpectation,
-    DensityMatrixDisplay,
-    approx_pauli_string_expectation,
-    SamplesDisplay,
-    WaveFunctionDisplay,
-)
 
 from cirq.ops.eigen_gate import (
     EigenGate,)
@@ -103,6 +92,13 @@ from cirq.ops.gate_operation import (
     GateOperation,
     op_gate_isinstance,
     op_gate_of_type,
+)
+
+from cirq.ops.identity import (
+    I,
+    identity_each,
+    IdentityGate,
+    IdentityOperation,
 )
 
 from cirq.ops.global_phase_op import (
@@ -205,6 +201,11 @@ from cirq.ops.swap_gates import (
     ISwapPowGate,
     SWAP,
     SwapPowGate,
+)
+
+from cirq.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
 )
 
 from cirq.ops.three_qubit_gates import (

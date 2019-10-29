@@ -40,7 +40,9 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
-            from cirq.google.known_devices import _NamedConstantXmonDevice
+            from cirq.google.devices.known_devices import (
+                _NamedConstantXmonDevice)
+            from cirq.contrib.quantum_volume import QuantumVolumeResult
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
@@ -49,6 +51,8 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'ControlledGate': cirq.ControlledGate,
+                'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
@@ -66,6 +70,7 @@ class _ResolverCache:
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
+                'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MeasurementGate': cirq.MeasurementGate,
@@ -83,10 +88,12 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'QuantumVolumeResult': QuantumVolumeResult,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
+                'SycamoreGate': cirq.SycamoreGate,
                 'sympy.Symbol': sympy.Symbol,
                 'sympy.Add': lambda args: sympy.Add(*args),
                 'sympy.Mul': lambda args: sympy.Mul(*args),
@@ -97,6 +104,7 @@ class _ResolverCache:
                 'pandas.DataFrame': pd.DataFrame,
                 'pandas.Index': pd.Index,
                 'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,

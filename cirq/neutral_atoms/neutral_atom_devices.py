@@ -211,7 +211,7 @@ class NeutralAtomDevice(devices.Device):
                         )
         }
 
-        categorized_ops = collections.defaultdict(list) #type: DefaultDict
+        categorized_ops: DefaultDict = collections.defaultdict(list)
         for op in moment.operations:
             assert isinstance(op,
                               (ops.GateOperation, ops.ParallelGateOperation))
@@ -310,7 +310,7 @@ class NeutralAtomDevice(devices.Device):
                 if len(moment.operations) > 0:
                     raise ValueError("Non-empty moment after measurement")
             for operation in moment.operations:
-                if ops.op_gate_of_type(operation, ops.MeasurementGate):
+                if isinstance(operation.gate, ops.MeasurementGate):
                     has_measurement_occurred = True
 
     def validate_scheduled_operation(self, schedule, scheduled_operation):
@@ -356,12 +356,12 @@ class NeutralAtomDevice(devices.Device):
         measurement_check_performed = False
         for so in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, so)
-            if (ops.op_gate_of_type(so.operation, ops.MeasurementGate) and not
-                    measurement_check_performed):
-                later_ops = [op for op in schedule.scheduled_operations if
-                             op.time + op.duration > so.time + so.duration]
-                for op in later_ops:
-                    if not ops.op_gate_of_type(op, ops.MeasurementGate):
+            if (isinstance(so.operation.gate, ops.MeasurementGate) and
+                    not measurement_check_performed):
+                later_ops = (so2 for so2 in schedule.scheduled_operations
+                             if so2.time + so2.duration > so.time + so.duration)
+                for so2 in later_ops:
+                    if not isinstance(so2.operation.gate, ops.MeasurementGate):
                         raise ValueError("Non-measurement operation after"
                                          " measurement")
                 measurement_check_performed = True
