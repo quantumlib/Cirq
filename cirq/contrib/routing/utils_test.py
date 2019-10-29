@@ -13,9 +13,10 @@
 # limitations under the License.
 import pytest
 
+import networkx as nx
+
 import cirq
 import cirq.contrib.routing as ccr
-import networkx as nx
 
 
 def test_ops_are_consistent_with_device_graph():
