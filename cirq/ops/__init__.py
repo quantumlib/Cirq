@@ -56,9 +56,6 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    I,
-    identity,
-    IdentityGate,
     Rx,
     Ry,
     Rz,
@@ -95,6 +92,13 @@ from cirq.ops.gate_operation import (
     GateOperation,
     op_gate_isinstance,
     op_gate_of_type,
+)
+
+from cirq.ops.identity import (
+    I,
+    identity_each,
+    IdentityGate,
+    IdentityOperation,
 )
 
 from cirq.ops.global_phase_op import (
@@ -197,6 +201,11 @@ from cirq.ops.swap_gates import (
     ISwapPowGate,
     SWAP,
     SwapPowGate,
+)
+
+from cirq.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
 )
 
 from cirq.ops.three_qubit_gates import (
