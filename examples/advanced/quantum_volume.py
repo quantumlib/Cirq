@@ -46,7 +46,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int):
     calculate_quantum_volume(num_qubits=num_qubits,
                              depth=depth,
                              num_circuits=num_circuits,
-                             seed=seed,
+                             random_state=seed,
                              device=device,
                              samplers=[cirq.Simulator(), noisy],
                              compiler=compiler)
