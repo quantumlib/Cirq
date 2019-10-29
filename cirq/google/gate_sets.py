@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
-from cirq import ops
 from cirq.google import serializable_gate_set
 from cirq.google.common_serializers import (
     SINGLE_QUBIT_SERIALIZERS,
@@ -61,17 +60,16 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
 
 
 # The xmon gate set.
-XMON: serializable_gate_set.SerializableGateSet = (
-    serializable_gate_set.SerializableGateSet(
-        gate_set_name='xmon',
-        serializers=[
-            *SINGLE_QUBIT_SERIALIZERS,
-            CZ_POW_SERIALIZER,
-            MEASUREMENT_SERIALIZER,
-        ],
-        deserializers=[
-            *SINGLE_QUBIT_DESERIALIZERS,
-            CZ_POW_DESERIALIZER,
-            MEASUREMENT_DESERIALIZER,
-        ],
-    ))
+XMON = serializable_gate_set.SerializableGateSet(
+    gate_set_name='xmon',
+    serializers=[
+        *SINGLE_QUBIT_SERIALIZERS,
+        CZ_POW_SERIALIZER,
+        MEASUREMENT_SERIALIZER,
+    ],
+    deserializers=[
+        *SINGLE_QUBIT_DESERIALIZERS,
+        CZ_POW_DESERIALIZER,
+        MEASUREMENT_DESERIALIZER,
+    ],
+)
