@@ -288,6 +288,8 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'TwoQubitMatrixGate':
     cirq.TwoQubitMatrixGate(np.eye(4)),
+    'SingleQubitMatrixGate':
+    cirq.SingleQubitMatrixGate(np.diag([1j, -1, 1])),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -500,7 +502,6 @@ NOT_YET_SERIALIZABLE = [
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
     'StabilizerStateChForm',
     'StateVectorMixin',

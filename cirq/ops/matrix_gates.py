@@ -67,8 +67,7 @@ class MatrixGate(raw_types.Gate):
 
     @classmethod
     def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
-        return cls(matrix=np.array(matrix),
-                   qid_shape=qid_shape)
+        return cls(matrix=np.array(matrix), qid_shape=qid_shape)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -80,8 +79,7 @@ class MatrixGate(raw_types.Gate):
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return MatrixGate(new_mat)
 
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'MatrixGate':
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
         if not isinstance(phase_turns, (int, float)):
             return NotImplemented
         if self._qid_shape[qubit_index] != 2:
@@ -120,8 +118,8 @@ class MatrixGate(raw_types.Gate):
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return (self._qid_shape == other._qid_shape
-                and np.array_equal(self._matrix, other._matrix))
+        return (self._qid_shape == other._qid_shape and
+                np.array_equal(self._matrix, other._matrix))
 
     def __ne__(self, other):
         return not self == other
@@ -154,8 +152,8 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
         super().__init__(matrix, qid_shape=(matrix.shape[0],))
 
     def __repr__(self):
-        return 'cirq.SingleQubitMatrixGate({})'.format(
-            proper_repr(self._matrix))
+        return 'cirq.SingleQubitMatrixGate({})'.format(proper_repr(
+            self._matrix))
 
     def _json_dict_(self):
         return {
@@ -199,8 +197,7 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
         return cls(matrix=np.array(matrix))
 
     def __repr__(self):
-        return 'cirq.TwoQubitMatrixGate({})'.format(
-                proper_repr(self._matrix))
+        return 'cirq.TwoQubitMatrixGate({})'.format(proper_repr(self._matrix))
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,

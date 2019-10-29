@@ -263,36 +263,40 @@ def test_matrix_gate_eq():
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(cirq.MatrixGate(np.eye(1)))
     eq.add_equality_group(cirq.MatrixGate(-np.eye(1)))
-    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]),
-                                          qid_shape=(2, 3)))
-    eq.add_equality_group(cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]),
-                                          qid_shape=(3, 2)))
+    eq.add_equality_group(
+        cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(2, 3)))
+    eq.add_equality_group(
+        cirq.MatrixGate(np.diag([1, 1, 1, 1, 1, -1]), qid_shape=(3, 2)))
 
 
 def test_matrix_gate_pow():
     t = sympy.Symbol('t')
     assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), t, default=None) is None
-    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)), 2) == cirq.MatrixGate(
-        -np.eye(1))
+    assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)),
+                    2) == cirq.MatrixGate(-np.eye(1))
 
 
 def test_phase_by():
     # Single qubit case.
     x = cirq.MatrixGate(cirq.unitary(cirq.X))
     y = cirq.phase_by(x, 0.25, 0)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(y), cirq.unitary(cirq.Y), atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(y),
+                                                    cirq.unitary(cirq.Y),
+                                                    atol=1e-8)
 
     # Two qubit case. Commutes with control.
     cx = cirq.MatrixGate(cirq.unitary(cirq.X.controlled(1)))
     cx2 = cirq.phase_by(cx, 0.25, 0)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(cx2), cirq.unitary(cx), atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cx2),
+                                                    cirq.unitary(cx),
+                                                    atol=1e-8)
 
     # Two qubit case. Doesn't commute with target.
     cy = cirq.phase_by(cx, 0.25, 1)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.unitary(cy), cirq.unitary(cirq.Y.controlled(1)), atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cy),
+                                                    cirq.unitary(
+                                                        cirq.Y.controlled(1)),
+                                                    atol=1e-8)
 
     m = cirq.MatrixGate(np.eye(3), qid_shape=[3])
     with pytest.raises(TypeError, match='returned NotImplemented'):
