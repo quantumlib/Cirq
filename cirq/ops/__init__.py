@@ -203,6 +203,11 @@ from cirq.ops.swap_gates import (
     SwapPowGate,
 )
 
+from cirq.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
+)
+
 from cirq.ops.three_qubit_gates import (
     CCNOT,
     CCX,
