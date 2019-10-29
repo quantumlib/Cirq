@@ -34,6 +34,11 @@ matrix:
     script: check/pytest --benchmark-skip --actually-quiet
   - stage: test
     os: linux
+    env: NAME=misc
+    python: '3.6'
+    script: check/misc
+  - stage: test
+    os: linux
     env: NAME=pytest-and-incremental-coverage
     python: '3.6'
     install:
