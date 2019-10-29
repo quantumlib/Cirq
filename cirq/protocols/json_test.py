@@ -269,15 +269,15 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
-    'SerializableDevice':
-    cirq.google.SerializableDevice.from_proto(
-        proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'SYC':
+    cirq.SYC,
+    'SycamoreGate':
+    cirq.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
@@ -340,6 +340,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
@@ -443,6 +444,7 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
@@ -451,6 +453,11 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
+    'CliffordSimulator',
+    'CliffordSimulatorStepResult',
+    'CliffordState',
+    'CliffordTableau',
+    'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'ControlledGate',
     'ControlledOperation',
@@ -493,7 +500,10 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
+    'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
