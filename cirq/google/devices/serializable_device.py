@@ -85,10 +85,10 @@ class SerializableDevice(devices.Device):
         self.gate_definitions = gate_definitions
 
     @classmethod
-    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification,
-                   gate_sets: Optional[Iterable[
-                       serializable_gate_set.SerializableGateSet]]
-                  ) -> 'SerializableDevice':
+    def from_proto(
+            cls, proto: v2.device_pb2.DeviceSpecification,
+            gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
+    ) -> 'SerializableDevice':
         """
 
         Args:
@@ -133,8 +133,6 @@ class SerializableDevice(devices.Device):
 
         # Loop through serializers and map gate_definitions to type
         gates_by_type: Dict[Type['cirq.Gate'], _GateDefinition] = {}
-        if gate_sets is None:
-            gate_sets = []
         for gate_set in gate_sets:
             for gate_type in gate_set.supported_gate_types():
                 for serializer in gate_set.serializers[gate_type]:

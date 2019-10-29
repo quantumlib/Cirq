@@ -50,6 +50,33 @@ _JUST_MEAS = cg.SerializableGateSet(
 )
 
 
+def test_gate_definition_equality():
+    def1 = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=4),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    def1c = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=4),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    def2 = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=5),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(def1, def1c)
+    eq.add_equality_group(def2)
+
+    # Wrong type, tests NotImplemented functionality
+    eq.add_equality_group(cirq.X)
+
+
 def test_foxtail():
     valid_qubit1 = cirq.GridQubit(0, 0)
     valid_qubit2 = cirq.GridQubit(1, 0)
