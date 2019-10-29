@@ -37,10 +37,9 @@ class InputRotationCell(Cell):
 
     def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
         return InputRotationCell(
-            self.identifier,
-            Cell._replace_qubits(self.register, qubits),
-            self.base_operation.with_qubits(*Cell._replace_qubits(
-                self.base_operation.qubits)))
+            self.identifier, Cell._replace_qubits(self.register, qubits),
+            self.base_operation.with_qubits(
+                *Cell._replace_qubits(self.base_operation.qubits)))
 
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':

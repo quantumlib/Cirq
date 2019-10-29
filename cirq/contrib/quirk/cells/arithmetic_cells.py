@@ -47,7 +47,8 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         """
         self.identifier = identifier
         self.target = tuple(target)
-        self.inputs = tuple(e if isinstance(e, int) else tuple(e) for e in inputs)
+        self.inputs = tuple(
+            e if isinstance(e, int) else tuple(e) for e in inputs)
 
         if self.operation.is_modular:
             r = inputs[-1]

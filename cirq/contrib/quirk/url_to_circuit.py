@@ -201,12 +201,12 @@ def quirk_json_to_circuit(
 
     # Parse out the circuit.
     comp = _parse_cols_into_composite_cell(data, registry)
-    if (max_operation_count is not None and comp.gate_count() > max_operation_count):
+    if (max_operation_count is not None and
+            comp.gate_count() > max_operation_count):
         raise ValueError(
             f'Quirk URL specifies a circuit with {comp.gate_count()} '
             f'operations, but max_operation_count={max_operation_count}.')
     circuit = comp.circuit()
-
 
     # Convert state initialization into operations.
     circuit.insert(0, _init_ops(data))
