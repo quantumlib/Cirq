@@ -25,8 +25,8 @@ from cirq.google.common_serializers import (
     SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
     MEASUREMENT_SERIALIZER,
     MEASUREMENT_DESERIALIZER,
-    CZ_SERIALIZER,
-    CZ_DESERIALIZER,
+    CZ_POW_SERIALIZER,
+    CZ_POW_DESERIALIZER,
 )
 
 
@@ -71,14 +71,16 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
 
 # The xmon gate set.
 XMON: serializable_gate_set.SerializableGateSet = (
-    serializable_gate_set.SerializableGateSet(gate_set_name='xmon',
-                                              serializers=[
-                                                  *SINGLE_QUBIT_SERIALIZERS,
-                                                  CZ_SERIALIZER,
-                                                  MEASUREMENT_SERIALIZER,
-                                              ],
-                                              deserializers=[
-                                                  *SINGLE_QUBIT_DESERIALIZERS,
-                                                  CZ_DESERIALIZER,
-                                                  MEASUREMENT_DESERIALIZER,
-                                              ]))
+    serializable_gate_set.SerializableGateSet(
+        gate_set_name='xmon',
+        serializers=[
+            *SINGLE_QUBIT_SERIALIZERS,
+            CZ_POW_SERIALIZER,
+            MEASUREMENT_SERIALIZER,
+        ],
+        deserializers=[
+            *SINGLE_QUBIT_DESERIALIZERS,
+            CZ_POW_DESERIALIZER,
+            MEASUREMENT_DESERIALIZER,
+        ],
+    ))

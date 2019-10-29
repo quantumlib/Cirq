@@ -36,7 +36,15 @@ def _near_mod_2(e, t, atol=1e-8):
     return abs((e - t + 1) % 2 - 1) <= atol
 
 
-"""Single qubit serializers for arbitrary rotations"""
+#############################################
+#
+# Single qubit serializers and deserializers
+#
+#############################################
+
+#
+# Single qubit serializers for arbitrary rotations
+#
 SINGLE_QUBIT_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.PhasedXPowGate,
@@ -84,7 +92,11 @@ SINGLE_QUBIT_SERIALIZERS = [
                 gate_getter=lambda x: 'virtual_propagates_forward'),
         ])
 ]
-"""Single qubit deserializers into PhasedXPowGate and ZPowGate"""
+
+
+#
+# Single qubit deserializers for arbitrary rotations
+#
 SINGLE_QUBIT_DESERIALIZERS = [
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='xy',
@@ -104,7 +116,11 @@ SINGLE_QUBIT_DESERIALIZERS = [
                                                constructor_arg_name='exponent')
                                        ]),
 ]
-"""Measurement serializer."""
+
+
+#
+# Measurement Serializer and Deserializer
+#
 MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.MeasurementGate,
     serialized_gate_id='meas',
@@ -116,7 +132,6 @@ MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
                                      serialized_type=List[bool],
                                      gate_getter='invert_mask'),
     ])
-"""Measurement deserializer."""
 MEASUREMENT_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='meas',
     gate_constructor=ops.MeasurementGate,
@@ -129,7 +144,11 @@ MEASUREMENT_DESERIALIZER = op_deserializer.GateOpDeserializer(
             value_func=lambda x: tuple(cast(list, x)))
     ],
     num_qubits_param='num_qubits')
-"""Serializers for single qubit rotations confined to half-pi increments"""
+
+
+#
+# Serializers for single qubit rotations confined to half-pi increments
+#
 SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
     op_serializer.GateOpSerializer(
         gate_type=ops.PhasedXPowGate,
@@ -193,7 +212,16 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         can_serialize_predicate=lambda x: _near_mod_2(
             cast(ops.PhasedXPowGate, x).exponent, 0.5)),
 ]
-"""Deserializers for single qubit rotations confined to half-pi increments"""
+
+#############################################
+#
+# Two qubit serializers and deserializers
+#
+#############################################
+
+#
+# Deserializers for single qubit rotations confined to half-pi increments
+#
 SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='xy_pi',
@@ -218,8 +246,12 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
                                              value_func=lambda _: 0.5),
         ]),
 ]
-"""CZ Serializer"""
-CZ_SERIALIZER = op_serializer.GateOpSerializer(
+
+
+#
+# CZ Serializer and deserializer
+#
+CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.CZPowGate,
     serialized_gate_id='cz',
     args=[
@@ -227,8 +259,8 @@ CZ_SERIALIZER = op_serializer.GateOpSerializer(
                                      serialized_type=float,
                                      gate_getter='exponent')
     ])
-"""CZ Deserializer"""
-CZ_DESERIALIZER = op_deserializer.GateOpDeserializer(
+
+CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=ops.CZPowGate,
     args=[
