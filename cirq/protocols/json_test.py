@@ -142,6 +142,15 @@ TEST_OBJECTS = {
     cirq.CNOT,
     'CNotPowGate':
     cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'ControlledOperation':
+    cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),
+                             controls=cirq.LineQubit.range(2),
+                             control_values=[0, 1]),
+    'ControlledGate':
+    cirq.ControlledGate(sub_gate=cirq.Y,
+                        num_controls=2,
+                        control_values=[0, 1],
+                        control_qid_shape=(3, 2)),
     'CX':
     cirq.CX,
     'CSWAP':
@@ -340,6 +349,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
@@ -443,6 +453,7 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
@@ -457,8 +468,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
-    'ControlledGate',
-    'ControlledOperation',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',

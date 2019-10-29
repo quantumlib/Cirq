@@ -347,6 +347,7 @@ class PauliSum:
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
                                       *,
+                                      atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
@@ -357,6 +358,7 @@ class PauliSum:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid wavefunction.
 
@@ -387,7 +389,8 @@ class PauliSum:
             from cirq.sim.wave_function import validate_normalized_state
             validate_normalized_state(state=state,
                                       qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype)
+                                      dtype=state.dtype,
+                                      atol=atol)
         return sum(
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
@@ -396,6 +399,7 @@ class PauliSum:
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
                                         *,
+                                        atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
@@ -406,6 +410,7 @@ class PauliSum:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid density matrix.
 
@@ -439,7 +444,8 @@ class PauliSum:
             _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
                                         num_qubits=num_qubits,
-                                        dtype=state.dtype)
+                                        dtype=state.dtype,
+                                        atol=atol)
         return sum(
             p._expectation_from_density_matrix_no_validation(state, qubit_map)
             for p in self)
