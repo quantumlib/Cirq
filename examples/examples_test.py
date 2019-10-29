@@ -125,22 +125,19 @@ def test_example_shor_modular_exp_target_register_size():
 def test_example_shor_modular_exp_registers():
     target = cirq.LineQubit.range(3)
     exponent = cirq.LineQubit.range(3, 5)
-    operation = examples.shor.ModularExp(target, exponent, base=4, modulus=5)
-    assert operation.registers() == (target, exponent)
+    operation = examples.shor.ModularExp(target, exponent, 4, 5)
+    assert operation.registers() == (target, exponent, 4, 5)
 
     new_target = cirq.LineQubit.range(5, 8)
     new_exponent = cirq.LineQubit.range(8, 12)
-    new_operation = operation.with_registers(new_target, new_exponent)
-    assert new_operation.registers() != (target, exponent)
-    assert new_operation.registers() == (new_target, new_exponent)
-    assert new_operation.base == 4
-    assert new_operation.modulus == 5
+    new_operation = operation.with_registers(new_target, new_exponent, 6, 7)
+    assert new_operation.registers() == (new_target, new_exponent, 6, 7)
 
 
 def test_example_shor_modular_exp_diagram():
     target = cirq.LineQubit.range(3)
     exponent = cirq.LineQubit.range(3, 5)
-    operation = examples.shor.ModularExp(target, exponent, base=4, modulus=5)
+    operation = examples.shor.ModularExp(target, exponent, 4, 5)
     circuit = cirq.Circuit(operation)
     cirq.testing.assert_has_diagram(
         circuit, """
@@ -153,6 +150,17 @@ def test_example_shor_modular_exp_diagram():
 3: ───e0───────────────────────
       │
 4: ───e1───────────────────────
+""")
+
+    operation = operation.with_registers(target, 2, 4, 5)
+    circuit = cirq.Circuit(operation)
+    cirq.testing.assert_has_diagram(
+        circuit, """
+0: ───ModularExp(t*4**2 % 5)───
+      │
+1: ───t1───────────────────────
+      │
+2: ───t2───────────────────────
 """)
 
 

@@ -122,8 +122,9 @@ class ModularExp(cirq.ArithmeticOperation):
     Phase Estimation to compute the order of x modulo n.
     """
 
-    def __init__(self, target: Sequence[cirq.Qid], exponent: Sequence[cirq.Qid],
-                 base: int, modulus: int) -> None:
+    def __init__(self, target: Sequence[cirq.Qid],
+                 exponent: Union[int, Sequence[cirq.Qid]], base: int,
+                 modulus: int) -> None:
         if len(target) < modulus.bit_length():
             raise ValueError(f'Register with {len(target)} qubits is too small '
                              f'for modulus {modulus}')
@@ -132,25 +133,34 @@ class ModularExp(cirq.ArithmeticOperation):
         self.base = base
         self.modulus = modulus
 
-    def registers(self) -> Sequence[Sequence[cirq.Qid]]:
-        return self.target, self.exponent
+    def registers(self) -> Sequence[Union[int, Sequence[cirq.Qid]]]:
+        return self.target, self.exponent, self.base, self.modulus
 
     def with_registers(
             self,
             *new_registers: Union[int, Sequence['cirq.Qid']],
     ) -> cirq.ArithmeticOperation:
-        assert len(new_registers) == 2
-        assert isinstance(new_registers[0], Sequence)
-        assert isinstance(new_registers[1], Sequence)
-        return ModularExp(new_registers[0], new_registers[1], self.base,
-                          self.modulus)
+        if len(new_registers) != 4:
+            raise ValueError(f'Expected 4 registers (target, exponent, base, '
+                             f'modulus), but got {len(new_registers)}')
+        target, exponent, base, modulus = new_registers
+        if not isinstance(target, Sequence):
+            raise ValueError(
+                f'Target must be a qubit register, got {type(target)}')
+        if not isinstance(base, int):
+            raise ValueError(
+                f'Base must be a classical constant, got {type(base)}')
+        if not isinstance(modulus, int):
+            raise ValueError(
+                f'Modulus must be a classical constant, got {type(modulus)}')
+        return ModularExp(target, exponent, base, modulus)
 
     def apply(self, *register_values: int) -> int:
-        assert len(register_values) == 2
-        result, exponent = register_values
-        if result >= self.modulus:
-            return result
-        return (result * self.base**exponent) % self.modulus
+        assert len(register_values) == 4
+        target, exponent, base, modulus = register_values
+        if target >= modulus:
+            return target
+        return (target * base**exponent) % modulus
 
     def _circuit_diagram_info_(
             self,
@@ -162,12 +172,16 @@ class ModularExp(cirq.ArithmeticOperation):
         for qubit in args.known_qubits:
             if qubit in self.target:
                 if t == 0:
+                    if isinstance(self.exponent, Sequence):
+                        e_str = 'e'
+                    else:
+                        e_str = str(self.exponent)
                     wire_symbols.append(
-                        f'ModularExp(t*{self.base}**e % {self.modulus})')
+                        f'ModularExp(t*{self.base}**{e_str} % {self.modulus})')
                 else:
                     wire_symbols.append('t' + str(t))
                 t += 1
-            if qubit in self.exponent:
+            if isinstance(self.exponent, Sequence) and qubit in self.exponent:
                 wire_symbols.append('e' + str(e))
                 e += 1
         return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
