@@ -14,7 +14,9 @@
 
 from typing import TYPE_CHECKING, Sequence, Union
 
-from cirq import ops, protocols, value
+import abc
+
+from cirq import ops, linalg, protocols, value
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -151,6 +153,14 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
             noisy version of the given operation.
         """
 
+    @abc.abstractmethod
+    def is_mixture_of_unitaries(self) -> bool:
+        """Whether the noise model only introduces mixtures of unitaries."""
+
+    @abc.abstractmethod
+    def is_coherent(self) -> bool:
+        """Whether the noise model is coherent."""
+
 
 @value.value_equality
 class _NoNoiseModel(NoiseModel):
@@ -166,6 +176,12 @@ class _NoNoiseModel(NoiseModel):
 
     def noisy_operation(self, operation: 'cirq.Operation'):
         return operation
+
+    def is_mixture_of_unitaries(self) -> bool:
+        return True
+
+    def is_coherent(self) -> bool:
+        return True
 
     def _value_equality_values_(self):
         return None
@@ -201,6 +217,15 @@ class ConstantQubitNoiseModel(NoiseModel):
             moment,
             ops.Moment([self.qubit_noise_gate(q) for q in system_qubits])
         ]
+
+    def is_mixture_of_unitaries(self) -> bool:
+        g = self.qubit_noise_gate
+        return (protocols.has_unitary(g) or protocols.has_mixture(g) and all(
+            protocols.has_unitary(c) or linalg.is_unitary(c)
+            for _, c in protocols.mixture(g)))
+
+    def is_coherent(self) -> bool:
+        return protocols.has_unitary(self.qubit_noise_gate)
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])

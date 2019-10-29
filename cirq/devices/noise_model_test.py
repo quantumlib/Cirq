@@ -55,6 +55,12 @@ def test_infers_other_methods():
                     result.append([])
             return result
 
+        def is_mixture_of_unitaries(self) -> bool:
+            return True
+
+        def is_coherent(self) -> bool:
+            return True
+
     a = NoiseModelWithNoisyMomentListMethod()
     _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)), cirq.X(q))
     _assert_equivalent_op_tree(a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
@@ -68,6 +74,12 @@ def test_infers_other_methods():
         def noisy_moment(self, moment, system_qubits):
             return cirq.Y.on_each(*moment.qubits)
 
+        def is_mixture_of_unitaries(self) -> bool:
+            return True
+
+        def is_coherent(self) -> bool:
+            return True
+
     b = NoiseModelWithNoisyMomentMethod()
     _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)), cirq.Y(q))
     _assert_equivalent_op_tree(b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
@@ -80,6 +92,12 @@ def test_infers_other_methods():
 
         def noisy_operation(self, operation: 'cirq.Operation'):
             return cirq.Z(operation.qubits[0])
+
+        def is_mixture_of_unitaries(self) -> bool:
+            return True
+
+        def is_coherent(self) -> bool:
+            return True
 
     c = NoiseModelWithNoisyOperationMethod()
     _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)), cirq.Z(q))
@@ -96,6 +114,8 @@ def test_no_noise():
     assert cirq.NO_NOISE.noisy_operation(cirq.X(q)) == cirq.X(q)
     assert cirq.NO_NOISE.noisy_moment(m, [q]) is m
     assert cirq.NO_NOISE.noisy_moments([m, m], [q]) == [m, m]
+    assert cirq.NO_NOISE.is_mixture_of_unitaries() is True
+    assert cirq.NO_NOISE.is_coherent() is True
     assert cirq.NO_NOISE == cirq.NO_NOISE
     assert str(cirq.NO_NOISE) == '(no noise)'
     cirq.testing.assert_equivalent_repr(cirq.NO_NOISE)
@@ -124,6 +144,19 @@ def test_constant_qubit_noise():
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
 
 
+def test_constant_qubit_noise_properties():
+    z_all = cirq.ConstantQubitNoiseModel(cirq.Z)
+    depolarize_all = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.5))
+    damp_all = cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(0.5))
+
+    assert z_all.is_mixture_of_unitaries()
+    assert z_all.is_coherent()
+    assert depolarize_all.is_mixture_of_unitaries()
+    assert not depolarize_all.is_coherent()
+    assert not damp_all.is_mixture_of_unitaries()
+    assert not depolarize_all.is_coherent()
+
+
 def test_constant_qubit_noise_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.ConstantQubitNoiseModel(cirq.X**0.01))
@@ -135,6 +168,12 @@ def test_wrap():
 
         def noisy_operation(self, operation):
             raise NotImplementedError()
+
+        def is_mixture_of_unitaries(self) -> bool:
+            return True
+
+        def is_coherent(self) -> bool:
+            return True
 
     forget = Forget()
 
