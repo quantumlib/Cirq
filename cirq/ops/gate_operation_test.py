@@ -292,6 +292,8 @@ def test_op_gate_isinstance():
     op = cirq.X(a)
     assert cirq.op_gate_isinstance(op, cirq.XPowGate)
     assert not cirq.op_gate_isinstance(op, cirq.YPowGate)
+    assert cirq.op_gate_isinstance(op, (cirq.XPowGate, cirq.YPowGate))
+    assert not cirq.op_gate_isinstance(op, (cirq.YPowGate, cirq.ZPowGate))
 
     class NonGateOperation(cirq.Operation):
 
