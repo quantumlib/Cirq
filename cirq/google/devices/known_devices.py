@@ -185,9 +185,9 @@ Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
-    'exp_11': 50_000,
-    'exp_w': 20_000,
-    'exp_z': 0,
+    'cz': 50_000,
+    'xy': 20_000,
+    'z': 0,
     'meas': 1_000_000,
 }
 
