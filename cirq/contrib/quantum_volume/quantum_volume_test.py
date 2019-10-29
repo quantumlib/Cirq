@@ -162,10 +162,11 @@ def test_calculate_quantum_volume_result():
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()],
         routing_attempts=2,
-        seed=1)
+        random_state=1,
+    )
 
     model_circuit = cirq.contrib.quantum_volume.generate_model_circuit(
-        3, 3, random_state=np.random.RandomState(1))
+        3, 3, random_state=1)
     assert len(results) == 1
     assert results[0].model_circuit == model_circuit
     assert results[
@@ -185,6 +186,6 @@ def test_calculate_quantum_volume_loop():
         depth=5,
         num_circuits=1,
         routing_attempts=2,
-        seed=1,
+        random_state=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()])

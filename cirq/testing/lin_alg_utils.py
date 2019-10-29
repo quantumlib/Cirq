@@ -18,7 +18,7 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, value
 
 
 def random_superposition(dim: int) -> np.ndarray:
@@ -36,10 +36,8 @@ def random_superposition(dim: int) -> np.ndarray:
     return state_vector
 
 
-def random_unitary(dim: int,
-                   *,
-                   random_state: Optional[np.random.RandomState] = None
-                  ) -> np.ndarray:
+def random_unitary(dim: int, *,
+                   random_state: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -53,8 +51,7 @@ def random_unitary(dim: int,
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    if random_state is None:
-        random_state = np.random
+    random_state = value.parse_random_state(random_state)
 
     z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
     q, r = np.linalg.qr(z)
