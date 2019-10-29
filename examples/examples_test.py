@@ -114,12 +114,31 @@ def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
 
-def test_example_shor_modular_exp_target_register_size():
+def test_example_shor_modular_exp_register_size():
     with pytest.raises(ValueError):
         _ = examples.shor.ModularExp(target=cirq.LineQubit.range(2),
                                      exponent=cirq.LineQubit.range(2, 5),
                                      base=4,
                                      modulus=5)
+
+
+def test_example_shor_modular_exp_register_type():
+    operation = examples.shor.ModularExp(target=cirq.LineQubit.range(3),
+                                         exponent=cirq.LineQubit.range(3, 5),
+                                         base=4,
+                                         modulus=5)
+    with pytest.raises(ValueError):
+        _ = operation.with_registers(cirq.LineQubit.range(3))
+    with pytest.raises(ValueError):
+        _ = operation.with_registers(1, cirq.LineQubit.range(3, 6), 4, 5)
+    with pytest.raises(ValueError):
+        _ = operation.with_registers(cirq.LineQubit.range(3),
+                                     cirq.LineQubit.range(3, 6),
+                                     cirq.LineQubit.range(6, 9), 5)
+    with pytest.raises(ValueError):
+        _ = operation.with_registers(cirq.LineQubit.range(3),
+                                     cirq.LineQubit.range(3, 6), 4,
+                                     cirq.LineQubit.range(6, 9))
 
 
 def test_example_shor_modular_exp_registers():
