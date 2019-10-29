@@ -49,7 +49,7 @@ class Moment:
 
         self._operations = tuple(operations)
         # Check that operations don't overlap.
-        affected_qubits = [q for op in self.operations for q in op.qubits]
+        affected_qubits = [q for op in operations for q in op.qubits]
         self._qubits = frozenset(affected_qubits)
         if len(affected_qubits) != len(self._qubits):
             raise ValueError(
@@ -81,7 +81,7 @@ class Moment:
         Returns:
             Whether this moment has operations involving the qubits.
         """
-        return any(q in qubits for q in self.qubits)
+        return any(q in self.qubits for q in qubits)
 
     def with_operation(self, operation: raw_types.Operation):
         """Returns an equal moment, but with the given op added.
@@ -92,7 +92,15 @@ class Moment:
         Returns:
             The new moment.
         """
-        return Moment(self.operations + (operation,))
+        if any(q in self._qubits for q in operation.qubits):
+            raise ValueError('Overlapping operation: {}'.format(operation))
+
+        # Use private variables to facilitate a quick copy
+        m = Moment()
+        m._operations = self.operations + (operation,)
+        m._qubits = frozenset(self._qubits.union(set(operation.qubits)))
+
+        return m
 
     def without_operations_touching(self, qubits: Iterable[raw_types.Qid]):
         """Returns an equal moment, but without ops on the given qubits.
