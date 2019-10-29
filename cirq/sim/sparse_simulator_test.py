@@ -802,3 +802,31 @@ def test_random_seed_does_not_modify_global_state_mixture():
     result2 = sim.run(circuit, repetitions=50)
 
     assert result1 == result2
+
+
+def test_random_seed_non_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a'),
+        cirq.X(a)**0.5, cirq.measure(a, key='b'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=5)
+    assert np.all(
+        result.measurements['a'] == [[False], [False], [True], [False], [True]])
+    assert np.all(
+        result.measurements['b'] == [[True], [True], [False], [True], [True]])
+
+
+def test_random_seed_mixture_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a), cirq.measure(a, key='a'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[True], [False], [False], [False], [True],
+                                     [False], [False], [True], [True], [True]])

@@ -936,6 +936,19 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     assert result1 == result2
 
 
+def test_random_seed_non_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a'),
+        cirq.X(a)**0.5, cirq.measure(a, key='b'))
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result = sim.run(circuit, repetitions=5)
+    assert np.all(
+        result.measurements['a'] == [[False], [False], [True], [False], [True]])
+    assert np.all(
+        result.measurements['b'] == [[True], [True], [False], [True], [True]])
+
+
 def test_simulate_with_invert_mask():
 
     class PlusGate(cirq.Gate):
