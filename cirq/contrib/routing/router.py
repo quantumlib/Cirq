@@ -16,7 +16,7 @@ from typing import Callable, Optional
 
 import networkx as nx
 
-from cirq import circuits, ops, protocols
+from cirq import circuits, protocols
 from cirq.contrib.routing.greedy import route_circuit_greedily
 from cirq.contrib.routing.swap_network import SwapNetwork
 

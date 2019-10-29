@@ -46,6 +46,11 @@ from cirq.value.probability import (
 from cirq.value.periodic_value import (
     PeriodicValue,)
 
+from cirq.value.random_state import (
+    parse_random_state,
+    RANDOM_STATE_LIKE,
+)
+
 from cirq.value.timestamp import (
     Timestamp,)
 
