@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TYPE_CHECKING, Optional
+from typing import Any, Optional, TYPE_CHECKING
 
 import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 
-from cirq import circuits, devices, ops, study, work, value
+from cirq import circuits, devices, ops, study, value, work
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -33,6 +33,10 @@ def t1_decay(sampler: work.Sampler,
              min_delay: 'cirq.DURATION_LIKE' = None,
              repetitions: int = 1000) -> 'cirq.experiments.T1DecayResult':
     """Runs a t1 decay experiment.
+
+    Initializes a qubit into the |1⟩ state, waits for a variable amount of time,
+    and measures the qubit. Plots how often the |1⟩ state is observed for each
+    amount of waiting.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
