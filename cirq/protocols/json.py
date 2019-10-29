@@ -350,15 +350,15 @@ def to_json(obj: Any,
         buffer.seek(0)
         return buffer.read()
 
-    if isinstance(file_or_fn, str):
+    if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'w') as actually_a_file:
-            return json.dump(obj, actually_a_file, indent=indent, cls=cls)
+            json.dump(obj, actually_a_file, indent=indent, cls=cls)
+            return None
 
-    if isinstance(file_or_fn, pathlib.Path):
-        with file_or_fn.open('w') as actually_a_file:
-            return json.dump(obj, actually_a_file, indent=indent, cls=cls)
+    json.dump(obj, file_or_fn, indent=indent, cls=cls)
+    return None
 
-    return json.dump(obj, file_or_fn, indent=indent, cls=cls)
+
 # pylint: enable=function-redefined
 
 
@@ -403,12 +403,8 @@ def read_json(
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)
 
-    if isinstance(file_or_fn, str):
+    if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'r') as file:
             return json.load(file, object_hook=obj_hook)
 
-    if isinstance(file_or_fn, pathlib.Path):
-        with file_or_fn.open('r') as file:
-            return json.load(file, object_hook=obj_hook)
-
-    return json.load(file_or_fn, object_hook=obj_hook)
+    return json.load(cast(IO, file_or_fn), object_hook=obj_hook)
