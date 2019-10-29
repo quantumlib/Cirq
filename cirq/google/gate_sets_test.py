@@ -736,3 +736,27 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
     assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
     assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+
+
+def test_serialize_wait_gate():
+    proto_dict = {
+        'gate': {
+            'id': 'wait'
+        },
+        'args': {
+            'nanos': {
+                'arg_value': {
+                    'float_value': 20.0
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    q = cirq.GridQubit(1, 2)
+    op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
