@@ -114,6 +114,14 @@ def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
 
+def test_example_shor_modular_exp_target_register_size():
+    with pytest.raises(ValueError):
+        _ = examples.shor.ModularExp(target=cirq.LineQubit.range(2),
+                                     exponent=cirq.LineQubit.range(2, 5),
+                                     base=4,
+                                     modulus=5)
+
+
 def test_example_shor_modular_exp_registers():
     target = cirq.LineQubit.range(3)
     exponent = cirq.LineQubit.range(3, 5)
@@ -130,8 +138,8 @@ def test_example_shor_modular_exp_registers():
 
 
 def test_example_shor_modular_exp_diagram():
-    target = cirq.LineQubit.range(2)
-    exponent = cirq.LineQubit.range(2, 5)
+    target = cirq.LineQubit.range(3)
+    exponent = cirq.LineQubit.range(3, 5)
     operation = examples.shor.ModularExp(target, exponent, base=4, modulus=5)
     circuit = cirq.Circuit(operation)
     cirq.testing.assert_has_diagram(
@@ -140,11 +148,11 @@ def test_example_shor_modular_exp_diagram():
       │
 1: ───t1───────────────────────
       │
-2: ───e0───────────────────────
+2: ───t2───────────────────────
       │
-3: ───e1───────────────────────
+3: ───e0───────────────────────
       │
-4: ───e2───────────────────────
+4: ───e1───────────────────────
 """)
 
 

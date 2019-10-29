@@ -124,6 +124,9 @@ class ModularExp(cirq.ArithmeticOperation):
 
     def __init__(self, target: Sequence[cirq.Qid], exponent: Sequence[cirq.Qid],
                  base: int, modulus: int) -> None:
+        if len(target) < modulus.bit_length():
+            raise ValueError(f'Register with {len(target)} qubits is too small '
+                             f'for modulus {modulus}')
         self.target = target
         self.exponent = exponent
         self.base = base
