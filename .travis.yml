@@ -17,6 +17,11 @@ matrix:
   include:
   - stage: quick_test
     os: linux
+    env: NAME=misc
+    python: '3.6'
+    script: check/misc
+  - stage: quick_test
+    os: linux
     env: NAME=pytest-changed-files
     python: '3.6'
     install:
