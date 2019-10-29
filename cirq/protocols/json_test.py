@@ -346,6 +346,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
@@ -449,6 +450,7 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
@@ -503,6 +505,7 @@ NOT_YET_SERIALIZABLE = [
     'Simulator',
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',

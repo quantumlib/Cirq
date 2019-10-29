@@ -375,9 +375,11 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -409,6 +411,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
+    SupportsApplyMixture,
     SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
