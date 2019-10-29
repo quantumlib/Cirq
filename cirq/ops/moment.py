@@ -49,7 +49,7 @@ class Moment:
 
         self._operations = tuple(operations)
         # Check that operations don't overlap.
-        affected_qubits = [q for op in operations for q in op.qubits]
+        affected_qubits = [q for op in self.operations for q in op.qubits]
         self._qubits = frozenset(affected_qubits)
         if len(affected_qubits) != len(self._qubits):
             raise ValueError(
