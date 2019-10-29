@@ -358,6 +358,7 @@ class PauliSum:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid wavefunction.
 
@@ -409,6 +410,7 @@ class PauliSum:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid density matrix.
 
