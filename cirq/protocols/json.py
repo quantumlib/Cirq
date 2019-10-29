@@ -64,6 +64,8 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'ControlledGate': cirq.ControlledGate,
+                'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,

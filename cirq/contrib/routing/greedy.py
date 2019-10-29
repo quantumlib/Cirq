@@ -14,12 +14,12 @@
 
 import itertools
 from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Set, Tuple, Union)
+                    Sequence, Set, Tuple)
 
 import numpy as np
 import networkx as nx
 
-from cirq import circuits, ops
+from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
@@ -90,14 +90,9 @@ class _GreedyRouter:
             initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
             can_reorder: Callable[[ops.Operation, ops.Operation],
                                   bool] = circuits.circuit_dag._disjoint_qubits,
-            random_state: Optional[Union[np.random.RandomState, int]] = None):
+            random_state: value.RANDOM_STATE_LIKE = None):
 
-        if random_state is None:
-            self.prng = np.random
-        elif isinstance(random_state, np.random.RandomState):
-            self.prng = random_state
-        else:
-            self.prng = np.random.RandomState(random_state)
+        self.prng = value.parse_random_state(random_state)
 
         self.device_graph = device_graph
         self.physical_distances: Dict[QidPair, int] = {
