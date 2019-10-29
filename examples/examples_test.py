@@ -1,3 +1,5 @@
+import itertools
+
 import numpy as np
 import pytest
 import matplotlib.pyplot as plt
@@ -112,9 +114,27 @@ def test_example_noisy_simulation():
     examples.noisy_simulation_example.main()
 
 
-@pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))
-def test_example_shor_naive_order_finder(x, n):
-    r = examples.shor.naive_order_finder(x, n)
+def test_example_shor_modular_exp_diagram():
+    ancilla = cirq.LineQubit.range(2)
+    exponent = cirq.LineQubit.range(2, 5)
+    operation = examples.shor.ModularExp(ancilla, exponent, x=4, n=5)
+    circuit = cirq.Circuit(operation)
+    cirq.testing.assert_has_diagram(
+        circuit, """
+0: ───ModularExp(a*4^e % 5)───
+      │
+1: ───a1──────────────────────
+      │
+2: ───e0──────────────────────
+      │
+3: ───e1──────────────────────
+      │
+4: ───e2──────────────────────
+""")
+
+
+def assert_order(r: int, x: int, n: int) -> None:
+    """Assert that r is the order of x modulo n."""
     y = x
     for _ in range(1, r):
         assert y % n != 1
@@ -122,10 +142,21 @@ def test_example_shor_naive_order_finder(x, n):
     assert y % n == 1
 
 
-@pytest.mark.parametrize('x, n', ((4, 7), (6, 49), (7, 810)))
+@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8),
+                                  (6, 11), (6, 49), (7, 810)))
+def test_example_shor_naive_order_finder(x, n):
+    r = examples.shor.naive_order_finder(x, n)
+    assert_order(r, x, n)
+
+
+@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8)))
 def test_example_shor_quantum_order_finder(x, n):
-    with pytest.raises(NotImplementedError):
-        _ = examples.shor.quantum_order_finder(x, n)
+    r = None
+    for _ in range(10):
+        r = examples.shor.quantum_order_finder(x, n)
+        if r is not None:
+            break
+    assert_order(r, x, n)
 
 
 @pytest.mark.parametrize('x, n', ((1, 7), (7, 7)))
@@ -134,16 +165,33 @@ def test_example_shor_naive_order_finder_invalid_x(x, n):
         _ = examples.shor.naive_order_finder(x, n)
 
 
+@pytest.mark.parametrize('x, n', ((1, 7), (7, 7)))
+def test_example_shor_quantum_order_finder_invalid_x(x, n):
+    with pytest.raises(ValueError):
+        _ = examples.shor.quantum_order_finder(x, n)
+
+
 @pytest.mark.parametrize('n', (4, 6, 15, 125, 101 * 103, 127 * 127))
-def test_example_shor_find_factor_composite(n):
+def test_example_shor_find_factor_with_composite_n_and_naive_order_finder(n):
     d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
     assert 1 < d < n
     assert n % d == 0
 
 
-@pytest.mark.parametrize('n', (2, 3, 5, 11, 101, 127, 907))
-def test_example_shor_find_factor_prime(n):
+@pytest.mark.parametrize('n', (4, 6, 15, 125))
+def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n):
     d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    assert 1 < d < n
+    assert n % d == 0
+
+
+@pytest.mark.parametrize(
+    'n, order_finder',
+    itertools.product(
+        (2, 3, 5, 11, 101, 127, 907),
+        (examples.shor.naive_order_finder, examples.shor.quantum_order_finder)))
+def test_example_shor_find_factor_with_prime_n(n, order_finder):
+    d = examples.shor.find_factor(n, order_finder)
     assert d is None
 
 

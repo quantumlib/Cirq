@@ -47,18 +47,29 @@ Estimation algorithm is retried.
 """
 
 import argparse
+import fractions
 import math
 import random
 
-from typing import Callable, Optional
+from typing import Callable, List, Optional, Sequence, Union
 
+import cirq
 import sympy
 
 parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
+parser.add_argument('--order_finder',
+                    type=str,
+                    choices=('naive', 'quantum'),
+                    default='naive',
+                    help=('order finder to use; must be either "naive" '
+                          'for a naive classical algorithm or "quantum" '
+                          'for a quantum circuit; note that in practice '
+                          '"quantum" is substantially slower since it '
+                          'incurs the overhead of classical simulation.'))
 
 
-def naive_order_finder(x: int, n: int) -> int:
+def naive_order_finder(x: int, n: int) -> Optional[int]:
     """Computes smallest positive r such that x^r mod n == 1.
 
     Args:
@@ -69,6 +80,7 @@ def naive_order_finder(x: int, n: int) -> int:
 
     Returns:
         Smallest positive integer r such that x^r == 1 mod n.
+        Always succeeds (and hence never returns None).
 
     Raises:
         ValueError when x is 1 or not an element of the multiplicative
@@ -83,9 +95,179 @@ def naive_order_finder(x: int, n: int) -> int:
     return r
 
 
-def quantum_order_finder(x: int, n: int) -> int:
-    """Computes smallest positive r such that x^r mod n == 1."""
-    raise NotImplementedError('Quantum order finder is not implemented yet.')
+class ModularExp(cirq.ArithmeticOperation):
+    """Quantum modular exponentiation.
+
+    This class represents the unitary which multiplies a given exponent of
+    x into the ancilla register. More precisely, it represents the unitary V
+    which computes modular exponentiation x^e mod n:
+
+        V|y⟩|e⟩ = |y * x^e mod n⟩ |e⟩      0 <= y < n
+        V|y⟩|e⟩ = |y⟩ |e⟩                  n <= y
+
+    where y is the ancilla register, e is the exponent register and x and n are
+    non-negative integer constants. Consequently,
+
+        V|y⟩|e⟩ = (U^e|r⟩)|e⟩
+
+    where U is the unitary defined as
+
+        U|y⟩ = |y * x mod n⟩      0 <= y < n
+        U|y⟩ = |y⟩                n <= y
+
+    in the header of this file.
+
+    Quantum order finding algorithm (which is the quantum part of the Shor's
+    algorithm) uses quantum modular exponentiation together with the Quantum
+    Phase Estimation to compute the order of x modulo n.
+    """
+
+    def __init__(self, ancilla_register: Sequence[cirq.Qid],
+                 exponent_register: Sequence[cirq.Qid], x: int, n: int) -> None:
+        self.ancilla_register = ancilla_register
+        self.exponent_register = exponent_register
+        self.x = x
+        self.n = n
+
+    def registers(self) -> Sequence[Sequence[cirq.Qid]]:
+        return self.ancilla_register, self.exponent_register
+
+    def with_registers(
+            self,
+            *new_registers: Union[int, Sequence['cirq.Qid']],
+    ) -> cirq.ArithmeticOperation:
+        # coverage: ignore
+        assert len(new_registers) == 2
+        assert isinstance(new_registers[0], Sequence)
+        assert isinstance(new_registers[1], Sequence)
+        return ModularExp(new_registers[0], new_registers[1], self.x, self.n)
+
+    def apply(self, *register_values: int) -> int:
+        assert len(register_values) == 2
+        result, exponent = register_values
+        if result >= self.n:
+            return result
+        return (result * self.x**exponent) % self.n
+
+    def _circuit_diagram_info_(
+            self,
+            args: cirq.CircuitDiagramInfoArgs,
+    ) -> cirq.CircuitDiagramInfo:
+        assert args.known_qubits is not None
+        wire_symbols: List[str] = []
+        a, e = 0, 0
+        for qubit in args.known_qubits:
+            if qubit in self.ancilla_register:
+                if a == 0:
+                    wire_symbols.append(f'ModularExp(a*{self.x}^e % {self.n})')
+                else:
+                    wire_symbols.append('a' + str(a))
+                a += 1
+            if qubit in self.exponent_register:
+                wire_symbols.append('e' + str(e))
+                e += 1
+        return cirq.CircuitDiagramInfo(wire_symbols=tuple(wire_symbols))
+
+
+def bitlength(n: int) -> int:
+    """Returns minimum number of bits needed to specify a positive integer."""
+    return int(math.ceil(math.log(n) / math.log(2)))
+
+
+def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
+    """Returns quantum circuit which computes the order of x modulo n.
+
+    The circuit uses Quantum Phase Estimation to compute an eigenvalue of
+    the unitary
+
+        U|y⟩ = |y * x mod n⟩      0 <= y < n
+        U|y⟩ = |y⟩                n <= y
+
+    discussed in the header of this file. The circuit uses two registers:
+    the ancilla register which is acted on by U and the exponent register
+    from which an eigenvalue is read out after measurement at the end. The
+    circuit consists of three steps:
+
+    1. Initialization of the ancilla register to |0..01⟩ and the exponent
+       register to a superposition state.
+    2. Multiple controlled-U^2^j operations implemented efficiently using
+       modular exponentiation.
+    3. Inverse Quantum Fourier Transform to kick an eigenvalue to the
+       exponent register.
+
+    Args:
+        x: positive integer whose order modulo n is to be found
+        n: modulus relative to which the order of x is to be found
+
+    Returns:
+        Quantum circuit for finding the order of x modulo n
+    """
+    L = bitlength(n)
+    ancilla_register = cirq.LineQubit.range(L)
+    exponent_register = cirq.LineQubit.range(L, 3 * L + 3)
+    return cirq.Circuit(
+        cirq.X(ancilla_register[L - 1]),
+        cirq.H.on_each(*exponent_register),
+        ModularExp(ancilla_register, exponent_register, x, n),
+        cirq.QFT(*exponent_register, inverse=True),
+        cirq.measure(*exponent_register, key='exponent'),
+    )
+
+
+def read_eigenphase(result: cirq.TrialResult) -> float:
+    """Interprets the output of the order finding circuit.
+
+    Specifically, it returns s/r such that exp(2πis/r) is an eigenvalue
+    of the unitary
+
+        U|y⟩ = |xy mod n⟩  0 <= y < n
+        U|y⟩ = |y⟩         n <= y
+
+    described in the header of this file.
+
+    Args:
+        result: trial result obtained by sampling the output of the
+            circuit built by make_order_finding_circuit
+
+    Returns:
+        s/r where r is the order of x modulo n and s is in [0..r-1].
+    """
+    exponent_as_integer = result.data['exponent'][0]
+    exponent_num_bits = result.measurements['exponent'].shape[1]
+    return float(exponent_as_integer / 2**exponent_num_bits)
+
+
+def quantum_order_finder(x: int, n: int) -> Optional[int]:
+    """Computes smallest positive r such that x^r mod n == 1.
+
+    Args:
+        x: integer whose order is to be computed, must be greater than one
+           and belong to the multiplicative group of integers modulo n (which
+           consists of positive integers relatively prime to n),
+        n: modulus of the multiplicative group.
+
+    Returns:
+        Smallest positive integer r such that x^r == 1 mod n or None if the
+        algorithm failed. The algorithm fails when the result of the Quantum
+        Phase Estimation is inaccurate, zero or a reducible fraction.
+
+    Raises:
+        ValueError when x is 1 or not an element of the multiplicative
+        group of integers modulo n.
+    """
+    if x < 2 or n <= x or math.gcd(x, n) > 1:
+        raise ValueError(f'Invalid x={x} for modulus n={n}.')
+
+    circuit = make_order_finding_circuit(x, n)
+    result = cirq.sample(circuit)
+    eigenphase = read_eigenphase(result)
+    f = fractions.Fraction.from_float(eigenphase).limit_denominator(n)
+    if f.numerator == 0:
+        return None  # coverage: ignore
+    r = f.denominator
+    if x**r % n != 1:
+        return None  # coverage: ignore
+    return r
 
 
 def find_factor_of_prime_power(n: int) -> Optional[int]:
@@ -102,7 +284,7 @@ def find_factor_of_prime_power(n: int) -> Optional[int]:
 
 
 def find_factor(n: int,
-                order_finder: Callable[[int, int], int],
+                order_finder: Callable[[int, int], Optional[int]],
                 max_attempts: int = 30) -> Optional[int]:
     """Returns a non-trivial factor of composite integer n.
 
@@ -130,6 +312,8 @@ def find_factor(n: int,
         if 1 < c < n:
             return c  # coverage: ignore
         r = order_finder(x, n)
+        if r is None:
+            continue  # coverage: ignore
         if r % 2 != 0:
             continue  # coverage: ignore
         y = x**(r // 2) % n
@@ -140,14 +324,15 @@ def find_factor(n: int,
     return None  # coverage: ignore
 
 
-def main(n: Optional[int] = None):
-    if n is None:
-        n = parser.parse_args().n  # coverage: ignore
+def main(
+        n: int,
+        order_finder: Callable[[int, int], Optional[int]] = naive_order_finder,
+):
     if n < 2:
         raise ValueError(
             f'Invalid input {n}, expected positive integer greater than one.')
 
-    d = find_factor(n, order_finder=naive_order_finder)
+    d = find_factor(n, order_finder)
 
     if d is None:
         print(f'No non-trivial factor of {n} found. It is probably a prime.')
@@ -159,4 +344,10 @@ def main(n: Optional[int] = None):
 
 
 if __name__ == '__main__':
-    main()
+    # coverage: ignore
+    ORDER_FINDERS = {
+        'naive': naive_order_finder,
+        'quantum': quantum_order_finder,
+    }
+    args = parser.parse_args()
+    main(n=args.n, order_finder=ORDER_FINDERS[args.order_finder])
