@@ -184,9 +184,12 @@ def validate_channel(supports_channel: SupportsChannel, rtol: int = 1e-5, atol: 
     """Validates that the channel's unitaries are a valid representation."""
     channel_result = channel(supports_channel, None)
     if channel_result is None:
-        raise TypeError("{} did not have a _channel_ method".format(
-            supports_channel))
-    shapes = set([m.shape for m in channel_result])
+        raise TypeError("object of type '{}' has no _channel_ or _mixture_ or "
+                        "_unitary_ method.".format(type(supports_channel)))
+    shapes = list(set([m.shape for m in channel_result]))
     if len(shapes) != 1 or len(shapes[0]) != 2 or shapes[0][0] != shapes[0][1]:
-        raise ValueError("Channel must be defined by all square matrices.")
-    return np.allclose(sum([m.T @ m for m in channel_result]), np.eye(shapes[0]), rtol=rtol, atol=atol)
+        raise ValueError("Channel must be defined by all square matrices of the same size.")
+
+    if not np.allclose(sum([m.T @ m for m in channel_result]), np.eye(shapes[0]), rtol=rtol, atol=atol):
+        raise ValueError("Operator sum is not trace preserving within "
+                         "tolerances atol={}, rtol={}".format(atol, rtol))

@@ -157,4 +157,49 @@ def test_has_channel():
 
 
 def test_validate_channel():
+    class NoMethod:
+        pass
+    with pytest.raises(TypeError,
+                       match='no _channel_ or _mixture_ or _unitary_ method'):
+        cirq.validate_channel(NoMethod(), rtol=1e-5, atol=1e-8)
+
+    class InconsistentSizes:
+        def _channel_(self) -> Sequence[np.ndarray]:
+            return (0.5 * np.eye(2), 0.5 * np.eye(3))
+    with pytest.raises(ValueError,
+                       match='square matrices of the same size.'):
+        cirq.validate_channel(InconsistentSizes(), rtol=1e-5, atol=1e-8)
+
+    class NotSquare:
+        def _channel_(self) -> Sequence[np.ndarray]:
+            return (0.5 * np.array([[1, 0, 0], [0, 1, 0]]),
+                    0.5 * np.array([[0, 1, 0], [0, 0, 0]]))
+    with pytest.raises(ValueError,
+                       match='square matrices of the same size.'):
+        cirq.validate_channel(NotSquare(), rtol=1e-5, atol=1e-8)
+
+    class TooManyDimensions:
+        def _channel_(self) -> Sequence[np.ndarray]:
+            return (0.5 * np.eye(4).reshape(2, 2, 2, 2),
+                    0.5 * np.eye(4).reshape(2, 2, 2, 2))
+
+    with pytest.raises(ValueError,
+                       match='square matrices of the same size.'):
+        cirq.validate_channel(TooManyDimensions(), rtol=1e-5, atol=1e-8)
+
+    class InvalidOperatorSum1:
+        def _channel_(self) -> Sequence[np.ndarray]:
+            return (0.5 * np.eye(2), 0.6 * np.eye(2))
+
+    with pytest.raises(ValueError,
+                       match='square matrices of the same size.'):
+        cirq.validate_channel(TooManyDimensions(), rtol=1e-5, atol=0.01)
+
+
+    class ReturnsChannel:
+        def _channel_(self) -> Sequence[np.ndarray]:
+            return c
+
+
+
     pass
