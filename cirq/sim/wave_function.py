@@ -419,7 +419,11 @@ def sample_state_vector(
         qid_shape: The qid shape of the state vector.  Specify this argument
             when using qudits.
         repetitions: The number of times to sample the state.
-        seed: A seed for the pseudorandom number generator.
+        seed: The random seed to use for this simulator. If this is None,
+            the default prng `np.random` with no seed set will be used. If
+            this is an int, an `np.random.RandomState` initialized with
+            this seed will be used. If it is an `np.random.RandomState`,
+            this will be used.
 
     Returns:
         Measurement results with True corresponding to the ``|1⟩`` state.
@@ -489,7 +493,11 @@ def measure_state_vector(
             same as the returned ndarray of the method. The shape and dtype of
             `out` will match that of state if `out` is None, otherwise it will
             match the shape and dtype of `out`.
-        seed: A seed for the pseudorandom number generator.
+        seed: The random seed to use for this simulator. If this is None,
+            the default prng `np.random` with no seed set will be used. If
+            this is an int, an `np.random.RandomState` initialized with
+            this seed will be used. If it is an `np.random.RandomState`,
+            this will be used.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans

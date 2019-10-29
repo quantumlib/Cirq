@@ -31,7 +31,7 @@ def prng_from_seed(seed: Optional[Union[int, np.random.RandomState]]):
     """
     if seed is None:
         return np.random
-    elif isinstance(seed, np.random.RandomState):
+    elif seed == np.random or isinstance(seed, np.random.RandomState):
         return seed
     elif isinstance(seed, int):
         return np.random.RandomState(seed)

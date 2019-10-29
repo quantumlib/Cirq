@@ -141,13 +141,17 @@ class Simulator(simulator.SimulatesSamples,
         Args:
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`.
-            seed: The random seed to use for this simulator.
+            seed: The random seed to use for this simulator. If this is None,
+                the default prng `np.random` with no seed set will be used. If
+                this is an int, an `np.random.RandomState` initialized with
+                this seed will be used. If it is an `np.random.RandomState`,
+                this will be used.
         """
         if np.dtype(dtype).kind != 'c':
             raise ValueError(
                 'dtype must be a complex type but was {}'.format(dtype))
         self._dtype = dtype
-        self._seed = seed
+        self._seed = random.prng_from_seed(seed)
 
     def _run(
         self,
@@ -349,8 +353,7 @@ class Simulator(simulator.SimulatesSamples,
         # We work around numpy barfing on choosing from a list of
         # numpy arrays (which is not `one-dimensional`) by selecting
         # the index of the unitary.
-        prng = random.prng_from_seed(self._seed)
-        index = prng.choice(range(len(unitaries)), p=probs)
+        index = self._seed.choice(range(len(unitaries)), p=probs)
         shape = protocols.qid_shape(op) * 2
         unitary = unitaries[index].astype(self._dtype).reshape(shape)
         result = linalg.targeted_left_multiply(unitary, data.state, indices,

@@ -21,7 +21,7 @@ from typing import Dict, Iterator, List, Optional, Type, Union, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
-from cirq.sim import density_matrix_utils, simulator
+from cirq.sim import density_matrix_utils, random, simulator
 
 if TYPE_CHECKING:
     import cirq
@@ -127,7 +127,11 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             dtype: The `numpy.dtype` used by the simulation. One of
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
-            seed: The random seed to use for this simulator.
+            seed: The random seed to use for this simulator. If this is None,
+                the default prng `np.random` with no seed set will be used. If
+                this is an int, an `np.random.RandomState` initialized with
+                this seed will be used. If it is an `np.random.RandomState`,
+                this will be used.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
@@ -135,7 +139,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         self._dtype = dtype
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._seed = seed
+        self._seed = random.prng_from_seed(seed)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,

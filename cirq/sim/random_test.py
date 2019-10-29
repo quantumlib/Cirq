@@ -21,6 +21,7 @@ from cirq.sim import random
 
 def test_prng_from_seed():
     assert random.prng_from_seed(None) == np.random
+    assert random.prng_from_seed(np.random) == np.random
 
     prng = random.prng_from_seed(10)
     np.testing.assert_equal(prng.randint(0, 10, 3), [9, 4, 0])

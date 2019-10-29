@@ -460,7 +460,11 @@ class StepResult(metaclass=abc.ABCMeta):
             measurement_ops: `GateOperation` instances whose gates are
                 `MeasurementGate` instances to be sampled form.
             repetitions: The number of samples to take.
-            seed: A seed for the pseudorandom number generator.
+        seed: The random seed to use for this simulator. If this is None,
+            the default prng `np.random` with no seed set will be used. If
+            this is an int, an `np.random.RandomState` initialized with
+            this seed will be used. If it is an `np.random.RandomState`,
+            this will be used.
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
