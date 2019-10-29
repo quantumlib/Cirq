@@ -20,7 +20,10 @@ from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.mixture_protocol import has_mixture_channel
+from cirq.protocols.mixture_protocol import (
+    has_mixture_channel,
+    validate_mixture
+)
 
 
 from cirq.type_workarounds import NotImplementedType
@@ -175,3 +178,15 @@ def has_channel(val: Any) -> bool:
 
     # No has methods, use `_channel_` or delegates instead.
     return channel(val, None) is not None
+
+
+def validate_channel(supports_channel: SupportsChannel, rtol: int = 1e-5, atol: int = 1e-8):
+    """Validates that the channel's unitaries are a valid representation."""
+    channel_result = channel(supports_channel, None)
+    if channel_result is None:
+        raise TypeError("{} did not have a _channel_ method".format(
+            supports_channel))
+    shapes = set([m.shape for m in channel_result])
+    if len(shapes) != 1 or len(shapes[0]) != 2 or shapes[0][0] != shapes[0][1]:
+        raise ValueError("Channel must be defined by all square matrices.")
+    return np.allclose(sum([m.T @ m for m in channel_result]), np.eye(shapes[0]), rtol=rtol, atol=atol)

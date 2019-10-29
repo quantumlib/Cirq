@@ -154,3 +154,7 @@ def test_has_channel():
             return True
 
     assert cirq.has_channel(HasUnitary())
+
+
+def test_validate_channel():
+    pass

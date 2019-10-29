@@ -185,7 +185,7 @@ def has_mixture_channel(val: Any) -> bool:
     return mixture_channel(val, None) is not None
 
 
-def validate_mixture(supports_mixture: SupportsMixture):
+def validate_mixture(supports_mixture: SupportsMixture, rtol: int = 1e-5, atol: int = 1e-8):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)
     if mixture_tuple is None:
@@ -202,5 +202,6 @@ def validate_mixture(supports_mixture: SupportsMixture):
     for p, val in mixture_tuple:
         validate_probability(p, '{}\'s probability'.format(str(val)))
         total += p
-    if not np.isclose(total, 1.0):
-        raise ValueError('Sum of probabilities of a mixture was not 1.0')
+    if not np.isclose(total, 1.0, rtol=rtol, atol=atol):
+        raise ValueError("Sum of probabilities of a mixture was not 1.0 within "
+                         "atol={}, rtol={}".format(atol, rtol))
