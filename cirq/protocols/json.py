@@ -347,10 +347,7 @@ def to_json(obj: Any,
             to your classes rather than overriding this default.
     """
     if file_or_fn is None:
-        buffer = io.StringIO()
-        to_json(obj, buffer)
-        buffer.seek(0)
-        return buffer.read()
+        return json.dumps(obj, indent=indent, cls=cls)
 
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'w') as actually_a_file:
@@ -390,11 +387,6 @@ def read_json(
     if (file_or_fn is None) == (json_text is None):
         raise ValueError('Must specify ONE of "file_or_fn" or "json".')
 
-    if json_text is not None:
-        file_or_fn = io.StringIO()
-        file_or_fn.write(json_text)
-        file_or_fn.seek(0)
-
     if resolvers is None:
         # This cast is required because mypy does not accept
         # assigning an expression of type T to a variable of type
@@ -404,6 +396,9 @@ def read_json(
 
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)
+
+    if json_text is not None:
+        return json.loads(json_text, object_hook=obj_hook)
 
     if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'r') as file:
