@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
-import numpy as np
-import sympy
-
-
 from cirq import ops
 from cirq.google import serializable_gate_set
 from cirq.google.common_serializers import (
