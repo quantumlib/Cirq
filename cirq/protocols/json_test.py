@@ -500,6 +500,7 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
