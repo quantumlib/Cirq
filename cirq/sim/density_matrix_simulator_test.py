@@ -942,11 +942,15 @@ def test_random_seed_non_terminal_measurements_deterministic():
         cirq.X(a)**0.5, cirq.measure(a, key='a'),
         cirq.X(a)**0.5, cirq.measure(a, key='b'))
     sim = cirq.DensityMatrixSimulator(seed=1234)
-    result = sim.run(circuit, repetitions=5)
-    assert np.all(
-        result.measurements['a'] == [[False], [False], [True], [False], [True]])
-    assert np.all(
-        result.measurements['b'] == [[True], [True], [False], [True], [True]])
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[0], [0], [1], [0], [1], [0], [1], [0], [1], [1], [0], [0],
+                   [1], [0], [0], [1], [1], [1], [0], [0], [0], [0], [1], [0],
+                   [0], [0], [1], [1], [1], [1]])
+    assert np.all(result.measurements['b'] ==
+                  [[1], [1], [0], [1], [1], [1], [1], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [0], [0], [1], [1], [1], [0], [1], [1], [1],
+                   [1], [1], [0], [1], [1], [1]])
 
 
 def test_simulate_with_invert_mask():
