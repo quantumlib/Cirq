@@ -7,16 +7,16 @@ than 1 or n.
 The algorithm consists of two parts: quantum order-finding subroutine and
 classical probabilistic reduction of the factoring problem to the order-
 finding problem. Given two positive integers x and n, the order-finding
-problem asks for the smallest positive integer r such that x^r mod n == 1.
+problem asks for the smallest positive integer r such that x**r mod n == 1.
 
 The classical reduction algorithm first handles two corner cases which do
 not rely on quantum computation: when n is even or a prime power. For other
 n, the algorithm first draws a random x uniformly from 2..n-1 and then uses
 the quantum order-finding subroutine to compute the order r of x modulo n,
-i.e. it finds the smallest positive integer r such that x^r == 1 mod n. Now,
-if r is even, then y = x^(r/2) is a solution to the equation
+i.e. it finds the smallest positive integer r such that x**r == 1 mod n. Now,
+if r is even, then y = x**(r/2) is a solution to the equation
 
-    y^2 == 1 mod n.                                                    (*)
+    y**2 == 1 mod n.                                                   (*)
 
 It's easy to see that in this case gcd(y - 1, n) or gcd(y + 1, n) divides n.
 If in addition y is a non-trivial solution, i.e. if it is not equal to -1,
@@ -24,8 +24,8 @@ then gcd(y - 1, n) or gcd(y + 1, n) is a non-trivial factor of n (note that
 y cannot be 1). If r is odd or if y is a trivial solution of (*), then the
 algorithm is repeated for a different random x.
 
-It turns out [1] that the probability of r being even and y = x^(r/2) being
-a non-trivial solution of equation (*) is at least 1 - 1/2^(k - 1) where k
+It turns out [1] that the probability of r being even and y = x**(r/2) being
+a non-trivial solution of equation (*) is at least 1 - 1/2**(k - 1) where k
 is the number of distinct prime factors of n. Since the case k = 1 has been
 handled by the classical part, we have k >= 2 and the success probability of
 a single attempt is at least 1/2.
@@ -70,7 +70,7 @@ parser.add_argument('--order_finder',
 
 
 def naive_order_finder(x: int, n: int) -> Optional[int]:
-    """Computes smallest positive r such that x^r mod n == 1.
+    """Computes smallest positive r such that x**r mod n == 1.
 
     Args:
         x: integer whose order is to be computed, must be greater than one
@@ -79,7 +79,7 @@ def naive_order_finder(x: int, n: int) -> Optional[int]:
         n: modulus of the multiplicative group.
 
     Returns:
-        Smallest positive integer r such that x^r == 1 mod n.
+        Smallest positive integer r such that x**r == 1 mod n.
         Always succeeds (and hence never returns None).
 
     Raises:
@@ -100,15 +100,15 @@ class ModularExp(cirq.ArithmeticOperation):
 
     This class represents the unitary which multiplies a given exponent of
     x into the ancilla register. More precisely, it represents the unitary V
-    which computes modular exponentiation x^e mod n:
+    which computes modular exponentiation x**e mod n:
 
-        V|y⟩|e⟩ = |y * x^e mod n⟩ |e⟩      0 <= y < n
+        V|y⟩|e⟩ = |y * x**e mod n⟩ |e⟩     0 <= y < n
         V|y⟩|e⟩ = |y⟩ |e⟩                  n <= y
 
     where y is the ancilla register, e is the exponent register and x and n are
     non-negative integer constants. Consequently,
 
-        V|y⟩|e⟩ = (U^e|r⟩)|e⟩
+        V|y⟩|e⟩ = (U**e|r⟩)|e⟩
 
     where U is the unitary defined as
 
@@ -159,7 +159,7 @@ class ModularExp(cirq.ArithmeticOperation):
         for qubit in args.known_qubits:
             if qubit in self.ancilla_register:
                 if a == 0:
-                    wire_symbols.append(f'ModularExp(a*{self.x}^e % {self.n})')
+                    wire_symbols.append(f'ModularExp(a*{self.x}**e % {self.n})')
                 else:
                     wire_symbols.append('a' + str(a))
                 a += 1
@@ -185,7 +185,7 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
 
     1. Initialization of the ancilla register to |0..01⟩ and the exponent
        register to a superposition state.
-    2. Multiple controlled-U^2^j operations implemented efficiently using
+    2. Multiple controlled-U**2**j operations implemented efficiently using
        modular exponentiation.
     3. Inverse Quantum Fourier Transform to kick an eigenvalue to the
        exponent register.
@@ -233,7 +233,7 @@ def read_eigenphase(result: cirq.TrialResult) -> float:
 
 
 def quantum_order_finder(x: int, n: int) -> Optional[int]:
-    """Computes smallest positive r such that x^r mod n == 1.
+    """Computes smallest positive r such that x**r mod n == 1.
 
     Args:
         x: integer whose order is to be computed, must be greater than one
@@ -242,7 +242,7 @@ def quantum_order_finder(x: int, n: int) -> Optional[int]:
         n: modulus of the multiplicative group.
 
     Returns:
-        Smallest positive integer r such that x^r == 1 mod n or None if the
+        Smallest positive integer r such that x**r == 1 mod n or None if the
         algorithm failed. The algorithm fails when the result of the Quantum
         Phase Estimation is inaccurate, zero or a reducible fraction.
 
