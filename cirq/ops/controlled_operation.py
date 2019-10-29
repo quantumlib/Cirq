@@ -11,14 +11,26 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Any, Collection, List, Optional, Sequence, Tuple, Union
+from typing import (
+    cast,
+    Any,
+    Collection,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
 import itertools
 import numpy as np
 
 from cirq import protocols, linalg, value
-from cirq.ops import raw_types, gate_operation
+from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -53,6 +65,15 @@ class ControlledOperation(raw_types.Operation):
             self.controls = tuple(controls) + sub_operation.controls
             self.sub_operation = sub_operation.sub_operation
             self.control_values += sub_operation.control_values
+
+    @property
+    def gate(self) -> Optional['cirq.ControlledGate']:
+        if self.sub_operation.gate is None:
+            return None
+        return controlled_gate.ControlledGate(
+            self.sub_operation.gate,
+            control_values=self.control_values,
+            control_qid_shape=[q.dimension for q in self.controls])
 
     @property
     def qubits(self):
@@ -198,3 +219,11 @@ class ControlledOperation(raw_types.Operation):
             exponent=sub_info.exponent,
             exponent_qubit_index=None if sub_info.exponent_qubit_index is None
             else sub_info.exponent_qubit_index + 1)
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'controls': self.controls,
+            'control_values': self.control_values,
+            'sub_operation': self.sub_operation,
+        }
