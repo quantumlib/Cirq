@@ -18,10 +18,9 @@ from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v2
 from cirq.google.api.v2 import device_pb2
-from cirq.google.xmon_device import XmonDevice
+from cirq.google.devices.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate
 from cirq.value import Duration
-
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
@@ -159,6 +158,7 @@ CCCCCCDDDDD
 
 
 class _NamedConstantXmonDevice(XmonDevice):
+
     def __init__(self, constant: str, **kwargs) -> None:
         super().__init__(**kwargs)
         self._repr = constant
@@ -177,13 +177,11 @@ class _NamedConstantXmonDevice(XmonDevice):
         }
 
 
-Foxtail = _NamedConstantXmonDevice(
-    'cirq.google.Foxtail',
-    measurement_duration=Duration(nanos=1000),
-    exp_w_duration=Duration(nanos=20),
-    exp_11_duration=Duration(nanos=50),
-    qubits=_parse_device(_FOXTAIL_GRID)[0])
-
+Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
+                                   measurement_duration=Duration(nanos=1000),
+                                   exp_w_duration=Duration(nanos=20),
+                                   exp_11_duration=Duration(nanos=50),
+                                   qubits=_parse_device(_FOXTAIL_GRID)[0])
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
@@ -209,7 +207,6 @@ ABCDEFGHIJKL
 ----IJKL----
 -----KL-----
 """
-
 
 Bristlecone = _NamedConstantXmonDevice(
     'cirq.google.Bristlecone',
