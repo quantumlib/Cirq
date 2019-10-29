@@ -24,16 +24,25 @@ This file contains the following serializers (and corresponding deserializers)
 """
 from typing import cast, List
 
+import numpy as np
 import sympy
 
 from cirq import ops, protocols
 from cirq.google import op_deserializer, op_serializer
 
 
-def _near_mod_2(e, t, atol=1e-8):
+def _near_mod_n(e, t, n, atol=1e-8):
     if isinstance(e, sympy.Symbol):
         return False
-    return abs((e - t + 1) % 2 - 1) <= atol
+    return abs((e - t + 1) % n - 1) <= atol
+
+
+def _near_mod_2pi(e, t, atol=1e-8):
+    return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
+
+
+def _near_mod_2(e, t, atol=1e-8):
+    return _near_mod_n(e, t, n=2, atol=atol)
 
 
 #############################################
@@ -247,7 +256,6 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
         ]),
 ]
 
-
 #
 # CZ Serializer and deserializer
 #
@@ -267,3 +275,64 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
         op_deserializer.DeserializingArg(serialized_name='half_turns',
                                          constructor_arg_name='exponent')
     ])
+
+#
+# Sycamore Gate Serializer and deserializer
+#
+SYC_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.FSimGate,
+    serialized_gate_id='syc',
+    args=[],
+    can_serialize_predicate=(
+        lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 2) and
+        _near_mod_2pi(cast(ops.FSimGate, e).phi, np.pi / 6)))
+
+
+SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='syc',
+    gate_constructor=lambda: ops.FSimGate(theta=np.pi / 2, phi=np.pi / 6),
+    args=[])
+
+#
+# sqrt(ISWAP) serializer and deserializer
+# (e.g. ISWAP ** 0.5)
+#
+SQRT_ISWAP_SERIALIZERS = [
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(
+            lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 4) and
+            _near_mod_2pi(cast(ops.FSimGate, e).phi, 0))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_n(
+            cast(ops.ISwapPowGate, e).exponent, -0.5, 4))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='inv_fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(
+            lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, -np.pi / 4) and
+            _near_mod_2pi(cast(ops.FSimGate, e).phi, 0))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='inv_fsim_pi_4',
+        args=[],
+        can_serialize_predicate=(lambda e: _near_mod_n(
+            cast(ops.ISwapPowGate, e).exponent, +0.5, 4))),
+]
+
+SQRT_ISWAP_DESERIALIZERS = [
+    op_deserializer.GateOpDeserializer(
+        serialized_gate_id='fsim_pi_4',
+        gate_constructor=lambda: ops.FSimGate(theta=np.pi / 4, phi=0),
+        args=[]),
+    op_deserializer.GateOpDeserializer(
+        serialized_gate_id='inv_fsim_pi_4',
+        gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
+        args=[]),
+]
