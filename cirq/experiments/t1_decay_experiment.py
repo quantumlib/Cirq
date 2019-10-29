@@ -112,8 +112,7 @@ class T1DecayResult:
         show_plot = not ax
         if show_plot:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        # fig = plt.figure()
-        # ax = plt.gca()
+        assert ax is not None
         ax.set_ylim(ymin=0, ymax=1)
 
         xs = self._data['delay_ns']
