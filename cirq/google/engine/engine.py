@@ -16,7 +16,7 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    program = engine.create_program(ciruit)
+    program = engine.create_program(circuit)
     result0 = program.run(params=params0, repetitions=10)
     result1 = program.run(params=params1, repetitions=10)
 
@@ -234,7 +234,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -258,6 +258,7 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
+        gate_set = gate_set or gate_sets.XMON
         return list(
             self.run_sweep(program=program,
                            program_id=program_id,
@@ -291,7 +292,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -317,6 +318,7 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
+        gate_set = gate_set or gate_sets.XMON
         engine_program = self.create_program(program, program_id, gate_set)
         return engine_program.run_sweep(job_config=job_config,
                                         params=params,
@@ -334,8 +336,9 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
+        gate_set = gate_set or gate_sets.XMON
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
@@ -467,7 +470,7 @@ class Engine:
             self,
             program: TProgram,
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
@@ -481,6 +484,8 @@ class Engine:
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
+        gate_set = gate_set or gate_sets.XMON
+
         if not program_id:
             program_id = _make_random_id('prog-')
 
@@ -499,8 +504,10 @@ class Engine:
     def _serialize_program(
             self,
             program: TProgram,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> Dict[str, Any]:
+        gate_set = gate_set or gate_sets.XMON
+
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
