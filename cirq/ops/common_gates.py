@@ -390,11 +390,10 @@ class ZPowGate(eigen_gate.EigenGate,
         Specialize controlled for ZPow to return corresponding CZPow when
         controlled by a single qubit.
         """
-        result = super().controlled(
-            num_controls, control_values,
-            control_qid_shape)  # type: cirq.ControlledGate
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
         if (result.control_values == ((1,),) and
-                result.control_qid_shape == (2,)):
+                result.control_qid_shape == (2,)):  # type: ignore
             return cirq.CZPowGate(exponent=self._exponent,
                                   global_shift=self._global_shift)
         return result
