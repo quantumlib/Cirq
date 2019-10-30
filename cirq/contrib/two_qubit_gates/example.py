@@ -85,9 +85,9 @@ def main(samples: int = 1000,
     failed_infidelities = np.array(failed_infidelities)
     if verbose:
         # coverage: ignore
-        if failed_infidelities.size:
+        if np.size(failed_infidelities):
             print(f'Number of "failed" compilations:'
-                  f' {failed_infidelities.size}.')
+                  f' {np.size(failed_infidelities)}.')
             print(f'Maximum infidelity of "failed" compilation: '
                   f'{np.max(failed_infidelities)}')
 
