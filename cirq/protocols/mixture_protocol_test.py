@@ -162,7 +162,7 @@ def test_invalid_mixture(val, message):
 
 
 def test_validate_mixture_tolerance():
-    _ = cirq.validate_mixture(ReturnsNonnormalizedTuple(), atol=0.1, rtol=0.1)
+    cirq.validate_mixture(ReturnsNonnormalizedTuple(), atol=0.1, rtol=0.1)
 
 
 def test_missing_mixture():
