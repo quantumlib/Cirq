@@ -49,6 +49,13 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         self.target = target
         self.inputs = inputs
 
+        for input_register in self.inputs:
+            if isinstance(input_register, int):
+                continue
+            if set(self.target) & set(input_register):
+                raise ValueError(f'Overlapping registers: '
+                                 f'{self.target} {self.inputs}')
+
         if self.operation.is_modular:
             r = inputs[-1]
             if isinstance(r, int):

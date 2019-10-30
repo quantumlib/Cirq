@@ -248,6 +248,36 @@ def test_add_op_tree():
         _ = c + cirq.X
 
 
+def test_radd_op_tree():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = cirq.Circuit()
+    assert [cirq.X(a), cirq.Y(b)] + c == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
+
+    assert cirq.X(a) + c == cirq.Circuit(cirq.X(a))
+    assert [cirq.X(a)] + c == cirq.Circuit(cirq.X(a))
+    assert [[[cirq.X(a)], []]] + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a),) + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a) for _ in range(1)) + c == cirq.Circuit(cirq.X(a))
+    with pytest.raises(AttributeError):
+        _ = cirq.X + c
+    with pytest.raises(TypeError):
+        _ = 0 + c
+
+    # non-empty circuit addition
+    d = cirq.Circuit()
+    d.append(cirq.Y(b))
+    assert [cirq.X(a)] + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([cirq.X(a)]) + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+
+
 def test_bool():
     assert not cirq.Circuit()
     assert cirq.Circuit(cirq.X(cirq.NamedQubit('a')))
@@ -1180,7 +1210,12 @@ def test_findall_operations_until_blocked():
         assert circuit.findall_operations_until_blocked(
             start_frontier={d: idx}, is_blocker=stop_if_op) == []
         assert circuit.findall_operations_until_blocked(
-            start_frontier={a:idx, b:idx, c:idx, d: idx},
+            start_frontier={
+                a: idx,
+                b: idx,
+                c: idx,
+                d: idx
+            },
             is_blocker=stop_if_op) == []
 
     # Cases where nothing is blocked, it goes to the end
