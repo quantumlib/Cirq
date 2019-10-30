@@ -165,23 +165,23 @@ def test_validate_channel():
 
     class InconsistentSizes:
         def _channel_(self) -> Sequence[np.ndarray]:
-            return (0.5 * np.eye(2), 0.5 * np.eye(3))
+            return (np.sqrt(0.5) * np.eye(2), np.sqrt(0.5) * np.eye(3))
     with pytest.raises(ValueError,
                        match='square matrices of the same size.'):
         cirq.validate_channel(InconsistentSizes(), rtol=1e-5, atol=1e-8)
 
     class NotSquare:
         def _channel_(self) -> Sequence[np.ndarray]:
-            return (0.5 * np.array([[1, 0, 0], [0, 1, 0]]),
-                    0.5 * np.array([[0, 1, 0], [0, 0, 0]]))
+            return (np.sqrt(0.5) * np.array([[1, 0, 0], [0, 1, 0]]),
+                    np.sqrt(0.5) * np.array([[0, 1, 0], [0, 0, 0]]))
     with pytest.raises(ValueError,
                        match='square matrices of the same size.'):
         cirq.validate_channel(NotSquare(), rtol=1e-5, atol=1e-8)
 
     class TooManyDimensions:
         def _channel_(self) -> Sequence[np.ndarray]:
-            return (0.5 * np.eye(4).reshape(2, 2, 2, 2),
-                    0.5 * np.eye(4).reshape(2, 2, 2, 2))
+            return (np.sqrt(0.5) * np.eye(4).reshape(2, 2, 2, 2),
+                    np.sqrt(0.5) * np.eye(4).reshape(2, 2, 2, 2))
 
     with pytest.raises(ValueError,
                        match='square matrices of the same size.'):
@@ -189,7 +189,7 @@ def test_validate_channel():
 
     class InvalidOperatorSum1:
         def _channel_(self) -> Sequence[np.ndarray]:
-            return (0.5 * np.eye(2), 0.6 * np.eye(2))
+            return (np.sqrt(0.5) * np.eye(2), np.sqrt(0.6) * np.eye(2))
 
     # Valid within loose tolerances
     _ = cirq.validate_channel(InvalidOperatorSum1(), rtol=1e-5, atol=0.1)
@@ -198,10 +198,10 @@ def test_validate_channel():
         cirq.validate_channel(InvalidOperatorSum1(), rtol=1e-5, atol=0.01)
 
     class InvalidOperatorSum2:
-        def _channel_(self, gamma) -> Iterable[np.ndarray]:
+        def _channel_(self) -> Iterable[np.ndarray]:
             return (
                 np.array([[1., 0.], [0., 1.]]),
-                np.array([[0., np.sqrt(gamma)], [0., 0.]]))
+                np.array([[0., np.sqrt(0.05)], [0., 0.]]))
 
     # TODO: make this work
     _ = cirq.validate_channel(InvalidOperatorSum2(), rtol=1e-5, atol=0.1)

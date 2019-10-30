@@ -190,6 +190,7 @@ def validate_channel(supports_channel: SupportsChannel, rtol: int = 1e-5, atol: 
     if len(shapes) != 1 or len(shapes[0]) != 2 or shapes[0][0] != shapes[0][1]:
         raise ValueError("Channel must be defined by all square matrices of the same size.")
 
-    if not np.allclose(sum([m.T @ m for m in channel_result]), np.eye(shapes[0]), rtol=rtol, atol=atol):
+    size = shapes[0][0]
+    if not np.allclose(sum([m.T @ m for m in channel_result]), np.eye(size), rtol=rtol, atol=atol):
         raise ValueError("Operator sum is not trace preserving within "
                          "tolerances atol={}, rtol={}".format(atol, rtol))
