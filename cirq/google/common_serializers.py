@@ -22,12 +22,12 @@ This file contains the following serializers (and corresponding deserializers)
         rotations confined to half-pi increments using cirq Gates.
 
 """
-from typing import cast, List
+from typing import cast, List, Union
 
 import numpy as np
 import sympy
 
-from cirq import ops, protocols
+from cirq import ops, protocols, value
 from cirq.google import op_deserializer, op_serializer
 
 
@@ -336,3 +336,26 @@ SQRT_ISWAP_DESERIALIZERS = [
         gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
         args=[]),
 ]
+
+#
+# WaitGate serializer and deserializer
+#
+WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.WaitGate,
+    serialized_gate_id='wait',
+    args=[
+        op_serializer.SerializingArg(
+            serialized_name='nanos',
+            serialized_type=float,
+            gate_getter=lambda e: e.duration.total_nanos()),
+    ])
+WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='wait',
+    gate_constructor=ops.WaitGate,
+    args=[
+        op_deserializer.DeserializingArg(
+            serialized_name='nanos',
+            constructor_arg_name='duration',
+            value_func=lambda nanos: value.Duration(nanos=cast(
+                Union[int, float, sympy.Basic], nanos)))
+    ])
