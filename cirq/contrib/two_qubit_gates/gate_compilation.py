@@ -94,41 +94,42 @@ def _outer_locals_for_unitary(
 ) -> Tuple[Tuple[_SingleQubitGatePair, _SingleQubitGatePair], np.ndarray]:
     """Local unitaries mapping between locally equivalent 2-local unitaries.
 
-    Finds the left and right 1-local unitaries k_L, k_R such that
+    Finds the left and right 1-local unitaries kL, kR such that
 
-    U_target = k_L @ U_base @ k_R
+    U_target = kL @ U_base @ kR
 
     Args:
         target: The unitary to which we want to map.
         base: The base unitary which maps to target.
 
     Returns:
-        (k_R, k_L) : The right and left 1-local unitaries in the equation above,
+        (kR, kL) : The right and left 1-local unitaries in the equation above,
             expressed as 2-tuples of (2x2) single qubit unitaries.
-        actual: The outcome of k_L @ base @ k_R
+        actual: The outcome of kL @ base @ kR
     """
     target_decomp = kak_decomposition(target)
     base_decomp = kak_decomposition(base)
 
     # From the KAK decomposition, we have
     # kLt At kRt = kL kLb Ab KRb kR
-    # If At=Ab, we can solve for the right and left local unitaries as
+    # If At=Ab, we can solve for kL and kR as
     # kLt = kL kLb --> kL = kLt kLb^\dagger
     # kRt = kRb kR --> kR = kRb\dagger kRt
 
+    # 0 and 1 are qubit indices.
     kLt0, kLt1 = target_decomp.single_qubit_operations_after
     kLb0, kLb1 = base_decomp.single_qubit_operations_after
-    k_L = kLt0 @ kLb0.conj().T, kLt1 @ kLb1.conj().T
+    kL = kLt0 @ kLb0.conj().T, kLt1 @ kLb1.conj().T
 
     kRt0, kRt1 = target_decomp.single_qubit_operations_before
     kRb0, kRb1 = base_decomp.single_qubit_operations_before
-    k_R = kRb0.conj().T @ kRt0, kRb1.conj().T @ kRt1
+    kR = kRb0.conj().T @ kRt0, kRb1.conj().T @ kRt1
 
-    actual = np.kron(*k_L) @ base
-    actual = actual @ np.kron(*k_R)
+    actual = np.kron(*kL) @ base
+    actual = actual @ np.kron(*kR)
     actual *= np.conj(target_decomp.global_phase)
 
-    return (k_R, k_L), actual
+    return (kR, kL), actual
 
 
 def _tabulate_KAK_vectors(
