@@ -602,7 +602,7 @@ def test_serialize_deserialize_syc():
 
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
-    op = cirq.SYC(q0, q1)
+    op = cg.SYC(q0, q1)
     assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
     assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
 
