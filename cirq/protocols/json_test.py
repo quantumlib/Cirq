@@ -279,9 +279,9 @@ TEST_OBJECTS = {
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'SYC':
-    cirq.SYC,
+    cirq.google.SYC,
     'SycamoreGate':
-    cirq.SycamoreGate(),
+    cirq.google.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
