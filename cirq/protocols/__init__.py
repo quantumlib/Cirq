@@ -32,6 +32,7 @@ from cirq.protocols.channel import (
     channel,
     has_channel,
     SupportsChannel,
+    validate_channel,
 )
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,

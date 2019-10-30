@@ -421,6 +421,7 @@ from cirq.protocols import (
     obj_to_dict_helper,
     trace_distance_bound,
     unitary,
+    validate_channel,
     validate_mixture,
 )
 

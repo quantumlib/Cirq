@@ -204,4 +204,4 @@ def validate_mixture(supports_mixture: SupportsMixture, rtol: int = 1e-5, atol: 
         total += p
     if not np.isclose(total, 1.0, rtol=rtol, atol=atol):
         raise ValueError("Sum of probabilities of a mixture was not 1.0 within "
-                         "atol={}, rtol={}".format(atol, rtol))
+                         "tolerances atol={}, rtol={}".format(atol, rtol))

@@ -158,9 +158,13 @@ def test_valid_mixture():
                     (ReturnsGreaterThanUnityProbability(), 'greater than 1')))
 def test_invalid_mixture(val, message):
     with pytest.raises(ValueError, match=message):
-        cirq.validate_mixture(val)
+        cirq.validate_mixture(val, atol=1e-5, rtol=1e-8)
+
+
+def test_validate_mixture_tolerance():
+    _ = cirq.validate_mixture(ReturnsNonnormalizedTuple(), atol=0.1, rtol=0.1)
 
 
 def test_missing_mixture():
     with pytest.raises(TypeError, match='_mixture_'):
-        cirq.validate_mixture(NoMethod)
+        cirq.validate_mixture(NoMethod, atol=1e-5, rtol=1e-8)

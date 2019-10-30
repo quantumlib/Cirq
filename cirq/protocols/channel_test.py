@@ -191,15 +191,20 @@ def test_validate_channel():
         def _channel_(self) -> Sequence[np.ndarray]:
             return (0.5 * np.eye(2), 0.6 * np.eye(2))
 
+    # Valid within loose tolerances
+    _ = cirq.validate_channel(InvalidOperatorSum1(), rtol=1e-5, atol=0.1)
     with pytest.raises(ValueError,
-                       match='square matrices of the same size.'):
-        cirq.validate_channel(TooManyDimensions(), rtol=1e-5, atol=0.01)
+                       match='Operator sum is not trace preserving'):
+        cirq.validate_channel(InvalidOperatorSum1(), rtol=1e-5, atol=0.01)
 
+    class InvalidOperatorSum2:
+        def _channel_(self, gamma) -> Iterable[np.ndarray]:
+            return (
+                np.array([[1., 0.], [0., 1.]]),
+                np.array([[0., np.sqrt(gamma)], [0., 0.]]))
 
-    class ReturnsChannel:
-        def _channel_(self) -> Sequence[np.ndarray]:
-            return c
-
-
-
-    pass
+    # TODO: make this work
+    _ = cirq.validate_channel(InvalidOperatorSum2(), rtol=1e-5, atol=0.1)
+    with pytest.raises(ValueError,
+                       match='Operator sum is not trace preserving'):
+        cirq.validate_channel(InvalidOperatorSum2(), rtol=1e-5, atol=0.01)
