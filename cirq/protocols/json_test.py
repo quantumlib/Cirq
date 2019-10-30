@@ -16,6 +16,7 @@ import inspect
 
 import io
 import os
+import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type
 
@@ -620,3 +621,22 @@ def test_all_roundtrip(cirq_obj_name: str, cls):
         # more strict: must be exact (no subclasses)
         assert type(obj) == cls
         assert_roundtrip(obj)
+
+
+def test_to_from_strings():
+    x_json_text = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    assert cirq.to_json(cirq.X) == x_json_text
+    assert cirq.read_json(json_text=x_json_text) == cirq.X
+
+    with pytest.raises(ValueError, match='specify ONE'):
+        cirq.read_json(io.StringIO(), json_text=x_json_text)
+
+
+def test_pathlib_paths(tmpdir):
+    path = pathlib.Path(tmpdir) / 'op.json'
+    cirq.to_json(cirq.X, path)
+    assert cirq.read_json(path) == cirq.X
