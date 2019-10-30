@@ -3,6 +3,7 @@ import numpy
 import pytest
 
 from cirq import unitary, FSimGate
+from cirq.contrib.two_qubit_gates import example
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
@@ -13,8 +14,8 @@ numpy.random.seed(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(numpy.pi / 2, numpy.pi / 6)),
-                                              2e-2,
-                                              include_warnings=False)
+    2e-2,
+    include_warnings=False)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
     unitary(FSimGate(numpy.pi / 4, numpy.pi / 24)), 1e-2)
@@ -56,3 +57,7 @@ def test_gate_compilation_on_base_gate_identity():
     assert len(local_gates) == 2
     assert success
     assert unitary_entanglement_fidelity(actual, base_gate) > 0.99999
+
+
+def test_gate_compilation_example():
+    example.main(samples=10, max_infidelity=0.3, verbose=False)
