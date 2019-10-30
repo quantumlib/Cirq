@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, common_gates
+from cirq.ops import gate_features, eigen_gate, common_gates, pauli_gates
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -58,6 +58,27 @@ class XXPowGate(eigen_gate.EigenGate,
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.X.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
@@ -120,6 +141,27 @@ class YYPowGate(eigen_gate.EigenGate,
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.Y.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> 'protocols.CircuitDiagramInfo':

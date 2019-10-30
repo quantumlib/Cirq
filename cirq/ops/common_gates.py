@@ -97,6 +97,18 @@ class XPowGate(eigen_gate.EigenGate,
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
 
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.X_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.X.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.X_nsqrt.on(*qubits)
+        return NotImplemented
+
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
             return None
@@ -218,6 +230,18 @@ class YPowGate(eigen_gate.EigenGate,
         """Returns an equal-up-global-phase standardized form of the gate."""
         return YPowGate(exponent=self._exponent)
 
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.Y_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.Y.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
+        return NotImplemented
+
     def _eigen_components(self):
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
@@ -334,6 +358,18 @@ class ZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.Z_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.Z.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.Z_nsqrt.on(*qubits)
+        return NotImplemented
 
     def in_su2(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -494,6 +530,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
         })
 
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.H.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -572,6 +616,14 @@ class CZPowGate(eigen_gate.EigenGate,
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 1:
+            return PauliInteractionGate.CZ.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
 
     def _eigen_components(self):
         return [
@@ -678,6 +730,14 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 1:
+            return PauliInteractionGate.CNOT.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
 
     def _decompose_(self, qubits):
         c, t = qubits

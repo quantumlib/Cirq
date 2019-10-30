@@ -329,16 +329,14 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
     return classification.get(state, None)
 
 
-def get_pr_review_status(pr: PullRequestDetails) -> Any:
+def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     """
     References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
     """
-    url = ("https://api.github.com/repos/{}/{}/pulls/{}/reviews"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.pull_id,
-                                     pr.repo.access_token))
+    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+           f"/pulls/{pr.pull_id}/reviews"
+           f"?per_page={per_page};access_token={pr.repo.access_token}")
     response = requests.get(url)
 
     if response.status_code != 200:

@@ -270,14 +270,12 @@ def test_radd_op_tree():
     # non-empty circuit addition
     d = cirq.Circuit()
     d.append(cirq.Y(b))
-    assert [cirq.X(a)] + d == cirq.Circuit([
-        cirq.Moment([cirq.X(a)]),
-        cirq.Moment([cirq.Y(b)])
-    ])
-    assert cirq.Moment([cirq.X(a)]) + d == cirq.Circuit([
-        cirq.Moment([cirq.X(a)]),
-        cirq.Moment([cirq.Y(b)])
-    ])
+    assert [cirq.X(a)] + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([cirq.X(a)]) + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
 
 
 def test_bool():
@@ -1212,7 +1210,12 @@ def test_findall_operations_until_blocked():
         assert circuit.findall_operations_until_blocked(
             start_frontier={d: idx}, is_blocker=stop_if_op) == []
         assert circuit.findall_operations_until_blocked(
-            start_frontier={a:idx, b:idx, c:idx, d: idx},
+            start_frontier={
+                a: idx,
+                b: idx,
+                c: idx,
+                d: idx
+            },
             is_blocker=stop_if_op) == []
 
     # Cases where nothing is blocked, it goes to the end
