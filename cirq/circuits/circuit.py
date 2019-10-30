@@ -271,6 +271,14 @@ class Circuit:
         result = self.copy()
         return result.__iadd__(other)
 
+    def __radd__(self, other):
+        # The Circuit + Circuit case is handled by __add__
+        if not isinstance(other, (ops.Operation, Iterable)):
+            return NotImplemented
+        # Auto wrap OP_TREE inputs into a circuit.
+        result = Circuit(other)
+        return result.__iadd__(self)
+
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
