@@ -13,7 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import cast, Dict, Optional, List, Set, Tuple, Type, TYPE_CHECKING
+from typing import Any, cast, Dict, Iterable, Optional, List
+from typing import Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set
@@ -39,6 +40,11 @@ class _GateDefinition:
         self.flattened_qubits = {
             q for qubit_tuple in target_set for q in qubit_tuple
         }
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return NotImplemented
+        return self.__dict__ == other.__dict__
 
 
 class SerializableDevice(devices.Device):
@@ -79,9 +85,10 @@ class SerializableDevice(devices.Device):
         self.gate_definitions = gate_definitions
 
     @classmethod
-    def from_proto(cls, proto: v2.device_pb2.DeviceSpecification,
-                   gate_set: serializable_gate_set.SerializableGateSet
-                  ) -> 'SerializableDevice':
+    def from_proto(
+            cls, proto: v2.device_pb2.DeviceSpecification,
+            gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
+    ) -> 'SerializableDevice':
         """
 
         Args:
@@ -114,7 +121,7 @@ class SerializableDevice(devices.Device):
                 is_permutation = any(which_are_permutations)
                 if is_permutation:
                     if not all(which_are_permutations):
-                        msg = f'Id {gate_def.id} in {gate_set.gate_set_name} ' \
+                        msg = f'Id {gate_def.id} in {gs.name} ' \
                             ' mixes SUBSET_PERMUTATION with other types which' \
                             ' is not currently allowed.'
                         raise NotImplementedError(msg)
@@ -126,13 +133,19 @@ class SerializableDevice(devices.Device):
 
         # Loop through serializers and map gate_definitions to type
         gates_by_type: Dict[Type['cirq.Gate'], _GateDefinition] = {}
-        for gate_type in gate_set.supported_gate_types():
-            for serializer in gate_set.serializers[gate_type]:
-                gate_id = serializer.serialized_gate_id
-                if gate_id not in gate_definitions:
-                    raise ValueError(f'Serializer has {gate_id} which is not '
-                                     'supported by the device specification')
-                gates_by_type[gate_type] = gate_definitions[gate_id]
+        for gate_set in gate_sets:
+            for gate_type in gate_set.supported_gate_types():
+                for serializer in gate_set.serializers[gate_type]:
+                    gate_id = serializer.serialized_gate_id
+                    if gate_id not in gate_definitions:
+                        raise ValueError(f'Serializer has {gate_id} which is '
+                                         'not supported by the device '
+                                         'specification')
+                    if (gate_type in gates_by_type and gate_definitions[gate_id]
+                            != gates_by_type[gate_type]):
+                        raise ValueError('Two conflicting definitions for '
+                                         f'gate_type {gate_type}')
+                    gates_by_type[gate_type] = gate_definitions[gate_id]
 
         return SerializableDevice(
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
