@@ -1,9 +1,7 @@
-from itertools import permutations
+import itertools
 from typing import Tuple, Union
 
 import numpy as np
-
-TWO_PI = np.pi * 2
 
 _RealArraylike = Union[np.ndarray, float]
 
@@ -55,14 +53,14 @@ def random_qubit_unitary(number: int = 1,
             randomly. This corresponds to sampling over U(2) instead of SU(2).
     """
     theta = np.arcsin(np.sqrt(np.random.rand(number)))
-    phi_d = np.random.rand(number) * TWO_PI
-    phi_o = np.random.rand(number) * TWO_PI
+    phi_d = np.random.rand(number) * np.pi * 2
+    phi_o = np.random.rand(number) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if sample_phase:
         # coverage: ignore
-        global_phase = np.exp(1j * TWO_PI * np.random.rand(number))
+        global_phase = np.exp(1j * np.pi * 2 * np.random.rand(number))
         np.einsum('t,tab->tab', global_phase, out, out=out)
     return out
 
@@ -77,9 +75,15 @@ def vector_kron(first: np.ndarray, second: np.ndarray) -> np.ndarray:
     return out.reshape(s_v + (s_0[0] * s_1[0],) * 2)
 
 
+# Encode all possible local operations that produce equivalent KAK vectors
+# and which can also be detected by the entanglement fidelity function
+# These operations can be decomposed as s_x^a s_y^b s_z^c n_j p, where
+# s_j denotes a pi/2 shift in index j (a,b,c are 0 or 1), n_j is a pi rotation
+# about the j axis, and p is a permutation of the three indices.
+
 # all permutations of (1,2,3)
 _perms_123 = np.zeros((6, 3, 3), int)
-for ind, perm in enumerate(permutations((0, 1, 2))):
+for ind, perm in enumerate(itertools.permutations((0, 1, 2))):
     _perms_123[ind, (0, 1, 2), perm] = 1
 
 _negations = np.zeros((4, 3, 3), int)
@@ -88,26 +92,33 @@ _negations[1, (0, 1, 2), (0, 1, 2)] = (1, -1, -1)
 _negations[2, (0, 1, 2), (0, 1, 2)] = (-1, 1, -1)
 _negations[3, (0, 1, 2), (0, 1, 2)] = (-1, -1, 1)
 
-_offsets = np.zeros((4, 3))
-_offsets[1, (1, 2)] = np.pi / 2
-_offsets[1, (0, 2)] = np.pi / 2
-_offsets[1, (0, 1)] = np.pi / 2
+_offsets = np.zeros((8, 3))
+_offsets[1, 0] = np.pi / 2
+_offsets[2, 1] = np.pi / 2
+_offsets[3, 2] = np.pi / 2
+_offsets[4, (1, 2)] = np.pi / 2
+_offsets[5, (0, 2)] = np.pi / 2
+_offsets[6, (0, 1)] = np.pi / 2
+_offsets[7, (0, 1, 2)] = np.pi / 2
+
 
 
 def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     """Generates all KAK vectors equivalent under single qubit unitaries."""
     # coverage: ignore
-    kak_vec = np.asarray(kak_vec)
-    # Produce all shift-negations of the kak vector
-    out = np.einsum('nab,...b->...na', _negations, kak_vec,
-                    dtype=float)  # (...,4,3)
-    out[..., :, :] += _offsets
+    kak_vec = np.asarray(kak_vec, dtype=float)
 
-    # Apply all permutations of indices
-    out = np.einsum('pcb,...nb->...pnc', _perms_123, out)  # (...,6,4,3)
+    # Apply all permutations, then all negations, then all shifts.
+
+    out = np.einsum('pab,...b->...pa', _perms_123, kak_vec)  # (...,6,3)
+    out = np.einsum('nab,...b->...na', _negations, out)  # (...,6,4,3)
+
+    # (...,8,6,4,3)
+    out = out[...,np.newaxis,:,:,:] + _offsets[:, np.newaxis, np.newaxis, :]
 
     # Merge indices
-    return np.reshape(out, out.shape[:-3] + (24, 3))
+    return np.reshape(out, out.shape[:-4] + (192, 3))
+
 
 
 def KAK_vector_infidelity(k_vec_a: np.ndarray,
@@ -115,7 +126,7 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           ignore_equivalent_vectors: bool = False
                           ) -> np.ndarray:
     """Minimum entanglement infidelity between two KAK vectors. """
-
+    k_vec_a, k_vec_b = np.asarray(k_vec_a), np.asarray(k_vec_b)
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
         out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
@@ -124,8 +135,8 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
     # coverage: ignore
     # We must take the minimum infidelity over all possible locally equivalent
     # KAK vectors. We need only consider equivalent vectors of one input.
-    k_vec_a = np.asarray(k_vec_a)[..., np.newaxis, :]  # (...,1,3)
-    k_vec_b = _kak_equivalent_vectors(np.asarray(k_vec_b))  # (...,24,3)
+    k_vec_a = k_vec_a[..., np.newaxis, :]  # (...,1,3)
+    k_vec_b = _kak_equivalent_vectors(k_vec_b)  # (...,24,3)
 
     k_diff = k_vec_a - k_vec_b
 
@@ -273,9 +284,8 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
     """
     U_actual = np.asarray(U_actual)
     U_ideal = np.asarray(U_ideal)
-    if U_actual.shape[-1] != U_actual.shape[-2]:
-        # coverage: ignore
-        raise ValueError("Inputs' trailing dimensions must be equal (square).")
+    assert U_actual.shape[-1] == U_actual.shape[-2], (
+        "Inputs' trailing dimensions must be equal (square).")
 
     dim = U_ideal.shape[-1]
 
