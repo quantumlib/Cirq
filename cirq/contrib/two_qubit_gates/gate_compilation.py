@@ -7,10 +7,11 @@ from warnings import warn
 import numpy as np
 import attr
 from cirq import kak_decomposition, kak_vector
-# pylint: disable=line-too-long
-from cirq.contrib.two_qubit_gates.math_utils import KAK_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary, KAK_vector_to_unitary
-
-# pylint: enable=line-too-long
+from cirq.contrib.two_qubit_gates.math_utils import (KAK_vector_infidelity,
+                                                     vector_kron,
+                                                     weyl_chamber_mesh,
+                                                     random_qubit_unitary,
+                                                     KAK_vector_to_unitary)
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 

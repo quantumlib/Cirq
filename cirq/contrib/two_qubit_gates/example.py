@@ -3,12 +3,11 @@ from time import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-# pylint: disable=line-too-long
 from cirq import FSimGate, unitary
-from cirq.contrib.two_qubit_gates.gate_compilation import gate_product_tabulation
-from cirq.contrib.two_qubit_gates.math_utils import random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity
-
-# pylint: enable=line-too-long
+from cirq.contrib.two_qubit_gates.gate_compilation import (
+    gate_product_tabulation)
+from cirq.contrib.two_qubit_gates.math_utils import (
+    random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity)
 
 
 def main():
