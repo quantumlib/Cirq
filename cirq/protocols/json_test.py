@@ -528,6 +528,8 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
 
 def test_builtins():
+    assert_roundtrip(True)
+    assert_roundtrip(1)
     assert_roundtrip(1 + 2j)
     assert_roundtrip({
         'test': [123, 5.5],
@@ -535,6 +537,25 @@ def test_builtins():
         '3': None,
         '0.0': [],
     })
+
+
+def test_numpy():
+    x = np.ones(1)[0]
+
+    assert_roundtrip(x.astype(np.bool))
+    assert_roundtrip(x.astype(np.int8))
+    assert_roundtrip(x.astype(np.int16))
+    assert_roundtrip(x.astype(np.int32))
+    assert_roundtrip(x.astype(np.int64))
+    assert_roundtrip(x.astype(np.uint8))
+    assert_roundtrip(x.astype(np.uint16))
+    assert_roundtrip(x.astype(np.uint32))
+    assert_roundtrip(x.astype(np.uint64))
+    assert_roundtrip(x.astype(np.float32))
+    assert_roundtrip(x.astype(np.float64))
+    assert_roundtrip(x.astype(np.complex64))
+    assert_roundtrip(x.astype(np.complex128))
+
     assert_roundtrip(np.ones((11, 5)))
     assert_roundtrip(np.arange(3))
 
