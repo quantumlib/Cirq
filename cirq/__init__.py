@@ -240,8 +240,6 @@ from cirq.ops import (
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
-    SYC,
-    SycamoreGate,
     T,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
