@@ -154,7 +154,7 @@ class _QubitAsQid(Qid):
 
 
 class Tag:
-    """A wrapper around string that can be user to differentiate gates.
+    """A wrapper around string that can be used to differentiate gates.
 
     This can be instantiated using a string value or sub-classed to
     differentiate or tag specific instances of gates.
