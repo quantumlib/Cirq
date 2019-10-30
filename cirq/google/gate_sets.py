@@ -26,8 +26,6 @@ from cirq.google.common_serializers import (
     SYC_DESERIALIZER,
     SQRT_ISWAP_SERIALIZERS,
     SQRT_ISWAP_DESERIALIZERS,
-    WAIT_GATE_SERIALIZER,
-    WAIT_GATE_DESERIALIZER,
 )
 
 

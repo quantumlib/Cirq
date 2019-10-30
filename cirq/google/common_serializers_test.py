@@ -496,7 +496,8 @@ def test_deserialize_z_parameterized():
 
 
 def test_wait_gate():
-    gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER], [cgc.WAIT_GATE_DESERIALIZER])
+    gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
+                                      [cgc.WAIT_GATE_DESERIALIZER])
     proto_dict = {
         'gate': {
             'id': 'wait'
