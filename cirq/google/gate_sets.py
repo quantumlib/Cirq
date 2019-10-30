@@ -38,14 +38,12 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
     ],
     deserializers=[
         SYC_DESERIALIZER,
         *SINGLE_QUBIT_DESERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
     ],
 )
 
@@ -55,13 +53,11 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
         *SQRT_ISWAP_SERIALIZERS,
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
-        WAIT_GATE_SERIALIZER,
     ],
     deserializers=[
         *SQRT_ISWAP_DESERIALIZERS,
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
-        WAIT_GATE_DESERIALIZER,
     ])
 
 
