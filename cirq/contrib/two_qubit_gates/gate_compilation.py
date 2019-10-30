@@ -156,7 +156,7 @@ def _outer_locals_for_unitary(
     return kR, kL, actual
 
 
-def _tabulate_KAK_vectors(
+def _tabulate_kak_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
         base_gate: np.ndarray,
         max_dist: float,
@@ -268,7 +268,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     u_locals_for_gate: Dict[int, Tuple[_SingleQubitGatePair, ...]] = {}
     tabulation_cutoff = 0.5 * spacing
-    out = _tabulate_KAK_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
+    out = _tabulate_kak_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
                                 mesh_points, (u_locals_0, u_locals_1))
     kak_vecs.extend(out[0])
     sq_cycles.extend(out[1])
@@ -284,7 +284,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     # repeat for double products
     # Multiply by the same local unitary!
-    out = _tabulate_KAK_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
+    out = _tabulate_kak_vectors(u_locals_for_gate, base_gate, tabulation_cutoff,
                                 mesh_points, (u_locals_0, u_locals_1),
                                 (u_locals_0, u_locals_1))
 
