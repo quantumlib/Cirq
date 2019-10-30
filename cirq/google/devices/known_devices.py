@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Set, Tuple
+from typing import Dict, Optional, Iterable, List, Set, Tuple
 
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
@@ -56,7 +56,8 @@ def _parse_device(s: str) -> Tuple[List[GridQubit], Dict[str, Set[GridQubit]]]:
 
 def create_device_proto_from_diagram(
         ascii_grid: str,
-        gate_set: serializable_gate_set.SerializableGateSet = None,
+        gate_sets: Optional[Iterable[
+            serializable_gate_set.SerializableGateSet]] = None,
         durations_picos: Dict[str, int] = None,
 ) -> device_pb2.DeviceSpecification:
     """
@@ -103,50 +104,53 @@ def create_device_proto_from_diagram(
                     (v2.qubit_to_proto_id(q), v2.qubit_to_proto_id(neighbor)))
                 neighbor_set.add((q, neighbor))
 
-    # Create gate set
-    if gate_set is not None:
-        gs_proto = spec.valid_gate_sets.add()
-        gs_proto.name = gate_set.gate_set_name
-        gate_ids: Set[str] = set()
-        for gate_type in gate_set.serializers:
-            for serializer in gate_set.serializers[gate_type]:
-                gate_id = serializer.serialized_gate_id
-                if gate_id in gate_ids:
-                    # Only add each type once
-                    continue
+    # Create gate sets
+    arg_def = device_pb2.ArgDefinition
+    if gate_sets is not None:
+        for gate_set in gate_sets:
+            gs_proto = spec.valid_gate_sets.add()
+            gs_proto.name = gate_set.gate_set_name
+            gate_ids: Set[str] = set()
+            for gate_type in gate_set.serializers:
+                for serializer in gate_set.serializers[gate_type]:
+                    gate_id = serializer.serialized_gate_id
+                    if gate_id in gate_ids:
+                        # Only add each type once
+                        continue
 
-                gate_ids.add(gate_id)
-                gate = gs_proto.valid_gates.add()
-                gate.id = gate_id
+                    gate_ids.add(gate_id)
+                    gate = gs_proto.valid_gates.add()
+                    gate.id = gate_id
 
-                # Choose target set and number of qubits based on gate type.
+                    # Choose target set and number of qubits based on gate type.
 
-                # Note: if it is not a measurement gate and doesn't inherit
-                # from SingleQubitGate, it is assumed to be a two qubit gate.
-                if gate_type == MeasurementGate:
-                    gate.valid_targets.extend([_MEAS_TARGET_SET])
-                elif issubclass(gate_type, SingleQubitGate):
-                    gate.number_of_qubits = 1
-                else:
-                    # This must be a two-qubit gate
-                    gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
-                    gate.number_of_qubits = 2
+                    # Note: if it is not a measurement gate and doesn't inherit
+                    # from SingleQubitGate, it's assumed to be a two qubit gate.
+                    if gate_type == MeasurementGate:
+                        gate.valid_targets.extend([_MEAS_TARGET_SET])
+                    elif issubclass(gate_type, SingleQubitGate):
+                        gate.number_of_qubits = 1
+                    else:
+                        # This must be a two-qubit gate
+                        gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                        gate.number_of_qubits = 2
 
-                # Add gate duration
-                if durations_picos is not None and gate.id in durations_picos:
-                    gate.gate_duration_picos = durations_picos[gate.id]
+                    # Add gate duration
+                    if (durations_picos is not None and
+                            gate.id in durations_picos):
+                        gate.gate_duration_picos = durations_picos[gate.id]
 
-                # Add argument names and types for each gate.
-                for arg in serializer.args:
-                    new_arg = gate.valid_args.add()
-                    if arg.serialized_type == str:
-                        new_arg.type = device_pb2.ArgDefinition.STRING
-                    if arg.serialized_type == float:
-                        new_arg.type = device_pb2.ArgDefinition.FLOAT
-                    if arg.serialized_type == List[bool]:
-                        new_arg.type = device_pb2.ArgDefinition.REPEATED_BOOLEAN
-                    new_arg.name = arg.serialized_name
-                    # Note: this does not yet support adding allowed_ranges
+                    # Add argument names and types for each gate.
+                    for arg in serializer.args:
+                        new_arg = gate.valid_args.add()
+                        if arg.serialized_type == str:
+                            new_arg.type = arg_def.STRING
+                        if arg.serialized_type == float:
+                            new_arg.type = arg_def.FLOAT
+                        if arg.serialized_type == List[bool]:
+                            new_arg.type = arg_def.REPEATED_BOOLEAN
+                        new_arg.name = arg.serialized_name
+                        # Note: this does not yet support adding allowed_ranges
 
     return spec
 
@@ -191,7 +195,8 @@ _DURATIONS_FOR_XMON = {
     'meas': 1_000_000,
 }
 
-FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID, gate_sets.XMON,
+FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
+                                                 [gate_sets.XMON],
                                                  _DURATIONS_FOR_XMON)
 
 _BRISTLECONE_GRID = """
@@ -216,5 +221,5 @@ Bristlecone = _NamedConstantXmonDevice(
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
-                                                     gate_sets.XMON,
+                                                     [gate_sets.XMON],
                                                      _DURATIONS_FOR_XMON)
