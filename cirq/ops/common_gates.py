@@ -392,7 +392,7 @@ class ZPowGate(eigen_gate.EigenGate,
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (result.control_values == ((1,),) and
+        if (result.control_values == ((1,),) and  # type: ignore
                 result.control_qid_shape == (2,)):  # type: ignore
             return cirq.CZPowGate(exponent=self._exponent,
                                   global_shift=self._global_shift)
