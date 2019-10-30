@@ -16,4 +16,3 @@ from cirq.google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,
 )
-
