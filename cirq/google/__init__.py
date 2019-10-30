@@ -34,6 +34,7 @@ from cirq.google.devices import (
     Bristlecone,
     Foxtail,
     SerializableDevice,
+    Sycamore,
     XmonDevice,
 )
 

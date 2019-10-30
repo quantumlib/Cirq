@@ -222,12 +222,6 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
             cast(ops.PhasedXPowGate, x).exponent, 0.5)),
 ]
 
-#############################################
-#
-# Two qubit serializers and deserializers
-#
-#############################################
-
 #
 # Deserializers for single qubit rotations confined to half-pi increments
 #
@@ -255,6 +249,12 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
                                              value_func=lambda _: 0.5),
         ]),
 ]
+
+#############################################
+#
+# Two qubit serializers and deserializers
+#
+#############################################
 
 #
 # CZ Serializer and deserializer
