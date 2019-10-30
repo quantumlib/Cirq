@@ -570,14 +570,16 @@ def _probs(state: np.ndarray, indices: List[int],
 
     # Calculate the probabilities for measuring the particular results.
     meas_shape = tuple(qid_shape[i] for i in indices)
-    probs = [
-        np.linalg.norm(tensor[linalg.slice_for_qubits_equal_to(
-            indices, big_endian_qureg_value=b, qid_shape=qid_shape)])**2
+    probs = np.abs([
+        tensor[linalg.slice_for_qubits_equal_to(indices,
+                                                big_endian_qureg_value=b,
+                                                qid_shape=qid_shape)]
         for b in range(np.prod(meas_shape, dtype=int))
-    ]
+    ])**2
+    probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= sum(probs) # type: ignore
+    probs /= np.sum(probs)  # type: ignore
     return probs
 
 
