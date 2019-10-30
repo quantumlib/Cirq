@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import numbers
 import pathlib
 from typing import (
     Union,
@@ -230,7 +231,13 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
-        if isinstance(o, complex):
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, numbers.Integral):
+            return int(o)
+        if isinstance(o, numbers.Real):
+            return float(o)
+        if isinstance(o, numbers.Complex):
             return {
                 'cirq_type': 'complex',
                 'real': o.real,
