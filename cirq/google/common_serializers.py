@@ -336,7 +336,10 @@ SQRT_ISWAP_DESERIALIZERS = [
         gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
         args=[]),
 ]
-"""Measurement serializer."""
+
+#
+# WaitGate serializer and deserializer
+#
 WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.WaitGate,
     serialized_gate_id='wait',
@@ -346,7 +349,6 @@ WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
             serialized_type=float,
             gate_getter=lambda e: e.duration.total_nanos()),
     ])
-"""Measurement deserializer."""
 WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='wait',
     gate_constructor=ops.WaitGate,
