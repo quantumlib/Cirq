@@ -157,8 +157,7 @@ def in_weyl_chamber(xp: np.ndarray, yp: np.ndarray,
 
     z_inside = np.abs(zp) <= yp
 
-    out = np.logical_and(x_inside, y_inside)
-    return np.logical_and(out, z_inside)
+    return np.logical_and.reduce((x_inside, y_inside, z_inside))
 
 
 def weyl_chamber_mesh(spacing: float) -> np.ndarray:

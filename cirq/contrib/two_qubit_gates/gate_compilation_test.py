@@ -7,18 +7,17 @@ from cirq.contrib.two_qubit_gates import example
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
-    random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity)
+    random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity, weyl_chamber_mesh)
 
-# coverage: ignore
 numpy.random.seed(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(numpy.pi / 2, numpy.pi / 6)),
-    2e-2,
+    0.2,
     include_warnings=False)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
-    unitary(FSimGate(numpy.pi / 4, numpy.pi / 24)), 1e-2)
+    unitary(FSimGate(numpy.pi / 4, numpy.pi / 24)), 0.1)
 
 _random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100)
 

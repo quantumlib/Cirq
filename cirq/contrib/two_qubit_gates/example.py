@@ -73,7 +73,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01,
         if success:
             infidelities.append(infidelity)
         else:
-            failed_infidelities.append(infidelity)
+            failed_infidelities.append(infidelity)  # coverage: ignore
     t_comp = time() - start
     if verbose:
         # coverage: ignore
