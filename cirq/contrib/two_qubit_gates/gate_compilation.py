@@ -180,7 +180,7 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((KAK_mesh - vec)**2, axis=-1))
+        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -202,7 +202,8 @@ def _tabulate_KAK_vectors(
 def gate_product_tabulation(base_gate: np.ndarray,
                             max_infidelity: float,
                             verbose: bool = False,
-                            include_warnings: bool = True) -> GateTabulation:
+                            include_warnings: bool = True,
+                            sample_scaling: int = 50) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:
@@ -214,6 +215,9 @@ def gate_product_tabulation(base_gate: np.ndarray,
         verbose: Whether to print gate tabulation statistics.
         include_warnings: If True, warn the user if a point in the Weyl
             chamber has no tabulated points within the desired distance.
+        sample_scaling: Relative number of random gate products to use in the
+            tabulation. The total number of random local unitaries scales as
+            ~ max_infidelity^{-3/2} * sample_scaling. Must be positive.
 
     Returns:
         A GateTabulation object used to compile new two-qubit gates from
@@ -223,7 +227,11 @@ def gate_product_tabulation(base_gate: np.ndarray,
     spacing = np.sqrt(max_infidelity / 3)
     mesh_points = weyl_chamber_mesh(spacing)
 
-    num_samples = mesh_points.shape[0] * 50
+    # Number of random gate products to sample over in constructing the
+    # tabulation. This has to be at least the number of mesh points, as
+    # a single product can only be associated with one mesh point.
+    assert sample_scaling > 0, 'Input sample_scaling must positive.'
+    num_samples = mesh_points.shape[0] * sample_scaling
 
     # include the base gate itself
     kak_vecs = [kak_vector(base_gate, check_preconditions=False)]
@@ -300,7 +308,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
