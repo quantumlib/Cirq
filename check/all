@@ -54,6 +54,9 @@ for arg in $@; do
     fi
 done
 
+echo "Running misc"
+check/misc
+
 echo "Running pylint"
 check/pylint
 
