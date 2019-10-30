@@ -61,3 +61,8 @@ def test_gate_compilation_on_base_gate_identity():
 
 def test_gate_compilation_example():
     example.main(samples=10, max_infidelity=0.3, verbose=False)
+
+
+def test_weyl_chamber_mesh_spacing_too_small_throws_error():
+    with pytest.raises(ValueError, match='may cause system to crash'):
+        weyl_chamber_mesh(spacing=5e-4)
