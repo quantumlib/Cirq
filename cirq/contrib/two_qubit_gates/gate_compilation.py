@@ -1,7 +1,7 @@
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
 from functools import reduce
-from typing import Tuple, Dict, Sequence, List
+from typing import Tuple, Dict, Sequence, List, NamedTuple
 from warnings import warn
 
 import numpy as np
@@ -14,6 +14,32 @@ from cirq.contrib.two_qubit_gates.math_utils import (KAK_vector_infidelity,
                                                      KAK_vector_to_unitary)
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
+
+
+class TwoQubitGateCompilation(NamedTuple):
+    """Represents a compilation of a target 2-qubit with respect to a base gate.
+
+    This object encodes the relationship between 4x4 unitary operators
+
+    U_target ~ k_N · U_base · k_{N-1} · ... · k_1 · U_base · k_0
+
+    where U_target, U_base are 2-local and k_j are 1-local.
+
+    Attributes:
+        base_gate: 4x4 unitary denoting U_base above.
+        target_gate: 4x4 unitary denoting U_target above.
+        local_unitaries: Sequence of 2-tuples (k_{00},k_{01}),(k_{10},k_{11})...
+            where k_j = k_{j0} ⊗ k_{j1} in the product above. Each k_{j0},
+            k_{j1} is a 2x2 unitary.
+        actual_gate: 4x4 unitary denoting the right hand side above, ideally
+            equal to U_target.
+        success: Whether actual_gate is expected to be close to U_target.
+    """
+    base_gate: np.ndarray
+    target_gate: np.ndarray
+    local_unitaries: Tuple[_SingleQubitGatePair, ...]
+    actual_gate: np.ndarray
+    success: bool
 
 
 @attr.s(auto_attribs=True)
@@ -33,7 +59,7 @@ class GateTabulation:
 
     def compile_two_qubit_gate(
             self, unitary: np.ndarray
-    ) -> Tuple[Sequence[_SingleQubitGatePair], np.ndarray, bool]:
+    ) -> TwoQubitGateCompilation:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
@@ -47,14 +73,8 @@ class GateTabulation:
             unitary: Unitary (U above) to compile.
 
         Returns:
-            local_unitaries: Sequence of 2-tuples
-                (k_{00},k_{01}), (k_{10},k_{11}) ...
-                where k_j = k_{j0}\otimes k_{j1} in the product above.
-            actual_unitary: The actual outcome of the sequence of products
-                above.
-            success: Whether the actual_unitary is expected to be within the
-                the desired maximum entanglement infidelity to the target
-                unitary.
+            A TwoQubitGateCompilation object encoding the required local
+            unitaries and resulting product above.
         """
         unitary = np.asarray(unitary)
         kak_vec = kak_vector(unitary, check_preconditions=False)
@@ -69,9 +89,10 @@ class GateTabulation:
         inner_gates = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
-            outer_locals, actual = _outer_locals_for_unitary(
+            kR, kL, actual = _outer_locals_for_unitary(
                 unitary, self.base_gate)
-            return outer_locals, actual, success
+            return TwoQubitGateCompilation(self.base_gate, unitary, (kR, kL),
+                                           actual, success)
 
         # reshape to operators on 2 qubits, (n,4,4)
         inner_gates = vector_kron(inner_gates[..., 0, :, :],
@@ -80,18 +101,19 @@ class GateTabulation:
         assert inner_gates.ndim == 3
         inner_product = reduce(lambda a, b: self.base_gate @ b @ a, inner_gates,
                                self.base_gate)
-        outer_locals, actual = _outer_locals_for_unitary(unitary, inner_product)
+        kR, kL, actual = _outer_locals_for_unitary(unitary, inner_product)
 
-        out = [outer_locals[0]]
+        out = [kR]
         out.extend(self.single_qubit_gates[nearest_ind])
-        out.append(outer_locals[1])
+        out.append(kL)
 
-        return out, actual, success
+        return TwoQubitGateCompilation(self.base_gate, unitary, tuple(out),
+                                       actual, success)
 
 
 def _outer_locals_for_unitary(
         target: np.ndarray, base: np.ndarray
-) -> Tuple[Tuple[_SingleQubitGatePair, _SingleQubitGatePair], np.ndarray]:
+) -> Tuple[_SingleQubitGatePair, _SingleQubitGatePair, np.ndarray]:
     """Local unitaries mapping between locally equivalent 2-local unitaries.
 
     Finds the left and right 1-local unitaries kL, kR such that
@@ -103,8 +125,10 @@ def _outer_locals_for_unitary(
         base: The base unitary which maps to target.
 
     Returns:
-        (kR, kL) : The right and left 1-local unitaries in the equation above,
-            expressed as 2-tuples of (2x2) single qubit unitaries.
+        kR: The right 1-local unitaries in the equation above, expressed as
+            2-tuples of (2x2) single qubit unitaries.
+        kL: The left 1-local unitaries in the equation above, expressed as
+            2-tuples of (2x2) single qubit unitaries.
         actual: The outcome of kL @ base @ kR
     """
     target_decomp = kak_decomposition(target)
@@ -129,14 +153,14 @@ def _outer_locals_for_unitary(
     actual = actual @ np.kron(*kR)
     actual *= np.conj(target_decomp.global_phase)
 
-    return (kR, kL), actual
+    return kR, kL, actual
 
 
 def _tabulate_KAK_vectors(
         tabulation: Dict[int, Tuple[_SingleQubitGatePair, ...]],
         base_gate: np.ndarray,
         max_dist: float,
-        KAK_mesh: np.ndarray,
+        kak_mesh: np.ndarray,
         *local_unitary_pairs: _SingleQubitGatePair,
 ) -> Tuple[List[np.ndarray], List[Tuple[_SingleQubitGatePair, ...]]]:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
@@ -148,7 +172,7 @@ def _tabulate_KAK_vectors(
         base_gate: The base 2 qubit gate used in the gate product.
         max_dist: The largest allowed Pauli error between a generated 2Q
            unitary and a KAK vector mesh point that it is tabulated to.
-        KAK_mesh: Sequence of KAK vectors filling the Weyl chamber whose
+        kak_mesh: Sequence of KAK vectors filling the Weyl chamber whose
             nearest neighbor distance is about 2*max_error.
         *local_unitary_pairs: 2-Tuples of single qubit unitary tensors, each
             of shape (N,2,2).
@@ -181,7 +205,7 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((kak_mesh - vec) ** 2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -320,9 +344,10 @@ def gate_product_tabulation(base_gate: np.ndarray,
             base_product = base_gate @ old_k @ base_gate
             new_product = products[new_ind]
 
-            kRkL, actual = _outer_locals_for_unitary(new_product, base_product)
+            kR, kL, actual = _outer_locals_for_unitary(new_product,
+                                                       base_product)
             # Add to the enumeration
-            sq_cycles.append((old_sq_cycle, kRkL[1]))
+            sq_cycles.append((old_sq_cycle, kL))
             kak_vecs.append(
                 kak_vector(base_gate @ actual, check_preconditions=False))
         elif include_warnings:

@@ -69,9 +69,10 @@ def main(samples: int = 1000,
         # success denotes is the actual gate is expected to be within the
         # desired fidelity to the target. It can be False if the base gate
         # cannot "fill" the Weyl chamber using at most 3 products.
-        _, actual, success = tabulation.compile_two_qubit_gate(target)
-        infidelity = 1 - unitary_entanglement_fidelity(target, actual)
-        if success:
+        result = tabulation.compile_two_qubit_gate(target)
+        infidelity = 1 - unitary_entanglement_fidelity(target,
+                                                       result.actual_gate)
+        if result.success:
             infidelities.append(infidelity)
         else:
             failed_infidelities.append(infidelity)  # coverage: ignore

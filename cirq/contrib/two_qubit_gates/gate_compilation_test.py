@@ -14,8 +14,8 @@ numpy.random.seed(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(numpy.pi / 2, numpy.pi / 6)),
-                                              0.2,
-                                              include_warnings=False)
+    0.2,
+    include_warnings=False)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
     unitary(FSimGate(numpy.pi / 4, numpy.pi / 24)), 0.1)
@@ -27,11 +27,12 @@ _random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100)
                          [sycamore_tabulation, sqrt_iswap_tabulation])
 @pytest.mark.parametrize('target', _random_2Q_unitaries)
 def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
-    _, actual, success = tabulation.compile_two_qubit_gate(target)
+    result = tabulation.compile_two_qubit_gate(target)
 
-    if success:
+    if result.success:
         max_error = tabulation.max_expected_infidelity
-        assert 1 - unitary_entanglement_fidelity(target, actual) < max_error
+        assert 1 - unitary_entanglement_fidelity(target,
+                                                 result.actual_gate) < max_error
 
 
 @pytest.mark.parametrize('tabulation',
@@ -39,11 +40,12 @@ def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
 def test_gate_compilation_on_base_gate_standard(tabulation):
     base_gate = tabulation.base_gate
 
-    local_gates, actual, success = tabulation.compile_two_qubit_gate(base_gate)
+    result = tabulation.compile_two_qubit_gate(base_gate)
 
-    assert len(local_gates) == 2
-    assert success
-    assert unitary_entanglement_fidelity(actual, base_gate) > 0.99999
+    assert len(result.local_unitaries) == 2
+    assert result.success
+    fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
+    assert fidelity > 0.99999
 
 
 def test_gate_compilation_on_base_gate_identity():
@@ -52,11 +54,12 @@ def test_gate_compilation_on_base_gate_identity():
                                          include_warnings=False)
     base_gate = tabulation.base_gate
 
-    local_gates, actual, success = tabulation.compile_two_qubit_gate(base_gate)
+    result = tabulation.compile_two_qubit_gate(base_gate)
 
-    assert len(local_gates) == 2
-    assert success
-    assert unitary_entanglement_fidelity(actual, base_gate) > 0.99999
+    assert len(result.local_unitaries) == 2
+    assert result.success
+    fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
+    assert fidelity > 0.99999
 
 
 def test_gate_compilation_example():
