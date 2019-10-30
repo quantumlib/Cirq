@@ -277,6 +277,11 @@ def test_radd_op_tree():
         [cirq.Moment([cirq.X(a)]),
          cirq.Moment([cirq.Y(b)])])
 
+    # Preserves device.
+    c = cirq.Circuit(device=cirq.google.Bristlecone)
+    c2 = [] + c
+    assert c2.device is cirq.google.Bristlecone
+
 
 def test_bool():
     assert not cirq.Circuit()
