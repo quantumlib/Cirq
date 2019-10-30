@@ -102,7 +102,6 @@ _offsets[6, (0, 1)] = np.pi / 2
 _offsets[7, (0, 1, 2)] = np.pi / 2
 
 
-
 def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     """Generates all KAK vectors equivalent under single qubit unitaries."""
     # coverage: ignore
@@ -114,11 +113,10 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     out = np.einsum('nab,...b->...na', _negations, out)  # (...,6,4,3)
 
     # (...,8,6,4,3)
-    out = out[...,np.newaxis,:,:,:] + _offsets[:, np.newaxis, np.newaxis, :]
+    out = out[..., np.newaxis, :, :, :] + _offsets[:, np.newaxis, np.newaxis, :]
 
     # Merge indices
     return np.reshape(out, out.shape[:-4] + (192, 3))
-
 
 
 def KAK_vector_infidelity(k_vec_a: np.ndarray,
@@ -146,19 +144,23 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
     return out.min(axis=-1)
 
 
-def in_weyl_chamber(xp: np.ndarray, yp: np.ndarray,
-                    zp: np.ndarray) -> np.ndarray:
+def in_weyl_chamber(kak_vec: np.ndarray) -> np.ndarray:
     """Whether a given collection of coordinates is within the Weyl chamber.
 
     Args:
-        xp: X coordinates for the KAK vector.
-        yp: Y coordinates for the KAK vector. Must have same shape as xp.
-        zp: Z coordinates for the KAK vector. Must have same shape as xp.
+        kak_vec: A numpy.ndarray tensor encoding a KAK 3-vector. Input may be
+            broadcastable with shape (...,3).
 
     Returns:
         np.ndarray of boolean values denoting whether the given coordinates
         are in the Weyl chamber.
     """
+    kak_vec = np.asarray(kak_vec)
+    assert kak_vec.shape[-1] == 3, (
+        'Last index of input must represent a 3-vector.')
+    # For convenience
+    xp, yp, zp = kak_vec[..., 0], kak_vec[..., 1], kak_vec[..., 2]
+
     pi_4 = np.pi / 4
 
     x_inside = np.logical_and(0 <= xp, xp <= pi_4)
@@ -187,12 +189,12 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
 
     # Uniform mesh
     disps = np.arange(-np.pi / 4, np.pi / 4, step=spacing)
-    xs, ys, zs = [a.ravel() for a in np.array(np.meshgrid(*(disps,) * 3))]
+    mesh_points = np.array([a.ravel()
+                            for a in np.array(np.meshgrid(*(disps,) * 3))])
+    mesh_points = np.moveaxis(mesh_points, 0, -1)
 
     # Reduce to points within Weyl chamber
-    sub_inds = in_weyl_chamber(xs, ys, zs)
-    xs, ys, zs = xs[sub_inds], ys[sub_inds], zs[sub_inds]
-    return np.array([xs, ys, zs]).T
+    return mesh_points[in_weyl_chamber(mesh_points)]
 
 
 _XX = np.zeros((4, 4))
