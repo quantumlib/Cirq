@@ -13,10 +13,8 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.api.google.v2 protos."""
 
-from collections import defaultdict
-
-from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union, \
-    TYPE_CHECKING
+from typing import (cast, Dict, Iterable, Iterator, List, Optional, Tuple, Type,
+                    Union, TYPE_CHECKING)
 
 from google.protobuf import json_format
 
@@ -51,11 +49,34 @@ class SerializableGateSet:
                 forms of gates to GateOperations.
         """
         self.gate_set_name = gate_set_name
-        self.serializers = defaultdict(
-            list)  # type: Dict[Type, List[op_serializer.GateOpSerializer]]
+        self.serializers: Dict[Type, List[op_serializer.GateOpSerializer]] = {}
         for s in serializers:
-            self.serializers[s.gate_type].append(s)
+            self.serializers.setdefault(s.gate_type, []).append(s)
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}
+
+    def with_gates(
+            self,
+            *,
+            name: Optional[str] = None,
+            serializers: Iterable[op_serializer.GateOpSerializer] = (),
+            deserializers: Iterable[op_deserializer.GateOpDeserializer] = (),
+    ) -> 'SerializableGateSet':
+        """Creates a new gateset with more (de)serializers.
+
+        Args:
+            name: Optional new name of the gateset. If not given, use the same
+                name as this gateset.
+            serializers: Serializers to add to those in this gateset.
+            deserializers: Deserializers to add to those in this gateset.
+        """
+        return SerializableGateSet(
+            name or self.gate_set_name,
+            serializers=[*self._all_serializers(), *serializers],
+            deserializers=[*self.deserializers.values(), *deserializers])
+
+    def _all_serializers(self) -> Iterator[op_serializer.GateOpSerializer]:
+        for serializers in self.serializers.values():
+            yield from serializers
 
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
