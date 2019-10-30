@@ -269,10 +269,6 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
-    'SerializableDevice':
-    cirq.google.SerializableDevice.from_proto(
-        proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
@@ -504,6 +500,7 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',

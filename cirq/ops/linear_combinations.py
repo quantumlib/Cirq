@@ -14,6 +14,7 @@
 from collections import defaultdict
 from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
                     DefaultDict)
+import numbers
 
 import numpy as np
 
@@ -451,7 +452,7 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
@@ -464,7 +465,7 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result += other
@@ -477,7 +478,7 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         if isinstance(other, PauliString):
@@ -490,7 +491,7 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result -= other
@@ -500,17 +501,49 @@ class PauliSum:
         factory = type(self)
         return factory(-self._linear_dict)
 
-    def __imul__(self, a: value.Scalar):
-        self._linear_dict *= a
+    def __imul__(self, other: PauliSumLike):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
+            return NotImplemented
+        if isinstance(other, numbers.Complex):
+            self._linear_dict *= other
+        elif isinstance(other, PauliString):
+            temp = PauliSum.from_pauli_strings([term * other for term in self])
+            self._linear_dict = temp._linear_dict
+        elif isinstance(other, PauliSum):
+            temp = PauliSum.from_pauli_strings(
+                [term * other_term for term in self for other_term in other])
+            self._linear_dict = temp._linear_dict
+
         return self
 
-    def __mul__(self, a: value.Scalar):
+    def __mul__(self, other: PauliSumLike):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
+            return NotImplemented
         result = self.copy()
-        result *= a
+        result *= other
         return result
 
-    def __rmul__(self, a: value.Scalar):
-        return self.__mul__(a)
+    def __rmul__(self, other: PauliSumLike):
+        if isinstance(other, numbers.Complex):
+            result = self.copy()
+            result *= other
+            return result
+        elif isinstance(other, PauliString):
+            result = self.copy()
+            return PauliSum.from_pauli_strings([other]) * result
+        return NotImplemented
+
+    def __pow__(self, exponent: int):
+        if not isinstance(exponent, numbers.Integral):
+            return NotImplemented
+        if exponent == 0:
+            return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
+        if exponent > 0:
+            base = self.copy()
+            for _ in range(exponent - 1):
+                base *= base
+            return base
+        return NotImplemented
 
     def __truediv__(self, a: value.Scalar):
         return self.__mul__(1 / a)

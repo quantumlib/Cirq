@@ -136,7 +136,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
 def compile_circuit(
         circuit: cirq.Circuit,
         *,
-        device: cirq.google.xmon_device.XmonDevice,
+        device: cirq.google.XmonDevice,
         routing_attempts: int,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         routing_algo_name: Optional[str] = None,
@@ -248,7 +248,7 @@ def prepare_circuits(
 
 def execute_circuits(
         *,
-        device: cirq.google.xmon_device.XmonDevice,
+        device: cirq.google.XmonDevice,
         samplers: List[cirq.Sampler],
         circuits: List[Tuple[cirq.Circuit, List[int]]],
         routing_attempts: int,
@@ -311,7 +311,7 @@ def calculate_quantum_volume(
         depth: int,
         num_circuits: int,
         seed: int,
-        device: cirq.google.xmon_device.XmonDevice,
+        device: cirq.google.XmonDevice,
         samplers: List[cirq.Sampler],
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         repetitions=10_000,
