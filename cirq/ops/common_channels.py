@@ -59,7 +59,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         self._p_z = value.validate_probability(p_z, 'p_z')
         self._p_i = 1 - value.validate_probability(p_x + p_y + p_z,
                                                    'p_x + p_y + p_z')
-        protocols.validate_mixture(self._mixture_())
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return ((self._p_i, protocols.unitary(identity.I)),
@@ -290,7 +289,6 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
         self._p = value.validate_probability(p, 'p')
-        protocols.validate_channel(self._channel_())
 
     def _channel_(self) -> Iterable[np.ndarray]:
         p0 = np.sqrt(self._p)
@@ -632,7 +630,6 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
             ValueError: if gamma is not a valid probability.
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
-        protocols.validate_channel(self._channel_())
 
     def _channel_(self) -> Iterable[np.ndarray]:
         return (
