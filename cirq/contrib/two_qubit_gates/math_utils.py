@@ -122,13 +122,13 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                          ) -> np.ndarray:
+                         ) -> np.ndarray:
     """Minimum entanglement infidelity between two KAK vectors. """
     k_vec_a, k_vec_b = np.asarray(k_vec_a), np.asarray(k_vec_b)
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-        out -= np.product(np.sin(k_diff), axis=-1) ** 2
+        out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+        out -= np.product(np.sin(k_diff), axis=-1)**2
         return out
     # coverage: ignore
     # We must take the minimum infidelity over all possible locally equivalent
@@ -138,8 +138,8 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,24)
+    out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+    out -= np.product(np.sin(k_diff), axis=-1)**2  # (...,24)
 
     return out.min(axis=-1)
 
@@ -189,8 +189,8 @@ def weyl_chamber_mesh(spacing: float) -> np.ndarray:
 
     # Uniform mesh
     disps = np.arange(-np.pi / 4, np.pi / 4, step=spacing)
-    mesh_points = np.array([a.ravel()
-                            for a in np.array(np.meshgrid(*(disps,) * 3))])
+    mesh_points = np.array(
+        [a.ravel() for a in np.array(np.meshgrid(*(disps,) * 3))])
     mesh_points = np.moveaxis(mesh_points, 0, -1)
 
     # Reduce to points within Weyl chamber
@@ -205,7 +205,7 @@ _kak_gens = np.array([_XX, _YY, _ZZ])
 
 
 def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
-                                            ) -> Tuple[np.ndarray, np.ndarray]:
+                                           ) -> Tuple[np.ndarray, np.ndarray]:
     """Generate random two-qubit unitaries.
 
     Args:
@@ -293,4 +293,4 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
 
     prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
 
-    return np.real((np.abs(prod_trace)) / dim) ** 2
+    return np.real((np.abs(prod_trace)) / dim)**2

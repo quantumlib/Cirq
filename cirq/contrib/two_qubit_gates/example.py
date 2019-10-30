@@ -29,7 +29,8 @@ from cirq.contrib.two_qubit_gates.math_utils import (
     random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity)
 
 
-def main(samples: int = 1000, max_infidelity: float = 0.01,
+def main(samples: int = 1000,
+         max_infidelity: float = 0.01,
          verbose: bool = True):
     """Demonstration of the usage of the GateTabulation gate compiler.
 

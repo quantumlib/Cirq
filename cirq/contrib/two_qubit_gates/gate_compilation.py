@@ -180,7 +180,7 @@ def _tabulate_KAK_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((KAK_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((KAK_mesh - vec)**2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -300,7 +300,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
