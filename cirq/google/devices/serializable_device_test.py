@@ -57,7 +57,8 @@ def test_foxtail():
     invalid_qubit2 = cirq.GridQubit(2, 3)
 
     foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.known_devices.FOXTAIL_PROTO, gate_set=cg.gate_sets.XMON)
+        proto=cg.devices.known_devices.FOXTAIL_PROTO,
+        gate_set=cg.gate_sets.XMON)
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
@@ -90,7 +91,7 @@ def test_foxtail():
 
 
 def test_mismatched_proto_serializer():
-    augmented_proto = copy.deepcopy(cg.known_devices.FOXTAIL_PROTO)
+    augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
     # Remove measurement gate
     del augmented_proto.valid_gate_sets[0].valid_gates[3]
 
@@ -102,7 +103,7 @@ def test_mismatched_proto_serializer():
 
 
 def test_named_qubit():
-    augmented_proto = copy.deepcopy(cg.known_devices.FOXTAIL_PROTO)
+    augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
     augmented_proto.valid_qubits.extend(["scooby_doo"])
     foxtail = cg.SerializableDevice.from_proto(proto=augmented_proto,
                                                gate_set=cg.gate_sets.XMON)
@@ -115,7 +116,8 @@ def test_duration_of():
     valid_qubit1 = cirq.GridQubit(0, 0)
 
     foxtail = cg.SerializableDevice.from_proto(
-        proto=cg.known_devices.FOXTAIL_PROTO, gate_set=cg.gate_sets.XMON)
+        proto=cg.devices.known_devices.FOXTAIL_PROTO,
+        gate_set=cg.gate_sets.XMON)
 
     assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=20)
 

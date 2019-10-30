@@ -14,9 +14,7 @@
 
 from typing import List, Union, Sequence, Dict, Optional
 
-import numpy as np
-
-from cirq import ops
+from cirq import ops, value
 from cirq.circuits import Circuit
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
@@ -34,13 +32,11 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
 }
 
 
-def random_circuit(
-        qubits: Union[Sequence[ops.Qid], int],
-        n_moments: int,
-        op_density: float,
-        gate_domain: Optional[Dict[ops.Gate, int]] = None,
-        random_state: Optional[Union[np.random.RandomState, int]] = None
-) -> Circuit:
+def random_circuit(qubits: Union[Sequence[ops.Qid], int],
+                   n_moments: int,
+                   op_density: float,
+                   gate_domain: Optional[Dict[ops.Gate, int]] = None,
+                   random_state: value.RANDOM_STATE_LIKE = None) -> Circuit:
     """Generates a random circuit.
 
     Args:
@@ -78,12 +74,7 @@ def random_circuit(
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
-    if random_state is None:
-        prng = np.random
-    elif isinstance(random_state, np.random.RandomState):
-        prng = random_state
-    else:
-        prng = np.random.RandomState(random_state)
+    prng = value.parse_random_state(random_state)
 
     moments: List[ops.Moment] = []
     gate_arity_pairs = sorted(gate_domain.items(), key=repr)

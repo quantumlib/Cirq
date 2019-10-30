@@ -11,12 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A combination of several optimizations targeting XmonDevice."""
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 from cirq import circuits, devices, optimizers
-from cirq.google import convert_to_xmon_gates, xmon_device
+from cirq.google.optimizers import convert_to_xmon_gates
 
 if TYPE_CHECKING:
     import cirq
@@ -51,7 +50,7 @@ _OPTIMIZERS_PART_CZ: List[Callable[['cirq.Circuit'], None]] = [
 
 def optimized_for_xmon(
         circuit: 'cirq.Circuit',
-        new_device: Optional[xmon_device.XmonDevice] = None,
+        new_device: Optional['cirq.google.XmonDevice'] = None,
         qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
             devices.GridQubit, e),
         allow_partial_czs: bool = False,

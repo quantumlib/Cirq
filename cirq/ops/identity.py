@@ -122,8 +122,11 @@ class IdentityGate(raw_types.Gate):
             other = ', {!r}'.format(self._qid_shape)
         return 'cirq.IdentityGate({!r}{})'.format(self.num_qubits(), other)
 
+    def _decompose_(self, qubits):
+        return []
+
     def __str__(self):
-        if (self.num_qubits() == 1):
+        if self.num_qubits() == 1:
             return 'I'
         return 'I({})'.format(self.num_qubits())
 

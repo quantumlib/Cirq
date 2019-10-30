@@ -240,6 +240,8 @@ from cirq.ops import (
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
+    SYC,
+    SycamoreGate,
     T,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
@@ -289,6 +291,12 @@ from cirq.schedules import (
 
 from cirq.sim import (
     bloch_vector_from_state_vector,
+    StabilizerStateChForm,
+    CliffordSimulator,
+    CliffordState,
+    CliffordSimulatorStepResult,
+    CliffordTableau,
+    CliffordTrialResult,
     density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -366,9 +374,11 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -400,6 +410,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
+    SupportsApplyMixture,
     SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,

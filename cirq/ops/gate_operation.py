@@ -14,8 +14,18 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union)
+from typing import (
+    Any,
+    Dict,
+    FrozenSet,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 
 import numpy as np
 
@@ -145,6 +155,12 @@ class GateOperation(raw_types.Operation):
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)
+
+    def _decompose_into_clifford_(self):
+        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
+        if sub is None:
+            return NotImplemented
+        return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)

@@ -14,10 +14,10 @@
 
 import pytest
 
+import networkx as nx
+
 import cirq
 import cirq.contrib.routing as ccr
-
-import networkx as nx
 
 
 def test_xmon_device_to_graph():

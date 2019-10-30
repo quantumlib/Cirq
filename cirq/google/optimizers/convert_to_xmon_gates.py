@@ -68,11 +68,10 @@ class ConvertToXmonGates(PointOptimizer):
     def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
 
         def on_stuck_raise(bad):
-            return TypeError(
-                "Don't know how to work with {!r}. "
-                "It isn't a native xmon operation, "
-                "a 1 or 2 qubit gate with a known unitary, "
-                "or composite.".format(bad))
+            return TypeError("Don't know how to work with {!r}. "
+                             "It isn't a native xmon operation, "
+                             "a 1 or 2 qubit gate with a known unitary, "
+                             "or composite.".format(bad))
 
         return protocols.decompose(
             op,
@@ -85,7 +84,6 @@ class ConvertToXmonGates(PointOptimizer):
         if len(converted) == 1 and converted[0] is op:
             return None
 
-        return PointOptimizationSummary(
-            clear_span=1,
-            new_operations=converted,
-            clear_qubits=op.qubits)
+        return PointOptimizationSummary(clear_span=1,
+                                        new_operations=converted,
+                                        clear_qubits=op.qubits)
