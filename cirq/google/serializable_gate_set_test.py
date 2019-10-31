@@ -380,11 +380,13 @@ def test_gateset_with_gates():
         serializers=[Y_SERIALIZER],
         deserializers=[Y_DESERIALIZER],
     )
+    assert x_gateset.gate_set_name == 'x'
     assert x_gateset.is_supported_gate(cirq.X)
     assert not x_gateset.is_supported_gate(cirq.Y)
+
+    assert xy_gateset.gate_set_name == 'xy'
     assert xy_gateset.is_supported_gate(cirq.X)
     assert xy_gateset.is_supported_gate(cirq.Y)
-    assert xy_gateset.gate_set_name == 'xy'
 
 
 def test_deserialize_op_invalid_gate():
