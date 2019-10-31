@@ -65,6 +65,32 @@ def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
 def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
                   ref_boxheight: float, row_padding: float) \
         -> Tuple[List[float], List[float], Dict[float, int]]:
+    """Return data structures used to turn tdd vertical coordinates into
+    well-spaced SVG coordinates.
+
+    The eagle eyed coder may notice that this function is very
+    similar to _fit_horizonal. That function was written first
+    because horizontal spacing is very important for being able
+    to see all the gates but vertical spacing is just for aesthetics.
+    It wasn't until this function was written that I (mpharrigan)
+    noticed that -- unlike the x-coordinates (which are all integers) --
+    y-coordinates come in half-integers. Please use yi_map to convert
+    TextDiagramDrawer y-values to y indices which can be used to index
+    into row_starts and row_heights.
+
+    See gh-2313 to track this (and other) hacks that could be improved.
+
+    Returns:
+        row_starts: A list that maps y indices to the starting y position
+            (in SVG px)
+        row_heights: A list that maps y indices to the height of each row
+            (in SVG px). Y-index `yi` goes from row_starts[yi] to
+            row_starts[yi] + row_heights[yi]
+        yi_map:
+            A mapping from half-integer TextDiagramDrawer coordinates
+            to integer y indices. Apply this mapping before indexing into
+            the former two return values (ie row_starts and row_heights)
+    """
     # Note: y values come as half integers. Map to integers
     all_yis = sorted({yi for _, yi in tdd.entries.keys()}
                      | {yi1 for _, yi1, _, _ in tdd.vertical_lines}
@@ -183,6 +209,15 @@ def tdd_to_svg(
     return t
 
 
+def _validate_circuit(circuit: 'cirq.Circuit'):
+    if len(circuit) == 0:
+        raise ValueError("Can't draw SVG diagram for empty circuits")
+
+    if any(len(mom) == 0 for mom in circuit.moments):
+        raise ValueError("Can't draw SVG diagram for circuits with empty "
+                         "moments. Run it through cirq.DropEmptyMoments()")
+
+
 class SVGCircuit:
     """A wrapper around cirq.Circuit to enable rich display in a Jupyter
     notebook.
@@ -198,11 +233,13 @@ class SVGCircuit:
 
     def _repr_svg_(self) -> str:
         # coverage: ignore
+        _validate_circuit(self.circuit)
         tdd = self.circuit.to_text_diagram_drawer(transpose=False)
         return tdd_to_svg(tdd)
 
 
 def circuit_to_svg(circuit: 'cirq.Circuit') -> str:
     """Render a circuit as SVG."""
+    _validate_circuit(circuit)
     tdd = circuit.to_text_diagram_drawer(transpose=False)
     return tdd_to_svg(tdd)
