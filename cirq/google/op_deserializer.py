@@ -16,6 +16,7 @@ from typing import (Any, Callable, Dict, NamedTuple, Optional, Sequence,
                     TYPE_CHECKING)
 
 import sympy
+from dataclasses import dataclass
 from google.protobuf import json_format
 
 from cirq.api.google import v2
@@ -29,16 +30,11 @@ if TYPE_CHECKING:
 
 
 @documented(api_reference_category='google/service')
-class DeserializingArg(
-        NamedTuple('DeserializingArg', [
-            ('serialized_name', str),
-            ('constructor_arg_name', str),
-            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
-            ('required', bool),
-        ])):
+@dataclass
+class DeserializingArg:
     """Specification of the arguments to deserialize an argument to a gate.
 
-    Attributes:
+    Args:
         serialized_name: The serialized name of the gate that is being
             deserialized.
         constructor_arg_name: The name of the argument in the constructor of
@@ -50,26 +46,17 @@ class DeserializingArg(
         required: Whether a value must be specified when constructing the
             deserialized gate. Defaults to True.
     """
-
-    def __new__(cls,
-                *,
-                serialized_name: str,
-                constructor_arg_name: str,
-                value_func: Optional[Callable[[Any], Any]] = None,
-                required: bool = True):
-        return super(DeserializingArg,
-                     cls).__new__(cls,
-                                  serialized_name=serialized_name,
-                                  constructor_arg_name=constructor_arg_name,
-                                  value_func=value_func,
-                                  required=required)
+    serialized_name: str
+    constructor_arg_name: str
+    value_func: Optional[Callable[[arg_func_langs.ArgValue], Any]] = None
+    required: bool = True
 
 
 @documented(api_reference_category='google/service')
 class GateOpDeserializer:
     """Describes how to deserialize a proto to a given Gate type.
 
-    Attributes:
+    Args:
         serialized_gate_id: The id used when serializing the gate.
     """
 

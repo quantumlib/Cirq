@@ -75,7 +75,7 @@ def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
 
     Args:
         sweep_or_resolver_list: The object to try to turn into a `Sweep`.  A
-            `Sweep`, a single `ParamResolver`, or a list of `ParamResolver`s.
+            `Sweep`, a single `ParamResolver`, or a list of `ParamResolver`.
 
     Returns:
         A sweep equal to or containing the argument.

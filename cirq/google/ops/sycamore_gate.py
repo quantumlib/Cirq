@@ -26,8 +26,7 @@ if TYPE_CHECKING:
 
 @documented(api_reference_category='google/service')
 class SycamoreGate(ops.FSimGate):
-    """The Sycamore gate is a two-qubit operation equivalent to
-    FSimGate(π/2, π/6).
+    """The Sycamore gate is a two-qubit gate equivalent to FSimGate(π/2, π/6).
 
     The unitary of this gate is
 
@@ -39,7 +38,7 @@ class SycamoreGate(ops.FSimGate):
     This gate can be performed on the Google's Sycamore chip and
     is close to the gates that were used to demonstrate quantum
     supremacy used in this paper:
-    https://www.nature.com/articles/s41586-019-1666-5.
+    https://www.nature.com/articles/s41586-019-1666-5
     """
 
     def __init__(self):

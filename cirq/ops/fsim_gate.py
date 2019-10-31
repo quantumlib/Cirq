@@ -64,7 +64,7 @@ class FSimGate(gate_features.TwoQubitGate,
     def __init__(self, theta: float, phi: float):
         """
         Args:
-            theta: Swap angle on the span(|01⟩, |10⟩) subspace, in radians.
+            theta: Swap angle on the |01⟩ |10⟩ subspace, in radians.
                 Determined by the strength and duration of the XX+YY
                 interaction. Note: uses opposite sign convention to the
                 iSWAP gate.
