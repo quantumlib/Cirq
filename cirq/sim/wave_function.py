@@ -571,7 +571,7 @@ def _probs(state: np.ndarray, indices: List[int],
         # We're measuring every qudit, so no need for fancy indexing
         probs = np.abs(tensor)**2
         probs = np.transpose(probs, indices)
-        probs = np.reshape(probs, np.prod(state.shape))
+        probs = np.reshape(probs, np.prod(probs.shape))
     else:
         # Fancy indexing required
         meas_shape = tuple(qid_shape[i] for i in indices)
