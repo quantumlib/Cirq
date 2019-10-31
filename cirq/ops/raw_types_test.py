@@ -124,6 +124,8 @@ def test_gate():
     with pytest.raises(ValueError, match='Wrong shape'):
         _ = g(a, b.with_dimension(3))
 
+    assert g.controlled(0) is g
+
 
 def test_op():
     a, b, c = cirq.LineQubit.range(3)
