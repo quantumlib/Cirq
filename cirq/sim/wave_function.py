@@ -565,18 +565,23 @@ def measure_state_vector(
 def _probs(state: np.ndarray, indices: List[int],
            qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
-    # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
     tensor = np.reshape(state, qid_shape)
-
     # Calculate the probabilities for measuring the particular results.
-    meas_shape = tuple(qid_shape[i] for i in indices)
-    probs = np.abs([
-        tensor[linalg.slice_for_qubits_equal_to(indices,
-                                                big_endian_qureg_value=b,
-                                                qid_shape=qid_shape)]
-        for b in range(np.prod(meas_shape, dtype=int))
-    ])**2
-    probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
+    if len(indices) == len(qid_shape):
+        # We're measuring every qudit, so no need for fancy indexing
+        probs = np.abs(tensor)**2
+        probs = np.transpose(probs, indices)
+        probs = np.reshape(probs, np.prod(probs.shape))
+    else:
+        # Fancy indexing required
+        meas_shape = tuple(qid_shape[i] for i in indices)
+        probs = np.abs([
+            tensor[linalg.slice_for_qubits_equal_to(indices,
+                                                    big_endian_qureg_value=b,
+                                                    qid_shape=qid_shape)]
+            for b in range(np.prod(meas_shape, dtype=int))
+        ])**2
+        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
     probs /= np.sum(probs)
