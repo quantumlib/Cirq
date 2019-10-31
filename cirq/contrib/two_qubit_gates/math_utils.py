@@ -222,7 +222,7 @@ def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
     # Generate the non-local part by explict matrix exponentiation.
     kak_vecs = np.random.rand(num_samples, 3) * np.pi  # / 4
     # kak_vecs = np.sort(kak_vecs, axis=-1)[::-1]
-    A = KAK_vector_to_unitary(kak_vecs)
+    A = kak_vector_to_unitary(kak_vecs)
     # Add a random phase
     phases = np.random.rand(num_samples) * np.pi * 2
     A = np.einsum('...,...ab->...ab', np.exp(1j * phases), A)
@@ -230,7 +230,7 @@ def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
     return np.einsum('...ab,...bc,...cd', kl, A, kr), kak_vecs
 
 
-def KAK_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
+def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
     r"""Convert a KAK vector to its unitary matrix equivalent.
 
     Args:

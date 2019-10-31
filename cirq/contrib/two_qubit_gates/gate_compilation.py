@@ -11,7 +11,7 @@ from cirq.contrib.two_qubit_gates.math_utils import (KAK_vector_infidelity,
                                                      vector_kron,
                                                      weyl_chamber_mesh,
                                                      random_qubit_unitary,
-                                                     KAK_vector_to_unitary)
+                                                     kak_vector_to_unitary)
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
@@ -326,7 +326,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     base_gate_dag = base_gate.conj().T
     for ind in missing_vec_inds:
         missing_vec = mesh_points[ind]
-        missing_unitary = KAK_vector_to_unitary(missing_vec)
+        missing_unitary = kak_vector_to_unitary(missing_vec)
 
         products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals,
                              missing_unitary)
