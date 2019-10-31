@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import numbers
 import pathlib
 from typing import (
     Union,
@@ -103,7 +104,7 @@ class _ResolverCache:
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
-                'SycamoreGate': cirq.SycamoreGate,
+                'SycamoreGate': cirq.google.SycamoreGate,
                 'sympy.Symbol': sympy.Symbol,
                 'sympy.Add': lambda args: sympy.Add(*args),
                 'sympy.Mul': lambda args: sympy.Mul(*args),
@@ -230,7 +231,13 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
-        if isinstance(o, complex):
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, numbers.Integral):
+            return int(o)
+        if isinstance(o, numbers.Real):
+            return float(o)
+        if isinstance(o, numbers.Complex):
             return {
                 'cirq_type': 'complex',
                 'real': o.real,

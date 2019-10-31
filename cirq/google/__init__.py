@@ -61,6 +61,11 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
+from cirq.google.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
+)
+
 from cirq.google.optimizers import (
     ConvertToXmonGates,
     optimized_for_xmon,
