@@ -563,7 +563,7 @@ def measure_state_vector(
 
 
 def _probs(state: np.ndarray, indices: List[int],
-           qid_shape: Tuple[int, ...]) -> List[float]:
+           qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Tensor of squared amplitudes, shaped a rank [2, 2, .., 2] tensor.
     tensor = np.reshape(state, qid_shape)
@@ -579,7 +579,7 @@ def _probs(state: np.ndarray, indices: List[int],
     probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs)  # type: ignore
+    probs /= np.sum(probs)
     return probs
 
 
