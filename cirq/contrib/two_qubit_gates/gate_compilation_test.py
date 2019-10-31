@@ -13,8 +13,7 @@ from cirq.contrib.two_qubit_gates.math_utils import (
 _rng = value.parse_random_state(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
-    FSimGate(np.pi / 2, np.pi / 6)), 0.2, include_warnings=False,
-    random_state=_rng)
+    FSimGate(np.pi / 2, np.pi / 6)), 0.2, random_state=_rng)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
     unitary(FSimGate(np.pi / 4, np.pi / 24)), 0.1, random_state=_rng)
@@ -48,8 +47,7 @@ def test_gate_compilation_on_base_gate_standard(tabulation):
 
 
 def test_gate_compilation_on_base_gate_identity():
-    tabulation = gate_product_tabulation(np.eye(4), 0.25,
-                                         include_warnings=False)
+    tabulation = gate_product_tabulation(np.eye(4), 0.25)
     base_gate = tabulation.base_gate
 
     result = tabulation.compile_two_qubit_gate(base_gate)
@@ -67,6 +65,12 @@ def test_gate_compilation_example():
 def test_weyl_chamber_mesh_spacing_too_small_throws_error():
     with pytest.raises(ValueError, match='may cause system to crash'):
         weyl_chamber_mesh(spacing=5e-4)
+
+
+def test_gate_compilation_missing_points_raises_error():
+    with pytest.raises(ValueError, match='Failed to tabulate a'):
+        gate_product_tabulation(np.eye(4), 0.4, allow_missed_points=False,
+                                random_state=_rng)
 
 
 def test_random_qubit_unitary_shape():
