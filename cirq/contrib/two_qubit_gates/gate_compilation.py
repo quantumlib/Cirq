@@ -56,6 +56,7 @@ class GateTabulation:
     # unitary acting on qubit 0 (similarly for u1)
     single_qubit_gates: Sequence[Sequence[_SingleQubitGatePair]]
     max_expected_infidelity: float
+    summary: str  # Text summarizing the results of the tabulation procedure.
 
     def compile_two_qubit_gate(
             self, unitary: np.ndarray
@@ -224,9 +225,7 @@ def _tabulate_kak_vectors(
     return kept_kaks, kept_cycles
 
 
-def gate_product_tabulation(base_gate: np.ndarray,
-                            max_infidelity: float,
-                            verbose: bool = False,
+def gate_product_tabulation(base_gate: np.ndarray, max_infidelity: float,
                             include_warnings: bool = True,
                             sample_scaling: int = 50,
                             random_state: value.RANDOM_STATE_LIKE = None
@@ -239,7 +238,6 @@ def gate_product_tabulation(base_gate: np.ndarray,
             The typical nearest neighbor Euclidean spacing (of the KAK vectors)
             will be on the order of \sqrt(max_infidelity). Thus the number of
             tabulated points will scale as max_infidelity^{-3/2}.
-        verbose: Whether to print gate tabulation statistics.
         include_warnings: If True, warn the user if a point in the Weyl
             chamber has no tabulated points within the desired distance.
         sample_scaling: Relative number of random gate products to use in the
@@ -282,10 +280,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
     kak_vecs_single = np.array(kak_vecs[1:])
     sq_cycles_single = list(sq_cycles[1:])
 
-    if verbose:
-        # coverage: ignore
-        print(f'fraction satisfied with 2 gates'
-              f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
+    summary = (f'Fraction of Weyl chamber reached with 2 gates'
+               f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
 
     # repeat for double products
     # Multiply by the same local unitary!
@@ -296,10 +292,9 @@ def gate_product_tabulation(base_gate: np.ndarray,
     kak_vecs.extend(out[0])
     sq_cycles.extend(out[1])
 
-    if verbose:
-        # coverage: ignore
-        print(f'fraction satisfied with 2 gates and 3 gates(same single qubit)'
-              f': {len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
+    summary += (f'\nFraction of Weyl chamber reached with 2 gates and 3 gates'
+                f'(same single qubit): '
+                f'{len(u_locals_for_gate) / mesh_points.shape[0]:.3f}')
 
     # If all KAK vectors in the mesh have been tabulated, return.
     missing_vec_inds = set(range(mesh_points.shape[0])) - set(u_locals_for_gate)
@@ -307,7 +302,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     if not missing_vec_inds:
         # coverage: ignore
         return GateTabulation(base_gate, np.array(kak_vecs), sq_cycles,
-                              max_infidelity)
+                              max_infidelity, summary)
 
     # Run through remaining KAK vectors that don't have products and try to
     # correct them
@@ -360,9 +355,9 @@ def gate_product_tabulation(base_gate: np.ndarray,
             warn(f'Failed to tabulate a KAK vector near {missing_vec}')
 
     kak_vecs = np.array(kak_vecs)
-    if verbose:
-        # coverage: ignore
-        print(f'fraction satisfied with 2 gates and 3 gates (after patchup)'
-              f': {(len(kak_vecs) - 1) / mesh_points.shape[0]:.3f}')
+    summary += (f'\nFraction of Weyl chamber reached with 2 gates and 3 gates '
+                f'(after patchup)'
+                f': {(len(kak_vecs) - 1) / mesh_points.shape[0]:.3f}')
 
-    return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity)
+    return GateTabulation(base_gate, kak_vecs, sq_cycles, max_infidelity,
+                          summary)

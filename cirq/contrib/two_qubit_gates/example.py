@@ -37,8 +37,8 @@ def main(samples: int = 1000,
     Args:
         samples:
         max_infidelity:
-        verbose: Whether to plot statistics of results and display timing
-            information.
+        verbose: Whether to plot statistics of results and tabulation and
+            timing information.
     """
     # Define a base gate for compilation
     theta = np.pi / 4
@@ -52,9 +52,9 @@ def main(samples: int = 1000,
     # typical distance between an arbitrary two-qubit gate and the nearest
     # tabulated gate.
     start = time()
-    tabulation = gate_product_tabulation(base, max_infidelity, verbose=True)
+    tabulation = gate_product_tabulation(base, max_infidelity)
     if verbose:
-        # coverage: ignore
+        print(tabulation.summary)
         print(f'Gate tabulation time : {time() - start} seconds.')
 
     # Generate many random two-qubit gates, then attempt to compile them using

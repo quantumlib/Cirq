@@ -13,13 +13,11 @@ from cirq.contrib.two_qubit_gates.math_utils import (
 _rng = value.parse_random_state(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
-    FSimGate(np.pi / 2, np.pi / 6)),
-    0.2,
-    include_warnings=False, random_state=_rng)
+    FSimGate(np.pi / 2, np.pi / 6)), 0.2, include_warnings=False,
+    random_state=_rng)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
-    unitary(FSimGate(np.pi / 4, np.pi / 24)), 0.1,
-    random_state=_rng)
+    unitary(FSimGate(np.pi / 4, np.pi / 24)), 0.1, random_state=_rng)
 
 _random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100, _rng)
 
@@ -50,8 +48,7 @@ def test_gate_compilation_on_base_gate_standard(tabulation):
 
 
 def test_gate_compilation_on_base_gate_identity():
-    tabulation = gate_product_tabulation(np.eye(4),
-                                         0.25,
+    tabulation = gate_product_tabulation(np.eye(4), 0.25,
                                          include_warnings=False)
     base_gate = tabulation.base_gate
 
