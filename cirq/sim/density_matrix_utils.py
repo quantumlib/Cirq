@@ -259,7 +259,7 @@ def measure_density_matrix(
 
 
 def _probs(density_matrix: np.ndarray, indices: List[int],
-           qid_shape: Tuple[int, ...]) -> List[float]:
+           qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(
@@ -278,7 +278,7 @@ def _probs(density_matrix: np.ndarray, indices: List[int],
     probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs) # type: ignore
+    probs /= np.sum(probs)
     return probs
 
 
