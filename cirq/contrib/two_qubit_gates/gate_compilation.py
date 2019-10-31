@@ -263,8 +263,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
     sq_cycles: List[Tuple[_SingleQubitGatePair, ...]] = [()]
 
     # Tabulate gates that are close to gates in the mesh
-    u_locals_0 = random_qubit_unitary(num_samples)
-    u_locals_1 = random_qubit_unitary(num_samples)
+    u_locals_0 = random_qubit_unitary((num_samples,))
+    u_locals_1 = random_qubit_unitary((num_samples,))
 
     u_locals_for_gate: Dict[int, Tuple[_SingleQubitGatePair, ...]] = {}
     tabulation_cutoff = 0.5 * spacing
@@ -307,8 +307,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
     # Run through remaining KAK vectors that don't have products and try to
     # correct them
 
-    u_locals_0p = random_qubit_unitary(100)
-    u_locals_1p = random_qubit_unitary(100)
+    u_locals_0p = random_qubit_unitary((100,))
+    u_locals_1p = random_qubit_unitary((100,))
     u_locals = vector_kron(u_locals_0p, u_locals_1p)
 
     # Loop through the mesh points that have not yet been tabulated.

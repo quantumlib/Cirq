@@ -1,5 +1,5 @@
 import itertools
-from typing import Tuple, Union
+from typing import Tuple, Union, Sequence
 
 import numpy as np
 
@@ -40,28 +40,29 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
     return Udiag + Uoff
 
 
-def random_qubit_unitary(number: int = 1,
-                         sample_phase: bool = False) -> np.ndarray:
+def random_qubit_unitary(shape: Sequence[int] = (),
+                         randomize_global_phase: bool = False) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
     The implementation is vectorized for speed.
 
     Args:
-        number: If not 1, an ndarray of shape (number,2,2) is returned.
-            Otherwise a single 2x2 matrix is returned.
-        sample_phase: (Default False) If True, a global phase is also sampled
-            randomly. This corresponds to sampling over U(2) instead of SU(2).
+        shape: The broadcasted shape of the output. This is used to generate
+            a tensor of random unitaries with dimensions tuple(shape) + (2,2).
+        randomize_global_phase: (Default False) If True, a global phase is also
+            sampled randomly. This corresponds to sampling over U(2) instead of
+            SU(2).
     """
-    theta = np.arcsin(np.sqrt(np.random.rand(number)))
-    phi_d = np.random.rand(number) * np.pi * 2
-    phi_o = np.random.rand(number) * np.pi * 2
+    theta = np.arcsin(np.sqrt(np.random.rand(*shape)))
+    phi_d = np.random.rand(*shape) * np.pi * 2
+    phi_o = np.random.rand(*shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
-    if sample_phase:
-        # coverage: ignore
-        global_phase = np.exp(1j * np.pi * 2 * np.random.rand(number))
-        np.einsum('t,tab->tab', global_phase, out, out=out)
+    if randomize_global_phase:
+        out = np.moveaxis(out, (-2, -1), (0, 1))
+        out *= np.exp(1j * np.pi * 2 * np.random.rand(*shape))
+        out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 
 
@@ -122,13 +123,13 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                         ) -> np.ndarray:
+                          ) -> np.ndarray:
     """Minimum entanglement infidelity between two KAK vectors. """
     k_vec_a, k_vec_b = np.asarray(k_vec_a), np.asarray(k_vec_b)
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1)**2
-        out -= np.product(np.sin(k_diff), axis=-1)**2
+        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
+        out -= np.product(np.sin(k_diff), axis=-1) ** 2
         return out
     # coverage: ignore
     # We must take the minimum infidelity over all possible locally equivalent
@@ -138,8 +139,8 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1)**2
-    out -= np.product(np.sin(k_diff), axis=-1)**2  # (...,24)
+    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
+    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,24)
 
     return out.min(axis=-1)
 
@@ -205,7 +206,7 @@ _kak_gens = np.array([_XX, _YY, _ZZ])
 
 
 def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
-                                           ) -> Tuple[np.ndarray, np.ndarray]:
+                                            ) -> Tuple[np.ndarray, np.ndarray]:
     """Generate random two-qubit unitaries.
 
     Args:
@@ -251,10 +252,10 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
 
 
 def _two_local_2Q_unitaries(num_samples):
-    kl_0 = random_qubit_unitary(num_samples)
-    kl_1 = random_qubit_unitary(num_samples)
-    kr_0 = random_qubit_unitary(num_samples)
-    kr_1 = random_qubit_unitary(num_samples)
+    kl_0 = random_qubit_unitary((num_samples,))
+    kl_1 = random_qubit_unitary((num_samples,))
+    kr_0 = random_qubit_unitary((num_samples,))
+    kr_1 = random_qubit_unitary((num_samples,))
     kl = vector_kron(kl_0, kl_1)
     kr = vector_kron(kr_0, kr_1)
     return kl, kr
@@ -293,4 +294,4 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
 
     prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
 
-    return np.real((np.abs(prod_trace)) / dim)**2
+    return np.real((np.abs(prod_trace)) / dim) ** 2
