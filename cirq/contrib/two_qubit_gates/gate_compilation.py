@@ -354,8 +354,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
             base_product = base_gate @ old_k @ base_gate
             new_product = products[new_ind]
 
-            _, kL, actual = _outer_locals_for_unitary(new_product,
-                                                       base_product)
+            _, kL, actual = _outer_locals_for_unitary(new_product, base_product)
             # Add to the enumeration
             sq_cycles.append((old_sq_cycle, kL))
             kak_vecs.append(
