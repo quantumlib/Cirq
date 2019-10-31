@@ -57,26 +57,26 @@ class SerializableGateSet:
     def with_gates(
             self,
             *,
-            name: Optional[str] = None,
+            gate_set_name: Optional[str] = None,
             serializers: Iterable[op_serializer.GateOpSerializer] = (),
             deserializers: Iterable[op_deserializer.GateOpDeserializer] = (),
     ) -> 'SerializableGateSet':
         """Creates a new gateset with more (de)serializers.
 
         Args:
-            name: Optional new name of the gateset. If not given, use the same
-                name as this gateset.
+            gate_set_name: Optional new name of the gateset. If not given, use
+                the same name as this gateset.
             serializers: Serializers to add to those in this gateset.
             deserializers: Deserializers to add to those in this gateset.
         """
+        # Iterate over all serializers in this gateset.
+        curr_serializers = (serializer
+                            for serializers in self.serializers.values()
+                            for serializer in serializers)
         return SerializableGateSet(
-            name or self.gate_set_name,
-            serializers=[*self._all_serializers(), *serializers],
+            gate_set_name or self.gate_set_name,
+            serializers=[*curr_serializers, *serializers],
             deserializers=[*self.deserializers.values(), *deserializers])
-
-    def _all_serializers(self) -> Iterator[op_serializer.GateOpSerializer]:
-        for serializers in self.serializers.values():
-            yield from serializers
 
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
