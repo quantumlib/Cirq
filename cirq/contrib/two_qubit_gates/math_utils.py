@@ -45,7 +45,7 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
 def random_qubit_unitary(shape: Sequence[int] = (),
                          randomize_global_phase: bool = False,
                          rng: Optional[np.random.RandomState] = None
-                         ) -> np.ndarray:
+                        ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
     The implementation is vectorized for speed.
@@ -131,13 +131,13 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def KAK_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                          ) -> np.ndarray:
+                         ) -> np.ndarray:
     """Minimum entanglement infidelity between two KAK vectors. """
     k_vec_a, k_vec_b = np.asarray(k_vec_a), np.asarray(k_vec_b)
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-        out -= np.product(np.sin(k_diff), axis=-1) ** 2
+        out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+        out -= np.product(np.sin(k_diff), axis=-1)**2
         return out
     # coverage: ignore
     # We must take the minimum infidelity over all possible locally equivalent
@@ -147,8 +147,8 @@ def KAK_vector_infidelity(k_vec_a: np.ndarray,
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,24)
+    out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+    out -= np.product(np.sin(k_diff), axis=-1)**2  # (...,24)
 
     return out.min(axis=-1)
 
@@ -307,4 +307,4 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
 
     prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
 
-    return np.real((np.abs(prod_trace)) / dim) ** 2
+    return np.real((np.abs(prod_trace)) / dim)**2

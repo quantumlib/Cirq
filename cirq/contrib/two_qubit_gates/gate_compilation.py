@@ -60,9 +60,8 @@ class GateTabulation:
     # max_expected_infidelity) using 2 or 3 base gates.
     missed_points: Tuple[np.ndarray, ...]
 
-    def compile_two_qubit_gate(
-            self, unitary: np.ndarray
-    ) -> TwoQubitGateCompilation:
+    def compile_two_qubit_gate(self,
+                               unitary: np.ndarray) -> TwoQubitGateCompilation:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
@@ -92,8 +91,7 @@ class GateTabulation:
         inner_gates = np.array(self.single_qubit_gates[nearest_ind])
 
         if inner_gates.size == 0:  # Only need base gate
-            kR, kL, actual = _outer_locals_for_unitary(
-                unitary, self.base_gate)
+            kR, kL, actual = _outer_locals_for_unitary(unitary, self.base_gate)
             return TwoQubitGateCompilation(self.base_gate, unitary, (kR, kL),
                                            actual, success)
 
@@ -208,7 +206,7 @@ def _tabulate_kak_vectors(
         # dists = KAK_vector_infidelity(vec, KAK_mesh)
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((kak_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((kak_mesh - vec)**2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -227,11 +225,12 @@ def _tabulate_kak_vectors(
     return kept_kaks, kept_cycles
 
 
-def gate_product_tabulation(base_gate: np.ndarray, max_infidelity: float,
+def gate_product_tabulation(base_gate: np.ndarray,
+                            max_infidelity: float,
                             sample_scaling: int = 50,
                             allow_missed_points: bool = True,
                             random_state: value.RANDOM_STATE_LIKE = None
-                            ) -> GateTabulation:
+                           ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:
@@ -338,7 +337,7 @@ def gate_product_tabulation(base_gate: np.ndarray, max_infidelity: float,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:
