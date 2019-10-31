@@ -54,6 +54,7 @@ def main(samples: int = 1000,
     start = time()
     tabulation = gate_product_tabulation(base, max_infidelity)
     if verbose:
+        # coverage: ignore
         print(tabulation.summary)
         print(f'Gate tabulation time : {time() - start} seconds.')
 
