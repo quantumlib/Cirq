@@ -30,8 +30,11 @@ if TYPE_CHECKING:
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
-    def __init__(self, clear_span: int, clear_qubits: Iterable['cirq.Qid'],
-                 new_operations: 'cirq.OP_TREE', preserve_moments: bool = False) -> None:
+    def __init__(self,
+                 clear_span: int,
+                 clear_qubits: Iterable['cirq.Qid'],
+                 new_operations: 'cirq.OP_TREE',
+                 preserve_moments: bool = False) -> None:
         """
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
@@ -46,8 +49,9 @@ class PointOptimizationSummary:
                 a PointOptimizer consuming this summary will flatten
                 operations no matter what, see gh-2406.
         """
-        self.new_operations = tuple(ops.flatten_op_tree(
-            new_operations, preserve_moments=preserve_moments))
+        self.new_operations = tuple(
+            ops.flatten_op_tree(new_operations,
+                                preserve_moments=preserve_moments))
         self.clear_span = clear_span
         self.clear_qubits = tuple(clear_qubits)
 
