@@ -42,7 +42,9 @@ class PointOptimizationSummary:
             new_operations: The operations to replace the cleared out
                 operations with.
             preserve_moments: Whether to keep Moments intact instead of
-                flattening them
+                flattening them in this summary. Please be advised that
+                a PointOptimizer consuming this summary will flatten
+                operations no matter what, see gh-2406.
         """
         self.new_operations = tuple(ops.flatten_op_tree(
             new_operations, preserve_moments=preserve_moments))
