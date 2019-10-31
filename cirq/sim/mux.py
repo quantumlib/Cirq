@@ -22,12 +22,14 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, protocols, study, schedules, devices, ops
+from cirq._compat import documented
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='simulation')
 def sample(program: Union[circuits.Circuit, schedules.Schedule],
            *,
            noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -64,6 +66,7 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                        repetitions=repetitions)
 
 
+@documented(api_reference_category='simulation')
 def final_wavefunction(
         program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
                        Schedule],
@@ -135,6 +138,7 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
+@documented(api_reference_category='simulation')
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  params: study.Sweepable,
                  *,

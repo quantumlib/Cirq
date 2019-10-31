@@ -19,6 +19,7 @@ from typing import Iterable, List, Tuple, Optional, cast
 import numpy as np
 
 from cirq import ops, linalg, protocols, circuits
+from cirq._compat import documented
 from cirq.optimizers import (
     decompositions,
     eject_z,
@@ -27,6 +28,7 @@ from cirq.optimizers import (
 )
 
 
+@documented(api_reference_category='decomposition')
 def two_qubit_matrix_to_operations(q0: ops.Qid,
                                    q1: ops.Qid,
                                    mat: np.ndarray,

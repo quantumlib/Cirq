@@ -15,6 +15,7 @@
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 from cirq import circuits, devices, optimizers
+from cirq._compat import documented
 from cirq.google.optimizers import convert_to_xmon_gates
 
 if TYPE_CHECKING:
@@ -48,6 +49,7 @@ _OPTIMIZERS_PART_CZ: List[Callable[['cirq.Circuit'], None]] = [
 ]
 
 
+@documented(api_reference_category='google/service')
 def optimized_for_xmon(
         circuit: 'cirq.Circuit',
         new_device: Optional['cirq.google.XmonDevice'] = None,

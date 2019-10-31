@@ -13,11 +13,12 @@
 # limitations under the License.
 
 """An optimization pass that removes empty moments from a circuit."""
-
+from cirq._compat import documented
 from cirq.circuits.circuit import Circuit
 from cirq.circuits import circuit as _circuit
 
 
+@documented(api_reference_category='optimization')
 class DropEmptyMoments():
     """Removes empty moments from a circuit."""
 

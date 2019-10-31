@@ -13,16 +13,18 @@
 # limitations under the License.
 """An instance of FSimGate that works naturally on Google's Sycamore chip"""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
 from cirq import ops, protocols
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 class SycamoreGate(ops.FSimGate):
     """The Sycamore gate is a two-qubit operation equivalent to
     FSimGate(π/2, π/6).
@@ -56,4 +58,6 @@ class SycamoreGate(ops.FSimGate):
         return protocols.obj_to_dict_helper(self, [])
 
 
-SYC = SycamoreGate()
+SYC = documented(SycamoreGate(),
+                 cast(str, SycamoreGate.__doc__),
+                 api_reference_category='google/service')

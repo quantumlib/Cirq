@@ -19,7 +19,7 @@ from typing import cast, Any, Tuple, List
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import gate_features
 
 
@@ -27,6 +27,7 @@ def _phase_matrix(turns: float) -> np.ndarray:
     return np.diag([1, np.exp(2j * np.pi * turns)])
 
 
+@documented(api_reference_category='gates')
 class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     """A 1-qubit or qudit gate defined by its matrix.
 
@@ -109,6 +110,7 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
         return str(self._matrix.round(3))
 
 
+@documented(api_reference_category='gates')
 class TwoQubitMatrixGate(gate_features.TwoQubitGate):
     """A 2-qubit gate defined only by its matrix.
 

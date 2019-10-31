@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import TYPE_CHECKING
 
+from cirq._compat import documented
 from cirq.google.line.placement import greedy
 from cirq.google.line.placement.place_strategy import LinePlacementStrategy
 from cirq.google.line.placement.sequence import GridQubitLineTuple
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     import cirq.google
 
 
+@documented(api_reference_category='google/service')
 def line_on_device(
         device: 'cirq.google.XmonDevice',
         length: int,

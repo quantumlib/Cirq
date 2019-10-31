@@ -16,6 +16,7 @@ from typing import (Callable, cast, Dict, List, Optional, NamedTuple, Tuple,
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
     BoxDrawCharacterSet,
@@ -50,6 +51,7 @@ def pick_charset(use_unicode: bool, emphasize: bool) -> BoxDrawCharacterSet:
     return NORMAL_BOX_CHARS
 
 
+@documented(api_reference_category='developers')
 class TextDiagramDrawer:
     """A utility class for creating simple text diagrams.
     """

@@ -13,9 +13,11 @@
 # limitations under the License.
 from typing import cast, Dict
 
+from cirq._compat import documented
 from cirq.study import sweeps
 
 
+@documented(api_reference_category='google/service')
 def sweep_to_proto_dict(sweep: sweeps.Sweep, repetitions: int = 1) -> Dict:
     """Converts sweep into an equivalent protobuf representation."""
     msg = {}  # type: Dict
@@ -73,6 +75,7 @@ def _single_param_sweep_to_proto_dict(sweep: sweeps.SingleSweep) -> Dict:
     return msg
 
 
+@documented(api_reference_category='google/service')
 def sweep_from_proto_dict(param_sweep: Dict) -> sweeps.Sweep:
     if 'sweep' in param_sweep and 'factors' in param_sweep['sweep']:
         return sweeps.Product(*[

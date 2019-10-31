@@ -17,11 +17,12 @@ from typing import Dict, Iterable, Union
 import sympy
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
                       op_tree, pauli_string_raw_types)
 
 
+@documented(api_reference_category='advanced operations')
 @value.value_equality(approximate=True)
 class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     """An operation that phases the eigenstates of a Pauli string.

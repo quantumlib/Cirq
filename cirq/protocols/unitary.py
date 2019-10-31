@@ -24,6 +24,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._compat import documented
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
@@ -46,6 +47,7 @@ RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
@@ -86,6 +88,7 @@ class SupportsUnitary(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def unitary(val: Any,
             default: TDefault = RaiseTypeErrorIfNotProvided
             ) -> Union[np.ndarray, TDefault]:

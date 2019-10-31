@@ -14,6 +14,8 @@
 
 from typing import Any, overload, TYPE_CHECKING, TypeVar, Union
 
+from cirq._compat import documented
+
 if TYPE_CHECKING:
     import cirq
 
@@ -58,6 +60,7 @@ def pow(val: Any, exponent: Any, default: TDefault) -> Any:
     pass
 
 
+@documented(api_reference_category='protocols')
 def pow(val: Any, exponent: Any,
         default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns `val**factor` of the given value, if defined.

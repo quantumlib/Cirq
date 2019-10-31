@@ -21,6 +21,8 @@ from google.protobuf import json_format
 
 from cirq import devices, ops
 from cirq.api.google import v2
+
+from cirq._compat import documented
 from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
@@ -31,6 +33,7 @@ if TYPE_CHECKING:
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
+@documented(api_reference_category='google/service')
 class SerializingArg(
         NamedTuple(
             'SerializingArg',
@@ -63,6 +66,7 @@ class SerializingArg(
                                   gate_getter, required)
 
 
+@documented(api_reference_category='google/service')
 class GateOpSerializer:
     """Describes how to serialize a GateOperation for a given Gate type.
 

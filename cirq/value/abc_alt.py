@@ -17,9 +17,12 @@ import abc
 import functools
 from typing import cast, Callable, Set, TypeVar
 
+from cirq._compat import documented
+
 T = TypeVar('T')
 
 
+@documented(api_reference_category='developers')
 def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
     """A decorator indicating an abstract method with an alternative default
     implementation.
@@ -68,6 +71,7 @@ def alternative(*, requires: str, implementation: T) -> Callable[[T], T]:
     return decorator
 
 
+@documented(api_reference_category='developers')
 class ABCMetaImplementAnyOneOf(abc.ABCMeta):
     """A metaclass extending `abc.ABCMeta` for defining abstract base classes
     (ABCs) with more flexibility in which methods must be overridden.

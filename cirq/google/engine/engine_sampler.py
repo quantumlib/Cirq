@@ -15,13 +15,14 @@
 from typing import List, TYPE_CHECKING, Union
 
 from cirq import work
+from cirq._compat import documented
 from cirq.google import engine
 
 if TYPE_CHECKING:
     import cirq
 
 
-
+@documented(api_reference_category='google/service')
 class QuantumEngineSampler(work.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 

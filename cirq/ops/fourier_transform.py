@@ -19,9 +19,11 @@ import sympy
 
 import cirq
 from cirq import value, _compat
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality
 class QuantumFourierTransformGate(raw_types.Gate):
     """Switches from the computational basis to the frequency basis."""
@@ -83,6 +85,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
             exponent_qubit_index=0)
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality
 class PhaseGradientGate(raw_types.Gate):
     """Phases each state |k⟩ out of n by e^(2*pi*i*k/n*exponent).
@@ -165,6 +168,7 @@ class PhaseGradientGate(raw_types.Gate):
             exponent_qubit_index=0)
 
 
+@documented(api_reference_category='advanced gates')
 def QFT(*qubits: 'cirq.Qid',
         without_reverse: bool = False,
         inverse: bool = False) -> 'cirq.Operation':

@@ -19,12 +19,14 @@ import datetime
 from typing import Any, Dict, Iterator, Optional, Tuple, TYPE_CHECKING
 
 from cirq import devices, vis
+from cirq._compat import documented
 from cirq.google.api import v2
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 class Calibration(abc.Mapping):
     """A convenience wrapper for calibrations that acts like a dictionary.
 

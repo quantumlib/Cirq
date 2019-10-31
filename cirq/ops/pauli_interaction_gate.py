@@ -17,7 +17,7 @@ from typing import List, Sequence, Tuple, cast, Dict
 import numpy as np
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
         op_tree, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -33,10 +33,12 @@ pauli_eigen_map = cast(
     })
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality
 class PauliInteractionGate(eigen_gate.EigenGate,
                            gate_features.InterchangeableQubitsGate,
                            gate_features.TwoQubitGate):
+    """Can represent a CZ conjugated by arbitrary single qubit Cliffords."""
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 

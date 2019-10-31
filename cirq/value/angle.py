@@ -15,9 +15,12 @@
 from typing import Optional, overload
 import numpy as np
 import sympy
+
+from cirq._compat import documented
 from cirq.value import type_alias
 
 
+@documented(api_reference_category='basic value')
 def chosen_angle_to_half_turns(
         half_turns: Optional[type_alias.TParamVal] = None,
         rads: Optional[float] = None,
@@ -55,6 +58,7 @@ def chosen_angle_to_half_turns(
     return default
 
 
+@documented(api_reference_category='basic value')
 def chosen_angle_to_canonical_half_turns(
         half_turns: Optional[type_alias.TParamVal] = None,
         rads: Optional[float] = None,
@@ -94,6 +98,7 @@ def canonicalize_half_turns(half_turns: sympy.Basic) -> sympy.Basic:
     pass
 
 
+@documented(api_reference_category='basic value')
 def canonicalize_half_turns(half_turns: type_alias.TParamVal
                            ) -> type_alias.TParamVal:
     """Wraps the input into the range (-1, +1]."""

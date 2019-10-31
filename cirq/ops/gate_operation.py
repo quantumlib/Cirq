@@ -14,27 +14,21 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (
-    Any,
-    Dict,
-    FrozenSet,
-    List,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-)
+from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
+                    TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
+from cirq._compat import deprecated, documented
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
+if TYPE_CHECKING:
+    import cirq
 
+
+@documented(api_reference_category='gates')
 @value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
@@ -61,7 +55,7 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
@@ -206,6 +200,7 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
+@documented(api_reference_category='deprecated')
 @deprecated(deadline='v0.7.0',
             fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
 def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
@@ -214,6 +209,7 @@ def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     return gate if isinstance(gate, gate_type) else None
 
 
+@documented(api_reference_category='deprecated')
 @deprecated(deadline='v0.7.0', fix='use: `isinstance(op.gate, gate_type)`')
 def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
     """Determines if op is a GateOperation with a gate of the given type."""

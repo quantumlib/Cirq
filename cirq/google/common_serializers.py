@@ -22,7 +22,7 @@ This file contains the following serializers (and corresponding deserializers)
         rotations confined to half-pi increments using cirq Gates.
 
 """
-from typing import cast, List
+from typing import cast, List, Callable, Any
 
 import numpy as np
 import sympy
@@ -134,9 +134,10 @@ MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.MeasurementGate,
     serialized_gate_id='meas',
     args=[
-        op_serializer.SerializingArg(serialized_name='key',
-                                     serialized_type=str,
-                                     gate_getter=protocols.measurement_key),
+        op_serializer.SerializingArg(
+            serialized_name='key',
+            serialized_type=str,
+            gate_getter=protocols.measurement_key),  # type: ignore
         op_serializer.SerializingArg(serialized_name='invert_mask',
                                      serialized_type=List[bool],
                                      gate_getter='invert_mask'),

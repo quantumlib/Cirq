@@ -19,10 +19,11 @@ from typing import Union, Optional
 import numpy as np
 
 from cirq import protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import gate_features, eigen_gate, common_gates, pauli_gates
 
 
+@documented(api_reference_category='gates')
 class XXPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -117,6 +118,7 @@ class XXPowGate(eigen_gate.EigenGate,
                 ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='gates')
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -184,6 +186,7 @@ class YYPowGate(eigen_gate.EigenGate,
                 ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='gates')
 class ZZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -258,6 +261,12 @@ class ZZPowGate(eigen_gate.EigenGate,
                 ).format(proper_repr(self._exponent), self._global_shift)
 
 
-XX = XXPowGate()
-YY = YYPowGate()
-ZZ = ZZPowGate()
+XX = documented(XXPowGate(),
+                """The tensor product of two X gates.""",
+                api_reference_category='gates')
+YY = documented(YYPowGate(),
+                """The tensor product of two Y gates.""",
+                api_reference_category='gates')
+ZZ = documented(ZZPowGate(),
+                """The tensor product of two Z gates.""",
+                api_reference_category='gates')

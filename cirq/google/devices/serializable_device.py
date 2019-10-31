@@ -17,6 +17,7 @@ from typing import Any, cast, Dict, Iterable, Optional, List
 from typing import Set, Tuple, Type, TYPE_CHECKING
 
 from cirq import devices, ops
+from cirq._compat import documented
 from cirq.google import serializable_gate_set
 from cirq.google.api import v2
 from cirq.value import Duration
@@ -47,6 +48,7 @@ class _GateDefinition:
         return self.__dict__ == other.__dict__
 
 
+@documented(api_reference_category='google/service')
 class SerializableDevice(devices.Device):
     """Device object generated from a device specification proto.
 

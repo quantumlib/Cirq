@@ -19,10 +19,12 @@ from typing import Iterable, Optional, Sequence, Tuple, Union
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
                       identity)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
@@ -109,6 +111,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p_x', 'p_y', 'p_z'])
 
 
+@documented(api_reference_category='noise')
 def asymmetric_depolarize(
     p_x: float, p_y: float, p_z: float
 ) -> AsymmetricDepolarizingChannel:
@@ -132,6 +135,7 @@ def asymmetric_depolarize(
     return AsymmetricDepolarizingChannel(p_x, p_y, p_z)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
@@ -198,6 +202,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p'])
 
 
+@documented(api_reference_category='noise')
 def depolarize(p: float) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
@@ -225,6 +230,7 @@ def depolarize(p: float) -> DepolarizingChannel:
     return DepolarizingChannel(p)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through non ideal dissipation.
@@ -339,6 +345,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
+@documented(api_reference_category='noise')
 def generalized_amplitude_damp(
     p: float, gamma: float
 ) -> GeneralizedAmplitudeDampingChannel:
@@ -389,6 +396,7 @@ def generalized_amplitude_damp(
     return GeneralizedAmplitudeDampingChannel(p, gamma)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
@@ -467,6 +475,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
+@documented(api_reference_category='noise')
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
     r"""
     Returns an AmplitudeDampingChannel with the given probability gamma.
@@ -502,6 +511,7 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
     return AmplitudeDampingChannel(gamma)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class ResetChannel(gate_features.SingleQubitGate):
     """Reset a qubit back to its |0⟩ state.
@@ -582,12 +592,14 @@ class ResetChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
 
+@documented(api_reference_category='noise')
 def reset(qubit: raw_types.Qid) -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit.
     """
     return ResetChannel(qubit.dimension).on(qubit)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
@@ -665,6 +677,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
+@documented(api_reference_category='noise')
 def phase_damp(gamma: float) -> PhaseDampingChannel:
     r"""
     Creates a PhaseDampingChannel with damping constant gamma.
@@ -700,6 +713,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
     return PhaseDampingChannel(gamma)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
@@ -815,6 +829,7 @@ def _phase_flip(p: float) -> PhaseFlipChannel:
     return PhaseFlipChannel(p)
 
 
+@documented(api_reference_category='noise')
 def phase_flip(
     p: Optional[float] = None
 ) -> Union[common_gates.ZPowGate, PhaseFlipChannel]:
@@ -856,6 +871,7 @@ def phase_flip(
     return _phase_flip(p)
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
@@ -965,6 +981,7 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
+@documented(api_reference_category='noise')
 def bit_flip(
     p: Optional[float] = None
 ) -> Union[common_gates.XPowGate, BitFlipChannel]:

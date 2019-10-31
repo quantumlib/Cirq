@@ -18,6 +18,7 @@ from typing import Any, Sequence, Tuple, Union
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.protocols.has_unitary_protocol import has_unitary
 
 from cirq.type_workarounds import NotImplementedType
@@ -27,6 +28,7 @@ from cirq.type_workarounds import NotImplementedType
 RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 
+@documented(api_reference_category='protocols')
 class SupportsMixture(Protocol):
     """An object that may be describable as a probabilistic combination.
     """
@@ -58,6 +60,7 @@ class SupportsMixture(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
            ) -> Sequence[Tuple[float, Any]]:
     """Return a sequence of tuples representing a probabilistic combination.
@@ -95,6 +98,7 @@ def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
                     "but it returned NotImplemented.".format(type(val)))
 
 
+@documented(api_reference_category='protocols')
 def has_mixture(val: Any) -> bool:
     """Returns whether the value has a mixture representation.
 
@@ -113,6 +117,7 @@ def has_mixture(val: Any) -> bool:
     return mixture(val, None) is not None
 
 
+@documented(api_reference_category='protocols')
 def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
                    ) -> Sequence[Tuple[float, np.ndarray]]:
     """Return a sequence of tuples for a channel that is a mixture of unitaries.
@@ -158,6 +163,7 @@ def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
                     "method, but it returned NotImplemented.".format(type(val)))
 
 
+@documented(api_reference_category='protocols')
 def has_mixture_channel(val: Any) -> bool:
     """Returns whether the value has a mixture channel representation.
 
@@ -185,6 +191,7 @@ def has_mixture_channel(val: Any) -> bool:
     return mixture_channel(val, None) is not None
 
 
+@documented(api_reference_category='protocols')
 def validate_mixture(supports_mixture: SupportsMixture):
     """Validates that the mixture's tuple are valid probabilities."""
     mixture_tuple = mixture(supports_mixture, None)

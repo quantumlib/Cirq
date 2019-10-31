@@ -19,9 +19,11 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast
 import numpy as np
 
 from cirq import circuits, ops, protocols
+from cirq._compat import documented
 from cirq.optimizers import two_qubit_decompositions
 
 
+@documented(api_reference_category='optimization')
 class MergeInteractions(circuits.PointOptimizer):
     """Combines series of adjacent one and two-qubit gates operating on a pair
     of qubits."""

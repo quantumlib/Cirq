@@ -13,8 +13,10 @@
 # limitations under the License.
 
 """Hard-coded options for adding multiple operations to a circuit."""
+from cirq._compat import documented
 
 
+@documented(api_reference_category='circuits')
 class InsertStrategy(object):
     """Indicates preferences on how to add multiple operations to a circuit."""
 

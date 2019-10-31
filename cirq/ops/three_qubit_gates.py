@@ -20,7 +20,7 @@ import numpy as np
 import sympy
 
 from cirq import linalg, protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import (
     common_gates,
     controlled_gate,
@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-
+@documented(api_reference_category='three qubit gates')
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -156,6 +156,7 @@ class CCZPowGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
+@documented(api_reference_category='three qubit gates')
 @value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     """A gate given by a diagonal 8x8 matrix."""
@@ -303,6 +304,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             proper_repr(angle) for angle in self._diag_angles_radians))
 
 
+@documented(api_reference_category='three qubit gates')
 class CCXPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -398,7 +400,8 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
-@value.value_equality()
+@documented(api_reference_category='three qubit gates')
+@value.value_equality
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A controlled swap gate. The Fredkin gate."""
@@ -545,12 +548,47 @@ class CSwapGate(gate_features.ThreeQubitGate,
         return 'cirq.FREDKIN'
 
 
-# Explicit names.
-CCZ = CCZPowGate()
-CCX = CCXPowGate()
-CSWAP = CSwapGate()
+CCZ = documented(CCZPowGate(),
+                 """The Controlled-Controlled-Z gate.
+    
+    Matrix:
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . 1 . .],
+         [. . . . . . 1 .],
+         [. . . . . . . -1],
+    """,
+                 api_reference_category='three qubit gates')
 
-# Common names.
-TOFFOLI = CCX
-CCNOT = TOFFOLI
-FREDKIN = CSWAP
+CCX = TOFFOLI = CCNOT = documented(CCXPowGate(),
+                                   """The TOFFOLI gate.
+    
+    Matrix:
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . 1 . .],
+         [. . . . . . . 1],
+         [. . . . . . 1 .],
+    """,
+                                   api_reference_category='three qubit gates')
+
+CSWAP = FREDKIN = documented(CSwapGate(),
+                             """The Controlled Swap gate.
+    
+    Matrix:
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . . 1 .],
+         [. . . . . 1 . .],
+         [. . . . . . . 1],
+    """,
+                             api_reference_category='three qubit gates')

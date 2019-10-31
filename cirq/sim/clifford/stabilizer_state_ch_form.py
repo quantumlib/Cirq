@@ -16,8 +16,10 @@ from typing import Union
 import numpy as np
 
 import cirq
+from cirq._compat import documented
 
 
+@documented(api_reference_category='simulation')
 class StabilizerStateChForm():
     r"""A representation of stabilizer states using the CH form,
 

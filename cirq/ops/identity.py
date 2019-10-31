@@ -20,9 +20,11 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='gates')
 @value.value_equality
 class IdentityGate(raw_types.Gate):
     """A Gate that perform no operation on qubits.
@@ -152,6 +154,7 @@ class IdentityGate(raw_types.Gate):
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
 
 
+@documented(api_reference_category='gates')
 @value.value_equality(approximate=True)
 class IdentityOperation(raw_types.Operation):
     """An application of the identity gate to a sequence of qubits."""
@@ -236,15 +239,18 @@ class IdentityOperation(raw_types.Operation):
         return cls(qubits=qubits)
 
 
-# The one qubit identity gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, 1]]
-I = IdentityGate(num_qubits=1)
+I = documented(IdentityGate(num_qubits=1),
+               """The one qubit identity gate.
+
+    Matrix:
+
+        [[1, 0],
+         [0, 1]]
+    """,
+               api_reference_category='gates')
 
 
+@documented(api_reference_category='gates')
 def identity_each(*qubits: raw_types.Qid) -> raw_types.Operation:
     """Returns a single IdentityGate applied to all the given qubits.
 

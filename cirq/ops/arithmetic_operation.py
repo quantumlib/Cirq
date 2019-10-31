@@ -19,12 +19,14 @@ from typing import Union, Iterable, List, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.ops.raw_types import Operation
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='developers')
 class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     """A helper class for implementing reversible classical arithmetic.
 

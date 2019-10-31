@@ -16,11 +16,13 @@
 
 import os
 
+from cirq._compat import documented
 from cirq.google.engine.engine import Engine
 
 ENV_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
 
 
+@documented(api_reference_category='google/service')
 def engine_from_environment() -> Engine:
     """Returns an Engine instance configured using environment variables.
 

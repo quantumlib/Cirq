@@ -18,7 +18,10 @@ from typing import Union, Iterable
 
 import numpy as np
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='linear algebra')
 def all_near_zero(a: Union[float, complex, Iterable[float], np.ndarray],
                   *,
                   atol: float = 1e-8) -> bool:
@@ -31,6 +34,7 @@ def all_near_zero(a: Union[float, complex, Iterable[float], np.ndarray],
     return np.all(np.less_equal(np.abs(a), atol))
 
 
+@documented(api_reference_category='linear algebra')
 def all_near_zero_mod(a: Union[float, complex, Iterable[float], np.ndarray],
                       period: float,
                       *,

@@ -18,9 +18,11 @@ from typing import Tuple, Callable, List
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.linalg import combinators, predicates, tolerance
 
 
+@documented(api_reference_category='linear algebra')
 def diagonalize_real_symmetric_matrix(matrix: np.ndarray,
                                       *,
                                       rtol: float = 1e-5,
@@ -78,6 +80,7 @@ def _contiguous_groups(
     return result
 
 
+@documented(api_reference_category='linear algebra')
 def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
         symmetric_matrix: np.ndarray,
         diagonal_matrix: np.ndarray,
@@ -154,6 +157,7 @@ def _svd_handling_empty(mat):
     return np.linalg.svd(mat)
 
 
+@documented(api_reference_category='linear algebra')
 def bidiagonalize_real_matrix_pair_with_symmetric_products(
         mat1: np.ndarray,
         mat2: np.ndarray,
@@ -234,6 +238,7 @@ def bidiagonalize_real_matrix_pair_with_symmetric_products(
     return left, right
 
 
+@documented(api_reference_category='linear algebra')
 def bidiagonalize_unitary_with_special_orthogonals(
         mat: np.ndarray,
         *,

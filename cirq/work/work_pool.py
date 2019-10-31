@@ -16,6 +16,8 @@ import asyncio
 import collections
 from typing import Optional, Awaitable, Union
 
+from cirq._compat import documented
+
 
 class CompletionOrderedAsyncWorkPool:
     """Ensures given work is executing, and exposes it in completion order."""

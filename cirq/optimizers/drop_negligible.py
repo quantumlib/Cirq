@@ -17,12 +17,14 @@
 from typing import List, Tuple, TYPE_CHECKING
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.circuits import circuit as _circuit
 
 if TYPE_CHECKING:
     from cirq import ops
 
 
+@documented(api_reference_category='optimization')
 class DropNegligible():
     """An optimization pass that removes operations with tiny effects."""
 

@@ -19,6 +19,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._compat import documented
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,
@@ -38,6 +39,7 @@ RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class ApplyChannelArgs:
     r"""Arguments for efficiently performing a channel.
 
@@ -112,6 +114,7 @@ class ApplyChannelArgs:
         self.right_axes = tuple(right_axes)
 
 
+@documented(api_reference_category='protocols')
 class SupportsApplyChannel(Protocol):
     """An object that can efficiently implement a channel."""
 
@@ -155,6 +158,7 @@ class SupportsApplyChannel(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def apply_channel(val: Any,
                   args: ApplyChannelArgs,
                   default: TDefault = RaiseTypeErrorIfNotProvided

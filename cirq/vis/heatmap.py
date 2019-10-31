@@ -27,6 +27,7 @@ import pandas as pd
 from matplotlib import collections as mpl_collections
 from mpl_toolkits import axes_grid1
 
+from cirq._compat import documented
 from cirq.devices import grid_qubit
 
 QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
@@ -59,6 +60,7 @@ def relative_luminance(color: np.ndarray) -> float:
     return rgb.dot([.2126, .7152, .0722])
 
 
+@documented(api_reference_category='visualization')
 class Heatmap:
     """Distribution of a value in 2D qubit lattice as a color map."""
 

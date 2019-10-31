@@ -17,12 +17,14 @@
 from typing import Callable
 
 from cirq import ops, protocols
+from cirq._compat import documented
 from cirq.circuits.optimization_pass import (
     PointOptimizer,
     PointOptimizationSummary,
 )
 
 
+@documented(api_reference_category='optimization')
 class ExpandComposite(PointOptimizer):
     """An optimizer that expands composite operations via `cirq.decompose`.
 

@@ -20,6 +20,7 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, protocols
+from cirq._compat import documented
 from cirq.optimizers import decompositions
 
 
@@ -40,7 +41,8 @@ def _is_swaplike(op: ops.Operation):
     return False
 
 
-class EjectZ():
+@documented(api_reference_category='optimization')
+class EjectZ:
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into

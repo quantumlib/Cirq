@@ -15,9 +15,11 @@
 from typing import Optional
 
 from cirq import circuits, ops, protocols, value
+from cirq._compat import documented
 from cirq.optimizers import two_qubit_decompositions
 
 
+@documented(api_reference_category='optimization')
 class ConvertToCzAndSingleGates(circuits.PointOptimizer):
     """Attempts to convert strange multi-qubit gates into CZ and single qubit
     gates.

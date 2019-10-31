@@ -19,9 +19,11 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._compat import documented
 from cirq.protocols.approximate_equality_protocol import approx_eq
 
 
+@documented(api_reference_category='protocols')
 class SupportsEqualUpToGlobalPhase(Protocol):
     """Object which can be compared for equality mod global phase."""
 
@@ -44,6 +46,7 @@ class SupportsEqualUpToGlobalPhase(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def equal_up_to_global_phase(val: Any,
                              other: Any,
                              *,

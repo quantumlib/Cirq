@@ -19,15 +19,29 @@ import datetime
 import sympy
 
 from cirq import protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr, deprecated, documented
 
 if TYPE_CHECKING:
     import cirq
 
-# 0 is also a DURATION_LIKE, but it would be misleading to include `int`.
+
 DURATION_LIKE = Union[None, datetime.timedelta, 'cirq.Duration']
+documented(
+    DURATION_LIKE,  # type: ignore
+    """A `cirq.Duration` or value that can trivially converted to one.
+
+    A `datetime.timedelta` is a `cirq.DURATION_LIKE`. It is converted while
+    preserving its duration.
+
+    `None` is a `cirq.DURATION_LIKE` that converts into a zero-length duration.
+
+    Note that 0 is a `DURATION_LIKE`, despite the fact that `int` is not listed,
+    because 0 is the only integer where the physical unit doesn't matter.
+    """,
+    api_reference_category='basic values')
 
 
+@documented(api_reference_category='basic values')
 class Duration:
     """A time delta that supports symbols and picosecond accuracy."""
 

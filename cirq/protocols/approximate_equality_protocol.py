@@ -21,7 +21,10 @@ import numpy as np
 
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='protocols')
 class SupportsApproximateEquality(Protocol):
     """Object which can be compared approximately."""
 
@@ -43,6 +46,7 @@ class SupportsApproximateEquality(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     """Approximately compares two objects.
 

@@ -15,12 +15,15 @@
 from typing import Any, TypeVar, Optional, Sequence
 import numpy as np
 from typing_extensions import Protocol
+
+from cirq._compat import documented
 from cirq.protocols.unitary import unitary
 
 
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsTraceDistanceBound(Protocol):
     """An effect with known bounds on how easy it is to detect.
 
@@ -41,6 +44,7 @@ class SupportsTraceDistanceBound(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def trace_distance_bound(val: Any) -> float:
     """Returns a maximum on the trace distance between this effect's input
     and output.

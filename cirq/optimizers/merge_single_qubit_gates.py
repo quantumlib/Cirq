@@ -19,9 +19,11 @@ from typing import Optional, Callable, List
 import numpy as np
 
 from cirq import ops, linalg, protocols, circuits
+from cirq._compat import documented
 from cirq.optimizers import decompositions
 
 
+@documented(api_reference_category='optimization')
 class MergeSingleQubitGates(circuits.PointOptimizer):
     """Optimizes runs of adjacent unitary 1-qubit operations."""
 
@@ -98,6 +100,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
             new_operations=rewritten)
 
 
+@documented(api_reference_category='optimization')
 def merge_single_qubit_gates_into_phased_x_z(
         circuit: circuits.Circuit,
         atol: float = 1e-8) -> None:

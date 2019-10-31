@@ -43,6 +43,8 @@ from google.protobuf import any_pb2
 
 from cirq import circuits, optimizers, schedules, study, value
 from cirq.api.google import v1, v2
+
+from cirq._compat import documented
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1 as api_v1
 from cirq.google.api import v2 as api_v2
@@ -53,6 +55,7 @@ gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
 
 
+@documented(api_reference_category='google/service')
 class ProtoVersion(enum.Enum):
     """Protocol buffer version to use for requests to the quantum engine."""
     UNDEFINED = 0
@@ -99,6 +102,7 @@ def _make_random_id(prefix: str, length: int = 6):
     return '%s%s' % (prefix, suffix)
 
 
+@documented(api_reference_category='google/service')
 @value.value_equality
 class JobConfig:
     """Configuration for a job to run on the Quantum Engine API.
@@ -139,6 +143,7 @@ class JobConfig:
                                             self.gcs_results)
 
 
+@documented(api_reference_category='google/service')
 class Engine:
     """Runs programs via the Quantum Engine API.
 

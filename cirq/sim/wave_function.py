@@ -21,9 +21,11 @@ import abc
 import numpy as np
 
 from cirq import linalg, ops, value
+from cirq._compat import documented
 from cirq.sim import simulator
 
 
+@documented(api_reference_category='developers')
 class StateVectorMixin():
     """A mixin that provide methods for objects that have a state vector.
     """
@@ -157,6 +159,7 @@ class StateVectorMixin():
                                               qid_shape=self._qid_shape)
 
 
+@documented(api_reference_category='linear algebra')
 def bloch_vector_from_state_vector(state: Sequence,
                                    index: int,
                                    qid_shape: Optional[Tuple[int, ...]] = None
@@ -192,6 +195,7 @@ def bloch_vector_from_state_vector(state: Sequence,
     return v
 
 
+@documented(api_reference_category='linear algebra')
 def density_matrix_from_state_vector(
         state: Sequence,
         indices: Optional[Iterable[int]] = None,
@@ -256,6 +260,7 @@ def density_matrix_from_state_vector(
     return rho.reshape((new_shape, new_shape))
 
 
+@documented(api_reference_category='linear algebra')
 def dirac_notation(state: Sequence,
                    decimals: int = 2,
                    qid_shape: Optional[Tuple[int, ...]] = None) -> str:
@@ -309,6 +314,7 @@ def dirac_notation(state: Sequence,
     return ' + '.join(components).replace(' + -', ' - ')
 
 
+@documented(api_reference_category='linear algebra')
 def to_valid_state_vector(
         state_rep: Union[int, np.ndarray],
         num_qubits: int,
@@ -377,6 +383,7 @@ def to_valid_state_vector(
     return state
 
 
+@documented(api_reference_category='linear algebra')
 def validate_normalized_state(
         state: np.ndarray,
         *,  # Force keyword arguments
@@ -397,6 +404,7 @@ def validate_normalized_state(
         raise ValueError('State is not normalized instead had norm %s' % norm)
 
 
+@documented(api_reference_category='linear algebra')
 def sample_state_vector(
         state: np.ndarray,
         indices: List[int],
@@ -466,6 +474,7 @@ def sample_state_vector(
                     dtype=np.uint8)
 
 
+@documented(api_reference_category='linear algebra')
 def measure_state_vector(
         state: np.ndarray,
         indices: List[int],

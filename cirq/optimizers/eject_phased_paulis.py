@@ -19,13 +19,11 @@ from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
 import sympy
 
 from cirq import circuits, ops, value, protocols
+from cirq._compat import documented
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
     from typing import Dict, List
-
-
-
 
 
 class _OptimizerState:
@@ -39,6 +37,7 @@ class _OptimizerState:
         self.insertions = []  # type: List[Tuple[int, ops.Operation]]
 
 
+@documented(api_reference_category='optimization')
 class EjectPhasedPaulis():
     """Pushes X, Y, and PhasedX gates towards the end of the circuit.
 

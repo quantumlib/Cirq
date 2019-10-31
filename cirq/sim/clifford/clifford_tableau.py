@@ -14,7 +14,10 @@
 
 import numpy as np
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='simulation')
 class CliffordTableau():
     """ Tableau representation of a stabilizer state
     (based on Aaronson and Gottesman 2006).

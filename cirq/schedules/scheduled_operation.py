@@ -14,6 +14,7 @@
 from typing import TYPE_CHECKING
 
 from cirq import ops
+from cirq._compat import documented
 from cirq.devices import Device
 from cirq.value import Duration, Timestamp
 
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='schedules')
 class ScheduledOperation:
     """An operation that happens over a specified time interval."""
 

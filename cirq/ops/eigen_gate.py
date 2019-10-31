@@ -22,6 +22,7 @@ import numpy as np
 import sympy
 
 from cirq import value, protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
@@ -47,6 +48,7 @@ EigenComponent = NamedTuple(
 )
 
 
+@documented(api_reference_category='developers')
 @value.value_equality(distinct_child_types=True, approximate=True)
 class EigenGate(raw_types.Gate):
     """A gate with a known eigendecomposition.

@@ -17,7 +17,10 @@ from typing import Sequence, Union, Tuple, Type, Any
 
 import numpy as np
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='linear algebra')
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
@@ -42,6 +45,7 @@ def one_hot(*,
     return result
 
 
+@documented(api_reference_category='linear algebra')
 def eye_tensor(
         half_shape: Tuple[int, ...],
         *,  # Force keyword args

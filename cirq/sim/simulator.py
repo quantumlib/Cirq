@@ -44,9 +44,10 @@ import collections
 import numpy as np
 
 from cirq import circuits, ops, protocols, schedules, study, value, work
+from cirq._compat import documented
 
 
-
+@documented(api_reference_category='simulation')
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """Simulator that mimics running on quantum hardware.
 
@@ -112,6 +113,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+@documented(api_reference_category='simulation')
 class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     """Simulator that computes final amplitudes of given bitstrings.
 
@@ -180,6 +182,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+@documented(api_reference_category='simulation')
 class SimulatesFinalState(metaclass=abc.ABCMeta):
     """Simulator that allows access to a quantum computer's final state.
 
@@ -253,6 +256,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+@documented(api_reference_category='simulation')
 class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     """A SimulatesFinalState that simulates a circuit by moments.
 
@@ -392,6 +396,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             final_simulator_state=final_simulator_state)
 
 
+@documented(api_reference_category='simulation')
 class StepResult(metaclass=abc.ABCMeta):
     """Results of a step of a SimulatesIntermediateState.
 
@@ -499,6 +504,7 @@ class StepResult(metaclass=abc.ABCMeta):
         return results
 
 
+@documented(api_reference_category='simulation')
 @value.value_equality(unhashable=True)
 class SimulationTrialResult:
     """Results of a simulation by a SimulatesFinalState.

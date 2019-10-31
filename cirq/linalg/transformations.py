@@ -19,6 +19,7 @@ from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.linalg import predicates
 
 # This is a special indicator value used by the subwavefunction method to
@@ -31,6 +32,7 @@ RaiseValueErrorIfNotProvided = np.array([])  # type: np.ndarray
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='linear algebra')
 def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     """Raises a matrix with two opposing eigenvalues to a power.
 
@@ -60,6 +62,7 @@ def reflection_matrix_pow(reflection_matrix: np.ndarray, exponent: float):
     return pos_part_raised + neg_part_raised
 
 
+@documented(api_reference_category='linear algebra')
 def match_global_phase(a: np.ndarray,
                        b: np.ndarray
                        ) -> Tuple[np.ndarray, np.ndarray]:
@@ -100,6 +103,7 @@ def match_global_phase(a: np.ndarray,
     return a * dephase(a[k]), b * dephase(b[k])
 
 
+@documented(api_reference_category='linear algebra')
 def targeted_left_multiply(left_matrix: np.ndarray,
                            right_target: np.ndarray,
                            target_axes: Sequence[int],
@@ -161,6 +165,7 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      **({'out': out} if out is not None else {}))
 
 
+@documented(api_reference_category='linear algebra')
 def targeted_conjugate_about(tensor: np.ndarray,
                              target: np.ndarray,
                              indices: Sequence[int],
@@ -217,6 +222,7 @@ _TSliceAtom = Union[int, slice, 'ellipsis']
 _TSlice = Union[_TSliceAtom, Sequence[_TSliceAtom]]
 
 
+@documented(api_reference_category='linear algebra')
 def apply_matrix_to_slices(target: np.ndarray,
                            matrix: np.ndarray,
                            slices: Sequence[_TSlice],
@@ -282,6 +288,7 @@ def apply_matrix_to_slices(target: np.ndarray,
     return out
 
 
+@documented(api_reference_category='linear algebra')
 def partial_trace(tensor: np.ndarray,
                   keep_indices: List[int]) -> np.ndarray:
     """Takes the partial trace of a given tensor.
@@ -317,6 +324,7 @@ def partial_trace(tensor: np.ndarray,
     return np.einsum(tensor, left_indices + right_indices)
 
 
+@documented(api_reference_category='linear algebra')
 def wavefunction_partial_trace_as_mixture(
         wavefunction: np.ndarray,
         keep_indices: List[int],
@@ -372,6 +380,7 @@ def wavefunction_partial_trace_as_mixture(
                   if not protocols.approx_eq(p[0], 0.0)])
 
 
+@documented(api_reference_category='linear algebra')
 def subwavefunction(wavefunction: np.ndarray,
                     keep_indices: List[int],
                     *,

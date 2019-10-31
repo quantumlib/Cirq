@@ -29,10 +29,11 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import gate_features
 
 
+@documented(api_reference_category='gates')
 @value.value_equality(approximate=True)
 class FSimGate(gate_features.TwoQubitGate,
                gate_features.InterchangeableQubitsGate):

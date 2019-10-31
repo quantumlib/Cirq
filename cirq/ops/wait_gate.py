@@ -14,12 +14,14 @@
 from typing import TYPE_CHECKING
 
 from cirq import value, protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='gates')
 @value.value_equality
 class WaitGate(raw_types.Gate):
     """A single-qubit idle gate that represents waiting.

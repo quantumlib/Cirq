@@ -14,6 +14,7 @@
 from typing import List
 
 from cirq import ops, protocols
+from cirq._compat import documented
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
@@ -21,6 +22,7 @@ from cirq.circuits.optimization_pass import (
 from cirq import optimizers
 
 
+@documented(api_reference_category='neutral atoms')
 class ConvertToNeutralAtomGates(PointOptimizer):
     """Attempts to convert gates into native Atom gates.
 
@@ -87,6 +89,7 @@ class ConvertToNeutralAtomGates(PointOptimizer):
             clear_qubits=op.qubits)
 
 
+@documented(api_reference_category='neutral atoms')
 def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
     if isinstance(operation, (ops.GateOperation,
                               ops.ParallelGateOperation)):
@@ -94,6 +97,7 @@ def is_native_neutral_atom_op(operation: ops.Operation) -> bool:
     return False
 
 
+@documented(api_reference_category='neutral atoms')
 def is_native_neutral_atom_gate(gate: ops.Gate) -> bool:
     if not isinstance(gate, (ops.CCXPowGate,
                              ops.CCZPowGate,

@@ -22,6 +22,7 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
@@ -34,6 +35,7 @@ if TYPE_CHECKING:
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsExplicitHasUnitary(Protocol):
     """An object that explicitly specifies whether it has a unitary effect."""
 
@@ -50,6 +52,7 @@ class SupportsExplicitHasUnitary(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def has_unitary(val: Any) -> bool:
     """Determines whether the value has a unitary effect.
 

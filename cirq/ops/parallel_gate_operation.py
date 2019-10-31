@@ -18,10 +18,12 @@ from typing import Sequence, Tuple, Union, Any, Optional
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 
+@documented(api_reference_category='advanced operations')
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""

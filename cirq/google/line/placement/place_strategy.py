@@ -15,12 +15,14 @@ from typing import TYPE_CHECKING
 
 import abc
 
+from cirq._compat import documented
 from cirq.google.line.placement.sequence import GridQubitLineTuple
 
 if TYPE_CHECKING:
     import cirq.google
 
 
+@documented(api_reference_category='google/placement')
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """Choice and options for the line placement calculation method.
 

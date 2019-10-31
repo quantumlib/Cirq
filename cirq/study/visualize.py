@@ -16,9 +16,11 @@
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.study import trial_result
 
 
+@documented(api_reference_category='visualization')
 def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 

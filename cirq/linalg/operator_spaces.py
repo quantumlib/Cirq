@@ -19,15 +19,20 @@ from typing import Dict, Tuple
 import numpy as np
 
 from cirq import value
+from cirq._compat import documented
 
-PAULI_BASIS = {
-    'I': np.eye(2),
-    'X': np.array([[0., 1.], [1., 0.]]),
-    'Y': np.array([[0., -1j], [1j, 0.]]),
-    'Z': np.diag([1., -1]),
-}
+PAULI_BASIS = documented(
+    {
+        'I': np.eye(2),
+        'X': np.array([[0., 1.], [1., 0.]]),
+        'Y': np.array([[0., -1j], [1j, 0.]]),
+        'Z': np.diag([1., -1]),
+    },
+    """The four Pauli matrices (including identity) keyed by character.""",
+    api_reference_category='linear algebra')
 
 
+@documented(api_reference_category='linear algebra')
 def kron_bases(*bases: Dict[str, np.ndarray],
                repeat: int = 1) -> Dict[str, np.ndarray]:
     """Creates tensor product of bases."""
@@ -41,6 +46,7 @@ def kron_bases(*bases: Dict[str, np.ndarray],
     return product_basis
 
 
+@documented(api_reference_category='linear algebra')
 def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
     """Computes Hilbert-Schmidt inner product of two matrices.
 
@@ -49,6 +55,7 @@ def hilbert_schmidt_inner_product(m1: np.ndarray, m2: np.ndarray) -> complex:
     return np.einsum('ij,ij', m1.conj(), m2)
 
 
+@documented(api_reference_category='linear algebra')
 def expand_matrix_in_orthogonal_basis(
         m: np.ndarray,
         basis: Dict[str, np.ndarray],
@@ -66,6 +73,7 @@ def expand_matrix_in_orthogonal_basis(
     })
 
 
+@documented(api_reference_category='linear algebra')
 def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
                                    basis: Dict[str, np.ndarray]) -> np.ndarray:
     """Computes linear combination of basis vectors with given coefficients."""
@@ -76,6 +84,7 @@ def matrix_from_basis_coefficients(expansion: value.LinearDict[str],
     return result
 
 
+@documented(api_reference_category='linear algebra')
 def pow_pauli_combination(
         ai: value.Scalar, ax: value.Scalar, ay: value.Scalar, az: value.Scalar,
         exponent: int

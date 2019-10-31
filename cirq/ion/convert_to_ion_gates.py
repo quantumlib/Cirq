@@ -15,9 +15,11 @@
 import numpy as np
 
 from cirq import ops, protocols, optimizers, circuits
+from cirq._compat import documented
 from cirq.ion import MS, two_qubit_matrix_to_ion_operations
 
 
+@documented(api_reference_category='ion traps')
 class ConvertToIonGates:
     """Attempts to convert non-native gates into IonGates.
     """

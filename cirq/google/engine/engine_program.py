@@ -15,12 +15,14 @@
 from typing import Optional, Sequence, TYPE_CHECKING
 
 from cirq import study
+from cirq._compat import documented
 from cirq.google.engine import engine_job
 
 if TYPE_CHECKING:
     import cirq.google.engine.engine as engine
 
 
+@documented(api_reference_category='google/service')
 class EngineProgram:
     """A program created via the Quantum Engine API.
 

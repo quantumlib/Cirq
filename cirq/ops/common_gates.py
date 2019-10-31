@@ -24,14 +24,14 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Iterable, List, Optional, Tuple, Union
+from typing import Any, cast, Optional, Tuple, Union
 
 import numpy as np
 import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
@@ -45,6 +45,7 @@ imports.
 """
 
 
+@documented(api_reference_category='Single Qubit Gates')
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -184,6 +185,7 @@ class XPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='Single Qubit Gates')
 @value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -323,6 +325,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='Single Qubit Gates')
 @value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -480,6 +483,7 @@ class ZPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='Single Qubit Gates')
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
@@ -597,6 +601,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
+@documented(api_reference_category='Two Qubit Gates')
 class CZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -706,6 +711,7 @@ def _rads_func_symbol(func_name: str, args: 'protocols.CircuitDiagramInfoArgs',
     return '{}({}{})'.format(func_name, half_turns, unit)
 
 
+@documented(api_reference_category='Two Qubit Gates')
 class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """A gate that applies a controlled power of an X gate.
 
@@ -830,69 +836,75 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 args, kwargs))
 
 
+@documented(api_reference_category='Single Qubit Gates')
 def Rx(rads: value.TParamVal) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
+@documented(api_reference_category='Single Qubit Gates')
 def Ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
+@documented(api_reference_category='Single Qubit Gates')
 def Rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-# The Hadamard gate.
-#
-# Matrix:
-#
-#     [[s, s],
-#      [s, -s]]
-#     where s = sqrt(0.5).
-H = HPowGate()
+H = documented(HPowGate(),
+               """The Hadamard gate.
 
-# The Clifford S gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, i]]
-S = ZPowGate(exponent=0.5)
+    Matrix:
+        [[s, s],
+         [s, -s]]
+        where s = sqrt(0.5).
+    """,
+               api_reference_category='Single Qubit Gates')
 
+S = documented(ZPowGate(exponent=0.5),
+               """The Clifford S gate.
 
-# The non-Clifford T gate.
-#
-# Matrix:
-#
-#     [[1, 0]
-#      [0, exp(i pi / 4)]]
-T = ZPowGate(exponent=0.25)
+    Matrix:
+        [[1, 0],
+         [0, i]]
+    """,
+               api_reference_category='Single Qubit Gates')
 
+T = documented(ZPowGate(exponent=0.25),
+               """The non-Clifford T gate.
 
-# The controlled Z gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 0, 0, -1]]
-CZ = CZPowGate()
+    Matrix:
+        [[1, 0]
+         [0, exp(i pi / 4)]]
+    """,
+               api_reference_category='Single Qubit Gates')
 
+CZ = documented(CZPowGate(),
+                """The controlled Z gate.
 
-# The controlled NOT gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1],
-#      [0, 0, 1, 0]]
-CNOT = CNotPowGate()
-CX = CNOT
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 1, 0, 0],
+         [0, 0, 1, 0],
+         [0, 0, 0, -1]]
+    """,
+                api_reference_category='Two Qubit Gates')
+
+CNOT = CX = documented(CNotPowGate(),
+                       """The controlled NOT gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 1, 0, 0],
+         [0, 0, 0, 1],
+         [0, 0, 1, 0]]
+    """,
+                       api_reference_category='Two Qubit Gates')

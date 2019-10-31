@@ -13,7 +13,7 @@
 # limitations under the License.
 
 "General methods for creating Schedules from Circuits."
-
+from cirq._compat import documented
 from cirq.circuits import  Circuit
 from cirq.devices import Device
 from cirq.schedules import Schedule
@@ -21,6 +21,7 @@ from cirq.schedules import ScheduledOperation
 from cirq.value import Timestamp
 
 
+@documented(api_reference_category='schedules')
 def moment_by_moment_schedule(device: Device, circuit: Circuit):
     """Returns a schedule aligned with the moment structure of the Circuit.
 

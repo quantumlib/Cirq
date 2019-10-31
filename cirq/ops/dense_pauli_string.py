@@ -20,7 +20,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, linalg, value
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import (raw_types, identity, pauli_gates, global_phase_op,
                       pauli_string)
 
@@ -40,6 +40,7 @@ PAULI_GATES: List['cirq.Gate'] = [
 TCls = TypeVar('TCls', bound='BaseDensePauliString')
 
 
+@documented(api_reference_category='operator algebra')
 @value.value_equality(approximate=True, distinct_child_types=True)
 class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     """Parent class for `DensePauliString` and `MutableDensePauliString`."""
@@ -352,6 +353,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         """
 
 
+@documented(api_reference_category='operator algebra')
 class DensePauliString(BaseDensePauliString):
 
     def frozen(self) -> 'DensePauliString':
@@ -370,6 +372,7 @@ class DensePauliString(BaseDensePauliString):
             pauli_mask=self.pauli_mask if pauli_mask is None else pauli_mask)
 
 
+@documented(api_reference_category='operator algebra')
 @value.value_equality(unhashable=True, approximate=True)
 class MutableDensePauliString(BaseDensePauliString):
 

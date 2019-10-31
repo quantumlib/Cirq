@@ -15,12 +15,14 @@
 from typing import cast, Iterable, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
+from cirq._compat import documented
 from cirq.ion import convert_to_ion_gates
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='ion traps')
 @value.value_equality
 class IonDevice(devices.Device):
     """A device with qubits placed on a line.

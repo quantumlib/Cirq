@@ -26,9 +26,11 @@ from typing import Iterable, List, Optional, cast, Tuple
 import numpy as np
 
 from cirq import ops, linalg, protocols, optimizers, circuits
+from cirq._compat import documented
 from cirq.ion import MS
 
 
+@documented(api_reference_category='ion traps')
 def two_qubit_matrix_to_ion_operations(q0: ops.Qid,
                                        q1: ops.Qid,
                                        mat: np.ndarray,

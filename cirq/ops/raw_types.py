@@ -21,12 +21,14 @@ import abc
 import functools
 
 from cirq import value, protocols
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
     from cirq.ops import gate_operation, linear_combinations
 
 
+@documented(api_reference_category='devices')
 class Qid(metaclass=abc.ABCMeta):
     """Identifies a quantum object such as a qubit, qudit, resonator, etc.
 
@@ -153,6 +155,7 @@ class _QubitAsQid(Qid):
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
+@documented(api_reference_category='gates')
 class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     """An operation type that can be applied to a collection of qubits.
 
@@ -335,6 +338,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
+@documented(api_reference_category='gates')
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
@@ -362,7 +366,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         pass
 
     def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':

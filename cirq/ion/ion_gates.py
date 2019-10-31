@@ -17,8 +17,10 @@
 import numpy as np
 
 from cirq import ops
+from cirq._compat import documented
 
 
+@documented(api_reference_category='ion traps')
 def MS(rads: float) -> ops.XXPowGate:
     """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
 

@@ -33,6 +33,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType
 
@@ -161,6 +162,7 @@ prepended to this list:
 """
 
 
+@documented(api_reference_category='interop')
 class SupportsJSON(Protocol):
     """An object that can be turned into JSON dictionaries.
 
@@ -179,6 +181,7 @@ class SupportsJSON(Protocol):
         pass
 
 
+@documented(api_reference_category='interop')
 def obj_to_dict_helper(obj: Any,
                        attribute_names: Iterable[str],
                        namespace: Optional[str] = None) -> Dict[str, Any]:
@@ -319,6 +322,7 @@ def to_json(obj: Any, file_or_fn: None = None, *, indent=2,
     pass
 
 
+@documented(api_reference_category='interop')
 def to_json(obj: Any,
             file_or_fn: Union[None, IO, pathlib.Path, str] = None,
             *,
@@ -358,6 +362,7 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
+@documented(api_reference_category='interop')
 def read_json(
         file_or_fn: Union[None, IO, pathlib.Path, str] = None,
         *,

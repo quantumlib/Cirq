@@ -18,9 +18,11 @@ from typing import cast, Dict, Optional, Union
 import numpy as np
 
 from cirq import circuits, study, ops
+from cirq._compat import documented
 from cirq.work import collector
 
 
+@documented(api_reference_category='data collection')
 class PauliSumCollector(collector.Collector):
     """Estimates the energy of a linear combination of Pauli observables."""
 

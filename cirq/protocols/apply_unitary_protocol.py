@@ -29,6 +29,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._compat import documented
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
@@ -48,6 +49,7 @@ RaiseTypeErrorIfNotProvided = np.array([])  # type: np.ndarray
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class ApplyUnitaryArgs:
     """Arguments for performing an efficient left-multiplication by a unitary.
 
@@ -218,6 +220,7 @@ class ApplyUnitaryArgs:
             big_endian_qureg_value=big_endian_bits_int)
 
 
+@documented(api_reference_category='protocols')
 class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
@@ -265,6 +268,7 @@ class SupportsConsistentApplyUnitary(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def apply_unitary(unitary_value: Any,
                   args: ApplyUnitaryArgs,
                   default: TDefault = RaiseTypeErrorIfNotProvided
@@ -431,6 +435,7 @@ def _strat_apply_unitary_from_decompose(val: Any, args: ApplyUnitaryArgs
     return apply_unitaries(operations, qubits, args, None)
 
 
+@documented(api_reference_category='protocols')
 def apply_unitaries(unitary_values: Iterable[Any],
                     qubits: Sequence['cirq.Qid'],
                     args: Optional[ApplyUnitaryArgs] = None,

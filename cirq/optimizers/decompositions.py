@@ -20,9 +20,11 @@ import numpy as np
 import sympy
 
 from cirq import ops, linalg, protocols
+from cirq._compat import documented
 from cirq.linalg.tolerance import near_zero_mod
 
 
+@documented(api_reference_category='basic value')
 def is_negligible_turn(turns: float, tolerance: float) -> bool:
     if isinstance(turns, sympy.Basic):
         if not turns.is_constant():
@@ -35,6 +37,7 @@ def _signed_mod_1(x: float) -> float:
     return (x + 0.5) % 1 - 0.5
 
 
+@documented(api_reference_category='optimization')
 def single_qubit_matrix_to_pauli_rotations(
         mat: np.ndarray, atol: float = 0
 ) -> List[Tuple[ops.Pauli, float]]:
@@ -99,6 +102,7 @@ def single_qubit_matrix_to_pauli_rotations(
     return [(pauli, ht) for pauli, ht in rotation_list if not is_no_turn(ht)]
 
 
+@documented(api_reference_category='optimization')
 def single_qubit_matrix_to_gates(
         mat: np.ndarray, tolerance: float = 0
 ) -> List[ops.SingleQubitGate]:
@@ -117,6 +121,7 @@ def single_qubit_matrix_to_gates(
     return [cast(ops.SingleQubitGate, pauli)**ht for pauli, ht in rotations]
 
 
+@documented(api_reference_category='optimization')
 def single_qubit_op_to_framed_phase_form(
         mat: np.ndarray) -> Tuple[np.ndarray, complex, complex]:
     """Decomposes a 2x2 unitary M into U^-1 * diag(1, r) * U * diag(g, g).
@@ -172,6 +177,7 @@ def _deconstruct_single_qubit_matrix_into_gate_turns(
             _signed_mod_1(total_z_turn))
 
 
+@documented(api_reference_category='optimization')
 def single_qubit_matrix_to_phased_x_z(
         mat: np.ndarray,
         atol: float = 0

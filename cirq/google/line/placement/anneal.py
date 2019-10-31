@@ -16,6 +16,7 @@ from typing import Callable, List, Optional, Tuple, Set, Any, TYPE_CHECKING
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.devices import GridQubit
 from cirq.google.line.placement import place_strategy, optimization
 from cirq.google.line.placement.chip import (
@@ -334,6 +335,7 @@ class AnnealSequenceSearch(object):
         return None
 
 
+@documented(api_reference_category='google/placement')
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 

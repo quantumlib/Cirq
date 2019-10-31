@@ -26,6 +26,7 @@ import itertools
 import numpy as np
 
 from cirq import protocols, linalg, value
+from cirq._compat import documented
 from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
 
@@ -33,8 +34,13 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='gates')
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
+    """Augments existing operations to have one or more control qubits.
+
+    This object is typically created via `operation.controlled_by(*qubits)`.
+    """
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],

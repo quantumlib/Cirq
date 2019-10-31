@@ -23,6 +23,7 @@ from typing import (
     TYPE_CHECKING,
 )
 
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -33,6 +34,7 @@ TInternalQubit = TypeVar('TInternalQubit')
 TExternalQubit = TypeVar('TExternalQubit')
 
 
+@documented(api_reference_category='circuits')
 class QubitOrder:
     """Defines the kronecker product order of qubits."""
 

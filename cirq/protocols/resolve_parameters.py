@@ -17,6 +17,7 @@ from typing_extensions import Protocol
 import sympy
 
 from cirq import study
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
@@ -24,6 +25,7 @@ if TYPE_CHECKING:
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsParameterization(Protocol):
     """An object that can be parameterized by Symbols and resolved
     via a ParamResolver"""
@@ -37,6 +39,7 @@ class SupportsParameterization(Protocol):
         """Resolve the parameters in the effect."""
 
 
+@documented(api_reference_category='protocols')
 def is_parameterized(val: Any) -> bool:
     """Returns whether the object is parameterized with any Symbols.
 
@@ -64,6 +67,7 @@ def is_parameterized(val: Any) -> bool:
         return False
 
 
+@documented(api_reference_category='protocols')
 def resolve_parameters(
         val: Any,
         param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:

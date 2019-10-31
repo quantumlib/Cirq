@@ -17,6 +17,7 @@
 from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
                     FrozenSet, TYPE_CHECKING, Iterator)
 from cirq import protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
+@documented(api_reference_category='circuits')
 class Moment:
     """A simplified time-slice of operations within a sequenced circuit.
 

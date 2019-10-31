@@ -21,6 +21,7 @@ import sympy
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
+from cirq._compat import documented
 
 Cliffords = NamedTuple('Cliffords',
                        [('c1_in_xy', List[List[ops.Gate]]),
@@ -30,6 +31,7 @@ Cliffords = NamedTuple('Cliffords',
                         ('s1_y', List[List[ops.Gate]])])
 
 
+@documented(api_reference_category='experiments')
 class RabiResult:
     """Results from a Rabi oscillation experiment."""
 
@@ -79,6 +81,7 @@ class RabiResult:
         return ax
 
 
+@documented(api_reference_category='experiments')
 class RandomizedBenchMarkResult:
     """Results from a randomized benchmarking experiment."""
 
@@ -127,6 +130,7 @@ class RandomizedBenchMarkResult:
         return ax
 
 
+@documented(api_reference_category='experiments')
 class TomographyResult:
     """Results from a state tomography experiment."""
 
@@ -195,6 +199,7 @@ class TomographyResult:
         return axes
 
 
+@documented(api_reference_category='experiments')
 def rabi_oscillations(sampler: work.Sampler,
                       qubit: devices.GridQubit,
                       max_angle: float = 2 * np.pi,
@@ -233,6 +238,7 @@ def rabi_oscillations(sampler: work.Sampler,
     return RabiResult(angles, excited_state_probs)
 
 
+@documented(api_reference_category='experiments')
 def single_qubit_randomized_benchmarking(
         sampler: work.Sampler,
         qubit: devices.GridQubit,
@@ -291,6 +297,7 @@ def single_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
+@documented(api_reference_category='experiments')
 def two_qubit_randomized_benchmarking(
         sampler: work.Sampler,
         first_qubit: devices.GridQubit,
@@ -349,6 +356,7 @@ def two_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
+@documented(api_reference_category='experiments')
 def single_qubit_state_tomography(sampler: work.Sampler,
                                   qubit: devices.GridQubit,
                                   circuit: circuits.Circuit,
@@ -396,6 +404,7 @@ def single_qubit_state_tomography(sampler: work.Sampler,
     return TomographyResult(rho)
 
 
+@documented(api_reference_category='experiments')
 def two_qubit_state_tomography(sampler: work.Sampler,
                                first_qubit: devices.GridQubit,
                                second_qubit: devices.GridQubit,

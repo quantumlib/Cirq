@@ -15,6 +15,7 @@ import abc
 from typing import Union, TYPE_CHECKING, Tuple, cast
 
 from cirq import value
+from cirq._compat import documented
 from cirq.ops import common_gates, raw_types, identity
 
 
@@ -23,6 +24,7 @@ if TYPE_CHECKING:
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
 
 
+@documented(api_reference_category='gates')
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     """Represents the Pauli gates.
 
@@ -143,28 +145,34 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         return cls(exponent=exponent)
 
 
-# The Pauli X gate.
-#
-# Matrix:
-#
-#   [[0, 1],
-#    [1, 0]]
-X = _PauliX()
+X = documented(_PauliX(),
+               """The Pauli X gate.
 
-# The Pauli Y gate.
-#
-# Matrix:
-#
-#     [[0, -i],
-#      [i, 0]]
-Y = _PauliY()
+    Matrix:
 
-# The Pauli Z gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, -1]]
-Z = _PauliZ()
+      [[0, 1],
+       [1, 0]]
+    """,
+               api_reference_category='gates')
+
+Y = documented(_PauliY(),
+               """The Pauli Y gate.
+
+    Matrix:
+
+      [[0, -i],
+       [i, 0]]
+    """,
+               api_reference_category='gates')
+
+Z = documented(_PauliZ(),
+               """The Pauli Z gate.
+
+    Matrix:
+
+        [[1, 0],
+         [0, -1]]
+    """,
+               api_reference_category='gates')
 
 Pauli._XYZ = (X, Y, Z)

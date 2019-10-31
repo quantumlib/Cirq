@@ -20,6 +20,7 @@ from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.protocols.mixture_protocol import has_mixture_channel
 
 
@@ -37,6 +38,7 @@ RaiseTypeErrorIfNotProvided = (np.array([]),)
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsChannel(Protocol):
     """An object that may be describable as a quantum channel."""
 
@@ -85,6 +87,7 @@ class SupportsChannel(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def channel(val: Any,
             default: Any = RaiseTypeErrorIfNotProvided
             ) -> Union[Tuple[np.ndarray], Sequence[TDefault]]:
@@ -150,6 +153,7 @@ def channel(val: Any,
                 .format(type(val)))
 
 
+@documented(api_reference_category='protocols')
 def has_channel(val: Any) -> bool:
     """Returns whether the value has a channel representation.
 

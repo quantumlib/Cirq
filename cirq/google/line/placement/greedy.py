@@ -17,6 +17,7 @@ from typing import Dict, List, Optional, Set, TYPE_CHECKING
 import abc
 import collections
 
+from cirq._compat import documented
 from cirq.devices import GridQubit
 from cirq.google.line.placement import place_strategy
 from cirq.google.line.placement.chip import chip_as_adjacency_list
@@ -282,6 +283,7 @@ class _PickLargestArea(GreedySequenceSearch):
         return visited
 
 
+@documented(api_reference_category='google/placement')
 class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
     """

@@ -19,12 +19,13 @@ import sympy
 from matplotlib import pyplot as plt
 
 from cirq import circuits, devices, ops, study, value, work
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='experiments')
 def t1_decay(sampler: work.Sampler,
              *,
              qubit: devices.GridQubit,
@@ -84,6 +85,7 @@ def t1_decay(sampler: work.Sampler,
     return T1DecayResult(tab)
 
 
+@documented(api_reference_category='experiments')
 class T1DecayResult:
     """Results from a Rabi oscillation experiment."""
 

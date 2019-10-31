@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
 from typing_extensions import Protocol
 
 from cirq import ops
+from cirq._compat import documented
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -34,6 +35,7 @@ RaiseTypeErrorIfNotProvidedInt = -2**512  # type: Any
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='protocols')
 class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
@@ -61,6 +63,7 @@ class SupportsExplicitQidShape(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 class SupportsExplicitNumQubits(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number of qubits."""
@@ -78,6 +81,7 @@ class SupportsExplicitNumQubits(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
              ) -> Union[Tuple[int, ...], TDefault]:
     """Returns a tuple describing the number of quantum levels of each
@@ -130,6 +134,7 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
                     "methods.".format(type(val)))
 
 
+@documented(api_reference_category='protocols')
 def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
               ) -> Union[int, TDefault]:
     """Returns the number of qubits, qudits, or qids `val` operates on.

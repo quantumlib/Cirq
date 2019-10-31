@@ -15,6 +15,7 @@
 from typing import cast, Iterable, List, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, devices, ops, protocols, value
+from cirq._compat import documented
 from cirq.google.optimizers import convert_to_xmon_gates
 from cirq.devices.grid_qubit import GridQubit
 
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 @value.value_equality
 class XmonDevice(devices.Device):
     """A device with qubits placed in a grid. Neighboring qubits can interact.

@@ -17,16 +17,26 @@
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
 from cirq import value
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
 
 
-# Things that ParamResolver understands how to wrap.
 ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+documented(
+    ParamDictType,  # type: ignore
+    """Dictionary from symbols to values.""",
+    api_reference_category='data collection')
+
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+documented(
+    ParamResolverOrSimilarType,  # type: ignore
+    """Something that can be used to turn parameters into values.""",
+    api_reference_category='data collection')
 
 
+@documented(api_reference_category='data collection')
 class ParamResolver(object):
     """Resolves sympy.Symbols to actual values.
 
@@ -40,12 +50,13 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 

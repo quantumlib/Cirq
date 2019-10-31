@@ -21,9 +21,11 @@ from typing import Any, cast, Dict, Iterator, Sequence, Union
 import numpy as np
 
 from cirq import circuits, ops, schedules, study, value
+from cirq._compat import documented
 from cirq.sim import simulator, wave_function
 
 
+@documented(api_reference_category='simulation')
 class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                                         simulator.SimulatesIntermediateState,
                                         metaclass=abc.ABCMeta):
@@ -98,6 +100,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
         return all_amplitudes
 
 
+@documented(api_reference_category='simulation')
 class WaveFunctionStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
@@ -111,6 +114,7 @@ class WaveFunctionStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
 
+@documented(api_reference_category='simulation')
 @value.value_equality(unhashable=True)
 class WaveFunctionSimulatorState:
 
@@ -133,6 +137,7 @@ class WaveFunctionSimulatorState:
         return (self.state_vector.tolist(), self.qubit_map)
 
 
+@documented(api_reference_category='simulation')
 @value.value_equality(unhashable=True)
 class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                               simulator.SimulationTrialResult):

@@ -18,6 +18,8 @@ from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
                     KeysView, Mapping, MutableMapping, overload, Tuple, TypeVar,
                     Union, ValuesView, Generic, Optional)
 
+from cirq._compat import documented
+
 Scalar = Union[complex, float]
 TVector = TypeVar('TVector')
 
@@ -63,6 +65,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     return s
 
 
+@documented(api_reference_category='basic values')
 class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """Represents linear combination of things.
 

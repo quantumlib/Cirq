@@ -18,6 +18,7 @@ import numpy as np
 import sympy
 
 from cirq import devices, ops, protocols, value
+from cirq._compat import documented
 from cirq.schedules import Schedule, ScheduledOperation
 from cirq.value import Timestamp
 
@@ -32,6 +33,7 @@ def _load_json_bool(b: Any):
     return json.loads(b)
 
 
+@documented(api_reference_category='google/service')
 def gate_to_proto_dict(gate: 'cirq.Gate',
                        qubits: Tuple['cirq.Qid', ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
@@ -145,7 +147,7 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
     return {'measurement': measurement}
 
 
-
+@documented(api_reference_category='google/service')
 def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
     """Convert a schedule into an iterable of proto dictionaries.
 
@@ -169,6 +171,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
         yield op
 
 
+@documented(api_reference_category='google/service')
 def schedule_from_proto_dicts(
         device: 'cirq.google.XmonDevice',
         ops: Iterable[Dict],
@@ -192,6 +195,7 @@ def schedule_from_proto_dicts(
     return Schedule(device, scheduled_ops)
 
 
+@documented(api_reference_category='google/service')
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
     """Pack measurement results into a byte string.
 
@@ -234,6 +238,7 @@ def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
     return byte_arr.tobytes()
 
 
+@documented(api_reference_category='google/service')
 def unpack_results(data: bytes, repetitions: int,
                    key_sizes: Sequence[Tuple[str, int]]
                   ) -> Dict[str, np.ndarray]:
@@ -266,6 +271,7 @@ def unpack_results(data: bytes, repetitions: int,
     return results
 
 
+@documented(api_reference_category='google/service')
 def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     """Check if the gate corresponding to an operation is a native xmon gate.
 
@@ -278,6 +284,7 @@ def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
 
 
+@documented(api_reference_category='google/service')
 def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     """Check if a gate is a native xmon gate.
 
@@ -292,6 +299,7 @@ def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
                        ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
+@documented(api_reference_category='google/service')
 def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
     """Convert the proto dictionary to the corresponding operation.
 

@@ -30,6 +30,7 @@ from collections import defaultdict
 from typing_extensions import Protocol
 
 from cirq import devices, ops
+from cirq._compat import documented
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -53,6 +54,7 @@ def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
                       "but can't be decomposed: {!r}".format(op))
 
 
+@documented(api_reference_category='protocols')
 class SupportsDecompose(Protocol):
     """An object that can be decomposed into simpler operations.
 
@@ -96,6 +98,7 @@ class SupportsDecompose(Protocol):
         pass
 
 
+@documented(api_reference_category='protocols')
 class SupportsDecomposeWithQubits(Protocol):
     """An object that can be decomposed into operations on given qubits.
 
@@ -142,6 +145,7 @@ def decompose(val: Any,
     pass
 
 
+@documented(api_reference_category='protocols')
 def decompose(
         val: TValue,
         *,
@@ -261,6 +265,7 @@ def decompose_once(val: Any, default: TDefault, *args,
     pass
 
 
+@documented(api_reference_category='protocols')
 def decompose_once(val: Any,
                    default=RaiseTypeErrorIfNotProvided,
                    *args,
@@ -325,6 +330,7 @@ def decompose_once_with_qubits(
     pass
 
 
+@documented(api_reference_category='protocols')
 def decompose_once_with_qubits(val: Any,
                                qubits: Iterable['cirq.Qid'],
                                default=RaiseTypeErrorIfNotProvided):

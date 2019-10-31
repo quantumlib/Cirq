@@ -14,6 +14,7 @@
 
 from typing import Any
 
+from cirq._compat import documented
 from cirq.protocols.resolve_parameters import is_parameterized
 
 # This is a special indicator value used to determine whether or not the caller
@@ -21,6 +22,7 @@ from cirq.protocols.resolve_parameters import is_parameterized
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
+@documented(api_reference_category='protocols')
 def mul(lhs: Any, rhs: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns lhs * rhs, or else a default if the operator is not implemented.
 

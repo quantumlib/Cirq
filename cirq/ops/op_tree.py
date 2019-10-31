@@ -18,6 +18,7 @@
 from typing import Callable, Iterable, Iterator, NoReturn, Union
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.ops.moment import Moment
 from cirq.ops.raw_types import Operation
 
@@ -48,8 +49,13 @@ class OpTree(Protocol):
 
 
 OP_TREE = Union[Operation, OpTree]
+documented(
+    OP_TREE,  # type: ignore
+    """An operation or nesteded collections of operations.""",
+    api_reference_category='circuits')
 
 
+@documented(api_reference_category='circuits')
 def flatten_op_tree(root: OP_TREE, preserve_moments: bool = False
                    ) -> Iterator[Union[Operation, Moment]]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
@@ -71,6 +77,7 @@ def flatten_op_tree(root: OP_TREE, preserve_moments: bool = False
         return flatten_to_ops(root)
 
 
+@documented(api_reference_category='circuits')
 def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
     """Performs an in-order iteration of the operations (leaves) in an OP_TREE.
 
@@ -92,6 +99,7 @@ def flatten_to_ops(root: OP_TREE) -> Iterator[Operation]:
         _bad_op_tree(root)
 
 
+@documented(api_reference_category='circuits')
 def flatten_to_ops_or_moments(root: OP_TREE
                              ) -> Iterator[Union[Operation, Moment]]:
     """Performs an in-order iteration OP_TREE, yielding ops and moments.
@@ -114,6 +122,7 @@ def flatten_to_ops_or_moments(root: OP_TREE
         _bad_op_tree(root)
 
 
+@documented(api_reference_category='circuits')
 def transform_op_tree(
         root: OP_TREE,
         op_transformation: Callable[[Operation], OP_TREE]=lambda e: e,
@@ -154,6 +163,7 @@ def transform_op_tree(
     _bad_op_tree(root)
 
 
+@documented(api_reference_category='circuits')
 def freeze_op_tree(root: OP_TREE) -> OP_TREE:
     """Replaces all iterables in the OP_TREE with tuples.
 

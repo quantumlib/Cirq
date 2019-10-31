@@ -17,11 +17,13 @@ from typing import Callable, Mapping, Optional, Sequence
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
 from cirq.sim import final_wavefunction
 
 
+@documented(api_reference_category='experiments')
 def linear_xeb_fidelity_from_probabilities(
         hilbert_space_dimension: int,
         probabilities: Sequence[float],
@@ -64,6 +66,7 @@ def linear_xeb_fidelity_from_probabilities(
     return hilbert_space_dimension * np.mean(probabilities) - 1
 
 
+@documented(api_reference_category='experiments')
 def log_xeb_fidelity_from_probabilities(
         hilbert_space_dimension: int,
         probabilities: Sequence[float],
@@ -99,6 +102,7 @@ def log_xeb_fidelity_from_probabilities(
             np.mean(np.log(probabilities)))
 
 
+@documented(api_reference_category='experiments')
 def hog_score_xeb_fidelity_from_probabilities(
         hilbert_space_dimension: int,
         probabilities: Sequence[float],
@@ -135,6 +139,7 @@ def hog_score_xeb_fidelity_from_probabilities(
     return (2 * score - 1) / np.log(2)
 
 
+@documented(api_reference_category='experiments')
 def xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
@@ -201,6 +206,7 @@ def xeb_fidelity(
     return estimator(dim, bitstring_probabilities)
 
 
+@documented(api_reference_category='experiments')
 def linear_xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],
@@ -215,6 +221,7 @@ def linear_xeb_fidelity(
                         estimator=linear_xeb_fidelity_from_probabilities)
 
 
+@documented(api_reference_category='experiments')
 def log_xeb_fidelity(
         circuit: Circuit,
         bitstrings: Sequence[int],

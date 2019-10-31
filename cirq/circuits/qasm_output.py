@@ -21,6 +21,7 @@ import re
 import numpy as np
 
 from cirq import ops, linalg, protocols, value
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
@@ -139,6 +140,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
             self.kak)
 
 
+@documented(api_reference_category='interop')
 class QasmOutput:
     valid_id_re = re.compile(r'[a-z][a-zA-Z0-9_]*\Z')
 

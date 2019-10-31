@@ -17,6 +17,7 @@ from typing import Iterable, List, Optional, Union, cast, TYPE_CHECKING
 from sortedcontainers import SortedListWithKey
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.circuits import Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.devices import Device
@@ -28,6 +29,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='schedules')
 class Schedule:
     """A quantum program with operations happening at specific times.
 

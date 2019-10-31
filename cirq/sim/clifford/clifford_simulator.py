@@ -33,12 +33,14 @@ from typing import Dict, List, Iterator, Union, Optional, Sequence
 import collections
 import numpy as np
 import cirq
+from cirq._compat import documented
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq.ops import raw_types
 from cirq import circuits, study, ops, protocols
 
 
+@documented(api_reference_category='simulation')
 class CliffordSimulator(simulator.SimulatesSamples,
                         simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
@@ -139,6 +141,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         return {k: np.array(v) for k, v in measurements.items()}
 
 
+@documented(api_reference_category='simulation')
 class CliffordTrialResult(simulator.SimulationTrialResult):
 
     def __init__(self, params: study.ParamResolver,
@@ -161,6 +164,7 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
         return super().__repr__()
 
 
+@documented(api_reference_category='simulation')
 class CliffordSimulatorStepResult(simulator.StepResult):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
@@ -216,6 +220,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         return np.array(measurements, dtype=bool)
 
 
+@documented(api_reference_category='simulation')
 class CliffordState():
     """A state of the Clifford simulation.
 

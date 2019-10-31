@@ -16,9 +16,11 @@
 import numpy as np
 
 from cirq import value, protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='gates')
 @value.value_equality(approximate=True)
 class GlobalPhaseOperation(raw_types.Operation):
 

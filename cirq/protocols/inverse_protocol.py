@@ -16,6 +16,7 @@ from typing import (Any, List, overload, Tuple, TYPE_CHECKING, TypeVar, Union,
                     Iterable)
 
 from cirq import ops
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
@@ -72,6 +73,7 @@ def inverse(val: 'cirq.OP_TREE',
     pass
 
 
+@documented(api_reference_category='protocols')
 def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
     """Returns the inverse `val**-1` of the given value, if defined.
 

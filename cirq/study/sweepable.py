@@ -16,14 +16,20 @@
 
 from typing import Dict, Iterable, Iterator, List, Union, cast
 
+from cirq._compat import documented
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
 
 Sweepable = Union[Dict[str, float], ParamResolver, Sweep, Iterable[
     Union[Dict[str, float], ParamResolver, Sweep]], None]
+documented(
+    Sweepable,  # type: ignore
+    """An object or collection of objects representing a parameter sweep.""",
+    api_reference_category='data collection')
 
 
+@documented(api_reference_category='developers')
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
     """Convert a Sweepable to a list of ParamResolvers."""
     if sweepable is None:
@@ -61,6 +67,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                     f'sweepable: {sweepable}')
 
 
+@documented(api_reference_category='developers')
 def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
                                            Iterable[ParamResolverOrSimilarType]]
             ) -> 'Sweep':

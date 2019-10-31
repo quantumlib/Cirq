@@ -15,10 +15,12 @@
 import random
 from typing import Callable, Iterable, TypeVar, cast, Sequence
 
+from cirq._compat import documented
 from cirq.circuits import InsertStrategy
 from cirq import circuits, devices, google, ops
 
 
+@documented(api_reference_category='experiments')
 def generate_boixo_2018_supremacy_circuits_v2(
         qubits: Iterable[devices.GridQubit], cz_depth: int,
         seed: int) -> circuits.Circuit:
@@ -81,6 +83,7 @@ def generate_boixo_2018_supremacy_circuits_v2(
     return circuit
 
 
+@documented(api_reference_category='experiments')
 def generate_boixo_2018_supremacy_circuits_v2_grid(n_rows: int, n_cols: int,
                                                    cz_depth: int, seed: int
                                                   ) -> circuits.Circuit:
@@ -106,6 +109,7 @@ def generate_boixo_2018_supremacy_circuits_v2_grid(n_rows: int, n_cols: int,
     return generate_boixo_2018_supremacy_circuits_v2(qubits, cz_depth, seed)
 
 
+@documented(api_reference_category='experiments')
 def generate_boixo_2018_supremacy_circuits_v2_bristlecone(
         n_rows: int, cz_depth: int, seed: int) -> circuits.Circuit:
     """

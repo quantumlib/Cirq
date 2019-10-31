@@ -16,9 +16,11 @@
 from datetime import timedelta
 from typing import Union, overload
 
+from cirq._compat import documented
 from cirq.value.duration import Duration
 
 
+@documented(api_reference_category='basic values')
 class Timestamp:
     """A location in time with picosecond accuracy.
 

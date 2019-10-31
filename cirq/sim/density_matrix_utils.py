@@ -19,9 +19,11 @@ import numpy as np
 from scipy.stats import entropy
 
 from cirq import linalg, value
+from cirq._compat import documented
 from cirq.sim import wave_function
 
 
+@documented(api_reference_category='simulation')
 def to_valid_density_matrix(
         density_matrix_rep: Union[int, np.ndarray],
         num_qubits: Optional[int] = None,
@@ -85,6 +87,7 @@ def to_valid_density_matrix(
     return np.outer(state_vector, np.conj(state_vector))
 
 
+@documented(api_reference_category='simulation')
 def sample_density_matrix(
         density_matrix: np.ndarray,
         indices: List[int],
@@ -158,6 +161,7 @@ def sample_density_matrix(
                     dtype=np.int8)
 
 
+@documented(api_reference_category='simulation')
 def measure_density_matrix(
         density_matrix: np.ndarray,
         indices: List[int],
@@ -365,6 +369,7 @@ def _indices_shape(qid_shape: Tuple[int, ...],
     return tuple(qid_shape[i] for i in indices)
 
 
+@documented(api_reference_category='linear algebra')
 def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     """Calculates von Neumann entropy of density matrix in bits.
     Args:

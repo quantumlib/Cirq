@@ -19,6 +19,8 @@ import sympy
 from google.protobuf import json_format
 
 from cirq.api.google import v2
+
+from cirq._compat import documented
 from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
@@ -26,6 +28,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 class DeserializingArg(
         NamedTuple('DeserializingArg', [
             ('serialized_name', str),
@@ -62,6 +65,7 @@ class DeserializingArg(
                                   required=required)
 
 
+@documented(api_reference_category='google/service')
 class GateOpDeserializer:
     """Describes how to deserialize a proto to a given Gate type.
 

@@ -23,9 +23,11 @@ import numpy as np
 import sympy
 
 import cirq
+from cirq._compat import documented
 from cirq.experiments.qubit_characterizations import TomographyResult
 
 
+@documented(api_reference_category='experiments')
 class StateTomographyExperiment:
     """Experiment to conduct state tomography.
 
@@ -122,6 +124,7 @@ class StateTomographyExperiment:
         return TomographyResult(rho)
 
 
+@documented(api_reference_category='experiments')
 def state_tomography(
         sampler: cirq.Sampler,
         qubits: Sequence[cirq.Qid],

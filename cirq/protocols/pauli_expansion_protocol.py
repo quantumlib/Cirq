@@ -16,6 +16,7 @@
 from typing import Any, TypeVar, Union
 
 from cirq import value
+from cirq._compat import documented
 from cirq.linalg import operator_spaces
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.unitary import unitary
@@ -26,6 +27,7 @@ RaiseTypeErrorIfNotProvided = (value.LinearDict({})
                               )  # type: value.LinearDict[str]
 
 
+@documented(api_reference_category='protocols')
 def pauli_expansion(
         val: Any,
         *,

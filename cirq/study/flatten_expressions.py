@@ -18,9 +18,11 @@ from typing import overload, Any, Callable, List, Optional, Tuple, Union
 import sympy
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.study import resolver, sweeps, sweepable
 
 
+@documented(api_reference_category='data collection')
 def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     """Creates a copy of `val` with any symbols or expressions replaced with
     new symbols.  `val` can be a `Circuit`, `Gate`, `Operation`, or other
@@ -104,6 +106,7 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     return val_flat, expr_map
 
 
+@documented(api_reference_category='data collection')
 def flatten_with_sweep(val: Any,
                        sweep: Union[sweeps.Sweep, List[resolver.ParamResolver]]
                       ) -> Tuple[Any, sweeps.Sweep]:
@@ -138,6 +141,7 @@ def flatten_with_sweep(val: Any,
     return val_flat, new_sweep
 
 
+@documented(api_reference_category='data collection')
 def flatten_with_params(val: Any, params: resolver.ParamResolverOrSimilarType
                        ) -> Tuple[Any, resolver.ParamDictType]:
     """Creates a copy of `val` with any symbols or expressions replaced with
@@ -303,6 +307,7 @@ class _ParamFlattener(resolver.ParamResolver):
         return protocols.resolve_parameters(val, self)
 
 
+@documented(api_reference_category='data collection')
 class ExpressionMap(dict):
     """A dictionary with sympy expressions and symbols for keys and sympy
     symbols for values.

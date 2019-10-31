@@ -13,10 +13,11 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any
+from typing import Any, Optional
 
 from typing_extensions import Protocol
 
+from cirq._compat import documented
 from cirq.protocols import has_channel
 
 # This is a special indicator value used by the inverse method to determine
@@ -24,6 +25,7 @@ from cirq.protocols import has_channel
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
+@documented(api_reference_category='protocols')
 class SupportsMeasurementKey(Protocol):
     r"""An object that is a measurement and has a measurement key.
 
@@ -47,6 +49,7 @@ class SupportsMeasurementKey(Protocol):
         """
 
 
+@documented(api_reference_category='protocols')
 def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     """Get the measurement key for the given value.
 
@@ -83,6 +86,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
                     "but it returned NotImplemented.".format(type(val)))
 
 
+@documented(api_reference_category='protocols')
 def is_measurement(val: Any) -> bool:
     """Returns whether or not the given value is a measurement.
 

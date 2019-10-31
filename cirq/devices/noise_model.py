@@ -15,12 +15,14 @@
 from typing import TYPE_CHECKING, Sequence, Union
 
 from cirq import ops, protocols, value
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     from typing import Iterable
     import cirq
 
 
+@documented(api_reference_category='data noise')
 class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """Replaces operations and moments with noisy counterparts.
 
@@ -180,9 +182,14 @@ class _NoNoiseModel(NoiseModel):
         return protocols.obj_to_dict_helper(self, [])
 
 
+@documented(api_reference_category='noise')
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
-    """Applies noise to each qubit individually at the start of every moment."""
+    """Applies noise to each qubit individually at the start of every moment.
+
+    This is the noise model that is wrapped around an operation when that
+    operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
+    """
 
     def __init__(self, qubit_noise_gate: 'cirq.Gate'):
         if qubit_noise_gate.num_qubits() != 1:
@@ -206,6 +213,24 @@ class ConstantQubitNoiseModel(NoiseModel):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
 
-NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
-"""An object which can be unambiguously converted into a noise model."""
+NO_NOISE: 'cirq.NoiseModel' = documented(
+    _NoNoiseModel(),
+    """The trivial noise model with no effects.
+
+    This is the noise model used when a `NOISE_MODEL_LIKE` noise parameter is
+    set to `None`.
+    """,
+    api_reference_category='noise')
+
 NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
+documented(
+    NOISE_MODEL_LIKE,  # type: ignore
+    """A `cirq.NoiseModel` or a value that can be trivially converted into one.
+
+    `None` is a `NOISE_MODEL_LIKE`. It will be replaced by the `cirq.NO_NOISE`
+    noise model.
+
+    A single qubit gate is a `NOISE_MODEL_LIKE`. It will be wrapped inside of a
+    `cirq.ConstantQubitNoiseModel`.
+    """,
+    api_reference_category='noise')

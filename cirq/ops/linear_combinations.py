@@ -19,6 +19,7 @@ import numbers
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
@@ -27,8 +28,14 @@ from cirq.value.linear_dict import _format_terms
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
                      SingleQubitPauliStringGateOperation]
+documented(
+    PauliSumLike,  # type: ignore
+    """Any value that can be easily translated into a sum of Pauli products.
+    """,
+    api_reference_category='advanced gates')
 
 
+@documented(api_reference_category='advanced gates')
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
     """Represents linear operator defined by a linear combination of gates.
 
@@ -151,6 +158,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return result
 
 
+@documented(api_reference_category='advanced gates')
 class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     """Represents operator defined by linear combination of gate operations.
 
@@ -287,6 +295,7 @@ def _pauli_string_from_unit(unit: UnitPauliStringT,
     return PauliString(qubit_pauli_map=dict(unit), coefficient=coefficient)
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality(approximate=True)
 class PauliSum:
     """Represents operator defined by linear combination of PauliStrings.

@@ -25,10 +25,11 @@ from typing import Optional, Tuple
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import common_gates, gate_features, eigen_gate, raw_types
 
 
+@documented(api_reference_category='gates')
 class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                   gate_features.InterchangeableQubitsGate):
     """The SWAP gate, possibly raised to a power. Exchanges qubits.
@@ -136,6 +137,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                                              self._global_shift)
 
 
+@documented(api_reference_category='gates')
 class ISwapPowGate(eigen_gate.EigenGate,
                    gate_features.InterchangeableQubitsGate,
                    gate_features.TwoQubitGate):
@@ -246,22 +248,26 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-# The swap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1]]
-SWAP = SwapPowGate()
+SWAP = documented(SwapPowGate(),
+                  """The swap gate.
 
-# The iswap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, i, 0],
-#      [0, i, 0, 0],
-#      [0, 0, 0, 1]]
-ISWAP = ISwapPowGate()
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, 1, 0],
+         [0, 1, 0, 0],
+         [0, 0, 0, 1]]
+    """,
+                  api_reference_category='gates')
+
+ISWAP = documented(ISwapPowGate(),
+                   """The iswap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, i, 0],
+         [0, i, 0, 0],
+         [0, 0, 0, 1]]
+    """,
+                   api_reference_category='gates')

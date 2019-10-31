@@ -21,6 +21,7 @@ from typing import Dict, Iterator, List, Optional, Type, Union, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
+from cirq._compat import documented
 from cirq.sim import density_matrix_utils, simulator
 
 if TYPE_CHECKING:
@@ -35,6 +36,7 @@ class _StateAndBuffers:
         self.buffers = [np.empty_like(tensor) for _ in range(3)]
 
 
+@documented(api_reference_category='simulation')
 class DensityMatrixSimulator(simulator.SimulatesSamples,
                              simulator.SimulatesIntermediateState):
     """A simulator for density matrices and noisy quantum circuits.
@@ -322,6 +324,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'parameter sweep. Ops: {}'.format(unresolved))
 
 
+@documented(api_reference_category='simulation')
 class DensityMatrixStepResult(simulator.StepResult):
     """A single step in the simulation of the DensityMatrixSimulator.
 
@@ -429,6 +432,7 @@ class DensityMatrixStepResult(simulator.StepResult):
             seed=seed)
 
 
+@documented(api_reference_category='simulation')
 @value.value_equality(unhashable=True)
 class DensityMatrixSimulatorState():
     """The simulator state for DensityMatrixSimulator
@@ -459,6 +463,7 @@ class DensityMatrixSimulatorState():
                                          self.qubit_map))
 
 
+@documented(api_reference_category='simulation')
 @value.value_equality(unhashable=True)
 class DensityMatrixTrialResult(simulator.SimulationTrialResult):
     """A `SimulationTrialResult` for `DensityMatrixSimulator` runs.

@@ -16,8 +16,10 @@
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 from cirq import ops, protocols
+from cirq._compat import documented
 
 
+@documented(api_reference_category='devices')
 class GridQubit(ops.Qid):
     """A qubit on a 2d square lattice.
 

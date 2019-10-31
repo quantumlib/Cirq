@@ -14,6 +14,7 @@
 from typing import List, TYPE_CHECKING
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 class ConvertToXmonGates(PointOptimizer):
     """Attempts to convert strange gates into XmonGates.
 

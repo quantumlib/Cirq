@@ -21,11 +21,13 @@ import threading
 import pandas as pd
 
 from cirq import study
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='data collection')
 class Sampler(metaclass=abc.ABCMeta):
     """Something capable of sampling quantum circuits. Simulator or hardware."""
 

@@ -18,13 +18,18 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import raw_types, controlled_operation as cop
 from cirq.type_workarounds import NotImplementedType
 
 
+@documented(api_reference_category='gates')
 @value.value_equality
 class ControlledGate(raw_types.Gate):
-    """Augments existing gates with a control qubit."""
+    """Augments existing gates to have one or more control qubits.
+
+    This object is typically created via `gate.controlled()`.
+    """
 
     def __init__(
             self,

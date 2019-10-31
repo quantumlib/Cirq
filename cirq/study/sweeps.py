@@ -19,6 +19,7 @@ import collections
 import itertools
 import sympy
 
+from cirq._compat import documented
 from cirq.study import resolver
 
 
@@ -33,6 +34,7 @@ def _check_duplicate_keys(sweeps):
         keys.update(sweep.keys)
 
 
+@documented(api_reference_category='data collection')
 class Sweep(metaclass=abc.ABCMeta):
     """A sweep is an iterator over ParamResolvers.
 
@@ -186,9 +188,12 @@ class _Unit(Sweep):
         return 'cirq.UnitSweep'
 
 
-UnitSweep = _Unit()  # singleton instance
+UnitSweep = documented(_Unit(),
+                       """The singleton sweep with no parameters.""",
+                       api_reference_category='data collection')
 
 
+@documented(api_reference_category='data collection')
 class Product(Sweep):
     """Cartesian product of one or more sweeps.
 
@@ -248,6 +253,7 @@ class Product(Sweep):
         return ' * '.join(factor_strs)
 
 
+@documented(api_reference_category='data collection')
 class Zip(Sweep):
     """Zip product (direct sum) of one or more sweeps.
 
@@ -329,6 +335,7 @@ class SingleSweep(Sweep):
         pass
 
 
+@documented(api_reference_category='data collection')
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
@@ -351,6 +358,7 @@ class Points(SingleSweep):
         return 'cirq.Points({!r}, {!r})'.format(self.key, self.points)
 
 
+@documented(api_reference_category='data collection')
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
@@ -388,6 +396,7 @@ class Linspace(SingleSweep):
                 self.key, self.start, self.stop, self.length)
 
 
+@documented(api_reference_category='data collection')
 class ListSweep(Sweep):
     """A wrapper around a list of `ParamResolver`s."""
 

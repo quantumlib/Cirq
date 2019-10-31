@@ -17,12 +17,16 @@ from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
     pauli_gates, raw_types
 from cirq.ops.pauli_gates import Pauli
 
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
+documented(PauliTransform,
+           """+X, -X, +Y, -Y, +Z, or -Z.""",
+           api_reference_category='advanced gates')
 
 
 def _pretend_initialized() -> 'SingleQubitCliffordGate':
@@ -31,6 +35,7 @@ def _pretend_initialized() -> 'SingleQubitCliffordGate':
     pass
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality
 class SingleQubitCliffordGate(gate_features.SingleQubitGate):
     """Any single qubit Clifford rotation."""

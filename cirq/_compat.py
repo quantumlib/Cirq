@@ -15,11 +15,81 @@
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
 import logging
-from typing import Any, Callable, Optional, Dict, Tuple
+from typing import Any, Callable, Optional, Dict, Tuple, NamedTuple, Union, \
+    TypeVar, overload
 
 import numpy as np
 import pandas as pd
 import sympy
+
+
+DocProperties = NamedTuple(
+    'DocProperties',
+    [
+        ('api_reference_category', str),
+        ('manual_doc_string', Optional[str]),
+    ],
+)
+
+seen_documentation: Dict[Union[int, str], DocProperties] = {}
+
+TValue = TypeVar('TValue')
+
+
+@overload
+def documented(value: None = None,
+               manual_doc_string: None = None,
+               *,
+               api_reference_category: str) -> Callable[[TValue], TValue]:
+    pass
+
+
+@overload
+def documented(value: TValue, manual_doc_string: str, *,
+               api_reference_category: str) -> TValue:
+    pass
+
+
+def documented(value=None, manual_doc_string=None, *, api_reference_category):
+    """Stores global documentation details about the value then returns it.
+
+    The returned value is not changed in any way. The given documentation
+    information is simply filed under `id(value)` and also under
+    `value.__name__` (if that attribute is present).
+
+    This function can be used as a normal function on raw global constants, or
+    as a decorator for functions or classes. Functions and classes will be filed
+    by name in addition to id, so that they can be recognized even if there are
+    additional decorators (producing results with different id values).
+
+    Args:
+        value: The value to associate with documentation information. When
+            documenting functions or classes using an `@documented` decorator,
+            it is not necessary to specify this argument.
+        api_reference_category: The category to place this value under in the
+            api reference documentation.
+        manual_doc_string: Specifies a doc string. This should only be used for
+            global constants. It will fail if specified for functions or classes
+            that already have a doc string.
+    """
+    if value is None:
+
+        def wrapper(func: TValue) -> TValue:
+            return documented(func,
+                              api_reference_category=api_reference_category,
+                              manual_doc_string=manual_doc_string)
+
+        return wrapper
+
+    docs = DocProperties(
+        api_reference_category=api_reference_category,
+        manual_doc_string=manual_doc_string,
+    )
+    name = getattr(value, '__name__', None)
+    if name is not None:
+        seen_documentation[name] = docs
+    seen_documentation[id(value)] = docs
+    return value
 
 
 def proper_repr(value: Any) -> str:

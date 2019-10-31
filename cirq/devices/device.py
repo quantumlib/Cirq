@@ -16,6 +16,7 @@ from typing import TYPE_CHECKING
 
 import abc
 
+from cirq._compat import documented
 from cirq.value import Duration
 
 
@@ -25,6 +26,7 @@ if TYPE_CHECKING:
 # Note: circuit/schedule types specified by name to avoid circular references.
 
 
+@documented(api_reference_category='devices')
 class Device(metaclass=abc.ABCMeta):
     """Hardware constraints for validating circuits and schedules."""
 

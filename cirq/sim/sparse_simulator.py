@@ -21,6 +21,7 @@ from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
+from cirq._compat import documented
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 
@@ -53,6 +54,7 @@ class _StateAndBuffer():
         self.buffer = buffer
 
 
+@documented(api_reference_category='simulation')
 class Simulator(simulator.SimulatesSamples,
                 wave_function_simulator.SimulatesIntermediateWaveFunction):
     """A sparse matrix wave function simulator that uses numpy.
@@ -376,6 +378,7 @@ class Simulator(simulator.SimulatesSamples,
                 'parameter sweep. Ops: {}'.format(unresolved))
 
 
+@documented(api_reference_category='simulation')
 class SparseSimulatorStep(wave_function.StateVectorMixin,
                           wave_function_simulator.WaveFunctionStepResult):
     """A `StepResult` that includes `StateVectorMixin` methods."""

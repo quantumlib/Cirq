@@ -20,6 +20,7 @@ import abc
 from collections import defaultdict
 
 from cirq import ops
+from cirq._compat import documented
 from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
@@ -27,6 +28,7 @@ if TYPE_CHECKING:
     from cirq.ops import Qid
 
 
+@documented(api_reference_category='optimization')
 class PointOptimizationSummary:
     """A description of a local optimization to perform."""
 
@@ -69,6 +71,7 @@ class PointOptimizationSummary:
             self.new_operations)
 
 
+@documented(api_reference_category='optimization')
 class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 

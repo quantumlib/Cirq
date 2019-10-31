@@ -21,11 +21,12 @@ import sympy
 
 import cirq
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.ops import gate_features, raw_types, op_tree, common_gates
 from cirq.type_workarounds import NotImplementedType
 
 
+@documented(api_reference_category='advanced gates')
 @value.value_equality(manual_cls=True)
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""

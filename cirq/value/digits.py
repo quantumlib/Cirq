@@ -14,7 +14,10 @@
 
 from typing import List, Iterable, Any, Union, Optional, overload
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='basic value')
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     """Returns the big-endian integer specified by the given bits.
 
@@ -46,6 +49,7 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     return result
 
 
+@documented(api_reference_category='basic value')
 def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     """Returns the big-endian bits of an integer.
 
@@ -72,6 +76,7 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
 
+@documented(api_reference_category='basic value')
 def big_endian_digits_to_int(digits: Iterable[int], *,
                              base: Union[int, Iterable[int]]) -> int:
     """Returns the big-endian integer specified by the given digits and base.
@@ -132,6 +137,7 @@ def big_endian_int_to_digits(val: int, *, base: Iterable[int]) -> List[int]:
     pass
 
 
+@documented(api_reference_category='basic value')
 def big_endian_int_to_digits(val: int,
                              *,
                              digit_count: Optional[int] = None,

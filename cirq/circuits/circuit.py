@@ -32,7 +32,7 @@ import re
 import numpy as np
 
 from cirq import devices, linalg, ops, protocols
-from cirq._compat import deprecated, deprecated_parameter
+from cirq._compat import deprecated, deprecated_parameter, documented
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -46,6 +46,7 @@ if TYPE_CHECKING:
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
+@documented(api_reference_category='circuits')
 class Circuit:
     """A mutable list of groups of operations to apply to some qubits.
 

@@ -17,9 +17,11 @@ from typing import Iterable, Optional, Tuple
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='gates')
 @value.value_equality
 class MeasurementGate(raw_types.Gate):
     """A gate that measures qubits in the computational basis.

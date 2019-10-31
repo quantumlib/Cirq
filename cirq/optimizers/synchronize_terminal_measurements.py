@@ -15,8 +15,10 @@
 
 from typing import List, Set, Tuple, cast
 from cirq import circuits, ops, protocols
+from cirq._compat import documented
 
 
+@documented(api_reference_category='optimization')
 class SynchronizeTerminalMeasurements():
     """Move measurements to the end of the circuit.
 

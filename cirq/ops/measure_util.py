@@ -17,6 +17,7 @@ from typing import Callable, Iterable, List, Optional, Tuple
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 
@@ -25,6 +26,7 @@ def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
 
 
+@documented(api_reference_category='gates')
 def measure(*target: raw_types.Qid,
             key: Optional[str] = None,
             invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
@@ -61,6 +63,7 @@ def measure(*target: raw_types.Qid,
     return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
 
 
+@documented(api_reference_category='gates')
 def measure_each(*qubits: raw_types.Qid,
                  key_func: Callable[[raw_types.Qid], str] = str
                 ) -> List[raw_types.Operation]:

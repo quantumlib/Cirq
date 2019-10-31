@@ -19,6 +19,7 @@ from typing import Union, Callable, overload, Any
 from typing_extensions import Protocol
 
 from cirq import protocols
+from cirq._compat import documented
 
 
 class _SupportsValueEquality(Protocol):
@@ -130,6 +131,7 @@ def value_equality(*,
     pass
 
 
+@documented(api_reference_category='developers')
 def value_equality(cls: type = None,
                    *,
                    unhashable: bool = False,

@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -69,6 +69,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
+@documented(api_reference_category='data collection')
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
     Stored as a Pandas DataFrame that can be accessed through the "data"

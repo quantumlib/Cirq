@@ -17,11 +17,13 @@ from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
 import numpy as np
 from matplotlib import pyplot as plt
 from cirq import devices, ops, circuits, sim, work
+from cirq._compat import documented
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
 
 
+@documented(api_reference_category='experiments')
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment."""
 
@@ -69,6 +71,7 @@ class CrossEntropyResult:
         return ax
 
 
+@documented(api_reference_category='experiments')
 def cross_entropy_benchmarking(
         sampler: work.Sampler,
         qubits: Sequence[ops.Qid],
@@ -219,6 +222,7 @@ def cross_entropy_benchmarking(
     return CrossEntropyResult(xeb_data)
 
 
+@documented(api_reference_category='experiments')
 def build_entangling_layers(qubits: Sequence[devices.GridQubit],
                             two_qubit_gate: ops.TwoQubitGate
                            ) -> List[ops.Moment]:

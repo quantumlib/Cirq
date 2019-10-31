@@ -17,9 +17,10 @@ from typing import Any, Union
 import sympy
 
 from cirq import protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 
 
+@documented(api_reference_category='basic values')
 class PeriodicValue:
     """Wrapper for periodic numerical values.
 

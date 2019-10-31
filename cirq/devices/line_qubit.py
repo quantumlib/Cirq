@@ -18,6 +18,7 @@ from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar
 import abc
 
 from cirq import ops, protocols
+from cirq._compat import documented
 
 TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 
@@ -79,6 +80,7 @@ class _BaseLineQid(ops.Qid):
         return self._with_x(-self.x)
 
 
+@documented(api_reference_category='devices')
 class LineQid(_BaseLineQid):
     """A qid on a 1d lattice with nearest-neighbor connectivity.
 
@@ -168,6 +170,7 @@ class LineQid(_BaseLineQid):
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
 
 
+@documented(api_reference_category='devices')
 class LineQubit(_BaseLineQid):
     """A qubit on a 1d lattice with nearest-neighbor connectivity.
 

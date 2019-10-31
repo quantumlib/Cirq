@@ -17,12 +17,14 @@ from typing import Any, Dict, Sequence, Tuple, TypeVar
 import abc
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.ops import pauli_string as ps, raw_types
 
 TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
                                          bound='PauliStringGateOperation')
 
 
+@documented(api_reference_category='advanced operations')
 class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
 
     def __init__(self, pauli_string: ps.PauliString) -> None:

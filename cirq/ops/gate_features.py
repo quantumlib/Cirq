@@ -20,9 +20,11 @@ For example: some gates are reversible, some have known matrices, etc.
 import abc
 from typing import Union, Iterable, Any, List
 
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='developers')
 class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
     """Indicates operations should be equal under some qubit permutations."""
 
@@ -31,6 +33,7 @@ class InterchangeableQubitsGate(metaclass=abc.ABCMeta):
         return 0
 
 
+@documented(api_reference_category='developers')
 class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly one qubit."""
 
@@ -63,6 +66,7 @@ class SingleQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return operations
 
 
+@documented(api_reference_category='developers')
 class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly two qubits."""
 
@@ -70,6 +74,7 @@ class TwoQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
         return 2
 
 
+@documented(api_reference_category='developers')
 class ThreeQubitGate(raw_types.Gate, metaclass=abc.ABCMeta):
     """A gate that must be applied to exactly three qubits."""
 

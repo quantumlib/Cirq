@@ -18,11 +18,13 @@ from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict,
 from typing_extensions import Protocol
 
 from cirq import value
+from cirq._compat import documented
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='protocols')
 @value.value_equality
 class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
@@ -83,6 +85,7 @@ class CircuitDiagramInfo:
                                                     self.auto_exponent_parens))
 
 
+@documented(api_reference_category='protocols')
 @value.value_equality
 class CircuitDiagramInfoArgs:
     """A request for information on drawing an operation in a circuit diagram.
@@ -156,6 +159,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
     qubit_map=None)
 
 
+@documented(api_reference_category='protocols')
 class SupportsCircuitDiagramInfo(Protocol):
     """A diagrammable operation on qubits."""
 
@@ -204,6 +208,7 @@ def circuit_diagram_info(val: Any, *, default: TDefault
     pass
 
 
+@documented(api_reference_category='protocols')
 def circuit_diagram_info(val: Any,
                          args: Optional[CircuitDiagramInfoArgs] = None,
                          default=RaiseTypeErrorIfNotProvided):

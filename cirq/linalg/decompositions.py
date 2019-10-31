@@ -25,7 +25,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from cirq import value, protocols
-from cirq._compat import proper_repr
+from cirq._compat import proper_repr, documented
 from cirq.linalg import combinators, diagonalize, predicates
 
 if TYPE_CHECKING:
@@ -149,6 +149,7 @@ def _perp_eigendecompose(matrix: np.ndarray,
     return vals, vecs
 
 
+@documented(api_reference_category='linear algebra')
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
@@ -180,6 +181,7 @@ def map_eigenvalues(
     return total
 
 
+@documented(api_reference_category='decomposition')
 def kron_factor_4x4_to_2x2s(
         matrix: np.ndarray,
 ) -> Tuple[complex, np.ndarray, np.ndarray]:
@@ -227,6 +229,7 @@ def kron_factor_4x4_to_2x2s(
     return g, f1, f2
 
 
+@documented(api_reference_category='linear algebra')
 def so4_to_magic_su2s(
         mat: np.ndarray,
         *,
@@ -268,6 +271,7 @@ def so4_to_magic_su2s(
     return a, b
 
 
+@documented(api_reference_category='decomposition')
 @value.value_equality(approximate=True)
 class AxisAngleDecomposition:
     """Represents a unitary operation as an axis, angle, and global phase.
@@ -361,6 +365,7 @@ class AxisAngleDecomposition:
                     self.angle, self.axis, self.global_phase))
 
 
+@documented(api_reference_category='decomposition')
 def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
     """Decomposes a single-qubit unitary into axis, angle, and global phase.
 
@@ -407,6 +412,7 @@ def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
                                   global_phase=p).canonicalize()
 
 
+@documented(api_reference_category='decomposition')
 @value.value_equality
 class KakDecomposition:
     """A convenient description of an arbitrary two-qubit operation.
@@ -517,6 +523,7 @@ class KakDecomposition:
             before)
 
 
+@documented(api_reference_category='visualization')
 def scatter_plot_normalized_kak_interaction_coefficients(
         interactions: Iterable[
             Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
@@ -647,6 +654,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     return ax
 
 
+@documented(api_reference_category='decomposition')
 def kak_canonicalize_vector(x: float, y: float, z: float,
                             atol: float = 1e-9) -> KakDecomposition:
     """Canonicalizes an XX/YY/ZZ interaction by swap/negate/shift-ing axes.
@@ -774,6 +782,7 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
 # yapf: enable
 
 
+@documented(api_reference_category='decomposition')
 def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
                       *,
                       rtol: float = 1e-5,
@@ -850,6 +859,7 @@ def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
         single_qubit_operations_after=(a1, a0))
 
 
+@documented(api_reference_category='decomposition')
 def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
                *,
                rtol: float = 1e-5,

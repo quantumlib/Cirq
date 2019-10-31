@@ -16,6 +16,8 @@ from typing import cast, Optional, Union
 
 import numpy as np
 
+from cirq._compat import documented
+
 RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int]]
 
 

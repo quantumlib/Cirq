@@ -19,7 +19,10 @@ from typing import Union, Type
 
 import numpy as np
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='linear algebra')
 def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
@@ -38,9 +41,17 @@ def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     return np.array(product)
 
 
-CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])  # For kron_with_controls
+CONTROL_TAG = documented(
+    np.array([[float('nan'), 0], [0, 1]]),
+    """A special indicator value for `cirq.kron_with_controls`.
+    
+    This value is a stand-in for "control operations on the other qubits based
+    on the value of this qubit", which otherwise doesn't have a proper matrix.
+    """,
+    api_reference_category='linear algebra')
 
 
+@documented(api_reference_category='linear algebra')
 def kron_with_controls(*factors: Union[np.ndarray, complex, float]
                       ) -> np.ndarray:
     """Computes the kronecker product of a sequence of values and control tags.
@@ -93,6 +104,7 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]
     return product
 
 
+@documented(api_reference_category='linear algebra')
 def dot(*values: Union[float, complex, np.ndarray]
        ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
@@ -125,6 +137,7 @@ def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]
     return (np.zeros(0, dtype1) + np.zeros(0, dtype2)).dtype
 
 
+@documented(api_reference_category='linear algebra')
 def block_diag(*blocks: np.ndarray) -> np.ndarray:
     """Concatenates blocks into a block diagonal matrix.
 

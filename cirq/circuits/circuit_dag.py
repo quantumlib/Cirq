@@ -19,6 +19,7 @@ import functools
 import networkx
 
 from cirq import ops, devices
+from cirq._compat import documented
 from cirq.circuits import circuit
 
 if TYPE_CHECKING:
@@ -26,6 +27,8 @@ if TYPE_CHECKING:
 
 T = TypeVar('T')
 
+
+@documented(api_reference_category='developers')
 @functools.total_ordering
 class Unique(Generic[T]):
     """A wrapper for a value that doesn't compare equal to other instances.
@@ -54,6 +57,7 @@ def _disjoint_qubits(op1: 'cirq.Operation', op2: 'cirq.Operation') -> bool:
     return not set(op1.qubits) & set(op2.qubits)
 
 
+@documented(api_reference_category='circuits')
 class CircuitDag(networkx.DiGraph):
     """A representation of a Circuit as a directed acyclic graph.
 

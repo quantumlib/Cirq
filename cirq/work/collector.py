@@ -19,12 +19,14 @@ import asyncio
 import numpy as np
 
 from cirq import circuits, study, value
+from cirq._compat import documented
 from cirq.work import work_pool
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='data collection')
 @value.value_equality(unhashable=True)
 class CircuitSampleJob:
     """Describes a sampling task."""
@@ -61,6 +63,7 @@ class CircuitSampleJob:
 CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, Iterable[Any]]
 
 
+@documented(api_reference_category='data collection')
 class Collector(metaclass=abc.ABCMeta):
     """Collects data from a sampler, in parallel, towards some purpose.
 

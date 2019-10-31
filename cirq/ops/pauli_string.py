@@ -23,7 +23,7 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
-from cirq._compat import deprecated
+from cirq._compat import deprecated, documented
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -40,15 +40,29 @@ if TYPE_CHECKING:
     import cirq
 
 # A value that can be unambiguously converted into a `cirq.PauliString`.
+
 PAULI_STRING_LIKE = Union[
     complex, 'cirq.OP_TREE',
     Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
+documented(
+    PAULI_STRING_LIKE,  # type: ignore
+    """A `cirq.PauliString` or a value that can easily be converted into one.
+    
+    Complex numbers turn into the coefficient of an empty Pauli string.
+    
+    Dictionaries from qubit to Pauli operation are wrapped into a Pauli string.
+    
+    Collections of Pauli operations are recrusively multiplied into a single
+    Pauli string.
+    """,
+    api_reference_category='advanced operations')
 
 TDefault = TypeVar('TDefault')
 
 
+@documented(api_reference_category='advanced operations')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 
@@ -174,7 +188,7 @@ class PauliString(raw_types.Operation):
                            coefficient=self.coefficient)
 
     @property
-    def gate(self) -> 'cirq.DensePauliString':
+    def gate(self) -> Optional['cirq.Gate']:
         order: List[Optional[pauli_gates.Pauli]] = [
             None, pauli_gates.X, pauli_gates.Y, pauli_gates.Z
         ]
@@ -235,7 +249,7 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
                            coefficient=self._coefficient)
@@ -862,6 +876,7 @@ def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
+@documented(api_reference_category='developers')
 class SingleQubitPauliStringGateOperation(  # type: ignore
         gate_operation.GateOperation, PauliString):
     """A Pauli operation applied to a qubit.

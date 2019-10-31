@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from cirq import protocols
+from cirq._compat import documented
 from cirq.ops import raw_types
 
 
+@documented(api_reference_category='devices')
 class NamedQubit(raw_types.Qid):
     """A qubit identified by name.
 

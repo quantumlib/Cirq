@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, \
 from typing_extensions import Protocol
 
 from cirq import ops
+from cirq._compat import documented
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -29,6 +30,7 @@ TDefault = TypeVar('TDefault')
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
+@documented(api_reference_category='protocols')
 class QasmArgs(string.Formatter):
     def __init__(self,
                  precision: int = 10,
@@ -73,6 +75,7 @@ class QasmArgs(string.Formatter):
                                 self.version))
 
 
+@documented(api_reference_category='protocols')
 class SupportsQasm(Protocol):
     """An object that can be turned into QASM code.
 
@@ -85,6 +88,7 @@ class SupportsQasm(Protocol):
         pass
 
 
+@documented(api_reference_category='protocols')
 class SupportsQasmWithArgs(Protocol):
     """An object that can be turned into QASM code.
 
@@ -98,6 +102,7 @@ class SupportsQasmWithArgs(Protocol):
         pass
 
 
+@documented(api_reference_category='protocols')
 class SupportsQasmWithArgsAndQubits(Protocol):
     """An object that can be turned into QASM code if it knows its qubits.
 
@@ -113,6 +118,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
 
 
 # pylint: disable=function-redefined
+@documented(api_reference_category='protocols')
 def qasm(val: Any,
          *,
          args: Optional[QasmArgs] = None,

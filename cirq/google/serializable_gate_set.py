@@ -22,12 +22,15 @@ from google.protobuf import json_format
 
 from cirq import circuits, ops, schedules, value
 from cirq.api.google import v2
+
+from cirq._compat import documented
 from cirq.google import op_deserializer, op_serializer
 
 if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='google/service')
 class SerializableGateSet:
     """A class for serializing and deserializing programs and operations.
 

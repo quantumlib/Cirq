@@ -17,6 +17,7 @@ import collections
 from typing import Iterable, cast, DefaultDict, TYPE_CHECKING
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
+from cirq._compat import documented
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate, raw_types
 from cirq.value import Duration
@@ -26,6 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@documented(api_reference_category='neutral atoms')
 @value.value_equality
 class NeutralAtomDevice(devices.Device):
     """

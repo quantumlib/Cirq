@@ -18,6 +18,7 @@ import time
 from typing import Dict, List, Optional, TYPE_CHECKING
 
 from cirq import study
+from cirq._compat import documented
 from cirq.google.engine import calibration
 
 if TYPE_CHECKING:
@@ -26,6 +27,7 @@ if TYPE_CHECKING:
 TERMINAL_STATES = ['SUCCESS', 'FAILURE', 'CANCELLED']
 
 
+@documented(api_reference_category='google/service')
 class EngineJob:
     """A job created via the Quantum Engine API.
 

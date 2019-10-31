@@ -17,10 +17,12 @@ from typing import cast, List, Optional, Sequence, Union, Tuple
 
 import numpy as np
 
+from cirq._compat import documented
 from cirq.linalg import tolerance, transformations
 from cirq import value
 
 
+@documented(api_reference_category='linear algebra')
 def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     """Determines if a matrix is a approximately diagonal.
 
@@ -39,6 +41,7 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     return tolerance.all_near_zero(matrix, atol=atol)
 
 
+@documented(api_reference_category='linear algebra')
 def is_hermitian(
         matrix: np.ndarray,
         *,
@@ -60,6 +63,7 @@ def is_hermitian(
             np.allclose(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
 
 
+@documented(api_reference_category='linear algebra')
 def is_orthogonal(
         matrix: np.ndarray,
         *,
@@ -85,6 +89,7 @@ def is_orthogonal(
                         atol=atol))
 
 
+@documented(api_reference_category='linear algebra')
 def is_special_orthogonal(
         matrix: np.ndarray,
         *,
@@ -108,6 +113,7 @@ def is_special_orthogonal(
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
+@documented(api_reference_category='linear algebra')
 def is_unitary(
         matrix: np.ndarray,
         *,
@@ -131,6 +137,7 @@ def is_unitary(
                         atol=atol))
 
 
+@documented(api_reference_category='linear algebra')
 def is_special_unitary(
         matrix: np.ndarray,
         *,
@@ -154,6 +161,7 @@ def is_special_unitary(
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
+@documented(api_reference_category='linear algebra')
 def commutes(
         m1: np.ndarray,
         m2: np.ndarray,
@@ -180,6 +188,7 @@ def commutes(
             np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
 
 
+@documented(api_reference_category='linear algebra')
 def allclose_up_to_global_phase(
         a: np.ndarray,
         b: np.ndarray,
@@ -207,6 +216,7 @@ def allclose_up_to_global_phase(
     return np.allclose(a=a, b=b, rtol=rtol, atol=atol, equal_nan=equal_nan)
 
 
+@documented(api_reference_category='linear algebra')
 def slice_for_qubits_equal_to(
         target_qubit_axes: Sequence[int],
         little_endian_qureg_value: int = 0,
