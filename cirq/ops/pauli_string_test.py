@@ -834,32 +834,40 @@ def test_expectation_from_wavefunction_basis_states():
     x0 = cirq.PauliString({q0: cirq.X})
     q_map = {q0: 0}
 
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
-                                         q_map), 0)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
-                                         q_map), 0)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(
-            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(
-            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), -1)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, 0], dtype=np.complex), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([0, 1], dtype=np.complex), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map),
+                               1,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map),
+                               -1,
+                               atol=1e-7)
 
     y0 = cirq.PauliString({q0: cirq.Y})
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map), -1)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 0)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map),
+                               1,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map),
+                               -1,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map),
+                               0,
+                               atol=1e-7)
 
 
 def test_expectation_from_wavefunction_entangled_states():
