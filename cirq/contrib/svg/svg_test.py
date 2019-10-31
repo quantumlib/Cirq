@@ -22,7 +22,6 @@ def test_validation():
 
     q0 = cirq.LineQubit(0)
     with pytest.raises(ValueError):
-        circuit_to_svg(cirq.Circuit([
-            cirq.Moment([cirq.X(q0)]),
-            cirq.Moment([])
-        ]))
+        circuit_to_svg(
+            cirq.Circuit([cirq.Moment([cirq.X(q0)]),
+                          cirq.Moment([])]))
