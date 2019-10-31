@@ -115,6 +115,10 @@ def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
 
 
 def _debug_spacing(col_starts, row_starts):
+    """Return a string suitable for inserting inside an <svg> tag that
+    draws green lines where columns and rows start. This is very useful
+    if you're developing this code and are debugging spacing issues.
+    """
     t = ''
     for i, cs in enumerate(col_starts):
         t += f'<line id="cs-{i}" ' \
@@ -145,9 +149,10 @@ def tdd_to_svg(
 
     t = f'<svg xmlns="http://www.w3.org/2000/svg" ' \
         f'width="{col_starts[-1]}" height="{row_starts[-1]}">'
-    DEBUG = False
-    if DEBUG:
-        t += _debug_spacing(col_starts, row_starts)
+
+    # Developers: uncomment below to draw green lines to debug
+    #             col_starts and row_starts
+    # t += _debug_spacing(col_starts, row_starts)
 
     for yi, xi1, xi2, _ in tdd.horizontal_lines:
         xi1 = cast(int, xi1)
