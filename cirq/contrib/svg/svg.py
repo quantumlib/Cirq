@@ -119,6 +119,7 @@ def _debug_spacing(col_starts, row_starts):
     draws green lines where columns and rows start. This is very useful
     if you're developing this code and are debugging spacing issues.
     """
+    # coverage: ignore
     t = ''
     for i, cs in enumerate(col_starts):
         t += f'<line id="cs-{i}" ' \
@@ -165,6 +166,7 @@ def tdd_to_svg(
             # qubits start at far left and their wires shall be blue
             stroke = QBLUE
         else:
+            # coverage: ignore
             stroke = 'black'
         t += f'<line x1="{x1}" x2="{x2}" y1="{y}" y2="{y}" ' \
              f'stroke="{stroke}" stroke-width="1" />'
