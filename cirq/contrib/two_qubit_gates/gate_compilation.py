@@ -6,7 +6,7 @@ from warnings import warn
 
 import numpy as np
 import attr
-from cirq import kak_decomposition, kak_vector
+from cirq import kak_decomposition, kak_vector, value
 from cirq.contrib.two_qubit_gates.math_utils import (KAK_vector_infidelity,
                                                      vector_kron,
                                                      weyl_chamber_mesh,
@@ -228,7 +228,9 @@ def gate_product_tabulation(base_gate: np.ndarray,
                             max_infidelity: float,
                             verbose: bool = False,
                             include_warnings: bool = True,
-                            sample_scaling: int = 50) -> GateTabulation:
+                            sample_scaling: int = 50,
+                            random_state: value.RANDOM_STATE_LIKE = None
+                            ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:
@@ -243,11 +245,14 @@ def gate_product_tabulation(base_gate: np.ndarray,
         sample_scaling: Relative number of random gate products to use in the
             tabulation. The total number of random local unitaries scales as
             ~ max_infidelity^{-3/2} * sample_scaling. Must be positive.
+        random_state: Random state or random state seed.
 
     Returns:
         A GateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
     """
+    rng = value.parse_random_state(random_state)
+
     assert 1 / 2 > max_infidelity > 0
     spacing = np.sqrt(max_infidelity / 3)
     mesh_points = weyl_chamber_mesh(spacing)
@@ -263,8 +268,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
     sq_cycles: List[Tuple[_SingleQubitGatePair, ...]] = [()]
 
     # Tabulate gates that are close to gates in the mesh
-    u_locals_0 = random_qubit_unitary((num_samples,))
-    u_locals_1 = random_qubit_unitary((num_samples,))
+    u_locals_0 = random_qubit_unitary((num_samples,), rng=rng)
+    u_locals_1 = random_qubit_unitary((num_samples,), rng=rng)
 
     u_locals_for_gate: Dict[int, Tuple[_SingleQubitGatePair, ...]] = {}
     tabulation_cutoff = 0.5 * spacing
@@ -307,8 +312,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
     # Run through remaining KAK vectors that don't have products and try to
     # correct them
 
-    u_locals_0p = random_qubit_unitary((100,))
-    u_locals_1p = random_qubit_unitary((100,))
+    u_locals_0p = random_qubit_unitary((100,), rng=rng)
+    u_locals_1p = random_qubit_unitary((100,), rng=rng)
     u_locals = vector_kron(u_locals_0p, u_locals_1p)
 
     # Loop through the mesh points that have not yet been tabulated.

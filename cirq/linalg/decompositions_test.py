@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import value
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -48,6 +49,7 @@ def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
     assert (np.any(np.isnan(restored) or
                    not np.allclose(restored, matrix)))
 
+
 def assert_magic_su2_within_tolerance(mat, a, b):
     M = cirq.linalg.decompositions.MAGIC
     MT = cirq.linalg.decompositions.MAGIC_CONJ_T
@@ -56,6 +58,7 @@ def assert_magic_su2_within_tolerance(mat, a, b):
         cirq.linalg.combinators.kron(a, b),
         M)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
+
 
 @pytest.mark.parametrize('matrix', [
     X,
@@ -77,7 +80,7 @@ def test_map_eigenvalues_identity(matrix):
     [X, 0.5, np.array([[1j, 1], [1, 1j]]) * (1 - 1j) / 2],
 ])
 def test_map_eigenvalues_raise(matrix, exponent, desired):
-    exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
+    exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e) ** exponent)
     assert np.allclose(desired, exp_mapped)
 
 
@@ -94,9 +97,10 @@ def test_map_eigenvalues_raise(matrix, exponent, desired):
     (-X, 1j * np.eye(2)),
     (X, X),
 ] + [
-    (cirq.testing.random_unitary(2), cirq.testing.random_unitary(2))
-    for _ in range(10)
-])
+                             (cirq.testing.random_unitary(2),
+                              cirq.testing.random_unitary(2))
+                             for _ in range(10)
+                         ])
 def test_kron_factor(f1, f2):
     p = cirq.kron(f1, f2)
     g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
@@ -247,7 +251,7 @@ def test_kak_decomposition(target):
 
 
 def test_kak_decomposition_unitary_object():
-    op = cirq.ISWAP(*cirq.LineQubit.range(2))**0.5
+    op = cirq.ISWAP(*cirq.LineQubit.range(2)) ** 0.5
     kak = cirq.kak_decomposition(op)
     np.testing.assert_allclose(cirq.unitary(kak), cirq.unitary(op), atol=1e-8)
     assert cirq.kak_decomposition(kak) is kak
@@ -388,11 +392,11 @@ def test_axis_angle_decomposition_str():
     assert str(cirq.axis_angle(cirq.unitary(
         cirq.H))) == '1*π around 0.707*X+0.707*Z'
     assert str(cirq.axis_angle(cirq.unitary(
-        cirq.H**0.5))) == '0.5*π around 0.707*X+0.707*Z'
+        cirq.H ** 0.5))) == '0.5*π around 0.707*X+0.707*Z'
     assert str(
         cirq.axis_angle(
-            cirq.unitary(cirq.X**0.25) @ cirq.unitary(cirq.Y**0.25)
-            @ cirq.unitary(cirq.Z**
+            cirq.unitary(cirq.X ** 0.25) @ cirq.unitary(cirq.Y ** 0.25)
+            @ cirq.unitary(cirq.Z **
                            0.25))) == '0.477*π around 0.679*X+0.281*Y+0.679*Z'
 
 
@@ -419,14 +423,14 @@ def test_axis_angle():
                                                       axis=(1, 0, 0),
                                                       global_phase=1j),
                           atol=1e-8)
-    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.X**0.5)),
+    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.X ** 0.5)),
                           cirq.AxisAngleDecomposition(angle=np.pi / 2,
                                                       axis=(1, 0, 0),
                                                       global_phase=np.exp(
                                                           1j * np.pi / 4)),
                           atol=1e-8)
     assert cirq.approx_eq(
-        cirq.axis_angle(cirq.unitary(cirq.X**-0.5)),
+        cirq.axis_angle(cirq.unitary(cirq.X ** -0.5)),
         cirq.AxisAngleDecomposition(angle=-np.pi / 2,
                                     axis=(1, 0, 0),
                                     global_phase=np.exp(-1j * np.pi / 4)))
@@ -450,7 +454,7 @@ def test_axis_angle():
                                                       global_phase=1j),
                           atol=1e-8)
 
-    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.H**0.5)),
+    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.H ** 0.5)),
                           cirq.AxisAngleDecomposition(
                               angle=np.pi / 2,
                               axis=(np.sqrt(0.5), 0, np.sqrt(0.5)),
@@ -537,9 +541,11 @@ def _vector_kron(first: np.ndarray, second: np.ndarray) -> np.ndarray:
     return out.reshape(s_v + (s_0[0] * s_1[0],) * 2)
 
 
-def _local_two_qubit_unitaries(samples):
-    kl_0 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
-    kl_1 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
+def _local_two_qubit_unitaries(samples, random_state):
+    kl_0 = np.array([cirq.testing.random_unitary(2, random_state=random_state)
+                     for _ in range(samples)])
+    kl_1 = np.array([cirq.testing.random_unitary(2, random_state=random_state)
+                     for _ in range(samples)])
 
     return _vector_kron(kl_0, kl_1)
 
@@ -547,13 +553,16 @@ def _local_two_qubit_unitaries(samples):
 _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
-def _random_two_qubit_unitaries(num_samples):
+def _random_two_qubit_unitaries(num_samples: int,
+                                random_state: value.RANDOM_STATE_LIKE):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
-    kl = _local_two_qubit_unitaries(num_samples)
-    kr = _local_two_qubit_unitaries(num_samples)
+    kl = _local_two_qubit_unitaries(num_samples, random_state)
 
+    kr = _local_two_qubit_unitaries(num_samples, random_state)
+
+    prng = value.parse_random_state(random_state)
     # Generate the non-local part by explict matrix exponentiation.
-    kak_vecs = np.random.rand(num_samples, 3) * np.pi
+    kak_vecs = prng.rand(num_samples, 3) * np.pi
     gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
     A = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())
@@ -592,8 +601,8 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
     ky = vector[..., 1]
     kz = vector[..., 2]
     cos, sin = np.cos, np.sin
-    G1R = (cos(2 * kx) * cos(2 * ky) * cos(2 * kz))**2
-    G1R -= (sin(2 * kx) * sin(2 * ky) * sin(2 * kz))**2
+    G1R = (cos(2 * kx) * cos(2 * ky) * cos(2 * kz)) ** 2
+    G1R -= (sin(2 * kx) * sin(2 * ky) * sin(2 * kz)) ** 2
 
     G1I = 0.25 * sin(4 * kx) * sin(4 * ky) * sin(4 * kz)
 
@@ -601,8 +610,7 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
     return np.moveaxis(np.array([G1R, G1I, G2]), 0, -1)
 
 
-np.random.seed(11)  # for deterministic tests
-_random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100)
+_random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100, random_state=11)
 
 
 def test_kak_vector_matches_vectorized():

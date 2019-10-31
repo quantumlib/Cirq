@@ -2,7 +2,7 @@
 import numpy as np
 import pytest
 
-from cirq import unitary, FSimGate
+from cirq import unitary, FSimGate, value
 from cirq.contrib.two_qubit_gates import example
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
@@ -10,17 +10,18 @@ from cirq.contrib.two_qubit_gates.math_utils import (
     random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity,
     weyl_chamber_mesh, random_qubit_unitary)
 
-np.random.seed(11)  # for determinism
+_rng = value.parse_random_state(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(np.pi / 2, np.pi / 6)),
     0.2,
-    include_warnings=False)
+    include_warnings=False, random_state=_rng)
 
 sqrt_iswap_tabulation = gate_product_tabulation(
-    unitary(FSimGate(np.pi / 4, np.pi / 24)), 0.1)
+    unitary(FSimGate(np.pi / 4, np.pi / 24)), 0.1,
+    random_state=_rng)
 
-_random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100)
+_random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100, _rng)
 
 
 @pytest.mark.parametrize('tabulation',
@@ -72,16 +73,16 @@ def test_weyl_chamber_mesh_spacing_too_small_throws_error():
 
 
 def test_random_qubit_unitary_shape():
-    np.random.seed(11)
-    actual = random_qubit_unitary((3, 4, 5), True).ravel()
-    np.random.seed(11)
-    expected = random_qubit_unitary((3 * 4 * 5,), True).ravel()
+    rng = value.parse_random_state(11)
+    actual = random_qubit_unitary((3, 4, 5), True, rng).ravel()
+    rng = value.parse_random_state(11)
+    expected = random_qubit_unitary((3 * 4 * 5,), True, rng).ravel()
     np.testing.assert_almost_equal(actual, expected)
 
 
 def test_random_qubit_default():
-    np.random.seed(11)
-    actual = random_qubit_unitary(randomize_global_phase=True).ravel()
-    np.random.seed(11)
-    expected = random_qubit_unitary((1, 1, 1), True).ravel()
+    rng = value.parse_random_state(11)
+    actual = random_qubit_unitary(randomize_global_phase=True, rng=rng).ravel()
+    rng = value.parse_random_state(11)
+    expected = random_qubit_unitary((1, 1, 1), True, rng=rng).ravel()
     np.testing.assert_almost_equal(actual, expected)

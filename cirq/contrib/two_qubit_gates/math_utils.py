@@ -1,7 +1,9 @@
 import itertools
-from typing import Tuple, Union, Sequence
+from typing import Tuple, Union, Sequence, Optional
 
 import numpy as np
+
+from cirq import value
 
 _RealArraylike = Union[np.ndarray, float]
 
@@ -41,7 +43,9 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
 
 
 def random_qubit_unitary(shape: Sequence[int] = (),
-                         randomize_global_phase: bool = False) -> np.ndarray:
+                         randomize_global_phase: bool = False,
+                         rng: Optional[np.random.RandomState] = None
+                         ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
     The implementation is vectorized for speed.
@@ -52,16 +56,20 @@ def random_qubit_unitary(shape: Sequence[int] = (),
         randomize_global_phase: (Default False) If True, a global phase is also
             sampled randomly. This corresponds to sampling over U(2) instead of
             SU(2).
+        rng: Random number generator to be used in sampling. Default is
+            numpy.random.
     """
-    theta = np.arcsin(np.sqrt(np.random.rand(*shape)))
-    phi_d = np.random.rand(*shape) * np.pi * 2
-    phi_o = np.random.rand(*shape) * np.pi * 2
+    rng = np.random if rng is None else rng
+
+    theta = np.arcsin(np.sqrt(rng.rand(*shape)))
+    phi_d = rng.rand(*shape) * np.pi * 2
+    phi_o = rng.rand(*shape) * np.pi * 2
 
     out = _single_qubit_unitary(theta, phi_d, phi_o)
 
     if randomize_global_phase:
         out = np.moveaxis(out, (-2, -1), (0, 1))
-        out *= np.exp(1j * np.pi * 2 * np.random.rand(*shape))
+        out *= np.exp(1j * np.pi * 2 * rng.rand(*shape))
         out = np.moveaxis(out, (0, 1), (-2, -1))
     return out
 
@@ -205,12 +213,15 @@ _YY = -_XX @ _ZZ
 _kak_gens = np.array([_XX, _YY, _ZZ])
 
 
-def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
-                                            ) -> Tuple[np.ndarray, np.ndarray]:
+def random_two_qubit_unitaries_and_kak_vecs(
+        num_samples: int, random_state: value.RANDOM_STATE_LIKE = None
+) -> Tuple[np.ndarray, np.ndarray]:
     """Generate random two-qubit unitaries.
 
     Args:
         num_samples: Number of samples.
+        random_state: Random state or random state seed. Default is
+            numpy.random.
 
     Returns:
         unitaries: tensor storing the unitaries, shape (num_samples,4,4).
@@ -218,14 +229,16 @@ def random_two_qubit_unitaries_and_kak_vecs(num_samples: int
             shape (num_samples, 3).
 
     """
-    kl, kr = _two_local_2Q_unitaries(num_samples)
+    rng = value.parse_random_state(random_state)
+
+    kl, kr = _two_local_2Q_unitaries(num_samples, rng)
 
     # Generate the non-local part by explict matrix exponentiation.
-    kak_vecs = np.random.rand(num_samples, 3) * np.pi  # / 4
+    kak_vecs = rng.rand(num_samples, 3) * np.pi  # / 4
     # kak_vecs = np.sort(kak_vecs, axis=-1)[::-1]
     A = kak_vector_to_unitary(kak_vecs)
     # Add a random phase
-    phases = np.random.rand(num_samples) * np.pi * 2
+    phases = rng.rand(num_samples) * np.pi * 2
     A = np.einsum('...,...ab->...ab', np.exp(1j * phases), A)
 
     return np.einsum('...ab,...bc,...cd', kl, A, kr), kak_vecs
@@ -251,11 +264,11 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
                      evecs.conj())
 
 
-def _two_local_2Q_unitaries(num_samples):
-    kl_0 = random_qubit_unitary((num_samples,))
-    kl_1 = random_qubit_unitary((num_samples,))
-    kr_0 = random_qubit_unitary((num_samples,))
-    kr_1 = random_qubit_unitary((num_samples,))
+def _two_local_2Q_unitaries(num_samples, rng: np.random.RandomState):
+    kl_0 = random_qubit_unitary((num_samples,), rng=rng)
+    kl_1 = random_qubit_unitary((num_samples,), rng=rng)
+    kr_0 = random_qubit_unitary((num_samples,), rng=rng)
+    kr_1 = random_qubit_unitary((num_samples,), rng=rng)
     kl = vector_kron(kl_0, kl_1)
     kr = vector_kron(kr_0, kr_1)
     return kl, kr
