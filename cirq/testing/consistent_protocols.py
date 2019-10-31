@@ -18,6 +18,7 @@ import numpy as np
 import sympy
 
 from cirq import ops, protocols, value
+from cirq._compat import documented
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
                                           assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
@@ -31,6 +32,7 @@ from cirq.testing.consistent_pauli_expansion import (
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
+@documented(api_reference_category='testing')
 def assert_implements_consistent_protocols(
         val: Any,
         *,
@@ -63,6 +65,7 @@ def assert_implements_consistent_protocols(
                 local_vals=local_vals)
 
 
+@documented(api_reference_category='testing')
 def assert_eigengate_implements_consistent_protocols(
         eigen_gate_type: Type[ops.EigenGate],
         *,
@@ -92,6 +95,7 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
         assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
 
 
+@documented(api_reference_category='testing')
 def assert_has_consistent_trace_distance_bound(val: Any) -> None:
     u = protocols.unitary(val, default=None)
     val_from_trace = protocols.trace_distance_bound(val)

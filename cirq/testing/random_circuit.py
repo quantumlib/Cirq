@@ -15,6 +15,7 @@
 from typing import List, Union, Sequence, Dict, Optional
 
 from cirq import ops, value
+from cirq._compat import documented
 from cirq.circuits import Circuit
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
@@ -32,6 +33,7 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
 }
 
 
+@documented(api_reference_category='testing')
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
                    n_moments: int,
                    op_density: float,

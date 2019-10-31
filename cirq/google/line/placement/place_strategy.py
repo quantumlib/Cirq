@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq.google
 
 
-@documented(api_reference_category='google/placement')
+@documented(api_reference_category='google/service')
 class LinePlacementStrategy(metaclass=abc.ABCMeta):
     """Choice and options for the line placement calculation method.
 

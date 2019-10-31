@@ -21,9 +21,11 @@ import numpy as np
 import sympy
 
 from cirq import circuits, ops, linalg, protocols
+from cirq._compat import documented
 from cirq.testing import lin_alg_utils
 
 
+@documented(api_reference_category='testing')
 def highlight_text_differences(actual: str, expected: str) -> str:
     diff = ""
     for actual_line, desired_line in itertools.zip_longest(
@@ -90,6 +92,7 @@ def _measurement_subspaces(
     return subspaces
 
 
+@documented(api_reference_category='testing')
 def assert_circuits_with_terminal_measurements_are_equivalent(
         actual: circuits.Circuit,
         reference: circuits.Circuit,
@@ -173,6 +176,7 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
                         '{}\n'.format(actual, reference))
 
 
+@documented(api_reference_category='testing')
 def assert_same_circuits(actual: circuits.Circuit,
                          expected: circuits.Circuit,
                          ) -> None:
@@ -213,6 +217,7 @@ def _first_differing_moment_index(circuit1: circuits.Circuit,
     return None  # coverage: ignore
 
 
+@documented(api_reference_category='testing')
 def assert_has_diagram(
         actual: circuits.Circuit,
         desired: str,
@@ -243,6 +248,7 @@ def assert_has_diagram(
     )
 
 
+@documented(api_reference_category='testing')
 def assert_has_consistent_apply_unitary(val: Any, *,
                                         atol: float = 1e-8) -> None:
     """Tests whether a value's _apply_unitary_ is correct.
@@ -352,6 +358,7 @@ def _assert_apply_unitary_works_when_axes_transposed(val: Any,
             f'The failing axis order: {repr(permutation[:n])}')
 
 
+@documented(api_reference_category='testing')
 def assert_has_consistent_apply_unitary_for_various_exponents(
         val: Any, *,
         exponents=(0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s'))) -> None:
@@ -374,6 +381,7 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
             assert_has_consistent_apply_unitary(gate)
 
 
+@documented(api_reference_category='testing')
 def assert_has_consistent_qid_shape(val: Any) -> None:
     """Tests whether a value's `_qid_shape_` and `_num_qubits_` are correct and
     consistent.

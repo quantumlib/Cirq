@@ -17,9 +17,11 @@ from typing import Any
 import numpy as np
 
 from cirq import protocols
+from cirq._compat import documented
 from cirq.linalg import operator_spaces
 
 
+@documented(api_reference_category='testing')
 def assert_pauli_expansion_is_consistent_with_unitary(val: Any) -> None:
     """Checks Pauli expansion against unitary matrix."""
     # Check to see if the protocol is supported without doing a fallback

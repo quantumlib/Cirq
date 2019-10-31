@@ -17,9 +17,11 @@ from typing import Any
 import numpy as np
 
 from cirq import devices, protocols, ops, circuits
+from cirq._compat import documented
 from cirq.testing import lin_alg_utils
 
 
+@documented(api_reference_category='testing')
 def assert_decompose_is_consistent_with_unitary(
         val: Any,
         ignoring_global_phase: bool=False):

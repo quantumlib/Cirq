@@ -26,7 +26,10 @@ from typing import Any, Callable
 
 import itertools
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='testing')
 class EqualsTester:
     """Tests equality against user-provided disjoint equivalence groups."""
 

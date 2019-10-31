@@ -20,7 +20,8 @@ def _find_public_cirq_members() -> List[CirqMember]:
     module_scopes = [
         (cirq, 'cirq'),
         (cirq.experiments, 'cirq.experiments'),
-        (cirq.google, 'cirq.google')
+        (cirq.google, 'cirq.google'),
+        (cirq.testing, 'cirq.testing'),
     ]
 
     seen: Dict[str, CirqMember] = {}
@@ -86,7 +87,7 @@ def _find_public_cirq_members() -> List[CirqMember]:
             item = CirqMember(value=obj,
                               scope=scope,
                               name=name,
-                              kind='class',
+                              kind=kind,
                               doc_props=doc_props)
             seen[name] = item
             result.append(item)

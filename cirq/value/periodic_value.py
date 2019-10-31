@@ -20,7 +20,7 @@ from cirq import protocols
 from cirq._compat import proper_repr, documented
 
 
-@documented(api_reference_category='basic values')
+@documented(api_reference_category='basic value')
 class PeriodicValue:
     """Wrapper for periodic numerical values.
 

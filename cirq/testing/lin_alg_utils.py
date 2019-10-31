@@ -19,8 +19,10 @@ from typing import Optional
 import numpy as np
 
 from cirq import linalg, value
+from cirq._compat import documented
 
 
+@documented(api_reference_category='testing')
 def random_superposition(dim: int) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
 
@@ -36,6 +38,7 @@ def random_superposition(dim: int) -> np.ndarray:
     return state_vector
 
 
+@documented(api_reference_category='testing')
 def random_unitary(dim: int, *,
                    random_state: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
@@ -59,6 +62,7 @@ def random_unitary(dim: int, *,
     return q * (d / abs(d))
 
 
+@documented(api_reference_category='testing')
 def random_orthogonal(dim: int) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
@@ -78,6 +82,7 @@ def random_orthogonal(dim: int) -> np.ndarray:
     return q * (d / abs(d))
 
 
+@documented(api_reference_category='testing')
 def random_special_unitary(dim: int,
                            *,
                            random_state: Optional[np.random.RandomState] = None
@@ -96,6 +101,7 @@ def random_special_unitary(dim: int,
     return r
 
 
+@documented(api_reference_category='testing')
 def random_special_orthogonal(dim: int) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
@@ -111,6 +117,7 @@ def random_special_orthogonal(dim: int) -> np.ndarray:
     return m
 
 
+@documented(api_reference_category='testing')
 def assert_allclose_up_to_global_phase(
         actual: np.ndarray,
         desired: np.ndarray,

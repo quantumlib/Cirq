@@ -24,6 +24,8 @@ It will also check that a==b implies hash(a)==hash(b).
 """
 
 from typing import Any
+
+from cirq._compat import documented
 from cirq.testing.equals_tester import EqualsTester
 
 
@@ -37,6 +39,7 @@ _NAMED_COMPARISON_OPERATORS = [
 ]
 
 
+@documented(api_reference_category='testing')
 class OrderTester:
     """Tests ordering against user-provided disjoint ordered groups or items."""
 

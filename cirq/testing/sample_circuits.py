@@ -13,8 +13,10 @@
 # limitations under the License.
 
 from cirq import ops, circuits, devices
+from cirq._compat import documented
 
 
+@documented(api_reference_category='testing')
 def nonoptimal_toffoli_circuit(
         q0: ops.Qid,
         q1: ops.Qid,

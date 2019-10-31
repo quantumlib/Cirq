@@ -17,9 +17,11 @@ from typing import Any, List, Sequence
 import numpy as np
 
 from cirq import devices, linalg, ops, protocols
+from cirq._compat import documented
 from cirq.testing import lin_alg_utils
 
 
+@documented(api_reference_category='testing')
 def assert_qasm_is_consistent_with_unitary(val: Any):
     """Uses `val._unitary_` to check `val._qasm_`'s behavior."""
 

@@ -57,12 +57,12 @@ documented(
     Collections of Pauli operations are recrusively multiplied into a single
     Pauli string.
     """,
-    api_reference_category='advanced operations')
+    api_reference_category='advanced gates')
 
 TDefault = TypeVar('TDefault')
 
 
-@documented(api_reference_category='advanced operations')
+@documented(api_reference_category='advanced gates')
 @value.value_equality(approximate=True, manual_cls=True)
 class PauliString(raw_types.Operation):
 

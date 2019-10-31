@@ -335,7 +335,7 @@ class AnnealSequenceSearch(object):
         return None
 
 
-@documented(api_reference_category='google/placement')
+@documented(api_reference_category='google/service')
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 

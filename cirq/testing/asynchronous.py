@@ -20,6 +20,8 @@ from typing import Any, Type, Union
 # A placeholder default value used to detect that callers did not specify an
 # 'expected' value argument in `assert_asyncio_will_have_result`, and so the
 # result should be returned without checking it.
+from cirq._compat import documented
+
 JUST_RETURN_RESULT = object()  # type: Any
 
 
@@ -29,6 +31,7 @@ def _run_loop_waiting_for(future: Union[Awaitable, asyncio.Future, Coroutine],
         asyncio.wait_for(asyncio.shield(future), timeout=timeout))
 
 
+@documented(api_reference_category='testing')
 def assert_asyncio_still_running(
         future: Union[Awaitable, asyncio.Future, Coroutine],
         timeout: float = 0.001):
@@ -51,6 +54,7 @@ def assert_asyncio_still_running(
         pass
 
 
+@documented(api_reference_category='testing')
 def assert_asyncio_will_have_result(
         future: Union[Awaitable, asyncio.Future, Coroutine],
         expected: Any = JUST_RETURN_RESULT,
@@ -83,6 +87,7 @@ def assert_asyncio_will_have_result(
         assert False, "Not done: {!r}".format(future)
 
 
+@documented(api_reference_category='testing')
 def assert_asyncio_will_raise(
         future: Union[Awaitable, asyncio.Future, Coroutine],
         expected: Type,

@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@documented(api_reference_category='data noise')
+@documented(api_reference_category='noise')
 class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     """Replaces operations and moments with noisy counterparts.
 

@@ -65,7 +65,7 @@ def _format_terms(terms: Iterable[Tuple[TVector, Scalar]], format_spec: str):
     return s
 
 
-@documented(api_reference_category='basic values')
+@documented(api_reference_category='basic value')
 class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """Represents linear combination of things.
 

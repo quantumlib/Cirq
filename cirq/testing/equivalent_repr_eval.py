@@ -14,7 +14,10 @@
 
 from typing import Any, Dict, Optional
 
+from cirq._compat import documented
 
+
+@documented(api_reference_category='testing')
 def assert_equivalent_repr(value: Any,
                            *,
                            setup_code: str = ('import cirq\n'

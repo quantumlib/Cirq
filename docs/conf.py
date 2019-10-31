@@ -67,7 +67,7 @@ def pandoc_process(app,
                    options,
                    lines: List[str]
                    ) -> None:
-    if not getattr(obj, '__module__', 'cirq').startswith('cirq'):
+    if not (getattr(obj, '__module__', 'cirq') or '').startswith('cirq'):
         # Don't convert objects from other modules.
         return
 

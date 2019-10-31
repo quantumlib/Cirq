@@ -16,7 +16,7 @@
 from cirq._compat import documented
 
 
-@documented(api_reference_category='basic values')
+@documented(api_reference_category='basic value')
 def validate_probability(p: float, p_str: str) -> float:
     """Validates that a probability is between 0 and 1 inclusively.
 

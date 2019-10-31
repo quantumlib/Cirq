@@ -38,10 +38,10 @@ documented(
     Note that 0 is a `DURATION_LIKE`, despite the fact that `int` is not listed,
     because 0 is the only integer where the physical unit doesn't matter.
     """,
-    api_reference_category='basic values')
+    api_reference_category='basic value')
 
 
-@documented(api_reference_category='basic values')
+@documented(api_reference_category='basic value')
 class Duration:
     """A time delta that supports symbols and picosecond accuracy."""
 

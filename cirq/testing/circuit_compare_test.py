@@ -17,6 +17,7 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq._compat import documented
 from cirq.testing.circuit_compare import (
     _assert_apply_unitary_works_when_axes_transposed,)
 
@@ -307,6 +308,7 @@ Highlighted differences:
     assert expected_error in ex_info.value.args[0]
 
 
+@documented(api_reference_category='testing')
 def test_assert_has_consistent_apply_unitary():
     class IdentityReturningUnalteredWorkspace:
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs) -> np.ndarray:

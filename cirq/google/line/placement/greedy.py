@@ -283,7 +283,7 @@ class _PickLargestArea(GreedySequenceSearch):
         return visited
 
 
-@documented(api_reference_category='google/placement')
+@documented(api_reference_category='google/service')
 class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Greedy search method for linear sequence of qubits on a chip.
     """

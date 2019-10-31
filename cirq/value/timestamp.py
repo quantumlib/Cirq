@@ -20,7 +20,7 @@ from cirq._compat import documented
 from cirq.value.duration import Duration
 
 
-@documented(api_reference_category='basic values')
+@documented(api_reference_category='basic value')
 class Timestamp:
     """A location in time with picosecond accuracy.
 

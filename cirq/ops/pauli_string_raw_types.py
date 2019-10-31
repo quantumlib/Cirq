@@ -24,7 +24,7 @@ TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
                                          bound='PauliStringGateOperation')
 
 
-@documented(api_reference_category='advanced operations')
+@documented(api_reference_category='advanced gates')
 class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
 
     def __init__(self, pauli_string: ps.PauliString) -> None:

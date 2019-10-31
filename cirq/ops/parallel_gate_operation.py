@@ -23,7 +23,7 @@ from cirq.ops import raw_types, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 
-@documented(api_reference_category='advanced operations')
+@documented(api_reference_category='advanced gates')
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""

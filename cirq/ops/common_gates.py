@@ -45,7 +45,7 @@ imports.
 """
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 @value.value_equality
 class XPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -185,7 +185,7 @@ class XPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 @value.value_equality
 class YPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -325,7 +325,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 @value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
@@ -483,7 +483,7 @@ class ZPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A Gate that performs a rotation around the X+Z axis of the Bloch sphere.
 
@@ -601,7 +601,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-@documented(api_reference_category='Two Qubit Gates')
+@documented(api_reference_category='gates')
 class CZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -711,7 +711,7 @@ def _rads_func_symbol(func_name: str, args: 'protocols.CircuitDiagramInfoArgs',
     return '{}({}{})'.format(func_name, half_turns, unit)
 
 
-@documented(api_reference_category='Two Qubit Gates')
+@documented(api_reference_category='gates')
 class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """A gate that applies a controlled power of an X gate.
 
@@ -836,21 +836,21 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 args, kwargs))
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 def Rx(rads: value.TParamVal) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 def Ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@documented(api_reference_category='Single Qubit Gates')
+@documented(api_reference_category='gates')
 def Rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
@@ -865,7 +865,7 @@ H = documented(HPowGate(),
          [s, -s]]
         where s = sqrt(0.5).
     """,
-               api_reference_category='Single Qubit Gates')
+               api_reference_category='gates')
 
 S = documented(ZPowGate(exponent=0.5),
                """The Clifford S gate.
@@ -874,7 +874,7 @@ S = documented(ZPowGate(exponent=0.5),
         [[1, 0],
          [0, i]]
     """,
-               api_reference_category='Single Qubit Gates')
+               api_reference_category='gates')
 
 T = documented(ZPowGate(exponent=0.25),
                """The non-Clifford T gate.
@@ -883,7 +883,7 @@ T = documented(ZPowGate(exponent=0.25),
         [[1, 0]
          [0, exp(i pi / 4)]]
     """,
-               api_reference_category='Single Qubit Gates')
+               api_reference_category='gates')
 
 CZ = documented(CZPowGate(),
                 """The controlled Z gate.
@@ -895,7 +895,7 @@ CZ = documented(CZPowGate(),
          [0, 0, 1, 0],
          [0, 0, 0, -1]]
     """,
-                api_reference_category='Two Qubit Gates')
+                api_reference_category='gates')
 
 CNOT = CX = documented(CNotPowGate(),
                        """The controlled NOT gate.
@@ -907,4 +907,4 @@ CNOT = CX = documented(CNotPowGate(),
          [0, 0, 0, 1],
          [0, 0, 1, 0]]
     """,
-                       api_reference_category='Two Qubit Gates')
+                       api_reference_category='gates')

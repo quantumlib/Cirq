@@ -37,7 +37,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-@documented(api_reference_category='three qubit gates')
+@documented(api_reference_category='gates')
 class CCZPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -156,7 +156,7 @@ class CCZPowGate(eigen_gate.EigenGate,
         return 'CCZ**{}'.format(self._exponent)
 
 
-@documented(api_reference_category='three qubit gates')
+@documented(api_reference_category='gates')
 @value.value_equality()
 class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
     """A gate given by a diagonal 8x8 matrix."""
@@ -304,7 +304,7 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             proper_repr(angle) for angle in self._diag_angles_radians))
 
 
-@documented(api_reference_category='three qubit gates')
+@documented(api_reference_category='gates')
 class CCXPowGate(eigen_gate.EigenGate,
                  gate_features.ThreeQubitGate,
                  gate_features.InterchangeableQubitsGate):
@@ -400,7 +400,7 @@ class CCXPowGate(eigen_gate.EigenGate,
         return 'TOFFOLI**{}'.format(self._exponent)
 
 
-@documented(api_reference_category='three qubit gates')
+@documented(api_reference_category='gates')
 @value.value_equality
 class CSwapGate(gate_features.ThreeQubitGate,
                 gate_features.InterchangeableQubitsGate):
@@ -561,7 +561,7 @@ CCZ = documented(CCZPowGate(),
          [. . . . . . 1 .],
          [. . . . . . . -1],
     """,
-                 api_reference_category='three qubit gates')
+                 api_reference_category='gates')
 
 CCX = TOFFOLI = CCNOT = documented(CCXPowGate(),
                                    """The TOFFOLI gate.
@@ -576,7 +576,7 @@ CCX = TOFFOLI = CCNOT = documented(CCXPowGate(),
          [. . . . . . . 1],
          [. . . . . . 1 .],
     """,
-                                   api_reference_category='three qubit gates')
+                                   api_reference_category='gates')
 
 CSWAP = FREDKIN = documented(CSwapGate(),
                              """The Controlled Swap gate.
@@ -591,4 +591,4 @@ CSWAP = FREDKIN = documented(CSwapGate(),
          [. . . . . 1 . .],
          [. . . . . . . 1],
     """,
-                             api_reference_category='three qubit gates')
+                             api_reference_category='gates')
