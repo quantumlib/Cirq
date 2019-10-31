@@ -92,20 +92,20 @@ def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
             the former two return values (ie row_starts and row_heights)
     """
     # Note: y values come as half integers. Map to integers
-    all_yis = sorted({yi for _, yi in tdd.entries.keys()}
-                     | {yi1 for _, yi1, _, _ in tdd.vertical_lines}
-                     | {yi2 for _, _, yi2, _ in tdd.vertical_lines}
-                     | {yi for yi, _, _, _ in tdd.horizontal_lines})
+    all_yis = sorted({yi for _, yi in tdd.entries.keys()} |
+                     {yi1 for _, yi1, _, _ in tdd.vertical_lines} |
+                     {yi2 for _, _, yi2, _ in tdd.vertical_lines} |
+                     {yi for yi, _, _, _ in tdd.horizontal_lines})
     yi_map = {yi: i for i, yi in enumerate(all_yis)}
 
     max_yi = max(yi_map[yi] for yi in all_yis)
     row_heights = [0.0] * (max_yi + 2)
-    for (_, yi), v in tdd.entries.items():
+    for (_, yi), _ in tdd.entries.items():
         yi = yi_map[yi]
         row_heights[yi] = max(ref_boxheight, row_heights[yi])
 
-    for yi in all_yis:
-        row_heights[yi_map[yi]] += row_padding
+    for yi_float in all_yis:
+        row_heights[yi_map[yi_float]] += row_padding
 
     row_starts = [0.0]
     for i in range(1, max_yi + 3):
@@ -138,14 +138,12 @@ def tdd_to_svg(
         col_padding: float = 20,
         row_padding: float = 10,
 ) -> str:
-    row_starts, row_heights, yi_map = _fit_vertical(
-        tdd=tdd,
-        ref_boxheight=ref_boxheight,
-        row_padding=row_padding)
-    col_starts, col_widths = _fit_horizontal(
-        tdd=tdd,
-        ref_boxwidth=ref_boxwidth,
-        col_padding=col_padding)
+    row_starts, row_heights, yi_map = _fit_vertical(tdd=tdd,
+                                                    ref_boxheight=ref_boxheight,
+                                                    row_padding=row_padding)
+    col_starts, col_widths = _fit_horizontal(tdd=tdd,
+                                             ref_boxwidth=ref_boxwidth,
+                                             col_padding=col_padding)
 
     t = f'<svg xmlns="http://www.w3.org/2000/svg" ' \
         f'width="{col_starts[-1]}" height="{row_starts[-1]}">'
