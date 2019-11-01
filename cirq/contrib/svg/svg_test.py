@@ -1,3 +1,5 @@
+import pytest
+
 import cirq
 from cirq.contrib.svg import circuit_to_svg
 
@@ -12,3 +14,14 @@ def test_svg():
             cirq.Z(a), cirq.measure(a, b, c, key='z')))
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
+
+
+def test_validation():
+    with pytest.raises(ValueError):
+        circuit_to_svg(cirq.Circuit())
+
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(ValueError):
+        circuit_to_svg(
+            cirq.Circuit([cirq.Moment([cirq.X(q0)]),
+                          cirq.Moment([])]))
