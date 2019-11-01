@@ -139,7 +139,7 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
     eigendecompositions).
     """
 
-    @deprecated(deadline='v0.7',
+    @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
                 func_name='cirq.SingleQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
@@ -174,7 +174,7 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
     eigendecompositions).
     """
 
-    @deprecated(deadline='v0.7',
+    @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
                 func_name='cirq.TwoQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
