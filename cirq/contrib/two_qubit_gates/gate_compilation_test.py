@@ -14,13 +14,13 @@ _rng = value.parse_random_state(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(np.pi / 2, np.pi / 6)),
-                                              0.2,
-                                              random_state=_rng)
+    0.2,
+    random_state=_rng)
 
 sqrt_iswap_tabulation = gate_product_tabulation(unitary(
     FSimGate(np.pi / 4, np.pi / 24)),
-                                                0.1,
-                                                random_state=_rng)
+    0.1,
+    random_state=_rng)
 
 _random_2Q_unitaries = np.array([random_special_unitary(4, random_state=_rng)
                                  for _ in range(100)])
@@ -32,10 +32,10 @@ _random_2Q_unitaries = np.array([random_special_unitary(4, random_state=_rng)
 def test_gate_compilation_matches_expected_max_infidelity(tabulation, target):
     result = tabulation.compile_two_qubit_gate(target)
 
-    if result.success:
-        max_error = tabulation.max_expected_infidelity
-        assert 1 - unitary_entanglement_fidelity(target,
-                                                 result.actual_gate) < max_error
+    assert result.success
+    max_error = tabulation.max_expected_infidelity
+    assert 1 - unitary_entanglement_fidelity(target,
+                                             result.actual_gate) < max_error
 
 
 @pytest.mark.parametrize('tabulation',
