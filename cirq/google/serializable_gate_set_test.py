@@ -369,13 +369,13 @@ def test_multiple_serializers():
     assert gate_set.serialize_op(cirq.X(q0)**0.5).gate.id == 'x_pow'
 
 
-def test_gateset_with_gates():
+def test_gateset_with_added_gates():
     x_gateset = cg.SerializableGateSet(
         gate_set_name='x',
         serializers=[X_SERIALIZER],
         deserializers=[X_DESERIALIZER],
     )
-    xy_gateset = x_gateset.with_gates(
+    xy_gateset = x_gateset.with_added_gates(
         gate_set_name='xy',
         serializers=[Y_SERIALIZER],
         deserializers=[Y_DESERIALIZER],

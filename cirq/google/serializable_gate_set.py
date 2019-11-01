@@ -54,14 +54,14 @@ class SerializableGateSet:
             self.serializers.setdefault(s.gate_type, []).append(s)
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}
 
-    def with_gates(
+    def with_added_gates(
             self,
             *,
             gate_set_name: Optional[str] = None,
             serializers: Iterable[op_serializer.GateOpSerializer] = (),
             deserializers: Iterable[op_deserializer.GateOpDeserializer] = (),
     ) -> 'SerializableGateSet':
-        """Creates a new gateset with more (de)serializers.
+        """Creates a new gateset with additional (de)serializers.
 
         Args:
             gate_set_name: Optional new name of the gateset. If not given, use
