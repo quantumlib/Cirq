@@ -20,7 +20,7 @@ def test_cell_defaults():
 
     class BasicCell(Cell):
 
-        def with_qubits(self, qubits):
+        def with_line_qubits_mapped_to(self, qubits):
             return self
 
         def gate_count(self) -> int:

@@ -32,7 +32,7 @@ class ControlCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ControlCell(qubit=Cell._replace_qubit(self.qubit, qubits),
                            basis_change=self._basis_change)
 
@@ -61,7 +61,7 @@ class ParityControlCell(Cell):
     def gate_count(self) -> int:
         return 0
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ParityControlCell(qubits=Cell._replace_qubits(
             self.qubits, qubits),
                                  basis_change=self._basis_change)

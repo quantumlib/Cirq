@@ -44,7 +44,7 @@ class Cell(metaclass=abc.ABCMeta):
         return tuple(Cell._replace_qubit(e, qubits) for e in old_qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         """Returns the same cell, but targeting different qubits.
 
         It is assumed that the cell is currently targeting `LineQubit`
@@ -171,7 +171,7 @@ class ExplicitOperationsCell(Cell):
     def gate_count(self) -> int:
         return len(self._operations) + 2 * len(self._basis_change)
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ExplicitOperationsCell(
             operations=tuple(
                 op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))

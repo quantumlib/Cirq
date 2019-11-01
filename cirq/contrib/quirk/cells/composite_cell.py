@@ -56,8 +56,9 @@ class CompositeCell(Cell):
             self._sub_cell_cols_generator = list(self._sub_cell_cols_generator)
         return cast(List[List[Cell]], self._sub_cell_cols_generator)
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
-        return self._transform_cells(lambda cell: cell.with_qubits(qubits))
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return self._transform_cells(lambda cell: cell.
+                                     with_line_qubits_mapped_to(qubits))
 
     def with_input(self, letter, register):
         return self._transform_cells(lambda cell: cell.with_input(
@@ -88,7 +89,7 @@ T = TypeVar('T')
 
 def _iterator_to_iterable(iterator: Iterator[T]) -> Iterable[T]:
     done = False
-    items = []
+    items: List[T] = []
 
     class IterIntoItems:
 
