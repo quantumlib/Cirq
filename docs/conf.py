@@ -10,6 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import inspect
 from typing import List, Any
 
 import os
@@ -19,6 +20,7 @@ import pypandoc
 
 cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)
+from cirq._compat import seen_documentation
 
 
 def setup(app):
@@ -67,7 +69,15 @@ def pandoc_process(app,
                    options,
                    lines: List[str]
                    ) -> None:
-    if not (getattr(obj, '__module__', 'cirq') or '').startswith('cirq'):
+    # Try to lookup in documented dictionary.
+    found = (seen_documentation.get(name.split('.')[-1]) or
+             seen_documentation.get(id(obj)))
+    if name.startswith('cirq') and found is not None:
+        # Override docstring if requested.
+        if found.manual_doc_string is not None:
+            new_doc_string = inspect.cleandoc(found.manual_doc_string)
+            lines[:] = new_doc_string.split('\n')
+    elif not (getattr(obj, '__module__', 'cirq') or '').startswith('cirq'):
         # Don't convert objects from other modules.
         return
 

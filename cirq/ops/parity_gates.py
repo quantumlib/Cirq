@@ -262,11 +262,20 @@ class ZZPowGate(eigen_gate.EigenGate,
 
 
 XX = documented(XXPowGate(),
-                """The tensor product of two X gates.""",
+                """The tensor product of two X gates.
+
+    The `exponent=1` instance of `cirq.XXPowGate`.
+    """,
                 api_reference_category='gates')
 YY = documented(YYPowGate(),
-                """The tensor product of two Y gates.""",
+                """The tensor product of two Y gates.
+
+    The `exponent=1` instance of `cirq.YYPowGate`.
+    """,
                 api_reference_category='gates')
 ZZ = documented(ZZPowGate(),
-                """The tensor product of two Z gates.""",
+                """The tensor product of two Z gates.
+
+    The `exponent=1` instance of `cirq.ZZPowGate`.
+    """,
                 api_reference_category='gates')

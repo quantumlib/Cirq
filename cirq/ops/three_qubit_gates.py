@@ -551,7 +551,11 @@ class CSwapGate(gate_features.ThreeQubitGate,
 CCZ = documented(CCZPowGate(),
                  """The Controlled-Controlled-Z gate.
     
+    The `exponent=1` instance of `cirq.CCZPowGate`.
+
     Matrix:
+    
+    ```
         [[1 . . . . . . .],
          [. 1 . . . . . .],
          [. . 1 . . . . .],
@@ -559,14 +563,18 @@ CCZ = documented(CCZPowGate(),
          [. . . . 1 . . .],
          [. . . . . 1 . .],
          [. . . . . . 1 .],
-         [. . . . . . . -1],
+         [. . . . . . . -1]]
+    ```
     """,
                  api_reference_category='gates')
 
 CCX = TOFFOLI = CCNOT = documented(CCXPowGate(),
                                    """The TOFFOLI gate.
     
+    The `exponent=1` instance of `cirq.CCXPowGate`.
+
     Matrix:
+    ```
         [[1 . . . . . . .],
          [. 1 . . . . . .],
          [. . 1 . . . . .],
@@ -574,14 +582,18 @@ CCX = TOFFOLI = CCNOT = documented(CCXPowGate(),
          [. . . . 1 . . .],
          [. . . . . 1 . .],
          [. . . . . . . 1],
-         [. . . . . . 1 .],
+         [. . . . . . 1 .]]
+    ```
     """,
                                    api_reference_category='gates')
 
 CSWAP = FREDKIN = documented(CSwapGate(),
                              """The Controlled Swap gate.
     
+    An instance of `cirq.CSwapGate`.
+    
     Matrix:
+    ```
         [[1 . . . . . . .],
          [. 1 . . . . . .],
          [. . 1 . . . . .],
@@ -589,6 +601,7 @@ CSWAP = FREDKIN = documented(CSwapGate(),
          [. . . . 1 . . .],
          [. . . . . . 1 .],
          [. . . . . 1 . .],
-         [. . . . . . . 1],
+         [. . . . . . . 1]]
+    ```
     """,
                              api_reference_category='gates')

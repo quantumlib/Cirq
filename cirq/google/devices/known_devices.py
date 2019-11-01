@@ -182,13 +182,20 @@ class _NamedConstantXmonDevice(XmonDevice):
         }
 
 
-Foxtail = documented(_NamedConstantXmonDevice(
+Foxtail = _NamedConstantXmonDevice(
     'cirq.google.Foxtail',
     measurement_duration=Duration(nanos=1000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
-    qubits=_parse_device(_FOXTAIL_GRID)[0]),
-                     """22 xmon qubit device.""",
+    qubits=_parse_device(_FOXTAIL_GRID)[0])
+documented(Foxtail,
+                     f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Foxtail)}
+```
+""",
                      api_reference_category='devices')
 
 # Duration dict in picoseconds
@@ -217,13 +224,20 @@ ABCDEFGHIJKL
 -----KL-----
 """
 
-Bristlecone = documented(_NamedConstantXmonDevice(
+Bristlecone = _NamedConstantXmonDevice(
     'cirq.google.Bristlecone',
     measurement_duration=Duration(nanos=1000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
-    qubits=_parse_device(_BRISTLECONE_GRID)[0]),
-                         """72 xmon qubit device.""",
+    qubits=_parse_device(_BRISTLECONE_GRID)[0])
+documented(Bristlecone,
+           f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Bristlecone)}
+```
+""",
                          api_reference_category='devices')
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,

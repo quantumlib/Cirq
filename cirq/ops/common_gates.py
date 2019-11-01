@@ -860,6 +860,8 @@ def Rz(rads: value.TParamVal) -> ZPowGate:
 H = documented(HPowGate(),
                """The Hadamard gate.
 
+    The `exponent=1` instance of `cirq.HPowGate`.
+
     Matrix:
         [[s, s],
          [s, -s]]
@@ -870,6 +872,8 @@ H = documented(HPowGate(),
 S = documented(ZPowGate(exponent=0.5),
                """The Clifford S gate.
 
+    The `exponent=0.5` instance of `cirq.ZPowGate`.
+
     Matrix:
         [[1, 0],
          [0, i]]
@@ -878,6 +882,8 @@ S = documented(ZPowGate(exponent=0.5),
 
 T = documented(ZPowGate(exponent=0.25),
                """The non-Clifford T gate.
+
+    The `exponent=0.25` instance of `cirq.ZPowGate`.
 
     Matrix:
         [[1, 0]
@@ -888,23 +894,27 @@ T = documented(ZPowGate(exponent=0.25),
 CZ = documented(CZPowGate(),
                 """The controlled Z gate.
 
+    The `exponent=1` instance of `cirq.CZPowGate`.
+
     Matrix:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, 1, 0],
-         [0, 0, 0, -1]]
+        [[1 . . .],
+         [. 1 . .],
+         [. . 1 .],
+         [. . . -1]]
     """,
                 api_reference_category='gates')
 
 CNOT = CX = documented(CNotPowGate(),
                        """The controlled NOT gate.
 
+    The `exponent=1` instance of `cirq.CNotPowGate`.
+
     Matrix:
 
-        [[1, 0, 0, 0],
-         [0, 1, 0, 0],
-         [0, 0, 0, 1],
-         [0, 0, 1, 0]]
+        [[1 . . .],
+         [. 1 . .],
+         [. . . 1],
+         [. . 1 .]]
     """,
                        api_reference_category='gates')

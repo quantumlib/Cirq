@@ -150,8 +150,8 @@ X = documented(_PauliX(),
 
     Matrix:
 
-      [[0, 1],
-       [1, 0]]
+        [[0, 1],
+         [1, 0]]
     """,
                api_reference_category='gates')
 
@@ -160,8 +160,8 @@ Y = documented(_PauliY(),
 
     Matrix:
 
-      [[0, -i],
-       [i, 0]]
+        [[0, -i],
+         [i, 0]]
     """,
                api_reference_category='gates')
 
