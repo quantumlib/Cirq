@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 
 import cirq
 from cirq.contrib.quirk.cells.cell import Cell, ExplicitOperationsCell
@@ -21,10 +22,10 @@ def test_cell_defaults():
     class BasicCell(Cell):
 
         def with_line_qubits_mapped_to(self, qubits):
-            return self
+            raise NotImplementedError()
 
         def gate_count(self) -> int:
-            return 0
+            raise NotImplementedError()
 
     c = BasicCell()
     assert c.operations() == ()
@@ -33,6 +34,17 @@ def test_cell_defaults():
     x = []
     c.modify_column(x)
     assert x == []
+
+
+def test_cell_replace_utils():
+    a, b, c = cirq.NamedQubit.range(3, prefix='q')
+    assert Cell._replace_qubit(cirq.LineQubit(1), [a, b, c]) == b
+    with pytest.raises(ValueError, match='only map from line qubits'):
+        _ = Cell._replace_qubit(cirq.GridQubit(0, 0), [a, b, c])
+    with pytest.raises(ValueError, match='not in range'):
+        _ = Cell._replace_qubit(cirq.LineQubit(-1), [a, b, c])
+    with pytest.raises(ValueError, match='not in range'):
+        _ = Cell._replace_qubit(cirq.LineQubit(999), [a, b, c])
 
 
 def test_explicit_operations_cell_equality():

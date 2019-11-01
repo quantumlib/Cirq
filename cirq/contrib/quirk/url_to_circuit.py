@@ -196,6 +196,8 @@ def quirk_json_to_circuit(
 
     # Include custom gates in the registry.
     if 'gates' in data:
+        if not isinstance(data['gates'], list):
+            raise ValueError('"gates" JSON must be a list.')
         for custom_gate in data['gates']:
             _register_custom_gate(custom_gate, registry)
 
@@ -232,6 +234,8 @@ def quirk_json_to_circuit(
 def _parse_cols_into_composite_cell(data: Dict[str, Any],
                                     registry: Dict[str, CellMaker]
                                    ) -> CompositeCell:
+    if not isinstance(data, Dict):
+        raise ValueError('Circuit JSON must be a dictionary.')
     if 'cols' not in data:
         raise ValueError(
             f'Circuit JSON dict must have a "cols" entry.\nJSON={data}')

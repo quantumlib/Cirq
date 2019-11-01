@@ -115,6 +115,25 @@ def test_custom_circuit_gate():
                                                         target=[b],
                                                         inputs=[[a]])))
 
+    # With external control.
+    assert_url_to_circuit_returns(
+        '{"cols":[["•",1,"~r79k"]],"gates":[{"id":"~r79k",'
+        '"circuit":{"cols":[["X"],["Y","Z"]]}}]}',
+        cirq.Circuit(
+            cirq.X(c).controlled_by(a),
+            cirq.Y(c).controlled_by(a),
+            cirq.Z(d).controlled_by(a)))
+
+    # With external and internal control.
+    assert_url_to_circuit_returns(
+        '{"cols":[["•",1,"~r79k"]],"gates":[{"id":"~r79k",'
+        '"circuit":{"cols":[["X"],["⊕","Z"]]}}]}',
+        cirq.Circuit(
+            cirq.X(c).controlled_by(a),
+            cirq.Y(c)**0.5,
+            cirq.Z(d).controlled_by(a, c),
+            cirq.Y(c)**-0.5))
+
     # Broadcast input.
     assert_url_to_circuit_returns(
         '{"cols":[["~q1fh",1,1,"inputA2"]],"gates":[{"id":"~q1fh",'

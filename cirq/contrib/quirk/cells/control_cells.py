@@ -34,7 +34,9 @@ class ControlCell(Cell):
 
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ControlCell(qubit=Cell._replace_qubit(self.qubit, qubits),
-                           basis_change=self._basis_change)
+                           basis_change=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._basis_change))
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
@@ -64,7 +66,9 @@ class ParityControlCell(Cell):
     def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ParityControlCell(qubits=Cell._replace_qubits(
             self.qubits, qubits),
-                                 basis_change=self._basis_change)
+            basis_change=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._basis_change))
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
