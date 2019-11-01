@@ -35,6 +35,13 @@ def test_random_superposition(dim):
     assert np.isclose(np.linalg.norm(state), 1.0)
 
 
+def test_random_superposition_deterministic_given_seed():
+    state1 = random_superposition(10, random_state=1234)
+    state2 = random_superposition(10, random_state=1234)
+
+    np.testing.assert_equal(state1, state2)
+
+
 def test_random_unitary():
     u1 = random_unitary(2)
     u2 = random_unitary(2)
@@ -48,6 +55,14 @@ def test_random_orthogonal():
     assert is_orthogonal(o1)
     assert is_orthogonal(o2)
     assert not np.allclose(o1, o2)
+
+
+def test_random_orthogonal_deterministic_given_seed():
+    o1 = random_orthogonal(2, random_state=1234)
+    o2 = random_orthogonal(2, random_state=1234)
+
+    np.testing.assert_equal(o1, o2)
+
 
 def test_random_special_unitary():
     u1 = random_special_unitary(2)
@@ -71,6 +86,14 @@ def test_random_special_orthgonal():
     assert is_special_orthogonal(o1)
     assert is_special_orthogonal(o2)
     assert not np.allclose(o1, o2)
+
+
+def test_random_special_orthogonal_deterministic_given_seed():
+    o1 = random_special_orthogonal(2, random_state=1234)
+    o2 = random_special_orthogonal(2, random_state=1234)
+
+    np.testing.assert_equal(o1, o2)
+
 
 def test_assert_allclose_up_to_global_phase():
     assert_allclose_up_to_global_phase(

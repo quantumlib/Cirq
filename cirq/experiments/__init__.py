@@ -25,3 +25,8 @@ from cirq.experiments.fidelity_estimation import (
     log_xeb_fidelity_from_probabilities,
     xeb_fidelity,
 )
+
+from cirq.experiments.t1_decay_experiment import (
+    t1_decay,
+    T1DecayResult,
+)
