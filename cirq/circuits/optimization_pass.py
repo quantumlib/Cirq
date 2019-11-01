@@ -44,10 +44,13 @@ class PointOptimizationSummary:
                 with each affected moment.
             new_operations: The operations to replace the cleared out
                 operations with.
-            preserve_moments: Whether to keep Moments intact instead of
-                flattening them in this summary. Please be advised that
-                a PointOptimizer consuming this summary will flatten
-                operations no matter what, see gh-2406.
+            preserve_moments: If set, `cirq.Moment` instances within
+                `new_operations` will be preserved exactly. Normally the
+                operations would be repacked to fit better into the
+                target space, which may move them between moments.
+                Please be advised that a PointOptimizer consuming this
+                summary will flatten operations no matter what,
+                see https://github.com/quantumlib/Cirq/issues/2406.
         """
         self.new_operations = tuple(
             ops.flatten_op_tree(new_operations,
