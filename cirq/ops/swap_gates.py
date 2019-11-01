@@ -26,6 +26,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate, raw_types
 
 
@@ -246,22 +247,26 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-# The swap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1]]
 SWAP = SwapPowGate()
+document(
+    SWAP, """The swap gate.
 
-# The iswap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, i, 0],
-#      [0, i, 0, 0],
-#      [0, 0, 0, 1]]
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, 1, 0],
+         [0, 1, 0, 0],
+         [0, 0, 0, 1]]
+    """)
+
 ISWAP = ISwapPowGate()
+document(
+    ISWAP, """The iswap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, i, 0],
+         [0, i, 0, 0],
+         [0, 0, 0, 1]]
+    """)

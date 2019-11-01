@@ -14,7 +14,11 @@
 
 from typing import Union
 import sympy
+
+from cirq._doc import document
 """Supply aliases for commonly used types.
 """
 
 TParamVal = Union[float, sympy.Basic]
+document(TParamVal,
+         """A value that a parameter resolver may return for a symbol.""")
