@@ -46,8 +46,9 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                 determine what happens to the target.
         """
         self.identifier = identifier
-        self.target = target
-        self.inputs = inputs
+        self.target = tuple(target)
+        self.inputs = tuple(
+            e if isinstance(e, int) else tuple(e) for e in inputs)
 
         for input_register in self.inputs:
             if isinstance(input_register, int):
@@ -166,6 +167,18 @@ class ArithmeticCell(Cell):
         self.identifier = identifier
         self.target = target
         self.inputs = inputs
+
+    def gate_count(self) -> int:
+        return 1
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ArithmeticCell(
+            identifier=self.identifier,
+            target=Cell._replace_qubits(self.target, qubits),
+            inputs=[
+                None if e is None else Cell._replace_qubits(e, qubits)
+                for e in self.inputs
+            ])
 
     @property
     def operation(self):

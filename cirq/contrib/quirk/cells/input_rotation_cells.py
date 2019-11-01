@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Iterator, Optional, Sequence, Union
+from typing import Iterable, Iterator, Optional, Sequence, Union, List
 
 import numpy as np
 
@@ -31,6 +31,15 @@ class InputRotationCell(Cell):
         self.register = None if register is None else tuple(register)
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
+
+    def gate_count(self) -> int:
+        return 1
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return InputRotationCell(
+            self.identifier, Cell._replace_qubits(self.register, qubits),
+            self.base_operation.with_qubits(
+                *Cell._replace_qubits(self.base_operation.qubits)))
 
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':

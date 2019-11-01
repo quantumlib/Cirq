@@ -29,6 +29,13 @@ class ControlCell(Cell):
         self.qubit = qubit
         self._basis_change = tuple(basis_change)
 
+    def gate_count(self) -> int:
+        return 0
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ControlCell(qubit=Cell._replace_qubit(self.qubit, qubits),
+                           basis_change=self._basis_change)
+
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
             gate = column[i]
@@ -50,6 +57,14 @@ class ParityControlCell(Cell):
                  basis_change: Iterable['cirq.Operation']):
         self.qubits = list(qubits)
         self._basis_change = list(basis_change)
+
+    def gate_count(self) -> int:
+        return 0
+
+    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ParityControlCell(qubits=Cell._replace_qubits(
+            self.qubits, qubits),
+                                 basis_change=self._basis_change)
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):

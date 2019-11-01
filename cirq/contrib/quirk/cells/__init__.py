@@ -23,6 +23,9 @@ from cirq.contrib.quirk.cells.cell import (
     ExplicitOperationsCell,
 )
 
+from cirq.contrib.quirk.cells.composite_cell import (
+    CompositeCell,)
+
 from cirq.contrib.quirk.cells.qubit_permutation_cells import (
     QuirkQubitPermutationGate,)
 
