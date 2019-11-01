@@ -85,6 +85,7 @@ class _ResolverCache:
                 'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
+                'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
@@ -101,20 +102,11 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
+                'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
-                'sympy.Symbol': sympy.Symbol,
-                'sympy.Add': lambda args: sympy.Add(*args),
-                'sympy.Mul': lambda args: sympy.Mul(*args),
-                'sympy.Pow': lambda args: sympy.Pow(*args),
-                'sympy.Float': lambda approx: sympy.Float(approx),
-                'sympy.Integer': sympy.Integer,
-                'sympy.Rational': sympy.Rational,
-                'pandas.DataFrame': pd.DataFrame,
-                'pandas.Index': pd.Index,
-                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
@@ -128,6 +120,16 @@ class _ResolverCache:
                 'ZZPowGate': cirq.ZZPowGate,
 
                 # not a cirq class, but treated as one:
+                'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
         return self._crd

@@ -223,6 +223,10 @@ TEST_OBJECTS = {
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
                 cirq.LineQid(-4, 5)],
+    'MatrixGate': [
+        cirq.MatrixGate(matrix=np.diag([1, -1, 1j, 1j, -1j, -1]),
+                        qid_shape=(2, 3)),
+    ],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,
@@ -288,6 +292,8 @@ TEST_OBJECTS = {
     cirq.TOFFOLI,
     'TwoQubitMatrixGate':
     cirq.TwoQubitMatrixGate(np.eye(4)),
+    'SingleQubitMatrixGate':
+    cirq.SingleQubitMatrixGate(np.diag([1j, -1, 1])),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -500,7 +506,6 @@ NOT_YET_SERIALIZABLE = [
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
