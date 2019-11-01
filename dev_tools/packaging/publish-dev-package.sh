@@ -15,7 +15,7 @@
 # limitations under the License.
 
 ################################################################################
-# Produces and uploads dev-version wheels to a pypi package repository cirq-dev
+# Produces and uploads dev-version wheels to a pypi package 'cirq-unstable'
 # Note that this is not the dev-version for cirq, whose use is deprecated.
 #
 # Uploads to the test pypi repository unless the --prod switch is added.
@@ -112,8 +112,8 @@ cd "$(git rev-parse --show-toplevel)"
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
 trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 
-# Configure to push to cirq-dev and not cirq.
-export CIRQ_DEV_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+# Configure to push to cirq-unstable and not cirq.
+export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
 
 # Produce packages.
 dev_tools/packaging/produce-package.sh "${tmp_package_dir}" "${UPLOAD_VERSION}"

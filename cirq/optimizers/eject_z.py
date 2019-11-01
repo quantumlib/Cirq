@@ -28,17 +28,14 @@ def _is_integer(n):
 
 
 def _is_swaplike(op: ops.Operation):
-    gate1 = ops.op_gate_of_type(op, ops.SwapPowGate)
-    if gate1:
-        return gate1.exponent == 1
+    if isinstance(op.gate, ops.SwapPowGate):
+        return op.gate.exponent == 1
 
-    gate2 = ops.op_gate_of_type(op, ops.ISwapPowGate)
-    if gate2:
-        return _is_integer((gate2.exponent - 1) / 2)
+    if isinstance(op.gate, ops.ISwapPowGate):
+        return _is_integer((op.gate.exponent - 1) / 2)
 
-    gate3 = ops.op_gate_of_type(op, ops.FSimGate)
-    if gate3:
-        return _is_integer((gate3.theta - (np.pi / 2)) / np.pi)
+    if isinstance(op.gate, ops.FSimGate):
+        return _is_integer(op.gate.theta / np.pi - 1 / 2)
 
     return False
 
@@ -67,7 +64,7 @@ class EjectZ():
 
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
-        qubit_phase = defaultdict(lambda: 0)  # type: Dict[ops.Qid, float]
+        qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
 
         def dump_tracked_phase(qubits: Iterable[ops.Qid],
                                index: int) -> None:
@@ -79,9 +76,9 @@ class EjectZ():
                     insertions.append((index, dump_op))
                 qubit_phase[q] = 0
 
-        deletions = []  # type: List[Tuple[int, ops.Operation]]
-        inline_intos = []  # type: List[Tuple[int, ops.Operation]]
-        insertions = []  # type: List[Tuple[int, ops.Operation]]
+        deletions: List[Tuple[int, ops.Operation]] = []
+        inline_intos: List[Tuple[int, ops.Operation]] = []
+        insertions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 # Move Z gates into tracked qubit phases.
@@ -93,7 +90,7 @@ class EjectZ():
                     continue
 
                 # Z gate before measurement is a no-op. Drop tracked phase.
-                if ops.op_gate_of_type(op, ops.MeasurementGate):
+                if isinstance(op.gate, ops.MeasurementGate):
                     for q in op.qubits:
                         qubit_phase[q] = 0
 

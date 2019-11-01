@@ -16,6 +16,7 @@ import inspect
 
 import io
 import os
+import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type
 
@@ -141,6 +142,15 @@ TEST_OBJECTS = {
     cirq.CNOT,
     'CNotPowGate':
     cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'ControlledOperation':
+    cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),
+                             controls=cirq.LineQubit.range(2),
+                             control_values=[0, 1]),
+    'ControlledGate':
+    cirq.ControlledGate(sub_gate=cirq.Y,
+                        num_controls=2,
+                        control_values=[0, 1],
+                        control_qid_shape=(3, 2)),
     'CX':
     cirq.CX,
     'CSWAP':
@@ -205,6 +215,10 @@ TEST_OBJECTS = {
         cirq.IdentityGate(num_qubits=5),
         cirq.IdentityGate(num_qubits=5, qid_shape=(3,) * 5)
     ],
+    'IdentityOperation': [
+        cirq.IdentityOperation(cirq.LineQubit.range(2)),
+        cirq.IdentityOperation(cirq.LineQubit.range(5))
+    ],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
@@ -259,19 +273,21 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
-    'SerializableDevice':
-    cirq.google.SerializableDevice.from_proto(
-        proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'SYC':
+    cirq.SYC,
+    'SycamoreGate':
+    cirq.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
+    'TwoQubitMatrixGate':
+    cirq.TwoQubitMatrixGate(np.eye(4)),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -328,6 +344,7 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
@@ -431,6 +448,7 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
@@ -439,9 +457,12 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
+    'CliffordSimulator',
+    'CliffordSimulatorStepResult',
+    'CliffordState',
+    'CliffordTableau',
+    'CliffordTrialResult',
     'ConstantQubitNoiseModel',
-    'ControlledGate',
-    'ControlledOperation',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',
@@ -481,12 +502,14 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
+    'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
     'TrialResult',
-    'TwoQubitMatrixGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
@@ -598,3 +621,22 @@ def test_all_roundtrip(cirq_obj_name: str, cls):
         # more strict: must be exact (no subclasses)
         assert type(obj) == cls
         assert_roundtrip(obj)
+
+
+def test_to_from_strings():
+    x_json_text = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    assert cirq.to_json(cirq.X) == x_json_text
+    assert cirq.read_json(json_text=x_json_text) == cirq.X
+
+    with pytest.raises(ValueError, match='specify ONE'):
+        cirq.read_json(io.StringIO(), json_text=x_json_text)
+
+
+def test_pathlib_paths(tmpdir):
+    path = pathlib.Path(tmpdir) / 'op.json'
+    cirq.to_json(cirq.X, path)
+    assert cirq.read_json(path) == cirq.X
