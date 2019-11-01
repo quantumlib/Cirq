@@ -20,5 +20,6 @@ from cirq._doc import document
 """
 
 TParamVal = Union[float, sympy.Basic]
-document(TParamVal,  # type: ignore
-         """A value that a parameter resolver may return for a symbol.""")
+document(
+    TParamVal,  # type: ignore
+    """A value that a parameter resolver may return for a symbol.""")
