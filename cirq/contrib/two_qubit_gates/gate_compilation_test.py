@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 
 from cirq import unitary, FSimGate, value
-from cirq.contrib.two_qubit_gates import example
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
@@ -61,10 +60,6 @@ def test_gate_compilation_on_base_gate_identity():
     assert result.success
     fidelity = unitary_entanglement_fidelity(result.actual_gate, base_gate)
     assert fidelity > 0.99999
-
-
-def test_gate_compilation_example():
-    example.main(samples=10, max_infidelity=0.3, verbose=False)
 
 
 def test_weyl_chamber_mesh_spacing_too_small_throws_error():
