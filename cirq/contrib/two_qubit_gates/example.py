@@ -26,7 +26,8 @@ from cirq import FSimGate, unitary
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
-    random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity)
+    unitary_entanglement_fidelity)
+from cirq.testing import random_special_unitary
 
 
 def main(samples: int = 1000,
@@ -60,7 +61,7 @@ def main(samples: int = 1000,
 
     # Generate many random two-qubit gates, then attempt to compile them using
     # the tabulation.
-    unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(samples)
+    unitaries = [random_special_unitary(4) for _ in range(samples)]
 
     infidelities = []
     failed_infidelities = []

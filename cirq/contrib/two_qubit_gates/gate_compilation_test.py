@@ -7,8 +7,8 @@ from cirq.contrib.two_qubit_gates import example
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
-    random_two_qubit_unitaries_and_kak_vecs, unitary_entanglement_fidelity,
-    weyl_chamber_mesh, random_qubit_unitary)
+    unitary_entanglement_fidelity, weyl_chamber_mesh, random_qubit_unitary)
+from cirq.testing import random_special_unitary
 
 _rng = value.parse_random_state(11)  # for determinism
 
@@ -22,7 +22,8 @@ sqrt_iswap_tabulation = gate_product_tabulation(unitary(
                                                 0.1,
                                                 random_state=_rng)
 
-_random_2Q_unitaries, _ = random_two_qubit_unitaries_and_kak_vecs(100, _rng)
+_random_2Q_unitaries = np.array([random_special_unitary(4, random_state=_rng)
+                                 for _ in range(100)])
 
 
 @pytest.mark.parametrize('tabulation',
