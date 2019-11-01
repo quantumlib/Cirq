@@ -19,6 +19,7 @@ import cirq
 import cirq.google as cg
 import cirq.google.api.v2 as v2
 import cirq.google.api.v2.device_pb2 as device_pb2
+import cirq.google.common_serializers as cgc
 
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
@@ -49,6 +50,33 @@ _JUST_MEAS = cg.SerializableGateSet(
 )
 
 
+def test_gate_definition_equality():
+    def1 = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=4),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    def1c = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=4),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    def2 = cg.devices.serializable_device._GateDefinition(
+        duration=cirq.Duration(picos=5),
+        target_set={(cirq.GridQubit(1, 1),)},
+        number_of_qubits=1,
+        is_permutation=False,
+    )
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(def1, def1c)
+    eq.add_equality_group(def2)
+
+    # Wrong type, tests NotImplemented functionality
+    eq.add_equality_group(cirq.X)
+
+
 def test_foxtail():
     valid_qubit1 = cirq.GridQubit(0, 0)
     valid_qubit2 = cirq.GridQubit(1, 0)
@@ -58,7 +86,7 @@ def test_foxtail():
 
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
-        gate_set=cg.gate_sets.XMON)
+        gate_sets=[cg.gate_sets.XMON])
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
@@ -99,14 +127,14 @@ def test_mismatched_proto_serializer():
     # but not supported by the hardware
     with pytest.raises(ValueError):
         _ = cg.SerializableDevice.from_proto(proto=augmented_proto,
-                                             gate_set=cg.gate_sets.XMON)
+                                             gate_sets=[cg.gate_sets.XMON])
 
 
 def test_named_qubit():
     augmented_proto = copy.deepcopy(cg.devices.known_devices.FOXTAIL_PROTO)
     augmented_proto.valid_qubits.extend(["scooby_doo"])
     foxtail = cg.SerializableDevice.from_proto(proto=augmented_proto,
-                                               gate_set=cg.gate_sets.XMON)
+                                               gate_sets=[cg.gate_sets.XMON])
     foxtail.validate_operation(cirq.X(cirq.NamedQubit("scooby_doo")))
     with pytest.raises(ValueError):
         foxtail.validate_operation(cirq.X(cirq.NamedQubit("scrappy_doo")))
@@ -117,7 +145,7 @@ def test_duration_of():
 
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
-        gate_set=cg.gate_sets.XMON)
+        gate_sets=[cg.gate_sets.XMON])
 
     assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=20)
 
@@ -149,7 +177,7 @@ def test_assymetric_gate():
     gate.id = 'cz'
     gate.valid_targets.extend(['left_to_right'])
 
-    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
 
     for row in range(5):
         dev.validate_operation(
@@ -175,7 +203,7 @@ def test_unconstrained_gate():
     gate.id = 'cz'
     gate.valid_targets.extend(['2_qubit_anywhere'])
 
-    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
 
     valid_qubit1 = cirq.GridQubit(4, 4)
     for row in range(4):
@@ -202,7 +230,7 @@ def test_number_of_qubits_cz():
     gate.valid_targets.extend(['2_qubit_anywhere'])
     gate.number_of_qubits = 3
 
-    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_CZ)
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_CZ])
 
     with pytest.raises(ValueError):
         dev.validate_operation(
@@ -230,7 +258,7 @@ def test_constrained_permutations():
     gate.id = 'meas'
     gate.valid_targets.extend(['meas_on_first_line'])
 
-    dev = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_MEAS)
+    dev = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_MEAS])
 
     dev.validate_operation(cirq.measure(cirq.GridQubit(0, 0)))
     dev.validate_operation(cirq.measure(cirq.GridQubit(1, 0)))
@@ -266,4 +294,68 @@ def test_mixing_types():
     gate.valid_targets.extend(['subset', 'sym'])
 
     with pytest.raises(NotImplementedError):
-        _ = cg.SerializableDevice.from_proto(proto=spec, gate_set=_JUST_MEAS)
+        _ = cg.SerializableDevice.from_proto(proto=spec, gate_sets=[_JUST_MEAS])
+
+
+def test_multiple_gatesets():
+    halfPiGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='half_pi_gateset',
+        serializers=cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+        deserializers=cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+    )
+    allAnglesGateSet = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='all_angles_gateset',
+        serializers=cgc.SINGLE_QUBIT_SERIALIZERS,
+        deserializers=cgc.SINGLE_QUBIT_DESERIALIZERS,
+    )
+    durations_dict = {'xy_pi': 20_000, 'xy_half_pi': 20_000, 'xy': 20_000}
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [allAnglesGateSet, halfPiGateSet], durations_dict)
+    dev = cg.SerializableDevice.from_proto(
+        proto=spec, gate_sets=[allAnglesGateSet, halfPiGateSet])
+    q0 = cirq.GridQubit(0, 0)
+    q1 = cirq.GridQubit(1, 0)
+    dev.validate_operation(cirq.X(q0))
+    dev.validate_operation(cirq.X(q1))
+    dev.validate_operation(cirq.XPowGate(exponent=0.1234)(q0))
+    dev.validate_operation(cirq.XPowGate(exponent=0.2345)(q1))
+
+    with pytest.raises(ValueError):
+        dev.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
+
+
+def test_multiple_gatesets_conflicting_definitions():
+    conflictingSet = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='conflicting_phased_xpow',
+        serializers=[
+            cg.op_serializer.GateOpSerializer(
+                gate_type=cirq.PhasedXPowGate,
+                serialized_gate_id='not_xy',
+                args=[
+                    cg.op_serializer.SerializingArg(
+                        serialized_name='axis_half_turns',
+                        serialized_type=float,
+                        gate_getter='phase_exponent'),
+                    cg.op_serializer.SerializingArg(
+                        serialized_name='half_turns',
+                        serialized_type=float,
+                        gate_getter='exponent'),
+                ]),
+        ],
+        deserializers=[],
+    )
+    durations_dict = {
+        'xy_pi': 20_000,
+        'xy_half_pi': 10_000,
+        'not_xy': 52_000,
+        'xy': 53_000,
+        'cz': 11_000,
+        'meas': 14_141
+    }
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cirq.google.XMON, conflictingSet], durations_dict)
+
+    # The two gate sets define two different serializations for PhasedXPowGate
+    with pytest.raises(ValueError, match='conflicting definitions'):
+        _ = cg.SerializableDevice.from_proto(
+            proto=spec, gate_sets=[cirq.google.XMON, conflictingSet])

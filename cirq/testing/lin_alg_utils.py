@@ -18,10 +18,13 @@ from typing import Optional
 
 import numpy as np
 
-from cirq import linalg
+from cirq import linalg, value
 
 
-def random_superposition(dim: int) -> np.ndarray:
+def random_superposition(dim: int,
+                         *,
+                         random_state: value.RANDOM_STATE_LIKE = None
+                        ) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
 
     Args:
@@ -30,16 +33,16 @@ def random_superposition(dim: int) -> np.ndarray:
     Returns:
         The sampled unit-length vector.
     """
-    state_vector = np.random.randn(dim).astype(complex)
-    state_vector += 1j * np.random.randn(dim)
+    random_state = value.parse_random_state(random_state)
+
+    state_vector = random_state.randn(dim).astype(complex)
+    state_vector += 1j * random_state.randn(dim)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
 
 
-def random_unitary(dim: int,
-                   *,
-                   random_state: Optional[np.random.RandomState] = None
-                  ) -> np.ndarray:
+def random_unitary(dim: int, *,
+                   random_state: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -53,8 +56,7 @@ def random_unitary(dim: int,
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    if random_state is None:
-        random_state = np.random
+    random_state = value.parse_random_state(random_state)
 
     z = (random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim))
     q, r = np.linalg.qr(z)
@@ -62,7 +64,8 @@ def random_unitary(dim: int,
     return q * (d / abs(d))
 
 
-def random_orthogonal(dim: int) -> np.ndarray:
+def random_orthogonal(dim: int, *, random_state: value.RANDOM_STATE_LIKE = None
+                     ) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
     Args:
@@ -75,7 +78,9 @@ def random_orthogonal(dim: int) -> np.ndarray:
         'How to generate random matrices from the classical compact groups'
         http://arxiv.org/abs/math-ph/0609050
     """
-    m = np.random.randn(dim, dim)
+    random_state = value.parse_random_state(random_state)
+
+    m = random_state.randn(dim, dim)
     q, r = np.linalg.qr(m)
     d = np.diag(r)
     return q * (d / abs(d))
@@ -99,7 +104,10 @@ def random_special_unitary(dim: int,
     return r
 
 
-def random_special_orthogonal(dim: int) -> np.ndarray:
+def random_special_orthogonal(dim: int,
+                              *,
+                              random_state: value.RANDOM_STATE_LIKE = None
+                             ) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
     Args:
@@ -108,7 +116,7 @@ def random_special_orthogonal(dim: int) -> np.ndarray:
     Returns:
       The sampled special orthogonal matrix.
     """
-    m = random_orthogonal(dim)
+    m = random_orthogonal(dim, random_state=random_state)
     if np.linalg.det(m) < 0:
         m[0, :] *= -1
     return m
