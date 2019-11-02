@@ -2,11 +2,11 @@
 import numpy as np
 import pytest
 
-from cirq import unitary, FSimGate, value, kak_canonicalize_vector
+from cirq import unitary, FSimGate, value
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
-    unitary_entanglement_fidelity, weyl_chamber_mesh, random_qubit_unitary, kak_vector_infidelity)
+    unitary_entanglement_fidelity)
 from cirq.testing import random_special_unitary
 
 _rng = value.parse_random_state(11)  # for determinism
@@ -62,11 +62,6 @@ def test_gate_compilation_on_base_gate_identity():
     assert fidelity > 0.99999
 
 
-def test_weyl_chamber_mesh_spacing_too_small_throws_error():
-    with pytest.raises(ValueError, match='may cause system to crash'):
-        weyl_chamber_mesh(spacing=5e-4)
-
-
 def test_gate_compilation_missing_points_raises_error():
     with pytest.raises(ValueError, match='Failed to tabulate a'):
         gate_product_tabulation(np.eye(4),
@@ -75,28 +70,3 @@ def test_gate_compilation_missing_points_raises_error():
                                 random_state=_rng)
 
 
-def test_kak_vector_infidelity_ignore_equivalent_nontrivial():
-    x, y, z = np.pi / 4, 1, 0.5
-    kak_0 = kak_canonicalize_vector(x, y, z).interaction_coefficients
-    kak_1 = kak_canonicalize_vector(x - 1e-3, y, z).interaction_coefficients
-
-    inf_check_equivalent = kak_vector_infidelity(kak_0, kak_1, False)
-    inf_ignore_equivalent = kak_vector_infidelity(kak_0, kak_1, True)
-
-    assert inf_check_equivalent < inf_ignore_equivalent
-
-
-def test_random_qubit_unitary_shape():
-    rng = value.parse_random_state(11)
-    actual = random_qubit_unitary((3, 4, 5), True, rng).ravel()
-    rng = value.parse_random_state(11)
-    expected = random_qubit_unitary((3 * 4 * 5,), True, rng).ravel()
-    np.testing.assert_almost_equal(actual, expected)
-
-
-def test_random_qubit_default():
-    rng = value.parse_random_state(11)
-    actual = random_qubit_unitary(randomize_global_phase=True, rng=rng).ravel()
-    rng = value.parse_random_state(11)
-    expected = random_qubit_unitary((1, 1, 1), True, rng=rng).ravel()
-    np.testing.assert_almost_equal(actual, expected)
