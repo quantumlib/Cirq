@@ -176,6 +176,13 @@ def test_custom_gate_parse_failures():
             'https://algassert.com/quirk#circuit={"cols":[],'
             '"gates":[{"id":"~a","matrix":"abc"}]}')
 
+    with pytest.raises(ValueError, match='must have an id'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":['
+            '{"matrix":"{{1,0},{0,1}}"}'
+            ']}')
+
     with pytest.raises(ValueError, match='both a matrix and a circuit'):
         _ = quirk_url_to_circuit(
             'https://algassert.com/quirk#circuit={"cols":[],'

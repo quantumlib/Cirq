@@ -311,8 +311,8 @@ def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):
         registry[identifier] = CellMaker(
             identifier=identifier,
             size=comp.height,
-            maker=lambda args: comp.with_line_qubits_mapped_to(
-                list(args.qubits)))
+            maker=lambda args: comp.with_line_qubits_mapped_to(list(args.qubits)
+                                                              ))
 
     else:
         raise ValueError(f'Custom gate json must have a matrix or a circuit.\n'
