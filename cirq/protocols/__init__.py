@@ -59,6 +59,7 @@ from cirq.protocols.json import (
     to_json,
     read_json,
     obj_to_dict_helper,
+    AddJson,
 )
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,

@@ -390,6 +390,7 @@ def generalized_amplitude_damp(
 
 
 @value.value_equality
+@protocols.json.AddJson(key='AmplitudeDampingChannel')
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 

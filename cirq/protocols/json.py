@@ -48,15 +48,26 @@ class _ResolverCache:
     def __init__(self):
         self._crd = None
 
+    def add_resolver(self, key: str, cls: Type):
+        if self._crd is None:
+            self._crd = {}
+        if key not in self._crd:
+            self._crd[key] = cls
+
     @property
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
+            self._crd = {}
+        # Lazily initialize third-party resolvers (which we don't have
+        # control over and therefore can't add with the @AddJson decorater)
+        # by checking if one of these resolvers has already been added to
+        # the map or not.
+        if 'pandas.DataFrame' not in self._crd:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
-            self._crd = {
-                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
+            third_party = {
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
@@ -132,10 +143,31 @@ class _ResolverCache:
                 'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
+            self._crd.update(third_party)
         return self._crd
 
 
 RESOLVER_CACHE = _ResolverCache()
+
+
+def AddJson(Cls=None, *, key=""):
+    """A class decorator that will add a resolver for the wrapped class into the
+       default JSON resolver cache.
+
+    Args:
+        Cls: The class that this decorator is on. Should be implicitly provided.
+        key: The key for this class in the JSON resolver cache.
+
+    Returns:
+        A function wrapper returning the unmodified class, after adding it to
+        the resolver cache.
+    """
+
+    def wrap(cls):
+        RESOLVER_CACHE.add_resolver(key, cls)
+        return cls
+
+    return wrap
 
 
 def _cirq_class_resolver(cirq_type: str) -> Union[None, Type]:
