@@ -6,7 +6,7 @@ from typing import Tuple, Dict, Sequence, List, NamedTuple, Set
 import numpy as np
 import attr
 from cirq import kak_decomposition, kak_vector, value
-from cirq.contrib.two_qubit_gates.math_utils import (KAK_vector_infidelity,
+from cirq.contrib.two_qubit_gates.math_utils import (kak_vector_infidelity,
                                                      vector_kron,
                                                      weyl_chamber_mesh,
                                                      random_qubit_unitary,
@@ -80,7 +80,7 @@ class GateTabulation:
         """
         unitary = np.asarray(unitary)
         kak_vec = kak_vector(unitary, check_preconditions=False)
-        infidelities = KAK_vector_infidelity(kak_vec,
+        infidelities = kak_vector_infidelity(kak_vec,
                                              self.kak_vecs,
                                              ignore_equivalent_vectors=True)
         nearest_ind = infidelities.argmin()
@@ -227,7 +227,7 @@ def _tabulate_kak_vectors(*,
 
 
 def gate_product_tabulation(base_gate: np.ndarray,
-                            max_infidelity: float,
+                            max_infidelity: float, *,
                             sample_scaling: int = 50,
                             allow_missed_points: bool = True,
                             random_state: value.RANDOM_STATE_LIKE = None

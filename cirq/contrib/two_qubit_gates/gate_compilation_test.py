@@ -2,11 +2,11 @@
 import numpy as np
 import pytest
 
-from cirq import unitary, FSimGate, value
+from cirq import unitary, FSimGate, value, kak_canonicalize_vector
 from cirq.contrib.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 from cirq.contrib.two_qubit_gates.math_utils import (
-    unitary_entanglement_fidelity, weyl_chamber_mesh, random_qubit_unitary)
+    unitary_entanglement_fidelity, weyl_chamber_mesh, random_qubit_unitary, kak_vector_infidelity)
 from cirq.testing import random_special_unitary
 
 _rng = value.parse_random_state(11)  # for determinism
@@ -73,6 +73,17 @@ def test_gate_compilation_missing_points_raises_error():
                                 0.4,
                                 allow_missed_points=False,
                                 random_state=_rng)
+
+
+def test_kak_vector_infidelity_ignore_equivalent_nontrivial():
+    x, y, z = np.pi / 4, 1, 0.5
+    kak_0 = kak_canonicalize_vector(x, y, z).interaction_coefficients
+    kak_1 = kak_canonicalize_vector(x - 1e-3, y, z).interaction_coefficients
+
+    inf_check_equivalent = kak_vector_infidelity(kak_0, kak_1, False)
+    inf_ignore_equivalent = kak_vector_infidelity(kak_0, kak_1, True)
+
+    assert inf_check_equivalent < inf_ignore_equivalent
 
 
 def test_random_qubit_unitary_shape():

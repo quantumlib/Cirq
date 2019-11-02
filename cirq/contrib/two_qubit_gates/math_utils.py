@@ -113,7 +113,11 @@ _offsets[7, (0, 1, 2)] = np.pi / 2
 
 def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     """Generates all KAK vectors equivalent under single qubit unitaries."""
-    # coverage: ignore
+
+    # Technically this is not all equivalent vectors, but a subset of vectors
+    # which are not guaranteed to give the same answer under the infidelity
+    # formula.
+
     kak_vec = np.asarray(kak_vec, dtype=float)
 
     # Apply all permutations, then all negations, then all shifts.
@@ -128,27 +132,56 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
     return np.reshape(out, out.shape[:-4] + (192, 3))
 
 
-def KAK_vector_infidelity(k_vec_a: np.ndarray,
+def kak_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
                           ) -> np.ndarray:
-    """Minimum entanglement infidelity between two KAK vectors. """
+    r"""The locally invariant infidelity between two KAK vectors.
+
+    This is the quantity
+
+    \min 1 - F_e( exp(i k_a · (XX,YY,ZZ)) kL exp(i k_b · (XX,YY,ZZ)) kR)
+    where F_e is the entanglement (process) fidelity and the minimum is taken
+    over all 1-local unitaries kL, kR.
+
+    Args:
+        k_vec_a: A 3-vector or tensor of 3-vectors with shape (...,3).
+        k_vec_b: A 3-vector or tensor of 3-vectors with shape (...,3). If both
+            k_vec_a and k_vec_b are tensors, their shapes must be compatible
+            for broadcasting.
+        ignore_equivalent_vectors: If True, the calculation ignores any other
+            KAK vectors that are equivalent to the inputs under local unitaries.
+            The resulting infidelity is then only an upper bound to the true
+            infidelity.
+
+    Returns:
+        An ndarray storing the locally invariant infidelity between the inputs.
+        If k_vec_a or k_vec_b is a tensor, the result is vectorized.
+    """
     k_vec_a, k_vec_b = np.asarray(k_vec_a), np.asarray(k_vec_b)
+
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
         out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
         out -= np.product(np.sin(k_diff), axis=-1) ** 2
         return out
-    # coverage: ignore
+
     # We must take the minimum infidelity over all possible locally equivalent
-    # KAK vectors. We need only consider equivalent vectors of one input.
+    # and nontrivial KAK vectors. We need only consider equivalent vectors
+    # of one input.
+
+    # Ensure we consider equivalent vectors for only the smallest input.
+    if k_vec_a.size < k_vec_b.size:
+        # coverage: ignore
+        k_vec_a, k_vec_b = k_vec_b, k_vec_a
+
     k_vec_a = k_vec_a[..., np.newaxis, :]  # (...,1,3)
-    k_vec_b = _kak_equivalent_vectors(k_vec_b)  # (...,24,3)
+    k_vec_b = _kak_equivalent_vectors(k_vec_b)  # (...,192,3)
 
     k_diff = k_vec_a - k_vec_b
 
     out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,24)
+    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,192)
 
     return out.min(axis=-1)
 
