@@ -45,7 +45,7 @@ def _single_qubit_unitary(theta: _RealArraylike, phi_d: _RealArraylike,
 def random_qubit_unitary(shape: Sequence[int] = (),
                          randomize_global_phase: bool = False,
                          rng: Optional[np.random.RandomState] = None
-                         ) -> np.ndarray:
+                        ) -> np.ndarray:
     """Random qubit unitary distributed over the Haar measure.
 
     The implementation is vectorized for speed.
@@ -135,7 +135,7 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def kak_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                          ) -> np.ndarray:
+                         ) -> np.ndarray:
     r"""The locally invariant infidelity between two KAK vectors.
 
     This is the quantity
@@ -162,8 +162,8 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     if ignore_equivalent_vectors:
         k_diff = k_vec_a - k_vec_b
-        out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-        out -= np.product(np.sin(k_diff), axis=-1) ** 2
+        out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+        out -= np.product(np.sin(k_diff), axis=-1)**2
         return out
 
     # We must take the minimum infidelity over all possible locally equivalent
@@ -180,8 +180,8 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     k_diff = k_vec_a - k_vec_b
 
-    out = 1 - np.product(np.cos(k_diff), axis=-1) ** 2
-    out -= np.product(np.sin(k_diff), axis=-1) ** 2  # (...,192)
+    out = 1 - np.product(np.cos(k_diff), axis=-1)**2
+    out -= np.product(np.sin(k_diff), axis=-1)**2  # (...,192)
 
     return out.min(axis=-1)
 
@@ -266,8 +266,6 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
                      evecs.conj())
 
 
-
-
 def unitary_entanglement_fidelity(U_actual: np.ndarray,
                                   U_ideal: np.ndarray) -> np.ndarray:
     r"""Entanglement fidelity between two unitaries.
@@ -301,4 +299,4 @@ def unitary_entanglement_fidelity(U_actual: np.ndarray,
 
     prod_trace = np.einsum('...ba,...ba->...', U_actual.conj(), U_ideal)
 
-    return np.real((np.abs(prod_trace)) / dim) ** 2
+    return np.real((np.abs(prod_trace)) / dim)**2

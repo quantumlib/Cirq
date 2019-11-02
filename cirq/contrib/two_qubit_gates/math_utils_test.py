@@ -2,8 +2,9 @@ import numpy as np
 import pytest
 
 from cirq import kak_canonicalize_vector, value
-from cirq.contrib.two_qubit_gates.math_utils import (
-    weyl_chamber_mesh, kak_vector_infidelity, random_qubit_unitary)
+from cirq.contrib.two_qubit_gates.math_utils import (weyl_chamber_mesh,
+                                                     kak_vector_infidelity,
+                                                     random_qubit_unitary)
 
 
 def test_weyl_chamber_mesh_spacing_too_small_throws_error():

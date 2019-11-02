@@ -165,13 +165,14 @@ class _TabulationStepResult(NamedTuple):
     kept_cycles: List[Tuple[_SingleQubitGatePair, ...]]
 
 
-def _tabulate_kak_vectors(*,
-                          already_tabulated: np.ndarray,
-                          base_gate: np.ndarray,
-                          max_dist: float,
-                          kak_mesh: np.ndarray,
-                          local_unitary_pairs: Sequence[_SingleQubitGatePair],
-                          ) -> _TabulationStepResult:
+def _tabulate_kak_vectors(
+        *,
+        already_tabulated: np.ndarray,
+        base_gate: np.ndarray,
+        max_dist: float,
+        kak_mesh: np.ndarray,
+        local_unitary_pairs: Sequence[_SingleQubitGatePair],
+) -> _TabulationStepResult:
     """Tabulate KAK vectors from products of local unitaries with a base gate.
 
     Args:
@@ -210,7 +211,7 @@ def _tabulate_kak_vectors(*,
     for ind, vec in enumerate(kak_vectors):
         # The L2 distance is an upper bound to the locally invariant distance,
         # but it's much faster to compute.
-        dists = np.sqrt(np.sum((kak_mesh - vec) ** 2, axis=-1))
+        dists = np.sqrt(np.sum((kak_mesh - vec)**2, axis=-1))
         close = (dists < max_dist).nonzero()[0]
         assert close.shape[0] in (0, 1), f'close.shape: {close.shape}'
         cycles_for_gate = tuple(
@@ -227,11 +228,12 @@ def _tabulate_kak_vectors(*,
 
 
 def gate_product_tabulation(base_gate: np.ndarray,
-                            max_infidelity: float, *,
+                            max_infidelity: float,
+                            *,
                             sample_scaling: int = 50,
                             allow_missed_points: bool = True,
                             random_state: value.RANDOM_STATE_LIKE = None
-                            ) -> GateTabulation:
+                           ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:
@@ -294,12 +296,12 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
     # repeat for double products
     # Multiply by the same local unitary in the gate product
-    out = _tabulate_kak_vectors(
-        already_tabulated=tabulated_kak_inds,
-        base_gate=base_gate,
-        max_dist=tabulation_cutoff,
-        kak_mesh=mesh_points,
-        local_unitary_pairs=[(u_locals_0, u_locals_1)] * 2)
+    out = _tabulate_kak_vectors(already_tabulated=tabulated_kak_inds,
+                                base_gate=base_gate,
+                                max_dist=tabulation_cutoff,
+                                kak_mesh=mesh_points,
+                                local_unitary_pairs=[(u_locals_0, u_locals_1)] *
+                                2)
 
     kak_vecs.extend(out.kept_kaks)
     sq_cycles.extend(out.kept_cycles)
@@ -346,7 +348,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         kaks = kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
-        dists2 = np.sum((kaks - kak_vecs_single) ** 2, axis=-1)
+        dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
         min_dist_inds = np.unravel_index(dists2.argmin(), dists2.shape)
         min_dist = np.sqrt(dists2[min_dist_inds])
         if min_dist < tabulation_cutoff:

@@ -13,16 +13,16 @@ _rng = value.parse_random_state(11)  # for determinism
 
 sycamore_tabulation = gate_product_tabulation(unitary(
     FSimGate(np.pi / 2, np.pi / 6)),
-    0.2,
-    random_state=_rng)
+                                              0.2,
+                                              random_state=_rng)
 
 sqrt_iswap_tabulation = gate_product_tabulation(unitary(
     FSimGate(np.pi / 4, np.pi / 24)),
-    0.1,
-    random_state=_rng)
+                                                0.1,
+                                                random_state=_rng)
 
-_random_2Q_unitaries = np.array([random_special_unitary(4, random_state=_rng)
-                                 for _ in range(100)])
+_random_2Q_unitaries = np.array(
+    [random_special_unitary(4, random_state=_rng) for _ in range(100)])
 
 
 @pytest.mark.parametrize('tabulation',
@@ -68,5 +68,3 @@ def test_gate_compilation_missing_points_raises_error():
                                 0.4,
                                 allow_missed_points=False,
                                 random_state=_rng)
-
-
