@@ -186,7 +186,7 @@ def test_parity_control_with_line_qubits_mapped_to():
 
 
 def test_repr():
-    a, b, c, d = cirq.LineQubit.range(4)
+    a, b, c = cirq.LineQubit.range(3)
     cirq.testing.assert_equivalent_repr(
         cirq.contrib.quirk.cells.control_cells.ControlCell(a, [cirq.Y(b)**0.5]))
     cirq.testing.assert_equivalent_repr(

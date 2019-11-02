@@ -144,7 +144,7 @@ def test_input_rotation_cell_with_qubits():
 
 
 def test_input_rotation_cell_with_qubits_before_register_specified():
-    a, b, c, d, e = cirq.LineQubit.range(5)
+    d, e = cirq.LineQubit.range(3, 5)
     x, y, z, t, w = cirq.LineQubit.range(10, 15)
     cell = cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
         identifier='test',

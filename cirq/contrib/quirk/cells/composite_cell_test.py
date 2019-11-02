@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
 import pytest
 
 import cirq
@@ -31,28 +30,27 @@ def test_iterator_to_iterable():
 
     # Normal iterator usage.
     k = 0
-    sequence1 = (counter() for _ in range(10))
+    generator = (counter() for _ in range(10))
     assert k == 0
-    assert list(sequence1) == list(range(10))
+    assert list(generator) == list(range(10))
     assert k == 10
-    assert list(sequence1) == []
+    assert list(generator) == []
     assert k == 10
 
     # Converted to iterable usage.
     k = 0
-    sequence1 = _iterator_to_iterable(counter() for _ in range(10))
+    generator = _iterator_to_iterable(counter() for _ in range(10))
     assert k == 0  # Does not immediately iterate.
-    assert list(sequence1) == list(range(10))
+    assert list(generator) == list(range(10))
     assert k == 10
-    assert list(sequence1) == list(range(10))
+    assert list(generator) == list(range(10))
     assert k == 10
 
     # Simultaneous converted to iterable usage with gradual iteration.
     k = 0
-    sequence1 = _iterator_to_iterable(counter() for _ in range(10))
-    sequence2 = _iterator_to_iterable(counter() for _ in range(10))
-    iter1 = iter(sequence1)
-    iter2 = iter(sequence1)
+    generator = _iterator_to_iterable(counter() for _ in range(10))
+    iter1 = iter(generator)
+    iter2 = iter(generator)
     assert k == 0
     # iter1 pulls ahead.
     assert next(iter1) == 0
