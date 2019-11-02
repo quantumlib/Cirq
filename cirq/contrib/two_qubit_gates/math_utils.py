@@ -266,14 +266,6 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
                      evecs.conj())
 
 
-def _two_local_2Q_unitaries(num_samples, rng: np.random.RandomState):
-    kl_0 = random_qubit_unitary((num_samples,), rng=rng)
-    kl_1 = random_qubit_unitary((num_samples,), rng=rng)
-    kr_0 = random_qubit_unitary((num_samples,), rng=rng)
-    kr_1 = random_qubit_unitary((num_samples,), rng=rng)
-    kl = vector_kron(kl_0, kl_1)
-    kr = vector_kron(kr_0, kr_1)
-    return kl, kr
 
 
 def unitary_entanglement_fidelity(U_actual: np.ndarray,
