@@ -1,7 +1,7 @@
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
 from functools import reduce
-from typing import Tuple, Dict, Sequence, List, NamedTuple, Set
+from typing import Tuple, Sequence, List, NamedTuple
 
 import numpy as np
 import attr

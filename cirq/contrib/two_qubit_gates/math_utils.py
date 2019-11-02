@@ -1,9 +1,7 @@
 import itertools
-from typing import Tuple, Union, Sequence, Optional
+from typing import Union, Sequence, Optional
 
 import numpy as np
-
-from cirq import value
 
 _RealArraylike = Union[np.ndarray, float]
 
