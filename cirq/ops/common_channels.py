@@ -21,6 +21,7 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
                       identity)
+from cirq.protocols.json import AddJson
 
 
 @value.value_equality
@@ -390,7 +391,7 @@ def generalized_amplitude_damp(
 
 
 @value.value_equality
-@protocols.json.AddJson(key='AmplitudeDampingChannel')
+@AddJson(key='AmplitudeDampingChannel')
 class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit amplitudes through dissipation.
 
