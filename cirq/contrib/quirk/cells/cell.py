@@ -63,7 +63,12 @@ class Cell(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def gate_count(self) -> int:
-        """Cheaply determines how many gates may be produced/touched.
+        """Cheaply determines an upper bound on the resulting circuit size.
+
+        The upper bound may be larger than the actual count. For example, a
+        small circuit may nevertheless have involved a huge amount of rewriting
+        work to create. In such cases the `gate_count` is permitted to be large
+        to indicate the danger, despite the output being small.
 
          This method exists in order to defend against billion laugh type
          attacks. It is important that counting is fast and efficient even in
