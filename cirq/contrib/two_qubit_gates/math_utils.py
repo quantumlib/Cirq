@@ -133,7 +133,7 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def kak_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                          ) -> np.ndarray:
+                         ) -> np.ndarray:
     r"""The locally invariant infidelity between two KAK vectors.
 
     This is the quantity
