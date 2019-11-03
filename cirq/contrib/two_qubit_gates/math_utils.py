@@ -133,12 +133,13 @@ def _kak_equivalent_vectors(kak_vec) -> np.ndarray:
 def kak_vector_infidelity(k_vec_a: np.ndarray,
                           k_vec_b: np.ndarray,
                           ignore_equivalent_vectors: bool = False
-                         ) -> np.ndarray:
+                          ) -> np.ndarray:
     r"""The locally invariant infidelity between two KAK vectors.
 
     This is the quantity
 
     \min 1 - F_e( exp(i k_a · (XX,YY,ZZ)) kL exp(i k_b · (XX,YY,ZZ)) kR)
+
     where F_e is the entanglement (process) fidelity and the minimum is taken
     over all 1-local unitaries kL, kR.
 
