@@ -563,6 +563,7 @@ def test_with_line_qubits_mapped_to():
         '+=A2', [a, b], [(c, d, e)])
     mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
         '+=A2', [a2, b2], [(c2, d2, e2)])
+    assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
 
     # Before assigned.
@@ -570,6 +571,7 @@ def test_with_line_qubits_mapped_to():
         '+=A2', [a, b], [None])
     mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
         '+=A2', [a2, b2], [None])
+    assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
 
     # After assigned to classical constant.
@@ -577,4 +579,5 @@ def test_with_line_qubits_mapped_to():
         '+=A2', [a, b], [42])
     mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
         '+=A2', [a2, b2], [42])
+    assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell

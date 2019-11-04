@@ -70,10 +70,10 @@ class Cell(metaclass=abc.ABCMeta):
         work to create. In such cases the `gate_count` is permitted to be large
         to indicate the danger, despite the output being small.
 
-         This method exists in order to defend against billion laugh type
-         attacks. It is important that counting is fast and efficient even in
-         extremely adversarial conditions.
-         """
+        This method exists in order to defend against billion laugh type
+        attacks. It is important that counting is fast and efficient even in
+        extremely adversarial conditions.
+        """
 
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':

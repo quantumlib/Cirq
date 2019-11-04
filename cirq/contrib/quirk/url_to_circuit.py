@@ -275,7 +275,7 @@ def _parse_cols_into_composite_cell(data: Dict[str, Any],
                      for col in parsed_cols
                      for cell in col)
 
-    return CompositeCell(height, parsed_cols, weight=gate_count)
+    return CompositeCell(height, parsed_cols, gate_count=gate_count)
 
 
 def _register_custom_gate(gate_json: Any, registry: Dict[str, CellMaker]):

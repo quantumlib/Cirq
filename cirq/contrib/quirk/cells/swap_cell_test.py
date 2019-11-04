@@ -53,6 +53,7 @@ def test_with_line_qubits_mapped_to():
                                                        controls=[c, d])
     mapped_cell = cirq.contrib.quirk.cells.swap_cell.SwapCell(qubits=[a2, b2],
                                                               controls=[c2, d2])
+    assert cell != mapped_cell
     assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2]) == mapped_cell
 
 
