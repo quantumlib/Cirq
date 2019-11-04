@@ -211,7 +211,9 @@ def test_clifford_state_stabilizers():
     state.apply_unitary(cirq.H(q1))
     state.apply_unitary(cirq.S(q1))
 
-    assert (state.stabilizers() == ['X0', 'Y1', 'Z2'])
+    f = cirq.DensePauliString
+    assert (state.stabilizers() == [f('XII'), f('IYI'), f('IIZ')])
+    assert (state.destabilizers() == [f('ZII'), f('IZI'), f('IIX')])
 
 
 def test_clifford_state_wave_function():
@@ -235,8 +237,11 @@ def test_clifford_tableau_str():
 def test_clifford_tableau_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
+    s1_repr = repr(cirq.DensePauliString("ZI"))
+    s2_repr = repr(cirq.DensePauliString("IZ"))
 
-    assert (repr(state.tableau) == "stabilizers: [Z0, Z1]")
+    assert (repr(state.tableau) == "stabilizers: [" + s1_repr + ", " + s2_repr +
+            "]")
 
 
 def test_clifford_tableau_str_full():
