@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Module for the thermal relaxation channel."""
 
 from typing import Iterable
@@ -104,22 +103,22 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         self._beta = value.validate_probability(beta, 'beta')
         self._p = value.validate_probability(p, 'p')
 
-        choi = np.array([[1. - (1-p) * gamma, 0, 0, np.sqrt(1.-beta)],
-                         [0, (1-p) * gamma, 0, 0],
+        choi = np.array([[1. - (1. - p) * gamma, 0, 0,
+                          np.sqrt(1. - beta)], [0, (1. - p) * gamma, 0, 0],
                          [0, 0, p * gamma, 0],
-                         [np.sqrt(1.-beta), 0, 0, 1.-p * gamma]])
+                         [np.sqrt(1. - beta), 0, 0, 1. - p * gamma]])
 
         vals, vecs = np.linalg.eigh(choi)
 
         # Convert to kraus using choi's theorem on CP maps.
-        self._kraus = ()
+        self._kraus: Iterable[np.ndarray] = ()
         for i in range(len(vals)):
-            vals += 1e-9 # fix small roundoffs.
+            vals += 1e-9  # fix small roundoffs.
             if vals[i] < 0:
                 raise ValueError('Thermal relaxation with '
                                  'p={}, gamma={}, beta={} breaks CP'
                                  ' requirement.'.format(p, gamma, beta))
-            kraus_i = np.sqrt(vals[i]) * vecs[:,i].reshape((2,2)).T
+            kraus_i = np.sqrt(vals[i]) * vecs[:, i].reshape((2, 2)).T
             self._kraus += (kraus_i,)
 
     def _channel_(self) -> Iterable[np.ndarray]:
@@ -132,22 +131,21 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         return self._p, self._gamma, self._beta
 
     def __repr__(self) -> str:
-        return 'cirq.thermal_relaxation(p={!r},gamma={!r}, beta={!r})'.format(
-            self._p, self._gamma, self._beta
-        )
+        return 'cirq.thermal_relaxation(p={!r},gamma={!r},beta={!r})'.format(
+            self._p, self._gamma, self._beta)
 
     def __str__(self) -> str:
-        return 'cirq.thermal_relaxation(p={!r},gamma={!r}, beta={!r})'.format(
-            self._p, self._gamma, self._beta
-        )
+        return 'thermal_relaxation(p={!r},gamma={!r},beta={!r})'.format(
+            self._p, self._gamma, self._beta)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
-            return 'ThR({},{})'.format(f, f, f).format(
-                self._p, self._gamma, self._beta)
-        return 'ThR({!r},{!r}, {!r})'.format(self._p, self._gamma, self._beta)
+            return 'ThR({},{},{})'.format(f, f,
+                                          f).format(self._p, self._gamma,
+                                                    self._beta)
+        return 'ThR({!r},{!r},{!r})'.format(self._p, self._gamma, self._beta)
 
     @property
     def p(self) -> float:
@@ -168,9 +166,8 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p', 'gamma', 'beta'])
 
 
-def thermal_relaxation(
-    p: float, gamma: float, beta: float
-) -> ThermalRelaxationChannel:
+def thermal_relaxation(p: float, gamma: float,
+                       beta: float) -> ThermalRelaxationChannel:
     r"""Returns a ThermalRelaxation channel with the given parameters.
 
     Recall the kraus opeartors for the `GeneralizedAmplitudeDampingChannel`:

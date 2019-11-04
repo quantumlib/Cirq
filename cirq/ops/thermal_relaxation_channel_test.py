@@ -11,21 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+from typing import Iterable
 import numpy as np
 import pytest
 
 import cirq
 
 
-def apply_channel(rho, chan):
+def apply_channel(rho: np.ndarray, chan: Iterable[np.ndarray]) -> np.ndarray:
     res = np.zeros_like(rho)
     for kraus in chan:
         res += kraus @ rho @ np.conj(kraus).T
     return res
 
 
-def assert_same_effect(rho, a, b):
+def assert_same_effect(rho: np.ndarray, a: np.ndarray, b: np.ndarray) -> None:
     res1 = apply_channel(rho, a)
     res2 = apply_channel(rho, b)
 
@@ -62,22 +62,62 @@ def test_thermal_relaxation_simultaneous_decay_diagonal():
 
     ch = cirq.thermal_relaxation(0.95, 0.1, 0.3)
     res = apply_channel(rho, cirq.channel(ch))
-    expected = np.array([[0.545, 0],
-                         [0, 0.455]])
+    expected = np.array([[0.545, 0], [0, 0.455]])
 
     np.testing.assert_array_almost_equal(res, expected)
 
 
 def test_thermal_relaxation_simultaneous_decay_full():
-    rho = np.array([[0.5, 0.5],
-                    [0.5, 0.5]])
+    rho = np.array([[0.5, 0.5], [0.5, 0.5]])
 
     ch = cirq.thermal_relaxation(0.95, 0.1, 0.3)
     res = apply_channel(rho, cirq.channel(ch))
-    expected = np.array([[0.545, 0.41833],
-                         [0.41833, 0.455]])
+    expected = np.array([[0.545, 0.41833], [0.41833, 0.455]])
 
     np.testing.assert_array_almost_equal(res, expected)
+
+
+def test_thermal_relaxation_has_channel():
+    assert cirq.has_channel(cirq.ThermalRelaxationChannel(0.1, 0.2, 0.3))
+
+
+def test_thermal_relaxation_properties():
+    ch = cirq.ThermalRelaxationChannel(0.1, 0.2, 0.3)
+    assert ch.p == 0.1
+    assert ch.gamma == 0.2
+    assert ch.beta == 0.3
+
+
+def test_thermal_relaxation_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.ThermalRelaxationChannel(0.1, 0.2, 0.3))
+
+
+def test_thermal_relaxation_channel_str():
+    assert (str(cirq.thermal_relaxation(
+        0.1, 0.2, 0.3)) == 'thermal_relaxation(p=0.1,gamma=0.2,beta=0.3)')
+
+
+def test_thermal_relaxation_text_diagram():
+    round_to_2_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
+                                                  known_qubit_count=None,
+                                                  use_unicode_characters=True,
+                                                  precision=2,
+                                                  qubit_map=None)
+
+    none_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
+                                            known_qubit_count=None,
+                                            use_unicode_characters=True,
+                                            precision=None,
+                                            qubit_map=None)
+
+    a = cirq.thermal_relaxation(0.123, 0.456, 0.789)
+    assert (cirq.circuit_diagram_info(
+        a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('ThR(0.12,0.46,0.79)',)))
+    assert (cirq.circuit_diagram_info(
+        a, args=none_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('ThR(0.123,0.456,0.789)',)))
 
 
 def test_thermal_relaxation_invalid_probs():

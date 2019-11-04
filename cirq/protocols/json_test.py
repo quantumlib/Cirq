@@ -284,6 +284,8 @@ TEST_OBJECTS = {
     cirq.google.SycamoreGate(),
     'T':
     cirq.T,
+    'ThermalRelaxationChannel':
+    cirq.ThermalRelaxationChannel(0.1, 0.2, 0.3),
     'TOFFOLI':
     cirq.TOFFOLI,
     'TwoQubitMatrixGate':
