@@ -19,6 +19,7 @@ import collections
 import itertools
 import sympy
 
+from cirq._doc import document
 from cirq.study import resolver
 
 
@@ -186,7 +187,8 @@ class _Unit(Sweep):
         return 'cirq.UnitSweep'
 
 
-UnitSweep = _Unit()  # singleton instance
+UnitSweep = _Unit()
+document(UnitSweep, """The singleton sweep with no parameters.""")
 
 
 class Product(Sweep):
