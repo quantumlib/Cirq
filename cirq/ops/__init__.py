@@ -203,6 +203,11 @@ from cirq.ops.swap_gates import (
     SwapPowGate,
 )
 
+from cirq.ops.thermal_relaxation_channel import (
+    thermal_relaxation,
+    ThermalRelaxationChannel,
+)
+
 from cirq.ops.three_qubit_gates import (
     CCNOT,
     CCX,

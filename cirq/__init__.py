@@ -241,6 +241,8 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    thermal_relaxation,
+    ThermalRelaxationChannel,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
