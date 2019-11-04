@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List
 import numpy as np
+
+import cirq
+from cirq.ops.dense_pauli_string import DensePauliString
 
 
 class CliffordTableau():
@@ -55,7 +59,8 @@ class CliffordTableau():
         return state
 
     def __repr__(self):
-        return "stabilizers: [{}]".format(", ".join(self.stabilizers()))
+        return "stabilizers: [{}]".format(", ".join(
+            [repr(stab) for stab in self.stabilizers()]))
 
     def __str__(self):
         string = ""
@@ -163,25 +168,31 @@ class CliffordTableau():
         self.xs[q1, :] ^= self.xs[q2, :]
         self.zs[q1, :] ^= self.zs[q2, :]
 
-    def stabilizers(self):
+    def _row_to_dense_pauli(self, i: int) -> DensePauliString:
+        coefficient = -1 if self.rs[i] else 1
+        pauli_mask = ""
+
+        for k in range(self.n):
+            if self.xs[i, k] & (not self.zs[i, k]):
+                pauli_mask += "X"
+            elif (not self.xs[i, k]) & self.zs[i, k]:
+                pauli_mask += "Z"
+            elif self.xs[i, k] & self.zs[i, k]:
+                pauli_mask += "Y"
+            else:
+                pauli_mask += "I"
+        return cirq.DensePauliString(pauli_mask, coefficient=coefficient)
+
+    def stabilizers(self) -> List[DensePauliString]:
         """Returns the stabilizer generators of the state. These
-        are n operators {S_1,S_2,...,S_n} such thate S_i |psi> = |psi> """
-        stabilizers = []
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
+        return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
 
-        for i in range(self.n, 2 * self.n):
-            stabilizer = "-" if self.rs[i] else ""
-
-            for k in range(self.n):
-                if self.xs[i, k] & (not self.zs[i, k]):
-                    stabilizer += "X%d" % k
-                elif (not self.xs[i, k]) & self.zs[i, k]:
-                    stabilizer += "Z%d" % k
-                elif self.xs[i, k] & self.zs[i, k]:
-                    stabilizer += "Y%d" % k
-
-            stabilizers.append(stabilizer)
-
-        return stabilizers
+    def destabilizers(self) -> List[DensePauliString]:
+        """Returns the destabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
+        generators above generate the full Pauli group on n qubits."""
+        return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
 
     def _measure(self, q):
         """ Performs a projective measurement on the q'th qubit.
