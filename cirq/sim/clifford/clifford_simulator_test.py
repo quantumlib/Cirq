@@ -237,11 +237,9 @@ def test_clifford_tableau_str():
 def test_clifford_tableau_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    s1_repr = repr(cirq.DensePauliString("ZI"))
-    s2_repr = repr(cirq.DensePauliString("IZ"))
-
-    assert (repr(state.tableau) == "stabilizers: [" + s1_repr + ", " + s2_repr +
-            "]")
+    f = cirq.DensePauliString
+    assert (repr(state.tableau) == "stabilizers: [{!r}, {!r}]".format(
+        f("ZI"), f("IZ")))
 
 
 def test_clifford_tableau_str_full():
