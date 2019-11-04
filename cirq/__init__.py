@@ -229,6 +229,7 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     reset,
+    MatrixGate,
     ResetChannel,
     Rx,
     Ry,

@@ -28,7 +28,7 @@ class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
     def __init__(self,
-                 wire_symbols: Tuple[str, ...],
+                 wire_symbols: Iterable[str],
                  exponent: Any = 1,
                  connected: bool = True,
                  exponent_qubit_index: Optional[int] = None,
@@ -54,8 +54,8 @@ class CircuitDiagramInfo:
         """
         if isinstance(wire_symbols, str):
             raise ValueError(
-                'Expected a Tuple[str] for wire_symbols but got a str.')
-        self.wire_symbols = wire_symbols
+                'Expected an Iterable[str] for wire_symbols but got a str.')
+        self.wire_symbols = tuple(wire_symbols)
         self.exponent = exponent
         self.connected = connected
         self.exponent_qubit_index = exponent_qubit_index
