@@ -94,8 +94,8 @@ def test_thermal_relaxation_repr():
 
 
 def test_thermal_relaxation_channel_str():
-    assert (str(cirq.thermal_relaxation(
-        0.1, 0.2, 0.3)) == 'thermal_relaxation(p_exchange=0.1,p_relaxation=0.2,p_dephasing=0.3)')
+    assert (str(cirq.thermal_relaxation(0.1, 0.2, 0.3)) == \
+        'thermal_relaxation(p_exchange=0.1,p_relaxation=0.2,p_dephasing=0.3)')
 
 
 def test_thermal_relaxation_text_diagram():

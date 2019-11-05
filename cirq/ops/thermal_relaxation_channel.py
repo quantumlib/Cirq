@@ -74,10 +74,12 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
             $$
              \begin{aligned}
                 CHO =&  \begin{bmatrix}
-                            1 - (1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1 - p_relaxation} \\
+                            1 - (1-p_exchange) p_relaxation & 0 & 0 &
+                                \sqrt{1 - p_relaxation} \\
                             0 & (1-p_exchange) p_relaxation 0 & 0 \\
                             0 & 0 & p_exchange p_relaxation & 0 \\
-                            \sqrt{1 - p_relaxation} & 0 & 0 & 1 - p_exchange p_relaxation
+                            \sqrt{1 - p_relaxation} & 0 & 0 &
+                                1 - p_exchange p_relaxation
                         \end{bmatrix}
              \end{aligned}
             $$
@@ -98,8 +100,8 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
                 energy.
 
         Raises:
-            ValueError: if p_exchange, p_relaxation or p_dephasing is not a valid
-                probability.
+            ValueError: if p_exchange, p_relaxation or p_dephasing is not a
+                valid probability.
             ValueError: if p_exchange, p_relaxation, p_dephasing breaks CP
                 condition.
         """
@@ -144,12 +146,16 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         return self._p_exchange, self._p_relaxation, self._p_dephasing
 
     def __repr__(self) -> str:
-        return 'cirq.thermal_relaxation(p_exchange={!r},p_relaxation={!r},p_dephasing={!r})'.format(
-            self._p_exchange, self._p_relaxation, self._p_dephasing)
+        return ('cirq.thermal_relaxation(p_exchange={!r},p_relaxation={!r},'
+                'p_dephasing={!r})').format(self._p_exchange,
+                                            self._p_relaxation,
+                                            self._p_dephasing)
 
     def __str__(self) -> str:
-        return 'thermal_relaxation(p_exchange={!r},p_relaxation={!r},p_dephasing={!r})'.format(
-            self._p_exchange, self._p_relaxation, self._p_dephasing)
+        return ('thermal_relaxation(p_exchange={!r},p_relaxation={!r},'
+                'p_dephasing={!r})').format(self._p_exchange,
+                                            self._p_relaxation,
+                                            self._p_dephasing)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -227,10 +233,12 @@ def thermal_relaxation(p_exchange: float, p_relaxation: float,
         $$
          \begin{aligned}
             CHO =&  \begin{bmatrix}
-                        1 - (1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1 - p_relaxation} \\
+                        1 - (1-p_exchange) p_relaxation & 0 & 0 &
+                            \sqrt{1 - p_relaxation} \\
                         0 & (1-p_exchange) p_relaxation 0 & 0 \\
                         0 & 0 & p_exchange p_relaxation & 0 \\
-                        \sqrt{1 - p_relaxation} & 0 & 0 & 1 - p_exchange p_relaxation
+                        \sqrt{1 - p_relaxation} & 0 & 0 &
+                            1 - p_exchange p_relaxation
                     \end{bmatrix}
          \end{aligned}
         $$
