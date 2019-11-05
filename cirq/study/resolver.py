@@ -47,12 +47,13 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
