@@ -64,6 +64,22 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                        repetitions=repetitions)
 
 
+def _to_circuit_like(
+        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE,
+                        schedules.Schedule]
+    ) -> 'Union[circuits.Circuit, schedules.Schedule]':
+    result = None
+    if isinstance(program, (schedules.Schedule, circuits.Circuit)):
+        # No change needed.
+        result = program
+    elif isinstance(program, ops.Gate):
+        result = circuits.Circuit(
+            program.on(*devices.LineQid.for_gate(program)))
+    else:
+        # It should be an OP_TREE.
+        result = circuits.Circuit(program)
+    return cast(Union[circuits.Circuit, schedules.Schedule], result)
+
 def final_wavefunction(
         program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
                        Schedule],
@@ -183,3 +199,68 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                               seed=prng)
         trial_results.append(measurements)
     return trial_results
+
+def final_density_matrix(
+        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
+                       Schedule],
+        *,
+        noise: 'cirq.NOISE_MODEL_LIKE' = None,
+        initial_state: Union[int, Sequence[Union[int, float, complex]], np.
+                             ndarray] = 0,
+        param_resolver: study.ParamResolverOrSimilarType = None,
+        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+        dtype: Type[np.number] = np.complex64,
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> 'np.ndarray':
+    """Returns the density matrix resulting from simulating the circuit.
+    The terminal measurements would affect the returned result.
+
+    Args:
+        program: The circuit, schedule, gate, operation, or tree of operations
+            to apply to the initial state in order to produce the result.
+        noise: Noise model to use while running the simulation.
+        param_resolver: Parameters to run with the program.
+        qubit_order: Determines the canonical ordering of the qubits. This
+            is often used in specifying the initial state, i.e. the
+            ordering of the computational basis states.
+        initial_state: If an int, the state is set to the computational
+            basis state corresponding to this state. Otherwise  if this
+            is a np.ndarray it is the full initial state. In this case it
+            must be the correct size, be normalized (an L2 norm of 1), and
+            be safely castable to an appropriate dtype for the simulator.
+        dtype: The `numpy.dtype` used by the simulation. Typically one of
+            `numpy.complex64` or `numpy.complex128`.
+        seed: The random seed to use for this simulator.
+
+    Returns:
+        The density matrix for the state which results from applying the given
+        operations to the desired initial state.
+
+    """
+    initial_state_like = None
+    if not isinstance(initial_state, int):
+        initial_state_like = np.asarray(initial_state, dtype=dtype)
+    else:
+        initial_state_like = initial_state
+
+    noise_model = devices.NoiseModel.from_noise_model_like(noise)
+    circuit_like = _to_circuit_like(program)
+
+    if not noise_model == devices.NO_NOISE and not protocols.has_unitary(circuit_like):
+        raise Exception("Noise specified more than once.")
+    elif noise_model == devices.NO_NOISE and protocols.has_unitary(circuit_like):
+        # pure case: use SparseSimulator
+        result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
+        program=circuit_like,
+        initial_state=initial_state_like,
+        qubit_order=qubit_order,
+        param_resolver=param_resolver).density_matrix_of()
+    else:
+        # noisy case: use DensityMatrixSimulator
+        result = density_matrix_simulator.DensityMatrixSimulator(
+        dtype=dtype, noise=noise, seed=seed).simulate(
+        program=circuit_like,
+        initial_state=initial_state_like,
+        qubit_order=qubit_order,
+        param_resolver=param_resolver).final_density_matrix
+    return result

@@ -304,6 +304,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_density_matrix,
     final_wavefunction,
     sample,
     sample_density_matrix,
