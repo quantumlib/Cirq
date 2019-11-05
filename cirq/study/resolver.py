@@ -17,14 +17,21 @@
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
 from cirq import value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-# Things that ParamResolver understands how to wrap.
 ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+document(
+    ParamDictType,  # type: ignore
+    """Dictionary from symbols to values.""")
+
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+document(
+    ParamResolverOrSimilarType,  # type: ignore
+    """Something that can be used to turn parameters into values.""")
 
 
 class ParamResolver(object):

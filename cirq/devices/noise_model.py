@@ -15,6 +15,7 @@
 from typing import TYPE_CHECKING, Sequence, Union
 
 from cirq import ops, protocols, value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -206,6 +207,22 @@ class ConstantQubitNoiseModel(NoiseModel):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
 
-NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
-"""An object which can be unambiguously converted into a noise model."""
+NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()
+document(
+    NO_NOISE, """The trivial noise model with no effects.
+
+    This is the noise model used when a `NOISE_MODEL_LIKE` noise parameter is
+    set to `None`.
+    """)
+
 NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
+document(
+    NOISE_MODEL_LIKE,  # type: ignore
+    """A `cirq.NoiseModel` or a value that can be trivially converted into one.
+
+    `None` is a `NOISE_MODEL_LIKE`. It will be replaced by the `cirq.NO_NOISE`
+    noise model.
+
+    A single qubit gate is a `NOISE_MODEL_LIKE`. It will be wrapped inside of a
+    `cirq.ConstantQubitNoiseModel`.
+    """)
