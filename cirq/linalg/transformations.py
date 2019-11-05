@@ -388,7 +388,8 @@ def subwavefunction(wavefunction: np.ndarray,
     of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
     $|x\rangle$ is defined over the subset `keep_indices` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
-    return $|x\rangle$. Note that $|x\rangle$ is not unique, because
+    return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
+    multiplication may be absorbed by any factor of a tensor product:
 
     $$
         (e^{i \theta} |y\rangle) \otimes (|x\rangle)
