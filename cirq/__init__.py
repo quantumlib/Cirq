@@ -195,6 +195,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     measure,

@@ -23,6 +23,7 @@ raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 from typing import Optional, Tuple
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
@@ -245,6 +246,12 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return ('cirq.ISwapPowGate(exponent={}, '
                 'global_shift={!r})').format(proper_repr(self._exponent),
                                              self._global_shift)
+
+
+def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
+    """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
+    pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
+    return ISwapPowGate()**(2 * angle_rads / pi)
 
 
 SWAP = SwapPowGate()
