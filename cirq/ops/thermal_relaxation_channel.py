@@ -86,12 +86,12 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
 
         For the `ThermalRelaxationChannel` channel we simply substitute `beta`
         in for `gamma` on the off diagonal elements of the above choi matrix
-        and then evolve the channing use the kraus operators found by sqrt
+        and then evolve the channel using the kraus operators found by sqrt
         factorization of the choi matrix.
 
         Args:
-            gamma: the probability of the interaction being dissipative.
-            beta: the probability of the interaction being dissipative.
+            gamma: the probability of amplitude damping/relaxation occuring.
+            beta: the probability of dephasing occuring.
             p: the probability of the qubit and environment exchanging energy.
 
         Raises:
@@ -214,12 +214,12 @@ def thermal_relaxation(p: float, gamma: float,
 
         For the `ThermalRelaxationChannel` channel we simply substitute `beta`
         in for `gamma` on the off diagonal elements of the above choi matrix
-        and then evolve the channing use the kraus operators found by sqrt
+        and then evolve the channel using the kraus operators found by sqrt
         factorization of the choi matrix.
 
     Args:
-        gamma: the probability of the interaction being dissipative.
-        beta: the probability of the interaction being dissipative.
+        gamma: the probability of amplitude damping/relaxation occuring.
+        beta: the probability of dephasing occuring.
         p: the probability of the qubit and environment exchanging energy.
 
     Raises:
