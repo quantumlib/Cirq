@@ -338,7 +338,7 @@ def test_final_density_matrix_qubit_order():
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
 
 
-def test_final_wavefunction_seed():
+def test_final_density_matrix_seed():
     a = cirq.LineQubit(0)
     np.testing.assert_allclose(cirq.final_density_matrix(
         [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [[0, 0], [0, 1]],
@@ -348,7 +348,7 @@ def test_final_wavefunction_seed():
                                atol=1e-4)
 
 
-def test_final_wavefunction_noise():
+def test_final_density_matrix_noise():
     a = cirq.LineQubit(0)
     np.testing.assert_allclose(cirq.final_density_matrix(
         [cirq.H(a), cirq.Z(a), cirq.H(a),

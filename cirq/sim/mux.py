@@ -257,13 +257,16 @@ def final_density_matrix(
             program=circuit_like,
             initial_state=initial_state_like,
             qubit_order=qubit_order,
-            param_resolver=param_resolver).density_matrix_of()
+            param_resolver=param_resolver)
+        return cast(wave_function_simulator.WaveFunctionStepResult,
+                    result).density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator
         result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype, noise=noise, seed=seed).simulate(
-                program=circuit_like,
-                initial_state=initial_state_like,
-                qubit_order=qubit_order,
-                param_resolver=param_resolver).final_density_matrix
-    return result
+            dtype=dtype, noise=noise,
+            seed=seed).simulate(program=circuit_like,
+                                initial_state=initial_state_like,
+                                qubit_order=qubit_order,
+                                param_resolver=param_resolver)
+        return cast(density_matrix_simulator.DensityMatrixTrialResult,
+                    result).final_density_matrix
