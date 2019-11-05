@@ -372,7 +372,6 @@ class Operation(metaclass=abc.ABCMeta):
                 exactly match the order of qubits returned from the operation's
                 `qubits` property.
         """
-        pass
 
     def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':
         """Returns the same operation, but with different qubits.
