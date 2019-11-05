@@ -17,10 +17,12 @@ from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
 
 import numpy as np
 import sympy
+from dataclasses import dataclass
 from google.protobuf import json_format
 
 from cirq import devices, ops
 from cirq.api.google import v2
+
 from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
@@ -31,17 +33,11 @@ if TYPE_CHECKING:
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
-class SerializingArg(
-        NamedTuple(
-            'SerializingArg',
-            [('serialized_name', str),
-             ('serialized_type', Type[arg_func_langs.ArgValue]),
-             ('gate_getter',
-              Union[str, Callable[['cirq.Gate'], arg_func_langs.ArgValue]]),
-             ('required', bool)])):
+@dataclass
+class SerializingArg:
     """Specification of the arguments for a Gate and its serialization.
 
-    Attributes:
+    Args:
         serialized_name: The name of the argument when it is serialized.
         serialized_type: The type of the argument when it is serialized.
         gate_getter: The name of the property or attribute for getting the
@@ -52,15 +48,10 @@ class SerializingArg(
         required: Whether this argument is a required argument for the
             serialized form.
     """
-
-    def __new__(cls,
-                serialized_name,
-                serialized_type,
-                gate_getter,
-                required=True):
-        return super(SerializingArg,
-                     cls).__new__(cls, serialized_name, serialized_type,
-                                  gate_getter, required)
+    serialized_name: str
+    serialized_type: Type[arg_func_langs.ArgValue]
+    gate_getter: Union[str, Callable[['cirq.Gate'], arg_func_langs.ArgValue]]
+    required: bool = True
 
 
 class GateOpSerializer:
