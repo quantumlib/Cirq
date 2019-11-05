@@ -353,7 +353,7 @@ def test_final_wavefunction_seed():
         [cirq.X(a)**0.5, cirq.measure(a)], seed=123),
     [[0, 0],[0, 1]], atol=1e-4)
     np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=123),
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=124),
     [[1, 0],[0, 0]], atol=1e-4)
 
 def test_final_wavefunction_noise():
