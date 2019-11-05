@@ -200,6 +200,7 @@ from cirq.ops.raw_types import (
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     SWAP,
     SwapPowGate,
 )
