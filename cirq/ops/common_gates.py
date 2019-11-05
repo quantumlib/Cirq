@@ -24,7 +24,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Iterable, List, Optional, Tuple, Union
+from typing import Any, cast, Optional, Tuple, Union
 
 import numpy as np
 import sympy
@@ -32,6 +32,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
@@ -96,6 +97,18 @@ class XPowGate(eigen_gate.EigenGate,
             (0, np.array([[0.5, 0.5], [0.5, 0.5]])),
             (1, np.array([[0.5, -0.5], [-0.5, 0.5]])),
         ]
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.X_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.X.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.X_nsqrt.on(*qubits)
+        return NotImplemented
 
     def _trace_distance_bound_(self) -> Optional[float]:
         if self._is_parameterized_():
@@ -218,6 +231,18 @@ class YPowGate(eigen_gate.EigenGate,
         """Returns an equal-up-global-phase standardized form of the gate."""
         return YPowGate(exponent=self._exponent)
 
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.Y_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.Y.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.Y_nsqrt.on(*qubits)
+        return NotImplemented
+
     def _eigen_components(self):
         return [
             (0, np.array([[0.5, -0.5j], [0.5j, 0.5]])),
@@ -334,6 +359,18 @@ class ZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return SingleQubitCliffordGate.Z_sqrt.on(*qubits)
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.Z.on(*qubits)
+        if self.exponent % 2 == 1.5:
+            return SingleQubitCliffordGate.Z_nsqrt.on(*qubits)
+        return NotImplemented
 
     def in_su2(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -494,6 +531,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'Z': -1j * phase * np.sin(angle) / np.sqrt(2),
         })
 
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        if self.exponent % 2 == 1:
+            return SingleQubitCliffordGate.H.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
+
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
         if self._exponent != 1:
@@ -572,6 +617,14 @@ class CZPowGate(eigen_gate.EigenGate,
     `cirq.CZ`, the controlled Z gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 1:
+            return PauliInteractionGate.CZ.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
 
     def _eigen_components(self):
         return [
@@ -678,6 +731,14 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     `cirq.CNOT`, the controlled NOT gate, is an instance of this gate at
     `exponent=1`.
     """
+
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 1:
+            return PauliInteractionGate.CNOT.on(*qubits)
+        if self.exponent % 2 == 0:
+            return []
+        return NotImplemented
 
     def _decompose_(self, qubits):
         c, t = qubits
@@ -788,51 +849,64 @@ def Rz(rads: value.TParamVal) -> ZPowGate:
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-# The Hadamard gate.
-#
-# Matrix:
-#
-#     [[s, s],
-#      [s, -s]]
-#     where s = sqrt(0.5).
 H = HPowGate()
+document(
+    H, """The Hadamard gate.
 
-# The Clifford S gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, i]]
+    The `exponent=1` instance of `cirq.HPowGate`.
+
+    Matrix:
+        [[s, s],
+         [s, -s]]
+        where s = sqrt(0.5).
+    """)
+
 S = ZPowGate(exponent=0.5)
+document(
+    S, """The Clifford S gate.
 
+    The `exponent=0.5` instance of `cirq.ZPowGate`.
 
-# The non-Clifford T gate.
-#
-# Matrix:
-#
-#     [[1, 0]
-#      [0, exp(i pi / 4)]]
+    Matrix:
+        [[1, 0],
+         [0, i]]
+    """)
+
 T = ZPowGate(exponent=0.25)
+document(
+    T, """The non-Clifford T gate.
 
+    The `exponent=0.25` instance of `cirq.ZPowGate`.
 
-# The controlled Z gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 0, 0, -1]]
+    Matrix:
+        [[1, 0]
+         [0, exp(i pi / 4)]]
+    """)
+
 CZ = CZPowGate()
+document(
+    CZ, """The controlled Z gate.
 
+    The `exponent=1` instance of `cirq.CZPowGate`.
 
-# The controlled NOT gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1],
-#      [0, 0, 1, 0]]
-CNOT = CNotPowGate()
-CX = CNOT
+    Matrix:
+
+        [[1 . . .],
+         [. 1 . .],
+         [. . 1 .],
+         [. . . -1]]
+    """)
+
+CNOT = CX = CNotPowGate()
+document(
+    CNOT, """The controlled NOT gate.
+
+    The `exponent=1` instance of `cirq.CNotPowGate`.
+
+    Matrix:
+
+        [[1 . . .],
+         [. 1 . .],
+         [. . . 1],
+         [. . 1 .]]
+    """)

@@ -14,20 +14,124 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple, List
+from typing import cast, Any, Tuple, Optional, Iterable
 
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq._compat import proper_repr
-from cirq.ops import gate_features
+from cirq._compat import proper_repr, deprecated
+from cirq.ops import gate_features, raw_types
 
 
-def _phase_matrix(turns: float) -> np.ndarray:
-    return np.diag([1, np.exp(2j * np.pi * turns)])
+class MatrixGate(raw_types.Gate):
+    """A unitary qubit or qudit gate defined entirely by its matrix."""
+
+    def __init__(self,
+                 matrix: np.ndarray,
+                 *,
+                 qid_shape: Optional[Iterable[int]] = None) -> None:
+        """Initializes a matrix gate.
+        Args:
+            matrix: The matrix that defines the gate.
+            qid_shape: The shape of state tensor that the matrix applies to.
+                If not specified, this value is inferred by assuming that the
+                matrix is supposed to apply to qubits.
+        """
+        if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
+            raise ValueError('`matrix` must be a square 2d numpy array.')
+
+        if qid_shape is None:
+            n = int(np.round(np.log2(matrix.shape[0] or 1)))
+            if 2**n != matrix.shape[0]:
+                raise ValueError('Matrix width is not a power of 2 and '
+                                 'qid_shape is not specified.')
+            qid_shape = (2,) * n
+
+        self._matrix = matrix
+        self._qid_shape = tuple(qid_shape)
+        m = int(np.prod(self._qid_shape))
+        if self._matrix.shape != (m, m):
+            raise ValueError('Wrong matrix shape for qid_shape.\n'
+                             f'Matrix shape: {self._matrix.shape}\n'
+                             f'qid_shape: {self._qid_shape}\n')
+
+        if not linalg.is_unitary(matrix):
+            raise ValueError(f'Not a unitary matrix: {self._matrix}')
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix.tolist(),
+            'qid_shape': self._qid_shape,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix, qid_shape, **kwargs):
+        return cls(matrix=np.array(matrix), qid_shape=qid_shape)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self._qid_shape
+
+    def __pow__(self, exponent: Any) -> 'MatrixGate':
+        if not isinstance(exponent, (int, float)):
+            return NotImplemented
+        e = cast(float, exponent)
+        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
+        return MatrixGate(new_mat)
+
+    def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
+        if not isinstance(phase_turns, (int, float)):
+            return NotImplemented
+        if self._qid_shape[qubit_index] != 2:
+            return NotImplemented
+        result = np.copy(self._matrix).reshape(self._qid_shape * 2)
+
+        p = np.exp(2j * np.pi * phase_turns)
+        i = qubit_index
+        j = qubit_index + len(self._qid_shape)
+        result[linalg.slice_for_qubits_equal_to([i], 1)] *= p
+        result[linalg.slice_for_qubits_equal_to([j], 1)] *= np.conj(p)
+        return MatrixGate(matrix=result.reshape(self._matrix.shape),
+                          qid_shape=self._qid_shape)
+
+    def _has_unitary_(self) -> bool:
+        return True
+
+    def _unitary_(self) -> np.ndarray:
+        return np.copy(self._matrix)
+
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
+        main = _matrix_to_diagram_symbol(self._matrix, args)
+        rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
+        return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
+
+    def __hash__(self):
+        vals = tuple(v for _, v in np.ndenumerate(self._matrix))
+        return hash((MatrixGate, vals))
+
+    def _approx_eq_(self, other: Any, atol) -> bool:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (self._qid_shape == other._qid_shape and
+                np.array_equal(self._matrix, other._matrix))
+
+    def __ne__(self, other):
+        return not self == other
+
+    def __repr__(self):
+        return 'cirq.MatrixGate({})'.format(proper_repr(self._matrix))
+
+    def __str__(self):
+        return str(self._matrix.round(3))
 
 
-class SingleQubitMatrixGate(gate_features.SingleQubitGate):
+class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
     """A 1-qubit or qudit gate defined by its matrix.
 
     More general than specialized classes like `ZPowGate`, but more expensive
@@ -35,155 +139,21 @@ class SingleQubitMatrixGate(gate_features.SingleQubitGate):
     eigendecompositions).
     """
 
+    @deprecated(deadline='v0.8',
+                fix='Use `cirq.MatrixGate` instead.',
+                func_name='cirq.SingleQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
         """
-        Initializes the 2-qubit matrix gate.
+        Initializes the single qubit matrix gate.
 
         Args:
             matrix: The matrix that defines the gate.
         """
-        if (len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1] or
-                not linalg.is_unitary(matrix)):
-            raise ValueError(
-                'Not a 2x2 (or d x d) unitary matrix: {}'.format(matrix))
-        self._matrix = matrix
-
-    def _qid_shape_(self) -> Tuple[int]:
-        return (self._matrix.shape[0],)
-
-    def validate_args(self, qubits):
-        super().validate_args(qubits)
-        if len(qubits) != 1:
-            raise ValueError(
-                'Single-qubit gate applied to multiple qubits: {}({})'.format(
-                    self, qubits))
-
-    def __pow__(self, exponent: Any) -> 'SingleQubitMatrixGate':
-        if not isinstance(exponent, (int, float)):
-            return NotImplemented
-        e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
-        return SingleQubitMatrixGate(new_mat)
-
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'SingleQubitMatrixGate':
-        if not isinstance(phase_turns, (int, float)):
-            return NotImplemented
-        z = _phase_matrix(phase_turns)
-        phased_matrix = z.dot(self._matrix).dot(np.conj(z.T))
-        return SingleQubitMatrixGate(phased_matrix)
-
-    def _has_unitary_(self) -> bool:
-        return True
-
-    def _unitary_(self) -> np.ndarray:
-        return np.array(self._matrix)
-
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args),))
-
-    def __hash__(self):
-        vals = tuple(v for _, v in np.ndenumerate(self._matrix))
-        return hash((SingleQubitMatrixGate, vals))
-
-    def _approx_eq_(self, other: Any, atol) -> bool:
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return np.array_equal(self._matrix, other._matrix)
-
-    def __ne__(self, other):
-        return not self == other
+        super().__init__(matrix, qid_shape=(matrix.shape[0],))
 
     def __repr__(self):
-        return 'cirq.SingleQubitMatrixGate({})'.format(
-            proper_repr(self._matrix))
-
-    def __str__(self):
-        return str(self._matrix.round(3))
-
-
-class TwoQubitMatrixGate(gate_features.TwoQubitGate):
-    """A 2-qubit gate defined only by its matrix.
-
-    More general than specialized classes like `CZPowGate`, but more expensive
-    and more float-error sensitive to work with (due to using
-    eigendecompositions).
-    """
-
-    def __init__(self, matrix: np.ndarray) -> None:
-        """
-        Initializes the 2-qubit matrix gate.
-
-        Args:
-            matrix: The matrix that defines the gate.
-        """
-
-        if matrix.shape != (4, 4) or not linalg.is_unitary(matrix):
-            raise ValueError('Not a 4x4 unitary matrix: {}'.format(matrix))
-        self._matrix = matrix
-
-    def validate_args(self, qubits):
-        super().validate_args(qubits)
-        if len(qubits) != 2:
-            raise ValueError(
-                'Two-qubit gate not applied to two qubits: {}({})'.format(
-                    self, qubits))
-
-    def __pow__(self, exponent: Any) -> 'TwoQubitMatrixGate':
-        if not isinstance(exponent, (int, float)):
-            return NotImplemented
-        e = cast(float, exponent)
-        new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
-        return TwoQubitMatrixGate(new_mat)
-
-    def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'TwoQubitMatrixGate':
-        if not isinstance(phase_turns, (int, float)):
-            return NotImplemented
-        i = np.eye(2)
-        z = _phase_matrix(phase_turns)
-        z2 = np.kron(i, z) if qubit_index else np.kron(z, i)
-        phased_matrix = z2.dot(self._matrix).dot(np.conj(z2.T))
-        return TwoQubitMatrixGate(phased_matrix)
-
-    def _approx_eq_(self, other: Any, atol) -> bool:
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return np.allclose(self._matrix, other._matrix, rtol=0, atol=atol)
-
-    def _unitary_(self) -> np.ndarray:
-        return np.array(self._matrix)
-
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=(_matrix_to_diagram_symbol(self._matrix, args), '#2'))
-
-    def __hash__(self):
-        vals = tuple(v for _, v in np.ndenumerate(self._matrix))
-        return hash((SingleQubitMatrixGate, vals))
-
-    def __eq__(self, other):
-        if not isinstance(other, type(self)):
-            return NotImplemented
-        return np.alltrue(self._matrix == other._matrix)
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __repr__(self):
-        return 'cirq.TwoQubitMatrixGate({})'.format(
-                proper_repr(self._matrix))
-
-    def __str__(self):
-        return str(self._matrix.round(3))
+        return 'cirq.SingleQubitMatrixGate({})'.format(proper_repr(
+            self._matrix))
 
     def _json_dict_(self):
         return {
@@ -192,8 +162,42 @@ class TwoQubitMatrixGate(gate_features.TwoQubitGate):
         }
 
     @classmethod
-    def _from_json_dict_(cls, matrix: List, **kwargs):
-        return cls(np.asarray(matrix))
+    def _from_json_dict_(cls, matrix, **kwargs):
+        return cls(matrix=np.array(matrix))
+
+
+class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
+    """A 2-qubit gate defined only by its matrix.
+
+    More general than specialized classes like `CZPowGate`, but more expensive
+    and more float-error sensitive to work with (due to using
+    eigendecompositions).
+    """
+
+    @deprecated(deadline='v0.8',
+                fix='Use `cirq.MatrixGate` instead.',
+                func_name='cirq.TwoQubitMatrixGate')
+    def __init__(self, matrix: np.ndarray) -> None:
+        """
+        Initializes the 2-qubit matrix gate.
+
+        Args:
+            matrix: The matrix that defines the gate.
+        """
+        super().__init__(matrix, qid_shape=(2, 2))
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'matrix': self._matrix,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, matrix, **kwargs):
+        return cls(matrix=np.array(matrix))
+
+    def __repr__(self):
+        return 'cirq.TwoQubitMatrixGate({})'.format(proper_repr(self._matrix))
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,

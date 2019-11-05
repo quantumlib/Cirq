@@ -50,6 +50,7 @@ from cirq.google.engine import (
 
 from cirq.google.gate_sets import (
     XMON,
+    SQRT_ISWAP_GATESET,
     SYC_GATESET,
 )
 
@@ -58,6 +59,11 @@ from cirq.google.line import (
     GreedySequenceSearchStrategy,
     line_on_device,
     LinePlacementStrategy,
+)
+
+from cirq.google.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
 )
 
 from cirq.google.optimizers import (

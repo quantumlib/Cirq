@@ -33,7 +33,7 @@ def test_serialize_exp_w(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -66,7 +66,7 @@ def test_serialize_exp_w_parameterized_half_turns(gate, axis_half_turns,
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -91,7 +91,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
     q = cirq.GridQubit(1, 2)
     expected = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -120,12 +120,17 @@ def test_serialize_exp_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
     assert cg.XMON.serialize_op_dict(gate.on(q)) == {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
+                }
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
                 }
             }
         },
@@ -140,11 +145,16 @@ def test_serialize_exp_z_parameterized():
     gate = cirq.Z**sympy.Symbol('x')
     assert cg.XMON.serialize_op_dict(gate.on(q)) == {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'symbol': 'x'
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
+                }
             }
         },
         'qubits': [{
@@ -162,14 +172,14 @@ def test_serialize_exp_11(gate, half_turns):
     t = cirq.GridQubit(1, 3)
     assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
                 }
-            }
+            },
         },
         'qubits': [{
             'id': '1_2'
@@ -185,7 +195,7 @@ def test_serialize_exp_11_parameterized():
     gate = cirq.CZ**sympy.Symbol('x')
     assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
@@ -321,7 +331,7 @@ def test_serialize_schedule():
 def test_deserialize_exp_w(axis_half_turns, half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -348,7 +358,7 @@ def test_deserialize_exp_w(axis_half_turns, half_turns):
 def test_deserialize_exp_w_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_w'
+            'id': 'xy'
         },
         'args': {
             'axis_half_turns': {
@@ -372,12 +382,17 @@ def test_deserialize_exp_w_parameterized():
 def test_deserialize_exp_z(half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
+                }
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
                 }
             }
         },
@@ -393,11 +408,16 @@ def test_deserialize_exp_z(half_turns):
 def test_deserialize_exp_z_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_z'
+            'id': 'z'
         },
         'args': {
             'half_turns': {
                 'symbol': 'x'
+            },
+            'type': {
+                'arg_value': {
+                    'string_value': 'virtual_propagates_forward'
+                }
             }
         },
         'qubits': [{
@@ -413,7 +433,7 @@ def test_deserialize_exp_z_parameterized():
 def test_deserialize_exp_11(half_turns):
     serialized_op = {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
@@ -437,7 +457,7 @@ def test_deserialize_exp_11(half_turns):
 def test_deserialize_exp_11_parameterized():
     serialized_op = {
         'gate': {
-            'id': 'exp_11'
+            'id': 'cz'
         },
         'args': {
             'half_turns': {
@@ -582,7 +602,7 @@ def test_serialize_deserialize_syc():
 
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
-    op = cirq.SYC(q0, q1)
+    op = cg.SYC(q0, q1)
     assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
     assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
 
@@ -593,6 +613,8 @@ def test_serialize_fails_on_other_fsim_gates():
     op = cirq.FSimGate(phi=0.5, theta=-0.2)(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
         _ = cg.SYC_GATESET.serialize_op_dict(op)
+    with pytest.raises(ValueError, match='Cannot serialize'):
+        _ = cg.SQRT_ISWAP_GATESET.serialize_op_dict(op)
 
 
 def test_serialize_fails_on_symbols():
@@ -601,6 +623,56 @@ def test_serialize_fails_on_symbols():
     op = cirq.FSimGate(phi=np.pi / 2, theta=sympy.Symbol('t'))(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
         _ = cg.SYC_GATESET.serialize_op_dict(op)
+    with pytest.raises(ValueError, match='Cannot serialize'):
+        _ = cg.SQRT_ISWAP_GATESET.serialize_op_dict(op)
+
+
+def test_serialize_deserialize_sqrt_iswap():
+    proto_dict = {
+        'gate': {
+            'id': 'fsim_pi_4'
+        },
+        'args': {},
+        'qubits': [{
+            'id': '1_2'
+        }, {
+            'id': '1_3'
+        }]
+    }
+
+    q0 = cirq.GridQubit(1, 2)
+    q1 = cirq.GridQubit(1, 3)
+    op = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+    op2 = cirq.ISWAP(q0, q1)**-0.5
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op2) == proto_dict
+    # Note that ISWAP deserializes back to a FSimGate
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+
+
+def test_serialize_deserialize_inv_sqrt_iswap():
+    proto_dict = {
+        'gate': {
+            'id': 'inv_fsim_pi_4'
+        },
+        'args': {},
+        'qubits': [{
+            'id': '1_2'
+        }, {
+            'id': '1_3'
+        }]
+    }
+
+    q0 = cirq.GridQubit(1, 2)
+    q1 = cirq.GridQubit(1, 3)
+    op = cirq.FSimGate(theta=-np.pi / 4, phi=0)(q0, q1)
+    op2 = cirq.ISWAP(q0, q1)**+0.5
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op2) == proto_dict
+    # Note that ISWAP deserializes back to a FSimGate
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -641,6 +713,13 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
         cirq.unitary(op),
         atol=1e-7,
     )
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == expected
+    deserialized_op = cg.SQRT_ISWAP_GATESET.deserialize_op_dict(expected)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(deserialized_op),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
 
 
 @pytest.mark.parametrize(('qubits', 'qubit_ids', 'key', 'invert_mask'), [
@@ -675,3 +754,5 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
         proto_dict['qubits'].append({'id': qubit_id})
     assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
     assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op

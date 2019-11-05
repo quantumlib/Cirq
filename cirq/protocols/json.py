@@ -11,10 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import json
-from typing import Union, Any, Dict, Optional, List, Callable, Type, cast, \
-    TYPE_CHECKING, Iterable
+import numbers
+import pathlib
+from typing import (
+    Union,
+    Any,
+    Dict,
+    Optional,
+    List,
+    Callable,
+    Type,
+    cast,
+    TYPE_CHECKING,
+    Iterable,
+    overload,
+    IO,
+)
 
 import numpy as np
 import pandas as pd
@@ -42,7 +55,6 @@ class _ResolverCache:
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
-            from cirq.contrib.quantum_volume import QuantumVolumeResult
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
@@ -51,6 +63,8 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'ControlledGate': cirq.ControlledGate,
+                'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'Circuit': cirq.Circuit,
@@ -71,6 +85,7 @@ class _ResolverCache:
                 'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
+                'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
@@ -86,22 +101,12 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
-                'QuantumVolumeResult': QuantumVolumeResult,
                 'ResetChannel': cirq.ResetChannel,
+                'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
-                'SycamoreGate': cirq.SycamoreGate,
-                'sympy.Symbol': sympy.Symbol,
-                'sympy.Add': lambda args: sympy.Add(*args),
-                'sympy.Mul': lambda args: sympy.Mul(*args),
-                'sympy.Pow': lambda args: sympy.Pow(*args),
-                'sympy.Float': lambda approx: sympy.Float(approx),
-                'sympy.Integer': sympy.Integer,
-                'sympy.Rational': sympy.Rational,
-                'pandas.DataFrame': pd.DataFrame,
-                'pandas.Index': pd.Index,
-                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'SycamoreGate': cirq.google.SycamoreGate,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
@@ -115,6 +120,16 @@ class _ResolverCache:
                 'ZZPowGate': cirq.ZZPowGate,
 
                 # not a cirq class, but treated as one:
+                'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
         return self._crd
@@ -218,7 +233,13 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
-        if isinstance(o, complex):
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, numbers.Integral):
+            return int(o)
+        if isinstance(o, numbers.Real):
+            return float(o)
+        if isinstance(o, numbers.Complex):
             return {
                 'cirq_type': 'complex',
                 'real': o.real,
@@ -294,7 +315,24 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
     return cls(**d)
 
 
-def to_json(obj: Any, file_or_fn, *, indent=2, cls=CirqEncoder):
+# pylint: disable=function-redefined
+@overload
+def to_json(obj: Any, file_or_fn: Union[IO, str], *, indent=2,
+            cls=CirqEncoder) -> None:
+    pass
+
+
+@overload
+def to_json(obj: Any, file_or_fn: None = None, *, indent=2,
+            cls=CirqEncoder) -> str:
+    pass
+
+
+def to_json(obj: Any,
+            file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+            *,
+            indent: int = 2,
+            cls: Type[json.JSONEncoder] = CirqEncoder) -> Optional[str]:
     """Write a JSON file containing a representation of obj.
 
     The object may be a cirq object or have data members that are cirq
@@ -302,8 +340,10 @@ def to_json(obj: Any, file_or_fn, *, indent=2, cls=CirqEncoder):
 
     Args:
         obj: An object which can be serialized to a JSON representation.
-        file_or_fn: A filename (if a string), otherwise a file-like
-            object to serve as the destination for `obj`.
+        file_or_fn: A filename (if a string or `pathlib.Path`) to write to, or
+            an IO object (such as a file or buffer) to write to, or `None` to
+            indicate that the method should return the JSON text as its result.
+            Defaults to `None`.
         indent: Pretty-print the resulting file with this indent level.
             Passed to json.dump.
         cls: Passed to json.dump; the default value of CirqEncoder
@@ -312,21 +352,36 @@ def to_json(obj: Any, file_or_fn, *, indent=2, cls=CirqEncoder):
             party classes, prefer adding the _json_dict_ magic method
             to your classes rather than overriding this default.
     """
-    if isinstance(file_or_fn, str):
-        with open(file_or_fn, 'w') as actually_a_file:
-            return json.dump(obj, actually_a_file, indent=indent, cls=cls)
+    if file_or_fn is None:
+        return json.dumps(obj, indent=indent, cls=cls)
 
-    return json.dump(obj, file_or_fn, indent=indent, cls=cls)
+    if isinstance(file_or_fn, (str, pathlib.Path)):
+        with open(file_or_fn, 'w') as actually_a_file:
+            json.dump(obj, actually_a_file, indent=indent, cls=cls)
+            return None
+
+    json.dump(obj, file_or_fn, indent=indent, cls=cls)
+    return None
+
+
+# pylint: enable=function-redefined
 
 
 def read_json(
-        file_or_fn,
+        file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+        *,
+        json_text: Optional[str] = None,
         resolvers: Optional[List[Callable[[str], Union[None, Type]]]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
-        file_or_fn: A filename (if a string), otherwise a file-like
-            object from which we read in a representation of an object.
+        file_or_fn: A filename (if a string or `pathlib.Path`) to read from, or
+            an IO object (such as a file or buffer) to read from, or `None` to
+            indicate that `json_text` argument should be used. Defaults to
+            `None`.
+        json_text: A string representation of the JSON to parse the object from,
+            or else `None` indicating `file_or_fn` should be used. Defaults to
+            `None`.
         resolvers: A list of functions that are called in order to turn
             the serialized `cirq_type` string into a constructable class.
             By default, top-level cirq objects that implement the SupportsJSON
@@ -335,6 +390,9 @@ def read_json(
             to indicate that it cannot resolve the given cirq_type and that
             the next resolver should be tried.
     """
+    if (file_or_fn is None) == (json_text is None):
+        raise ValueError('Must specify ONE of "file_or_fn" or "json".')
+
     if resolvers is None:
         # This cast is required because mypy does not accept
         # assigning an expression of type T to a variable of type
@@ -345,8 +403,11 @@ def read_json(
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)
 
-    if isinstance(file_or_fn, str):
+    if json_text is not None:
+        return json.loads(json_text, object_hook=obj_hook)
+
+    if isinstance(file_or_fn, (str, pathlib.Path)):
         with open(file_or_fn, 'r') as file:
             return json.load(file, object_hook=obj_hook)
 
-    return json.load(file_or_fn, object_hook=obj_hook)
+    return json.load(cast(IO, file_or_fn), object_hook=obj_hook)

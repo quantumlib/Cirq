@@ -22,6 +22,7 @@ from cirq import (
     # Low level
     _version,
     _compat,
+    _doc,
     type_workarounds,
 )
 with _import.delay_import('cirq.protocols'):
@@ -229,6 +230,7 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     reset,
+    MatrixGate,
     ResetChannel,
     Rx,
     Ry,
@@ -240,8 +242,6 @@ from cirq.ops import (
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
-    SYC,
-    SycamoreGate,
     T,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
@@ -374,9 +374,11 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -408,6 +410,7 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
+    SupportsApplyMixture,
     SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,

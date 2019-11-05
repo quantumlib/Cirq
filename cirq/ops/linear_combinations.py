@@ -14,10 +14,12 @@
 from collections import defaultdict
 from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
                     DefaultDict)
+import numbers
 
 import numpy as np
 
 from cirq import protocols, value
+from cirq._doc import document
 from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
@@ -26,6 +28,10 @@ from cirq.value.linear_dict import _format_terms
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
                      SingleQubitPauliStringGateOperation]
+document(
+    PauliSumLike,  # type: ignore
+    """Any value that can be easily translated into a sum of Pauli products.
+    """)
 
 
 class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
@@ -346,6 +352,7 @@ class PauliSum:
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
                                       *,
+                                      atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
         """Evaluate the expectation of this PauliSum given a wavefunction.
@@ -356,6 +363,7 @@ class PauliSum:
             state: An array representing a valid wavefunction.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid wavefunction.
 
@@ -386,7 +394,8 @@ class PauliSum:
             from cirq.sim.wave_function import validate_normalized_state
             validate_normalized_state(state=state,
                                       qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype)
+                                      dtype=state.dtype,
+                                      atol=atol)
         return sum(
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
@@ -395,6 +404,7 @@ class PauliSum:
                                         state: np.ndarray,
                                         qubit_map: Mapping[raw_types.Qid, int],
                                         *,
+                                        atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
         """Evaluate the expectation of this PauliSum given a density matrix.
@@ -405,6 +415,7 @@ class PauliSum:
             state: An array representing a valid  density matrix.
             qubit_map: A map from all qubits used in this PauliSum to the
                 indices of the qubits that `state` is defined over.
+            atol: Absolute numerical tolerance.
             check_preconditions: Whether to check that `state` represents a
                 valid density matrix.
 
@@ -438,7 +449,8 @@ class PauliSum:
             _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
                                         num_qubits=num_qubits,
-                                        dtype=state.dtype)
+                                        dtype=state.dtype,
+                                        atol=atol)
         return sum(
             p._expectation_from_density_matrix_no_validation(state, qubit_map)
             for p in self)
@@ -451,7 +463,7 @@ class PauliSum:
         return len(self._linear_dict)
 
     def __iadd__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         elif isinstance(other, PauliString):
@@ -464,7 +476,7 @@ class PauliSum:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result += other
@@ -477,7 +489,7 @@ class PauliSum:
         return -self.__sub__(other)
 
     def __isub__(self, other):
-        if isinstance(other, (float, int, complex)):
+        if isinstance(other, numbers.Complex):
             other = PauliSum.from_pauli_strings(
                 [PauliString(coefficient=other)])
         if isinstance(other, PauliString):
@@ -490,7 +502,7 @@ class PauliSum:
         return self
 
     def __sub__(self, other):
-        if not isinstance(other, (float, int, complex, PauliString, PauliSum)):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
             return NotImplemented
         result = self.copy()
         result -= other
@@ -500,17 +512,49 @@ class PauliSum:
         factory = type(self)
         return factory(-self._linear_dict)
 
-    def __imul__(self, a: value.Scalar):
-        self._linear_dict *= a
+    def __imul__(self, other: PauliSumLike):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
+            return NotImplemented
+        if isinstance(other, numbers.Complex):
+            self._linear_dict *= other
+        elif isinstance(other, PauliString):
+            temp = PauliSum.from_pauli_strings([term * other for term in self])
+            self._linear_dict = temp._linear_dict
+        elif isinstance(other, PauliSum):
+            temp = PauliSum.from_pauli_strings(
+                [term * other_term for term in self for other_term in other])
+            self._linear_dict = temp._linear_dict
+
         return self
 
-    def __mul__(self, a: value.Scalar):
+    def __mul__(self, other: PauliSumLike):
+        if not isinstance(other, (numbers.Complex, PauliString, PauliSum)):
+            return NotImplemented
         result = self.copy()
-        result *= a
+        result *= other
         return result
 
-    def __rmul__(self, a: value.Scalar):
-        return self.__mul__(a)
+    def __rmul__(self, other: PauliSumLike):
+        if isinstance(other, numbers.Complex):
+            result = self.copy()
+            result *= other
+            return result
+        elif isinstance(other, PauliString):
+            result = self.copy()
+            return PauliSum.from_pauli_strings([other]) * result
+        return NotImplemented
+
+    def __pow__(self, exponent: int):
+        if not isinstance(exponent, numbers.Integral):
+            return NotImplemented
+        if exponent == 0:
+            return PauliSum(value.LinearDict({frozenset(): 1 + 0j}))
+        if exponent > 0:
+            base = self.copy()
+            for _ in range(exponent - 1):
+                base *= base
+            return base
+        return NotImplemented
 
     def __truediv__(self, a: value.Scalar):
         return self.__mul__(1 / a)
