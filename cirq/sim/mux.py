@@ -22,7 +22,8 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, protocols, study, schedules, devices, ops
-from cirq.sim import sparse_simulator, density_matrix_simulator, wave_function_simulator
+from cirq.sim import (sparse_simulator, density_matrix_simulator,
+                      wave_function_simulator)
 
 if TYPE_CHECKING:
     import cirq
