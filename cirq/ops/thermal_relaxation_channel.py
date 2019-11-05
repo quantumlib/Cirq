@@ -30,7 +30,8 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
     rates.
     """
 
-    def __init__(self, p: float, gamma: float, beta: float) -> None:
+    def __init__(self, p_exchange: float, p_relaxation: float,
+                 p_dephasing: float) -> None:
         r"""The thermal relaxation channel.
 
         Construct a channel to model energy dissipation into the environment
@@ -46,24 +47,24 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
 
             $$
             \begin{aligned}
-            M_0 =& \sqrt{p} \begin{bmatrix}
+            M_0 =& \sqrt{p_exchange} \begin{bmatrix}
                                 1 & 0  \\
-                                0 & \sqrt{1 - \gamma}
+                                0 & \sqrt{1 - p_relaxation}
                             \end{bmatrix}
             \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & \sqrt{\gamma} \\
+            M_1 =& \sqrt{p_exchange} \begin{bmatrix}
+                                0 & \sqrt{p_relaxation} \\
                                 0 & 0
                            \end{bmatrix}
             \\
-            M_2 =& \sqrt{1-p} \begin{bmatrix}
-                                \sqrt{1-\gamma} & 0 \\
+            M_2 =& \sqrt{1-p_exchange} \begin{bmatrix}
+                                \sqrt{1-p_relaxation} & 0 \\
                                  0 & 1
                               \end{bmatrix}
             \\
-            M_3 =& \sqrt{1-p} \begin{bmatrix}
+            M_3 =& \sqrt{1-p_exchange} \begin{bmatrix}
                                  0 & 0 \\
-                                 \sqrt{\gamma} & 0
+                                 \sqrt{p_relaxation} & 0
                              \end{bmatrix}
             \end{aligned}
             $$
@@ -73,10 +74,10 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
             $$
              \begin{aligned}
                 CHO =&  \begin{bmatrix}
-                            1 - (1-p) \gamma & 0 & 0 & \sqrt{1 - \gamma} \\
-                            0 & (1-p) \gamma 0 & 0 \\
-                            0 & 0 & p \gamma & 0 \\
-                            \sqrt{1 - \gamma} & 0 & 0 & 1 - p \gamma
+                            1 - (1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1 - p_relaxation} \\
+                            0 & (1-p_exchange) p_relaxation 0 & 0 \\
+                            0 & 0 & p_exchange p_relaxation & 0 \\
+                            \sqrt{1 - p_relaxation} & 0 & 0 & 1 - p_exchange p_relaxation
                         \end{bmatrix}
              \end{aligned}
             $$
@@ -84,29 +85,38 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         Where each 2x2 block can be thought of as how the channel acts on each
         basis element in the space of density matrices.
 
-        For the `ThermalRelaxationChannel` channel we simply substitute `beta`
-        in for `gamma` on the off diagonal elements of the above choi matrix
-        and then evolve the channel using the kraus operators found by sqrt
-        factorization of the choi matrix.
+        For the `ThermalRelaxationChannel` channel we simply substitute
+        `p_dephasing` in for `p_relaxation` on the off diagonal elements of the
+        above choi matrix and then evolve the channel using the kraus operators
+        found by sqrt factorization of the choi matrix.
 
         Args:
-            gamma: the probability of amplitude damping/relaxation occuring.
-            beta: the probability of dephasing occuring.
-            p: the probability of the qubit and environment exchanging energy.
+            p_relaxation: the probability of amplitude damping/relaxation
+                occuring.
+            p_dephasing: the probability of dephasing occuring.
+            p_exchange: the probability of the qubit and environment exchanging
+                energy.
 
         Raises:
-            ValueError: if gamma, beta or p is not a valid probability.
-            ValueError: if p, gamma, beta breaks CP condition.
+            ValueError: if p_exchange, p_relaxation or p_dephasing is not a valid
+                probability.
+            ValueError: if p_exchange, p_relaxation, p_dephasing breaks CP
+                condition.
         """
 
-        self._gamma = value.validate_probability(gamma, 'gamma')
-        self._beta = value.validate_probability(beta, 'beta')
-        self._p = value.validate_probability(p, 'p')
+        self._p_relaxation = value.validate_probability(p_relaxation,
+                                                        'p_relaxation')
+        self._p_dephasing = value.validate_probability(p_dephasing,
+                                                       'p_dephasing')
+        self._p_exchange = value.validate_probability(p_exchange, 'p_exchange')
 
-        choi = np.array([[1. - (1. - p) * gamma, 0, 0,
-                          np.sqrt(1. - beta)], [0, (1. - p) * gamma, 0, 0],
-                         [0, 0, p * gamma, 0],
-                         [np.sqrt(1. - beta), 0, 0, 1. - p * gamma]])
+        choi = np.array(
+            [[
+                1. - (1. - p_exchange) * p_relaxation, 0, 0,
+                np.sqrt(1. - p_dephasing)
+            ], [0, (1. - p_exchange) * p_relaxation, 0, 0],
+             [0, 0, p_exchange * p_relaxation, 0],
+             [np.sqrt(1. - p_dephasing), 0, 0, 1. - p_exchange * p_relaxation]])
 
         vals, vecs = np.linalg.eigh(choi)
 
@@ -116,8 +126,11 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
             vals += 1e-9  # fix small roundoffs.
             if vals[i] < 0:
                 raise ValueError('Thermal relaxation with '
-                                 'p={}, gamma={}, beta={} breaks CP'
-                                 ' requirement.'.format(p, gamma, beta))
+                                 'p_exchange={}, p_relaxation={}, '
+                                 'p_dephasing={} breaks CP'
+                                 ' requirement.'.format(p_exchange,
+                                                        p_relaxation,
+                                                        p_dephasing))
             kraus_i = np.sqrt(vals[i]) * vecs[:, i].reshape((2, 2)).T
             self._kraus += (kraus_i,)
 
@@ -128,102 +141,119 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         return True
 
     def _value_equality_values_(self):
-        return self._p, self._gamma, self._beta
+        return self._p_exchange, self._p_relaxation, self._p_dephasing
 
     def __repr__(self) -> str:
-        return 'cirq.thermal_relaxation(p={!r},gamma={!r},beta={!r})'.format(
-            self._p, self._gamma, self._beta)
+        return 'cirq.thermal_relaxation(p_exchange={!r},p_relaxation={!r},p_dephasing={!r})'.format(
+            self._p_exchange, self._p_relaxation, self._p_dephasing)
 
     def __str__(self) -> str:
-        return 'thermal_relaxation(p={!r},gamma={!r},beta={!r})'.format(
-            self._p, self._gamma, self._beta)
+        return 'thermal_relaxation(p_exchange={!r},p_relaxation={!r},p_dephasing={!r})'.format(
+            self._p_exchange, self._p_relaxation, self._p_dephasing)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'ThR({},{},{})'.format(f, f,
-                                          f).format(self._p, self._gamma,
-                                                    self._beta)
-        return 'ThR({!r},{!r},{!r})'.format(self._p, self._gamma, self._beta)
+                                          f).format(self._p_exchange,
+                                                    self._p_relaxation,
+                                                    self._p_dephasing)
+        return 'ThR({!r},{!r},{!r})'.format(self._p_exchange,
+                                            self._p_relaxation,
+                                            self._p_dephasing)
 
     @property
-    def p(self) -> float:
+    def p_exchange(self) -> float:
         """The probability of the qubit and environment exchanging energy."""
-        return self._p
+        return self._p_exchange
 
     @property
-    def gamma(self) -> float:
+    def p_relaxation(self) -> float:
         """The probability of the interaction being dissipative."""
-        return self._gamma
+        return self._p_relaxation
 
     @property
-    def beta(self) -> float:
+    def p_dephasing(self) -> float:
         """The probability of the interaction being dissipative."""
-        return self._beta
+        return self._p_dephasing
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['p', 'gamma', 'beta'])
+        return protocols.obj_to_dict_helper(
+            self, ['p_exchange', 'p_relaxation', 'p_dephasing'])
 
 
-def thermal_relaxation(p: float, gamma: float,
-                       beta: float) -> ThermalRelaxationChannel:
-    r"""Returns a ThermalRelaxation channel with the given parameters.
+def thermal_relaxation(p_exchange: float, p_relaxation: float,
+                       p_dephasing: float) -> ThermalRelaxationChannel:
+    r"""The thermal relaxation channel.
+
+    Construct a channel to model energy dissipation into the environment
+    as well as the environment depositing energy into the system. The
+    probabilities with which the energy exchange occur are given by `gamma`
+    and `beta` with the probability of the environment being not excited is
+    given by `p`.
+
+    The stationary state of this channel is the diagonal density matrix
+    with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
 
     Recall the kraus opeartors for the `GeneralizedAmplitudeDampingChannel`:
 
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{p} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & \sqrt{1 - \gamma}
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p} \begin{bmatrix}
-                                0 & \sqrt{\gamma} \\
-                                0 & 0
-                           \end{bmatrix}
-            \\
-            M_2 =& \sqrt{1-p} \begin{bmatrix}
-                                \sqrt{1-\gamma} & 0 \\
-                                 0 & 1
-                              \end{bmatrix}
-            \\
-            M_3 =& \sqrt{1-p} \begin{bmatrix}
-                                 0 & 0 \\
-                                 \sqrt{\gamma} & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
-
-        This has a choi representation of:
-
-            $$
-             \begin{aligned}
-                CHO =&  \begin{bmatrix}
-                            1 - (1-p) \gamma & 0 & 0 & \sqrt{1 - \gamma} \\
-                            0 & (1-p) \gamma 0 & 0 \\
-                            0 & 0 & p \gamma & 0 \\
-                            \sqrt{1 - \gamma} & 0 & 0 & 1 - p \gamma
+        $$
+        \begin{aligned}
+        M_0 =& \sqrt{p_exchange} \begin{bmatrix}
+                            1 & 0  \\
+                            0 & \sqrt{1 - p_relaxation}
                         \end{bmatrix}
-             \end{aligned}
-            $$
+        \\
+        M_1 =& \sqrt{p_exchange} \begin{bmatrix}
+                            0 & \sqrt{p_relaxation} \\
+                            0 & 0
+                       \end{bmatrix}
+        \\
+        M_2 =& \sqrt{1-p_exchange} \begin{bmatrix}
+                            \sqrt{1-p_relaxation} & 0 \\
+                             0 & 1
+                          \end{bmatrix}
+        \\
+        M_3 =& \sqrt{1-p_exchange} \begin{bmatrix}
+                             0 & 0 \\
+                             \sqrt{p_relaxation} & 0
+                         \end{bmatrix}
+        \end{aligned}
+        $$
 
-        Where each 2x2 block can be thought of as how the channel acts on each
-        basis element in the space of density matrices.
+    This has a choi representation of:
 
-        For the `ThermalRelaxationChannel` channel we simply substitute `beta`
-        in for `gamma` on the off diagonal elements of the above choi matrix
-        and then evolve the channel using the kraus operators found by sqrt
-        factorization of the choi matrix.
+        $$
+         \begin{aligned}
+            CHO =&  \begin{bmatrix}
+                        1 - (1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1 - p_relaxation} \\
+                        0 & (1-p_exchange) p_relaxation 0 & 0 \\
+                        0 & 0 & p_exchange p_relaxation & 0 \\
+                        \sqrt{1 - p_relaxation} & 0 & 0 & 1 - p_exchange p_relaxation
+                    \end{bmatrix}
+         \end{aligned}
+        $$
+
+    Where each 2x2 block can be thought of as how the channel acts on each
+    basis element in the space of density matrices.
+
+    For the `ThermalRelaxationChannel` channel we simply substitute
+    `p_dephasing` in for `p_relaxation` on the off diagonal elements of the
+    above choi matrix and then evolve the channel using the kraus operators
+    found by sqrt factorization of the choi matrix.
 
     Args:
-        gamma: the probability of amplitude damping/relaxation occuring.
-        beta: the probability of dephasing occuring.
-        p: the probability of the qubit and environment exchanging energy.
+        p_relaxation: the probability of amplitude damping/relaxation
+            occuring.
+        p_dephasing: the probability of dephasing occuring.
+        p_exchange: the probability of the qubit and environment exchanging
+            energy.
 
     Raises:
-        ValueError: if gamma, beta or p is not a valid probability.
-        ValueError: if p, gamma, beta breaks CP condition.
+        ValueError: if p_exchange, p_relaxation or p_dephasing is not a valid
+            probability.
+        ValueError: if p_exchange, p_relaxation, p_dephasing breaks CP
+            condition.
     """
-    return ThermalRelaxationChannel(p, gamma, beta)
+    return ThermalRelaxationChannel(p_exchange, p_relaxation, p_dephasing)

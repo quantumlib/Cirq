@@ -83,9 +83,9 @@ def test_thermal_relaxation_has_channel():
 
 def test_thermal_relaxation_properties():
     ch = cirq.ThermalRelaxationChannel(0.1, 0.2, 0.3)
-    assert ch.p == 0.1
-    assert ch.gamma == 0.2
-    assert ch.beta == 0.3
+    assert ch.p_exchange == 0.1
+    assert ch.p_relaxation == 0.2
+    assert ch.p_dephasing == 0.3
 
 
 def test_thermal_relaxation_repr():
@@ -95,7 +95,7 @@ def test_thermal_relaxation_repr():
 
 def test_thermal_relaxation_channel_str():
     assert (str(cirq.thermal_relaxation(
-        0.1, 0.2, 0.3)) == 'thermal_relaxation(p=0.1,gamma=0.2,beta=0.3)')
+        0.1, 0.2, 0.3)) == 'thermal_relaxation(p_exchange=0.1,p_relaxation=0.2,p_dephasing=0.3)')
 
 
 def test_thermal_relaxation_text_diagram():
@@ -121,13 +121,13 @@ def test_thermal_relaxation_text_diagram():
 
 
 def test_thermal_relaxation_invalid_probs():
-    with pytest.raises(ValueError, match='p'):
+    with pytest.raises(ValueError, match='p_exchange'):
         cirq.thermal_relaxation(-5, 0.5, 0.5)
 
-    with pytest.raises(ValueError, match='gamma'):
+    with pytest.raises(ValueError, match='p_relaxation'):
         cirq.thermal_relaxation(0.5, -5, 0.5)
 
-    with pytest.raises(ValueError, match='beta'):
+    with pytest.raises(ValueError, match='p_dephasing'):
         cirq.thermal_relaxation(0.5, 0.5, -5)
 
 
