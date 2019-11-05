@@ -285,6 +285,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
+        if num_controls == 0:
+            return self
         return ControlledGate(self,
                               num_controls=num_controls,
                               control_values=control_values,
