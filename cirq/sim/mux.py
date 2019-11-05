@@ -64,10 +64,9 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                        repetitions=repetitions)
 
 
-def _to_circuit_like(
-        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE,
-                        schedules.Schedule]
-    ) -> 'Union[circuits.Circuit, schedules.Schedule]':
+def _to_circuit_like(program: Union[circuits.Circuit, ops.Gate, ops.
+                                    OP_TREE, schedules.Schedule]
+                    ) -> 'Union[circuits.Circuit, schedules.Schedule]':
     result = None
     if isinstance(program, (schedules.Schedule, circuits.Circuit)):
         # No change needed.
@@ -79,6 +78,7 @@ def _to_circuit_like(
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
     return cast(Union[circuits.Circuit, schedules.Schedule], result)
+
 
 def final_wavefunction(
         program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
@@ -200,6 +200,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
         trial_results.append(measurements)
     return trial_results
 
+
 def final_density_matrix(
         program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
                        Schedule],
@@ -246,21 +247,23 @@ def final_density_matrix(
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
     circuit_like = _to_circuit_like(program)
 
-    if not noise_model == devices.NO_NOISE and not protocols.has_unitary(circuit_like):
+    if not noise_model == devices.NO_NOISE and not protocols.has_unitary(
+            circuit_like):
         raise Exception("Noise specified more than once.")
-    elif noise_model == devices.NO_NOISE and protocols.has_unitary(circuit_like):
+    elif noise_model == devices.NO_NOISE and protocols.has_unitary(
+            circuit_like):
         # pure case: use SparseSimulator
         result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-        program=circuit_like,
-        initial_state=initial_state_like,
-        qubit_order=qubit_order,
-        param_resolver=param_resolver).density_matrix_of()
+            program=circuit_like,
+            initial_state=initial_state_like,
+            qubit_order=qubit_order,
+            param_resolver=param_resolver).density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator
         result = density_matrix_simulator.DensityMatrixSimulator(
-        dtype=dtype, noise=noise, seed=seed).simulate(
-        program=circuit_like,
-        initial_state=initial_state_like,
-        qubit_order=qubit_order,
-        param_resolver=param_resolver).final_density_matrix
+            dtype=dtype, noise=noise, seed=seed).simulate(
+                program=circuit_like,
+                initial_state=initial_state_like,
+                qubit_order=qubit_order,
+                param_resolver=param_resolver).final_density_matrix
     return result
