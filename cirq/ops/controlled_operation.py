@@ -35,6 +35,10 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
+    """Augments existing operations to have one or more control qubits.
+
+    This object is typically created via `operation.controlled_by(*qubits)`.
+    """
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
