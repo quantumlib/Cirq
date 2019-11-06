@@ -39,6 +39,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
 
     Examples:
     ```
+
         >>> class Add(cirq.ArithmeticOperation):
         ...     def __init__(self, target_register, input_register):
         ...         self.target_register = target_register
@@ -76,6 +77,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         >>> cirq.sample(c).data
            before:in  before:out  after:in  after:out
         0          2           3         2          5
+
     ```
     """
 
