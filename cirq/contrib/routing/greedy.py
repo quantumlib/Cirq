@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import itertools
-from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Set, Tuple)
+from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple)
 
 import numpy as np
 import networkx as nx

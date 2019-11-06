@@ -229,7 +229,7 @@ class Heatmap:
                            (width + 1)).transpose()
 
         # Construct the URL array as an ordered list of URLs for non-nan cells.
-        url_array = []  # type: List[str]
+        url_array: List[str] = []
         if self.url_map:
             url_array = [
                 self.url_map.get((row, col), '')

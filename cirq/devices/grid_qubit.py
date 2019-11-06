@@ -13,7 +13,7 @@
 # limitations under the License.
 
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple
 
 from cirq import ops, protocols
 
