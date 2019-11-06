@@ -22,9 +22,9 @@ Installation and Documentation
 
 Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_:
 
- - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
- - `Documentation <https://cirq.readthedocs.io>`_
- - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+- `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
+- `Documentation <https://cirq.readthedocs.io>`_
+- `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
 
 Hello Qubit
 -----------
