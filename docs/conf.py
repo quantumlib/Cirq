@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import inspect
+import re
 from typing import List, Any
 
 import os
@@ -43,7 +44,10 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
             # Avoid getting split across divs.
             s = ' '.join(s.split('\n'))
             # Avoid intermediate layers turning our newlines into slashes.
-            s = s.replace('\\\\', '\\newline')
+            s = s.replace('\\\\', r'\newline')
+            # Turn latex like "|x\rangle" into "|x \rangle".
+            # The extra space seems to be necessary to survive a later pass.
+            s = re.sub(r'([a-zA-Z0-9])\\', r'\1 \\', s)
             # Keep the $$ so MathJax can find it.
             result.append('$${}$$'.format(s))
         else:
@@ -173,7 +177,7 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -184,6 +188,9 @@ html_favicon = 'favicon.ico'
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_logo = '_static/Cirq_logo_notext.png'
+html_css_files = ['tweak-style.css']
 
 
 # -- Options for HTMLHelp output -----------------------------------------

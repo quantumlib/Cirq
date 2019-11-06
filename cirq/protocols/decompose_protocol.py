@@ -378,7 +378,7 @@ def _try_decompose_into_operations_and_qubits(val: Any) -> Tuple[Optional[
     result = decompose_once(val, None)
     if result is not None:
         qubit_set = set()
-        qid_shape_dict = defaultdict(lambda: 1)  # type: Dict[cirq.Qid, int]
+        qid_shape_dict: Dict[cirq.Qid, int] = defaultdict(lambda: 1)
         for op in result:
             for level, q in zip(qid_shape_protocol.qid_shape(op), op.qubits):
                 qubit_set.add(q)

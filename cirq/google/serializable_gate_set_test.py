@@ -17,26 +17,57 @@ import pytest
 import cirq
 import cirq.google as cg
 
-X_SERIALIZER = cg.GateOpSerializer(gate_type=cirq.XPowGate,
-                                   serialized_gate_id='x_pow',
-                                   args=[
-                                       cg.SerializingArg(
-                                           serialized_name='half_turns',
-                                           serialized_type=float,
-                                           gate_getter='exponent')
-                                   ])
+X_SERIALIZER = cg.GateOpSerializer(
+    gate_type=cirq.XPowGate,
+    serialized_gate_id='x_pow',
+    args=[
+        cg.SerializingArg(
+            serialized_name='half_turns',
+            serialized_type=float,
+            gate_getter='exponent',
+        )
+    ],
+)
 
-X_DESERIALIZER = cg.GateOpDeserializer(serialized_gate_id='x_pow',
-                                       gate_constructor=cirq.XPowGate,
-                                       args=[
-                                           cg.DeserializingArg(
-                                               serialized_name='half_turns',
-                                               constructor_arg_name='exponent')
-                                       ])
+X_DESERIALIZER = cg.GateOpDeserializer(
+    serialized_gate_id='x_pow',
+    gate_constructor=cirq.XPowGate,
+    args=[
+        cg.DeserializingArg(
+            serialized_name='half_turns',
+            constructor_arg_name='exponent',
+        )
+    ],
+)
 
-MY_GATE_SET = cg.SerializableGateSet(gate_set_name='my_gate_set',
-                                     serializers=[X_SERIALIZER],
-                                     deserializers=[X_DESERIALIZER])
+Y_SERIALIZER = cg.GateOpSerializer(
+    gate_type=cirq.YPowGate,
+    serialized_gate_id='y_pow',
+    args=[
+        cg.SerializingArg(
+            serialized_name='half_turns',
+            serialized_type=float,
+            gate_getter='exponent',
+        )
+    ],
+)
+
+Y_DESERIALIZER = cg.GateOpDeserializer(
+    serialized_gate_id='y_pow',
+    gate_constructor=cirq.XPowGate,
+    args=[
+        cg.DeserializingArg(
+            serialized_name='half_turns',
+            constructor_arg_name='exponent',
+        )
+    ],
+)
+
+MY_GATE_SET = cg.SerializableGateSet(
+    gate_set_name='my_gate_set',
+    serializers=[X_SERIALIZER],
+    deserializers=[X_DESERIALIZER],
+)
 
 
 def test_supported_gate_types():
@@ -336,6 +367,26 @@ def test_multiple_serializers():
     q0 = cirq.GridQubit(1, 1)
     assert gate_set.serialize_op(cirq.X(q0)).gate.id == 'x'
     assert gate_set.serialize_op(cirq.X(q0)**0.5).gate.id == 'x_pow'
+
+
+def test_gateset_with_added_gates():
+    x_gateset = cg.SerializableGateSet(
+        gate_set_name='x',
+        serializers=[X_SERIALIZER],
+        deserializers=[X_DESERIALIZER],
+    )
+    xy_gateset = x_gateset.with_added_gates(
+        gate_set_name='xy',
+        serializers=[Y_SERIALIZER],
+        deserializers=[Y_DESERIALIZER],
+    )
+    assert x_gateset.gate_set_name == 'x'
+    assert x_gateset.is_supported_gate(cirq.X)
+    assert not x_gateset.is_supported_gate(cirq.Y)
+
+    assert xy_gateset.gate_set_name == 'xy'
+    assert xy_gateset.is_supported_gate(cirq.X)
+    assert xy_gateset.is_supported_gate(cirq.Y)
 
 
 def test_deserialize_op_invalid_gate():
