@@ -183,7 +183,11 @@ class _NoNoiseModel(NoiseModel):
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
-    """Applies noise to each qubit individually at the start of every moment."""
+    """Applies noise to each qubit individually at the start of every moment.
+
+    This is the noise model that is wrapped around an operation when that
+    operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
+    """
 
     def __init__(self, qubit_noise_gate: 'cirq.Gate'):
         if qubit_noise_gate.num_qubits() != 1:
