@@ -22,7 +22,8 @@ import numpy as np
 from cirq._doc import document
 
 
-def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
+def kron(*factors: Union[np.ndarray, complex, float],
+         shape_len: int = 2) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
 
     A *args version of lambda args: functools.reduce(np.kron, args).
@@ -30,11 +31,13 @@ def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     Args:
         *factors: The matrices, tensors, and/or scalars to combine together
             using np.kron.
+        shape_len: The expected number of dimensions in the output. Mainly
+            determines the behavior of the empty kron product.
 
     Returns:
         The kronecker product of all the inputs.
     """
-    product = np.eye(1)
+    product = np.ones(shape=(1,) * shape_len)
     for m in factors:
         product = np.kron(product, m)
     return np.array(product)

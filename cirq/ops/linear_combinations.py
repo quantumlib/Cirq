@@ -328,12 +328,12 @@ class PauliSum:
         return PauliSum() + val
 
     @classmethod
-    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]) \
-            -> 'PauliSum':
+    def from_pauli_strings(cls, terms: Union[PauliString, List[PauliString]]
+                          ) -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict = defaultdict(
-            lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
+        termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(
+            lambda: 0)
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient
