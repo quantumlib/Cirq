@@ -23,7 +23,6 @@ from cirq.value import Timestamp
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.google import xmon_device
 
 
 def _load_json_bool(b: Any):
@@ -171,7 +170,7 @@ def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
 
 
 def schedule_from_proto_dicts(
-        device: 'xmon_device.XmonDevice',
+        device: 'cirq.google.XmonDevice',
         ops: Iterable[Dict],
 ) -> Schedule:
     """Convert proto dictionaries into a Schedule for the given device."""

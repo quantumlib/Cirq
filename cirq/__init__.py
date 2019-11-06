@@ -22,6 +22,7 @@ from cirq import (
     # Low level
     _version,
     _compat,
+    _doc,
     type_workarounds,
 )
 with _import.delay_import('cirq.protocols'):
@@ -86,6 +87,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
@@ -187,11 +189,13 @@ from cirq.ops import (
     H,
     HPowGate,
     I,
-    identity,
+    identity_each,
     IdentityGate,
+    IdentityOperation,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     measure,
@@ -227,6 +231,7 @@ from cirq.ops import (
     QubitOrder,
     QubitOrderOrList,
     reset,
+    MatrixGate,
     ResetChannel,
     Rx,
     Ry,
@@ -287,6 +292,12 @@ from cirq.schedules import (
 
 from cirq.sim import (
     bloch_vector_from_state_vector,
+    StabilizerStateChForm,
+    CliffordSimulator,
+    CliffordState,
+    CliffordSimulatorStepResult,
+    CliffordTableau,
+    CliffordTrialResult,
     density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -365,9 +376,11 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
@@ -399,15 +412,19 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
+    SupportsApplyMixture,
     SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsEqualUpToGlobalPhase,
     SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
+    SupportsJSON,
+    SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,

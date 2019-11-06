@@ -69,6 +69,10 @@ def test_circuit_diagram_info_value_wrapping():
             cirq.circuit_diagram_info(ReturnDoubleTuple()) == double_info)
 
 
+def test_circuit_diagram_info_init():
+    assert cirq.CircuitDiagramInfo(['a', 'b']).wire_symbols == ('a', 'b')
+
+
 def test_circuit_diagram_info_validate():
     with pytest.raises(ValueError):
         _ = cirq.CircuitDiagramInfo('X')
@@ -86,6 +90,8 @@ def test_circuit_diagram_info_eq():
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z', 'Z'), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 3))
+    eq.add_equality_group(
+        cirq.CircuitDiagramInfo(('Z',), 3, auto_exponent_parens=False))
 
 
 def test_circuit_diagram_info_pass_fail():

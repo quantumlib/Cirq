@@ -44,6 +44,9 @@ TError = TypeVar('TError', bound=Exception)
 
 RaiseTypeErrorIfNotProvided: Any = ([],)
 
+DecomposeResult = Union[None, NotImplementedType, 'cirq.OP_TREE']
+OpDecomposer = Callable[['cirq.Operation'], DecomposeResult]
+
 
 def _value_error_describing_bad_operation(op: 'cirq.Operation') -> ValueError:
     return ValueError("Operation doesn't satisfy the given `keep` "
@@ -89,7 +92,7 @@ class SupportsDecompose(Protocol):
     raise a caller-provided error.
     """
 
-    def _decompose_(self) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
+    def _decompose_(self) -> DecomposeResult:
         pass
 
 
@@ -112,27 +115,17 @@ class SupportsDecomposeWithQubits(Protocol):
     implements `SupportsDecomposeWithQubits`.
     """
 
-    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]
-                   ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
+    def _decompose_(self, qubits: Tuple['cirq.Qid', ...]) -> DecomposeResult:
         pass
-
-
-def _default_decomposer(op: 'cirq.Operation'
-                       ) -> Union[None, 'cirq.OP_TREE', NotImplementedType]:
-    return decompose_once(op, default=NotImplemented)
 
 
 # pylint: disable=function-redefined
 @overload
 def decompose(val: Any,
               *,
-              intercepting_decomposer: Callable[[
-                  'cirq.Operation'
-              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-              fallback_decomposer: Callable[[
-                  'cirq.Operation'
-              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-              keep: Callable[['cirq.Operation'], bool] = None
+              intercepting_decomposer: Optional[OpDecomposer] = None,
+              fallback_decomposer: Optional[OpDecomposer] = None,
+              keep: Optional[Callable[['cirq.Operation'], bool]] = None
              ) -> List['cirq.Operation']:
     pass
 
@@ -140,13 +133,9 @@ def decompose(val: Any,
 @overload
 def decompose(val: Any,
               *,
-              intercepting_decomposer: Callable[[
-                  'cirq.Operation'
-              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-              fallback_decomposer: Callable[[
-                  'cirq.Operation'
-              ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-              keep: Callable[['cirq.Operation'], bool] = None,
+              intercepting_decomposer: Optional[OpDecomposer] = None,
+              fallback_decomposer: Optional[OpDecomposer] = None,
+              keep: Optional[Callable[['cirq.Operation'], bool]] = None,
               on_stuck_raise: Optional[
                   Union[TError, Callable[['cirq.Operation'], TError]]]
              ) -> List['cirq.Operation']:
@@ -156,13 +145,9 @@ def decompose(val: Any,
 def decompose(
         val: TValue,
         *,
-        intercepting_decomposer: Callable[[
-            'cirq.Operation'
-        ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-        fallback_decomposer: Callable[[
-            'cirq.Operation'
-        ], Union[None, NotImplementedType, 'cirq.OP_TREE']] = None,
-        keep: Callable[['cirq.Operation'], bool] = None,
+        intercepting_decomposer: Optional[OpDecomposer] = None,
+        fallback_decomposer: Optional[OpDecomposer] = None,
+        keep: Optional[Callable[['cirq.Operation'], bool]] = None,
         on_stuck_raise: Union[None, Exception, Callable[[
             'cirq.Operation'
         ], Union[None, Exception]]] = _value_error_describing_bad_operation
@@ -221,17 +206,11 @@ def decompose(
             "not possible to get stuck if you don't have a criteria on what's "
             "acceptable to keep.")
 
-    decomposers = [
-        d for d in
-        [intercepting_decomposer, _default_decomposer, fallback_decomposer] if d
-    ]
-
-    def decomposer(op):
-        for d in decomposers:
-            r = d(op)
-            if r is not NotImplemented and r is not None:
-                return r
-        return NotImplemented
+    def try_op_decomposer(val: Any, decomposer: Optional[OpDecomposer]
+                         ) -> DecomposeResult:
+        if decomposer is None or not isinstance(val, ops.Operation):
+            return None
+        return decomposer(val)
 
     output = []
     queue: List[Any] = [val]
@@ -242,13 +221,20 @@ def decompose(
             output.append(item)
             continue
 
-        decomposed = decomposer(item)
+        decomposed = try_op_decomposer(item, intercepting_decomposer)
+
+        if decomposed is NotImplemented or decomposed is None:
+            decomposed = decompose_once(item, default=None)
+
+        if decomposed is NotImplemented or decomposed is None:
+            decomposed = try_op_decomposer(item, fallback_decomposer)
+
         if decomposed is not NotImplemented and decomposed is not None:
-            queue[:0] = ops.flatten_op_tree(decomposed)
+            queue[:0] = ops.flatten_to_ops(decomposed)
             continue
 
-        if (not isinstance(item, ops.Operation) and isinstance(item, Iterable)):
-            queue[:0] = ops.flatten_op_tree(item)
+        if not isinstance(item, ops.Operation) and isinstance(item, Iterable):
+            queue[:0] = ops.flatten_to_ops(item)
             continue
 
         if keep is not None and on_stuck_raise is not None:

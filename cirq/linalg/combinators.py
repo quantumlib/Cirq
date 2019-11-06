@@ -19,6 +19,8 @@ from typing import Union, Type
 
 import numpy as np
 
+from cirq._doc import document
+
 
 def kron(*factors: Union[np.ndarray, complex, float],
          shape_len: int = 2) -> np.ndarray:
@@ -41,7 +43,13 @@ def kron(*factors: Union[np.ndarray, complex, float],
     return np.array(product)
 
 
-CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])  # For kron_with_controls
+CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])
+document(
+    CONTROL_TAG, """A special indicator value for `cirq.kron_with_controls`.
+
+    This value is a stand-in for "control operations on the other qubits based
+    on the value of this qubit", which otherwise doesn't have a proper matrix.
+    """)
 
 
 def kron_with_controls(*factors: Union[np.ndarray, complex, float]
@@ -97,10 +105,12 @@ def kron_with_controls(*factors: Union[np.ndarray, complex, float]
 
 
 def dot(*values: Union[float, complex, np.ndarray]
-        ) -> Union[float, complex, np.ndarray]:
+       ) -> Union[float, complex, np.ndarray]:
     """Computes the dot/matrix product of a sequence of values.
 
-    A *args version of np.linalg.multi_dot.
+    Performs the computation in serial order without regard to the matrix
+    sizes.  If you are using this for matrices of large and differing sizes,
+    consider using np.lingalg.multi_dot for better performance.
 
     Args:
         *values: The values to combine with the dot/matrix product.
@@ -108,11 +118,17 @@ def dot(*values: Union[float, complex, np.ndarray]
     Returns:
         The resulting value or matrix.
     """
-    if len(values) == 1:
+
+    if len(values) <= 1:
+        if len(values) == 0:
+            raise ValueError("cirq.dot must be called with arguments")
         if isinstance(values[0], np.ndarray):
             return np.array(values[0])
         return values[0]
-    return np.linalg.multi_dot(values)
+    result = values[0]
+    for value in values[1:]:
+        result = np.dot(result, value)
+    return result
 
 
 def _merge_dtypes(dtype1: Type[np.number], dtype2: Type[np.number]

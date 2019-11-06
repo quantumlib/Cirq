@@ -21,6 +21,7 @@ import sympy
 
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import (
     common_gates,
     controlled_gate,
@@ -545,12 +546,60 @@ class CSwapGate(gate_features.ThreeQubitGate,
         return 'cirq.FREDKIN'
 
 
-# Explicit names.
 CCZ = CCZPowGate()
-CCX = CCXPowGate()
-CSWAP = CSwapGate()
+document(
+    CCZ, """The Controlled-Controlled-Z gate.
 
-# Common names.
-TOFFOLI = CCX
-CCNOT = TOFFOLI
-FREDKIN = CSWAP
+    The `exponent=1` instance of `cirq.CCZPowGate`.
+
+    Matrix:
+
+    ```
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . 1 . .],
+         [. . . . . . 1 .],
+         [. . . . . . . -1]]
+    ```
+    """)
+
+CCX = TOFFOLI = CCNOT = CCXPowGate()
+document(
+    CCX, """The TOFFOLI gate.
+
+    The `exponent=1` instance of `cirq.CCXPowGate`.
+
+    Matrix:
+    ```
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . 1 . .],
+         [. . . . . . . 1],
+         [. . . . . . 1 .]]
+    ```
+    """)
+
+CSWAP = FREDKIN = CSwapGate()
+document(
+    CSWAP, """The Controlled Swap gate.
+
+    An instance of `cirq.CSwapGate`.
+
+    Matrix:
+    ```
+        [[1 . . . . . . .],
+         [. 1 . . . . . .],
+         [. . 1 . . . . .],
+         [. . . 1 . . . .],
+         [. . . . 1 . . .],
+         [. . . . . . 1 .],
+         [. . . . . 1 . .],
+         [. . . . . . . 1]]
+    ```
+    """)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import pytest
 import numpy as np
 
 import cirq
@@ -33,6 +33,10 @@ def test_dot():
     np.testing.assert_allclose(cirq.dot(a, b, a),
                                np.dot(np.dot(a, b), a),
                                atol=1e-8)
+
+    # Invalid use
+    with pytest.raises(ValueError):
+        cirq.dot()
 
 
 def test_kron_multiplies_sizes():

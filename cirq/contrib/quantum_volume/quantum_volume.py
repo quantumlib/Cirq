@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple
+from typing import Optional, List, cast, Callable, Dict, Tuple, Union
 from dataclasses import dataclass
 
 import numpy as np
@@ -14,7 +14,7 @@ import cirq.contrib.routing as ccr
 def generate_model_circuit(num_qubits: int,
                            depth: int,
                            *,
-                           random_state: Optional[np.random.RandomState] = None
+                           random_state: cirq.value.RANDOM_STATE_LIKE = None
                           ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -25,7 +25,7 @@ def generate_model_circuit(num_qubits: int,
     Args:
         num_qubits: The number of qubits in the generated circuit.
         depth: The number of layers in the circuit.
-        random_state: A way to seed the RandomState.
+        random_state: Random state or random state seed.
 
     Returns:
         The generated circuit.
@@ -33,8 +33,7 @@ def generate_model_circuit(num_qubits: int,
     # Setup the circuit and its qubits.
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cirq.Circuit()
-    if random_state is None:
-        random_state = np.random
+    random_state = cirq.value.parse_random_state(random_state)
 
     # For each layer.
     for _ in range(depth):
@@ -95,7 +94,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
-                     repetitions=10000,
+                     repetitions=10_000,
                      sampler: cirq.Sampler = cirq.Simulator(),
                      mapping: Dict[cirq.ops.Qid, cirq.ops.Qid] = None) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
@@ -104,14 +103,14 @@ def sample_heavy_set(circuit: cirq.Circuit,
     Args:
         circuit: The circuit to sample.
         heavy_set: The previously-computed heavy set for the given circuit.
-        repetitions: The number of runs to sample the circuit.
+        repetitions: The number of times to sample the circuit.
         sampler: The sampler to run on the given circuit.
         mapping: An optional mapping from compiled qubits to original qubits,
             to maintain the ordering between the model and compiled circuits.
 
     Returns:
         A probability percentage, from 0 to 1, representing how many of the
-        output bit-strings were in the heaby set.
+        output bit-strings were in the heavy set.
 
     """
     # Add measure gates to the end of (a copy of) the circuit. Ensure that those
@@ -136,11 +135,12 @@ def sample_heavy_set(circuit: cirq.Circuit,
 def compile_circuit(
         circuit: cirq.Circuit,
         *,
-        device: cirq.google.xmon_device.XmonDevice,
+        device: cirq.google.XmonDevice,
+        routing_attempts: int,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         routing_algo_name: Optional[str] = None,
         router: Optional[Callable[..., ccr.SwapNetwork]] = None,
-) -> Tuple[cirq.Circuit, Dict[cirq.ops.Qid, cirq.ops.Qid]]:
+) -> ccr.SwapNetwork:
     """Compile the given model circuit onto the given device. This uses a
     different compilation method than described in
     https://arxiv.org/pdf/1811.12926.pdf Appendix A. The latter goes through a
@@ -151,6 +151,7 @@ def compile_circuit(
     Args:
         circuit: The model circuit to compile.
         device: The device to compile onto.
+        routing_attempts: See doc for calculate_quantum_volume.
         compiler: An optional function to deconstruct the model circuit's
             gates down to the target devices gate set and then optimize it.
 
@@ -165,11 +166,20 @@ def compile_circuit(
     # target qubits given our topology.
     if router is None and routing_algo_name is None:
         routing_algo_name = 'greedy'
-    swap_network = ccr.route_circuit(compiled_circuit,
-                                     ccr.xmon_device_to_graph(device),
-                                     router=router,
-                                     algo_name=routing_algo_name)
-    compiled_circuit = swap_network.circuit
+
+    best_swap_network: Union[ccr.SwapNetwork, None] = None
+    best_score = None
+    for _ in range(routing_attempts):
+        swap_network = ccr.route_circuit(compiled_circuit,
+                                         ccr.xmon_device_to_graph(device),
+                                         router=router,
+                                         algo_name=routing_algo_name)
+        score = len(swap_network.circuit)
+        if best_score is None or score < best_score:
+            best_swap_network = swap_network
+            best_score = score
+    if best_swap_network is None:
+        raise AssertionError('Unable to get routing for circuit')
 
     # Compile. This should decompose the routed circuit down to a gate set that
     # our device supports, and then optimize. The paper uses various
@@ -177,9 +187,9 @@ def compile_circuit(
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
     if compiler:
-        compiled_circuit = compiler(compiled_circuit)
+        best_swap_network.circuit = compiler(best_swap_network.circuit)
 
-    return compiled_circuit, swap_network.final_mapping()
+    return best_swap_network
 
 
 @dataclass
@@ -192,10 +202,11 @@ class QuantumVolumeResult:
     model_circuit: cirq.Circuit
     # The heavy set computed from the above model circuit.
     heavy_set: List[int]
-    # The mdel circuit after being compiled.
+    # The model circuit after being compiled.
     compiled_circuit: cirq.Circuit
-    # The sampler's list of probabilities.
-    sampler_result: List[float]
+    # The percentage of outputs that this sampler had that were in the heavy
+    # set.
+    sampler_result: float
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, [
@@ -207,70 +218,89 @@ def prepare_circuits(
         *,
         num_qubits: int,
         depth: int,
-        num_repetitions: int,
-        random_state: Optional[np.random.RandomState] = None,
+        num_circuits: int,
+        random_state: cirq.value.RANDOM_STATE_LIKE = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
 
     Args:
         num_qubits: The number of qubits in the generated circuits.
         depth: The number of layers in the circuits.
-        num_repetitions: The number of circuits to create.
-        random_state: A way to seed the RandomState.
+        num_circuits: The number of circuits to create.
+        random_state: Random state or random state seed.
 
     Returns:
         A list of tuples where the first element is a generated model
         circuit and the second element is the heavy set for that circuit.
     """
     circuits = []
-    for repetition in range(num_repetitions):
+    print("Computing heavy sets")
+    for circuit_i in range(num_circuits):
         model_circuit = generate_model_circuit(num_qubits,
                                                depth,
                                                random_state=random_state)
         heavy_set = compute_heavy_set(model_circuit)
-        print(f"Repetition {repetition + 1} Heavy Set: {heavy_set}")
+        print(f"  Circuit {circuit_i + 1} Heavy Set: {heavy_set}")
         circuits.append((model_circuit, heavy_set))
     return circuits
 
 
-def execute_circuits(*,
-                     device: cirq.google.xmon_device.XmonDevice,
-                     samplers: List[cirq.Sampler],
-                     compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
-                     circuits: List[Tuple[cirq.Circuit, List[int]]]
-                    ) -> List[QuantumVolumeResult]:
+def execute_circuits(
+        *,
+        device: cirq.google.XmonDevice,
+        samplers: List[cirq.Sampler],
+        circuits: List[Tuple[cirq.Circuit, List[int]]],
+        routing_attempts: int,
+        compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+        repetitions: int = 10_000,
+) -> List[QuantumVolumeResult]:
     """Executes the given circuits on the given samplers.
 
     Args
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
+        circuits: The circuits to sample from.
+        routing_attempts: See doc for calculate_quantum_volume.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
-        circuits: The circuits to sample from.
+        repetitions: The number of bitstrings to sample per circuit.
 
     Returns:
         A list of QuantumVolumeResults that contains all of the information for
         running the algorithm and its results.
 
     """
+    # First, compile all of the model circuits.
+    print("Compiling model circuits")
+    compiled_circuits: List[ccr.SwapNetwork] = []
+    for idx, (model_circuit, heavy_set) in enumerate(circuits):
+        print(f"  Compiling model circuit #{idx + 1}")
+        compiled_circuits.append(
+            compile_circuit(model_circuit,
+                            device=device,
+                            compiler=compiler,
+                            routing_attempts=routing_attempts))
+
+    # Next, run the compiled circuits on each sampler.
     results = []
-    for model_circuit, heavy_set in circuits:
-        compiled_circuit, mapping = compile_circuit(model_circuit,
-                                                    device=device,
-                                                    compiler=compiler)
-        sampler_result = []
-        for idx, sampler in enumerate(samplers):
+    print("Running samplers over compiled circuits")
+    for sampler_i, sampler in enumerate(samplers):
+        print(f"  Running sampler #{sampler_i + 1}")
+        for circuit_i, swap_network in enumerate(compiled_circuits):
+            compiled_circuit = swap_network.circuit
+            mapping = swap_network.final_mapping()
+            model_circuit, heavy_set = circuits[circuit_i]
             prob = sample_heavy_set(compiled_circuit,
                                     heavy_set,
+                                    repetitions=repetitions,
                                     sampler=sampler,
                                     mapping=mapping)
-            print(f"  Compiled HOG probability #{idx + 1}: {prob}")
-            sampler_result.append(prob)
+            print(f"    Compiled HOG probability #{circuit_i + 1}: {prob}")
             results.append(
                 QuantumVolumeResult(model_circuit=model_circuit,
                                     heavy_set=heavy_set,
                                     compiled_circuit=compiled_circuit,
-                                    sampler_result=sampler_result))
+                                    sampler_result=prob))
     return results
 
 
@@ -278,11 +308,13 @@ def calculate_quantum_volume(
         *,
         num_qubits: int,
         depth: int,
-        num_repetitions: int,
-        seed: int,
-        device: cirq.google.xmon_device.XmonDevice,
+        num_circuits: int,
+        device: cirq.google.XmonDevice,
         samplers: List[cirq.Sampler],
+        random_state: cirq.value.RANDOM_STATE_LIKE = None,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
+        repetitions=10_000,
+        routing_attempts=30,
 ) -> List[QuantumVolumeResult]:
     """Run the quantum volume algorithm.
 
@@ -296,23 +328,30 @@ def calculate_quantum_volume(
     Args:
         num_qubits: The number of qubits for the circuit.
         depth: The number of gate layers to generate.
-        num_repetitions: The number of times to run the algorithm.
-        seed: A seed to pass into the RandomState.
+        num_circuits: The number of random circuits to run.
+        random_state: Random state or random state seed.
         device: The device to run the compiled circuit on.
         samplers: The samplers to run the algorithm on.
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
+        repetitions: The number of bitstrings to sample per circuit.
+        routing_attempts: The number of times to route each model circuit onto
+            the device. Each attempt will be graded using an ideal simulator
+            and the best one will be used.
 
     Returns: A list of QuantumVolumeResults that contains all of the information
         for running the algorithm and its results.
 
     """
-    random_state = np.random.RandomState(seed)
     circuits = prepare_circuits(num_qubits=num_qubits,
                                 depth=depth,
-                                num_repetitions=num_repetitions,
+                                num_circuits=num_circuits,
                                 random_state=random_state)
-    return execute_circuits(circuits=circuits,
-                            device=device,
-                            compiler=compiler,
-                            samplers=samplers)
+    return execute_circuits(
+        circuits=circuits,
+        device=device,
+        compiler=compiler,
+        samplers=samplers,
+        repetitions=repetitions,
+        routing_attempts=routing_attempts,
+    )
