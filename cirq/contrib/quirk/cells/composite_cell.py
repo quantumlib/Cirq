@@ -58,12 +58,12 @@ class CompositeCell(Cell):
         """
         self.height = height
         self._sub_cell_cols_generator = sub_cell_cols_generator
-        self._weight = gate_count
+        self._gate_count = gate_count
         if gate_count <= 0:
             self._sub_cell_cols_generator = []
 
     def gate_count(self) -> int:
-        return self._weight
+        return self._gate_count
 
     def _transform_cells(self, func: Callable[[Cell], Cell]) -> 'CompositeCell':
         return CompositeCell(
@@ -74,7 +74,7 @@ class CompositeCell(Cell):
                 [None if cell is None else func(cell)
                  for cell in col]
                 for col in self._sub_cell_cols_generator),
-            gate_count=self._weight)
+            gate_count=self._gate_count)
 
     def _sub_cell_cols_sealed(self) -> List[List[Optional[Cell]]]:
         if not isinstance(self._sub_cell_cols_generator, list):
