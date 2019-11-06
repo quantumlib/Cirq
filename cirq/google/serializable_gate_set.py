@@ -13,8 +13,6 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.api.google.v2 protos."""
 
-from collections import defaultdict
-
 from typing import (
     cast,
     Dict,
