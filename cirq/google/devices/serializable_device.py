@@ -44,35 +44,36 @@ class _GateDefinition:
             target_set: Set[Tuple['cirq.Qid', ...]],
             number_of_qubits: int,
             is_permutation: bool,
-            can_serialize_function: Callable[['cirq.Gate'], bool] = lambda x:
+            can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda x:
             True,
     ):
         self.duration = Duration(duration)
         self.target_set = target_set
         self.is_permutation = is_permutation
         self.number_of_qubits = number_of_qubits
-        self.can_serialize_function = can_serialize_function
+        self.can_serialize_predicate = can_serialize_predicate
 
         # Compute the set of all qubits in all target sets.
         self.flattened_qubits = {
             q for qubit_tuple in target_set for q in qubit_tuple
         }
 
-    def with_function(self,
-                      can_serialize_function: Callable[['cirq.Gate'], bool]
-                     ) -> '_GateDefinition':
+    def with_can_serialize_predicate(
+            self, can_serialize_predicate: Callable[['cirq.Gate'], bool]
+    ) -> '_GateDefinition':
         """Creates a new _GateDefintion as a copy of the existing definition
-        but with a new can_serialization function.  This is useful if multiple
+        but with a new with_can_serialize_predicate.  This is useful if multiple
         definitions exist for the same gate, but with different conditions.
 
         An example is if gates at certain angles of a gate take longer or are
-        not allowed."""
+        not allowed.
+        """
         return _GateDefinition(
             self.duration,
             self.target_set,
             self.number_of_qubits,
             self.is_permutation,
-            can_serialize_function,
+            can_serialize_predicate,
         )
 
     def __eq__(self, other):
@@ -178,9 +179,10 @@ class SerializableDevice(devices.Device):
                                          'specification')
                     if gate_type not in gates_by_type:
                         gates_by_type[gate_type] = []
-                    gates_by_type[gate_type].append(
-                        gate_definitions[gate_id].with_function(
-                            serializer.can_serialize_predicate))
+                    gate_def = gate_definitions[
+                        gate_id].with_can_serialize_predicate(
+                            serializer.can_serialize_predicate)
+                    gates_by_type[gate_type].append(gate_def)
 
         return SerializableDevice(
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
@@ -226,7 +228,7 @@ class SerializableDevice(devices.Device):
             for type_key in self.gate_definitions:
                 if isinstance(gate_key, type_key):
                     for gate_def in self.gate_definitions[type_key]:
-                        if gate_def.can_serialize_function(gate_key):
+                        if gate_def.can_serialize_predicate(gate_key):
                             return gate_def
         return None
 
