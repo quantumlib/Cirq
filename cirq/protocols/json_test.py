@@ -515,6 +515,7 @@ NOT_YET_SERIALIZABLE = [
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
+    'Sycamore',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
