@@ -37,7 +37,7 @@ Gate = TypeVar('Gate', bound=ops.Gate)
 class SerializingArg:
     """Specification of the arguments for a Gate and its serialization.
 
-    Attributes:
+    Args:
         serialized_name: The name of the argument when it is serialized.
         serialized_type: The type of the argument when it is serialized.
         gate_getter: The name of the property or attribute for getting the

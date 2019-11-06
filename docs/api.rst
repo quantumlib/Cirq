@@ -1,5 +1,3 @@
-.. currentmodule:: cirq
-
 API Reference
 =============
 
@@ -12,112 +10,101 @@ Classes for identifying the qubits and hardware you want to operate on.
 .. autosummary::
     :toctree: generated/
 
-    Device
-    GridQubit
-    LineQubit
-    NamedQubit
-    Qid
+    cirq.UNCONSTRAINED_DEVICE
+    cirq.Device
+    cirq.GridQubit
+    cirq.LineQid
+    cirq.LineQubit
+    cirq.NamedQubit
+    cirq.Qid
 
 
-Single Qubit Unitary Gates
+Measurement
+'''''''''''
+
+Methods and classes for performing measurement operations.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.measure
+    cirq.measure_each
+    cirq.MeasurementGate
+
+
+Unitary Gates and Operations
+''''''''''''''''''''''''''''
+
+Unitary effects that can be applied to one or more qubits.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.H
+    cirq.I
+    cirq.S
+    cirq.T
+    cirq.X
+    cirq.Y
+    cirq.Z
+    cirq.CX
+    cirq.CZ
+    cirq.XX
+    cirq.YY
+    cirq.ZZ
+    cirq.Rx
+    cirq.Ry
+    cirq.Rz
+    cirq.CCNOT
+    cirq.CCX
+    cirq.CCZ
+    cirq.CNOT
+    cirq.CSWAP
+    cirq.FREDKIN
+    cirq.ISWAP
+    cirq.QFT
+    cirq.SWAP
+    cirq.TOFFOLI
+    cirq.identity_each
+    cirq.CCXPowGate
+    cirq.CCZPowGate
+    cirq.CNotPowGate
+    cirq.CSwapGate
+    cirq.CZPowGate
+    cirq.ControlledGate
+    cirq.ControlledOperation
+    cirq.EigenGate
+    cirq.FSimGate
+    cirq.Gate
+    cirq.GivensRotation
+    cirq.GlobalPhaseOperation
+    cirq.HPowGate
+    cirq.ISwapPowGate
+    cirq.ISwapRotation
+    cirq.IdentityGate
+    cirq.IdentityOperation
+    cirq.MatrixGate
+    cirq.Operation
+    cirq.PhaseGradientGate
+    cirq.PhasedISwapPowGate
+    cirq.PhasedXPowGate
+    cirq.QuantumFourierTransformGate
+    cirq.SingleQubitGate
+    cirq.SingleQubitMatrixGate
+    cirq.SwapPowGate
+    cirq.ThreeQubitDiagonalGate
+    cirq.TwoQubitMatrixGate
+    cirq.WaitGate
+    cirq.XPowGate
+    cirq.XXPowGate
+    cirq.YPowGate
+    cirq.YYPowGate
+    cirq.ZPowGate
+    cirq.ZZPowGate
+
+
+Noisy Gates and Operations
 ''''''''''''''''''''''''''
-
-Unitary operations you can apply to a single qubit.
-
-.. autosummary::
-    :toctree: generated/
-
-    H
-    HPowGate
-    measure
-    measure_each
-    MeasurementGate
-    PhasedXPowGate
-    Rx
-    Ry
-    Rz
-    S
-    SingleQubitMatrixGate
-    T
-    TwoQubitMatrixGate
-    X
-    XPowGate
-    Y
-    YPowGate
-    Z
-    ZPowGate
-
-
-Two Qubit Unitary Gates
-'''''''''''''''''''''''
-
-Unitary operations you can apply to pairs of qubits.
-
-.. autosummary::
-    :toctree: generated/
-
-    CNOT
-    CNotPowGate
-    CZ
-    CZPowGate
-    ISWAP
-    ISwapPowGate
-    MS
-    SWAP
-    SwapPowGate
-    XX
-    XXPowGate
-    YY
-    YYPowGate
-    ZZ
-    ZZPowGate
-
-
-Three Qubit Unitary Gates
-'''''''''''''''''''''''''
-
-Unitary operations you can apply to triplets of qubits, with helpful
-adjacency-respecting decompositions.
-
-.. autosummary::
-   :toctree: generated/
-
-    CCX
-    CCXPowGate
-    CCZ
-    CCZPowGate
-    CSWAP
-    CSwapGate
-    FREDKIN
-    TOFFOLI
-
-
-Multiqubit Unitary Gates
-''''''''''''''''''''''''
-
-Some gates can be applied to arbitrary number of qubits
-
-.. autosummary::
-    :toctree: generated/
-
-    I
-    IdentityGate
-
-Measurements
-''''''''''''
-
-Measurement can be on multiple qubits. Currently only measurement in
-computational basis is supported.
-
-.. autosummary::
-    :toctree: generated/
-
-    measure
-    measure_each
-    MeasurementGate
-
-Channels and Mixture Gate
-'''''''''''''''''''''''''
 
 Non-unitary gates. Mixture gates are those that can be interpreted
 as applying a unitary for a fixed probability while channel encompasses
@@ -126,56 +113,54 @@ the more general concept of a noisy open system quantum evolution.
 .. autosummary::
     :toctree: generated/
 
-    amplitude_damp
-    AmplitudeDampingChannel
-    asymmetric_depolarize
-    AsymmetricDepolarizingChannel
-    bit_flip
-    BitFlipChannel
-    depolarize
-    DepolarizingChannel
-    generalized_amplitude_damp
-    GeneralizedAmplitudeDampingChannel
-    reset
-    ResetChannel
-    phase_damp
-    phase_flip
-    PhaseDampingChannel
-    PhaseFlipChannel
+    cirq.NOISE_MODEL_LIKE
+    cirq.NO_NOISE
+    cirq.amplitude_damp
+    cirq.asymmetric_depolarize
+    cirq.bit_flip
+    cirq.depolarize
+    cirq.generalized_amplitude_damp
+    cirq.phase_damp
+    cirq.phase_flip
+    cirq.reset
+    cirq.AmplitudeDampingChannel
+    cirq.AsymmetricDepolarizingChannel
+    cirq.BitFlipChannel
+    cirq.DepolarizingChannel
+    cirq.GeneralizedAmplitudeDampingChannel
+    cirq.NoiseModel
+    cirq.PhaseDampingChannel
+    cirq.PhaseFlipChannel
+    cirq.ResetChannel
 
 
-Other Gate and Operation Classes
-''''''''''''''''''''''''''''''''
+Pauli and Clifford Groups
+'''''''''''''''''''''''''
 
-Generic classes for creating new kinds of gates and operations.
-
-.. autosummary::
-    :toctree: generated/
-
-    ControlledGate
-    ControlledOperation
-    EigenGate
-    Gate
-    GateOperation
-    InterchangeableQubitsGate
-    LinearCombinationOfGates
-    Operation
-    SingleQubitGate
-    ThreeQubitGate
-    TwoQubitGate
-
-
-Pauli and Clifford Group Concepts
-'''''''''''''''''''''''''''''''''
+Classes and methods related to representing and operating on states using sums
+and products of Pauli operations.
 
 .. autosummary::
     :toctree: generated/
 
-    Pauli
-    PauliInteractionGate
-    PauliString
-    PauliTransform
-    SingleQubitCliffordGate
+    cirq.PAULI_BASIS
+    cirq.PAULI_STRING_LIKE
+    cirq.pow_pauli_combination
+    cirq.BaseDensePauliString
+    cirq.CliffordState
+    cirq.CliffordTableau
+    cirq.DensePauliString
+    cirq.MutableDensePauliString
+    cirq.Pauli
+    cirq.PauliInteractionGate
+    cirq.PauliString
+    cirq.PauliStringGateOperation
+    cirq.PauliStringPhasor
+    cirq.PauliSum
+    cirq.PauliSumLike
+    cirq.PauliTransform
+    cirq.SingleQubitCliffordGate
+    cirq.StabilizerStateChForm
 
 
 Circuits and Schedules
@@ -187,155 +172,194 @@ Circuits, Operations, and Moments.
 .. autosummary::
     :toctree: generated/
 
-    Circuit
-    CircuitDag
-    flatten_op_tree
-    freeze_op_tree
-    GateOperation
-    InsertStrategy
-    Moment
-    moment_by_moment_schedule
-    op_gate_of_type
-    OP_TREE
-    Operation
-    ParallelGateOperation
-    QubitOrder
-    QubitOrderOrList
-    Schedule
-    ScheduledOperation
-    transform_op_tree
-    Unique
+    cirq.OP_TREE
+    cirq.flatten_op_tree
+    cirq.freeze_op_tree
+    cirq.moment_by_moment_schedule
+    cirq.op_gate_isinstance
+    cirq.op_gate_of_type
+    cirq.transform_op_tree
+    cirq.Circuit
+    cirq.CircuitDag
+    cirq.GateOperation
+    cirq.InsertStrategy
+    cirq.Moment
+    cirq.ParallelGateOperation
+    cirq.QubitOrder
+    cirq.QubitOrderOrList
+    cirq.Schedule
+    cirq.ScheduledOperation
+    cirq.Unique
 
 
-Trials and Simulations
-''''''''''''''''''''''
+Sampling, Simulations, and Data Collection
+''''''''''''''''''''''''''''''''''''''''''
 
-Classes for simulations and results.
-
-.. autosummary::
-    :toctree: generated/
-
-    bloch_vector_from_state_vector
-    density_matrix_from_state_vector
-    DensityMatrixSimulator
-    DensityMatrixSimulatorState
-    DensityMatrixStepResult
-    DensityMatrixTrialResult
-    dirac_notation
-    measure_density_matrix
-    measure_state_vector
-    sample
-    sample_density_matrix
-    sample_state_vector
-    sample_sweep
-    Sampler
-    SimulatesFinalState
-    SimulatesIntermediateState
-    SimulatesIntermediateWaveFunction
-    SimulatesSamples
-    SimulationTrialResult
-    Simulator
-    SparseSimulatorStep
-    StateVectorMixin
-    StepResult
-    TrialResult
-    to_valid_density_matrix
-    to_valid_state_vector
-    validate_normalized_state
-    validate_probability
-    WaveFunctionSimulatorState
-    WaveFunctionStepResult
-    WaveFunctionTrialResult
-
-
-Parameterization
-''''''''''''''''
-
-Handling of parameterized values.
+Objects for collecting data about a quantum circuit. Includes methods and
+classes for defining parameter sweeps, performing simulations, and analyzing
+results.
 
 .. autosummary::
     :toctree: generated/
 
-    Linspace
-    ParamResolver
-    plot_state_histogram
-    Points
-    Sweep
-    Sweepable
-    to_resolvers
-    UnitSweep
+    cirq.STATE_VECTOR_LIKE
+    cirq.big_endian_bits_to_int
+    cirq.big_endian_digits_to_int
+    cirq.big_endian_int_to_bits
+    cirq.big_endian_int_to_digits
+    cirq.bloch_vector_from_state_vector
+    cirq.density_matrix_from_state_vector
+    cirq.dirac_notation
+    cirq.final_wavefunction
+    cirq.flatten
+    cirq.flatten_to_ops
+    cirq.flatten_to_ops_or_moments
+    cirq.flatten_with_params
+    cirq.flatten_with_sweep
+    cirq.hog_score_xeb_fidelity_from_probabilities
+    cirq.measure_density_matrix
+    cirq.measure_state_vector
+    cirq.sample
+    cirq.sample_density_matrix
+    cirq.sample_state_vector
+    cirq.sample_sweep
+    cirq.to_resolvers
+    cirq.to_sweep
+    cirq.to_valid_density_matrix
+    cirq.to_valid_state_vector
+    cirq.validate_mixture
+    cirq.validate_normalized_state
+    cirq.validate_probability
+    cirq.xeb_fidelity
+    cirq.CircuitSampleJob
+    cirq.CliffordSimulator
+    cirq.CliffordSimulatorStepResult
+    cirq.CliffordTrialResult
+    cirq.Collector
+    cirq.DensityMatrixSimulator
+    cirq.DensityMatrixSimulatorState
+    cirq.DensityMatrixStepResult
+    cirq.DensityMatrixTrialResult
+    cirq.ExpressionMap
+    cirq.Linspace
+    cirq.ListSweep
+    cirq.ParamDictType
+    cirq.ParamResolver
+    cirq.ParamResolverOrSimilarType
+    cirq.PauliSumCollector
+    cirq.Points
+    cirq.Product
+    cirq.Sampler
+    cirq.SimulatesAmplitudes
+    cirq.SimulatesFinalState
+    cirq.SimulatesIntermediateState
+    cirq.SimulatesIntermediateWaveFunction
+    cirq.SimulatesSamples
+    cirq.SimulationTrialResult
+    cirq.Simulator
+    cirq.SparseSimulatorStep
+    cirq.StateVectorMixin
+    cirq.StepResult
+    cirq.Sweep
+    cirq.Sweepable
+    cirq.TrialResult
+    cirq.UnitSweep
+    cirq.WaveFunctionSimulatorState
+    cirq.WaveFunctionStepResult
+    cirq.WaveFunctionTrialResult
+    cirq.Zip
+
+
+Visualization
+'''''''''''''
+
+Classes and methods for visualizing data.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.plot_state_histogram
+    cirq.scatter_plot_normalized_kak_interaction_coefficients
+    cirq.Heatmap
+    cirq.TextDiagramDrawer
+
 
 Magic Method Protocols
 ''''''''''''''''''''''
 
-Utility methods for accessing generic functionality exposed by some gates,
-operations, and other types.
+A magic method is a special named method, like `_unitary_`, that a class can
+implement in order to indicate it supports certain functionality. There will be
+a corresponding global method, such as `cirq.unitary`, for easily accessing this
+functionality.
+
+Classes that being with `Supports` are templates demonstrating and documenting
+the magic methods that can be implemented.
 
 .. autosummary::
     :toctree: generated/
 
-    apply_channel
-    apply_unitary
-    approx_eq
-    channel
-    circuit_diagram_info
-    decompose
-    decompose_once
-    decompose_once_with_qubits
-    has_channel
-    has_mixture
-    has_mixture_channel
-    has_unitary
-    inverse
-    is_measurement
-    is_parameterized
-    measurement_key
-    mixture
-    mixture_channel
-    mul
-    num_qubits
-    pauli_expansion
-    phase_by
-    pow
-    qasm
-    qid_shape
-    resolve_parameters
-    trace_distance_bound
-    unitary
-    validate_mixture
-
-Magic Method Protocol Types
-'''''''''''''''''''''''''''
-
-Classes defining and used by the magic method protocols.
-
-.. autosummary::
-    :toctree: generated/
-
-    ApplyChannelArgs
-    ApplyUnitaryArgs
-    CircuitDiagramInfo
-    CircuitDiagramInfoArgs
-    QasmArgs
-    QasmOutput
-    SupportsApplyChannel
-    SupportsConsistentApplyUnitary
-    SupportsApproximateEquality
-    SupportsChannel
-    SupportsCircuitDiagramInfo
-    SupportsDecompose
-    SupportsDecomposeWithQubits
-    SupportsExplicitHasUnitary
-    SupportsExplicitNumQubits
-    SupportsExplicitQidShape
-    SupportsMixture
-    SupportsParameterization
-    SupportsPhase
-    SupportsQasm
-    SupportsQasmWithArgs
-    SupportsQasmWithArgsAndQubits
-    SupportsTraceDistanceBound
-    SupportsUnitary
+    cirq.apply_channel
+    cirq.apply_mixture
+    cirq.apply_unitaries
+    cirq.apply_unitary
+    cirq.approx_eq
+    cirq.channel
+    cirq.circuit_diagram_info
+    cirq.decompose
+    cirq.decompose_once
+    cirq.decompose_once_with_qubits
+    cirq.equal_up_to_global_phase
+    cirq.has_channel
+    cirq.has_mixture
+    cirq.has_mixture_channel
+    cirq.has_unitary
+    cirq.inverse
+    cirq.is_measurement
+    cirq.is_parameterized
+    cirq.measurement_key
+    cirq.mixture
+    cirq.mixture_channel
+    cirq.mul
+    cirq.num_qubits
+    cirq.pauli_expansion
+    cirq.phase_by
+    cirq.pow
+    cirq.qasm
+    cirq.qid_shape
+    cirq.read_json
+    cirq.resolve_parameters
+    cirq.to_json
+    cirq.trace_distance_bound
+    cirq.unitary
+    cirq.ApplyChannelArgs
+    cirq.ApplyMixtureArgs
+    cirq.ApplyUnitaryArgs
+    cirq.CircuitDiagramInfo
+    cirq.CircuitDiagramInfoArgs
+    cirq.QasmArgs
+    cirq.QasmOutput
+    cirq.SupportsApplyChannel
+    cirq.SupportsApplyMixture
+    cirq.SupportsApproximateEquality
+    cirq.SupportsChannel
+    cirq.SupportsCircuitDiagramInfo
+    cirq.SupportsConsistentApplyUnitary
+    cirq.SupportsDecompose
+    cirq.SupportsDecomposeWithQubits
+    cirq.SupportsEqualUpToGlobalPhase
+    cirq.SupportsExplicitHasUnitary
+    cirq.SupportsExplicitNumQubits
+    cirq.SupportsExplicitQidShape
+    cirq.SupportsJSON
+    cirq.SupportsMeasurementKey
+    cirq.SupportsMixture
+    cirq.SupportsParameterization
+    cirq.SupportsPhase
+    cirq.SupportsQasm
+    cirq.SupportsQasmWithArgs
+    cirq.SupportsQasmWithArgsAndQubits
+    cirq.SupportsTraceDistanceBound
+    cirq.SupportsUnitary
 
 
 Optimization
@@ -346,79 +370,23 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
-    ConvertToCzAndSingleGates
-    DropEmptyMoments
-    DropNegligible
-    EjectPhasedPaulis
-    EjectZ
-    ExpandComposite
-    google.optimized_for_xmon
-    merge_single_qubit_gates_into_phased_x_z
-    MergeInteractions
-    MergeSingleQubitGates
-    PointOptimizationSummary
-    PointOptimizer
-    single_qubit_matrix_to_gates
-    single_qubit_matrix_to_pauli_rotations
-    single_qubit_matrix_to_phased_x_z
-    single_qubit_op_to_framed_phase_form
-    two_qubit_matrix_to_operations
-
-
-Utilities
-'''''''''
-
-General utility methods, mostly related to performing relevant linear algebra
-operations and decompositions.
-
-.. autosummary::
-    :toctree: generated/
-
-    allclose_up_to_global_phase
-    apply_matrix_to_slices
-    bidiagonalize_real_matrix_pair_with_symmetric_products
-    bidiagonalize_unitary_with_special_orthogonals
-    block_diag
-    commutes
-    canonicalize_half_turns
-    chosen_angle_to_canonical_half_turns
-    chosen_angle_to_half_turns
-    commutes
-    CONTROL_TAG
-    diagonalize_real_symmetric_and_sorted_diagonal_matrices
-    diagonalize_real_symmetric_matrix
-    dot
-    Duration
-    expand_matrix_in_orthogonal_basis
-    hilbert_schmidt_inner_product
-    is_diagonal
-    is_hermitian
-    is_negligible_turn
-    is_orthogonal
-    is_special_orthogonal
-    is_special_unitary
-    is_unitary
-    kak_canonicalize_vector
-    kak_decomposition
-    kak_vector
-    KakDecomposition
-    kron
-    kron_factor_4x4_to_2x2s
-    kron_with_controls
-    LinearDict
-    map_eigenvalues
-    match_global_phase
-    matrix_from_basis_coefficients
-    partial_trace
-    PeriodicValue
-    reflection_matrix_pow
-    slice_for_qubits_equal_to
-    so4_to_magic_su2s
-    targeted_conjugate_about
-    targeted_left_multiply
-    TextDiagramDrawer
-    Timestamp
-    value_equality
+    cirq.merge_single_qubit_gates_into_phased_x_z
+    cirq.single_qubit_matrix_to_gates
+    cirq.single_qubit_matrix_to_pauli_rotations
+    cirq.single_qubit_matrix_to_phased_x_z
+    cirq.single_qubit_op_to_framed_phase_form
+    cirq.two_qubit_matrix_to_operations
+    cirq.ConvertToCzAndSingleGates
+    cirq.DropEmptyMoments
+    cirq.DropNegligible
+    cirq.EjectPhasedPaulis
+    cirq.EjectZ
+    cirq.ExpandComposite
+    cirq.MergeInteractions
+    cirq.MergeSingleQubitGates
+    cirq.PointOptimizationSummary
+    cirq.PointOptimizer
+    cirq.SynchronizeTerminalMeasurements
 
 
 Experiments
@@ -430,9 +398,26 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    generate_boixo_2018_supremacy_circuits_v2
-    generate_boixo_2018_supremacy_circuits_v2_bristlecone
-    generate_boixo_2018_supremacy_circuits_v2_grid
+    cirq.generate_boixo_2018_supremacy_circuits_v2
+    cirq.generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    cirq.generate_boixo_2018_supremacy_circuits_v2_grid
+    cirq.linear_xeb_fidelity
+    cirq.linear_xeb_fidelity_from_probabilities
+    cirq.log_xeb_fidelity
+    cirq.log_xeb_fidelity_from_probabilities
+    cirq.experiments.build_entangling_layers
+    cirq.experiments.cross_entropy_benchmarking
+    cirq.experiments.rabi_oscillations
+    cirq.experiments.single_qubit_randomized_benchmarking
+    cirq.experiments.single_qubit_state_tomography
+    cirq.experiments.t1_decay
+    cirq.experiments.two_qubit_randomized_benchmarking
+    cirq.experiments.two_qubit_state_tomography
+    cirq.experiments.CrossEntropyResult
+    cirq.experiments.RabiResult
+    cirq.experiments.RandomizedBenchMarkResult
+    cirq.experiments.T1DecayResult
+    cirq.experiments.TomographyResult
 
 
 Ion traps and neutral atoms
@@ -443,12 +428,14 @@ Support for ion trap an neutral atom devices.
 .. autosummary::
     :toctree: generated/
 
-    ConvertToIonGates
-    IonDevice
-    MS
-    two_qubit_matrix_to_ion_operations
-    ConvertToNeutralAtomGates
-    NeutralAtomDevice
+    cirq.MS
+    cirq.is_native_neutral_atom_gate
+    cirq.is_native_neutral_atom_op
+    cirq.two_qubit_matrix_to_ion_operations
+    cirq.ConvertToIonGates
+    cirq.ConvertToNeutralAtomGates
+    cirq.IonDevice
+    cirq.NeutralAtomDevice
 
 
 
@@ -460,72 +447,195 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
-    google.AnnealSequenceSearchStrategy
-    google.Bristlecone
-    google.ConvertToXmonGates
-    google.Engine
-    google.engine_from_environment
-    google.Foxtail
-    google.gate_to_proto_dict
-    google.GreedySequenceSearchStrategy
-    google.is_native_xmon_op
-    google.JobConfig
-    google.line_on_device
-    google.LinePlacementStrategy
-    google.optimized_for_xmon
-    google.pack_results
-    google.schedule_from_proto_dicts
-    google.schedule_to_proto_dicts
-    google.unpack_results
-    google.xmon_op_from_proto_dict
-
-
-Testing
-'''''''
-
-Functionality for writing unit tests involving objects from Cirq, and also some
-general testing utilities.
-
-.. autosummary::
-    :toctree: generated/
-
-    testing.assert_allclose_up_to_global_phase
-    testing.assert_circuits_with_terminal_measurements_are_equivalent
-    testing.assert_decompose_is_consistent_with_unitary
-    testing.assert_eigengate_implements_consistent_protocols
-    testing.assert_equivalent_repr
-    testing.assert_has_consistent_apply_unitary
-    testing.assert_has_consistent_apply_unitary_for_various_exponents
-    testing.assert_has_diagram
-    testing.assert_implements_consistent_protocols
-    testing.assert_pauli_expansion_is_consistent_with_unitary
-    testing.assert_phase_by_is_consistent_with_unitary
-    testing.assert_qasm_is_consistent_with_unitary
-    testing.assert_same_circuits
-    testing.EqualsTester
-    testing.highlight_text_differences
-    testing.nonoptimal_toffoli_circuit
-    testing.OrderTester
-    testing.random_circuit
-    testing.random_orthogonal
-    testing.random_special_orthogonal
-    testing.random_special_unitary
-    testing.random_superposition
-    testing.random_unitary
+    cirq.google.SQRT_ISWAP_GATESET
+    cirq.google.SYC
+    cirq.google.SYC_GATESET
+    cirq.google.XMON
+    cirq.google.engine_from_environment
+    cirq.google.gate_to_proto_dict
+    cirq.google.is_native_xmon_gate
+    cirq.google.is_native_xmon_op
+    cirq.google.line_on_device
+    cirq.google.optimized_for_xmon
+    cirq.google.pack_results
+    cirq.google.schedule_from_proto_dicts
+    cirq.google.schedule_to_proto_dicts
+    cirq.google.sweep_from_proto_dict
+    cirq.google.sweep_to_proto_dict
+    cirq.google.unpack_results
+    cirq.google.xmon_op_from_proto_dict
+    cirq.google.AnnealSequenceSearchStrategy
+    cirq.google.Bristlecone
+    cirq.google.Calibration
+    cirq.google.ConvertToXmonGates
+    cirq.google.DeserializingArg
+    cirq.google.Engine
+    cirq.google.EngineJob
+    cirq.google.EngineProgram
+    cirq.google.Foxtail
+    cirq.google.GateOpDeserializer
+    cirq.google.GateOpSerializer
+    cirq.google.GreedySequenceSearchStrategy
+    cirq.google.JobConfig
+    cirq.google.LinePlacementStrategy
+    cirq.google.ProtoVersion
+    cirq.google.QuantumEngineSampler
+    cirq.google.SerializableDevice
+    cirq.google.SerializableGateSet
+    cirq.google.SerializingArg
+    cirq.google.SycamoreGate
+    cirq.google.XmonDevice
 
 
 Contrib
 '''''''
 
-Contributed code that requires extra dependencies to be installed, code that may
-be unstable, and code that may or may not be a fit for the main library. A
-waiting area.
+Contributed code that is not yet considered stable, may not yet fit well with
+the main library, and may require extra dependencies to be installed (via
+``python -m pip install cirq[contrib]``). A waiting area. All packages within
+contrib may change without notice.
 
 .. autosummary::
     :toctree: generated/
 
-    contrib.acquaintance
-    contrib.paulistring
-    contrib.qcircuit
-    contrib.quirk
-    contrib.tpu
+    cirq.contrib.acquaintance
+    cirq.contrib.paulistring
+    cirq.contrib.qcircuit
+    cirq.contrib.quirk
+    cirq.contrib.tpu
+
+
+Coding and Testing Tools
+''''''''''''''''''''''''
+
+These objects are not relevant when simply constructing and sampling circuits,
+but are useful for customization tasks like defining and validating a custom
+operation.
+
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.alternative
+    cirq.obj_to_dict_helper
+    cirq.value_equality
+    cirq.ABCMetaImplementAnyOneOf
+    cirq.ArithmeticOperation
+    cirq.InterchangeableQubitsGate
+    cirq.LinearDict
+    cirq.PeriodicValue
+    cirq.testing.assert_allclose_up_to_global_phase
+    cirq.testing.assert_asyncio_still_running
+    cirq.testing.assert_asyncio_will_have_result
+    cirq.testing.assert_asyncio_will_raise
+    cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
+    cirq.testing.assert_decompose_is_consistent_with_unitary
+    cirq.testing.assert_eigengate_implements_consistent_protocols
+    cirq.testing.assert_equivalent_repr
+    cirq.testing.assert_has_consistent_apply_unitary
+    cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents
+    cirq.testing.assert_has_consistent_qid_shape
+    cirq.testing.assert_has_consistent_trace_distance_bound
+    cirq.testing.assert_has_diagram
+    cirq.testing.assert_implements_consistent_protocols
+    cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
+    cirq.testing.assert_phase_by_is_consistent_with_unitary
+    cirq.testing.assert_qasm_is_consistent_with_unitary
+    cirq.testing.assert_same_circuits
+    cirq.testing.highlight_text_differences
+    cirq.testing.nonoptimal_toffoli_circuit
+    cirq.testing.random_circuit
+    cirq.testing.random_orthogonal
+    cirq.testing.random_special_orthogonal
+    cirq.testing.random_special_unitary
+    cirq.testing.random_superposition
+    cirq.testing.random_unitary
+    cirq.testing.EqualsTester
+    cirq.testing.OrderTester
+
+
+Algebra and Representation
+''''''''''''''''''''''''''
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.CONTROL_TAG
+    cirq.DURATION_LIKE
+    cirq.all_near_zero
+    cirq.all_near_zero_mod
+    cirq.allclose_up_to_global_phase
+    cirq.apply_matrix_to_slices
+    cirq.axis_angle
+    cirq.bidiagonalize_real_matrix_pair_with_symmetric_products
+    cirq.bidiagonalize_unitary_with_special_orthogonals
+    cirq.block_diag
+    cirq.canonicalize_half_turns
+    cirq.chosen_angle_to_canonical_half_turns
+    cirq.chosen_angle_to_half_turns
+    cirq.commutes
+    cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
+    cirq.diagonalize_real_symmetric_matrix
+    cirq.dot
+    cirq.expand_matrix_in_orthogonal_basis
+    cirq.eye_tensor
+    cirq.hilbert_schmidt_inner_product
+    cirq.is_diagonal
+    cirq.is_hermitian
+    cirq.is_negligible_turn
+    cirq.is_orthogonal
+    cirq.is_special_orthogonal
+    cirq.is_special_unitary
+    cirq.is_unitary
+    cirq.kak_canonicalize_vector
+    cirq.kak_decomposition
+    cirq.kak_vector
+    cirq.kron
+    cirq.kron_bases
+    cirq.kron_factor_4x4_to_2x2s
+    cirq.kron_with_controls
+    cirq.map_eigenvalues
+    cirq.match_global_phase
+    cirq.matrix_from_basis_coefficients
+    cirq.one_hot
+    cirq.partial_trace
+    cirq.reflection_matrix_pow
+    cirq.slice_for_qubits_equal_to
+    cirq.so4_to_magic_su2s
+    cirq.subwavefunction
+    cirq.targeted_conjugate_about
+    cirq.targeted_left_multiply
+    cirq.von_neumann_entropy
+    cirq.wavefunction_partial_trace_as_mixture
+    cirq.AxisAngleDecomposition
+    cirq.Duration
+    cirq.KakDecomposition
+    cirq.Timestamp
+
+
+Internal Implementation Details
+'''''''''''''''''''''''''''''''
+
+Neither users nor developers will commonly refer to these objects, but they play
+important roles in the internal machinery of the library.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.ConstantQubitNoiseModel
+    cirq.LinearCombinationOfGates
+    cirq.LinearCombinationOfOperations
+    cirq.SingleQubitPauliStringGateOperation
+    cirq.TParamVal
+
+
+Deprecated
+''''''''''
+
+These objects will be removed in a future version of the library.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.ThreeQubitGate
+    cirq.TwoQubitGate
