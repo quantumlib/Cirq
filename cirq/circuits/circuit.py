@@ -1418,7 +1418,7 @@ class Circuit:
 
     def final_wavefunction(
             self,
-            initial_state: Union[int, np.ndarray] = 0,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
             ignore_terminal_measurements: bool = True,
@@ -1440,12 +1440,18 @@ class Circuit:
         way.
 
         Args:
-            initial_state: The input state for the circuit. This can be an int
-                or a vector. When this is an int, it refers to a computational
+            initial_state: The input state for the circuit. This can be a list
+                of qudit values, a big endian int encoding the qudit values,
+                a vector of amplitudes, or a tensor of amplitudes.
+
+                When this is an int, it refers to a computational
                 basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
-                If this is a state vector, it directly specifies the initial
-                state's amplitudes. The vector must be a flat numpy array with a
-                type that can be converted to np.complex128.
+
+                If this is a vector of amplitudes (a flat numpy array of the
+                correct length for the system) or a tensor of amplitudes (a
+                numpy array whose shape equals this circuit's `qid_shape`), it
+                directly specifies the initial state's amplitudes. The vector
+                type must be convertible to the given `dtype` argument.
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             qubits_that_should_be_present: Qubits that may or may not appear
@@ -1485,13 +1491,10 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        if isinstance(initial_state, int):
-            state = np.zeros(state_len, dtype=dtype)
-            state[initial_state] = 1
-        else:
-            state = initial_state.astype(dtype)
-        state.shape = qid_shape
-
+        from cirq import sim
+        state = sim.to_valid_state_vector(initial_state,
+                                          qid_shape=qid_shape,
+                                          dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 
