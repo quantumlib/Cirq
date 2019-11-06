@@ -250,7 +250,7 @@ def final_density_matrix(
 
     if not noise_model == devices.NO_NOISE and not protocols.has_unitary(
             circuit_like):
-        raise Exception("Noise specified more than once.")
+        raise ValueError("Noise specified more than once.")
     elif noise_model == devices.NO_NOISE and protocols.has_unitary(
             circuit_like):
         # pure case: use SparseSimulator
