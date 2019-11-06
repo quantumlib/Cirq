@@ -52,7 +52,7 @@ class DeserializingArg:
 class GateOpDeserializer:
     """Describes how to deserialize a proto to a given Gate type.
 
-    Args:
+    Attributes:
         serialized_gate_id: The id used when serializing the gate.
     """
 
