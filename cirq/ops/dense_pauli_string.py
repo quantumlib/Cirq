@@ -101,7 +101,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             index: The index of the Pauli that is not an identity.
             pauli: The pauli gate to put at the hot index. Can be set to either
                 a string ('X', 'Y', 'Z', 'I') or a cirq gate (`cirq.X`,
-                `cirq.Y`, `cirq.Z`, or ``cirq.I`).
+                `cirq.Y`, `cirq.Z`, or `cirq.I`).
         """
         mask = np.zeros(length, dtype=np.uint8)
         mask[index] = _pauli_index(pauli)

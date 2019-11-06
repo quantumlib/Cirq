@@ -37,6 +37,7 @@ pauli_eigen_map = cast(
 class PauliInteractionGate(eigen_gate.EigenGate,
                            gate_features.InterchangeableQubitsGate,
                            gate_features.TwoQubitGate):
+    """A CZ conjugated by arbitrary single qubit Cliffords."""
     CZ = None  # type: PauliInteractionGate
     CNOT = None  # type: PauliInteractionGate
 
