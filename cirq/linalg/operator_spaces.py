@@ -19,6 +19,7 @@ from typing import Dict, Tuple
 import numpy as np
 
 from cirq import value
+from cirq._doc import document
 
 PAULI_BASIS = {
     'I': np.eye(2),
@@ -26,6 +27,9 @@ PAULI_BASIS = {
     'Y': np.array([[0., -1j], [1j, 0.]]),
     'Z': np.diag([1., -1]),
 }
+document(
+    PAULI_BASIS,
+    """The four Pauli matrices (including identity) keyed by character.""")
 
 
 def kron_bases(*bases: Dict[str, np.ndarray],
