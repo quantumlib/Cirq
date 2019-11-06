@@ -319,6 +319,7 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
+    STATE_VECTOR_LIKE,
     StateVectorMixin,
     StepResult,
     to_valid_density_matrix,

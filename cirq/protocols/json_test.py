@@ -380,6 +380,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
     'ParamDictType',
