@@ -80,6 +80,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.GlobalPhaseOperation
     cirq.HPowGate
     cirq.ISwapPowGate
+    cirq.ISwapRotation
     cirq.IdentityGate
     cirq.IdentityOperation
     cirq.MatrixGate
@@ -201,6 +202,7 @@ results.
 .. autosummary::
     :toctree: generated/
 
+    cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
     cirq.big_endian_int_to_bits

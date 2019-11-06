@@ -24,12 +24,14 @@ def _all_public() -> Set[str]:
             if name in by_name:
                 old_full_name, old_obj = by_name[name]
                 if obj is not old_obj:
+                    # coverage: ignore
                     raise ValueError(f'Ambiguous name:\n'
                                      f'{old_full_name}\n'
                                      f'{full_name}\n')
                 if len(full_name) > len(old_full_name):
                     continue
 
+                # coverage: ignore
                 result.remove(old_full_name)
 
             by_name[name] = (full_name, obj)
@@ -40,7 +42,7 @@ def _all_public() -> Set[str]:
 def _api_rst_fullnames_per_section() -> List[List[str]]:
     result: List[List[str]] = []
     section: List[str] = []
-    seen = set()
+    seen: Set[str] = set()
     with open(Path(__file__).parent / 'api.rst', mode='r') as f:
         for line in f.readlines():
             if line.strip() == '.. autosummary::':
@@ -50,6 +52,7 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
             elif line.startswith('    cirq.'):
                 fullname = line.strip()
                 if fullname in seen:
+                    # coverage: ignore
                     raise ValueError(f'{fullname} appears twice in api.rst')
                 section.append(fullname)
                 seen.add(fullname)
