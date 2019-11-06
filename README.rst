@@ -20,10 +20,11 @@ circuits and running them against quantum computers and simulators.
 Installation and Documentation
 ------------------------------
 
-You can install Cirq following these
-`instructions <https://cirq.readthedocs.io/en/stable/install.html>`_.
-The full documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_,
-or you can jump straight to the `tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_.
+Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_:
+
+ - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
+ - `Documentation <https://cirq.readthedocs.io>`_
+ - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
 
 Hello Qubit
 -----------
