@@ -71,9 +71,9 @@ def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
     """Converts the argument into a ``cirq.Sweep``.
 
     Args:
-        sweep_or_resolver_list: The object to try to turn into a ``cirq.Sweep``
-            A ``cirq.Sweep``, a single ``cirq.ParamResolver``, or a list of
-            ``cirq.ParamResolver`` s.
+        sweep_or_resolver_list: The object to try to turn into a
+            ``cirq.Sweep`` . A ``cirq.Sweep``, a single ``cirq.ParamResolver``,
+            or a list of ``cirq.ParamResolver`` s.
 
     Returns:
         A sweep equal to or containing the argument.
