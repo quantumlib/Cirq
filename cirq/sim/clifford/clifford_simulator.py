@@ -36,6 +36,7 @@ import cirq
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq.ops import raw_types
+from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import circuits, study, ops, protocols
 
 
@@ -252,8 +253,11 @@ class CliffordState():
     def to_numpy(self):
         return self.ch_form.to_state_vector()
 
-    def stabilizers(self):
+    def stabilizers(self) -> List[DensePauliString]:
         return self.tableau.stabilizers()
+
+    def destabilizers(self) -> List[DensePauliString]:
+        return self.tableau.destabilizers()
 
     def wave_function(self):
         return self.ch_form.wave_function()

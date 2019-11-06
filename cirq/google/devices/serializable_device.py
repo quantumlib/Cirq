@@ -13,8 +13,18 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import Callable, cast, Dict, Iterable, Optional, List
-from typing import Set, Tuple, Type, TYPE_CHECKING
+from typing import (
+    Callable,
+    cast,
+    Dict,
+    Iterable,
+    Optional,
+    List,
+    Set,
+    Tuple,
+    Type,
+    TYPE_CHECKING,
+)
 
 from cirq import devices, ops
 from cirq.google import serializable_gate_set

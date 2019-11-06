@@ -558,7 +558,7 @@ def test_to_z_basis_ops():
                                      q4: cirq.Z, q5: cirq.Z})
     circuit = cirq.Circuit(pauli_string.to_z_basis_ops())
 
-    initial_state = cirq.kron(x0, x1, y0, y1, z0, z1)
+    initial_state = cirq.kron(x0, x1, y0, y1, z0, z1, shape_len=1)
     z_basis_state = circuit.final_wavefunction(initial_state)
 
     expected_state = np.zeros(2 ** 6)
@@ -834,32 +834,40 @@ def test_expectation_from_wavefunction_basis_states():
     x0 = cirq.PauliString({q0: cirq.X})
     q_map = {q0: 0}
 
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
-                                         q_map), 0)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
-                                         q_map), 0)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(
-            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(
-        x0.expectation_from_wavefunction(
-            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), -1)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, 0], dtype=np.complex), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([0, 1], dtype=np.complex), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map),
+                               1,
+                               atol=1e-7)
+    np.testing.assert_allclose(x0.expectation_from_wavefunction(
+        np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map),
+                               -1,
+                               atol=1e-7)
 
     y0 = cirq.PauliString({q0: cirq.Y})
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map), 1)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map), -1)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map), 0)
-    np.testing.assert_allclose(
-        y0.expectation_from_wavefunction(
-            np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map), 0)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, 1j], dtype=np.complex) / np.sqrt(2), q_map),
+                               1,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, -1j], dtype=np.complex) / np.sqrt(2), q_map),
+                               -1,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, 1], dtype=np.complex) / np.sqrt(2), q_map),
+                               0,
+                               atol=1e-7)
+    np.testing.assert_allclose(y0.expectation_from_wavefunction(
+        np.array([1, -1], dtype=np.complex) / np.sqrt(2), q_map),
+                               0,
+                               atol=1e-7)
 
 
 def test_expectation_from_wavefunction_entangled_states():
@@ -954,7 +962,7 @@ def test_pauli_string_expectation_from_wavefunction_pure_state():
     x0z1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Z})
     x3 = cirq.PauliString({qubits[3]: cirq.X})
 
-    for state in [wf, wf.reshape(2, 2, 2, 2)]:
+    for state in [wf, wf.reshape((2, 2, 2, 2))]:
         np.testing.assert_allclose(
             z0z1.expectation_from_wavefunction(state, q_map), -1)
         np.testing.assert_allclose(
@@ -1198,7 +1206,7 @@ def test_pauli_string_expectation_from_density_matrix_pure_state():
     x0z1 = cirq.PauliString({qubits[0]: cirq.X, qubits[1]: cirq.Z})
     x3 = cirq.PauliString({qubits[3]: cirq.X})
 
-    for state in [rho, rho.reshape(2, 2, 2, 2, 2, 2, 2, 2)]:
+    for state in [rho, rho.reshape((2, 2, 2, 2, 2, 2, 2, 2))]:
         np.testing.assert_allclose(
             z0z1.expectation_from_density_matrix(state, q_map), -1)
         np.testing.assert_allclose(
