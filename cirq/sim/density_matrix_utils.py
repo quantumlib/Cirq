@@ -259,7 +259,7 @@ def measure_density_matrix(
 
 
 def _probs(density_matrix: np.ndarray, indices: List[int],
-           qid_shape: Tuple[int, ...]) -> List[float]:
+           qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     # Only diagonal elements matter.
     all_probs = np.diagonal(
@@ -268,16 +268,24 @@ def _probs(density_matrix: np.ndarray, indices: List[int],
     tensor = np.reshape(all_probs, qid_shape)
 
     # Calculate the probabilities for measuring the particular results.
-    meas_shape = tuple(qid_shape[i] for i in indices)
-    probs = [
-        np.sum(
-            np.abs(tensor[linalg.slice_for_qubits_equal_to(
-                indices, big_endian_qureg_value=b, qid_shape=qid_shape)]))
-        for b in range(np.prod(meas_shape, dtype=int))
-    ]
+    if len(indices) == len(qid_shape):
+        # We're measuring every qudit, so no need for fancy indexing
+        probs = np.abs(tensor)
+        probs = np.transpose(probs, indices)
+        probs = np.reshape(probs, np.prod(probs.shape))
+    else:
+        # Fancy indexing required
+        meas_shape = tuple(qid_shape[i] for i in indices)
+        probs = np.abs([
+            tensor[linalg.slice_for_qubits_equal_to(indices,
+                                                    big_endian_qureg_value=b,
+                                                    qid_shape=qid_shape)]
+            for b in range(np.prod(meas_shape, dtype=int))
+        ])
+        probs = np.sum(probs, axis=tuple(range(1, len(probs.shape))))
 
     # To deal with rounding issues, ensure that the probabilities sum to 1.
-    probs /= np.sum(probs) # type: ignore
+    probs /= np.sum(probs)
     return probs
 
 

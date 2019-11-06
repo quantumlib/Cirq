@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
+import numbers
 import pathlib
 from typing import (
     Union,
@@ -84,6 +85,7 @@ class _ResolverCache:
                 'IdentityOperation': cirq.IdentityOperation,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
+                'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
@@ -100,20 +102,11 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
+                'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SwapPowGate': cirq.SwapPowGate,
-                'SycamoreGate': cirq.SycamoreGate,
-                'sympy.Symbol': sympy.Symbol,
-                'sympy.Add': lambda args: sympy.Add(*args),
-                'sympy.Mul': lambda args: sympy.Mul(*args),
-                'sympy.Pow': lambda args: sympy.Pow(*args),
-                'sympy.Float': lambda approx: sympy.Float(approx),
-                'sympy.Integer': sympy.Integer,
-                'sympy.Rational': sympy.Rational,
-                'pandas.DataFrame': pd.DataFrame,
-                'pandas.Index': pd.Index,
-                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'SycamoreGate': cirq.google.SycamoreGate,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
@@ -127,6 +120,16 @@ class _ResolverCache:
                 'ZZPowGate': cirq.ZZPowGate,
 
                 # not a cirq class, but treated as one:
+                'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
         return self._crd
@@ -230,7 +233,13 @@ class CirqEncoder(json.JSONEncoder):
     def default(self, o):
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
-        if isinstance(o, complex):
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, numbers.Integral):
+            return int(o)
+        if isinstance(o, numbers.Real):
+            return float(o)
+        if isinstance(o, numbers.Complex):
             return {
                 'cirq_type': 'complex',
                 'real': o.real,

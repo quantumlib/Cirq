@@ -12,14 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
-import sympy
-
-from cirq._doc import document
-"""Supply aliases for commonly used types.
-"""
-
-TParamVal = Union[float, sympy.Basic]
-document(
-    TParamVal,  # type: ignore
-    """A value that a parameter resolver may return for a symbol.""")
+from cirq.google.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
+)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq import value, protocols
+from cirq._doc import document
 from cirq.devices import device
 
 
@@ -49,3 +50,5 @@ class _UnconstrainedDevice(device.Device):
 
 
 UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
+document(UNCONSTRAINED_DEVICE,
+         """A device with no constraints on operations or qubits.""")
