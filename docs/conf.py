@@ -11,6 +11,7 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import inspect
+import re
 from typing import List, Any
 
 import os
@@ -43,7 +44,10 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
             # Avoid getting split across divs.
             s = ' '.join(s.split('\n'))
             # Avoid intermediate layers turning our newlines into slashes.
-            s = s.replace('\\\\', '\\newline')
+            s = s.replace('\\\\', r'\newline')
+            # Turn latex like "|x\rangle" into "|x \rangle".
+            # The extra space seems to be necessary to survive a later pass.
+            s = re.sub(r'([a-zA-Z0-9])\\', r'\1 \\', s)
             # Keep the $$ so MathJax can find it.
             result.append('$${}$$'.format(s))
         else:
