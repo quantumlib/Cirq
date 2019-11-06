@@ -13,8 +13,17 @@
 # limitations under the License.
 """Support for serializing and deserializing cirq.api.google.v2 protos."""
 
-from typing import (cast, Dict, Iterable, List, Optional, Tuple, Type, Union,
-                    TYPE_CHECKING)
+from typing import (
+    cast,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    TYPE_CHECKING,
+)
 
 from google.protobuf import json_format
 

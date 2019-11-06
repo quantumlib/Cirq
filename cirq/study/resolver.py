@@ -16,7 +16,6 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
-from cirq import value
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -63,7 +62,7 @@ class ParamResolver(object):
             {} if param_dict is None else param_dict)
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
+                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         """Attempt to resolve a Symbol, string, or float to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
