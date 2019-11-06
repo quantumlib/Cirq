@@ -36,40 +36,16 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
 
         Construct a channel to model energy dissipation into the environment
         as well as the environment depositing energy into the system. The
-        probabilities with which the energy exchange occur are given by `gamma`
-        and `beta` with the probability of the environment being not excited is
-        given by `p`.
+        probabilities with which the energy exchange occur are given by
+        `p_relaxation` and `p_dephasing` with the probability of the environment
+        being not excited is given by `p_exchange`.
 
-        The stationary state of this channel is the diagonal density matrix
-        with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
+        Like the `GeneralizedAmplitudeDampingChannel`, the stationary state of
+        this channel is the diagonal density matrix with probability
+        `p_exchange` of being |0⟩ and probability `1-p_exchange` of being |1⟩.
 
-        Recall the kraus opeartors for the `GeneralizedAmplitudeDampingChannel`:
-
-            $$
-            \begin{aligned}
-            M_0 =& \sqrt{p_exchange} \begin{bmatrix}
-                                1 & 0  \\
-                                0 & \sqrt{1 - p_relaxation}
-                            \end{bmatrix}
-            \\
-            M_1 =& \sqrt{p_exchange} \begin{bmatrix}
-                                0 & \sqrt{p_relaxation} \\
-                                0 & 0
-                           \end{bmatrix}
-            \\
-            M_2 =& \sqrt{1-p_exchange} \begin{bmatrix}
-                                \sqrt{1-p_relaxation} & 0 \\
-                                 0 & 1
-                              \end{bmatrix}
-            \\
-            M_3 =& \sqrt{1-p_exchange} \begin{bmatrix}
-                                 0 & 0 \\
-                                 \sqrt{p_relaxation} & 0
-                             \end{bmatrix}
-            \end{aligned}
-            $$
-
-        This has a choi representation of:
+        We begin by examining the `GeneralizedAmplitudeDampingChannel`'s choi
+        matrix:
 
             $$
              \begin{aligned}
@@ -195,40 +171,16 @@ def thermal_relaxation(p_exchange: float, p_relaxation: float,
 
     Construct a channel to model energy dissipation into the environment
     as well as the environment depositing energy into the system. The
-    probabilities with which the energy exchange occur are given by `gamma`
-    and `beta` with the probability of the environment being not excited is
-    given by `p`.
+    probabilities with which the energy exchange occur are given by
+    `p_relaxation` and `p_dephasing` with the probability of the environment
+    being not excited is given by `p_exchange`.
 
-    The stationary state of this channel is the diagonal density matrix
-    with probability `p` of being |0⟩ and probability `1-p` of being |1⟩.
+    Like the `GeneralizedAmplitudeDampingChannel`, the stationary state of
+    this channel is the diagonal density matrix with probability
+    `p_exchange` of being |0⟩ and probability `1-p_exchange` of being |1⟩.
 
-    Recall the kraus opeartors for the `GeneralizedAmplitudeDampingChannel`:
-
-        $$
-        \begin{aligned}
-        M_0 =& \sqrt{p_exchange} \begin{bmatrix}
-                            1 & 0  \\
-                            0 & \sqrt{1 - p_relaxation}
-                        \end{bmatrix}
-        \\
-        M_1 =& \sqrt{p_exchange} \begin{bmatrix}
-                            0 & \sqrt{p_relaxation} \\
-                            0 & 0
-                       \end{bmatrix}
-        \\
-        M_2 =& \sqrt{1-p_exchange} \begin{bmatrix}
-                            \sqrt{1-p_relaxation} & 0 \\
-                             0 & 1
-                          \end{bmatrix}
-        \\
-        M_3 =& \sqrt{1-p_exchange} \begin{bmatrix}
-                             0 & 0 \\
-                             \sqrt{p_relaxation} & 0
-                         \end{bmatrix}
-        \end{aligned}
-        $$
-
-    This has a choi representation of:
+    We begin by examining the `GeneralizedAmplitudeDampingChannel`'s choi
+    matrix:
 
         $$
          \begin{aligned}
@@ -259,8 +211,8 @@ def thermal_relaxation(p_exchange: float, p_relaxation: float,
             energy.
 
     Raises:
-        ValueError: if p_exchange, p_relaxation or p_dephasing is not a valid
-            probability.
+        ValueError: if p_exchange, p_relaxation or p_dephasing is not a
+            valid probability.
         ValueError: if p_exchange, p_relaxation, p_dephasing breaks CP
             condition.
     """
