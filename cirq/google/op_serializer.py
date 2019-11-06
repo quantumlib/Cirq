@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
-                    TypeVar, Union, TYPE_CHECKING)
+from typing import (Callable, cast, Dict, List, Optional, Type, TypeVar, Union,
+                    TYPE_CHECKING)
 
 import numpy as np
 import sympy
@@ -33,11 +33,11 @@ if TYPE_CHECKING:
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
-@dataclass
+@dataclass(frozen=True)
 class SerializingArg:
     """Specification of the arguments for a Gate and its serialization.
 
-    Args:
+    Attributes:
         serialized_name: The name of the argument when it is serialized.
         serialized_type: The type of the argument when it is serialized.
         gate_getter: The name of the property or attribute for getting the

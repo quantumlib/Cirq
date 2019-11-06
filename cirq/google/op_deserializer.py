@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Callable, Dict, NamedTuple, Optional, Sequence,
-                    TYPE_CHECKING)
+from typing import Any, Callable, Dict, Optional, Sequence, TYPE_CHECKING
 
 import sympy
 from dataclasses import dataclass
@@ -28,11 +27,11 @@ if TYPE_CHECKING:
     import cirq
 
 
-@dataclass
+@dataclass(frozen=True)
 class DeserializingArg:
     """Specification of the arguments to deserialize an argument to a gate.
 
-    Args:
+    Attributes:
         serialized_name: The serialized name of the gate that is being
             deserialized.
         constructor_arg_name: The name of the argument in the constructor of
