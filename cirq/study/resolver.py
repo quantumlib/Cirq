@@ -16,7 +16,6 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
-from cirq import value
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -47,12 +46,13 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
@@ -62,7 +62,7 @@ class ParamResolver(object):
             {} if param_dict is None else param_dict)
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
+                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         """Attempt to resolve a Symbol, string, or float to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
