@@ -17,8 +17,8 @@ See examples/bristlecone_heatmap_example.py for an example usage in
 an interactive session.
 """
 
-from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
-                    Union)
+from typing import Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple, \
+    Union
 
 import numpy as np
 import matplotlib as mpl
@@ -228,7 +228,7 @@ class Heatmap:
                            (width + 1)).transpose()
 
         # Construct the URL array as an ordered list of URLs for non-nan cells.
-        url_array = []  # type: List[str]
+        url_array: List[str] = []
         if self.url_map:
             url_array = [
                 self.url_map.get((row, col), '')

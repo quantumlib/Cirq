@@ -15,8 +15,8 @@
 
 from collections import defaultdict
 
-from typing import cast, Dict, Iterable, List, Optional, Tuple, Type, Union, \
-    TYPE_CHECKING
+from typing import cast, DefaultDict, Dict, Iterable, List, Optional, Tuple, \
+    Type, Union, TYPE_CHECKING
 
 from google.protobuf import json_format
 
@@ -51,8 +51,9 @@ class SerializableGateSet:
                 forms of gates to GateOperations.
         """
         self.gate_set_name = gate_set_name
-        self.serializers = defaultdict(
-            list)  # type: Dict[Type, List[op_serializer.GateOpSerializer]]
+        self.serializers: \
+            DefaultDict[Type, List[op_serializer.GateOpSerializer]] = \
+            defaultdict(list)
         for s in serializers:
             self.serializers[s.gate_type].append(s)
         self.deserializers = {d.serialized_gate_id: d for d in deserializers}

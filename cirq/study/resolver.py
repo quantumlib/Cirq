@@ -54,8 +54,7 @@ class ParamResolver(object):
             Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
             {} if param_dict is None else param_dict)
 
-    def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
+    def value_of(self, val: Union[sympy.Basic, float, str]) -> value.TParamVal:
         """Attempt to resolve a Symbol, string, or float to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -73,36 +72,36 @@ class ParamResolver(object):
         If unable to resolve a name, returns a sympy.Symbol with that name.
 
         Args:
-            value: The sympy.Symbol or name or float to try to resolve into just
+            val: The sympy.Symbol or name or float to try to resolve into just
                 a float.
 
         Returns:
             The value of the parameter as resolved by this resolver.
         """
         # Input is a float, no resolution needed: return early
-        if isinstance(value, float):
-            return value
+        if isinstance(val, float):
+            return val
 
         # Handles 2 cases:
         # Input is a string and maps to a number in the dictionary
         # Input is a symbol and maps to a number in the dictionary
         # In both cases, return it directly.
-        if value in self.param_dict:
-            param_value = self.param_dict[value]
+        if val in self.param_dict:
+            param_value = self.param_dict[val]
             if isinstance(param_value, (float, int)):
                 return param_value
 
         # Input is a string and is not in the dictionary.
         # Treat it as a symbol instead.
-        if isinstance(value, str):
+        if isinstance(val, str):
             # If the string is in the param_dict as a value, return it.
             # Otherwise, try using the symbol instead.
-            return self.value_of(sympy.Symbol(value))
+            return self.value_of(sympy.Symbol(val))
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
-        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
-            param_value = self.param_dict[value.name]
+        if (isinstance(val, sympy.Symbol) and val.name in self.param_dict):
+            param_value = self.param_dict[val.name]
             if isinstance(param_value, (float, int)):
                 return param_value
 
@@ -110,8 +109,8 @@ class ParamResolver(object):
         # formula.  Use sympy to resolve the value.
         # Note that sympy.subs() is slow, so we want to avoid this and
         # only use it for cases that require complicated resolution.
-        if isinstance(value, sympy.Basic):
-            v = value.subs(self.param_dict)
+        if isinstance(val, sympy.Basic):
+            v = val.subs(self.param_dict)
             if v.free_symbols:
                 return v
             elif sympy.im(v):
@@ -120,7 +119,7 @@ class ParamResolver(object):
                 return float(v)
 
         # No known way to resolve this variable, return unchanged.
-        return value
+        return val
 
     def __iter__(self):
         return iter(self.param_dict)

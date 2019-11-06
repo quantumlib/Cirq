@@ -327,8 +327,8 @@ class PauliSum:
             -> 'PauliSum':
         if isinstance(terms, PauliString):
             terms = [terms]
-        termdict = defaultdict(
-            lambda: 0)  # type: DefaultDict[UnitPauliStringT, value.Scalar]
+        termdict: DefaultDict[UnitPauliStringT, value.Scalar] = defaultdict(
+            lambda: 0)
         for pstring in terms:
             key = frozenset(pstring._qubit_pauli_map.items())
             termdict[key] += pstring.coefficient

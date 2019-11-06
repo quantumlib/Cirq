@@ -24,7 +24,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Iterable, List, Optional, Tuple, Union
+from typing import Any, cast, Optional, Tuple, Union
 
 import numpy as np
 import sympy

@@ -13,8 +13,7 @@
 # limitations under the License.
 import functools
 import operator
-from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Union)
+from typing import Any, Callable, Dict, cast, Iterable, List, Sequence, Union
 
 import numpy as np
 from ply import yacc
@@ -155,7 +154,7 @@ class QasmParser:
             '^': operator.pow
         }
 
-    basic_gates = {
+    basic_gates: Dict[str, QasmGateStatement] = {
         'CX':
         QasmGateStatement(qasm_gate='CX',
                           cirq_gate=CX,
@@ -168,7 +167,7 @@ class QasmParser:
             num_args=1,
             # QasmUGate expects half turns
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
-    }  # type: Dict[str, QasmGateStatement]
+    }
 
     qelib_gates = {
         'rx':
