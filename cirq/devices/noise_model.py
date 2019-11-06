@@ -49,8 +49,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         Returns:
             ``cirq.NO_NOISE`` when given ``None``,
             ``cirq.ConstantQubitNoiseModel(gate)`` when given a single qubit
-            gate,
-            or the given value if it is already a ``cirq.NoiseModel``.
+            gate, or the given value if it is already a ``cirq.NoiseModel``.
 
         Raises:
             TypeError: The input is not a ``cirq.NOISE_MODE_LIKE``.

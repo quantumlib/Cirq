@@ -74,12 +74,10 @@ def test_public_values_equals_documented_values():
     }
     assert not unlisted, (
         'Public class/method/value not listed in docs/api.rst:'
-        '\n    ' +
-        '\n    '.join(sorted(unlisted)))
+        '\n    ' + '\n    '.join(sorted(unlisted)))
     assert not hidden, (
         'Private or non-existent class/method/value listed in docs/api.rst:'
-        '\n    ' +
-        '\n    '.join(sorted(hidden)))
+        '\n    ' + '\n    '.join(sorted(hidden)))
 
 
 def test_api_rst_sorted():
