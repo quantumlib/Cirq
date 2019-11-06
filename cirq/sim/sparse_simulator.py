@@ -16,12 +16,16 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Type, Union, \
+    TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _FlipGate(ops.SingleQubitGate):
@@ -213,7 +217,7 @@ class Simulator(simulator.SimulatesSamples,
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolver,
             qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray],
+            initial_state: 'cirq.STATE_VECTOR_LIKE',
     ) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
@@ -236,8 +240,8 @@ class Simulator(simulator.SimulatesSamples,
             self,
             circuit: circuits.Circuit,
             qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray],
-            perform_measurements: bool=True,
+            initial_state: 'cirq.STATE_VECTOR_LIKE',
+            perform_measurements: bool = True,
     ) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
@@ -430,7 +434,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         """
         return self._simulator_state().state_vector
 
-    def set_state_vector(self, state: Union[int, np.ndarray]):
+    def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         update_state = wave_function.to_valid_state_vector(
             state,
             len(self.qubit_map),

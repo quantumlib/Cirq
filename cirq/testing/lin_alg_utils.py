@@ -29,6 +29,9 @@ def random_superposition(dim: int,
 
     Args:
         dim: The dimension of the vector.
+        random_state: A seed (int) or `np.random.RandomState` class to use when
+            generating random values. If not set, defaults to using the module
+            methods in `np.random`.
 
     Returns:
         The sampled unit-length vector.
@@ -46,11 +49,11 @@ def random_unitary(dim: int, *,
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
-      dim: The width and height of the matrix.
-      random_state: A seed to use for random number generation.
+        dim: The width and height of the matrix.
+        random_state: A seed to use for random number generation.
 
     Returns:
-      The sampled unitary matrix.
+        The sampled unitary matrix.
 
     References:
         'How to generate random matrices from the classical compact groups'
@@ -69,10 +72,13 @@ def random_orthogonal(dim: int, *, random_state: value.RANDOM_STATE_LIKE = None
     """Returns a random orthogonal matrix distributed with Haar measure.
 
     Args:
-      dim: The width and height of the matrix.
+        dim: The width and height of the matrix.
+        random_state: A seed (int) or `np.random.RandomState` class to use when
+            generating random values. If not set, defaults to using the module
+            methods in `np.random`.
 
     Returns:
-      The sampled orthogonal matrix.
+        The sampled orthogonal matrix.
 
     References:
         'How to generate random matrices from the classical compact groups'
@@ -93,11 +99,13 @@ def random_special_unitary(dim: int,
     """Returns a random special unitary distributed with Haar measure.
 
     Args:
-      dim: The width and height of the matrix.
-      random_state: A seed to use for random number generation.
+        dim: The width and height of the matrix.
+        random_state: A seed (int) or `np.random.RandomState` class to use when
+            generating random values. If not set, defaults to using the module
+            methods in `np.random`.
 
     Returns:
-      The sampled special unitary.
+        The sampled special unitary.
     """
     r = random_unitary(dim, random_state=random_state)
     r[0, :] /= np.linalg.det(r)
@@ -111,10 +119,13 @@ def random_special_orthogonal(dim: int,
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
     Args:
-      dim: The width and height of the matrix.
+        dim: The width and height of the matrix.
+        random_state: A seed (int) or `np.random.RandomState` class to use when
+            generating random values. If not set, defaults to using the module
+            methods in `np.random`.
 
     Returns:
-      The sampled special orthogonal matrix.
+        The sampled special orthogonal matrix.
     """
     m = random_orthogonal(dim, random_state=random_state)
     if np.linalg.det(m) < 0:

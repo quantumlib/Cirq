@@ -24,7 +24,10 @@ from cirq.type_workarounds import NotImplementedType
 
 @value.value_equality
 class ControlledGate(raw_types.Gate):
-    """Augments existing gates with a control qubit."""
+    """Augments existing gates to have one or more control qubits.
+
+    This object is typically created via `gate.controlled()`.
+    """
 
     def __init__(
             self,
