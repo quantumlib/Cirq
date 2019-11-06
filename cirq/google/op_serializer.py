@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from typing import (Callable, cast, Dict, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
 import numpy as np
 import sympy
-from dataclasses import dataclass
 from google.protobuf import json_format
 
 from cirq import devices, ops

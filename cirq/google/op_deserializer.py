@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, Optional, Sequence, TYPE_CHECKING
 
 import sympy
-from dataclasses import dataclass
 from google.protobuf import json_format
 
 from cirq.api.google import v2
