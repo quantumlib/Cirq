@@ -22,6 +22,7 @@ from cirq import (
     # Low level
     _version,
     _compat,
+    _doc,
     type_workarounds,
 )
 with _import.delay_import('cirq.protocols'):
@@ -194,6 +195,7 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
     measure,

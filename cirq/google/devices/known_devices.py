@@ -14,6 +14,7 @@
 
 from typing import Dict, Optional, Iterable, List, Set, Tuple
 
+from cirq._doc import document
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v2
@@ -186,6 +187,13 @@ Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
                                    exp_w_duration=Duration(nanos=20),
                                    exp_11_duration=Duration(nanos=50),
                                    qubits=_parse_device(_FOXTAIL_GRID)[0])
+document(Foxtail, f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Foxtail)}
+```
+""")
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
@@ -219,6 +227,14 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
+document(
+    Bristlecone, f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Bristlecone)}
+```
+""")
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],

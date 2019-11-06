@@ -19,6 +19,7 @@ matrix:
     os: linux
     env: NAME=misc
     python: '3.6'
+    install: skip
     script: check/misc
   - stage: quick_test
     os: linux

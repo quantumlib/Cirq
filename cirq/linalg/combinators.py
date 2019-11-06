@@ -19,6 +19,8 @@ from typing import Union, Type
 
 import numpy as np
 
+from cirq._doc import document
+
 
 def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     """Computes the kronecker product of a sequence of values.
@@ -38,7 +40,13 @@ def kron(*factors: Union[np.ndarray, complex, float]) -> np.ndarray:
     return np.array(product)
 
 
-CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])  # For kron_with_controls
+CONTROL_TAG = np.array([[float('nan'), 0], [0, 1]])
+document(
+    CONTROL_TAG, """A special indicator value for `cirq.kron_with_controls`.
+
+    This value is a stand-in for "control operations on the other qubits based
+    on the value of this qubit", which otherwise doesn't have a proper matrix.
+    """)
 
 
 def kron_with_controls(*factors: Union[np.ndarray, complex, float]
