@@ -19,6 +19,7 @@ from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v2
 from cirq.google.api.v2 import device_pb2
+from cirq.google.devices.serializable_device import SerializableDevice
 from cirq.google.devices.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate
 from cirq.value import Duration
@@ -239,3 +240,37 @@ document(
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],
                                                      _DURATIONS_FOR_XMON)
+
+_SYCAMORE_GRID = """
+-----AB---
+----ABCD--
+---ABCDEF-
+--ABCDEFGH
+-ABCDEFGHI
+ABCDEFGHI-
+-CDEFGHI--
+--EFGHI---
+---GHI----
+----I-----
+"""
+
+_SYCAMORE_DURATIONS_PICOS = {
+    'xy': 25_000,
+    'xy_half_pi': 25_000,
+    'xy_pi': 25_000,
+    'fsim_pi_4': 32_000,
+    'inv_fsim_pi_4': 32_000,
+    'syc': 12_000,
+    'z': 0,
+    'meas': 1_000_000,
+}
+
+SYCAMORE_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE_GRID,
+    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    _SYCAMORE_DURATIONS_PICOS,
+)
+
+Sycamore = SerializableDevice.from_proto(
+    proto=SYCAMORE_PROTO,
+    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])

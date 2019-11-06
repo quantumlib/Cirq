@@ -14,6 +14,7 @@
 """Device object for converting from device specification protos"""
 
 from typing import (
+    Callable,
     cast,
     Dict,
     Iterable,
@@ -37,18 +38,43 @@ if TYPE_CHECKING:
 class _GateDefinition:
     """Class for keeping track of gate definitions within SerializableDevice"""
 
-    def __init__(self, duration: 'cirq.DURATION_LIKE',
-                 target_set: Set[Tuple['cirq.Qid', ...]], number_of_qubits: int,
-                 is_permutation: bool):
+    def __init__(
+            self,
+            duration: 'cirq.DURATION_LIKE',
+            target_set: Set[Tuple['cirq.Qid', ...]],
+            number_of_qubits: int,
+            is_permutation: bool,
+            can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda x:
+            True,
+    ):
         self.duration = Duration(duration)
         self.target_set = target_set
         self.is_permutation = is_permutation
         self.number_of_qubits = number_of_qubits
+        self.can_serialize_predicate = can_serialize_predicate
 
         # Compute the set of all qubits in all target sets.
         self.flattened_qubits = {
             q for qubit_tuple in target_set for q in qubit_tuple
         }
+
+    def with_can_serialize_predicate(
+            self, can_serialize_predicate: Callable[['cirq.Gate'], bool]
+    ) -> '_GateDefinition':
+        """Creates a new _GateDefintion as a copy of the existing definition
+        but with a new with_can_serialize_predicate.  This is useful if multiple
+        definitions exist for the same gate, but with different conditions.
+
+        An example is if gates at certain angles of a gate take longer or are
+        not allowed.
+        """
+        return _GateDefinition(
+            self.duration,
+            self.target_set,
+            self.number_of_qubits,
+            self.is_permutation,
+            can_serialize_predicate,
+        )
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
@@ -71,8 +97,9 @@ class SerializableDevice(devices.Device):
     deserialization.
     """
 
-    def __init__(self, qubits: List['cirq.Qid'],
-                 gate_definitions: Dict[Type['cirq.Gate'], _GateDefinition]):
+    def __init__(
+            self, qubits: List['cirq.Qid'],
+            gate_definitions: Dict[Type['cirq.Gate'], List[_GateDefinition]]):
         """Constructor for SerializableDevice using python objects.
 
         Note that the preferred method of constructing this object is through
@@ -141,7 +168,7 @@ class SerializableDevice(devices.Device):
                     number_of_qubits=gate_def.number_of_qubits)
 
         # Loop through serializers and map gate_definitions to type
-        gates_by_type: Dict[Type['cirq.Gate'], _GateDefinition] = {}
+        gates_by_type: Dict[Type['cirq.Gate'], List[_GateDefinition]] = {}
         for gate_set in gate_sets:
             for gate_type in gate_set.supported_gate_types():
                 for serializer in gate_set.serializers[gate_type]:
@@ -150,11 +177,12 @@ class SerializableDevice(devices.Device):
                         raise ValueError(f'Serializer has {gate_id} which is '
                                          'not supported by the device '
                                          'specification')
-                    if (gate_type in gates_by_type and gate_definitions[gate_id]
-                            != gates_by_type[gate_type]):
-                        raise ValueError('Two conflicting definitions for '
-                                         f'gate_type {gate_type}')
-                    gates_by_type[gate_type] = gate_definitions[gate_id]
+                    if gate_type not in gates_by_type:
+                        gates_by_type[gate_type] = []
+                    gate_def = gate_definitions[
+                        gate_id].with_can_serialize_predicate(
+                            serializer.can_serialize_predicate)
+                    gates_by_type[gate_type].append(gate_def)
 
         return SerializableDevice(
             qubits=SerializableDevice._qubits_from_ids(proto.valid_qubits),
@@ -199,7 +227,9 @@ class SerializableDevice(devices.Device):
             gate_key = gate_op.gate
             for type_key in self.gate_definitions:
                 if isinstance(gate_key, type_key):
-                    return self.gate_definitions[type_key]
+                    for gate_def in self.gate_definitions[type_key]:
+                        if gate_def.can_serialize_predicate(gate_key):
+                            return gate_def
         return None
 
     def duration_of(self, operation: 'cirq.Operation') -> Duration:
