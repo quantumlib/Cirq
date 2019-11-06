@@ -388,10 +388,16 @@ def subwavefunction(wavefunction: np.ndarray,
     of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
     $|x\rangle$ is defined over the subset `keep_indices` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
-    return $|x\rangle$.  Note that $|x\rangle$ is not unique, because $(e^{i
-    \theta} |y\rangle) \otimes (|x\rangle) = (|y\rangle) \otimes (e^{i \theta}
-    |x\rangle)$ . This method randomizes the global phase of $|x\rangle$ in
-    order to avoid accidental reliance on it.
+    return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
+    multiplication may be absorbed by any factor of a tensor product:
+
+    $$
+        (e^{i \theta} |y\rangle) \otimes (|x\rangle)
+        = (|y\rangle) \otimes (e^{i \theta} |x\rangle)
+    $$
+
+    This method randomizes the global phase of $|x\rangle$ in order to avoid
+    accidental reliance on the global phase being some specific value.
 
     If the provided wavefunction cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
