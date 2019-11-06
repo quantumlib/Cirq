@@ -16,15 +16,21 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
-from cirq import value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-# Things that ParamResolver understands how to wrap.
 ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+document(
+    ParamDictType,  # type: ignore
+    """Dictionary from symbols to values.""")
+
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+document(
+    ParamResolverOrSimilarType,  # type: ignore
+    """Something that can be used to turn parameters into values.""")
 
 
 class ParamResolver(object):
@@ -40,12 +46,13 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
@@ -54,7 +61,9 @@ class ParamResolver(object):
             Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
             {} if param_dict is None else param_dict)
 
-    def value_of(self, val: Union[sympy.Basic, float, str]) -> value.TParamVal:
+
+    def value_of(self,
+                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         """Attempt to resolve a Symbol, string, or float to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -79,29 +88,29 @@ class ParamResolver(object):
             The value of the parameter as resolved by this resolver.
         """
         # Input is a float, no resolution needed: return early
-        if isinstance(val, float):
-            return val
+        if isinstance(value, float):
+            return value
 
         # Handles 2 cases:
         # Input is a string and maps to a number in the dictionary
         # Input is a symbol and maps to a number in the dictionary
         # In both cases, return it directly.
-        if val in self.param_dict:
-            param_value = self.param_dict[val]
+        if value in self.param_dict:
+            param_value = self.param_dict[value]
             if isinstance(param_value, (float, int)):
                 return param_value
 
         # Input is a string and is not in the dictionary.
         # Treat it as a symbol instead.
-        if isinstance(val, str):
+        if isinstance(value, str):
             # If the string is in the param_dict as a value, return it.
             # Otherwise, try using the symbol instead.
-            return self.value_of(sympy.Symbol(val))
+            return self.value_of(sympy.Symbol(value))
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
-        if (isinstance(val, sympy.Symbol) and val.name in self.param_dict):
-            param_value = self.param_dict[val.name]
+        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
+            param_value = self.param_dict[value.name]
             if isinstance(param_value, (float, int)):
                 return param_value
 
@@ -109,8 +118,8 @@ class ParamResolver(object):
         # formula.  Use sympy to resolve the value.
         # Note that sympy.subs() is slow, so we want to avoid this and
         # only use it for cases that require complicated resolution.
-        if isinstance(val, sympy.Basic):
-            v = val.subs(self.param_dict)
+        if isinstance(value, sympy.Basic):
+            v = value.subs(self.param_dict)
             if v.free_symbols:
                 return v
             elif sympy.im(v):
@@ -119,7 +128,7 @@ class ParamResolver(object):
                 return float(v)
 
         # No known way to resolve this variable, return unchanged.
-        return val
+        return value
 
     def __iter__(self):
         return iter(self.param_dict)

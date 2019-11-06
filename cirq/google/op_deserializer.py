@@ -12,13 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Callable, Dict, NamedTuple, Optional, Sequence,
-                    TYPE_CHECKING)
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Optional, Sequence, TYPE_CHECKING
 
 import sympy
 from google.protobuf import json_format
 
 from cirq.api.google import v2
+
 from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
@@ -26,13 +27,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-class DeserializingArg(
-        NamedTuple('DeserializingArg', [
-            ('serialized_name', str),
-            ('constructor_arg_name', str),
-            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
-            ('required', bool),
-        ])):
+@dataclass(frozen=True)
+class DeserializingArg:
     """Specification of the arguments to deserialize an argument to a gate.
 
     Attributes:
@@ -47,19 +43,10 @@ class DeserializingArg(
         required: Whether a value must be specified when constructing the
             deserialized gate. Defaults to True.
     """
-
-    def __new__(cls,
-                *,
-                serialized_name: str,
-                constructor_arg_name: str,
-                value_func: Optional[Callable[[Any], Any]] = None,
-                required: bool = True):
-        return super(DeserializingArg,
-                     cls).__new__(cls,
-                                  serialized_name=serialized_name,
-                                  constructor_arg_name=constructor_arg_name,
-                                  value_func=value_func,
-                                  required=required)
+    serialized_name: str
+    constructor_arg_name: str
+    value_func: Optional[Callable[[arg_func_langs.ArgValue], Any]] = None
+    required: bool = True
 
 
 class GateOpDeserializer:

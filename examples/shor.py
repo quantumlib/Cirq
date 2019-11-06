@@ -56,6 +56,8 @@ from typing import Callable, List, Optional, Sequence, Union
 import sympy
 import cirq
 
+import cirq
+
 parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
 parser.add_argument('--order_finder',

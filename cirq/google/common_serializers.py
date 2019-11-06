@@ -176,7 +176,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='axis_half_turns',
                 serialized_type=float,
-                gate_getter=lambda x: (x.exponent - 1) / 2)
+                gate_getter=lambda x: (cast(ops.XPowGate, x).exponent - 1) / 2)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
             cast(ops.XPowGate, x).exponent, 1)),
@@ -184,9 +184,10 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_pi',
         args=[
-            op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                         serialized_type=float,
-                                         gate_getter=lambda x: x.exponent / 2)
+            op_serializer.SerializingArg(
+                serialized_name='axis_half_turns',
+                serialized_type=float,
+                gate_getter=lambda x: cast(ops.YPowGate, x).exponent / 2)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
             cast(ops.YPowGate, x).exponent, 1)),
@@ -194,9 +195,10 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         gate_type=ops.XPowGate,
         serialized_gate_id='xy_half_pi',
         args=[
-            op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                         serialized_type=float,
-                                         gate_getter=lambda x: x.exponent - 0.5)
+            op_serializer.SerializingArg(
+                serialized_name='axis_half_turns',
+                serialized_type=float,
+                gate_getter=lambda x: cast(ops.XPowGate, x).exponent - 0.5)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
             cast(ops.XPowGate, x).exponent, 0.5)),
@@ -204,9 +206,10 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_half_pi',
         args=[
-            op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                         serialized_type=float,
-                                         gate_getter=lambda x: x.exponent)
+            op_serializer.SerializingArg(
+                serialized_name='axis_half_turns',
+                serialized_type=float,
+                gate_getter=lambda x: cast(ops.YPowGate, x).exponent)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
             cast(ops.YPowGate, x).exponent, 0.5)),
@@ -347,7 +350,7 @@ WAIT_GATE_SERIALIZER = op_serializer.GateOpSerializer(
         op_serializer.SerializingArg(
             serialized_name='nanos',
             serialized_type=float,
-            gate_getter=lambda e: e.duration.total_nanos()),
+            gate_getter=lambda e: cast(ops.WaitGate, e).duration.total_nanos()),
     ])
 WAIT_GATE_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='wait',

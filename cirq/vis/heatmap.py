@@ -195,7 +195,8 @@ class Heatmap:
                 plotted on, and shown.
             pcolor_options: keyword arguments passed to ax.pcolor().
 
-        Returns: a 3-tuple (ax, mesh, value_table)
+        Returns:
+            A 3-tuple (ax, mesh, value_table).
             ax: the `plt.Axes` that is plotted on.
             mesh: the collection of paths drawn and filled.
             value_table: the 2-D pandas DataFrame of values constructed from
