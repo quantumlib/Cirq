@@ -364,8 +364,14 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
-        pass
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+        """Returns the same operation, but applied to different qubits.
+
+        Args:
+            new_qubits: The new qubits to apply the operation to. The order must
+                exactly match the order of qubits returned from the operation's
+                `qubits` property.
+        """
 
     def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':
         """Returns the same operation, but with different qubits.
