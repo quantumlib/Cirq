@@ -6,8 +6,11 @@ from cirq.experiments.google_v2_supremacy_circuit import (
 
 from cirq.experiments.qubit_characterizations import (
     rabi_oscillations,
+    RabiResult,
+    RandomizedBenchMarkResult,
     single_qubit_randomized_benchmarking,
     single_qubit_state_tomography,
+    TomographyResult,
     two_qubit_randomized_benchmarking,
     two_qubit_state_tomography,
 )
@@ -15,6 +18,7 @@ from cirq.experiments.qubit_characterizations import (
 from cirq.experiments.cross_entropy_benchmarking import (
     build_entangling_layers,
     cross_entropy_benchmarking,
+    CrossEntropyResult,
 )
 
 from cirq.experiments.fidelity_estimation import (
