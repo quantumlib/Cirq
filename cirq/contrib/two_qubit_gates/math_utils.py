@@ -171,8 +171,7 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     # Ensure we consider equivalent vectors for only the smallest input.
     if k_vec_a.size < k_vec_b.size:
-        # coverage: ignore
-        k_vec_a, k_vec_b = k_vec_b, k_vec_a
+        k_vec_a, k_vec_b = k_vec_b, k_vec_a  # coverage: ignore
 
     k_vec_a = k_vec_a[..., np.newaxis, :]  # (...,1,3)
     k_vec_b = _kak_equivalent_vectors(k_vec_b)  # (...,192,3)

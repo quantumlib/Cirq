@@ -30,16 +30,14 @@ from cirq.contrib.two_qubit_gates.math_utils import (
 from cirq.testing import random_special_unitary
 
 
-def main(samples: int = 1000,
-         max_infidelity: float = 0.01,
-         verbose: bool = True):
+def main(samples: int = 1000, max_infidelity: float = 0.01):
     """Demonstration of the usage of the GateTabulation gate compiler.
 
     Args:
-        samples:
-        max_infidelity:
-        verbose: Whether to plot statistics of results and tabulation and
-            timing information.
+        samples: Number of random 2-qubit unitary samples to compile.
+        max_infidelity: Maximum allowed infidelity between randomly generated
+            gate and the gate compilation used to generate it. The example
+            runtime scales as max_infidelity^{-3/2}.
     """
     # Define a base gate for compilation
     theta = np.pi / 4
@@ -54,10 +52,9 @@ def main(samples: int = 1000,
     # tabulated gate.
     start = time()
     tabulation = gate_product_tabulation(base, max_infidelity)
-    if verbose:
-        # coverage: ignore
-        print(tabulation.summary)
-        print(f'Gate tabulation time : {time() - start} seconds.')
+
+    print(tabulation.summary)
+    print(f'Gate tabulation time : {time() - start} seconds.')
 
     # Generate many random two-qubit gates, then attempt to compile them using
     # the tabulation.
@@ -67,10 +64,12 @@ def main(samples: int = 1000,
     failed_infidelities = []
     start = time()
     for target in unitaries:
-        # actual is the compiled gate product intended to match the target.
-        # success denotes is the actual gate is expected to be within the
-        # desired fidelity to the target. It can be False if the base gate
-        # cannot "fill" the Weyl chamber using at most 3 products.
+        # result.actual_gate is the compiled gate product intended to match the
+        # target. result.success denotes is the actual gate is expected to be
+        # within the desired fidelity to the target. It can be False if the
+        # base gate cannot "fill" the Weyl chamber using at most 3 products.
+        # result.local_unitaries stores the local unitaries required to
+        # compile the target unitary from the base unitary.
         result = tabulation.compile_two_qubit_gate(target)
         infidelity = 1 - unitary_entanglement_fidelity(target,
                                                        result.actual_gate)
@@ -79,20 +78,19 @@ def main(samples: int = 1000,
         else:
             failed_infidelities.append(infidelity)  # coverage: ignore
     t_comp = time() - start
-    if verbose:
-        # coverage: ignore
-        print(f'Gate compilation time : {t_comp:.3f} seconds '
-              f'({t_comp / samples:.4f} s per gate)')
+
+    print(f'Gate compilation time : {t_comp:.3f} seconds '
+          f'({t_comp / samples:.4f} s per gate)')
 
     infidelities = np.array(infidelities)
     failed_infidelities = np.array(failed_infidelities)
-    if verbose:
+
+    if np.size(failed_infidelities):
         # coverage: ignore
-        if np.size(failed_infidelities):
-            print(f'Number of "failed" compilations:'
-                  f' {np.size(failed_infidelities)}.')
-            print(f'Maximum infidelity of "failed" compilation: '
-                  f'{np.max(failed_infidelities)}')
+        print(f'Number of "failed" compilations:'
+              f' {np.size(failed_infidelities)}.')
+        print(f'Maximum infidelity of "failed" compilation: '
+              f'{np.max(failed_infidelities)}')
 
     plt.figure()
     plt.hist(infidelities, bins=25, range=[0, max_infidelity * 1.1])
@@ -105,11 +103,9 @@ def main(samples: int = 1000,
     plt.ylabel('Counts')
     plt.legend()
     plt.title(f'Base FSim(theta={theta:.4f}, phi={phi:.4f})')
-    if verbose:
-        # coverage: ignore
-        plt.show()
+
+    plt.show()
 
 
-# coverage: ignore
 if __name__ == '__main__':
     main()
