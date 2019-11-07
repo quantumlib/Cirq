@@ -72,13 +72,6 @@ def test_parse_failures(url, msg):
         _ = quirk_json_to_circuit(data)
 
 
-def test_parse_not_supported_yet():
-    with pytest.raises(NotImplementedError,
-                       match='Custom gates not supported yet'):
-        _ = quirk_url_to_circuit(
-            'http://algassert.com/quirk#circuit={"cols": [[]], "gates": []}')
-
-
 def test_parse_with_qubits():
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)
@@ -155,3 +148,264 @@ def test_init():
     with pytest.raises(ValueError, match="Unrecognized init state"):
         _ = cirq.contrib.quirk.quirk_url_to_circuit(
             'http://algassert.com/quirk#circuit={"cols":[],"init":[2]}')
+
+
+def test_custom_gate_parse_failures():
+    with pytest.raises(ValueError, match='must be a list'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":5}')
+
+    with pytest.raises(ValueError, match='gate json must be a dict'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":[5]}')
+
+    with pytest.raises(ValueError, match='Circuit JSON must be a dict'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":[{"id":"~a","circuit":5}]}')
+
+    with pytest.raises(ValueError, match='matrix json must be a string'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":[{"id":"~a","matrix":5}]}')
+
+    with pytest.raises(ValueError, match='Not surrounded by {{}}'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":[{"id":"~a","matrix":"abc"}]}')
+
+    with pytest.raises(ValueError, match='must have an id'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":['
+            '{"matrix":"{{1,0},{0,1}}"}'
+            ']}')
+
+    with pytest.raises(ValueError, match='both a matrix and a circuit'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":['
+            '{"id":"~a","circuit":{"cols":[]},"matrix":"{{1,0},{0,1}}"}'
+            ']}')
+
+    with pytest.raises(ValueError, match='matrix or a circuit'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":['
+            '{"id":"~a"}'
+            ']}')
+
+    with pytest.raises(ValueError, match='duplicate identifier'):
+        _ = quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={"cols":[],'
+            '"gates":['
+            '{"id":"~a","matrix":"{{1,0},{0,1}}"},'
+            '{"id":"~a","matrix":"{{1,0},{0,1}}"}]}')
+
+
+def test_custom_matrix_gate():
+    a, b = cirq.LineQubit.range(2)
+
+    # Without name.
+    assert_url_to_circuit_returns(
+        '{"cols":[["~cv0d"]],'
+        '"gates":[{"id":"~cv0d","matrix":"{{0,1},{1,0}}"}]}',
+        cirq.Circuit(cirq.MatrixGate(np.array([
+            [0, 1],
+            [1, 0],
+        ])).on(a),))
+
+    # With name.
+    assert_url_to_circuit_returns(
+        '{"cols":[["~cv0d"]],'
+        '"gates":[{"id":"~cv0d","name":"test","matrix":"{{0,i},{1,0}}"}]}',
+        cirq.Circuit(cirq.MatrixGate(np.array([
+            [0, 1j],
+            [1, 0],
+        ])).on(a),))
+
+    # Multi-qubit. Reversed qubit order to account for endian-ness difference.
+    assert_url_to_circuit_returns(
+        '{"cols":[["X"],["~2hj0"]],'
+        '"gates":[{"id":"~2hj0",'
+        '"matrix":"{{-1,0,0,0},{0,i,0,0},{0,0,1,0},{0,0,0,-i}}"}]}',
+        cirq.Circuit(
+            cirq.X(a),
+            cirq.MatrixGate(np.diag([-1, 1j, 1, -1j])).on(b, a),
+        ),
+        output_amplitudes_from_quirk=[{
+            "r": 0,
+            "i": 0
+        }, {
+            "r": 0,
+            "i": 1
+        }, {
+            "r": 0,
+            "i": 0
+        }, {
+            "r": 0,
+            "i": 0
+        }])
+
+
+def test_survives_a_billion_laughs():
+    # If this test is timing out, it means you made a change that accidentally
+    # iterated over the circuit contents before they were counted and checked
+    # against the maximum. It is not possible to test for the billion laughs
+    # attack by doing a small case, because iterating-then-counting instead of
+    # counting-then-iterating misleadingly succeeds on small cases.
+    with pytest.raises(ValueError, match=f'{4**26} operations'):
+        cirq.contrib.quirk.quirk_url_to_circuit(
+            'https://algassert.com/quirk#circuit={'
+            '"cols":[["~z"]],'
+            '"gates":['
+            '{"id":"~a","circuit":{"cols":[["H"],["H"],["H"],["H"]]}},'
+            '{"id":"~b","circuit":{"cols":[["~a"],["~a"],["~a"],["~a"]]}},'
+            '{"id":"~c","circuit":{"cols":[["~b"],["~b"],["~b"],["~b"]]}},'
+            '{"id":"~d","circuit":{"cols":[["~c"],["~c"],["~c"],["~c"]]}},'
+            '{"id":"~e","circuit":{"cols":[["~d"],["~d"],["~d"],["~d"]]}},'
+            '{"id":"~f","circuit":{"cols":[["~e"],["~e"],["~e"],["~e"]]}},'
+            '{"id":"~g","circuit":{"cols":[["~f"],["~f"],["~f"],["~f"]]}},'
+            '{"id":"~h","circuit":{"cols":[["~g"],["~g"],["~g"],["~g"]]}},'
+            '{"id":"~i","circuit":{"cols":[["~h"],["~h"],["~h"],["~h"]]}},'
+            '{"id":"~j","circuit":{"cols":[["~i"],["~i"],["~i"],["~i"]]}},'
+            '{"id":"~k","circuit":{"cols":[["~j"],["~j"],["~j"],["~j"]]}},'
+            '{"id":"~l","circuit":{"cols":[["~k"],["~k"],["~k"],["~k"]]}},'
+            '{"id":"~m","circuit":{"cols":[["~l"],["~l"],["~l"],["~l"]]}},'
+            '{"id":"~n","circuit":{"cols":[["~m"],["~m"],["~m"],["~m"]]}},'
+            '{"id":"~o","circuit":{"cols":[["~n"],["~n"],["~n"],["~n"]]}},'
+            '{"id":"~p","circuit":{"cols":[["~o"],["~o"],["~o"],["~o"]]}},'
+            '{"id":"~q","circuit":{"cols":[["~p"],["~p"],["~p"],["~p"]]}},'
+            '{"id":"~r","circuit":{"cols":[["~q"],["~q"],["~q"],["~q"]]}},'
+            '{"id":"~s","circuit":{"cols":[["~r"],["~r"],["~r"],["~r"]]}},'
+            '{"id":"~t","circuit":{"cols":[["~s"],["~s"],["~s"],["~s"]]}},'
+            '{"id":"~u","circuit":{"cols":[["~t"],["~t"],["~t"],["~t"]]}},'
+            '{"id":"~v","circuit":{"cols":[["~u"],["~u"],["~u"],["~u"]]}},'
+            '{"id":"~w","circuit":{"cols":[["~v"],["~v"],["~v"],["~v"]]}},'
+            '{"id":"~x","circuit":{"cols":[["~w"],["~w"],["~w"],["~w"]]}},'
+            '{"id":"~y","circuit":{"cols":[["~x"],["~x"],["~x"],["~x"]]}},'
+            '{"id":"~z","circuit":{"cols":[["~y"],["~y"],["~y"],["~y"]]}}'
+            ']}',
+            max_operation_count=10**6)
+
+
+def test_completes_weight_zero_billion_laughs():
+    circuit = cirq.contrib.quirk.quirk_url_to_circuit(
+        'https://algassert.com/quirk#circuit={'
+        '"cols":[["~z"]],'
+        '"gates":['
+        '{"id":"~a","circuit":{"cols":['
+        '["•"],["inputA2"],["setA"],["⊗","xpar"]]}},'
+        '{"id":"~b","circuit":{"cols":[["~a"],["~a"],["~a"],["~a"]]}},'
+        '{"id":"~c","circuit":{"cols":[["~b"],["~b"],["~b"],["~b"]]}},'
+        '{"id":"~d","circuit":{"cols":[["~c"],["~c"],["~c"],["~c"]]}},'
+        '{"id":"~e","circuit":{"cols":[["~d"],["~d"],["~d"],["~d"]]}},'
+        '{"id":"~f","circuit":{"cols":[["~e"],["~e"],["~e"],["~e"]]}},'
+        '{"id":"~g","circuit":{"cols":[["~f"],["~f"],["~f"],["~f"]]}},'
+        '{"id":"~h","circuit":{"cols":[["~g"],["~g"],["~g"],["~g"]]}},'
+        '{"id":"~i","circuit":{"cols":[["~h"],["~h"],["~h"],["~h"]]}},'
+        '{"id":"~j","circuit":{"cols":[["~i"],["~i"],["~i"],["~i"]]}},'
+        '{"id":"~k","circuit":{"cols":[["~j"],["~j"],["~j"],["~j"]]}},'
+        '{"id":"~l","circuit":{"cols":[["~k"],["~k"],["~k"],["~k"]]}},'
+        '{"id":"~m","circuit":{"cols":[["~l"],["~l"],["~l"],["~l"]]}},'
+        '{"id":"~n","circuit":{"cols":[["~m"],["~m"],["~m"],["~m"]]}},'
+        '{"id":"~o","circuit":{"cols":[["~n"],["~n"],["~n"],["~n"]]}},'
+        '{"id":"~p","circuit":{"cols":[["~o"],["~o"],["~o"],["~o"]]}},'
+        '{"id":"~q","circuit":{"cols":[["~p"],["~p"],["~p"],["~p"]]}},'
+        '{"id":"~r","circuit":{"cols":[["~q"],["~q"],["~q"],["~q"]]}},'
+        '{"id":"~s","circuit":{"cols":[["~r"],["~r"],["~r"],["~r"]]}},'
+        '{"id":"~t","circuit":{"cols":[["~s"],["~s"],["~s"],["~s"]]}},'
+        '{"id":"~u","circuit":{"cols":[["~t"],["~t"],["~t"],["~t"]]}},'
+        '{"id":"~v","circuit":{"cols":[["~u"],["~u"],["~u"],["~u"]]}},'
+        '{"id":"~w","circuit":{"cols":[["~v"],["~v"],["~v"],["~v"]]}},'
+        '{"id":"~x","circuit":{"cols":[["~w"],["~w"],["~w"],["~w"]]}},'
+        '{"id":"~y","circuit":{"cols":[["~x"],["~x"],["~x"],["~x"]]}},'
+        '{"id":"~z","circuit":{"cols":[["~y"],["~y"],["~y"],["~y"]]}}'
+        ']}',
+        max_operation_count=0)
+    assert circuit == cirq.Circuit()
+
+
+def test_example_qft_circuit():
+    qft_example_diagram = """
+0: ───×───────────────H───S───────T───────────Z─────────────────────Z────────────────────────────────Z──────────────────────────────────────────Z────────────────────────────────────────────────────Z──────────────────────────────────────────────────────────────
+      │                   │       │           │                     │                                │                                          │                                                    │
+1: ───┼───×───────────────@───H───┼───S───────┼─────────T───────────┼──────────Z─────────────────────┼─────────Z────────────────────────────────┼─────────Z──────────────────────────────────────────┼─────────Z────────────────────────────────────────────────────
+      │   │                       │   │       │         │           │          │                     │         │                                │         │                                          │         │
+2: ───┼───┼───×───────────────────@───@───H───┼─────────┼───S───────┼──────────┼─────────T───────────┼─────────┼──────────Z─────────────────────┼─────────┼─────────Z────────────────────────────────┼─────────┼─────────Z──────────────────────────────────────────
+      │   │   │                               │         │   │       │          │         │           │         │          │                     │         │         │                                │         │         │
+3: ───┼───┼───┼───×───────────────────────────@^(1/8)───@───@───H───┼──────────┼─────────┼───S───────┼─────────┼──────────┼─────────T───────────┼─────────┼─────────┼──────────Z─────────────────────┼─────────┼─────────┼─────────Z────────────────────────────────
+      │   │   │   │                                                 │          │         │   │       │         │          │         │           │         │         │          │                     │         │         │         │
+4: ───┼───┼───┼───×─────────────────────────────────────────────────@^(1/16)───@^(1/8)───@───@───H───┼─────────┼──────────┼─────────┼───S───────┼─────────┼─────────┼──────────┼─────────T───────────┼─────────┼─────────┼─────────┼──────────Z─────────────────────
+      │   │   │                                                                                      │         │          │         │   │       │         │         │          │         │           │         │         │         │          │
+5: ───┼───┼───×──────────────────────────────────────────────────────────────────────────────────────@^0.031───@^(1/16)───@^(1/8)───@───@───H───┼─────────┼─────────┼──────────┼─────────┼───S───────┼─────────┼─────────┼─────────┼──────────┼─────────T───────────
+      │   │                                                                                                                                     │         │         │          │         │   │       │         │         │         │          │         │
+6: ───┼───×─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.016───@^0.031───@^(1/16)───@^(1/8)───@───@───H───┼─────────┼─────────┼─────────┼──────────┼─────────┼───S───────
+      │                                                                                                                                                                                              │         │         │         │          │         │   │
+7: ───×──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────@^0.008───@^0.016───@^0.031───@^(1/16)───@^(1/8)───@───@───H───
+    """
+
+    qft_example_json = (
+        '{"cols":['
+        # '["Counting8"],'
+        '["Chance8"],'
+        '["…","…","…","…","…","…","…","…"],'
+        '["Swap",1,1,1,1,1,1,"Swap"],'
+        '[1,"Swap",1,1,1,1,"Swap"],'
+        '[1,1,"Swap",1,1,"Swap"],'
+        '[1,1,1,"Swap","Swap"],'
+        '["H"],'
+        '["Z^½","•"],'
+        '[1,"H"],'
+        '["Z^¼","Z^½","•"],'
+        '[1,1,"H"],'
+        '["Z^⅛","Z^¼","Z^½","•"],'
+        '[1,1,1,"H"],'
+        '["Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
+        '[1,1,1,1,"H"],'
+        '["Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
+        '[1,1,1,1,1,"H"],'
+        '["Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
+        '[1,1,1,1,1,1,"H"],'
+        '["Z^⅟₁₂₈","Z^⅟₆₄","Z^⅟₃₂","Z^⅟₁₆","Z^⅛","Z^¼","Z^½","•"],'
+        '[1,1,1,1,1,1,1,"H"]]}')
+    qft_example_json_uri_escaped = (
+        '{%22cols%22:['
+        # '[%22Counting8%22],'
+        '[%22Chance8%22],'
+        '[%22%E2%80%A6%22,%22%E2%80%A6%22,%22%E2%80%A6%22,%22%E2%80%A6%22,'
+        '%22%E2%80%A6%22,%22%E2%80%A6%22,%22%E2%80%A6%22,%22%E2%80%A6%22],'
+        '[%22Swap%22,1,1,1,1,1,1,%22Swap%22],'
+        '[1,%22Swap%22,1,1,1,1,%22Swap%22],'
+        '[1,1,%22Swap%22,1,1,%22Swap%22],'
+        '[1,1,1,%22Swap%22,%22Swap%22],'
+        '[%22H%22],'
+        '[%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,%22H%22],'
+        '[%22Z^%C2%BC%22,%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,%22H%22],'
+        '[%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,1,%22H%22],'
+        '[%22Z^%E2%85%9F%E2%82%81%E2%82%86%22,%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,'
+        '%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,1,1,%22H%22],'
+        '[%22Z^%E2%85%9F%E2%82%83%E2%82%82%22,'
+        '%22Z^%E2%85%9F%E2%82%81%E2%82%86%22,%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,'
+        '%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,1,1,1,%22H%22],'
+        '[%22Z^%E2%85%9F%E2%82%86%E2%82%84%22,'
+        '%22Z^%E2%85%9F%E2%82%83%E2%82%82%22,'
+        '%22Z^%E2%85%9F%E2%82%81%E2%82%86%22,%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,'
+        '%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,1,1,1,1,%22H%22],'
+        '[%22Z^%E2%85%9F%E2%82%81%E2%82%82%E2%82%88%22,'
+        '%22Z^%E2%85%9F%E2%82%86%E2%82%84%22,'
+        '%22Z^%E2%85%9F%E2%82%83%E2%82%82%22,'
+        '%22Z^%E2%85%9F%E2%82%81%E2%82%86%22,%22Z^%E2%85%9B%22,%22Z^%C2%BC%22,'
+        '%22Z^%C2%BD%22,%22%E2%80%A2%22],'
+        '[1,1,1,1,1,1,1,%22H%22]]}')
+    assert_url_to_circuit_returns(qft_example_json, diagram=qft_example_diagram)
+    assert_url_to_circuit_returns(qft_example_json_uri_escaped,
+                                  diagram=qft_example_diagram)

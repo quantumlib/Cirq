@@ -14,13 +14,14 @@
 
 from typing import Optional, List, Iterable, TYPE_CHECKING, Union, Iterator
 
-from cirq import ops
+from cirq import ops, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 if TYPE_CHECKING:
     import cirq
 
 
+@value.value_equality
 class ControlCell(Cell):
     """A modifier that adds controls to other cells in the column."""
 
@@ -28,6 +29,24 @@ class ControlCell(Cell):
                  basis_change: Iterable['cirq.Operation']):
         self.qubit = qubit
         self._basis_change = tuple(basis_change)
+
+    def _value_equality_values_(self):
+        return self.qubit, self._basis_change
+
+    def __repr__(self):
+        return (f'cirq.contrib.quirk.cells.control_cells.ControlCell('
+                f'\n    {self.qubit!r},'
+                f'\n    {self._basis_change!r})')
+
+    def gate_count(self) -> int:
+        return 0
+
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ControlCell(
+            qubit=Cell._replace_qubit(self.qubit, qubits),
+            basis_change=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._basis_change))
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):
@@ -39,6 +58,7 @@ class ControlCell(Cell):
         return self._basis_change
 
 
+@value.value_equality(unhashable=True)
 class ParityControlCell(Cell):
     """A modifier that adds a group parity control to other cells in the column.
 
@@ -50,6 +70,24 @@ class ParityControlCell(Cell):
                  basis_change: Iterable['cirq.Operation']):
         self.qubits = list(qubits)
         self._basis_change = list(basis_change)
+
+    def _value_equality_values_(self):
+        return self.qubits, self._basis_change
+
+    def __repr__(self):
+        return (f'cirq.contrib.quirk.cells.control_cells.ParityControlCell('
+                f'\n    {self.qubits!r},'
+                f'\n    {self._basis_change!r})')
+
+    def gate_count(self) -> int:
+        return 0
+
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ParityControlCell(
+            qubits=Cell._replace_qubits(self.qubits, qubits),
+            basis_change=tuple(
+                op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))
+                for op in self._basis_change))
 
     def modify_column(self, column: List[Optional['Cell']]):
         for i in range(len(column)):

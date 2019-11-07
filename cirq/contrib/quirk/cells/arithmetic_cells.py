@@ -46,8 +46,9 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                 determine what happens to the target.
         """
         self.identifier = identifier
-        self.target = target
-        self.inputs = inputs
+        self.target: Tuple['cirq.Qid', ...] = tuple(target)
+        self.inputs: Tuple[Union[Sequence['cirq.Qid'], int], ...] = tuple(
+            e if isinstance(e, int) else tuple(e) for e in inputs)
 
         for input_register in self.inputs:
             if isinstance(input_register, int):
@@ -159,13 +160,35 @@ class _QuirkArithmeticCallable:
         return result
 
 
+@value.value_equality
 class ArithmeticCell(Cell):
 
     def __init__(self, identifier: str, target: Sequence['cirq.Qid'],
                  inputs: Sequence[Union[None, Sequence['cirq.Qid'], int]]):
         self.identifier = identifier
-        self.target = target
-        self.inputs = inputs
+        self.target = tuple(target)
+        self.inputs = tuple(inputs)
+
+    def gate_count(self) -> int:
+        return 1
+
+    def _value_equality_values_(self):
+        return self.identifier, self.target, self.inputs
+
+    def __repr__(self):
+        return (f'cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell('
+                f'\n    {self.identifier!r},'
+                f'\n    {self.target!r},'
+                f'\n    {self.inputs!r})')
+
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return ArithmeticCell(identifier=self.identifier,
+                              target=Cell._replace_qubits(self.target, qubits),
+                              inputs=[
+                                  e if e is None or isinstance(e, int) else
+                                  Cell._replace_qubits(e, qubits)
+                                  for e in self.inputs
+                              ])
 
     @property
     def operation(self):
