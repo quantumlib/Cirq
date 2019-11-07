@@ -379,21 +379,21 @@ def subwavefunction(wavefunction: np.ndarray,
                     atol: Union[int, float] = 1e-8) -> np.ndarray:
     r"""Attempts to factor a wavefunction into two parts and return one of them.
 
-    The input wavefunction must have shape `(2,) * n` or `(2 ** n)` where
+    The input wavefunction must have shape ``(2,) * n`` or ``(2 ** n)`` where
     `wavefunction` is expressed over n qubits. The returned array will retain
-    the same type of shape as the input wavefunction, either `(2 ** k)` or
-    `(2,) * k` where k is the number of qubits kept.
+    the same type of shape as the input wavefunction, either ``(2 ** k)`` or
+    ``(2,) * k`` where k is the number of qubits kept.
 
     If a wavefunction $|\psi\rangle$ defined on n qubits is an outer product
     of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
-    $|x\rangle$ is defined over the subset `keep_indices` of k qubits, then
+    $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
     return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
     multiplication may be absorbed by any factor of a tensor product:
 
     $$
-        (e^{i \theta} |y\rangle) \otimes (|x\rangle)
-        = (|y\rangle) \otimes (e^{i \theta} |x\rangle)
+        e^{i \theta} |y\rangle \otimes |x\rangle
+        = |y\rangle \otimes e^{i \theta} |x\rangle
     $$
 
     This method randomizes the global phase of $|x\rangle$ in order to avoid
