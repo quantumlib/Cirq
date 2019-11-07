@@ -70,7 +70,7 @@ qreg q[{}];
     qasm_unitary = None
     try:
         result = qiskit.execute(
-            qiskit.load_qasm_string(qasm),
+            qiskit.QuantumCircuit.from_qasm_str(qasm),
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
@@ -89,7 +89,7 @@ qreg q[{}];
             p_unitary = None
             p_qasm_unitary = None
         raise AssertionError(
-            'QASM be consistent with cirq.unitary(op) up to global phase.\n\n'
+            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
             'op:\n{}\n\n'
             'cirq.unitary(op):\n{}\n\n'
             'Generated QASM:\n\n{}\n\n'
