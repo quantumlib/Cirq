@@ -24,7 +24,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Iterable, List, Optional, Tuple, Union
+from typing import Any, cast, Optional, Tuple, Union
 
 import numpy as np
 import sympy
@@ -32,6 +32,7 @@ import sympy
 import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
@@ -848,51 +849,64 @@ def Rz(rads: value.TParamVal) -> ZPowGate:
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-# The Hadamard gate.
-#
-# Matrix:
-#
-#     [[s, s],
-#      [s, -s]]
-#     where s = sqrt(0.5).
 H = HPowGate()
+document(
+    H, """The Hadamard gate.
 
-# The Clifford S gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, i]]
+    The `exponent=1` instance of `cirq.HPowGate`.
+
+    Matrix:
+        [[s, s],
+         [s, -s]]
+        where s = sqrt(0.5).
+    """)
+
 S = ZPowGate(exponent=0.5)
+document(
+    S, """The Clifford S gate.
 
+    The `exponent=0.5` instance of `cirq.ZPowGate`.
 
-# The non-Clifford T gate.
-#
-# Matrix:
-#
-#     [[1, 0]
-#      [0, exp(i pi / 4)]]
+    Matrix:
+        [[1, 0],
+         [0, i]]
+    """)
+
 T = ZPowGate(exponent=0.25)
+document(
+    T, """The non-Clifford T gate.
 
+    The `exponent=0.25` instance of `cirq.ZPowGate`.
 
-# The controlled Z gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 0, 0, -1]]
+    Matrix:
+        [[1, 0]
+         [0, exp(i pi / 4)]]
+    """)
+
 CZ = CZPowGate()
+document(
+    CZ, """The controlled Z gate.
 
+    The `exponent=1` instance of `cirq.CZPowGate`.
 
-# The controlled NOT gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1],
-#      [0, 0, 1, 0]]
-CNOT = CNotPowGate()
-CX = CNOT
+    Matrix:
+
+        [[1 . . .],
+         [. 1 . .],
+         [. . 1 .],
+         [. . . -1]]
+    """)
+
+CNOT = CX = CNotPowGate()
+document(
+    CNOT, """The controlled NOT gate.
+
+    The `exponent=1` instance of `cirq.CNotPowGate`.
+
+    Matrix:
+
+        [[1 . . .],
+         [. 1 . .],
+         [. . . 1],
+         [. . 1 .]]
+    """)

@@ -34,6 +34,7 @@ from cirq.google.devices import (
     Bristlecone,
     Foxtail,
     SerializableDevice,
+    Sycamore,
     XmonDevice,
 )
 
@@ -59,6 +60,11 @@ from cirq.google.line import (
     GreedySequenceSearchStrategy,
     line_on_device,
     LinePlacementStrategy,
+)
+
+from cirq.google.ops.sycamore_gate import (
+    SycamoreGate,
+    SYC,
 )
 
 from cirq.google.optimizers import (
