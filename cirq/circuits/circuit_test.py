@@ -281,6 +281,12 @@ def test_radd_op_tree():
     c = cirq.Circuit(device=cirq.google.Bristlecone)
     c2 = [] + c
     assert c2.device is cirq.google.Bristlecone
+    assert c2 == c
+
+    # Validates versus device.
+    c = cirq.Circuit(device=cirq.google.Bristlecone)
+    with pytest.raises(ValueError, match='Unsupported qubit'):
+        _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
 
 def test_bool():

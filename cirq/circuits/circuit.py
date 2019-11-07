@@ -278,6 +278,7 @@ class Circuit:
         # Auto wrap OP_TREE inputs into a circuit.
         result = self.copy()
         result._moments[:0] = Circuit(other)._moments
+        result._device.validate_circuit(result)
         return result
 
     def __imul__(self, repetitions: int):
