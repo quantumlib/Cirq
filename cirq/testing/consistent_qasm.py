@@ -96,14 +96,13 @@ qreg q[{}];
             'Unitary of generated QASM:\n{}\n\n'
             'Phased matched cirq.unitary(op):\n{}\n\n'
             'Phased matched unitary of generated QASM:\n{}\n\n'
-            'Underlying error:\n{}'.format(
-                _indent(repr(op)),
-                _indent(repr(unitary)),
-                _indent(qasm),
-                _indent(repr(qasm_unitary)),
-                _indent(repr(p_unitary)),
-                _indent(repr(p_qasm_unitary)),
-                _indent(str(ex))))
+            'Underlying error:\n{}'.format(_indent(repr(op)),
+                                           _indent(repr(unitary)),
+                                           _indent(qasm),
+                                           _indent(repr(qasm_unitary)),
+                                           _indent(repr(p_unitary)),
+                                           _indent(repr(p_qasm_unitary)),
+                                           _indent(str(ex))))
 
 
 def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
