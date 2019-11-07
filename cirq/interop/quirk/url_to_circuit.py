@@ -130,7 +130,7 @@ def quirk_url_to_circuit(
 
 
 def quirk_json_to_circuit(
-        data: Dict[str, Any],
+        data: dict,
         *,
         qubits: Optional[Sequence['cirq.Qid']] = None,
         extra_cell_makers: Union[Dict[str, 'cirq.Gate'], Iterable[
@@ -141,11 +141,11 @@ def quirk_json_to_circuit(
 
     Args:
         data: Data parsed from quirk's JSON representation.
-        qubits: Qubits to use in the circuit. See ``cirq.quirk_url_to_circuit``.
+        qubits: Qubits to use in the circuit. See quirk_url_to_circuit.
         extra_cell_makers: Non-standard Quirk cells to accept. See
-            ``cirq.quirk_url_to_circuit``.
+            quirk_url_to_circuit.
         quirk_url: If given, the original URL from which the JSON was parsed, as
-            described in ``cirq.quirk_url_to_circuit``.
+            described in quirk_url_to_circuit.
         max_operation_count: If the number of operations in the circuit would
             exceed this value, the method raises a `ValueError` instead of
             attempting to construct the circuit. This is important to specify
@@ -164,7 +164,7 @@ def quirk_json_to_circuit(
         The parsed circuit.
 
     Raises:
-        ValueError: Invalid circuit JSON, or circuit would be larger than
+        ValueError: Invalid circuit URL, or circuit would be larger than
             `max_operations_count`.
     """
 
