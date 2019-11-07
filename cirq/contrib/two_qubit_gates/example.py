@@ -37,7 +37,7 @@ def main(samples: int = 1000, max_infidelity: float = 0.01):
         samples: Number of random 2-qubit unitary samples to compile.
         max_infidelity: Maximum allowed infidelity between randomly generated
             gate and the gate compilation used to generate it. The example
-            runtime scales as max_infidelity^{-3/2}.
+            runtime scales as max_infidelity^{-2}.
     """
     # Define a base gate for compilation
     theta = np.pi / 4
