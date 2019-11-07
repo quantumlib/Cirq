@@ -3,8 +3,8 @@ with a product A k A."""
 from functools import reduce
 from typing import Tuple, Sequence, List, NamedTuple
 
-import numpy as np
 from dataclasses import dataclass
+import numpy as np
 
 from cirq import kak_decomposition, kak_vector, value
 from cirq.contrib.two_qubit_gates.math_utils import (kak_vector_infidelity,
