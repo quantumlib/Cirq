@@ -24,6 +24,7 @@ import numpy as np
 
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
+from cirq._doc import document
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -40,11 +41,23 @@ if TYPE_CHECKING:
     import cirq
 
 # A value that can be unambiguously converted into a `cirq.PauliString`.
+
 PAULI_STRING_LIKE = Union[
     complex, 'cirq.OP_TREE',
     Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
+document(
+    PAULI_STRING_LIKE,  # type: ignore
+    """A `cirq.PauliString` or a value that can easily be converted into one.
+
+    Complex numbers turn into the coefficient of an empty Pauli string.
+
+    Dictionaries from qubit to Pauli operation are wrapped into a Pauli string.
+
+    Collections of Pauli operations are recrusively multiplied into a single
+    Pauli string.
+    """)
 
 TDefault = TypeVar('TDefault')
 

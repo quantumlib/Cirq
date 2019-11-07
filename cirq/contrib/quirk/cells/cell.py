@@ -33,9 +33,11 @@ class Cell(metaclass=abc.ABCMeta):
     def _replace_qubit(cls, old_qubit: 'cirq.Qid',
                        qubits: List['cirq.Qid']) -> 'cirq.Qid':
         if not isinstance(old_qubit, devices.LineQubit):
-            raise ValueError('????')
-        if old_qubit.x >= len(qubits):
-            raise ValueError(f'???? {old_qubit}, {len(qubits)}')
+            raise ValueError(
+                f'Can only map from line qubits, but got {old_qubit!r}.')
+        if not 0 <= old_qubit.x < len(qubits):
+            raise ValueError(
+                f'Line qubit index ({old_qubit.x}) not in range({len(qubits)})')
         return qubits[old_qubit.x]
 
     @classmethod
@@ -44,7 +46,7 @@ class Cell(metaclass=abc.ABCMeta):
         return tuple(Cell._replace_qubit(e, qubits) for e in old_qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         """Returns the same cell, but targeting different qubits.
 
         It is assumed that the cell is currently targeting `LineQubit`
@@ -61,12 +63,17 @@ class Cell(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def gate_count(self) -> int:
-        """Cheaply determines how many gates may be produced/touched.
+        """Cheaply determines an upper bound on the resulting circuit size.
 
-         This method exists in order to defend against billion laugh type
-         attacks. It is important that counting is fast and efficient even in
-         extremely adversarial conditions.
-         """
+        The upper bound may be larger than the actual count. For example, a
+        small circuit may nevertheless have involved a huge amount of rewriting
+        work to create. In such cases the `gate_count` is permitted to be large
+        to indicate the danger, despite the output being small.
+
+        This method exists in order to defend against billion laugh type
+        attacks. It is important that counting is fast and efficient even in
+        extremely adversarial conditions.
+        """
 
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
@@ -171,7 +178,7 @@ class ExplicitOperationsCell(Cell):
     def gate_count(self) -> int:
         return len(self._operations) + 2 * len(self._basis_change)
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
         return ExplicitOperationsCell(
             operations=tuple(
                 op.with_qubits(*Cell._replace_qubits(op.qubits, qubits))

@@ -40,11 +40,11 @@ def remove_redundant_acquaintance_opportunities(strategy: 'cirq.Circuit'
     annotated_strategy = strategy.copy()
     LogicalAnnotator(mapping)(annotated_strategy)
 
-    new_moments = []  # type: List['cirq.Moment']
-    acquaintance_opps = set() # type: Set[FrozenSet[int]]
+    new_moments: List['cirq.Moment'] = []
+    acquaintance_opps: Set[FrozenSet[int]] = set()
     n_removed = 0
     for moment in annotated_strategy:
-        new_moment = []  # type: List['cirq.Operation']
+        new_moment: List['cirq.Operation'] = []
         for op in moment:
             if isinstance(op, AcquaintanceOperation):
                 opp = frozenset(cast(Sequence[int], op.logical_indices))

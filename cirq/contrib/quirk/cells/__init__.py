@@ -34,3 +34,6 @@ from cirq.contrib.quirk.cells.arithmetic_cells import (
 
 from cirq.contrib.quirk.cells.input_rotation_cells import (
     QuirkInputRotationOperation,)
+
+import cirq.contrib.quirk.cells.swap_cell
+import cirq.contrib.quirk.cells.control_cells

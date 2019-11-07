@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict,
+from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable)
 
 from typing_extensions import Protocol

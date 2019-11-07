@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import List, TYPE_CHECKING, Callable, Optional, Iterator, cast, \
-    Iterable, TypeVar
+    Iterable, TypeVar, Union, Sequence
 
 from cirq import circuits
 from cirq.contrib.quirk.cells.cell import Cell
@@ -30,15 +30,40 @@ class CompositeCell(Cell):
 
     def __init__(self, height: int,
                  sub_cell_cols_generator: Iterable[List[Optional[Cell]]], *,
-                 weight: int):
+                 gate_count: int):
+        """
+
+        Args:
+            height: The number of qubits spanned by this composite cell. Note
+                that the height may be larger than the number of affected
+                qubits (e.g. the custom gate X⊗I⊗X has a height of 3 despite
+                only operating on two qubits)..
+            sub_cell_cols_generator: The columns making up the contents of this
+                composite cell. These columns may only be generated when
+                iterating this iterable for the first time.
+
+                CAUTION: Iterating this value may be exponentially expensive in
+                adversarial conditions, due to billion laugh attacks. The caller
+                is responsible for providing an accurate `gate_count` value that
+                allows us to check for high costs before paying them.
+            gate_count: An upper bound on the number of operations in the
+                circuit produced by this cell.
+
+                CAUTION: If this value is set to 0, the
+                `sub_cell_cols_generator` argument is replaced by the empty
+                list. This behavior is required for efficient handling of
+                billion laugh attacks that use exponentially large number of
+                gate modifiers (such as controls or inputs) but no actual
+                gates.
+        """
         self.height = height
         self._sub_cell_cols_generator = sub_cell_cols_generator
-        self._weight = weight
-        if weight <= 0:
+        self._gate_count = gate_count
+        if gate_count <= 0:
             self._sub_cell_cols_generator = []
 
     def gate_count(self) -> int:
-        return self._weight
+        return self._gate_count
 
     def _transform_cells(self, func: Callable[[Cell], Cell]) -> 'CompositeCell':
         return CompositeCell(
@@ -49,21 +74,23 @@ class CompositeCell(Cell):
                 [None if cell is None else func(cell)
                  for cell in col]
                 for col in self._sub_cell_cols_generator),
-            weight=self._weight)
+            gate_count=self._gate_count)
 
-    def _sub_cell_cols_sealed(self) -> List[List[Cell]]:
+    def _sub_cell_cols_sealed(self) -> List[List[Optional[Cell]]]:
         if not isinstance(self._sub_cell_cols_generator, list):
             self._sub_cell_cols_generator = list(self._sub_cell_cols_generator)
-        return cast(List[List[Cell]], self._sub_cell_cols_generator)
+        return cast(List[List[Optional[Cell]]], self._sub_cell_cols_generator)
 
-    def with_qubits(self, qubits: List['cirq.Qid']) -> 'Cell':
-        return self._transform_cells(lambda cell: cell.with_qubits(qubits))
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return self._transform_cells(lambda cell: cell.
+                                     with_line_qubits_mapped_to(qubits))
 
-    def with_input(self, letter, register):
+    def with_input(self, letter: str, register: Union[Sequence['cirq.Qid'], int]
+                  ) -> 'CompositeCell':
         return self._transform_cells(lambda cell: cell.with_input(
             letter, register))
 
-    def controlled_by(self, qubit):
+    def controlled_by(self, qubit: 'cirq.Qid') -> 'CompositeCell':
         return self._transform_cells(lambda cell: cell.controlled_by(qubit))
 
     def circuit(self) -> 'cirq.Circuit':
@@ -88,7 +115,7 @@ T = TypeVar('T')
 
 def _iterator_to_iterable(iterator: Iterator[T]) -> Iterable[T]:
     done = False
-    items = []
+    items: List[T] = []
 
     class IterIntoItems:
 
