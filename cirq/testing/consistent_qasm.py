@@ -115,7 +115,7 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
         return
 
     num_qubits = int(np.log2(len(unitary)))
-    result = qiskit.execute(qiskit.load_qasm_string(qasm),
+    result = qiskit.execute(qiskit.QuantumCircuit.from_qasm_str(qasm),
                             backend=qiskit.Aer.get_backend('unitary_simulator'))
     qiskit_unitary = result.result().get_unitary()
     qiskit_unitary = _reorder_indices_of_matrix(
