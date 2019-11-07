@@ -44,9 +44,6 @@ class QuirkQubitPermutationGate(ops.Gate):
     def _value_equality_values_(self):
         return self.identifier, self.name, self.permutation
 
-    def _quirk_(self):
-        return self.identifier
-
     def num_qubits(self):
         return len(self.permutation)
 
