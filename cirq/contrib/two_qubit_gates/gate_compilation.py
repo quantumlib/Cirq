@@ -4,7 +4,8 @@ from functools import reduce
 from typing import Tuple, Sequence, List, NamedTuple
 
 import numpy as np
-import attr
+from dataclasses import dataclass
+
 from cirq import kak_decomposition, kak_vector, value
 from cirq.contrib.two_qubit_gates.math_utils import (kak_vector_infidelity,
                                                      vector_kron,
@@ -41,7 +42,7 @@ class TwoQubitGateCompilation(NamedTuple):
     success: bool
 
 
-@attr.s(auto_attribs=True)
+@dataclass
 class GateTabulation:
     """A 2-qubit gate compiler based on precomputing/tabulating gate products.
 
