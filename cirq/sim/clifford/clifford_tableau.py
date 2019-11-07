@@ -170,7 +170,7 @@ class CliffordTableau():
 
     def _row_to_dense_pauli(self, i: int) -> DensePauliString:
         """
-        Attributes:
+        Args:
             i: index of the row in the tableau.
         Returns:
             A DensePauliString representing the row. The length of the string
