@@ -44,14 +44,15 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """Transforms an object into a noise model if umambiguously possible.
 
         Args:
-            noise: `None`, a `cirq.NoiseModel`, or a single qubit operation.
+            noise: ``None``, a ``cirq.NoiseModel``, or a single qubit operation.
 
         Returns:
-            When given `None`: returns `cirq.NO_NOISE`.
-            When given a single qubit operation: returns
-                `cirq.ConstantQubitNoiseModel(gate)`, which applies the gate to
-                every qubit before every moment.
-            When given a `cirq.NoiseModel`: just returns the input.
+            ``cirq.NO_NOISE`` when given ``None``,
+            ``cirq.ConstantQubitNoiseModel(gate)`` when given a single qubit
+            gate, or the given value if it is already a ``cirq.NoiseModel``.
+
+        Raises:
+            TypeError: The input is not a ``cirq.NOISE_MODE_LIKE``.
         """
         if noise is None:
             return NO_NOISE
