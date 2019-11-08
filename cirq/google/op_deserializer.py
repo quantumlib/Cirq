@@ -16,7 +16,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    NamedTuple,
     Optional,
     Sequence,
     TYPE_CHECKING,
