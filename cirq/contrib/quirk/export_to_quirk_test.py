@@ -105,23 +105,29 @@ def test_parameterized_gates():
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
 
-    assert_links_to(cirq.Circuit(cirq.X(a)**t), """
+    assert_links_to(cirq.Circuit(cirq.X(a)**t),
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             ["X^t"]
         ]}
-    """, escape_url=False)
+    """,
+                    escape_url=False)
 
-    assert_links_to(cirq.Circuit(cirq.Y(a)**t), """
+    assert_links_to(cirq.Circuit(cirq.Y(a)**t),
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             ["Y^t"]
         ]}
-    """, escape_url=False)
+    """,
+                    escape_url=False)
 
-    assert_links_to(cirq.Circuit(cirq.Z(a)**t), """
+    assert_links_to(cirq.Circuit(cirq.Z(a)**t),
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             ["Z^t"]
         ]}
-    """, escape_url=False)
+    """,
+                    escape_url=False)
 
     with pytest.raises(ValueError, match='Symbol other than "t"'):
         _ = circuit_to_quirk_url(cirq.Circuit(cirq.X(a)**s))
