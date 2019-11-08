@@ -94,6 +94,23 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
         assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
 
 
+def assert_has_consistent_trace_distance_bound(val: Any) -> None:
+    u = protocols.unitary(val, default=None)
+    val_from_trace = protocols.trace_distance_bound(val)
+    assert 0.0 <= val_from_trace <= 1.0
+    if u is not None:
+
+        class Unitary:
+
+            def _unitary_(self):
+                return u
+
+        val_from_unitary = protocols.trace_distance_bound(Unitary())
+
+        assert val_from_trace >= val_from_unitary or np.isclose(
+            val_from_trace, val_from_unitary)
+
+
 def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                                    setup_code: str,
                                    global_vals: Optional[Dict[str, Any]],
@@ -114,20 +131,3 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                            local_vals=local_vals)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
-
-
-def assert_has_consistent_trace_distance_bound(val: Any) -> None:
-    u = protocols.unitary(val, default=None)
-    val_from_trace = protocols.trace_distance_bound(val)
-    assert 0.0 <= val_from_trace <= 1.0
-    if u is not None:
-
-        class Unitary:
-
-            def _unitary_(self):
-                return u
-
-        val_from_unitary = protocols.trace_distance_bound(Unitary())
-
-        assert val_from_trace >= val_from_unitary or np.isclose(
-            val_from_trace, val_from_unitary)

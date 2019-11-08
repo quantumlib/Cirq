@@ -14,7 +14,7 @@
 """IdentityGate and IdentityOperation."""
 
 from typing import (Any, Iterable, FrozenSet, List, Optional, Sequence, Tuple,
-                    Union)
+                    Union, TYPE_CHECKING)
 
 import numpy as np
 import sympy
@@ -22,6 +22,9 @@ import sympy
 from cirq import protocols, value
 from cirq._doc import document
 from cirq.ops import raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -103,6 +106,11 @@ class IdentityGate(raw_types.Gate):
                     format(type(target)))
         return operations
 
+    def __pow__(self, power):
+        if isinstance(power, (int, float, complex, sympy.Basic)):
+            return self
+        return NotImplemented
+
     def _has_unitary_(self):
         return True
 
@@ -177,6 +185,9 @@ class IdentityOperation(raw_types.Operation):
                     qubits))
         self._qubits = tuple(qubits)
 
+    def gate(self) -> 'cirq.IdentityGate':
+        return IdentityGate(qid_shape=self._qid_shape_())
+
     @property
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         """The qubits targeted by the operation."""
@@ -204,6 +215,12 @@ class IdentityOperation(raw_types.Operation):
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
         return args.target_tensor
+
+    def _unitary_(self):
+        return np.identity(np.prod(self._qid_shape, dtype=int))
+
+    def _has_unitary_(self):
+        return True
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> 'protocols.CircuitDiagramInfo':

@@ -423,3 +423,30 @@ def test_inverse_composite_diagram_info():
     c = cirq.inverse(Gate2())
     assert cirq.circuit_diagram_info(c) == cirq.CircuitDiagramInfo(
         wire_symbols=('s!',), exponent=-1)
+
+
+def test_inverse_composite_standards():
+
+    @cirq.value_equality
+    class Gate(cirq.Gate):
+
+        def _decompose_(self, qubits):
+            return cirq.S.on(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _has_unitary_(self):
+            return True
+
+        def _circuit_diagram_info_(self, args):
+            return 's!'
+
+        def _value_equality_values_(self):
+            return ()
+
+        def __repr__(self):
+            return 'C()'
+
+    cirq.testing.assert_implements_consistent_protocols(cirq.inverse(Gate()),
+                                                        global_vals={'C': Gate})
