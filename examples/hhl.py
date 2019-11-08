@@ -21,9 +21,9 @@ REFERENCE section below. The following description uses variables defined
 in the HHL paper.
 
 This example is an implementation of the HHL algorithm for arbitrary 2x2
-Hermitian matrices. The output of the algorithm is a display of Pauli
-observables of |x>. Note that the accuracy of the result depends on the
-following factors:
+Hermitian matrices. The output of the algorithm are the expectation values
+of Pauli observables of |x>. Note that the accuracy of the result depends
+on the following factors:
 * Register size
 * Choice of parameters C and t
 
@@ -72,6 +72,7 @@ reversing qubit order for phase kickbacks.
 
 import math
 import numpy as np
+import sympy
 import cirq
 
 
@@ -204,18 +205,28 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     """
     Constructs the HHL circuit.
 
-    A is the input Hermitian matrix.
-    C and t are tunable parameters for the algorithm.
-    register_size is the size of the eigenvalue register.
-    input_prep_gates is a list of gates to be applied to |0> to generate the
-      desired input state |b>.
+    Args:
+        A: The input Hermitian matrix.
+        C: Algorithm parameter, see above.
+        t: Algorithm parameter, see above.
+        register_size: The size of the eigenvalue register.
+        memory_basis: The basis to measure the memory in, one of 'x', 'y', 'z'.
+        input_prep_gates: A list of gates to be applied to |0> to generate the
+            desired input state |b>.
+
+    Returns:
+        The HHL circuit. The ancilla measurement has key 'a' and the memory
+        measurement is in key 'm'.  There are two parameters in the circuit,
+        `exponent` and `phase_exponent` corresponding to a possible rotation
+        applied before the measurement on the memory with a
+        `cirq.PhasedXPowGate`.
     """
 
-    ancilla = cirq.GridQubit(0, 0)
+    ancilla = cirq.LineQubit(0)
     # to store eigenvalues of the matrix
-    register = [cirq.GridQubit(i+1, 0) for i in range(register_size)]
+    register = [cirq.LineQubit(i + 1) for i in range(register_size)]
     # to store input and output vectors
-    memory = cirq.GridQubit(register_size+1, 0)
+    memory = cirq.LineQubit(register_size + 1)
 
     c = cirq.Circuit()
     hs = HamiltonianSimulation(A, t)
@@ -223,25 +234,16 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
     c.append([gate(memory) for gate in input_prep_gates])
     c.append([
         pe(*(register + [memory])),
-        EigenRotation(register_size+1, C, t)(*(register+[ancilla])),
+        EigenRotation(register_size + 1, C, t)(*(register + [ancilla])),
         pe(*(register + [memory]))**-1,
-        cirq.measure(ancilla)
+        cirq.measure(ancilla, key='a')
     ])
 
-    # Pauli observable display
     c.append([
-        cirq.approx_pauli_string_expectation(cirq.Z(ancilla),
-                                             num_samples=5000,
-                                             key='a'),
-        cirq.approx_pauli_string_expectation(cirq.X(memory),
-                                             num_samples=5000,
-                                             key='x'),
-        cirq.approx_pauli_string_expectation(cirq.Y(memory),
-                                             num_samples=5000,
-                                             key='y'),
-        cirq.approx_pauli_string_expectation(cirq.Z(memory),
-                                             num_samples=5000,
-                                             key='z'),
+        cirq.PhasedXPowGate(
+            exponent=sympy.Symbol('exponent'),
+            phase_exponent=sympy.Symbol('phase_exponent'))(memory),
+        cirq.measure(memory, key='m')
     ])
 
     return c
@@ -250,16 +252,26 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 def simulate(circuit):
     simulator = cirq.Simulator()
 
-    # TODO optimize using amplitude amplification algorithm
-    ancilla_expectation = 0.0
-    while ancilla_expectation != -1.0:
-        result = simulator.compute_displays(circuit)
-        ancilla_expectation = round(result.display_values['a'], 3)
+    # Cases for measurring X, Y, and Z (respectively) on the memory qubit.
+    params = [{
+        'exponent': 0.5,
+        'phase_exponent': -0.5
+    }, {
+        'exponent': 0.5,
+        'phase_exponent': 0
+    }, {
+        'exponent': 0,
+        'phase_exponent': 0
+    }]
 
-    # Compute displays
-    print('X = {}'.format(result.display_values['x']))
-    print('Y = {}'.format(result.display_values['y']))
-    print('Z = {}'.format(result.display_values['z']))
+    results = simulator.run_sweep(circuit, params, repetitions=5000)
+
+    for label, result in zip(('X', 'Y', 'Z'), list(results)):
+        # Only select cases where the ancilla is 1.
+        # TODO optimize using amplitude amplification algorithm
+        expectation = 1 - 2 * np.mean(
+            result.measurements['m'][result.measurements['a'] == 1])
+        print('{} = {}'.format(label, expectation))
 
 
 def main():

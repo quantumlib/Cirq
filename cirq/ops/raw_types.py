@@ -285,6 +285,8 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
+        if num_controls == 0:
+            return self
         return ControlledGate(self,
                               num_controls=num_controls,
                               control_values=control_values,
@@ -343,6 +345,10 @@ class Operation(metaclass=abc.ABCMeta):
     """
 
     @property
+    def gate(self) -> Optional[Gate]:
+        return None
+
+    @property
     @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
@@ -358,8 +364,14 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
-        pass
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+        """Returns the same operation, but applied to different qubits.
+
+        Args:
+            new_qubits: The new qubits to apply the operation to. The order must
+                exactly match the order of qubits returned from the operation's
+                `qubits` property.
+        """
 
     def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':
         """Returns the same operation, but with different qubits.

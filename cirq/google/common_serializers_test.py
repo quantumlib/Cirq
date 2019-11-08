@@ -493,3 +493,27 @@ def test_deserialize_z_parameterized():
     q = cirq.GridQubit(1, 2)
     expected = cirq.ZPowGate(exponent=sympy.Symbol('a'))(q)
     assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
+
+
+def test_wait_gate():
+    gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
+                                      [cgc.WAIT_GATE_DESERIALIZER])
+    proto_dict = {
+        'gate': {
+            'id': 'wait'
+        },
+        'args': {
+            'nanos': {
+                'arg_value': {
+                    'float_value': 20.0
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    q = cirq.GridQubit(1, 2)
+    op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
+    assert gate_set.serialize_op_dict(op) == proto_dict
+    assert gate_set.deserialize_op_dict(proto_dict) == op

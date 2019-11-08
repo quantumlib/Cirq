@@ -16,12 +16,16 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Optional, Tuple, Type, Union
+from typing import Dict, Iterator, List, Optional, Tuple, Type, Union, \
+    TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, linalg, ops, protocols, study
 from cirq.sim import simulator, wave_function, wave_function_simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class _FlipGate(ops.SingleQubitGate):
@@ -129,16 +133,6 @@ class Simulator(simulator.SimulatesSamples,
     where the results of the measurement are recorded.  This can also
     occur when the circuit has mixtures of unitaries.
 
-    Finally, one can compute the values of displays (instances of
-    `SamplesDisplay` or `WaveFunctionDisplay`) in the circuit:
-
-        compute_displays(circuit, param_resolver, qubit_order, initial_state)
-
-        compute_displays_sweep(circuit, params, qubit_order, initial_state)
-
-    The result of computing display values is stored in a
-    `ComputeDisplaysResult`.
-
     See `Simulator` for the definitions of the supported methods.
     """
 
@@ -223,7 +217,7 @@ class Simulator(simulator.SimulatesSamples,
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolver,
             qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray],
+            initial_state: 'cirq.STATE_VECTOR_LIKE',
     ) -> Iterator:
         """See definition in `cirq.SimulatesIntermediateState`.
 
@@ -246,8 +240,8 @@ class Simulator(simulator.SimulatesSamples,
             self,
             circuit: circuits.Circuit,
             qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray],
-            perform_measurements: bool=True,
+            initial_state: 'cirq.STATE_VECTOR_LIKE',
+            perform_measurements: bool = True,
     ) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
                 circuit.all_qubits())
@@ -274,7 +268,7 @@ class Simulator(simulator.SimulatesSamples,
             return (protocols.has_unitary(potential_op) or
                     protocols.has_mixture(potential_op) or
                     protocols.is_measurement(potential_op) or
-                    ops.op_gate_isinstance(potential_op, ops.ResetChannel))
+                    isinstance(potential_op.gate, ops.ResetChannel))
 
         data = _StateAndBuffer(state=np.reshape(state, qid_shape),
                                buffer=np.empty(qid_shape, dtype=self._dtype))
@@ -282,19 +276,12 @@ class Simulator(simulator.SimulatesSamples,
             measurements = collections.defaultdict(
                 list)  # type: Dict[str, List[int]]
 
-            non_display_ops = (op for op in moment
-                               if not isinstance(op, (ops.SamplesDisplay,
-                                                      ops.WaveFunctionDisplay,
-                                                      ops.DensityMatrixDisplay
-                                                      )))
             unitary_ops_and_measurements = protocols.decompose(
-                non_display_ops,
-                keep=keep,
-                on_stuck_raise=on_stuck)
+                moment, keep=keep, on_stuck_raise=on_stuck)
 
             for op in unitary_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
-                if ops.op_gate_isinstance(op, ops.ResetChannel):
+                if isinstance(op.gate, ops.ResetChannel):
                     self._simulate_reset(op, data, indices)
                 elif protocols.has_unitary(op):
                     self._simulate_unitary(op, data, indices)
@@ -330,8 +317,8 @@ class Simulator(simulator.SimulatesSamples,
     def _simulate_reset(self, op: ops.Operation, data: _StateAndBuffer,
                         indices: List[int]) -> None:
         """Simulate an op that is a reset to the |0> state."""
-        reset = ops.op_gate_of_type(op, ops.ResetChannel)
-        if reset:
+        if isinstance(op.gate, ops.ResetChannel):
+            reset = op.gate
             # Do a silent measurement.
             bits, _ = wave_function.measure_state_vector(
                 data.state, indices, out=data.state, qid_shape=data.state.shape)
@@ -347,9 +334,9 @@ class Simulator(simulator.SimulatesSamples,
                               measurements: Dict[str, List[int]],
                               num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computational basis."""
-        meas = ops.op_gate_of_type(op, ops.MeasurementGate)
         # TODO: support measurement outside computational basis.
-        if meas:
+        if isinstance(op.gate, ops.MeasurementGate):
+            meas = op.gate
             invert_mask = meas.full_invert_mask()
             # Measure updates inline.
             bits, _ = wave_function.measure_state_vector(
@@ -447,7 +434,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         """
         return self._simulator_state().state_vector
 
-    def set_state_vector(self, state: Union[int, np.ndarray]):
+    def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         update_state = wave_function.to_valid_state_vector(
             state,
             len(self.qubit_map),

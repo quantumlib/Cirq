@@ -23,9 +23,11 @@ raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 from typing import Optional, Tuple
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate, raw_types
 
 
@@ -54,7 +56,8 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
         """See base class."""
         a, b = qubits
         yield common_gates.CNOT(a, b)
-        yield common_gates.CNOT(b, a)**self._exponent
+        yield common_gates.CNotPowGate(exponent=self._exponent,
+                                       global_shift=self.global_shift).on(b, a)
         yield common_gates.CNOT(a, b)
 
     def _eigen_components(self):
@@ -186,9 +189,11 @@ class ISwapPowGate(eigen_gate.EigenGate,
         yield common_gates.CNOT(a, b)
         yield common_gates.H(a)
         yield common_gates.CNOT(b, a)
-        yield common_gates.S(a)**self._exponent
+        yield common_gates.ZPowGate(exponent=self._exponent / 2,
+                                    global_shift=self.global_shift).on(a)
         yield common_gates.CNOT(b, a)
-        yield common_gates.S(a)**-self._exponent
+        yield common_gates.ZPowGate(exponent=-self._exponent / 2,
+                                    global_shift=-self.global_shift).on(a)
         yield common_gates.H(a)
         yield common_gates.CNOT(a, b)
 
@@ -243,22 +248,32 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-# The swap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1]]
-SWAP = SwapPowGate()
+def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
+    """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
+    pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
+    return ISwapPowGate()**(2 * angle_rads / pi)
 
-# The iswap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, i, 0],
-#      [0, i, 0, 0],
-#      [0, 0, 0, 1]]
+
+SWAP = SwapPowGate()
+document(
+    SWAP, """The swap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, 1, 0],
+         [0, 1, 0, 0],
+         [0, 0, 0, 1]]
+    """)
+
 ISWAP = ISwapPowGate()
+document(
+    ISWAP, """The iswap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, i, 0],
+         [0, i, 0, 0],
+         [0, 0, 0, 1]]
+    """)

@@ -16,6 +16,7 @@ import inspect
 
 import io
 import os
+import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type
 
@@ -141,6 +142,15 @@ TEST_OBJECTS = {
     cirq.CNOT,
     'CNotPowGate':
     cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'ControlledOperation':
+    cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),
+                             controls=cirq.LineQubit.range(2),
+                             control_values=[0, 1]),
+    'ControlledGate':
+    cirq.ControlledGate(sub_gate=cirq.Y,
+                        num_controls=2,
+                        control_values=[0, 1],
+                        control_qid_shape=(3, 2)),
     'CX':
     cirq.CX,
     'CSWAP':
@@ -205,10 +215,18 @@ TEST_OBJECTS = {
         cirq.IdentityGate(num_qubits=5),
         cirq.IdentityGate(num_qubits=5, qid_shape=(3,) * 5)
     ],
+    'IdentityOperation': [
+        cirq.IdentityOperation(cirq.LineQubit.range(2)),
+        cirq.IdentityOperation(cirq.LineQubit.range(5))
+    ],
     'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
                 cirq.LineQid(-4, 5)],
+    'MatrixGate': [
+        cirq.MatrixGate(matrix=np.diag([1, -1, 1j, 1j, -1j, -1]),
+                        qid_shape=(2, 3)),
+    ],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,
@@ -259,19 +277,23 @@ TEST_OBJECTS = {
     cirq.Z,
     'S':
     cirq.S,
-    'SerializableDevice':
-    cirq.google.SerializableDevice.from_proto(
-        proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
     'SWAP':
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
+    'SYC':
+    cirq.google.SYC,
+    'SycamoreGate':
+    cirq.google.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
+    'TwoQubitMatrixGate':
+    cirq.TwoQubitMatrixGate(np.eye(4)),
+    'SingleQubitMatrixGate':
+    cirq.SingleQubitMatrixGate(np.diag([1j, -1, 1])),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -328,15 +350,19 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsEqualUpToGlobalPhase',
     'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
+    'SupportsJSON',
+    'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
     'SupportsPhase',
@@ -354,6 +380,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
     'ParamDictType',
@@ -431,17 +458,21 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
-    'ApproxPauliStringExpectation',
+    'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
-    'ComputeDisplaysResult',
-    'ControlledGate',
-    'ControlledOperation',
+    'CliffordSimulator',
+    'CliffordSimulatorStepResult',
+    'CliffordState',
+    'CliffordTableau',
+    'CliffordTrialResult',
+    'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',
@@ -479,14 +510,16 @@ NOT_YET_SERIALIZABLE = [
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
+    'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
+    'Sycamore',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
     'TrialResult',
-    'TwoQubitMatrixGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
@@ -505,6 +538,8 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
 
 def test_builtins():
+    assert_roundtrip(True)
+    assert_roundtrip(1)
     assert_roundtrip(1 + 2j)
     assert_roundtrip({
         'test': [123, 5.5],
@@ -512,6 +547,25 @@ def test_builtins():
         '3': None,
         '0.0': [],
     })
+
+
+def test_numpy():
+    x = np.ones(1)[0]
+
+    assert_roundtrip(x.astype(np.bool))
+    assert_roundtrip(x.astype(np.int8))
+    assert_roundtrip(x.astype(np.int16))
+    assert_roundtrip(x.astype(np.int32))
+    assert_roundtrip(x.astype(np.int64))
+    assert_roundtrip(x.astype(np.uint8))
+    assert_roundtrip(x.astype(np.uint16))
+    assert_roundtrip(x.astype(np.uint32))
+    assert_roundtrip(x.astype(np.uint64))
+    assert_roundtrip(x.astype(np.float32))
+    assert_roundtrip(x.astype(np.float64))
+    assert_roundtrip(x.astype(np.complex64))
+    assert_roundtrip(x.astype(np.complex128))
+
     assert_roundtrip(np.ones((11, 5)))
     assert_roundtrip(np.arange(3))
 
@@ -598,3 +652,22 @@ def test_all_roundtrip(cirq_obj_name: str, cls):
         # more strict: must be exact (no subclasses)
         assert type(obj) == cls
         assert_roundtrip(obj)
+
+
+def test_to_from_strings():
+    x_json_text = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    assert cirq.to_json(cirq.X) == x_json_text
+    assert cirq.read_json(json_text=x_json_text) == cirq.X
+
+    with pytest.raises(ValueError, match='specify ONE'):
+        cirq.read_json(io.StringIO(), json_text=x_json_text)
+
+
+def test_pathlib_paths(tmpdir):
+    path = pathlib.Path(tmpdir) / 'op.json'
+    cirq.to_json(cirq.X, path)
+    assert cirq.read_json(path) == cirq.X
