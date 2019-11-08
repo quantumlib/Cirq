@@ -159,12 +159,12 @@ def _arg_from_proto(
 
     Args:
         arg_proto: The proto containing a serialized value.
+        arg_function_language: The `arg_function_language` field from
+            `Program.Language`.
         required_arg_name: If set to `None`, the method will return `None` when
             given an unset proto value. If set to a string, the method will
             instead raise an error complaining that the value is missing in that
             situation.
-        arg_function_language: The `arg_function_language` field from
-            `Program.Language`.
 
     Returns:
         The deserialized value, or else None if there was no set value and
