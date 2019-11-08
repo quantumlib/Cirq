@@ -57,14 +57,23 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
     return abs(d) < atol
 
 
-def angle_to_exponent_key(t: Union[float, sympy.Basic]) -> Optional[str]:
+def _angle_to_formula(t: Union[float, sympy.Basic]) -> Optional[str]:
     if isinstance(t, sympy.Basic):
         if not set(t.free_symbols) <= {sympy.Symbol('t')}:
             raise ValueError(f'Symbol other than "t": {t!r}.')
         if t == sympy.Symbol('t'):
-            return '^t'
+            return 't'
         raise NotImplementedError(
             f'General formulas are not supported yet, but got {t!r}.')
+    return f'{float(t):.4f}'
+
+
+def angle_to_exponent_key(t: Union[float, sympy.Basic]) -> Optional[str]:
+    if t == sympy.Symbol('t'):
+        return '^t'
+
+    if t == sympy.Symbol('-t'):
+        return '^-t'
 
     if same_half_turns(t, 1):
         return ''
@@ -129,13 +138,19 @@ def xyz_to_known(axis: str, gate: ops.EigenGate) -> QuirkOp:
     u = axis.upper()
 
     if gate.global_shift == -0.5:
-        return QuirkOp({'id': 'R{d}}ft', 'arg': f'{gate.exponent:.4f}pi'})
+        return QuirkOp({
+            'id': f'R{d}ft',
+            'arg': f'({_angle_to_formula(gate.exponent)}) pi'
+        })
 
     e = angle_to_exponent_key(gate.exponent)
     if e is not None:
         return QuirkOp(u + e)
 
-    return QuirkOp({'id': f'{u}^ft', 'arg': f'{gate.exponent:.4f}'})
+    return QuirkOp({
+        'id': f'{u}^ft',
+        'arg': f'{_angle_to_formula(gate.exponent)}'
+    })
 
 
 def x_to_known(gate: ops.XPowGate) -> QuirkOp:

@@ -101,7 +101,7 @@ def test_various_known_gate_types():
 
 
 def test_parameterized_gates():
-    a, b = cirq.LineQubit.range(2)
+    a = cirq.LineQubit(0)
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
 
