@@ -49,6 +49,7 @@ from cirq import (
     neutral_atoms,
     api,
     google,
+    interop,
     # Applications
     experiments,
     # Extra (nothing should depend on these)
@@ -96,6 +97,11 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
     xeb_fidelity,
+)
+
+from cirq.interop import (
+    quirk_json_to_circuit,
+    quirk_url_to_circuit,
 )
 
 from cirq.linalg import (
