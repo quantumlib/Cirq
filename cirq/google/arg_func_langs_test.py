@@ -99,6 +99,21 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
             assert packed == proto
 
 
+def test_serialize_sympy_constants():
+    proto = _arg_to_proto(sympy.pi, arg_function_language='')
+    packed = json_format.MessageToDict(
+        proto,
+        including_default_value_fields=True,
+        preserving_proto_field_name=True,
+        use_integers_for_enums=True)
+    assert packed == {
+        'arg_value': {
+            'float_value': float(np.float32(sympy.pi))
+        }
+    }
+
+
+
 def test_unsupported_function_language():
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
         _ = _arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')

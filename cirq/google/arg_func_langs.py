@@ -122,7 +122,12 @@ def _arg_to_proto(value: ARG_LIKE,
         return func_type
 
     if isinstance(value,
-                  (float, int, sympy.Integer, sympy.Float, sympy.Rational)):
+                  (float,
+                   int,
+                   sympy.Integer,
+                   sympy.Float,
+                   sympy.Rational,
+                   sympy.NumberSymbol)):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
@@ -144,7 +149,7 @@ def _arg_to_proto(value: ARG_LIKE,
                           arg_function_language=arg_function_language,
                           out=msg.func.args.add())
     else:
-        raise ValueError(f'Unrecognized of arg type: {type(value)}')
+        raise ValueError(f'Unrecognized arg type: {type(value)}')
 
     return msg
 
