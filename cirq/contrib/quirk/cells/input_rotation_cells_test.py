@@ -117,9 +117,54 @@ def test_input_rotation_with_qubits():
         register=[a, b, c],
         base_operation=cirq.X(d).controlled_by(e),
         exponent_sign=-1)
+    assert op.qubits == (e, d, a, b, c)
     assert op.with_qubits(x, y, z, t,
                           w) == (cirq.contrib.quirk.QuirkInputRotationOperation(
                               identifier='test',
                               register=[z, t, w],
                               base_operation=cirq.X(y).controlled_by(x),
                               exponent_sign=-1))
+
+
+def test_input_rotation_cell_with_qubits():
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    x, y, z, t, w = cirq.LineQubit.range(10, 15)
+    cell = cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
+        identifier='test',
+        register=[a, b, c],
+        base_operation=cirq.X(d).controlled_by(e),
+        exponent_sign=-1)
+    assert cell.with_line_qubits_mapped_to([
+        x, y, z, t, w
+    ]) == (cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
+        identifier='test',
+        register=[x, y, z],
+        base_operation=cirq.X(t).controlled_by(w),
+        exponent_sign=-1))
+
+
+def test_input_rotation_cell_with_qubits_before_register_specified():
+    d, e = cirq.LineQubit.range(3, 5)
+    x, y, z, t, w = cirq.LineQubit.range(10, 15)
+    cell = cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
+        identifier='test',
+        register=None,
+        base_operation=cirq.X(d).controlled_by(e),
+        exponent_sign=-1)
+    assert cell.with_line_qubits_mapped_to([
+        x, y, z, t, w
+    ]) == (cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
+        identifier='test',
+        register=None,
+        base_operation=cirq.X(t).controlled_by(w),
+        exponent_sign=-1))
+
+
+def test_repr():
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    cirq.testing.assert_equivalent_repr(
+        cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell(
+            identifier='test',
+            register=[a, b, c],
+            base_operation=cirq.X(d).controlled_by(e),
+            exponent_sign=-1))

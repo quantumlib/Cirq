@@ -16,15 +16,21 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
-from cirq import value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-# Things that ParamResolver understands how to wrap.
 ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+document(
+    ParamDictType,  # type: ignore
+    """Dictionary from symbols to values.""")
+
 ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+document(
+    ParamResolverOrSimilarType,  # type: ignore
+    """Something that can be used to turn parameters into values.""")
 
 
 class ParamResolver(object):
@@ -40,22 +46,23 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
-        if hasattr(self, '_param_hash'):
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
+        if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
+        self._param_hash = None
         self.param_dict = cast(
             Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
             {} if param_dict is None else param_dict)
-        self._param_hash = hash(frozenset(self.param_dict.items()))
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> value.TParamVal:
+                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         """Attempt to resolve a Symbol, string, or float to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -79,7 +86,6 @@ class ParamResolver(object):
         Returns:
             The value of the parameter as resolved by this resolver.
         """
-
         # Input is a float, no resolution needed: return early
         if isinstance(value, float):
             return value
@@ -102,8 +108,8 @@ class ParamResolver(object):
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
-        if isinstance(value, sympy.Symbol) and str(value) in self.param_dict:
-            param_value = self.param_dict[str(value)]
+        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
+            param_value = self.param_dict[value.name]
             if isinstance(param_value, (float, int)):
                 return param_value
 
@@ -133,6 +139,8 @@ class ParamResolver(object):
         return self.value_of(key)
 
     def __hash__(self):
+        if self._param_hash is None:
+            self._param_hash = hash(frozenset(self.param_dict.items()))
         return self._param_hash
 
     def __eq__(self, other):

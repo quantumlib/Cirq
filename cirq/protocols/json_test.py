@@ -16,6 +16,7 @@ import inspect
 
 import io
 import os
+import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type
 
@@ -27,7 +28,6 @@ import sympy
 
 import cirq
 import cirq.protocols
-from cirq.contrib.quantum_volume import QuantumVolumeResult
 
 
 def assert_roundtrip(obj, text_should_be=None):
@@ -142,6 +142,15 @@ TEST_OBJECTS = {
     cirq.CNOT,
     'CNotPowGate':
     cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
+    'ControlledOperation':
+    cirq.ControlledOperation(sub_operation=cirq.Y(cirq.NamedQubit('target')),
+                             controls=cirq.LineQubit.range(2),
+                             control_values=[0, 1]),
+    'ControlledGate':
+    cirq.ControlledGate(sub_gate=cirq.Y,
+                        num_controls=2,
+                        control_values=[0, 1],
+                        control_qid_shape=(3, 2)),
     'CX':
     cirq.CX,
     'CSWAP':
@@ -214,6 +223,10 @@ TEST_OBJECTS = {
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
                 cirq.LineQid(-4, 5)],
+    'MatrixGate': [
+        cirq.MatrixGate(matrix=np.diag([1, -1, 1j, 1j, -1j, -1]),
+                        qid_shape=(2, 3)),
+    ],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,
@@ -254,11 +267,6 @@ TEST_OBJECTS = {
                         global_shift=0.789),
     'QuantumFourierTransformGate':
     cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
-    'QuantumVolumeResult':
-    QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
-                        heavy_set=[1, 2, 3],
-                        compiled_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
-                        sampler_result=.1),
     'ResetChannel':
     cirq.ResetChannel(),
     'X':
@@ -275,15 +283,17 @@ TEST_OBJECTS = {
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'SYC':
-    cirq.SYC,
+    cirq.google.SYC,
     'SycamoreGate':
-    cirq.SycamoreGate(),
+    cirq.google.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
     'TwoQubitMatrixGate':
     cirq.TwoQubitMatrixGate(np.eye(4)),
+    'SingleQubitMatrixGate':
+    cirq.SingleQubitMatrixGate(np.diag([1j, -1, 1])),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -347,9 +357,12 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsEqualUpToGlobalPhase',
     'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
+    'SupportsJSON',
+    'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
     'SupportsPhase',
@@ -367,6 +380,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
     'ParamDictType',
@@ -459,8 +473,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
-    'ControlledGate',
-    'ControlledOperation',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',
@@ -498,12 +510,12 @@ NOT_YET_SERIALIZABLE = [
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
+    'Sycamore',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
@@ -523,15 +535,11 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
-    yield 'QuantumVolumeResult', type(
-        QuantumVolumeResult(model_circuit=cirq.Circuit(cirq.H.on_each(QUBITS)),
-                            heavy_set=[1, 2, 3],
-                            compiled_circuit=cirq.Circuit(
-                                cirq.H.on_each(QUBITS)),
-                            sampler_result=.1))
 
 
 def test_builtins():
+    assert_roundtrip(True)
+    assert_roundtrip(1)
     assert_roundtrip(1 + 2j)
     assert_roundtrip({
         'test': [123, 5.5],
@@ -539,6 +547,25 @@ def test_builtins():
         '3': None,
         '0.0': [],
     })
+
+
+def test_numpy():
+    x = np.ones(1)[0]
+
+    assert_roundtrip(x.astype(np.bool))
+    assert_roundtrip(x.astype(np.int8))
+    assert_roundtrip(x.astype(np.int16))
+    assert_roundtrip(x.astype(np.int32))
+    assert_roundtrip(x.astype(np.int64))
+    assert_roundtrip(x.astype(np.uint8))
+    assert_roundtrip(x.astype(np.uint16))
+    assert_roundtrip(x.astype(np.uint32))
+    assert_roundtrip(x.astype(np.uint64))
+    assert_roundtrip(x.astype(np.float32))
+    assert_roundtrip(x.astype(np.float64))
+    assert_roundtrip(x.astype(np.complex64))
+    assert_roundtrip(x.astype(np.complex128))
+
     assert_roundtrip(np.ones((11, 5)))
     assert_roundtrip(np.arange(3))
 
@@ -625,3 +652,22 @@ def test_all_roundtrip(cirq_obj_name: str, cls):
         # more strict: must be exact (no subclasses)
         assert type(obj) == cls
         assert_roundtrip(obj)
+
+
+def test_to_from_strings():
+    x_json_text = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    assert cirq.to_json(cirq.X) == x_json_text
+    assert cirq.read_json(json_text=x_json_text) == cirq.X
+
+    with pytest.raises(ValueError, match='specify ONE'):
+        cirq.read_json(io.StringIO(), json_text=x_json_text)
+
+
+def test_pathlib_paths(tmpdir):
+    path = pathlib.Path(tmpdir) / 'op.json'
+    cirq.to_json(cirq.X, path)
+    assert cirq.read_json(path) == cirq.X
