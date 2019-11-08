@@ -121,13 +121,8 @@ def _arg_to_proto(value: ARG_LIKE,
                              f'arg_function_language {lang}')
         return func_type
 
-    if isinstance(value,
-                  (float,
-                   int,
-                   sympy.Integer,
-                   sympy.Float,
-                   sympy.Rational,
-                   sympy.NumberSymbol)):
+    if isinstance(value, (float, int, sympy.Integer, sympy.Float,
+                          sympy.Rational, sympy.NumberSymbol)):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):
         msg.arg_value.string_value = value
