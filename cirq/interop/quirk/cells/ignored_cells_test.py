@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Converts cirq circuits into quirk circuits."""
+import cirq
+from cirq.interop.quirk.cells.testing import assert_url_to_circuit_returns
 
-from cirq.contrib.quirk.export_to_quirk import (
-    circuit_to_quirk_url,)
+
+def test_displays():
+    assert_url_to_circuit_returns(
+        '{"cols":[["Amps2"],[1,"Amps3"],["Chance"],'
+        '["Chance2"],["Density"],["Density3"],'
+        '["Sample4"],["Bloch"],["Sample2"]'
+        ']}', cirq.Circuit())
