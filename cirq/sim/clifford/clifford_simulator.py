@@ -254,9 +254,14 @@ class CliffordState():
         return self.ch_form.to_state_vector()
 
     def stabilizers(self) -> List[DensePauliString]:
+        """Returns the stabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
         return self.tableau.stabilizers()
 
     def destabilizers(self) -> List[DensePauliString]:
+        """Returns the destabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
+        generators above generate the full Pauli group on n qubits."""
         return self.tableau.destabilizers()
 
     def wave_function(self):
