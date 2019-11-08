@@ -11,8 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Code related to interoperating with Quirk, a drag-and-drop circuit simulator.
 
-"""Converts cirq circuits into quirk circuits."""
+References:
+    https://github.com/strilanc/quirk - Quirk source code.
+    https://algassert.com/quirk - Live version of Quirk.
+"""
 
-from cirq.contrib.quirk.export_to_quirk import (
-    circuit_to_quirk_url,)
+# Imports from cells are only to ensure operation reprs work correctly.
+from cirq.interop.quirk.cells import (
+    QuirkArithmeticOperation,
+    QuirkInputRotationOperation,
+    QuirkQubitPermutationGate,
+)
+
+from cirq.interop.quirk.url_to_circuit import (
+    quirk_json_to_circuit,
+    quirk_url_to_circuit,
+)
