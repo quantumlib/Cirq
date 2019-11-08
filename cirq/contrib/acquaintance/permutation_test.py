@@ -28,7 +28,7 @@ def test_swap_permutation_gate():
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     gate = cca.SwapPermutationGate()
     assert gate.num_qubits() == 2
-    circuit = cirq.Circuit.from_ops(gate(a, b))
+    circuit = cirq.Circuit(gate(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
@@ -36,7 +36,7 @@ def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.CZ)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate(cirq.CZ)(a, b))
+    circuit = cirq.Circuit(cca.SwapPermutationGate(cirq.CZ)(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.CZ(a, b),)
 
@@ -46,14 +46,14 @@ def test_validate_permutation_errors():
     validate_permutation({})
 
     with pytest.raises(IndexError,
-                       match='key and value sets must be the same.'):
+                       match=r'key and value sets must be the same\.'):
         validate_permutation({0: 2, 1: 3})
 
     with pytest.raises(IndexError,
-                       match='keys of the permutation must be non-negative.'):
+                       match=r'keys of the permutation must be non-negative\.'):
         validate_permutation({-1: 0, 0: -1})
 
-    with pytest.raises(IndexError, match='key is out of bounds.'):
+    with pytest.raises(IndexError, match=r'key is out of bounds\.'):
         validate_permutation({0: 3, 3: 0}, 2)
 
     gate = cca.SwapPermutationGate()
@@ -63,7 +63,7 @@ def test_validate_permutation_errors():
 def test_diagram():
     gate = cca.SwapPermutationGate()
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops([gate(a, b)])
+    circuit = cirq.Circuit([gate(a, b)])
     actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 a: ───0↦1───
@@ -246,3 +246,77 @@ def test_linear_permutation_gate_pow_inverse(num_qubits, permutation, inverse):
 
     assert permutation_gate**-1 == inverse_gate
     assert cirq.inverse(permutation_gate) == inverse_gate
+
+
+def test_display_mapping():
+    indices = [4, 2, 0, 1, 3]
+    qubits = cirq.LineQubit.range(len(indices))
+    circuit = cca.complete_acquaintance_strategy(qubits, 2)
+    cca.expose_acquaintance_gates(circuit)
+    initial_mapping = dict(zip(qubits, indices))
+    cca.display_mapping(circuit, initial_mapping)
+    expected_diagram = """
+0: ───4───█───4───╲0╱───2───────2─────────2───█───2───╲0╱───1───────1─────────1───█───1───╲0╱───3───
+          │       │                           │       │                           │       │
+1: ───2───█───2───╱1╲───4───█───4───╲0╱───1───█───1───╱1╲───2───█───2───╲0╱───3───█───3───╱1╲───1───
+                            │       │                           │       │
+2: ───0───█───0───╲0╱───1───█───1───╱1╲───4───█───4───╲0╱───3───█───3───╱1╲───2───█───2───╲0╱───0───
+          │       │                           │       │                           │       │
+3: ───1───█───1───╱1╲───0───█───0───╲0╱───3───█───3───╱1╲───4───█───4───╲0╱───0───█───0───╱1╲───2───
+                            │       │                           │       │
+4: ───3───────3─────────3───█───3───╱1╲───0───────0─────────0───█───0───╱1╲───4───────4─────────4───
+"""
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+
+@pytest.mark.parametrize('circuit', [
+    cirq.Circuit(
+        cca.SwapPermutationGate()(*qubit_pair)
+        for qubit_pair in
+        [random.sample(cirq.LineQubit.range(10), 2)
+         for _ in range(20)])
+    for _ in range(4)
+])
+def test_return_to_initial_mapping(circuit):
+    qubits = sorted(circuit.all_qubits())
+    cca.return_to_initial_mapping(circuit)
+    initial_mapping = {q: i for i, q in enumerate(qubits)}
+    mapping = dict(initial_mapping)
+    cca.update_mapping(mapping, circuit.all_operations())
+    assert mapping == initial_mapping
+
+
+def test_uses_consistent_swap_gate():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        [cca.SwapPermutationGate()(a, b),
+         cca.SwapPermutationGate()(a, b)])
+    assert cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
+    assert not cca.uses_consistent_swap_gate(circuit, cirq.CZ)
+    circuit = cirq.Circuit([
+        cca.SwapPermutationGate(cirq.CZ)(a, b),
+        cca.SwapPermutationGate(cirq.CZ)(a, b)
+    ])
+    assert cca.uses_consistent_swap_gate(circuit, cirq.CZ)
+    assert not cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
+    circuit = cirq.Circuit([
+        cca.SwapPermutationGate()(a, b),
+        cca.SwapPermutationGate(cirq.CZ)(a, b)
+    ])
+    assert not cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
+    assert not cca.uses_consistent_swap_gate(circuit, cirq.CZ)
+
+
+def test_swap_gate_eq():
+    assert cca.SwapPermutationGate() == cca.SwapPermutationGate(cirq.SWAP)
+    assert cca.SwapPermutationGate() != cca.SwapPermutationGate(cirq.CZ)
+    assert cca.SwapPermutationGate(cirq.CZ) == cca.SwapPermutationGate(cirq.CZ)
+
+
+@pytest.mark.parametrize('gate', [
+    cca.SwapPermutationGate(),
+    cca.SwapPermutationGate(cirq.SWAP),
+    cca.SwapPermutationGate(cirq.CZ)
+])
+def test_swap_gate_repr(gate):
+    cirq.testing.assert_equivalent_repr(gate)

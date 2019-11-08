@@ -46,8 +46,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self,
-               args: protocols.QasmArgs,
+    def _qasm_(self, args: 'protocols.QasmArgs',
                qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
@@ -90,6 +89,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """The exponent on the Z gates conjugating the X gate."""
         return self._phase_exponent
 
+    @property
+    def global_shift(self) -> float:
+        return self._global_shift
+
     def __pow__(self, exponent: Union[float, sympy.Symbol]) -> 'PhasedXPowGate':
         new_exponent = protocols.mul(self._exponent, exponent, NotImplemented)
         if new_exponent is NotImplemented:
@@ -98,9 +101,10 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                               exponent=new_exponent,
                               global_shift=self._global_shift)
 
-    def _trace_distance_bound_(self):
-        """See `cirq.SupportsTraceDistanceBound`."""
-        return protocols.trace_distance_bound(cirq.X**self._exponent)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        return abs(np.sin(self._exponent * 0.5 * np.pi))
 
     def _has_unitary_(self):
         return not self._is_parameterized_()
@@ -146,15 +150,17 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             phase_exponent=self._phase_exponent + phase_turns * 2,
             global_shift=self._global_shift)
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        if (isinstance(self.phase_exponent, sympy.Symbol) or
+        if (isinstance(self.phase_exponent, sympy.Basic) or
                 args.precision is None):
-            s = 'PhasedX({})'.format(self.phase_exponent)
+            s = 'PhX({})'.format(self.phase_exponent)
+        elif isinstance(self.phase_exponent, int):
+            s = 'PhX({})'.format(self.phase_exponent)
         else:
-            s = 'PhasedX({{:.{}}})'.format(args.precision).format(
+            s = 'PhX({{:.{}}})'.format(args.precision).format(
                 self.phase_exponent)
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s,),
@@ -187,7 +193,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
     @property
     def _canonical_exponent(self):
         period = self._period()
-        if not period or isinstance(self._exponent, sympy.Symbol):
+        if not period or isinstance(self._exponent, sympy.Basic):
             return self._exponent
 
         return self._exponent % period
@@ -209,3 +215,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=self._exponent,
                 global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(
+            self, ['phase_exponent', 'exponent', 'global_shift'])

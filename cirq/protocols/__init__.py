@@ -13,18 +13,23 @@
 # limitations under the License.
 
 
-from cirq.protocols.apply_unitary import (
+from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
     ApplyUnitaryArgs,
     SupportsConsistentApplyUnitary,
 )
-from cirq.protocols.apply_channel import (
+from cirq.protocols.apply_channel_protocol import (
     apply_channel,
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
-from cirq.protocols.approximate_equality import (
+from cirq.protocols.apply_mixture_protocol import (
+    apply_mixture,
+    ApplyMixtureArgs,
+    SupportsApplyMixture,
+)
+from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
 )
@@ -33,32 +38,37 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
-from cirq.protocols.control import (
-    control,
-)
-from cirq.protocols.circuit_diagram_info import (
+from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
     SupportsCircuitDiagramInfo,
 )
-from cirq.protocols.decompose import (
+from cirq.protocols.decompose_protocol import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
 )
-from cirq.protocols.equal_up_to_global_phase import (
-    equal_up_to_global_phase,)
-from cirq.protocols.inverse import (
-    inverse,
+from cirq.protocols.equal_up_to_global_phase_protocol import (
+    equal_up_to_global_phase,
+    SupportsEqualUpToGlobalPhase,
 )
-from cirq.protocols.measurement_key import (
+from cirq.protocols.inverse_protocol import (
+    inverse,)
+from cirq.protocols.json import (
+    to_json,
+    read_json,
+    obj_to_dict_helper,
+    SupportsJSON,
+)
+from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    SupportsMeasurementKey,
 )
-from cirq.protocols.mixture import (
+from cirq.protocols.mixture_protocol import (
     has_mixture,
     has_mixture_channel,
     mixture,
@@ -66,16 +76,13 @@ from cirq.protocols.mixture import (
     SupportsMixture,
     validate_mixture,
 )
-from cirq.protocols.mul import (
-    mul,
-)
-from cirq.protocols.pauli_expansion import (
-    pauli_expansion,
-)
+from cirq.protocols.mul_protocol import (
+    mul,)
+from cirq.protocols.pauli_expansion_protocol import (
+    pauli_expansion,)
 # pylint: disable=redefined-builtin
-from cirq.protocols.pow import (
-    pow,
-)
+from cirq.protocols.pow_protocol import (
+    pow,)
 # pylint: enable=redefined-builtin
 from cirq.protocols.qasm import (
     qasm,
@@ -87,13 +94,14 @@ from cirq.protocols.qasm import (
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
+    trace_distance_from_angle_list,
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,
     resolve_parameters,
     SupportsParameterization,
 )
-from cirq.protocols.phase import (
+from cirq.protocols.phase_protocol import (
     phase_by,
     SupportsPhase,
 )
@@ -107,7 +115,7 @@ from cirq.protocols.unitary import (
     SupportsUnitary,
     unitary,
 )
-from cirq.protocols.has_unitary import (
+from cirq.protocols.has_unitary_protocol import (
     has_unitary,
     SupportsExplicitHasUnitary,
 )

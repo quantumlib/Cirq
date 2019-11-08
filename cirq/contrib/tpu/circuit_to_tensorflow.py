@@ -185,12 +185,7 @@ class _QubitGrouping:
 
         return False
 
-    def intercept_decompose_func(self,
-                                 op: Union[ops.Operation, circuits.Circuit]
-                                 ) -> ops.OP_TREE:
-        if not isinstance(op, ops.Operation):
-            return NotImplemented
-
+    def intercept_decompose_func(self, op: ops.Operation) -> ops.OP_TREE:
         # Drop measurements.
         if protocols.is_measurement(op):
             return []
@@ -342,7 +337,7 @@ class _TensorCircuit:
                  circuit: circuits.Circuit,
                  initial_state: Union[int, np.ndarray]):
         self.grouping = _QubitGrouping(circuit)
-        self.circuit = circuits.Circuit.from_ops(
+        self.circuit = circuits.Circuit(
             protocols.decompose(
                 circuit,
                 intercepting_decomposer=self.grouping.intercept_decompose_func,

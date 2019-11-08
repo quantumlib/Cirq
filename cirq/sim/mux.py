@@ -17,20 +17,25 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import List, Optional, Type, Union, Sequence, cast
+from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules, devices, ops, line
+from cirq import circuits, protocols, study, schedules, devices, ops
 from cirq.sim import sparse_simulator, density_matrix_simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def sample(program: Union[circuits.Circuit, schedules.Schedule],
            *,
-           noise: devices.NoiseModel = devices.NO_NOISE,
+           noise: 'cirq.NOISE_MODEL_LIKE' = None,
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
-           dtype: Type[np.number] = np.complex64) -> study.TrialResult:
+           dtype: Type[np.number] = np.complex64,
+           seed: Optional[Union[int, np.random.RandomState]] = None
+          ) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -41,19 +46,22 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        seed: The random seed to use for this simulator.
     """
+    noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
     # State vector simulation is much faster, but only works if no randomness.
-    if noise == devices.NO_NOISE and protocols.has_unitary(program):
-        return sparse_simulator.Simulator(dtype=dtype).run(
+    if noise_model == devices.NO_NOISE and protocols.has_unitary(program):
+        return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
             program=program,
             param_resolver=param_resolver,
             repetitions=repetitions)
 
     return density_matrix_simulator.DensityMatrixSimulator(
-        dtype=dtype, noise=noise).run(program=program,
-                                      param_resolver=param_resolver,
-                                      repetitions=repetitions)
+        dtype=dtype, noise=noise_model,
+        seed=seed).run(program=program,
+                       param_resolver=param_resolver,
+                       repetitions=repetitions)
 
 
 def final_wavefunction(
@@ -64,7 +72,9 @@ def final_wavefunction(
                              ndarray] = 0,
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        dtype: Type[np.number] = np.complex64) -> 'np.ndarray':
+        dtype: Type[np.number] = np.complex64,
+        seed: Optional[Union[int, np.random.RandomState]] = None
+) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -84,6 +94,7 @@ def final_wavefunction(
             be safely castable to an appropriate dtype for the simulator.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
+        seed: The random seed to use for this simulator.
 
     Returns:
         The wavefunction resulting from applying the given unitary operations to
@@ -100,11 +111,11 @@ def final_wavefunction(
         # No change needed.
         pass
     elif isinstance(program, ops.Gate):
-        program = circuits.Circuit.from_ops(
-            program.on(*line.LineQubit.range(program.num_qubits())))
+        program = circuits.Circuit(
+            program.on(*devices.LineQid.for_gate(program)))
     else:
         # It should be an OP_TREE.
-        program = circuits.Circuit.from_ops(program)
+        program = circuits.Circuit(program)
 
     if not protocols.has_unitary(
             protocols.resolve_parameters(program, param_resolver)):
@@ -115,8 +126,8 @@ def final_wavefunction(
             "\n"
             "Program: {!r}".format(program))
 
-    result = sparse_simulator.Simulator(dtype=dtype).simulate(
-        program=program,
+    result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
+        program=cast(Union[circuits.Circuit, schedules.Schedule], program),
         initial_state=initial_state,
         qubit_order=qubit_order,
         param_resolver=param_resolver)
@@ -127,9 +138,10 @@ def final_wavefunction(
 def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  params: study.Sweepable,
                  *,
-                 noise: devices.NoiseModel = devices.NO_NOISE,
+                 noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  repetitions: int = 1,
-                 dtype: Type[np.number] = np.complex64
+                 dtype: Type[np.number] = np.complex64,
+                 seed: Optional[Union[int, np.random.RandomState]] = None
                 ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
@@ -145,21 +157,29 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        seed: The random seed to use for this simulator.
 
     Returns:
         TrialResult list for this run; one for each possible parameter
         resolver.
     """
-    circuit = (program if isinstance(program, circuits.Circuit)
-               else program.to_circuit())
-    param_resolvers = study.to_resolvers(params)
+    if seed is None:
+        prng = None
+    elif isinstance(seed, np.random.RandomState):
+        prng = seed
+    else:
+        prng = np.random.RandomState(seed)
+
+    circuit = (program.to_circuit()
+               if isinstance(program, schedules.Schedule) else program)
 
     trial_results = []  # type: List[study.TrialResult]
-    for param_resolver in param_resolvers:
+    for param_resolver in study.to_resolvers(params):
         measurements = sample(circuit,
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,
-                              dtype=dtype)
+                              dtype=dtype,
+                              seed=prng)
         trial_results.append(measurements)
     return trial_results

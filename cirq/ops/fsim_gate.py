@@ -53,9 +53,24 @@ class FSimGate(gate_features.TwoQubitGate,
         a = cos(theta)
         b = -i·sin(theta)
         c = exp(-i·phi)
+
+    Note the difference in sign conventions between FSimGate and the
+    ISWAP and CZPowGate:
+
+        FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
     def __init__(self, theta: float, phi: float):
+        """
+        Args:
+            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+                Determined by the strength and duration of the XX+YY
+                interaction. Note: uses opposite sign convention to the
+                iSWAP gate.
+            phi: Controlled phase angle, in radians. Determines how much the
+                ``|11⟩`` state is phased. Note: uses opposite sign convention to
+                the CZPowGate.
+        """
         self.theta = theta
         self.phi = phi
 
@@ -141,6 +156,9 @@ class FSimGate(gate_features.TwoQubitGate,
     def __repr__(self):
         return 'cirq.FSimGate(theta={}, phi={})'.format(proper_repr(self.theta),
                                                         proper_repr(self.phi))
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['theta', 'phi'])
 
 
 def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:

@@ -70,3 +70,5 @@ def test_qid_shape():
         cirq.qid_shape(NoProtocol())
     with pytest.raises(TypeError):
         cirq.num_qubits(NoProtocol())
+    assert cirq.qid_shape(cirq.LineQid.for_qid_shape((1, 2, 3))) == (1, 2, 3)
+    assert cirq.num_qubits(cirq.LineQid.for_qid_shape((1, 2, 3))) == 3

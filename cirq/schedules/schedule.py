@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from datetime import timedelta
-from typing import Iterable, List, TYPE_CHECKING, Union, cast
+from typing import Iterable, List, Optional, Union, cast, TYPE_CHECKING
 
 from sortedcontainers import SortedListWithKey
 
@@ -26,9 +25,7 @@ from cirq.schedules.scheduled_operation import ScheduledOperation
 from cirq.value import Duration, Timestamp
 
 if TYPE_CHECKING:
-    from typing import Optional  # pylint: disable=unused-import
-
-    from cirq.ops import Operation  # pylint: disable=unused-import
+    import cirq
 
 
 class Schedule:
@@ -77,7 +74,7 @@ class Schedule:
             self,
             *,  # Forces keyword args.
             time: Timestamp,
-            duration: Union[Duration, timedelta] = Duration(),
+            duration: 'cirq.DURATION_LIKE' = None,
             qubits: Iterable[Qid] = None,
             include_query_end_time=False,
             include_op_end_times=False) -> List[ScheduledOperation]:
@@ -97,7 +94,7 @@ class Schedule:
         Returns:
             A list of scheduled operations meeting the specified conditions.
         """
-        duration = Duration.create(duration)
+        duration = Duration(duration)
         earliest_time = time - self._max_duration
         end_time = time + duration
         qubits = None if qubits is None else frozenset(qubits)
@@ -197,7 +194,7 @@ class Schedule:
         operations that are scheduled at the same time in the same Moment.
         """
         circuit = Circuit(device=self.device)
-        time = None  # type: Optional[Timestamp]
+        time: Optional[Timestamp] = None
         for so in self.scheduled_operations:
             if so.time != time:
                 circuit.append(so.operation,
@@ -207,6 +204,9 @@ class Schedule:
                 circuit.append(so.operation,
                                strategy=InsertStrategy.INLINE)
         return circuit
+
+    def _qid_shape_(self):
+        return protocols.qid_shape(self.to_circuit())
 
     def _has_unitary_(self):
         return protocols.has_unitary(self.to_circuit())

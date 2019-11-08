@@ -24,15 +24,15 @@ from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (
-    List, Any, Dict, FrozenSet, Callable, Iterable, Iterator, Optional,
-    Sequence, Union, Type, Tuple, cast, TypeVar, overload, TYPE_CHECKING)
+from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
+                    Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
+                    overload, TYPE_CHECKING)
 
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, study, protocols
-from cirq._compat import deprecated
+from cirq import devices, linalg, ops, protocols
+from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -41,9 +41,7 @@ from cirq.type_workarounds import NotImplementedType
 import cirq._version
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Set
-
+    import cirq
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -59,12 +57,15 @@ class Circuit:
         all_qubits
         all_operations
         findall_operations
+        findall_operations_between
         findall_operations_until_blocked
         findall_operations_with_gate_type
+        reachable_frontier_from
+        has_measurements
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        apply_unitary_effect_to_state
+        final_wavefunction
         to_text_diagram
         to_text_diagram_drawer
 
@@ -94,33 +95,60 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass circuit contents positionally (without a keyword).',
+        func_name='cirq.Circuit',
+        parameter_desc='moments keyword',
+        match=lambda args, kwargs: 'moments' in kwargs,
+        rewrite=lambda args, kwargs: (args + (kwargs[
+            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
+    @deprecated_parameter(
+        deadline='v0.8',
+        fix='Pass the device using the "device=" keyword.',
+        func_name='cirq.Circuit',
+        parameter_desc='positional device',
+        match=lambda args, kwargs: len(args) == 3 and isinstance(
+            args[2], devices.Device),
+        rewrite=lambda args, kwargs: (
+            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
-                 moments: Iterable[ops.Moment] = (),
-                 device: devices.Device = devices.UnconstrainedDevice) -> None:
+                 *contents: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
         """Initializes a circuit.
 
         Args:
-            moments: The initial list of moments defining the circuit.
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
             device: Hardware that the circuit should be able to run on.
         """
-        self._moments = list(moments)
+        self._moments: List['cirq.Moment'] = []
         self._device = device
-        self._device.validate_circuit(self)
+        self.append(contents, strategy=strategy)
 
     @property
     def device(self) -> devices.Device:
         return self._device
 
     @device.setter
-    def device(self, new_device: devices.Device) -> None:
+    def device(self, new_device: 'cirq.Device') -> None:
         new_device.validate_circuit(self)
         self._device = new_device
 
     @staticmethod
-    def from_ops(*operations: ops.OP_TREE,
-                 strategy: InsertStrategy = InsertStrategy.EARLIEST,
-                 device: devices.Device = devices.UnconstrainedDevice
-                 ) -> 'Circuit':
+    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
+    def from_ops(*operations: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE
+                ) -> 'Circuit':
         """Creates an empty circuit and appends the given operations.
 
         Args:
@@ -139,7 +167,9 @@ class Circuit:
         return self.copy()
 
     def copy(self) -> 'Circuit':
-        return Circuit(self._moments, self._device)
+        copied_circuit = Circuit(device=self._device)
+        copied_circuit._moments = self._moments[:]
+        return copied_circuit
 
     def __bool__(self):
         return bool(self._moments)
@@ -159,16 +189,16 @@ class Circuit:
             atol=atol
         ) and self._device == other._device
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._moments)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['cirq.Moment']:
         return iter(self._moments)
 
-    def _decompose_(self) -> ops.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         """See `cirq.SupportsDecompose`."""
         return self.all_operations()
 
@@ -178,23 +208,25 @@ class Circuit:
         pass
 
     @overload
-    def __getitem__(self, key: int) -> ops.Moment:
+    def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            return Circuit(self._moments[key], self.device)
+            sliced_circuit = Circuit(device=self.device)
+            sliced_circuit._moments = self._moments[key]
+            return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
 
         raise TypeError('__getitem__ called with key not of type slice or int.')
 
     @overload
-    def __setitem__(self, key: int, value: ops.Moment):
+    def __setitem__(self, key: int, value: 'cirq.Moment'):
         pass
 
     @overload
-    def __setitem__(self, key: slice, value: Iterable[ops.Moment]):
+    def __setitem__(self, key: slice, value: Iterable['cirq.Moment']):
         pass
 
     def __setitem__(self, key, value):
@@ -202,6 +234,7 @@ class Circuit:
             if not isinstance(value, ops.Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
+            self._validate_op_tree_qids(value)
 
         if isinstance(key, slice):
             value = list(value)
@@ -209,6 +242,7 @@ class Circuit:
                 raise TypeError('Can only assign Moments into Circuits.')
             for moment in value:
                 self._device.validate_moment(moment)
+                self._validate_op_tree_qids(moment)
 
         self._moments[key] = value
     # pylint: enable=function-redefined
@@ -221,21 +255,29 @@ class Circuit:
         return self
 
     def __add__(self, other):
-        if isinstance(other, list):
-            other = self.from_ops(other)
         if not isinstance(other, type(self)):
-            return NotImplemented
-        device = (self._device
-                  if other.device is devices.UnconstrainedDevice
+            if not isinstance(other, (ops.Operation, Iterable)):
+                return NotImplemented
+            # Auto wrap OP_TREE inputs into a circuit.
+            other = Circuit(other)
+
+        device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
                   else other.device)
-        device_2 = (other.device
-                    if self._device is devices.UnconstrainedDevice
+        device_2 = (other.device if self._device is devices.UNCONSTRAINED_DEVICE
                     else self._device)
         if device != device_2:
             raise ValueError("Can't add circuits with incompatible devices.")
 
-        result = Circuit(moments=self._moments, device=device)
+        result = self.copy()
         return result.__iadd__(other)
+
+    def __radd__(self, other):
+        # The Circuit + Circuit case is handled by __add__
+        if not isinstance(other, (ops.Operation, Iterable)):
+            return NotImplemented
+        # Auto wrap OP_TREE inputs into a circuit.
+        result = Circuit(other)
+        return result.__iadd__(self)
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -266,31 +308,26 @@ class Circuit:
         """
         if exponent != -1:
             return NotImplemented
-        circuit = Circuit(device=self._device)
+        inv_moments = []
         for moment in self[::-1]:
-            moment_ops = []
-            for op in moment.operations:
-                try:
-                    inverse_op = cirq.protocols.inverse(op)
-                except TypeError:
-                    return NotImplemented
-                moment_ops.append(inverse_op)
-            circuit.append(ops.Moment(moment_ops))
-        return circuit
+            inv_moment = cirq.inverse(moment, default=NotImplemented)
+            if inv_moment is NotImplemented:
+                return NotImplemented
+            inv_moments.append(inv_moment)
+        return cirq.Circuit(inv_moments, device=self._device)
 
     def __repr__(self):
-        if not self._moments and self._device == devices.UnconstrainedDevice:
+        if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
             return 'cirq.Circuit(device={!r})'.format(self._device)
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
-        if self._device == devices.UnconstrainedDevice:
-            return 'cirq.Circuit(moments={})'.format(moment_str)
+        if self._device == devices.UNCONSTRAINED_DEVICE:
+            return 'cirq.Circuit({})'.format(moment_str)
 
-        return 'cirq.Circuit(moments={}, device={!r})'.format(moment_str,
-                                                              self._device)
+        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
 
     def __str__(self):
         return self.to_text_diagram()
@@ -299,8 +336,8 @@ class Circuit:
 
     def with_device(
             self,
-            new_device: devices.Device,
-            qubit_mapping: Callable[[ops.Qid], ops.Qid] = lambda e: e,
+            new_device: 'cirq.Device',
+            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'Circuit':
         """Maps the current circuit onto a new device, and validates.
 
@@ -312,12 +349,13 @@ class Circuit:
         Returns:
             The translated circuit.
         """
-        return Circuit(
-            moments=[ops.Moment(operation.transform_qubits(qubit_mapping)
-                            for operation in moment.operations)
-                     for moment in self._moments],
-            device=new_device
-        )
+        return Circuit([
+            ops.Moment(
+                operation.transform_qubits(qubit_mapping)
+                for operation in moment.operations)
+            for moment in self._moments
+        ],
+                       device=new_device)
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -333,8 +371,7 @@ class Circuit:
                 + self.to_text_diagram()
                 + '</pre>')
 
-    def _first_moment_operating_on(self,
-                                   qubits: Iterable[ops.Qid],
+    def _first_moment_operating_on(self, qubits: Iterable['cirq.Qid'],
                                    indices: Iterable[int]) -> Optional[int]:
         qubits = frozenset(qubits)
         for m in indices:
@@ -343,7 +380,7 @@ class Circuit:
         return None
 
     def next_moment_operating_on(self,
-                                 qubits: Iterable[ops.Qid],
+                                 qubits: Iterable['cirq.Qid'],
                                  start_moment_index: int = 0,
                                  max_distance: int = None) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
@@ -374,9 +411,9 @@ class Circuit:
             range(start_moment_index, start_moment_index + max_distance))
 
     def next_moments_operating_on(self,
-                                  qubits: Iterable[ops.Qid],
+                                  qubits: Iterable['cirq.Qid'],
                                   start_moment_index: int = 0
-                                  ) -> Dict[ops.Qid, int]:
+                                 ) -> Dict['cirq.Qid', int]:
         """Finds the index of the next moment that touches each qubit.
 
         Args:
@@ -398,11 +435,11 @@ class Circuit:
                                next_moment)
         return next_moments
 
-    def prev_moment_operating_on(
-            self,
-            qubits: Sequence[ops.Qid],
-            end_moment_index: Optional[int] = None,
-            max_distance: Optional[int] = None) -> Optional[int]:
+    def prev_moment_operating_on(self,
+                                 qubits: Sequence['cirq.Qid'],
+                                 end_moment_index: Optional[int] = None,
+                                 max_distance: Optional[int] = None
+                                ) -> Optional[int]:
         """Finds the index of the next moment that touches the given qubits.
 
         Args:
@@ -442,10 +479,33 @@ class Circuit:
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
 
-    def _prev_moment_available(
-            self,
-            op: ops.Operation,
-            end_moment_index: int) -> Optional[int]:
+    def transform_qubits(self,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
+        """Returns the same circuit, but with different qubits.
+
+        Note that this method does essentially the same thing as
+        `cirq.Circuit.with_device`. It is included regardless because there are
+        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+            new_device: The device to use for the new circuit, if different.
+                If this is not set, the new device defaults to the current
+                device.
+
+        Returns:
+            The receiving circuit but with qubits transformed by the given
+                function, and with an updated device (if specified).
+        """
+        return self.with_device(
+            new_device=self.device if new_device is None else new_device,
+            qubit_mapping=func)
+
+    def _prev_moment_available(self, op: 'cirq.Operation',
+                               end_moment_index: int) -> Optional[int]:
         last_available = end_moment_index
         k = end_moment_index
         while k > 0:
@@ -458,31 +518,50 @@ class Circuit:
 
     def reachable_frontier_from(
             self,
-            start_frontier: Dict[ops.Qid, int],
+            start_frontier: Dict['cirq.Qid', int],
             *,
-            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
-    ) -> Dict[ops.Qid, int]:
+            is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False
+    ) -> Dict['cirq.Qid', int]:
         """Determines how far can be reached into a circuit under certain rules.
 
         The location L = (qubit, moment_index) is *reachable* if and only if:
 
-            a) L is one of the items in `start_frontier`.
+            a) There is not a blocking operation covering L.
+
+            AND
+
+            [
+                b1) qubit is in start frontier and moment_index =
+                    max(start_frontier[qubit], 0).
+
+                OR
+
+                b2) There is no operation at L and prev(L) = (qubit,
+                    moment_index-1) is reachable.
+
+                OR
+
+                b3) There is an (non-blocking) operation P covering L such that
+                    (q', moment_index - 1) is reachable for every q' on which P
+                    acts.
+            ]
+
+        An operation in moment moment_index is blocking if
+
+            a) `is_blocker` returns a truthy value.
 
             OR
 
-            b) There is no operation at L and prev(L) = (qubit, moment_index-1)
-                is reachable and L is within the bounds of the circuit.
+            b) The operation acts on a qubit not in start_frontier.
 
             OR
 
-            c) There is an operation P covering L and, for every location
-                M = (q', moment_index) that P covers, the location
-                prev(M) = (q', moment_index-1) is reachable. Also, P must not be
-                classified as a blocker by the given `is_blocker` argument.
+            c) The operation acts on a qubit q such that start_frontier[q] >
+                moment_index.
 
         In other words, the reachable region extends forward through time along
-        each qubit until it hits a blocked operation or an operation that
-        crosses into the set of not-involved-at-the-moment qubits.
+        each qubit in start_frontier until it hits a blocking operation. Any
+        location involving a qubit not in start_frontier is unreachable.
 
         For each qubit q in `start_frontier`, the reachable locations will
         correspond to a contiguous range starting at start_frontier[q] and
@@ -569,11 +648,11 @@ class Circuit:
             where i is the moment index, q is the qubit, and end_frontier is the
             result of this method.
         """
-        active = set()  # type: Set[ops.Qid]
+        active: Set['cirq.Qid'] = set()
         end_frontier = {}
         queue = BucketPriorityQueue[ops.Operation](drop_duplicate_entries=True)
 
-        def enqueue_next(qubit: ops.Qid, moment: int) -> None:
+        def enqueue_next(qubit: 'cirq.Qid', moment: int) -> None:
             next_moment = self.next_moment_operating_on([qubit], moment)
             if next_moment is None:
                 end_frontier[qubit] = max(len(self), start_frontier[qubit])
@@ -612,10 +691,10 @@ class Circuit:
         return end_frontier
 
     def findall_operations_between(self,
-                                   start_frontier: Dict[ops.Qid, int],
-                                   end_frontier: Dict[ops.Qid, int],
+                                   start_frontier: Dict['cirq.Qid', int],
+                                   end_frontier: Dict['cirq.Qid', int],
                                    omit_crossing_operations: bool = False
-                                   ) -> List[Tuple[int, ops.Operation]]:
+                                  ) -> List[Tuple[int, 'cirq.Operation']]:
         """Finds operations between the two given frontiers.
 
         If a qubit is in `start_frontier` but not `end_frontier`, its end index
@@ -663,8 +742,8 @@ class Circuit:
 
     def findall_operations_until_blocked(
             self,
-            start_frontier: Dict[ops.Qid, int],
-            is_blocker: Callable[[ops.Operation], bool] = lambda op: False
+            start_frontier: Dict['cirq.Qid', int],
+            is_blocker: Callable[['cirq.Operation'], bool] = lambda op: False
     ) -> List[Tuple[int, ops.Operation]]:
         """
         Finds all operations until a blocking operation is hit.  This returns
@@ -691,25 +770,28 @@ class Circuit:
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
         """
-        op_list = []
-        max_index = len(self._moments)
-        for qubit in start_frontier:
-            current_index = start_frontier[qubit]
-            if current_index < 0:
-                current_index = 0
-            while current_index < max_index:
-                if self[current_index].operates_on_single_qubit(qubit):
-                    next_op = self.operation_at(qubit, current_index)
-                    if next_op is not None:
-                        if is_blocker(next_op):
-                            break
-                        op_list.append((current_index,next_op))
-                current_index+=1
+        op_list = []  # type: List[Tuple[int, ops.Operation]]
+        frontier = dict(start_frontier)
+        if not frontier:
+            return op_list
+        index = min(frontier.values())
+        for moment in self._moments[index:]:
+            active_qubits = set(q for q, s in frontier.items() if s <= index)
+            if len(active_qubits) <= 0:
+                return op_list
+            for op in moment.operations:
+                active_op_qubits = active_qubits.intersection(op.qubits)
+                if active_op_qubits:
+                    if is_blocker(op):
+                        for q in active_op_qubits:
+                            del frontier[q]
+                    else:
+                        op_list.append((index, op))
+            index += 1
         return op_list
 
-    def operation_at(self,
-                     qubit: ops.Qid,
-                     moment_index: int) -> Optional[ops.Operation]:
+    def operation_at(self, qubit: 'cirq.Qid',
+                     moment_index: int) -> Optional['cirq.Operation']:
         """Finds the operation on a qubit within a moment, if any.
 
         Args:
@@ -728,8 +810,8 @@ class Circuit:
                 return op
         return None
 
-    def findall_operations(self, predicate: Callable[[ops.Operation], bool]
-                           ) -> Iterable[Tuple[int, ops.Operation]]:
+    def findall_operations(self, predicate: Callable[['cirq.Operation'], bool]
+                          ) -> Iterable[Tuple[int, 'cirq.Operation']]:
         """Find the locations of all operations that satisfy a given condition.
 
         This returns an iterator of (index, operation) tuples where each
@@ -764,8 +846,8 @@ class Circuit:
             An iterator (index, operation, gate)'s for operations with the given
             gate type.
         """
-        result = self.findall_operations(lambda operation: bool(
-            ops.op_gate_of_type(operation, gate_type)))
+        result = self.findall_operations(lambda operation: isinstance(
+            operation.gate, gate_type))
         for index, op in result:
             gate_op = cast(ops.GateOperation, op)
             yield index, gate_op, cast(T_DESIRED_GATE_TYPE, gate_op.gate)
@@ -778,7 +860,7 @@ class Circuit:
         return self.are_all_matches_terminal(protocols.is_measurement)
 
     def are_all_matches_terminal(self,
-            predicate: Callable[[ops.Operation], bool]):
+                                 predicate: Callable[['cirq.Operation'], bool]):
         """Check whether all of the ops that satisfy a predicate are terminal.
 
         Args:
@@ -793,9 +875,10 @@ class Circuit:
             (i, op) in self.findall_operations(predicate)
         )
 
-    def _pick_or_create_inserted_op_moment_index(
-            self, splitter_index: int, op: ops.Operation,
-            strategy: InsertStrategy) -> int:
+    def _pick_or_create_inserted_op_moment_index(self, splitter_index: int,
+                                                 op: 'cirq.Operation',
+                                                 strategy: 'cirq.InsertStrategy'
+                                                ) -> int:
         """Determines and prepares where an insertion will occur.
 
         Args:
@@ -834,31 +917,50 @@ class Circuit:
 
         raise ValueError('Unrecognized append strategy: {}'.format(strategy))
 
-    def _has_op_at(self,
-                   moment_index: int,
-                   qubits: Iterable[ops.Qid]) -> bool:
+    def _has_op_at(self, moment_index: int,
+                   qubits: Iterable['cirq.Qid']) -> bool:
         return (0 <= moment_index < len(self._moments) and
                 self._moments[moment_index].operates_on(qubits))
 
-    def _can_add_op_at(self,
-                       moment_index: int,
-                       operation: ops.Operation) -> bool:
+    def _can_add_op_at(self, moment_index: int,
+                       operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(
             operation,
             self._moments[moment_index])
 
-    def _can_commute_past(self,
-                          moment_index: int,
-                          operation: ops.Operation) -> bool:
+    def _can_commute_past(self, moment_index: int,
+                          operation: 'cirq.Operation') -> bool:
         return not self._moments[moment_index].operates_on(operation.qubits)
+
+    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
+        """Raises an exception if any operation in `op_tree` has qids that don't
+        match its qid shape.
+
+        Args:
+            operation: The operation to validate.
+
+        Raises:
+            ValueError: The operation had qids that don't match its qid shape.
+        """
+        # Cast from Iterable[Operation, Moment] because preserve_moments is
+        # False.
+        for op in cast(Iterable['cirq.Operation'],
+                       ops.flatten_op_tree(op_tree)):
+            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
+                raise ValueError(
+                    'Invalid operation. '
+                    'An operation has qid shape <{!r}> but is on qids with '
+                    'shape <{!r}>. The operation is <{!r}>.'.format(
+                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
+                        op))
 
     def insert(
             self,
             index: int,
-            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.EARLIEST) -> int:
+            moment_or_operation_tree: Union['cirq.Operation', 'cirq.OP_TREE'],
+            strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST) -> int:
         """ Inserts operations into the circuit.
             Operations are inserted into the moment specified by the index and
             'InsertStrategy'.
@@ -876,11 +978,11 @@ class Circuit:
         Raises:
             ValueError: Bad insertion strategy.
         """
-        moments_and_operations = list(ops.flatten_op_tree(
-            ops.transform_op_tree(moment_or_operation_tree,
-                                  self._device.decompose_operation,
-                                  preserve_moments=True),
-            preserve_moments=True))
+        moments_and_operations = list(
+            ops.flatten_to_ops_or_moments(
+                ops.transform_op_tree(moment_or_operation_tree,
+                                      self._device.decompose_operation,
+                                      preserve_moments=True),))
 
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
@@ -888,6 +990,7 @@ class Circuit:
             else:
                 self._device.validate_operation(
                     cast(ops.Operation, moment_or_op))
+            self._validate_op_tree_qids(moment_or_op)
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
         k = max(min(index if index >= 0 else len(self._moments) + index,
@@ -908,9 +1011,7 @@ class Circuit:
                     strategy = InsertStrategy.INLINE
         return k
 
-    def insert_into_range(self,
-                          operations: ops.OP_TREE,
-                          start: int,
+    def insert_into_range(self, operations: 'cirq.OP_TREE', start: int,
                           end: int) -> int:
         """Writes operations inline into an area of the circuit.
 
@@ -933,14 +1034,15 @@ class Circuit:
             raise IndexError('Bad insert indices: [{}, {})'.format(
                 start, end))
 
-        operations = list(ops.flatten_op_tree(operations))
-        for op in operations:
+        flat_ops = list(ops.flatten_to_ops(operations))
+        for op in flat_ops:
             self._device.validate_operation(op)
+        self._validate_op_tree_qids(flat_ops)
 
         i = start
         op_index = 0
-        while op_index < len(operations):
-            op = operations[op_index]
+        while op_index < len(flat_ops):
+            op = flat_ops[op_index]
             while i < end and not self._device.can_add_operation_into_moment(
                     op, self._moments[i]):
                 i += 1
@@ -949,18 +1051,17 @@ class Circuit:
             self._moments[i] = self._moments[i].with_operation(op)
             op_index += 1
 
-        if op_index >= len(operations):
+        if op_index >= len(flat_ops):
             return end
 
-        return self.insert(end, operations[op_index:])
+        return self.insert(end, flat_ops[op_index:])
 
     @staticmethod
-    def _pick_inserted_ops_moment_indices(operations: Sequence[ops.Operation],
-                                          start: int = 0,
-                                          frontier: Dict[ops.Qid,
-                                                         int] = None
-                                          ) -> Tuple[Sequence[int],
-                                                     Dict[ops.Qid, int]]:
+    def _pick_inserted_ops_moment_indices(
+            operations: Sequence['cirq.Operation'],
+            start: int = 0,
+            frontier: Dict['cirq.Qid', int] = None
+    ) -> Tuple[Sequence[int], Dict['cirq.Qid', int]]:
         """Greedily assigns operations to moments.
 
         Args:
@@ -986,10 +1087,10 @@ class Circuit:
         return moment_indices, frontier
 
     def _push_frontier(self,
-                       early_frontier: Dict[ops.Qid, int],
-                       late_frontier: Dict[ops.Qid, int],
-                       update_qubits: Iterable[ops.Qid] = None
-                       ) -> Tuple[int, int]:
+                       early_frontier: Dict['cirq.Qid', int],
+                       late_frontier: Dict['cirq.Qid', int],
+                       update_qubits: Iterable['cirq.Qid'] = None
+                      ) -> Tuple[int, int]:
         """Inserts moments to separate two frontiers.
 
         After insertion n_new moments, the following holds:
@@ -1028,8 +1129,7 @@ class Circuit:
             return insert_index, n_new_moments
         return (0, 0)
 
-    def _insert_operations(self,
-                           operations: Sequence[ops.Operation],
+    def _insert_operations(self, operations: Sequence['cirq.Operation'],
                            insertion_indices: Sequence[int]) -> None:
         """Inserts operations at the specified moments. Appends new moments if
         necessary.
@@ -1051,8 +1151,8 @@ class Circuit:
         self._moments += [
             ops.Moment() for _ in range(1 + max(insertion_indices) - len(self))
         ]
-        moment_to_ops = defaultdict(list
-                                    )  # type: Dict[int, List[ops.Operation]]
+        moment_to_ops = defaultdict(
+            list)  # type: Dict[int, List['cirq.Operation']]
         for op_index, moment_index in enumerate(insertion_indices):
             moment_to_ops[moment_index].append(operations[op_index])
         for moment_index, new_ops in moment_to_ops.items():
@@ -1060,10 +1160,10 @@ class Circuit:
                 self._moments[moment_index].operations + tuple(new_ops))
 
     def insert_at_frontier(self,
-                           operations: ops.OP_TREE,
+                           operations: 'cirq.OP_TREE',
                            start: int,
-                           frontier: Dict[ops.Qid, int] = None
-                           ) -> Dict[ops.Qid, int]:
+                           frontier: Dict['cirq.Qid', int] = None
+                          ) -> Dict['cirq.Qid', int]:
         """Inserts operations inline at frontier.
 
         Args:
@@ -1074,10 +1174,10 @@ class Circuit:
         """
         if frontier is None:
             frontier = defaultdict(lambda: 0)
-        operations = tuple(ops.flatten_op_tree(operations))
-        if not operations:
+        flat_ops = tuple(ops.flatten_to_ops(operations))
+        if not flat_ops:
             return frontier
-        qubits = set(q for op in operations for q in op.qubits)
+        qubits = set(q for op in flat_ops for q in op.qubits)
         if any(frontier[q] > start for q in qubits):
             raise ValueError('The frontier for qubits on which the operations'
                              'to insert act cannot be after start.')
@@ -1085,16 +1185,16 @@ class Circuit:
         next_moments = self.next_moments_operating_on(qubits, start)
 
         insertion_indices, _ = self._pick_inserted_ops_moment_indices(
-            operations, start, frontier)
+            flat_ops, start, frontier)
 
         self._push_frontier(frontier, next_moments)
 
-        self._insert_operations(operations, insertion_indices)
+        self._insert_operations(flat_ops, insertion_indices)
 
         return frontier
 
     def batch_remove(self,
-                     removals: Iterable[Tuple[int, ops.Operation]]) -> None:
+                     removals: Iterable[Tuple[int, 'cirq.Operation']]) -> None:
         """Removes several operations from a circuit.
 
         Args:
@@ -1144,10 +1244,11 @@ class Circuit:
         for i, op in insert_intos:
             copy._moments[i] = copy._moments[i].with_operation(op)
         self._device.validate_circuit(copy)
+        self._validate_op_tree_qids(copy)
         self._moments = copy._moments
 
     def batch_insert(self,
-                     insertions: Iterable[Tuple[int, ops.OP_TREE]]) -> None:
+                     insertions: Iterable[Tuple[int, 'cirq.OP_TREE']]) -> None:
         """Applies a batched insert operation to the circuit.
 
         Transparently handles the fact that earlier insertions may shift
@@ -1185,10 +1286,9 @@ class Circuit:
                 shift += next_index - insert_index
         self._moments = copy._moments
 
-    def append(
-            self,
-            moment_or_operation_tree: Union[ops.Moment, ops.OP_TREE],
-            strategy: InsertStrategy = InsertStrategy.EARLIEST):
+    def append(self,
+               moment_or_operation_tree: Union['cirq.Moment', 'cirq.OP_TREE'],
+               strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST):
         """Appends operations onto the end of the circuit.
 
         Moments within the operation tree are appended intact.
@@ -1199,8 +1299,7 @@ class Circuit:
         """
         self.insert(len(self._moments), moment_or_operation_tree, strategy)
 
-    def clear_operations_touching(self,
-                                  qubits: Iterable[ops.Qid],
+    def clear_operations_touching(self, qubits: Iterable['cirq.Qid'],
                                   moment_indices: Iterable[int]):
         """Clears operations that are touching given qubits at given moments.
 
@@ -1215,7 +1314,7 @@ class Circuit:
                 self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def all_qubits(self) -> FrozenSet[ops.Qid]:
+    def all_qubits(self) -> FrozenSet['cirq.Qid']:
         """Returns the qubits acted upon by Operations in this circuit."""
         return frozenset(q for m in self._moments for q in m.qubits)
 
@@ -1228,11 +1327,15 @@ class Circuit:
         """
         return (op for moment in self for op in moment.operations)
 
-    def _qid_shape_(self):
-        return ops.max_qid_shape(
-            self._moments,
-            qubits_that_should_be_present=self.all_qubits(),
-            default_level=1)
+    def qid_shape(self,
+                  qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+                 ) -> Tuple[int, ...]:
+        qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return protocols.qid_shape(qids)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self.qid_shape()
 
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
@@ -1258,10 +1361,9 @@ class Circuit:
             return NotImplemented
         return self.unitary(ignore_terminal_measurements=True)
 
-
     def unitary(self,
-                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-                qubits_that_should_be_present: Iterable[ops.Qid] = (),
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
                 ignore_terminal_measurements: bool = True,
                 dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Converts the circuit into a unitary matrix, if possible.
@@ -1306,7 +1408,7 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
         state = linalg.eye_tensor(qid_shape, dtype=dtype)
@@ -1316,9 +1418,9 @@ class Circuit:
 
     def final_wavefunction(
             self,
-            initial_state: Union[int, np.ndarray] = 0,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable[ops.Qid] = (),
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
             ignore_terminal_measurements: bool = True,
             dtype: Type[np.number] = np.complex128) -> np.ndarray:
         """Left-multiplies a state vector by the circuit's unitary effect.
@@ -1338,12 +1440,18 @@ class Circuit:
         way.
 
         Args:
-            initial_state: The input state for the circuit. This can be an int
-                or a vector. When this is an int, it refers to a computational
+            initial_state: The input state for the circuit. This can be a list
+                of qudit values, a big endian int encoding the qudit values,
+                a vector of amplitudes, or a tensor of amplitudes.
+
+                When this is an int, it refers to a computational
                 basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
-                If this is a state vector, it directly specifies the initial
-                state's amplitudes. The vector must be a flat numpy array with a
-                type that can be converted to np.complex128.
+
+                If this is a vector of amplitudes (a flat numpy array of the
+                correct length for the system) or a tensor of amplitudes (a
+                numpy array whose shape equals this circuit's `qid_shape`), it
+                directly specifies the initial state's amplitudes. The vector
+                type must be convertible to the given `dtype` argument.
             qubit_order: Determines how qubits are ordered when passing matrices
                 into np.kron.
             qubits_that_should_be_present: Qubits that may or may not appear
@@ -1380,23 +1488,23 @@ class Circuit:
             self.all_qubits().union(qubits_that_should_be_present))
 
         # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = ops.max_qid_shape(self, qubit_order=qs, default_level=2)
+        qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        if isinstance(initial_state, int):
-            state = np.zeros(state_len, dtype=dtype)
-            state[initial_state] = 1
-        else:
-            state = initial_state.astype(dtype)
-        state.shape = qid_shape
-
+        from cirq import sim
+        state = sim.to_valid_state_vector(initial_state,
+                                          qid_shape=qid_shape,
+                                          dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
-        deadline='v0.7.0', fix='Use `Circuit.unitary()` instead.')(unitary)
+        func_name='Circuit.to_unitary_matrix',
+        deadline='v0.7.0',
+        fix='Use `Circuit.unitary()` instead.')(unitary)
 
     apply_unitary_effect_to_state = deprecated(
+        func_name='Circuit.apply_unitary_effect_to_state',
         deadline='v0.7.0',
         fix="Use `cirq.final_wavefunction(circuit)` or "
         "`Circuit.final_wavefunction()` instead")(final_wavefunction)
@@ -1407,7 +1515,8 @@ class Circuit:
             use_unicode_characters: bool = True,
             transpose: bool = False,
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT) -> str:
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> str:
         """Returns text containing a diagram describing the circuit.
 
         Args:
@@ -1437,14 +1546,13 @@ class Circuit:
             self,
             *,
             use_unicode_characters: bool = True,
-            qubit_namer: Optional[Callable[[ops.Qid], str]] = None,
+            qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
             transpose: bool = False,
             precision: Optional[int] = 3,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-            get_circuit_diagram_info:
-                Optional[Callable[[ops.Operation,
-                                   protocols.CircuitDiagramInfoArgs],
-                                  protocols.CircuitDiagramInfo]]=None
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            get_circuit_diagram_info: Optional[
+                Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
+                         'cirq.CircuitDiagramInfo']] = None
     ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
@@ -1507,7 +1615,7 @@ class Circuit:
                    for op in self.all_operations())
 
     def _resolve_parameters_(self,
-                             param_resolver: study.ParamResolver) -> 'Circuit':
+                             param_resolver: 'cirq.ParamResolver') -> 'Circuit':
         resolved_moments = []
         for moment in self:
             resolved_operations = _resolve_operations(
@@ -1525,7 +1633,7 @@ class Circuit:
             self,
             header: Optional[str] = None,
             precision: int = 10,
-            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ) -> QasmOutput:
         """Returns a QASM object equivalent to the circuit.
 
@@ -1547,11 +1655,12 @@ class Circuit:
                           precision=precision,
                           version='2.0')
 
-    def to_qasm(self,
-                header: Optional[str] = None,
-                precision: int = 10,
-                qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-                ) -> str:
+    def to_qasm(
+            self,
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> str:
         """Returns QASM equivalent to the circuit.
 
         Args:
@@ -1563,12 +1672,13 @@ class Circuit:
         """
         return str(self._to_qasm_output(header, precision, qubit_order))
 
-    def save_qasm(self,
-                  file_path: Union[str, bytes, int],
-                  header: Optional[str] = None,
-                  precision: int = 10,
-                  qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-                  ) -> None:
+    def save_qasm(
+            self,
+            file_path: Union[str, bytes, int],
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> None:
         """Save a QASM file equivalent to the circuit.
 
         Args:
@@ -1581,11 +1691,42 @@ class Circuit:
         """
         self._to_qasm_output(header, precision, qubit_order).save(file_path)
 
+    @property
+    def moments(self):
+        return self._moments
 
-def _resolve_operations(
-        operations: Iterable[ops.Operation],
-        param_resolver: study.ParamResolver) -> List[ops.Operation]:
-    resolved_operations = []  # type: List[ops.Operation]
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+
+    @classmethod
+    def _from_json_dict_(cls, moments, device, **kwargs):
+        return cls(moments, device=device)
+
+    def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
+        """Make a noisy version of the circuit.
+
+        Args:
+            noise: The noise model to use.  This describes the kind of noise to
+                add to the circuit.
+
+        Returns:
+            A new circuit with the same moment structure but with new moments
+            inserted where needed when more than one noisy operation is
+            generated for an input operation.  Emptied moments are removed.
+        """
+        noise_model = devices.NoiseModel.from_noise_model_like(noise)
+        qubits = sorted(self.all_qubits())
+        c_noisy = Circuit()
+        for op_tree in noise_model.noisy_moments(self, qubits):
+            # Keep moments aligned
+            c_noisy += Circuit(op_tree)
+        return c_noisy
+
+
+def _resolve_operations(operations: Iterable['cirq.Operation'],
+                        param_resolver: 'cirq.ParamResolver'
+                       ) -> List['cirq.Operation']:
+    resolved_operations = []  # type: List['cirq.Operation']
     for op in operations:
         resolved_operations.append(protocols.resolve_parameters(
             op, param_resolver))
@@ -1593,8 +1734,8 @@ def _resolve_operations(
 
 
 def _get_operation_circuit_diagram_info_with_fallback(
-        op: ops.Operation,
-        args: protocols.CircuitDiagramInfoArgs) -> protocols.CircuitDiagramInfo:
+        op: 'cirq.Operation',
+        args: 'cirq.CircuitDiagramInfoArgs') -> 'cirq.CircuitDiagramInfo':
     info = protocols.circuit_diagram_info(op, args, None)
     if info is not None:
         if len(op.qubits) != len(info.wire_symbols):
@@ -1626,9 +1767,8 @@ def _is_exposed_formula(text: str) -> bool:
     return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
 
-def _formatted_exponent(info: protocols.CircuitDiagramInfo,
-                        args: protocols.CircuitDiagramInfoArgs
-                        ) -> Optional[str]:
+def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
+                        args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
 
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
@@ -1662,24 +1802,22 @@ def _formatted_exponent(info: protocols.CircuitDiagramInfo,
 
     # If the exponent is any other object, use its string representation.
     s = str(info.exponent)
-    if '+' in s or ' ' in s or '-' in s[1:]:
+    if info.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
         # The string has confusing characters. Put parens around it.
         return '({})'.format(info.exponent)
     return s
 
 
 def _draw_moment_in_diagram(
-        moment: ops.Moment,
+        moment: 'cirq.Moment',
         use_unicode_characters: bool,
-        qubit_map: Dict[ops.Qid, int],
+        qubit_map: Dict['cirq.Qid', int],
         out_diagram: TextDiagramDrawer,
         precision: Optional[int],
         moment_groups: List[Tuple[int, int]],
-        get_circuit_diagram_info:
-            Optional[Callable[[ops.Operation,
-                               protocols.CircuitDiagramInfoArgs],
-                              protocols.CircuitDiagramInfo]]=None
-        ):
+        get_circuit_diagram_info: Optional[
+            Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
+                     'cirq.CircuitDiagramInfo']] = None):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)
@@ -1720,7 +1858,11 @@ def _draw_moment_in_diagram(
         if exponent is not None:
             if info.connected:
                 # Add an exponent to the last label only.
-                out_diagram.write(x, y2, '^' + exponent)
+                if info.exponent_qubit_index is not None:
+                    y3 = qubit_map[op.qubits[info.exponent_qubit_index]]
+                else:
+                    y3 = y2
+                out_diagram.write(x, y3, '^' + exponent)
             else:
                 # Add an exponent to every label
                 for index in indices:
@@ -1787,7 +1929,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
 
 
 def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
-                           qubits: Tuple[ops.Qid, ...],
+                           qubits: Tuple['cirq.Qid', ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
 
@@ -1829,10 +1971,9 @@ def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
         protocols.ApplyUnitaryArgs(state, buffer, range(len(qubits))))
 
 
-def _decompose_measurement_inversions(op: ops.Operation) -> ops.OP_TREE:
-    gate = ops.op_gate_of_type(op, ops.MeasurementGate)
-    if gate:
-        return [ops.X(q) for q, b in zip(op.qubits, gate.invert_mask) if b]
+def _decompose_measurement_inversions(op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    if isinstance(op.gate, ops.MeasurementGate):
+        return [ops.X(q) for q, b in zip(op.qubits, op.gate.invert_mask) if b]
     return NotImplemented
 
 

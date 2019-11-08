@@ -11,15 +11,14 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List
-
 import re
+import os
+import numpy as np
 import pytest
 
-import numpy as np
-
 import cirq
-from cirq.circuits.qasm_output import QasmUGate, QasmTwoQubitGate
+from cirq.circuits.qasm_output import QasmTwoQubitGate, QasmUGate
+from cirq.testing import consistent_qasm as cq
 
 
 def _make_qubits(n):
@@ -190,13 +189,13 @@ def test_version():
         _ = str(output)
 
 
-def test_save_to_file():
+def test_save_to_file(tmpdir):
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
-    with cirq.testing.TempFilePath() as file_path:
-        output.save(file_path)
-        with open(file_path, 'r') as f:
-            file_content = f.read()
+    output.save(file_path)
+    with open(file_path, 'r') as f:
+        file_content = f.read()
     assert (file_content ==
             """OPENQASM 2.0;
 include "qelib1.inc";
@@ -277,25 +276,6 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
     )
 
 
-def test_output_parseable_by_qiskit():
-    qubits = tuple(_make_qubits(5))
-    operations = _all_operations(*qubits)
-    output = cirq.QasmOutput(operations, qubits,
-                             header='Generated from Cirq',
-                             precision=10)
-    text = str(output)
-
-    # coverage: ignore
-    try:
-        # We don't want to require qiskit as a dependency but
-        # if Qiskit is installed, test QASM output against it.
-        import qiskit  # type: ignore
-    except ImportError:
-        return
-
-    assert qiskit.qasm.Qasm(data=text).parse().qasm() is not None
-
-
 def test_output_unitary_same_as_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
@@ -304,34 +284,16 @@ def test_output_unitary_same_as_qiskit():
                              precision=10)
     text = str(output)
 
-    # coverage: ignore
-    try:
-        # We don't want to require qiskit as a dependency but
-        # if Qiskit is installed, test QASM output against it.
-        import qiskit  # type: ignore
-    except ImportError:
-        return
-
-    circuit = cirq.Circuit.from_ops(operations)
+    circuit = cirq.Circuit(operations)
     cirq_unitary = circuit.unitary(qubit_order=qubits)
-
-    result = qiskit.execute(
-        qiskit.load_qasm_string(text),
-        backend=qiskit.Aer.get_backend('unitary_simulator'))
-    qiskit_unitary = result.result().get_unitary()
-    qiskit_unitary = _reorder_indices_of_matrix(
-            qiskit_unitary,
-            list(reversed(range(len(qubits)))))
-
-    cirq.testing.assert_allclose_up_to_global_phase(
-        cirq_unitary, qiskit_unitary, rtol=1e-8, atol=1e-8)
+    cq.assert_qiskit_parsed_qasm_consistent_with_unitary(text, cirq_unitary)
 
 
 def test_fails_on_big_unknowns():
     class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
-    c = cirq.Circuit.from_ops(
-        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
+
+    c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QASM'):
         _ = c.to_qasm()
 
@@ -498,18 +460,3 @@ measure q[3] -> m_multi[2];
 // Operation: DummyCompositeOperation()
 x q[0];
 """))
-
-
-def _reorder_indices_of_matrix(matrix: np.ndarray, new_order: List[int]):
-    num_qubits = matrix.shape[0].bit_length() - 1
-    matrix = np.reshape(matrix, (2,) * 2 * num_qubits)
-    all_indices = range(2*num_qubits)
-    new_input_indices = new_order
-    new_output_indices = [i + num_qubits for i in new_input_indices]
-    matrix = np.moveaxis(
-            matrix,
-            all_indices,
-            new_input_indices + new_output_indices
-    )
-    matrix = np.reshape(matrix, (2**num_qubits, 2**num_qubits))
-    return matrix

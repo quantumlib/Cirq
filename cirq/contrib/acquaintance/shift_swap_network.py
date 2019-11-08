@@ -14,14 +14,17 @@
 
 import functools
 import itertools
-from typing import Dict, Iterable, Optional, Sequence, Tuple
+from typing import Dict, Iterable, Optional, Sequence, Tuple, TYPE_CHECKING
 
-from cirq import ops, protocols
+from cirq import ops
 from cirq.contrib.acquaintance.gates import acquaint
 from cirq.contrib.acquaintance.permutation import (
         PermutationGate)
 from cirq.contrib.acquaintance.shift import (
         CircularShiftGate)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ShiftSwapNetworkGate(PermutationGate):
@@ -49,8 +52,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def __init__(self,
                  left_part_lens: Iterable[int],
                  right_part_lens: Iterable[int],
-                 swap_gate: ops.Gate=ops.SWAP
-                 ) -> None:
+                 swap_gate: 'cirq.Gate' = ops.SWAP) -> None:
 
         self.part_lens = {
                 'left': tuple(left_part_lens),
@@ -65,7 +67,7 @@ class ShiftSwapNetworkGate(PermutationGate):
     def acquaintance_size(self) -> int:
         return sum(max(self.part_lens[side]) for side in ('left', 'right'))
 
-    def _decompose_(self, qubits: Sequence[ops.Qid]) -> ops.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         part_lens = list(itertools.chain(*(
             self.part_lens[side] for side in ('left', 'right'))))
 
@@ -110,8 +112,8 @@ class ShiftSwapNetworkGate(PermutationGate):
                     range(self.qubit_count('right'))
             )))
 
-    def _circuit_diagram_info_(self, args: protocols.CircuitDiagramInfoArgs
-                               ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         qubit_count = self.qubit_count()
         assert args.known_qubit_count in (None, qubit_count)
 

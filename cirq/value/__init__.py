@@ -31,7 +31,9 @@ from cirq.value.digits import (
 )
 
 from cirq.value.duration import (
-    Duration,)
+    Duration,
+    DURATION_LIKE,
+)
 
 from cirq.value.linear_dict import (
     LinearDict,
@@ -44,8 +46,16 @@ from cirq.value.probability import (
 from cirq.value.periodic_value import (
     PeriodicValue,)
 
+from cirq.value.random_state import (
+    parse_random_state,
+    RANDOM_STATE_LIKE,
+)
+
 from cirq.value.timestamp import (
     Timestamp,)
+
+from cirq.value.type_alias import (
+    TParamVal,)
 
 from cirq.value.value_equality import (
     value_equality,)

@@ -55,18 +55,15 @@ In addition to checking that the code executes:
 """
 import inspect
 import sys
-from typing import Dict, List, Pattern, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Pattern, Tuple, Iterator
 
 import os
+import pathlib
 import re
 
 import pytest
 
 import cirq
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Any
 
 
 def test_can_run_readme_code_snippets():
@@ -78,17 +75,19 @@ def test_can_run_readme_code_snippets():
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
 
 
-def find_docs_code_snippets_paths():
-    docs_folder = os.path.dirname(__file__)
-    for filename in os.listdir(docs_folder):
-        if not filename.endswith('.md') and not filename.endswith('.rst'):
-            continue
-        yield os.path.join(docs_folder, filename)
+def find_docs_code_snippets_paths() -> Iterator[str]:
+    docs_folder = pathlib.Path(__file__).parent
+    for filename in docs_folder.rglob('*.md'):
+        yield str(filename.relative_to(docs_folder))
+    for filename in docs_folder.rglob('*.rst'):
+        yield str(filename.relative_to(docs_folder))
 
 
 @pytest.mark.parametrize('path', find_docs_code_snippets_paths())
 def test_can_run_docs_code_snippets(path):
-    assert_file_has_working_code_snippets(path, assume_import=True)
+    docs_folder = os.path.dirname(__file__)
+    assert_file_has_working_code_snippets(os.path.join(docs_folder, path),
+                                          assume_import=True)
 
 
 def find_code_snippets(pattern: str, content: str) -> List[Tuple[str, int]]:
@@ -368,7 +367,7 @@ def assert_code_snippets_run_in_sequence(snippets: List[Tuple[str, int]],
     snippet will be visible in later snippets.
     """
 
-    state = {}  # type: Dict[str, Any]
+    state: Dict[str, Any] = {}
 
     if assume_import:
         exec('import cirq', state)

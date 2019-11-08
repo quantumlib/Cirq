@@ -22,7 +22,6 @@ from cirq import circuits, study, value
 from cirq.work import work_pool
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 
@@ -118,11 +117,6 @@ class Collector(metaclass=abc.ABCMeta):
             print(collector.estimated_energy())
             ```
 
-        See Also:
-
-            Python 3 documentation "Coroutines and Tasks"
-            https://docs.python.org/3/library/asyncio-task.html
-
         Args:
             sampler: The simulator or service to collect samples from.
             concurrency: Desired number of sampling jobs to have in flight at
@@ -133,6 +127,10 @@ class Collector(metaclass=abc.ABCMeta):
         Returns:
             The collector's result after all desired samples have been
             collected.
+
+        See Also:
+            Python 3 documentation "Coroutines and Tasks"
+            https://docs.python.org/3/library/asyncio-task.html
         """
         return asyncio.get_event_loop().run_until_complete(
             self.collect_async(sampler,
@@ -154,11 +152,6 @@ class Collector(metaclass=abc.ABCMeta):
             print(collector.estimated_energy())
             ```
 
-        See Also:
-
-            Python 3 documentation "Coroutines and Tasks"
-            https://docs.python.org/3/library/asyncio-task.html
-
         Args:
             sampler: The simulator or service to collect samples from.
             concurrency: Desired number of sampling jobs to have in flight at
@@ -169,6 +162,10 @@ class Collector(metaclass=abc.ABCMeta):
         Returns:
             The collector's result after all desired samples have been
             collected.
+
+        See Also:
+            Python 3 documentation "Coroutines and Tasks"
+            https://docs.python.org/3/library/asyncio-task.html
         """
         pool = work_pool.CompletionOrderedAsyncWorkPool()
         queued_jobs: List[CircuitSampleJob] = []

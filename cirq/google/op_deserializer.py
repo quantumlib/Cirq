@@ -12,26 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, NamedTuple, Optional, Sequence
+from dataclasses import dataclass
+from typing import Any, Callable, Dict, Optional, Sequence, TYPE_CHECKING
 
 import sympy
 from google.protobuf import json_format
 
-from cirq import devices, ops
 from cirq.api.google import v2
+
+from cirq.google.api import v2 as api_v2
 from cirq.google import arg_func_langs
 
+if TYPE_CHECKING:
+    import cirq
 
-class DeserializingArg(
-        NamedTuple('DeserializingArg', [
-            ('serialized_name', str),
-            ('constructor_arg_name', str),
-            ('value_func', Optional[Callable[[arg_func_langs.ArgValue], Any]]),
-            ('required', bool),
-        ])):
+
+@dataclass(frozen=True)
+class DeserializingArg:
     """Specification of the arguments to deserialize an argument to a gate.
 
-    Attributes:
+    Args:
         serialized_name: The serialized name of the gate that is being
             deserialized.
         constructor_arg_name: The name of the argument in the constructor of
@@ -43,15 +43,10 @@ class DeserializingArg(
         required: Whether a value must be specified when constructing the
             deserialized gate. Defaults to True.
     """
-
-    def __new__(cls,
-                serialized_name,
-                constructor_arg_name,
-                value_func=None,
-                required=True):
-        return super(DeserializingArg,
-                     cls).__new__(cls, serialized_name, constructor_arg_name,
-                                  value_func, required)
+    serialized_name: str
+    constructor_arg_name: str
+    value_func: Optional[Callable[[arg_func_langs.ArgValue], Any]] = None
+    required: bool = True
 
 
 class GateOpDeserializer:
@@ -63,7 +58,7 @@ class GateOpDeserializer:
 
     def __init__(self,
                  serialized_gate_id: str,
-                 gate_constructor: type,
+                 gate_constructor: Callable,
                  args: Sequence[DeserializingArg],
                  num_qubits_param: Optional[str] = None):
         """Constructs a deserializer.
@@ -71,7 +66,8 @@ class GateOpDeserializer:
         Args:
             serialized_gate_id: The serialized id of the gate that is being
                 deserialized.
-            gate_constructor: The constructor for the deserialized gate.
+            gate_constructor: A function that produces the deserialized gate
+                given arguments from args.
             args: A list of the arguments to be read from the serialized
                 gate and the information required to use this to construct
                 the gate using the gate_constructor above.
@@ -85,15 +81,16 @@ class GateOpDeserializer:
         self.args = args
         self.num_qubits_param = num_qubits_param
 
-    def from_proto_dict(self, proto: Dict) -> ops.GateOperation:
+    def from_proto_dict(self, proto: Dict) -> 'cirq.GateOperation':
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
         msg = v2.program_pb2.Operation()
         json_format.ParseDict(proto, msg)
         return self.from_proto(msg)
 
-    def from_proto(self, proto: v2.program_pb2.Operation) -> ops.GateOperation:
+    def from_proto(self,
+                   proto: v2.program_pb2.Operation) -> 'cirq.GateOperation':
         """Turns a cirq.api.google.v2.Operation proto into a GateOperation."""
-        qubits = [devices.GridQubit.from_proto_id(q.id) for q in proto.qubits]
+        qubits = [api_v2.grid_qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(proto)
         if self.num_qubits_param is not None:
             args[self.num_qubits_param] = len(qubits)

@@ -7,11 +7,14 @@
 #     https://docs.python.org/3/library/doctest.html
 #
 # Usage:
-#     check/doctest
+#     check/doctest [-q]
+#
+# The -q argument suppresses all output except the final result line and any
+# error messages.
 ################################################################################
 
 # Get the working directory to the repo root.
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-find cirq -type f -iname '*.py' | xargs python -m doctest
+PYTHONPATH="$(pwd)" python dev_tools/run_doctest.py $@

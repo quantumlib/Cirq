@@ -77,9 +77,7 @@ See the previous section for instructions.
     cat apt-system-requirements.txt dev_tools/conf/apt-list-dev-tools.txt | xargs sudo apt-get install --yes
     ```
 
-    If you change protocol buffers you will need to regenerate the proto files, so you should
-    install the protocol buffer compiler. Instructions for this can be found
-    [here](https://github.com/protocolbuffers/protobuf/blob/master/src/README.md).
+    There are some extra steps if protocol buffers are changed; see the next section.
 
 2. Prepare a virtual environment including the dev tools (such as mypy).
 
@@ -89,9 +87,7 @@ See the previous section for instructions.
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     python -m pip install --upgrade pip
-    python -m pip install -r requirements.txt
-    python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-    python -m pip install -r cirq/contrib/contrib-requirements.txt
+    python -m pip install -e .[dev_env]
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)
@@ -114,8 +110,19 @@ See the previous section for instructions.
     add2virtualenv ./
     ```
 
+### Protocol buffers
 
-### Running continuous integration checks locally
+[Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
+Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
+
+If any protos are updated, their dependents can be rebuilt by calling the script [dev_tools/build-protos.sh](https://github.com/quantumlib/Cirq/tree/master/dev_tools).
+This script uses grpcio-tools and protobuf version 3.8.0 to generate the python proto api.
+
+Additionally, for workflows that use bazel (relevant for C/C++ code depending on Cirq), we have made available bazel rulesets for generating both python and C/C++ proto apis.
+These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
+Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
+
+### Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
@@ -145,20 +152,20 @@ A more convenient way to run checks is to via the scripts in the [check/](https:
 
 # Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
 ./check/pytest-changed-files [BASE_REVISION]
+
+# Run the documentation tests.
+./check/doctest
+
+# Check the format of the filess.  Use --apply to apply the suggested format changes.
+./check/format-incremental [--apply]
+
+# Run all of the above tests. Which pytest is run is set by the --only-changed-files.
+./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 ```
 
-The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on travis.
-For example, you may be running an older version of `pylint` or `numpy`.
-In order to run a check that is significantly more likely to agree with the travis builds, you can use the [continuous-integration/check.sh](https://github.com/quantumlib/Cirq/blob/master/continuous-integration/check.sh) script:
-
-```bash
-./continuous-integration/check.sh
-```
-
-This script will create (temporary) virtual environments, do a fresh install of all relevant dependencies and run all relevant checks within those clean environments.
-Note that creating the virtual environments takes time, and prevents some caching mechanisms from working, so `continuous-integration/check.sh` is significantly slower than the simpler check scripts.
-When using this script, you can run a subset of the checks using the ```--only``` flag.
-This flag value can be `pylint`, `typecheck`, `pytest`, or `incremental-coverage`.
+The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on T ravis.
+For example, you may be running an older version of `pylint` or `numpy`. If you need to test against the actual continuous integration check, open up a pull request.
+For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation
 

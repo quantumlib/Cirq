@@ -14,20 +14,18 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (
-    Any, FrozenSet, Optional, Sequence, Tuple, Type, TypeVar, TYPE_CHECKING,
-    Union
-)
+from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
+                    TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import protocols, value
+from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
+    import cirq
 
 
 @value.value_equality(approximate=True)
@@ -56,7 +54,7 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
@@ -77,6 +75,9 @@ class GateOperation(raw_types.Operation):
         return '{}({})'.format(self.gate,
                                ', '.join(str(e) for e in self.qubits))
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
+
     def _group_interchangeable_qubits(self) -> Tuple[
             Union[raw_types.Qid,
                   Tuple[int, FrozenSet[raw_types.Qid]]],
@@ -85,7 +86,7 @@ class GateOperation(raw_types.Operation):
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups = {}  # type: Dict[int, List[raw_types.Qid]]
+        groups: Dict[int, List[raw_types.Qid]] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:
@@ -110,8 +111,8 @@ class GateOperation(raw_types.Operation):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         return protocols.pauli_expansion(self.gate)
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         return protocols.apply_unitary(self.gate, args, default=None)
 
     def _has_unitary_(self) -> bool:
@@ -142,12 +143,17 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)
+
+    def _decompose_into_clifford_(self):
+        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
+        if sub is None:
+            return NotImplemented
+        return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)
@@ -183,7 +189,7 @@ class GateOperation(raw_types.Operation):
             return NotImplemented
         return self.with_gate(new_gate)
 
-    def _qasm_(self, args: protocols.QasmArgs) -> Optional[str]:
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate,
                               args=args,
                               qubits=self.qubits,
@@ -193,16 +199,16 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
-def op_gate_of_type(op: raw_types.Operation,
-                    gate_type: Type[TV]) -> Optional[TV]:
+@deprecated(deadline='v0.7.0',
+            fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
+def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     """Returns gate of given type, if op has that gate otherwise None."""
-    if isinstance(op, GateOperation) and isinstance(op.gate, gate_type):
-        return op.gate
-    return None
+    gate = getattr(op, 'gate', None)
+    return gate if isinstance(gate, gate_type) else None
 
 
-def op_gate_isinstance(op: raw_types.Operation, gate_type: Type[TV]) -> bool:
-    """Returns True if op has that gate type otherwise False."""
-    if isinstance(op, GateOperation):
-        return isinstance(op.gate, gate_type)
-    return False
+@deprecated(deadline='v0.7.0', fix='use: `isinstance(op.gate, gate_type)`')
+def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
+    """Determines if op is a GateOperation with a gate of the given type."""
+    gate = getattr(op, 'gate', None)
+    return isinstance(gate, gate_type)

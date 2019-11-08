@@ -13,9 +13,9 @@
 # limitations under the License.
 
 
-from typing import Dict, List
+from typing import Iterable, List, Optional, Set, Tuple
 
-from cirq import ops
+from cirq import ops, protocols
 
 
 class GridQubit(ops.Qid):
@@ -24,6 +24,14 @@ class GridQubit(ops.Qid):
     GridQubits use row-major ordering:
 
         GridQubit(0, 0) < GridQubit(0, 1) < GridQubit(1, 0) < GridQubit(1, 1)
+
+    New GridQubits can be constructed by adding or subtracting tuples
+
+        >>> cirq.GridQubit(2, 3) + (3, 1)
+        cirq.GridQubit(5, 4)
+
+        >>> cirq.GridQubit(2, 3) - (1, 2)
+        cirq.GridQubit(1, 1)
     """
 
     def __init__(self, row: int, col: int):
@@ -33,10 +41,27 @@ class GridQubit(ops.Qid):
     def _comparison_key(self):
         return self.row, self.col
 
+    @property
+    def dimension(self) -> int:
+        return 2
+
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
+
+    def neighbors(self,
+                  qids: Optional[Iterable[ops.Qid]] = None) -> Set['GridQubit']:
+        """Returns qubits that are potential neighbors to this GridQubit
+
+        Args:
+            qids: optional Iterable of qubits to constrain neighbors to.
+        """
+        neighbors = set()
+        for q in [self + (0, 1), self + (1, 0), self + (-1, 0), self + (0, -1)]:
+            if qids is None or q in qids:
+                neighbors.add(q)
+        return neighbors
 
     @staticmethod
     def square(diameter: int, top: int = 0, left: int = 0) -> List['GridQubit']:
@@ -131,27 +156,30 @@ class GridQubit(ops.Qid):
     def __str__(self):
         return '({}, {})'.format(self.row, self.col)
 
-    def to_proto_dict(self, v2_proto=False) -> Dict:
-        """Return the proto in dictionary form."""
-        # TODO: Deprecate v1 proto method.
-        return {
-            'row': self.row,
-            'col': self.col,
-        }
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
-    def proto_id(self):
-        return '{}_{}'.format(self.row, self.col)
+    def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only add tuples of length 2 to GridQubits. Was {}'.format(
+                    other))
+        return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
-    @staticmethod
-    def from_proto_dict(proto_dict: Dict) -> 'GridQubit':
-        """Proto dict must have 'row' and 'col' keys."""
-        # TODO: Deprecate v1 proto method.
-        if 'row' not in proto_dict or 'col' not in proto_dict:
-            raise ValueError(
-                'Proto dict does not contain row or col: {}'.format(proto_dict))
-        return GridQubit(row=proto_dict['row'], col=proto_dict['col'])
+    def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if not (isinstance(other, tuple) and len(other) == 2 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only subtract tuples of length 2 to GridQubits. Was {}'.
+                format(other))
+        return GridQubit(row=self.row - other[0], col=self.col - other[1])
 
-    @staticmethod
-    def from_proto_id(proto_id: str) -> 'GridQubit':
-        row, col = proto_id.split('_')
-        return GridQubit(row=int(row), col=int(col))
+    def __radd__(self, other: Tuple[int, int]) -> 'GridQubit':
+        return self + other
+
+    def __rsub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        return -self + other
+
+    def __neg__(self) -> 'GridQubit':
+        return GridQubit(row=-self.row, col=-self.col)
