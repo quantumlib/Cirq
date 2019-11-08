@@ -16,6 +16,7 @@ import pytest
 
 from cirq.contrib.quirk import quirk_url_to_circuit
 from cirq.contrib.quirk.cells.testing import assert_url_to_circuit_returns
+from cirq.contrib.quirk.cells.input_cells import SetDefaultInputCell
 
 
 def test_missing_input_cell():
@@ -130,3 +131,8 @@ def test_set_default_input_cell():
         _ = quirk_url_to_circuit('https://algassert.com/quirk#circuit={"cols":['
                                  '["+=A2"],'
                                  '[{"id":"setA","arg":1}]]}')
+
+
+def test_with_line_qubits_mapped_to():
+    cell = SetDefaultInputCell('a', 5)
+    assert cell.with_line_qubits_mapped_to([]) is cell

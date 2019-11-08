@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Iterator, Optional, Sequence, Union
+from typing import Iterable, Iterator, Optional, Sequence, Union, List
 
 import numpy as np
 
@@ -21,6 +21,7 @@ from cirq import ops, linalg, value
 from cirq.contrib.quirk.cells.cell import Cell, CellMaker
 
 
+@value.value_equality
 class InputRotationCell(Cell):
     """Applies an operation that depends on an input gate."""
 
@@ -31,6 +32,34 @@ class InputRotationCell(Cell):
         self.register = None if register is None else tuple(register)
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
+
+    def _value_equality_values_(self):
+        return (
+            self.identifier,
+            self.register,
+            self.base_operation,
+            self.exponent_sign,
+        )
+
+    def __repr__(self):
+        return (
+            f'cirq.contrib.quirk.cells.input_rotation_cells.InputRotationCell('
+            f'\n    {self.identifier!r},'
+            f'\n    {self.register!r},'
+            f'\n    {self.base_operation!r},'
+            f'\n    {self.exponent_sign!r})')
+
+    def gate_count(self) -> int:
+        return 1
+
+    def with_line_qubits_mapped_to(self, qubits: List['cirq.Qid']) -> 'Cell':
+        return InputRotationCell(
+            self.identifier,
+            None if self.register is None else Cell._replace_qubits(
+                self.register, qubits),
+            self.base_operation.with_qubits(
+                *Cell._replace_qubits(self.base_operation.qubits, qubits)),
+            exponent_sign=self.exponent_sign)
 
     def with_input(self, letter: str,
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':

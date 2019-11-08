@@ -469,6 +469,10 @@ def test_repr():
     op = circuit[0].operations[0]
     cirq.testing.assert_equivalent_repr(op)
 
+    cirq.testing.assert_equivalent_repr(
+        cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+            '+=A2', cirq.LineQubit.range(2), [cirq.LineQubit.range(2, 5)]))
+
 
 def test_with_registers():
     circuit = quirk_url_to_circuit(
@@ -548,3 +552,32 @@ def test_helpers():
     assert h(5, 16) == 13
     assert h(6, 16) == 1
     assert h(7, 16) == 7
+
+
+def test_with_line_qubits_mapped_to():
+    a, b, c, d, e = cirq.LineQubit.range(5)
+    a2, b2, c2, d2, e2 = cirq.NamedQubit.range(5, prefix='p')
+
+    # After assigned to qubit register.
+    cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a, b], [(c, d, e)])
+    mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a2, b2], [(c2, d2, e2)])
+    assert cell != mapped_cell
+    assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
+
+    # Before assigned.
+    cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a, b], [None])
+    mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a2, b2], [None])
+    assert cell != mapped_cell
+    assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell
+
+    # After assigned to classical constant.
+    cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a, b], [42])
+    mapped_cell = cirq.contrib.quirk.cells.arithmetic_cells.ArithmeticCell(
+        '+=A2', [a2, b2], [42])
+    assert cell != mapped_cell
+    assert cell.with_line_qubits_mapped_to([a2, b2, c2, d2, e2]) == mapped_cell

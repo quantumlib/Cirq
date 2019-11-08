@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 class DeserializingArg:
     """Specification of the arguments to deserialize an argument to a gate.
 
-    Attributes:
+    Args:
         serialized_name: The serialized name of the gate that is being
             deserialized.
         constructor_arg_name: The name of the argument in the constructor of
