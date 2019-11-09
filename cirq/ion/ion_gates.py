@@ -19,7 +19,7 @@ import numpy as np
 from cirq import ops
 
 
-def MS(rads: float) -> ops.XXPowGate:
+def ms(rads: float) -> ops.XXPowGate:
     """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
 
     A rotation around the XX axis in the two-qubit bloch sphere.
