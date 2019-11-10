@@ -1,14 +1,13 @@
 from typing import Sequence, Optional, List
-
+import functools
+import itertools
 import pytest
+import numpy as np
 
 import cirq
 import cirq.google.optimizers.textbook_gates_from_sycamore as cgot
-import numpy as np
 
 import scipy.linalg
-import functools
-import itertools
 
 x = cirq.unitary(cirq.X)
 y = cirq.unitary(cirq.Y)
@@ -113,24 +112,15 @@ def test_cz_reconstruction():
 
 
 def test_schmidt_decomp():
-    """
-    Confirming Zhang's note
-    """
     np.set_printoptions(precision=4)
     cz = np.diag([1, 1, 1, -1])
-    cos = np.cos
-    sin = np.sin
-    eye = np.eye
-    kron = np.kron
     phi = -np.pi / 24
-    pi = np.pi
-    # for theta2 in np.linspace(0, 2 * np.pi, 10):
     theta1 = np.pi / 7
     theta2 = np.pi / 3
     G1 = np.cos(theta1) * np.eye(2) + 1j * np.sin(theta1) * cirq.unitary(cirq.X)
     G2 = np.cos(theta2) * np.eye(2) + 1j * np.sin(theta2) * cirq.unitary(cirq.X)
-    c1, s1 = cos(theta1), sin(theta1)
-    c2, s2 = cos(theta2), sin(theta2)
+    c1, s1 = np.cos(theta1), np.sin(theta1)
+    c2, s2 = np.cos(theta2), np.sin(theta2)
     A = np.zeros((4, 4), dtype=np.complex128)
     A[0, 0] = c1 * c2
     A[1, 1] = -s1 * s2
@@ -141,8 +131,9 @@ def test_schmidt_decomp():
 
     Bop = cz.conj().T @ np.kron(G2, G1) @ cz
 
-    trial_Bop = (c1 * c2 * kron(eye(2), eye(2)) + 1j * c1 * s2 * np.kron(x, z) +
-                 1j * s1 * c2 * kron(z, x) + -1 * s1 * s2 * kron(y, y))
+    trial_Bop = (c1 * c2 * np.kron(np.eye(2), np.eye(2)) +
+                 1j * c1 * s2 * np.kron(x, z) + 1j * s1 * c2 * np.kron(z, x) +
+                 -1 * s1 * s2 * np.kron(y, y))
     assert np.allclose(Bop, trial_Bop)
 
     B = np.zeros((4, 4), dtype=np.complex128)
@@ -180,7 +171,7 @@ def test_schmidt_decomp():
     D[1, 3] = -1j * s1 * c2
     assert np.allclose(D, d_decomp.reshape((4, 4), order='F'))
 
-    M = (cos(phi)**2) * B + 1j * sin(2 * phi) * C - (sin(phi)**2) * D
+    M = (np.cos(phi)**2) * B + 1j * np.sin(2 * phi) * C - (np.sin(phi)**2) * D
 
     bisycamore = scipy.linalg.expm(1j * phi * zz) @ cz @ np.kron(
         G2, G1) @ cz @ scipy.linalg.expm(1j * phi * zz)
@@ -190,32 +181,28 @@ def test_schmidt_decomp():
 
 def test_decompose_cphase():
     np.set_printoptions(precision=10)
-    cos = np.cos
-    sin = np.sin
-    eye = np.eye
-    kron = np.kron
     phi = -np.pi / 24
-    pi = np.pi
 
-    thetas = np.linspace(0, 2 * pi, 1000)
+    thetas = np.linspace(0, 2 * np.pi, 1000)
     for theta in thetas:
-        u = scipy.linalg.expm(1j * (theta) * (kron(z, z)))
+        u = scipy.linalg.expm(1j * (theta) * (np.kron(z, z)))
         u_decomp = cgot.operator_decomp(u)
         u_decomp_square = u_decomp.reshape((4, 4), order='F')
-        u, s, vh = np.linalg.svd(u_decomp.reshape((4, 4), order='F'))
+        u, s, _ = np.linalg.svd(u_decomp.reshape((4, 4), order='F'))
         assert np.allclose(
-            sorted([abs(cos(theta)), abs(sin(theta))], reverse=True), s[:2])
+            sorted([abs(np.cos(theta)), abs(np.sin(theta))], reverse=True),
+            s[:2])
         if abs(u_decomp_square[0, 0]) > np.cos(2 * phi):
-            c2 = abs(sin(theta)) / cos(2 * phi)
+            c2 = abs(np.sin(theta)) / np.cos(2 * phi)
         else:
-            c2 = abs(cos(theta)) / cos(2 * phi)
+            c2 = abs(np.cos(theta)) / np.cos(2 * phi)
 
         assert c2 <= 1.0
-        eta = 0.5 - (0.5 * (cos(2 * phi)**2) * (c2**2))
+        eta = 0.5 - (0.5 * (np.cos(2 * phi)**2) * (c2**2))
         eta = eta.real
         s_trial = [
-            abs(cos(2 * phi) * c2),
-            np.sqrt(1 - (abs(cos(2 * phi) * c2))**2), 0, 0
+            abs(np.cos(2 * phi) * c2),
+            np.sqrt(1 - (abs(np.cos(2 * phi) * c2))**2), 0, 0
         ]
         s_trial = np.array(sorted(s_trial, reverse=True))
         assert np.allclose(s_trial, s)
@@ -423,7 +410,7 @@ def test_known_two_q_operations_to_sycamore_operations_matrix():
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     operation = cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CX)).on(
         qubits[0], qubits[1])
-    test_op_tree = cirq.Circuit(
+    _ = cirq.Circuit(
         cgot.known_two_q_operations_to_sycamore_operations(
             qubits[0], qubits[1], operation))
     u1 = cirq.unitary(operation)

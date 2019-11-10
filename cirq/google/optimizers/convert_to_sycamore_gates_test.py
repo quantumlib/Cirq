@@ -148,8 +148,6 @@ def test_single_qubit_gate():
     cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     for op in converted_circuit.all_operations():
         gate = op.gate
-        assert (isinstance(gate, cirq.PhasedXPowGate) or
-                isinstance(gate, cirq.PhasedXPowGate) or
-                isinstance(gate, cirq.ZPowGate))
+        assert isinstance(gate, (cirq.PhasedXPowGate, cirq.ZPowGate))
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8)
