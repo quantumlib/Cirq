@@ -195,8 +195,7 @@ document(Foxtail, f"""72 xmon qubit device.
 ```
 {str(Foxtail)}
 ```
-"""
-   )
+""")
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
@@ -230,15 +229,13 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
-document(
-    Bristlecone, f"""72 xmon qubit device.
+document(Bristlecone, f"""72 xmon qubit device.
 
 **Qubit grid**:
 ```
 {str(Bristlecone)}
 ```
-"""
-   )
+""")
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],
