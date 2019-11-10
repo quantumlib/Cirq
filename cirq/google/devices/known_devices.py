@@ -183,12 +183,11 @@ class _NamedConstantXmonDevice(XmonDevice):
         }
 
 
-Foxtail = _NamedConstantXmonDevice(
-    'cirq.google.Foxtail',
-    measurement_duration=Duration(nanos=4000),
-    exp_w_duration=Duration(nanos=20),
-    exp_11_duration=Duration(nanos=50),
-    qubits=_parse_device(_FOXTAIL_GRID)[0])
+Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
+                                   measurement_duration=Duration(nanos=4000),
+                                   exp_w_duration=Duration(nanos=20),
+                                   exp_11_duration=Duration(nanos=50),
+                                   qubits=_parse_device(_FOXTAIL_GRID)[0])
 document(Foxtail, f"""72 xmon qubit device.
 
 **Qubit grid**:
@@ -229,7 +228,8 @@ Bristlecone = _NamedConstantXmonDevice(
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
-document(Bristlecone, f"""72 xmon qubit device.
+document(
+    Bristlecone, f"""72 xmon qubit device.
 
 **Qubit grid**:
 ```
