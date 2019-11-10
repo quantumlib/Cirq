@@ -299,6 +299,7 @@ from cirq.schedules import (
 from cirq.sim import (
     bloch_vector_from_state_vector,
     StabilizerStateChForm,
+    CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,

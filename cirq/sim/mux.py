@@ -22,11 +22,20 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 import numpy as np
 
 from cirq import circuits, protocols, study, schedules, devices, ops
+from cirq._doc import document
 from cirq.sim import (sparse_simulator, density_matrix_simulator,
                       wave_function_simulator)
 
 if TYPE_CHECKING:
     import cirq
+
+CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
+                     Schedule]
+document(
+    CIRCUIT_LIKE,  # type: ignore
+    """A `cirq.Circuit`, a `schedules.Schedule`,  or a value that can be
+    trivially converted into one of these.
+    """)
 
 
 def sample(program: Union[circuits.Circuit, schedules.Schedule],
@@ -65,9 +74,8 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                        repetitions=repetitions)
 
 
-def _to_circuit_like(program: Union[circuits.Circuit, ops.Gate, ops.
-                                    OP_TREE, schedules.Schedule]
-                    ) -> 'Union[circuits.Circuit, schedules.Schedule]':
+def _to_circuit_or_schedule(program: 'cirq.CIRCUIT_LIKE'
+                           ) -> 'Union[circuits.Circuit, schedules.Schedule]':
     result = None
     if isinstance(program, (schedules.Schedule, circuits.Circuit)):
         # No change needed.
@@ -82,8 +90,7 @@ def _to_circuit_like(program: Union[circuits.Circuit, ops.Gate, ops.
 
 
 def final_wavefunction(
-        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
-                       Schedule],
+        program: 'cirq.CIRCUIT_LIKE',
         *,
         initial_state: Union[int, Sequence[Union[int, float, complex]], np.
                              ndarray] = 0,
@@ -203,8 +210,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
 
 
 def final_density_matrix(
-        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
-                       Schedule],
+        program: 'cirq.CIRCUIT_LIKE',
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
         initial_state: Union[int, Sequence[Union[int, float, complex]], np.
@@ -215,8 +221,10 @@ def final_density_matrix(
         seed: Optional[Union[int, np.random.RandomState]] = None
 ) -> 'np.ndarray':
     """Returns the density matrix resulting from simulating the circuit.
-    The terminal measurements would affect the returned result.
-
+    Note that, unlike `cirq.final_wavefunction`, terminal measurements
+    are not omitted. Instead, all measurements are treated as sources
+    of decoherence (i.e. measurements do not collapse, they dephase).
+    
     Args:
         program: The circuit, schedule, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
@@ -246,16 +254,13 @@ def final_density_matrix(
         initial_state_like = initial_state
 
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
-    circuit_like = _to_circuit_like(program)
+    circuit_or_schedule = _to_circuit_or_schedule(program)
 
-    if not noise_model == devices.NO_NOISE and not protocols.has_unitary(
-            circuit_like):
-        raise ValueError("Noise specified more than once.")
-    elif noise_model == devices.NO_NOISE and protocols.has_unitary(
-            circuit_like):
+    if noise_model == devices.NO_NOISE and protocols.has_unitary(
+            circuit_or_schedule):
         # pure case: use SparseSimulator
         result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-            program=circuit_like,
+            program=circuit_or_schedule,
             initial_state=initial_state_like,
             qubit_order=qubit_order,
             param_resolver=param_resolver)
@@ -265,7 +270,7 @@ def final_density_matrix(
         # noisy case: use DensityMatrixSimulator
         result = density_matrix_simulator.DensityMatrixSimulator(
             dtype=dtype, noise=noise,
-            seed=seed).simulate(program=circuit_like,
+            seed=seed).simulate(program=circuit_or_schedule,
                                 initial_state=initial_state_like,
                                 qubit_order=qubit_order,
                                 param_resolver=param_resolver)

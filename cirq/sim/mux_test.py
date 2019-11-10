@@ -360,10 +360,3 @@ def test_final_density_matrix_noise():
         noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0))),
                                [[1, 0], [0, 0]],
                                atol=1e-4)
-
-def test_final_density_matrix_duplicated_noise():
-    a = cirq.LineQubit(0)
-    noise_model = cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0))
-    circuit = cirq.Circuit([cirq.H(a)]).with_noise(noise_model)
-    with pytest.raises(ValueError, match="Noise specified more than once."):
-        cirq.final_density_matrix(circuit, noise=noise_model)
