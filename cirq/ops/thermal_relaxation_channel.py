@@ -44,29 +44,21 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         this channel is the diagonal density matrix with probability
         `p_exchange` of being |0⟩ and probability `1-p_exchange` of being |1⟩.
 
-        We begin by examining the `GeneralizedAmplitudeDampingChannel`'s choi
-        matrix:
+        This channel is defined using the choi matrix:
 
-            $$
-             \begin{aligned}
-                CHO =&  \begin{bmatrix}
-                            1 - (1-p_exchange) p_relaxation & 0 & 0 &
-                                \sqrt{1 - p_relaxation} \\
-                            0 & (1-p_exchange) p_relaxation 0 & 0 \\
-                            0 & 0 & p_exchange p_relaxation & 0 \\
-                            \sqrt{1 - p_relaxation} & 0 & 0 &
-                                1 - p_exchange p_relaxation
-                        \end{bmatrix}
-             \end{aligned}
-            $$
+        $$
+        \begin{aligned}
+        CHO =& \begin{bmatrix}
+                1-(1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1-p_dephasing} \\
+                0 & (1-p_exchange) p_relaxation 0 & 0 \\
+                0 & 0 & p_exchange p_relaxation & 0 \\
+                \sqrt{1-p_dephasing} & 0 & 0 & 1 - p_exchange p_relaxation
+               \end{bmatrix}
+        \end{aligned}
+        $$
 
-        Where each 2x2 block can be thought of as how the channel acts on each
-        basis element in the space of density matrices.
-
-        For the `ThermalRelaxationChannel` channel we simply substitute
-        `p_dephasing` in for `p_relaxation` on the off diagonal elements of the
-        above choi matrix and then evolve the channel using the kraus operators
-        found by sqrt factorization of the choi matrix.
+        The kraus operators are found by examining the square root factorization
+        of the above matrix and choi's theorem on CP maps.
 
         Args:
             p_relaxation: the probability of amplitude damping/relaxation
@@ -179,29 +171,21 @@ def thermal_relaxation(p_exchange: float, p_relaxation: float,
     this channel is the diagonal density matrix with probability
     `p_exchange` of being |0⟩ and probability `1-p_exchange` of being |1⟩.
 
-    We begin by examining the `GeneralizedAmplitudeDampingChannel`'s choi
-    matrix:
+    This channel is defined using the choi matrix:
 
-        $$
-         \begin{aligned}
-            CHO =&  \begin{bmatrix}
-                        1 - (1-p_exchange) p_relaxation & 0 & 0 &
-                            \sqrt{1 - p_relaxation} \\
-                        0 & (1-p_exchange) p_relaxation 0 & 0 \\
-                        0 & 0 & p_exchange p_relaxation & 0 \\
-                        \sqrt{1 - p_relaxation} & 0 & 0 &
-                            1 - p_exchange p_relaxation
-                    \end{bmatrix}
-         \end{aligned}
-        $$
+    $$
+    \begin{aligned}
+    CHO =& \begin{bmatrix}
+            1-(1-p_exchange) p_relaxation & 0 & 0 & \sqrt{1-p_dephasing} \\
+            0 & (1-p_exchange) p_relaxation 0 & 0 \\
+            0 & 0 & p_exchange p_relaxation & 0 \\
+            \sqrt{1-p_dephasing} & 0 & 0 & 1 - p_exchange p_relaxation
+           \end{bmatrix}
+    \end{aligned}
+    $$
 
-    Where each 2x2 block can be thought of as how the channel acts on each
-    basis element in the space of density matrices.
-
-    For the `ThermalRelaxationChannel` channel we simply substitute
-    `p_dephasing` in for `p_relaxation` on the off diagonal elements of the
-    above choi matrix and then evolve the channel using the kraus operators
-    found by sqrt factorization of the choi matrix.
+    The kraus operators are found by examining the square root factorization
+    of the above matrix and choi's theorem on CP maps.
 
     Args:
         p_relaxation: the probability of amplitude damping/relaxation
