@@ -91,12 +91,16 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     ]
 
 
+# TODO docs
+MeasureFunction = Callable[[Dict[str, np.ndarray]],Union[Dict[str, np.ndarray], None]]
+
 def sample_heavy_set(circuit: cirq.Circuit,
                      heavy_set: List[int],
                      *,
                      repetitions=10_000,
                      sampler: cirq.Sampler = cirq.Simulator(),
-                     mapping: Dict[cirq.ops.Qid, cirq.ops.Qid] = None) -> float:
+                     mapping: Dict[cirq.ops.Qid, cirq.ops.Qid] = None,
+                     measure: MeasureFunction = None) -> float:
     """Run a sampler over the given circuit and compute the percentage of its
        outputs that are in the heavy set.
 
@@ -118,18 +122,35 @@ def sample_heavy_set(circuit: cirq.Circuit,
     qubits = circuit.all_qubits()
     key = None
     if mapping:
+        # Add any qubits that were not explicitly mapped, so they aren't lost in the sorting.
+        for q in qubits:
+            if q not in mapping:
+                mapping[q] = q
         key = lambda q: mapping[q]
         qubits = frozenset(mapping.keys())
-    circuit_copy = circuit + cirq.measure(*sorted(qubits, key=key))
 
+    # Don't do a single large measurement gate because then the key will be one
+    # large string. Instead, do a bunch of single-qubit measurement gates so we
+    # preserve the qubit keys.
+    sorted_qubits = sorted(qubits, key=key)
+    circuit_copy = circuit + [cirq.measure(q) for q in sorted_qubits]
+    
     # Run the sampler to compare each output against the Heavy Set.
-    measurements = sampler.run(program=circuit_copy, repetitions=repetitions)
+    trial_result = sampler.run(program=circuit_copy, repetitions=repetitions)
+
+    results = None
+    if measure:
+        results = measure(trial_result)
+    else:
+        results = trial_result.data
+    
+    results = results.agg(lambda meas: cirq.value.big_endian_bits_to_int(meas), axis=1)
 
     # Compute the number of outputs that are in the heavy set.
-    num_in_heavy_set = np.sum(np.in1d(measurements.data.iloc[:, 0], heavy_set))
+    num_in_heavy_set = np.sum(np.in1d(results, heavy_set))
 
-    # Return the number of Heavy outputs over the number of runs.
-    return num_in_heavy_set / repetitions
+    # Return the number of Heavy outputs over the number of valid runs.
+    return num_in_heavy_set / len(results)
 
 
 def compile_circuit(
@@ -167,29 +188,30 @@ def compile_circuit(
     if router is None and routing_algo_name is None:
         routing_algo_name = 'greedy'
 
-    best_swap_network: Union[ccr.SwapNetwork, None] = None
-    best_score = None
+    swap_networks: List[ccr.SwapNetwork] = []
     for _ in range(routing_attempts):
         swap_network = ccr.route_circuit(compiled_circuit,
                                          ccr.xmon_device_to_graph(device),
                                          router=router,
                                          algo_name=routing_algo_name)
-        score = len(swap_network.circuit)
-        if best_score is None or score < best_score:
-            best_swap_network = swap_network
-            best_score = score
-    if best_swap_network is None:
-        raise AssertionError('Unable to get routing for circuit')
+        swap_networks.append(swap_network)
+    assert len(swap_networks) > 0, 'Unable to get routing for circuit'
 
+    swap_networks.sort(key = lambda swap_network: len(swap_network.circuit), reverse = True)
+
+    if not compiler:
+        return swap_networks[0], None
+    
     # Compile. This should decompose the routed circuit down to a gate set that
     # our device supports, and then optimize. The paper uses various
     # compiling techniques - because Quantum Volume is intended to test those
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
-    if compiler:
-        best_swap_network.circuit = compiler(best_swap_network.circuit)
-
-    return best_swap_network
+    for swap_network in swap_networks:
+        success, swap_network.circuit, measure = compiler(swap_network.circuit)
+        if success:
+            return swap_network, measure # TODO do we actually need the swap network anymore?
+    raise AssertionError("Unable to compile circuit after routing")
 
 
 @dataclass
@@ -244,7 +266,6 @@ def prepare_circuits(
         circuits.append((model_circuit, heavy_set))
     return circuits
 
-
 def execute_circuits(
         *,
         device: cirq.google.XmonDevice,
@@ -272,7 +293,7 @@ def execute_circuits(
     """
     # First, compile all of the model circuits.
     print("Compiling model circuits")
-    compiled_circuits: List[ccr.SwapNetwork] = []
+    compiled_circuits: List[Tuple[ccr.SwapNetwork, MeasureFunction]] = []
     for idx, (model_circuit, heavy_set) in enumerate(circuits):
         print(f"  Compiling model circuit #{idx + 1}")
         compiled_circuits.append(
@@ -286,7 +307,7 @@ def execute_circuits(
     print("Running samplers over compiled circuits")
     for sampler_i, sampler in enumerate(samplers):
         print(f"  Running sampler #{sampler_i + 1}")
-        for circuit_i, swap_network in enumerate(compiled_circuits):
+        for circuit_i, [swap_network, measure] in enumerate(compiled_circuits):
             compiled_circuit = swap_network.circuit
             mapping = swap_network.final_mapping()
             model_circuit, heavy_set = circuits[circuit_i]
@@ -294,7 +315,8 @@ def execute_circuits(
                                     heavy_set,
                                     repetitions=repetitions,
                                     sampler=sampler,
-                                    mapping=mapping)
+                                    mapping=mapping,
+                                    measure=measure)
             print(f"    Compiled HOG probability #{circuit_i + 1}: {prob}")
             results.append(
                 QuantumVolumeResult(model_circuit=model_circuit,
