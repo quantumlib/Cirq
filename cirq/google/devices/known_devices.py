@@ -183,25 +183,27 @@ class _NamedConstantXmonDevice(XmonDevice):
         }
 
 
-Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
-                                   measurement_duration=Duration(nanos=4000),
-                                   exp_w_duration=Duration(nanos=20),
-                                   exp_11_duration=Duration(nanos=50),
-                                   qubits=_parse_device(_FOXTAIL_GRID)[0])
+Foxtail = _NamedConstantXmonDevice(
+    'cirq.google.Foxtail',
+    measurement_duration=Duration(nanos=4000),
+    exp_w_duration=Duration(nanos=20),
+    exp_11_duration=Duration(nanos=50),
+    qubits=_parse_device(_FOXTAIL_GRID)[0])
 document(Foxtail, f"""72 xmon qubit device.
 
 **Qubit grid**:
 ```
 {str(Foxtail)}
 ```
-""")
+"""
+   )
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
     'cz': 50_000,
     'xy': 20_000,
     'z': 0,
-    'meas': 4_000_000, # 1000 ms for readout, 3000ns for "ring down"
+    'meas': 4_000_000,  # 1000 ms for readout, 3000ns for "ring down"
 }
 
 FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
@@ -235,7 +237,8 @@ document(
 ```
 {str(Bristlecone)}
 ```
-""")
+"""
+   )
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],
@@ -262,7 +265,7 @@ _SYCAMORE_DURATIONS_PICOS = {
     'inv_fsim_pi_4': 32_000,
     'syc': 12_000,
     'z': 0,
-    'meas': 4_000_000, # 1000 ns for readout, 3000ns for ring_down
+    'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
 }
 
 SYCAMORE_PROTO = create_device_proto_from_diagram(
