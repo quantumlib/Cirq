@@ -18,7 +18,6 @@ yy = np.kron(y, y)
 zz = np.kron(z, z)
 
 
-# TODO(let's see about this)
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
     a = list(cirq.flatten_op_tree(x))
     b = list(cirq.flatten_op_tree(y))
@@ -142,8 +141,8 @@ def test_schmidt_decomp():
 
     Bop = cz.conj().T @ np.kron(G2, G1) @ cz
 
-    trial_Bop = c1 * c2 * kron(eye(2), eye(2)) + 1j * c1 * s2 * np.kron(x, z) + \
-                1j * s1 * c2 * kron(z, x) + -1 * s1 * s2 * kron(y, y)
+    trial_Bop = (c1 * c2 * kron(eye(2), eye(2)) + 1j * c1 * s2 * np.kron(x, z) +
+                 1j * s1 * c2 * kron(z, x) + -1 * s1 * s2 * kron(y, y))
     assert np.allclose(Bop, trial_Bop)
 
     B = np.zeros((4, 4), dtype=np.complex128)
@@ -188,14 +187,6 @@ def test_schmidt_decomp():
     bisycamore_decomp = cgot.operator_decomp(bisycamore)
     assert np.allclose(bisycamore_decomp.reshape((4, 4), order='F'), M)
 
-    cphase = lambda t: np.diag([1, 1, 1, np.exp(1j * t)])
-    cp_decomp = cgot.operator_decomp(cphase(pi / 19))
-    u, s2, vh = np.linalg.svd(cp_decomp.reshape((4, 4), order='F'))
-    if s2[0] > np.cos(2 * phi):
-        ncr_c2 = np.sqrt((1 - s2[1]**2) / (cos(2 * phi)**2))
-    else:
-        ncr_c2 = s2[0] / cos(2 * phi)
-
 
 def test_decompose_cphase():
     np.set_printoptions(precision=10)
@@ -206,15 +197,12 @@ def test_decompose_cphase():
     phi = -np.pi / 24
     pi = np.pi
 
-    thetas = np.linspace(0, 2 * pi, 1000)  # = np.random.random() * 2 * pi
+    thetas = np.linspace(0, 2 * pi, 1000)
     for theta in thetas:
         u = scipy.linalg.expm(1j * (theta) * (kron(z, z)))
         u_decomp = cgot.operator_decomp(u)
         u_decomp_square = u_decomp.reshape((4, 4), order='F')
-        # print("THETA ", theta)
-        # print(u_decomp_square)
         u, s, vh = np.linalg.svd(u_decomp.reshape((4, 4), order='F'))
-        # print(s)
         assert np.allclose(
             sorted([abs(cos(theta)), abs(sin(theta))], reverse=True), s[:2])
         if abs(u_decomp_square[0, 0]) > np.cos(2 * phi):

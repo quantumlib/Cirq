@@ -46,7 +46,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         self.ignore_failures = ignore_failures
 
     def _is_native_sycamore_op(self, op: ops.Operation) -> bool:
-        """Check if the given operation has a gate that is a native sycamore gate.
+        """Check if the given operation is native to a Sycamore device.
 
         Args:
             op: Input operation.
