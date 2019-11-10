@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union)
+                    TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
@@ -23,6 +23,9 @@ from cirq import protocols, value
 from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_features, op_tree
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality(approximate=True)
@@ -51,7 +54,7 @@ class GateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
@@ -146,6 +149,12 @@ class GateOperation(raw_types.Operation):
                                               args,
                                               NotImplemented)
 
+    def _decompose_into_clifford_(self):
+        sub = getattr(self.gate, '_decompose_into_clifford_with_qubits_', None)
+        if sub is None:
+            return NotImplemented
+        return sub(self.qubits)
+
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.gate)
 
@@ -185,6 +194,18 @@ class GateOperation(raw_types.Operation):
                               args=args,
                               qubits=self.qubits,
                               default=None)
+
+    def _equal_up_to_global_phase_(self,
+                                   other: Any,
+                                   atol: Union[int, float] = 1e-8
+                                  ) -> Union[NotImplementedType, bool]:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if self.qubits != other.qubits:
+            return False
+        return protocols.equal_up_to_global_phase(self.gate,
+                                                  other.gate,
+                                                  atol=atol)
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)

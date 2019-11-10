@@ -12,116 +12,71 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
+from cirq._doc import document
+from cirq.google import serializable_gate_set
+from cirq.google.common_serializers import (
+    SINGLE_QUBIT_SERIALIZERS,
+    SINGLE_QUBIT_DESERIALIZERS,
+    SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+    SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+    MEASUREMENT_SERIALIZER,
+    MEASUREMENT_DESERIALIZER,
+    CZ_POW_SERIALIZER,
+    CZ_POW_DESERIALIZER,
+    SYC_SERIALIZER,
+    SYC_DESERIALIZER,
+    SQRT_ISWAP_SERIALIZERS,
+    SQRT_ISWAP_DESERIALIZERS,
+)
 
-from typing import cast, List
 
-from cirq import ops, protocols
-from cirq.google import op_serializer, op_deserializer, serializable_gate_set
+SYC_GATESET = serializable_gate_set.SerializableGateSet(
+    gate_set_name='sycamore',
+    serializers=[
+        SYC_SERIALIZER,
+        *SINGLE_QUBIT_SERIALIZERS,
+        *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
+    ],
+    deserializers=[
+        SYC_DESERIALIZER,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
+    ],
+)
+document(SYC_GATESET,
+         """Gate set with fsim(pi/4, pi/6) as the core 2 qubit interaction.""")
+
+SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
+    gate_set_name='sqrt_iswap',
+    serializers=[
+        *SQRT_ISWAP_SERIALIZERS,
+        *SINGLE_QUBIT_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
+    ],
+    deserializers=[
+        *SQRT_ISWAP_DESERIALIZERS,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
+    ])
+document(SQRT_ISWAP_GATESET,
+         """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
+
 
 # The xmon gate set.
 XMON = serializable_gate_set.SerializableGateSet(
     gate_set_name='xmon',
     serializers=[
-        op_serializer.GateOpSerializer(
-            gate_type=ops.PhasedXPowGate,
-            serialized_gate_id='exp_w',
-            args=[
-                op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                             serialized_type=float,
-                                             gate_getter='phase_exponent'),
-                op_serializer.SerializingArg(serialized_name='half_turns',
-                                             serialized_type=float,
-                                             gate_getter='exponent')
-            ]),
-        op_serializer.GateOpSerializer(gate_type=ops.ZPowGate,
-                                       serialized_gate_id='exp_z',
-                                       args=[
-                                           op_serializer.SerializingArg(
-                                               serialized_name='half_turns',
-                                               serialized_type=float,
-                                               gate_getter='exponent')
-                                       ]),
-        op_serializer.GateOpSerializer(
-            gate_type=ops.XPowGate,
-            serialized_gate_id='exp_w',
-            args=[
-                op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                             serialized_type=float,
-                                             gate_getter=lambda x: 0.0),
-                op_serializer.SerializingArg(serialized_name='half_turns',
-                                             serialized_type=float,
-                                             gate_getter='exponent'),
-            ]),
-        op_serializer.GateOpSerializer(
-            gate_type=ops.YPowGate,
-            serialized_gate_id='exp_w',
-            args=[
-                op_serializer.SerializingArg(serialized_name='axis_half_turns',
-                                             serialized_type=float,
-                                             gate_getter=lambda x: 0.5),
-                op_serializer.SerializingArg(serialized_name='half_turns',
-                                             serialized_type=float,
-                                             gate_getter='exponent'),
-            ]),
-        op_serializer.GateOpSerializer(gate_type=ops.CZPowGate,
-                                       serialized_gate_id='exp_11',
-                                       args=[
-                                           op_serializer.SerializingArg(
-                                               serialized_name='half_turns',
-                                               serialized_type=float,
-                                               gate_getter='exponent')
-                                       ]),
-        op_serializer.GateOpSerializer(
-            gate_type=ops.MeasurementGate,
-            serialized_gate_id='meas',
-            args=[
-                op_serializer.SerializingArg(
-                    serialized_name='key',
-                    serialized_type=str,
-                    gate_getter=protocols.measurement_key),
-                op_serializer.SerializingArg(serialized_name='invert_mask',
-                                             serialized_type=List[bool],
-                                             gate_getter='invert_mask')
-            ])
+        *SINGLE_QUBIT_SERIALIZERS,
+        CZ_POW_SERIALIZER,
+        MEASUREMENT_SERIALIZER,
     ],
     deserializers=[
-        op_deserializer.GateOpDeserializer(
-            serialized_gate_id='exp_w',
-            gate_constructor=ops.PhasedXPowGate,
-            args=[
-                op_deserializer.DeserializingArg(
-                    serialized_name='axis_half_turns',
-                    constructor_arg_name='phase_exponent'),
-                op_deserializer.DeserializingArg(
-                    serialized_name='half_turns',
-                    constructor_arg_name='exponent')
-            ]),
-        op_deserializer.GateOpDeserializer(
-            serialized_gate_id='exp_z',
-            gate_constructor=ops.ZPowGate,
-            args=[
-                op_deserializer.DeserializingArg(
-                    serialized_name='half_turns',
-                    constructor_arg_name='exponent')
-            ]),
-        op_deserializer.GateOpDeserializer(
-            serialized_gate_id='exp_11',
-            gate_constructor=ops.CZPowGate,
-            args=[
-                op_deserializer.DeserializingArg(
-                    serialized_name='half_turns',
-                    constructor_arg_name='exponent')
-            ]),
-        op_deserializer.GateOpDeserializer(
-            serialized_gate_id='meas',
-            gate_constructor=ops.MeasurementGate,
-            args=[
-                op_deserializer.DeserializingArg(serialized_name='key',
-                                                 constructor_arg_name='key'),
-                op_deserializer.DeserializingArg(
-                    serialized_name='invert_mask',
-                    constructor_arg_name='invert_mask',
-                    value_func=lambda x: tuple(cast(list, x)))
-            ],
-            num_qubits_param='num_qubits'),
-    ])
+        *SINGLE_QUBIT_DESERIALIZERS,
+        CZ_POW_DESERIALIZER,
+        MEASUREMENT_DESERIALIZER,
+    ],
+)
+
+document(XMON, """Gate set for XMON devices.""")
