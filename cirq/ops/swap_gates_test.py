@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import scipy
 import sympy
 
 import cirq
@@ -141,3 +142,34 @@ def test_trace_distance_over_range_of_exponents():
     for exp in np.linspace(0, 4, 20):
         cirq.testing.assert_has_consistent_trace_distance_bound(cirq.SWAP**exp)
         cirq.testing.assert_has_consistent_trace_distance_bound(cirq.ISWAP**exp)
+
+
+@pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
+def test_iswap_rotation_unitary(angle_rads):
+    actual = cirq.unitary(cirq.ISwapRotation(angle_rads))
+    c = np.cos(angle_rads)
+    s = 1j * np.sin(angle_rads)
+    # yapf: disable
+    expected = np.array([[1, 0, 0, 0],
+                         [0, c, s, 0],
+                         [0, s, c, 0],
+                         [0, 0, 0, 1]])
+    # yapf: enable
+    assert np.allclose(actual, expected)
+
+
+@pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
+def test_iswap_rotation_hamiltonian(angle_rads):
+    actual = cirq.unitary(cirq.ISwapRotation(angle_rads))
+    x = np.array([[0, 1], [1, 0]])
+    y = np.array([[0, -1j], [1j, 0]])
+    xx = np.kron(x, x)
+    yy = np.kron(y, y)
+    expected = scipy.linalg.expm(+0.5j * angle_rads * (xx + yy))
+    assert np.allclose(actual, expected)
+
+
+@pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
+def test_iswap_rotation_has_consistent_protocols(angle_rads):
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.ISwapRotation(angle_rads), ignoring_global_phase=False)
