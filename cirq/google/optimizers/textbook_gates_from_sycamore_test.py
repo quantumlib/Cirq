@@ -225,6 +225,7 @@ def test_zztheta_zzpow():
 
 
 def test_zztheta_qaoa_like():
+
     class ConvertZZToSycamore(cirq.PointOptimizer):
 
         def optimization_at(self, circuit, index, op):
