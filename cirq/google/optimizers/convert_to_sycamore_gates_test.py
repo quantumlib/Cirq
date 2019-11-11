@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cirq
 import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
@@ -151,3 +152,43 @@ def test_single_qubit_gate():
         assert isinstance(gate, (cirq.PhasedXPowGate, cirq.ZPowGate))
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8)
+
+
+def test_unsupported_gate():
+    class UnknownGate(cirq.TwoQubitGate):
+        pass
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit(UnknownGate()(q0, q1))
+    with pytest.raises(ValueError, match='Unrecognized gate: '):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+
+
+def test_non_gate_operation():
+    class UnknownOperation(cirq.Operation):
+        def __init__(self, qubits):
+            self._qubits = qubits
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            # coverage: ignore
+            return UnknownOperation(self._qubits)
+
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(UnknownOperation([q0]))
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    assert circuit == converted_circuit
+
+def test_three_qubit_gate():
+    class ThreeQubitGate(cirq.ThreeQubitGate):
+        pass
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    q2 = cirq.LineQubit(2)
+    circuit = cirq.Circuit(ThreeQubitGate()(q0, q1, q2))
+    with pytest.raises(TypeError):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)

@@ -94,10 +94,6 @@ def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
     kak_u1 = linalg.kak_decomposition(unitary1)
     kak_u2 = linalg.kak_decomposition(unitary2)
 
-    if not np.allclose(kak_u1.interaction_coefficients,
-                       kak_u2.interaction_coefficients):
-        raise ArithmeticError("kak-interaction terms are not equal")
-
     u_0 = (kak_u1.single_qubit_operations_after[0]
            @ kak_u2.single_qubit_operations_after[0].conj().T)
     u_1 = (kak_u1.single_qubit_operations_after[1]
@@ -290,8 +286,6 @@ def known_two_q_operations_to_sycamore_operations(qubit_a: ops.Qid,
                         known_two_q_operations_to_sycamore_operations(
                             new_op.qubits[0], new_op.qubits[1],
                             cast(ops.GateOperation, new_op))))
-            else:
-                raise ValueError(f"Unexpected number of qubits: {num_qubits}")
         return gate_ops
     else:
-        raise ValueError("unrecognized gate {!r}".format(op))
+        raise ValueError("Unrecognized gate: {!r}".format(op))

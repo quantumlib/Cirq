@@ -1,4 +1,3 @@
-from typing import Sequence, Optional, List
 import functools
 import itertools
 import numpy as np
@@ -11,8 +10,6 @@ import scipy.linalg
 x = cirq.unitary(cirq.X)
 y = cirq.unitary(cirq.Y)
 z = cirq.unitary(cirq.Z)
-xx = np.kron(x, x)
-yy = np.kron(y, y)
 zz = np.kron(z, z)
 
 
@@ -258,24 +255,16 @@ def test_zztheta_qaoa_like():
 
 def test_zztheta_zzpow_unsorted_qubits():
 
-    class ConvertZZToSycamore(cirq.PointOptimizer):
-
-        def optimization_at(self, circuit, index, op):
-            if isinstance(op, cirq.ZZPowGate):
-                return cirq.PointOptimizationSummary(
-                    clear_span=1,
-                    clear_qubits=op.qubits,
-                    new_operations=cgot.zztheta(theta=np.pi * op.gate.exponent /
-                                                2,
-                                                q0=op.qubits[0],
-                                                q1=op.qubits[1]))
-
     qubits = cirq.LineQubit(1), cirq.LineQubit(0)
+    exponent = 0.06366197723675814
     cirq_circuit = cirq.Circuit(
-        cirq.ZZPowGate(exponent=0.06366197723675814,
+        cirq.ZZPowGate(exponent=exponent,
                        global_shift=-0.5).on(qubits[0], qubits[1]),)
-    syc_circuit = cirq_circuit.copy()
-    ConvertZZToSycamore().optimize_circuit(syc_circuit)
+    syc_circuit = cirq.Circuit(
+        cgot.zztheta(theta=np.pi * exponent / 2,
+                     q0=qubits[0],
+                     q1=qubits[1])
+    )
 
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cirq_circuit),
                                                     cirq.unitary(syc_circuit),

@@ -73,7 +73,6 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         elif len(op.qubits) == 2 and isinstance(op, ops.GateOperation):
             return known_two_q_operations_to_sycamore_operations(
                 op.qubits[0], op.qubits[1], op)
-
         return NotImplemented
 
     def convert(self, op: ops.Operation) -> List[ops.Operation]:
