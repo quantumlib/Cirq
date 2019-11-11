@@ -134,7 +134,6 @@ def sample_heavy_set(compilation_result: CompilationResult,
         # Add any qubits that were not explicitly mapped, so they aren't lost in the sorting.
         for q in qubits:
             if q not in mapping:
-                print("wtf??", q)
                 mapping[q] = q
         key = lambda q: mapping[q]
         qubits = frozenset(mapping.keys())
@@ -160,11 +159,8 @@ def sample_heavy_set(compilation_result: CompilationResult,
 
 
 def measure_circuit(mapping, edges: Dict[str, cirq.Qid], trial_result: cirq.TrialResult) -> pd.DataFrame:
-    print("measurements: ", trial_result.measurements)
     bad_measurements = set()
     inverse_mapping = dict([[v,k] for k,v in mapping.items()])
-    print("orig to parity: ", edges)
-    print(" orig to routed: ", inverse_mapping)
 
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in edges:
@@ -172,8 +168,6 @@ def measure_circuit(mapping, edges: Dict[str, cirq.Qid], trial_result: cirq.Tria
             qubit_meas = trial_result.measurements[str(final_qubit)]
             final_parity_qubit = inverse_mapping[parity_qubit]
             parity_meas = trial_result.measurements[str(final_parity_qubit)]
-            print("original: ", final_qubit, " - ", qubit_meas)
-            print("parity: ", final_parity_qubit, " - ", parity_meas)
             for idx, qubit_val in enumerate(qubit_meas):
                 if qubit_val != parity_meas[idx]:
                     bad_measurements.add(idx)
@@ -223,22 +217,14 @@ def compile_circuit(
     # Optionally add some the parity check bits.
     parity_map: Dict[cirq.Qid, cirq.Qid] = {} # original -> parity
     if add_readout_error_correction:
-        # parity_ops = cirq.Moment()
-        parity_ops = []
+        parity_ops = cirq.Moment()
         for idx, qubit in enumerate(compiled_circuit.all_qubits()):
-            # parity_qubit = cirq.NamedQubit(f"meas{idx}")
             qubit_num = idx + len(compiled_circuit.all_qubits())
-            if str(qubit) == '0':
-                qubit_num = -1
-            else:
-                qubit_num = 2
             parity_qubit = cirq.LineQubit(qubit_num)
-            # parity_ops = parity_ops.with_operation(cirq.CNOT(qubit, parity_qubit))
-            compiled_circuit.append(cirq.CNOT(qubit, parity_qubit))
+            parity_ops = parity_ops.with_operation(cirq.CNOT(qubit, parity_qubit))
             parity_map[qubit] = parity_qubit
-        # compiled_circuit.append(parity_ops)
+        compiled_circuit.append(parity_ops)
 
-    print(compiled_circuit)
     # Swap Mapping (Routing). Ensure the gates can actually operate on the
     # target qubits given our topology.
     if router is None and routing_algo_name is None:
@@ -258,7 +244,6 @@ def compile_circuit(
     if not compiler:
         return CompilationResult(swap_network=swap_networks[0], parity_map=parity_map)
 
-    print(swap_networks[0].circuit)
     # Compile. This should decompose the routed circuit down to a gate set that
     # our device supports, and then optimize. The paper uses various
     # compiling techniques - because Quantum Volume is intended to test those
