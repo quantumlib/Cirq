@@ -7,11 +7,6 @@ import cirq.google.optimizers.textbook_gates_from_sycamore as cgot
 
 import scipy.linalg
 
-x = cirq.unitary(cirq.X)
-y = cirq.unitary(cirq.Y)
-z = cirq.unitary(cirq.Z)
-zz = np.kron(z, z)
-
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
     a = list(cirq.flatten_op_tree(x))
@@ -69,6 +64,7 @@ def test_sycamore_swap():
 def test_operator_decomp():
     theta1 = np.pi / 3
     theta2 = np.pi / 4
+    x = cirq.unitary(cirq.X)
     G1 = np.cos(theta1) * np.eye(2) + 1j * np.sin(theta1) * x
     G2 = np.cos(theta2) * np.eye(2) + 1j * np.sin(theta2) * x
     true_matrix = np.zeros((4, 4), dtype=np.complex128)
@@ -87,7 +83,12 @@ def test_cz_reconstruction():
     cz = np.diag([1, 1, 1, -1])
     cz_decomp = cgot.operator_decomp(cz)
 
-    pauli_ops = [np.eye(2), x, y, z]
+    pauli_ops = [
+        np.eye(2),
+        cirq.unitary(cirq.X),
+        cirq.unitary(cirq.Y),
+        cirq.unitary(cirq.Z)
+    ]
     num_qubits = 2
     operator = np.zeros((2**num_qubits, 2**num_qubits), dtype=np.complex128)
     for idx, vec_index in enumerate(
@@ -100,11 +101,14 @@ def test_cz_reconstruction():
 
 
 def test_schmidt_decomp():
-    np.set_printoptions(precision=4)
     cz = np.diag([1, 1, 1, -1])
+    zz = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
     phi = -np.pi / 24
     theta1 = np.pi / 7
     theta2 = np.pi / 3
+    x = cirq.unitary(cirq.X)
+    y = cirq.unitary(cirq.Y)
+    z = cirq.unitary(cirq.Z)
     G1 = np.cos(theta1) * np.eye(2) + 1j * np.sin(theta1) * cirq.unitary(cirq.X)
     G2 = np.cos(theta2) * np.eye(2) + 1j * np.sin(theta2) * cirq.unitary(cirq.X)
     c1, s1 = np.cos(theta1), np.sin(theta1)
@@ -170,10 +174,10 @@ def test_schmidt_decomp():
 def test_decompose_cphase():
     np.set_printoptions(precision=10)
     phi = -np.pi / 24
-
+    zz = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
     thetas = np.linspace(0, 2 * np.pi, 1000)
     for theta in thetas:
-        u = scipy.linalg.expm(1j * (theta) * (np.kron(z, z)))
+        u = scipy.linalg.expm(1j * theta * zz)
         u_decomp = cgot.operator_decomp(u)
         u_decomp_square = u_decomp.reshape((4, 4), order='F')
         u, s, _ = np.linalg.svd(u_decomp.reshape((4, 4), order='F'))
@@ -197,6 +201,7 @@ def test_decompose_cphase():
 
 
 def test_zztheta():
+    zz = np.kron(cirq.unitary(cirq.Z), cirq.unitary(cirq.Z))
     qubits = cirq.LineQubit.range(2)
     for theta in np.linspace(0, 2 * np.pi, 10):
         expected_unitary = scipy.linalg.expm(-1j * theta * zz)
@@ -261,10 +266,7 @@ def test_zztheta_zzpow_unsorted_qubits():
         cirq.ZZPowGate(exponent=exponent,
                        global_shift=-0.5).on(qubits[0], qubits[1]),)
     syc_circuit = cirq.Circuit(
-        cgot.zztheta(theta=np.pi * exponent / 2,
-                     q0=qubits[0],
-                     q1=qubits[1])
-    )
+        cgot.zztheta(theta=np.pi * exponent / 2, q0=qubits[0], q1=qubits[1]))
 
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cirq_circuit),
                                                     cirq.unitary(syc_circuit),

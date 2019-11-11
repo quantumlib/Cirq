@@ -155,8 +155,10 @@ def test_single_qubit_gate():
 
 
 def test_unsupported_gate():
+
     class UnknownGate(cirq.TwoQubitGate):
         pass
+
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(UnknownGate()(q0, q1))
@@ -165,7 +167,9 @@ def test_unsupported_gate():
 
 
 def test_non_gate_operation():
+
     class UnknownOperation(cirq.Operation):
+
         def __init__(self, qubits):
             self._qubits = qubits
 
@@ -183,9 +187,12 @@ def test_non_gate_operation():
     cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
     assert circuit == converted_circuit
 
+
 def test_three_qubit_gate():
+
     class ThreeQubitGate(cirq.ThreeQubitGate):
         pass
+
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     q2 = cirq.LineQubit(2)
