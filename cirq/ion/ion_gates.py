@@ -17,6 +17,7 @@
 import numpy as np
 
 from cirq import ops
+from cirq._compat import deprecated
 
 
 def ms(rads: float) -> ops.XXPowGate:
@@ -38,3 +39,8 @@ def ms(rads: float) -> ops.XXPowGate:
         Mølmer–Sørensen gate rotating by the desired amount.
     """
     return ops.XXPowGate(exponent=rads*2/np.pi, global_shift=-0.5)
+
+
+@deprecated(deadline='v0.7.0', fix='Use cirq.ms, instead.')
+def MS(rads: float) -> ops.XXPowGate:
+    return ms(rads)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 
 import cirq
 
@@ -59,3 +60,8 @@ a: ───×───X───Y───MS(π)───
       │           │
 b: ───×───────────MS(π)───
 """)
+
+
+@pytest.mark.parametrize('rads', (-1, -0.1, 0.2, 1))
+def test_MS(rads):
+    assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))

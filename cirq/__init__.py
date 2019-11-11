@@ -449,6 +449,7 @@ from cirq.protocols import (
 from cirq.ion import (
     ConvertToIonGates,
     IonDevice,
+    MS,
     ms,
     two_qubit_matrix_to_ion_operations,
 )
