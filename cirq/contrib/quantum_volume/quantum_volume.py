@@ -151,7 +151,6 @@ def sample_heavy_set(compilation_result: CompilationResult,
 
     results = results.agg(lambda meas: cirq.value.big_endian_bits_to_int(meas),
                           axis=1)
-    print(results)
     # Compute the number of outputs that are in the heavy set.
     num_in_heavy_set = np.sum(np.in1d(results, heavy_set))
 
@@ -181,7 +180,6 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
         v: k for k, v in mapping.items()
     }
 
-    print(trial_result.measurements)
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
             parity_qubit = parity_mapping[original_qubit]
@@ -260,8 +258,8 @@ def compile_circuit(
     # Swap Mapping (Routing). Ensure the gates can actually operate on the
     # target qubits given our topology.
     if router is None and routing_algo_name is None:
-        # TODO: The routing algorithm does a poor job with the parity qubits,
-        # adding multiple SWAP gates that are unnecessary. This should be fixed,
+        # TODO: The routing algorithm sometimes does a poor job with the parity
+        # qubits, adding SWAP gates that are unnecessary. This should be fixed,
         # or we can add the parity qubits manually after routing.
         routing_algo_name = 'greedy'
 
