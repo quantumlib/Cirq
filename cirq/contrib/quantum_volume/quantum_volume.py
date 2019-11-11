@@ -6,6 +6,7 @@ from typing import Optional, List, cast, Callable, Dict, Tuple, Union
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -94,7 +95,12 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 # TODO docs
 MeasureFunction = Callable[[Dict[str, np.ndarray]],Union[Dict[str, np.ndarray], None]]
 
-def sample_heavy_set(circuit: cirq.Circuit,
+@dataclass
+class CompilationResult:
+    swap_network: ccr.SwapNetwork
+    parity_map: Dict[cirq.Qid, cirq.Qid]
+
+def sample_heavy_set(compilation_result: CompilationResult,
                      heavy_set: List[int],
                      *,
                      repetitions=10_000,
@@ -117,6 +123,9 @@ def sample_heavy_set(circuit: cirq.Circuit,
         output bit-strings were in the heavy set.
 
     """
+    mapping = compilation_result.swap_network.final_mapping()
+    circuit = compilation_result.swap_network.circuit
+    
     # Add measure gates to the end of (a copy of) the circuit. Ensure that those
     # gates measure those in the given mapping, preserving this order.
     qubits = circuit.all_qubits()
@@ -125,6 +134,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
         # Add any qubits that were not explicitly mapped, so they aren't lost in the sorting.
         for q in qubits:
             if q not in mapping:
+                print("wtf??", q)
                 mapping[q] = q
         key = lambda q: mapping[q]
         qubits = frozenset(mapping.keys())
@@ -138,11 +148,7 @@ def sample_heavy_set(circuit: cirq.Circuit,
     # Run the sampler to compare each output against the Heavy Set.
     trial_result = sampler.run(program=circuit_copy, repetitions=repetitions)
 
-    results = None
-    if measure:
-        results = measure(trial_result)
-    else:
-        results = trial_result.data
+    results = measure_circuit(mapping, compilation_result.parity_map, trial_result)
     
     results = results.agg(lambda meas: cirq.value.big_endian_bits_to_int(meas), axis=1)
 
@@ -153,6 +159,35 @@ def sample_heavy_set(circuit: cirq.Circuit,
     return num_in_heavy_set / len(results)
 
 
+def measure_circuit(mapping, edges: Dict[str, cirq.Qid], trial_result: cirq.TrialResult) -> pd.DataFrame:
+    print("measurements: ", trial_result.measurements)
+    bad_measurements = set()
+    inverse_mapping = dict([[v,k] for k,v in mapping.items()])
+    print("orig to parity: ", edges)
+    print(" orig to routed: ", inverse_mapping)
+
+    for final_qubit, original_qubit in mapping.items():
+        if original_qubit in edges:
+            parity_qubit = edges[original_qubit]
+            qubit_meas = trial_result.measurements[str(final_qubit)]
+            final_parity_qubit = inverse_mapping[parity_qubit]
+            parity_meas = trial_result.measurements[str(final_parity_qubit)]
+            print("original: ", final_qubit, " - ", qubit_meas)
+            print("parity: ", final_parity_qubit, " - ", parity_meas)
+            for idx, qubit_val in enumerate(qubit_meas):
+                if qubit_val != parity_meas[idx]:
+                    bad_measurements.add(idx)
+    
+    # Remove the parity qubits from the measurements.
+    for parity_qubit in edges.values():
+        trial_result.measurements.pop(str(inverse_mapping[parity_qubit]))
+
+    print(f"Dropping {len(bad_measurements)} measurements")
+    results = trial_result.data
+    results.drop(bad_measurements, inplace=True)
+
+    return results
+
 def compile_circuit(
         circuit: cirq.Circuit,
         *,
@@ -161,7 +196,8 @@ def compile_circuit(
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         routing_algo_name: Optional[str] = None,
         router: Optional[Callable[..., ccr.SwapNetwork]] = None,
-) -> ccr.SwapNetwork:
+        add_readout_error_correction = True,
+) -> CompilationResult:
     """Compile the given model circuit onto the given device. This uses a
     different compilation method than described in
     https://arxiv.org/pdf/1811.12926.pdf Appendix A. The latter goes through a
@@ -183,6 +219,26 @@ def compile_circuit(
 
     """
     compiled_circuit = circuit.copy()
+
+    # Optionally add some the parity check bits.
+    parity_map: Dict[cirq.Qid, cirq.Qid] = {} # original -> parity
+    if add_readout_error_correction:
+        # parity_ops = cirq.Moment()
+        parity_ops = []
+        for idx, qubit in enumerate(compiled_circuit.all_qubits()):
+            # parity_qubit = cirq.NamedQubit(f"meas{idx}")
+            qubit_num = idx + len(compiled_circuit.all_qubits())
+            if str(qubit) == '0':
+                qubit_num = -1
+            else:
+                qubit_num = 2
+            parity_qubit = cirq.LineQubit(qubit_num)
+            # parity_ops = parity_ops.with_operation(cirq.CNOT(qubit, parity_qubit))
+            compiled_circuit.append(cirq.CNOT(qubit, parity_qubit))
+            parity_map[qubit] = parity_qubit
+        # compiled_circuit.append(parity_ops)
+
+    print(compiled_circuit)
     # Swap Mapping (Routing). Ensure the gates can actually operate on the
     # target qubits given our topology.
     if router is None and routing_algo_name is None:
@@ -200,19 +256,16 @@ def compile_circuit(
     swap_networks.sort(key = lambda swap_network: len(swap_network.circuit), reverse = True)
 
     if not compiler:
-        return swap_networks[0], None
-    
+        return CompilationResult(swap_network=swap_networks[0], parity_map=parity_map)
+
+    print(swap_networks[0].circuit)
     # Compile. This should decompose the routed circuit down to a gate set that
     # our device supports, and then optimize. The paper uses various
     # compiling techniques - because Quantum Volume is intended to test those
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
-    for swap_network in swap_networks:
-        success, swap_network.circuit, measure = compiler(swap_network.circuit)
-        if success:
-            return swap_network, measure # TODO do we actually need the swap network anymore?
-    raise AssertionError("Unable to compile circuit after routing")
-
+    swap_networks[0].circuit = compiler(swap_networks[0].circuit)
+    return CompilationResult(swap_network=swap_networks[0], parity_map=parity_map)
 
 @dataclass
 class QuantumVolumeResult:
@@ -307,21 +360,17 @@ def execute_circuits(
     print("Running samplers over compiled circuits")
     for sampler_i, sampler in enumerate(samplers):
         print(f"  Running sampler #{sampler_i + 1}")
-        for circuit_i, [swap_network, measure] in enumerate(compiled_circuits):
-            compiled_circuit = swap_network.circuit
-            mapping = swap_network.final_mapping()
+        for circuit_i,compilation_result in enumerate(compiled_circuits):
             model_circuit, heavy_set = circuits[circuit_i]
-            prob = sample_heavy_set(compiled_circuit,
+            prob = sample_heavy_set(compilation_result,
                                     heavy_set,
                                     repetitions=repetitions,
-                                    sampler=sampler,
-                                    mapping=mapping,
-                                    measure=measure)
+                                    sampler=sampler)
             print(f"    Compiled HOG probability #{circuit_i + 1}: {prob}")
             results.append(
                 QuantumVolumeResult(model_circuit=model_circuit,
                                     heavy_set=heavy_set,
-                                    compiled_circuit=compiled_circuit,
+                                    compiled_circuit=compilation_result.swap_network.circuit,
                                     sampler_result=prob))
     return results
 
