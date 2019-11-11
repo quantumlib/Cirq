@@ -56,7 +56,6 @@ class _ResolverCache:
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
             self._crd = {
-                'QuantumVolumeResult': cirq.contrib.quantum_volume.QuantumVolumeResult,
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
