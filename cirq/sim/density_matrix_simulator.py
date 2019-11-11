@@ -17,25 +17,14 @@
 import collections
 import enum
 
-from typing import Dict, Iterator, List, Optional, Type, Union, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, Type, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
-from cirq.ops import phase_damp
 from cirq.sim import density_matrix_utils, simulator
 
 import cirq
-
-
-class MeasurementStrategy(enum.Enum):
-    """The strategy for measurements during the simulation."""
-    UNDEFINED = 0
-    SKIP_MEASUREMENTS = 1  # Don't process measurement gates at all.
-    COLLAPSING_MEASUREMENTS = 2  # Perform collapsing measurements
-    # (E.g. randomly collapse H(q) to |0> or |1>)
-    DEPHASING_MEASUREMENTS = 3  # Perform dephasing i/o measurements
-    # (Which yields a maximally mixed state)
 
 
 class _StateAndBuffers:
