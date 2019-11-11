@@ -77,6 +77,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.EigenGate
     cirq.FSimGate
     cirq.Gate
+    cirq.GivensRotation
     cirq.GlobalPhaseOperation
     cirq.HPowGate
     cirq.ISwapPowGate

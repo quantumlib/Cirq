@@ -152,3 +152,10 @@ def test_givens_rotation_equivalent_circuit():
 def test_givens_rotation_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
         cirq.givens(angle_rads), ignoring_global_phase=False)
+
+
+@pytest.mark.parametrize('angle_rads', (-1, -0.3, 0.1, 1))
+def test_deprecated_givens_rotation(angle_rads):
+    assert np.all(
+        cirq.unitary(cirq.GivensRotation(angle_rads)) == cirq.unitary(
+            cirq.givens(angle_rads)))

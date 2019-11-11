@@ -185,6 +185,7 @@ from cirq.ops.pauli_string_raw_types import (
 
 from cirq.ops.phased_iswap_gate import (
     givens,
+    GivensRotation,
     PhasedISwapPowGate,
 )
 

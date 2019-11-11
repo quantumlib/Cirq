@@ -191,6 +191,7 @@ from cirq.ops import (
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
     givens,
+    GivensRotation,
     GlobalPhaseOperation,
     H,
     HPowGate,
