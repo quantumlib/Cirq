@@ -11,10 +11,13 @@ import numpy as np
 import scipy.linalg
 from cirq import circuits, google, linalg, ops, optimizers, protocols
 
-UNITARY_X = protocols.unitary(ops.X)
-UNITARY_Y = protocols.unitary(ops.Y)
-UNITARY_Z = protocols.unitary(ops.Z)
-UNITARY_ZZ = np.kron(UNITARY_Z, UNITARY_Z)
+UNITARY_ZZ = np.kron(protocols.unitary(ops.Z), protocols.unitary(ops.Z))
+PAULI_OPS = [
+    np.eye(2),
+    protocols.unitary(ops.X),
+    protocols.unitary(ops.Y),
+    protocols.unitary(ops.Z)
+]
 
 
 def decompose_cz_into_syc(a: ops.Qid, b: ops.Qid):
@@ -127,7 +130,7 @@ def create_corrected_circuit(target_unitary: np.ndarray,
     yield (gate(q1) for gate in optimizers.single_qubit_matrix_to_gates(a_1))
 
 
-def zztheta(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
+def rzz(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
     """Generate exp(-1j * theta * zz) from Sycamore gates.
 
     Args:
@@ -173,12 +176,12 @@ def cphase(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
     rtype:
         cirq.OP_TREE
     """
-    yield zztheta(-theta / 4, q0, q1)
+    yield rzz(-theta / 4, q0, q1)
     yield ops.Rz(theta / 2).on(q0)
     yield ops.Rz(theta / 2).on(q1)
 
 
-def swap_zztheta(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
+def swap_rzz(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
     """
     An implementation of
 
@@ -203,7 +206,7 @@ def swap_zztheta(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
     circuit = circuits.Circuit()
     angle_offset = np.pi / 24 - np.pi / 4
     circuit.append(google.SYC(q0, q1))
-    circuit.append(zztheta(theta - angle_offset, q0, q1))
+    circuit.append(rzz(theta - angle_offset, q0, q1))
 
     # Get the intended circuit.
     intended_circuit = circuits.Circuit(
@@ -214,13 +217,10 @@ def swap_zztheta(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
 
 
 def operator_decomp(operator):
-    pauli_ops = [np.eye(2), UNITARY_X, UNITARY_Y, UNITARY_Z]
     num_qubits = int(np.log2(operator.shape[0]))
     coeff_vector = np.zeros(4**num_qubits, dtype=np.complex128)
     for idx, vec_index in enumerate(product(range(4), repeat=num_qubits)):
-        op_basis = reduce(np.kron, map(lambda x: pauli_ops[x], vec_index))
-        assert np.allclose(
-            np.kron(pauli_ops[vec_index[0]], pauli_ops[vec_index[1]]), op_basis)
+        op_basis = reduce(np.kron, map(lambda x: PAULI_OPS[x], vec_index))
         coeff_vector[idx] = np.trace(op_basis.conj().T.dot(operator))
 
     coeff_vector /= 2**num_qubits
@@ -266,8 +266,7 @@ def known_two_q_operations_to_sycamore_operations(qubit_a: ops.Qid,
             cast(ops.ISwapPowGate, gate).exponent, 1.0):
         return decompose_iswap_into_syc(qubit_a, qubit_b)
     elif isinstance(gate, ops.ZZPowGate):
-        return zztheta(
-            cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
+        return rzz(cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
     elif isinstance(gate, ops.MatrixGate) and len(op.qubits) == 2:
         new_ops = optimizers.two_qubit_matrix_to_operations(
             op.qubits[0], op.qubits[1], op, allow_partial_czs=True)

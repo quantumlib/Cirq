@@ -60,7 +60,7 @@ def test_known_two_q_operations_to_sycamore_operations_zz():
             qubits[0], qubits[1])
         test_op_tree = cirq.Circuit(operation)
         cgoc.ConvertToSycamoreGates().optimize_circuit(test_op_tree)
-        true_op_tree = cirq.Circuit(cgot.zztheta(theta, qubits[0], qubits[1]))
+        true_op_tree = cirq.Circuit(cgot.rzz(theta, qubits[0], qubits[1]))
         _assert_equivalent_op_tree(test_op_tree, true_op_tree)
 
 

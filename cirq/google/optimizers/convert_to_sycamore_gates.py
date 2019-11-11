@@ -18,7 +18,7 @@ import numpy as np
 from cirq import circuits, ops, protocols, optimizers
 from cirq.google import SycamoreGate
 from cirq.google.optimizers.textbook_gates_from_sycamore import (
-    known_two_q_operations_to_sycamore_operations, swap_zztheta)
+    known_two_q_operations_to_sycamore_operations, swap_rzz)
 
 
 class ConvertToSycamoreGates(circuits.PointOptimizer):
@@ -117,8 +117,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
                 return circuits.PointOptimizationSummary(
                     clear_span=next_index - index + 1,
                     clear_qubits=op.qubits,
-                    new_operations=swap_zztheta(rads, op.qubits[0],
-                                                op.qubits[1]))
+                    new_operations=swap_rzz(rads, op.qubits[0], op.qubits[1]))
 
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:

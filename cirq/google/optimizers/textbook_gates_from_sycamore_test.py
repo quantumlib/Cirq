@@ -205,7 +205,7 @@ def test_zztheta():
     qubits = cirq.LineQubit.range(2)
     for theta in np.linspace(0, 2 * np.pi, 10):
         expected_unitary = scipy.linalg.expm(-1j * theta * zz)
-        circuit = cirq.Circuit(cgot.zztheta(theta, qubits[0], qubits[1]))
+        circuit = cirq.Circuit(cgot.rzz(theta, qubits[0], qubits[1]))
         actual_unitary = cirq.unitary(circuit)
         cirq.testing.assert_allclose_up_to_global_phase(actual_unitary,
                                                         expected_unitary,
@@ -215,7 +215,7 @@ def test_zztheta():
 def test_zztheta_zzpow():
     qubits = cirq.LineQubit.range(2)
     for theta in np.linspace(0, 2 * np.pi, 10):
-        syc_circuit = cirq.Circuit(cgot.zztheta(theta, qubits[0], qubits[1]))
+        syc_circuit = cirq.Circuit(cgot.rzz(theta, qubits[0], qubits[1]))
         cirq_circuit = cirq.Circuit([
             cirq.ZZPowGate(exponent=2 * theta / np.pi,
                            global_shift=-0.5).on(*qubits)
@@ -238,17 +238,16 @@ def test_zztheta_qaoa_like():
                 return cirq.PointOptimizationSummary(
                     clear_span=1,
                     clear_qubits=op.qubits,
-                    new_operations=cgot.zztheta(theta=np.pi * op.gate.exponent /
-                                                2,
-                                                q0=op.qubits[0],
-                                                q1=op.qubits[1]))
+                    new_operations=cgot.rzz(theta=np.pi * op.gate.exponent / 2,
+                                            q0=op.qubits[0],
+                                            q1=op.qubits[1]))
 
     qubits = cirq.LineQubit.range(4)
     for exponent in np.linspace(-1, 1, 10):
         cirq_circuit = cirq.Circuit([
             cirq.H.on_each(qubits),
-            Rzz(np.pi * exponent).on(qubits[0], qubits[1]),
-            Rzz(np.pi * exponent).on(qubits[2], qubits[3]),
+            cirq.ZZPowGate(exponent=exponent)(qubits[0], qubits[1]),
+            cirq.ZZPowGate(exponent=exponent)(qubits[2], qubits[3]),
             cirq.Rx(.123).on_each(qubits),
         ])
         syc_circuit = cirq_circuit.copy()
@@ -266,7 +265,7 @@ def test_zztheta_zzpow_unsorted_qubits():
         cirq.ZZPowGate(exponent=exponent,
                        global_shift=-0.5).on(qubits[0], qubits[1]),)
     syc_circuit = cirq.Circuit(
-        cgot.zztheta(theta=np.pi * exponent / 2, q0=qubits[0], q1=qubits[1]))
+        cgot.rzz(theta=np.pi * exponent / 2, q0=qubits[0], q1=qubits[1]))
 
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(cirq_circuit),
                                                     cirq.unitary(syc_circuit),
@@ -285,7 +284,7 @@ def test_swap_zztheta():
             cirq.ZZPowGate(exponent=2 * THETA / np.pi,
                            global_shift=-0.5).on(a, b))
         expected_unitary = cirq.unitary(expected_circuit)
-        actual_circuit = cirq.Circuit(cgot.swap_zztheta(THETA, a, b))
+        actual_circuit = cirq.Circuit(cgot.swap_rzz(THETA, a, b))
         actual_unitary = cirq.unitary(actual_circuit)
         cirq.testing.assert_allclose_up_to_global_phase(actual_unitary,
                                                         expected_unitary,
