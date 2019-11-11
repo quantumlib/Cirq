@@ -63,5 +63,5 @@ b: ───×───────────MS(π)───
 
 
 @pytest.mark.parametrize('rads', (-1, -0.1, 0.2, 1))
-def test_MS(rads):
+def test_deprecated_ms(rads):
     assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
