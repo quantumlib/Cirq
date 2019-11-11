@@ -7,12 +7,14 @@ Practical characterization of quantum devices without tomography
 https://arxiv.org/abs/1104.3835
 """
 
+import argparse
 import itertools
 from typing import cast
 from typing import List
 from typing import Optional
 from typing import Tuple
 import numpy as np
+import sys
 import cirq
 
 
@@ -29,15 +31,19 @@ def build_circuit():
 
 def compute_characteristic_function(circuit: cirq.Circuit,
                                     P_i: Tuple[cirq.Gate, ...],
-                                    qubits: List[cirq.Qid],
-                                    noise: Optional[cirq.NoiseModel]):
+                                    qubits: List[cirq.Qid], physical: bool,
+                                    simulator: cirq.DensityMatrixSimulator,
+                                    density_matrix: Optional[np.ndarray]):
     n_qubits = len(P_i)
     d = 2**n_qubits
 
-    simulator = cirq.DensityMatrixSimulator()
-    # rho or sigma in https://arxiv.org/pdf/1104.3835.pdf
-    density_matrix = cast(cirq.DensityMatrixTrialResult,
-                          simulator.simulate(circuit)).final_density_matrix
+    if physical:
+        assert density_matrix is None
+        density_matrix = np.zeros([d, d], dtype=np.complex64)
+        res = simulator.run(circuit, repetitions=1).measurements['y']
+        # Convert binary to index.
+        idx = sum([res[0][i] * 2**i for i in range(len(res))])
+        density_matrix[idx][idx] = 1
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
@@ -52,29 +58,57 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     return trace, prob
 
 
+def sample_pauli_states(n_qubits: int, n_trials: int, physical: bool):
+    pauli_gates = [cirq.I, cirq.X, cirq.Y, cirq.Z]
+    if physical:
+        return [[pauli_gates[j]
+                 for j in np.random.choice(4, n_qubits)]
+                for i in range(n_trials)]
+    else:
+        return itertools.product(pauli_gates, repeat=n_qubits)
+
+
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, n_trials: int):
+                               noise: cirq.NoiseModel, n_trials: int,
+                               physical: bool):
     # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
     n_qubits = len(qubits)
+    d = 2**n_qubits
 
     # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     pauli_traces = []
-    for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
-                                 repeat=n_qubits):
-        rho_i, Pr_i = compute_characteristic_function(circuit,
-                                                      P_i,
-                                                      qubits,
-                                                      noise=None)
+
+    simulator = cirq.DensityMatrixSimulator()
+    if physical:
+        density_matrix = None
+    else:
+        # rho in https://arxiv.org/pdf/1104.3835.pdf
+        density_matrix = cast(cirq.DensityMatrixTrialResult,
+                              simulator.simulate(circuit)).final_density_matrix
+
+    for P_i in sample_pauli_states(n_qubits, n_trials, physical):
+        rho_i, Pr_i = compute_characteristic_function(circuit, P_i, qubits,
+                                                      physical, simulator,
+                                                      density_matrix)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
-    assert len(pauli_traces) == 4**n_qubits
+    if physical:
+        assert len(pauli_traces) == n_trials
+    else:
+        assert len(pauli_traces) == 4**n_qubits
 
     p = [x['Pr_i'] for x in pauli_traces]
-    assert np.isclose(sum(p), 1.0, atol=1e-6)
+    if physical:
+        # Sometimes, the probabilities add up to 0.0 just because of randomness
+        # and so we hard-code a 0 fidelity in this case.
+        if sum(p) == 0.0:
+            return 0.0
+    else:
+        assert np.isclose(sum(p), 1.0, atol=1e-6)
 
     # The package np.random.choice() is quite sensitive to probabilities not
     # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
@@ -82,24 +116,50 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     inv_sum_p = 1 / sum(p)
     norm_p = [x * inv_sum_p for x in p]
 
+    simulator = cirq.DensityMatrixSimulator(noise=noise)
+    if physical:
+        density_matrix = None
+    else:
+        # sigma in https://arxiv.org/pdf/1104.3835.pdf
+        density_matrix = cast(cirq.DensityMatrixTrialResult,
+                              simulator.simulate(circuit)).final_density_matrix
+
     fidelity = 0.0
     for _ in range(n_trials):
         # Randomly sample as per probability.
-        i = np.random.choice(range(4**n_qubits), p=norm_p)
+        i = np.random.choice(len(pauli_traces), p=norm_p)
 
         Pr_i = pauli_traces[i]['Pr_i']
         P_i = pauli_traces[i]['P_i']
         rho_i = pauli_traces[i]['rho_i']
 
         sigma_i, _ = compute_characteristic_function(circuit, P_i, qubits,
-                                                     noise)
+                                                     physical, simulator,
+                                                     density_matrix)
 
         fidelity += Pr_i * sigma_i / rho_i
 
     return fidelity / n_trials
 
 
-def main():
+def parse_arguments(args):
+    """Helper function that parses the given arguments."""
+    parser = argparse.ArgumentParser('Direct fidelity estimation.')
+
+    parser.add_argument('--physical',
+                        default=False,
+                        type=bool,
+                        help='Run and do physical measurements.')
+
+    parser.add_argument('--n_trials',
+                        default=10,
+                        type=int,
+                        help='Number of trials to run.')
+
+    return vars(parser.parse_args(args))
+
+
+def main(*, physical: bool, n_trials: int):
     circuit, qubits = build_circuit()
     circuit.append(cirq.measure(*qubits, key='y'))
 
@@ -108,9 +168,10 @@ def main():
     estimated_fidelity = direct_fidelity_estimation(circuit,
                                                     qubits,
                                                     noise,
-                                                    n_trials=10)
+                                                    n_trials=n_trials,
+                                                    physical=physical)
     print(estimated_fidelity)
 
 
 if __name__ == '__main__':
-    main()
+    main(**parse_arguments(sys.argv[1:]))
