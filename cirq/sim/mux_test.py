@@ -338,13 +338,29 @@ def test_final_density_matrix_qubit_order():
         [[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
 
 
-def test_final_density_matrix_seed():
+def test_final_density_matrix_seed_with_dephasing():
     a = cirq.LineQubit(0)
     np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [[0, 0], [0, 1]],
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=123),
+                               [[0.5 + 0.j, 0. + 0.j], [0. + 0.j, 0.5 + 0.j]],
                                atol=1e-4)
     np.testing.assert_allclose(cirq.final_density_matrix(
-        [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [[1, 0], [0, 0]],
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=124),
+                               [[0.5 + 0.j, 0. + 0.j], [0. + 0.j, 0.5 + 0.j]],
+                               atol=1e-4)
+
+
+def test_final_density_matrix_seed_with_collapsing():
+    a = cirq.LineQubit(0)
+    np.testing.assert_allclose(cirq.final_density_matrix(
+        [cirq.X(a)**0.5, cirq.measure(a)],
+        seed=123,
+        replace_measurement_with_dephasing=False), [[0, 0], [0, 1]],
+                               atol=1e-4)
+    np.testing.assert_allclose(cirq.final_density_matrix(
+        [cirq.X(a)**0.5, cirq.measure(a)],
+        seed=124,
+        replace_measurement_with_dephasing=False), [[1, 0], [0, 0]],
                                atol=1e-4)
 
 

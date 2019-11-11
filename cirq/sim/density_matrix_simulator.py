@@ -15,16 +15,27 @@
 """Simulator for density matrices that simulates noisy quantum circuits."""
 
 import collections
+import enum
 
 from typing import Dict, Iterator, List, Optional, Type, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
+from cirq.ops import phase_damp
 from cirq.sim import density_matrix_utils, simulator
 
-if TYPE_CHECKING:
-    import cirq
+import cirq
+
+
+class MeasurementStrategy(enum.Enum):
+    """The strategy for measurements during the simulation."""
+    UNDEFINED = 0
+    SKIP_MEASUREMENTS = 1  # Don't process measurement gates at all.
+    COLLAPSING_MEASUREMENTS = 2  # Perform collapsing measurements
+    # (E.g. randomly collapse H(q) to |0> or |1>)
+    DEPHASING_MEASUREMENTS = 3  # Perform dephasing i/o measurements
+    # (Which yields a maximally mixed state)
 
 
 class _StateAndBuffers:
@@ -120,7 +131,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: Optional[Union[int, np.random.RandomState]] = None):
+                 seed: Optional[Union[int, np.random.RandomState]] = None,
+                 replace_measurement_with_dephasing: bool = False):
         """Density matrix simulator.
 
          Args:
@@ -128,6 +140,27 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+            replace_measurement_with_dephasing: if True, then the simulation 
+                will treat measurement as dephasing instead of collapsing
+                process.
+                
+                Example:
+                q0 = cirq.LineQubit.range(1)
+                circuit = cirq.Circuit(H(q0), cirq.measure(q0))
+
+                Default case (replace_measurement_with_dephasing = False):
+                simulator = cirq.DensityMatrixSimulator()
+                result = simulator.run(circuit)
+
+                result.measurements['0'] will be strictly one of |0> or |1>.
+
+                In the other case:
+                simulator = cirq.DensityMatrixSimulator(
+                replace_measurement_with_dephasing = True)
+                result = simulator.run(circuit)
+
+                result.measurements['0'] will be the maximally mixed state
+                with equal probability for |0> and |1>.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
@@ -142,6 +175,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             self.prng = seed
         else:
             self.prng = np.random.RandomState(seed)
+        self._replace_measurement_with_dephasing = replace_measurement_with_dephasing
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -278,20 +312,26 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 if isinstance(op.gate, ops.MeasurementGate):
                     meas = op.gate
                     if perform_measurements:
-                        invert_mask = meas.full_invert_mask()
-                        # Measure updates inline.
-                        bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.tensor,
-                            indices,
-                            qid_shape=qid_shape,
-                            out=state.tensor,
-                            seed=self.prng)
-                        corrected = [
-                            bit ^ (bit < 2 and mask)
-                            for bit, mask in zip(bits, invert_mask)
-                        ]
-                        key = protocols.measurement_key(meas)
-                        measurements[key].extend(corrected)
+                        if self._replace_measurement_with_dephasing:
+                            for i, q in enumerate(op.qubits):
+                                self._apply_op_channel(
+                                    cirq.phase_damp(1).on(q), state,
+                                    [indices[i]])
+                        else:
+                            invert_mask = meas.full_invert_mask()
+                            # Measure updates inline.
+                            bits, _ = density_matrix_utils.measure_density_matrix(
+                                state.tensor,
+                                indices,
+                                qid_shape=qid_shape,
+                                out=state.tensor,
+                                seed=self.prng)
+                            corrected = [
+                                bit ^ (bit < 2 and mask)
+                                for bit, mask in zip(bits, invert_mask)
+                            ]
+                            key = protocols.measurement_key(meas)
+                            measurements[key].extend(corrected)
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)

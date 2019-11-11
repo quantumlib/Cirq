@@ -131,27 +131,19 @@ def final_wavefunction(
     if not isinstance(initial_state, int):
         initial_state = np.asarray(initial_state, dtype=dtype)
 
-    if isinstance(program, (schedules.Schedule, circuits.Circuit)):
-        # No change needed.
-        pass
-    elif isinstance(program, ops.Gate):
-        program = circuits.Circuit(
-            program.on(*devices.LineQid.for_gate(program)))
-    else:
-        # It should be an OP_TREE.
-        program = circuits.Circuit(program)
+    circuit_like = _to_circuit_or_schedule(program)
 
     if not protocols.has_unitary(
-            protocols.resolve_parameters(program, param_resolver)):
+            protocols.resolve_parameters(circuit_like, param_resolver)):
         raise ValueError(
             "Program doesn't have a single well defined final wavefunction "
             "because it is not unitary. "
             "Maybe you wanted `cirq.sample_wavefunction`?\n"
             "\n"
-            "Program: {!r}".format(program))
+            "Program: {!r}".format(circuit_like))
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-        program=cast(Union[circuits.Circuit, schedules.Schedule], program),
+        program=circuit_like,
         initial_state=initial_state,
         qubit_order=qubit_order,
         param_resolver=param_resolver)
@@ -218,8 +210,8 @@ def final_density_matrix(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: Optional[Union[int, np.random.RandomState]] = None
-) -> 'np.ndarray':
+        seed: Optional[Union[int, np.random.RandomState]] = None,
+        replace_measurement_with_dephasing: bool = True) -> 'np.ndarray':
     """Returns the density matrix resulting from simulating the circuit.
     Note that, unlike `cirq.final_wavefunction`, terminal measurements
     are not omitted. Instead, all measurements are treated as sources
@@ -241,6 +233,9 @@ def final_density_matrix(
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
+        replace_measurement_with_dephasing: if True, then the simulation 
+                will treat measurement as dephasing instead of collapsing
+                process.
 
     Returns:
         The density matrix for the state which results from applying the given
@@ -254,25 +249,37 @@ def final_density_matrix(
         initial_state_like = initial_state
 
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
-    circuit_or_schedule = _to_circuit_or_schedule(program)
+    circuit_like = _to_circuit_or_schedule(program)
 
-    if noise_model == devices.NO_NOISE and protocols.has_unitary(
-            circuit_or_schedule):
+    can_do_unitary_simulation = True
+    if not protocols.has_unitary(circuit_like):
+        can_do_unitary_simulation = False
+    if isinstance(circuit_like, circuits.Circuit):
+        if cast(circuits.Circuit, circuit_like).has_measurements():
+            # Including terminal measurements.
+            can_do_unitary_simulation = False
+    if noise_model != devices.NO_NOISE:
+        can_do_unitary_simulation = False
+
+    if can_do_unitary_simulation:
         # pure case: use SparseSimulator
         result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-            program=circuit_or_schedule,
+            program=circuit_like,
             initial_state=initial_state_like,
             qubit_order=qubit_order,
             param_resolver=param_resolver)
         return cast(wave_function_simulator.WaveFunctionTrialResult,
                     result).density_matrix_of()
     else:
-        # noisy case: use DensityMatrixSimulator
+        # noisy case: use DensityMatrixSimulator with dephasing
         result = density_matrix_simulator.DensityMatrixSimulator(
-            dtype=dtype, noise=noise,
-            seed=seed).simulate(program=circuit_or_schedule,
-                                initial_state=initial_state_like,
-                                qubit_order=qubit_order,
-                                param_resolver=param_resolver)
+            dtype=dtype,
+            noise=noise,
+            seed=seed,
+            replace_measurement_with_dephasing=replace_measurement_with_dephasing
+        ).simulate(program=circuit_like,
+                   initial_state=initial_state_like,
+                   qubit_order=qubit_order,
+                   param_resolver=param_resolver)
         return cast(density_matrix_simulator.DensityMatrixTrialResult,
                     result).final_density_matrix
