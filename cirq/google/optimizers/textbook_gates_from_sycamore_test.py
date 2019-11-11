@@ -224,13 +224,7 @@ def test_zztheta_zzpow():
             cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-7)
 
 
-def Rzz(rads):
-    """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
-    return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
-
-
 def test_zztheta_qaoa_like():
-
     class ConvertZZToSycamore(cirq.PointOptimizer):
 
         def optimization_at(self, circuit, index, op):
@@ -278,13 +272,13 @@ def test_swap_zztheta():
     """
     qubits = cirq.LineQubit.range(2)
     a, b = qubits
-    for THETA in np.linspace(0, 2 * np.pi, 10):
+    for theta in np.linspace(0, 2 * np.pi, 10):
         expected_circuit = cirq.Circuit(
             cirq.SWAP(a, b),
-            cirq.ZZPowGate(exponent=2 * THETA / np.pi,
+            cirq.ZZPowGate(exponent=2 * theta / np.pi,
                            global_shift=-0.5).on(a, b))
         expected_unitary = cirq.unitary(expected_circuit)
-        actual_circuit = cirq.Circuit(cgot.swap_rzz(THETA, a, b))
+        actual_circuit = cirq.Circuit(cgot.swap_rzz(theta, a, b))
         actual_unitary = cirq.unitary(actual_circuit)
         cirq.testing.assert_allclose_up_to_global_phase(actual_unitary,
                                                         expected_unitary,
