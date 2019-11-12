@@ -276,10 +276,11 @@ def final_density_matrix(
             dtype=dtype,
             noise=noise,
             seed=seed,
-            replace_measurement_with_dephasing=replace_measurement_with_dephasing
-        ).simulate(program=circuit_like,
-                   initial_state=initial_state_like,
-                   qubit_order=qubit_order,
-                   param_resolver=param_resolver)
+            replace_measurement_with_dephasing=(
+                replace_measurement_with_dephasing)).simulate(
+                    program=circuit_like,
+                    initial_state=initial_state_like,
+                    qubit_order=qubit_order,
+                    param_resolver=param_resolver)
         return cast(density_matrix_simulator.DensityMatrixTrialResult,
                     result).final_density_matrix
