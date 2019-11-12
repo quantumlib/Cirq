@@ -53,8 +53,9 @@ import random
 
 from typing import Callable, List, Optional, Sequence, Union
 
-import cirq
 import sympy
+
+import cirq
 
 parser = argparse.ArgumentParser(description='Factorization demo.')
 parser.add_argument('n', type=int, help='composite integer to factor')
