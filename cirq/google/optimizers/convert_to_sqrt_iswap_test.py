@@ -14,6 +14,8 @@ def _unitaries_allclose(circuit1, circuit2):
     if unitary2.size == 1:
         # Resize the unitary of empty circuits to be 4x4 for 2q gates
         unitary2 = unitary2 * np.eye(unitary1.shape[0])
+    print(unitary1)
+    print(unitary2)
     return cirq.allclose_up_to_global_phase(unitary1, unitary2)
 
 
