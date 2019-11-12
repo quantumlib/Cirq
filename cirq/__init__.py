@@ -22,6 +22,7 @@ from cirq import (
     # Low level
     _version,
     _compat,
+    _doc,
     type_workarounds,
 )
 with _import.delay_import('cirq.protocols'):
@@ -48,6 +49,7 @@ from cirq import (
     neutral_atoms,
     api,
     google,
+    interop,
     # Applications
     experiments,
     # Extra (nothing should depend on these)
@@ -95,6 +97,11 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
     xeb_fidelity,
+)
+
+from cirq.interop import (
+    quirk_json_to_circuit,
+    quirk_url_to_circuit,
 )
 
 from cirq.linalg import (
@@ -194,8 +201,10 @@ from cirq.ops import (
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    MatrixGate,
     measure,
     measure_each,
     MeasurementGate,
@@ -240,8 +249,6 @@ from cirq.ops import (
     SingleQubitMatrixGate,
     SWAP,
     SwapPowGate,
-    SYC,
-    SycamoreGate,
     T,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
@@ -318,6 +325,7 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
+    STATE_VECTOR_LIKE,
     StateVectorMixin,
     StepResult,
     to_valid_density_matrix,
@@ -417,9 +425,12 @@ from cirq.protocols import (
     SupportsCircuitDiagramInfo,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsEqualUpToGlobalPhase,
     SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
+    SupportsJSON,
+    SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,

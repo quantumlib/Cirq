@@ -223,6 +223,10 @@ TEST_OBJECTS = {
     'LineQid': [cirq.LineQid(0, 1),
                 cirq.LineQid(123, 2),
                 cirq.LineQid(-4, 5)],
+    'MatrixGate': [
+        cirq.MatrixGate(matrix=np.diag([1, -1, 1j, 1j, -1j, -1]),
+                        qid_shape=(2, 3)),
+    ],
     'MeasurementGate': [
         cirq.MeasurementGate(num_qubits=3, key='z'),
         cirq.MeasurementGate(num_qubits=3,
@@ -279,15 +283,17 @@ TEST_OBJECTS = {
     cirq.X(Q0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'SYC':
-    cirq.SYC,
+    cirq.google.SYC,
     'SycamoreGate':
-    cirq.SycamoreGate(),
+    cirq.google.SycamoreGate(),
     'T':
     cirq.T,
     'TOFFOLI':
     cirq.TOFFOLI,
     'TwoQubitMatrixGate':
     cirq.TwoQubitMatrixGate(np.eye(4)),
+    'SingleQubitMatrixGate':
+    cirq.SingleQubitMatrixGate(np.diag([1j, -1, 1])),
     'UNCONSTRAINED_DEVICE':
     cirq.UNCONSTRAINED_DEVICE,
     'WaitGate':
@@ -351,9 +357,12 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsEqualUpToGlobalPhase',
     'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
+    'SupportsJSON',
+    'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
     'SupportsPhase',
@@ -371,6 +380,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
     'ParamDictType',
@@ -500,12 +510,12 @@ NOT_YET_SERIALIZABLE = [
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
     'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
+    'Sycamore',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
@@ -528,6 +538,8 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
 
 def test_builtins():
+    assert_roundtrip(True)
+    assert_roundtrip(1)
     assert_roundtrip(1 + 2j)
     assert_roundtrip({
         'test': [123, 5.5],
@@ -535,6 +547,25 @@ def test_builtins():
         '3': None,
         '0.0': [],
     })
+
+
+def test_numpy():
+    x = np.ones(1)[0]
+
+    assert_roundtrip(x.astype(np.bool))
+    assert_roundtrip(x.astype(np.int8))
+    assert_roundtrip(x.astype(np.int16))
+    assert_roundtrip(x.astype(np.int32))
+    assert_roundtrip(x.astype(np.int64))
+    assert_roundtrip(x.astype(np.uint8))
+    assert_roundtrip(x.astype(np.uint16))
+    assert_roundtrip(x.astype(np.uint32))
+    assert_roundtrip(x.astype(np.uint64))
+    assert_roundtrip(x.astype(np.float32))
+    assert_roundtrip(x.astype(np.float64))
+    assert_roundtrip(x.astype(np.complex64))
+    assert_roundtrip(x.astype(np.complex128))
+
     assert_roundtrip(np.ones((11, 5)))
     assert_roundtrip(np.arange(3))
 

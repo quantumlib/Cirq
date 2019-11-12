@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numpy as np
+
 import cirq
 import cirq.google as cg
 import cirq.google.common_serializers as cgc
@@ -73,7 +75,7 @@ valid_gate_sets {
       name: "invert_mask"
       type: REPEATED_BOOLEAN
     }
-    gate_duration_picos: 1000000
+    gate_duration_picos: 4000000
     valid_targets: "meas_targets"
   }
 }
@@ -375,7 +377,7 @@ def test_json_dict():
     assert cg.Foxtail._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Foxtail',
-        'measurement_duration': cirq.Duration(nanos=1000),
+        'measurement_duration': cirq.Duration(nanos=4000),
         'exp_w_duration': cirq.Duration(nanos=20),
         'exp_11_duration': cirq.Duration(nanos=50),
         'qubits': sorted(cirq.google.Foxtail.qubits)
@@ -384,8 +386,19 @@ def test_json_dict():
     assert cirq.google.Bristlecone._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Bristlecone',
-        'measurement_duration': cirq.Duration(nanos=1000),
+        'measurement_duration': cirq.Duration(nanos=4000),
         'exp_w_duration': cirq.Duration(nanos=20),
         'exp_11_duration': cirq.Duration(nanos=50),
         'qubits': sorted(cirq.google.Bristlecone.qubits)
     }
+
+
+def test_sycamore_device():
+    q0 = cirq.GridQubit(5, 4)
+    q1 = cirq.GridQubit(5, 5)
+    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
+    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+    cg.Sycamore.validate_operation(syc)
+    cg.Sycamore.validate_operation(sqrt_iswap)
+    assert cg.Sycamore.duration_of(syc) == cirq.Duration(nanos=12)
+    assert cg.Sycamore.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)

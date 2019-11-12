@@ -20,6 +20,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
+from cirq._doc import document
 from cirq.ops import raw_types
 
 
@@ -178,6 +179,10 @@ class IdentityOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
+    @property
+    def gate(self) -> raw_types.Gate:
+        return IdentityGate(num_qubits=len(self.qubits))
+
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
         return IdentityOperation(new_qubits)
 
@@ -236,13 +241,15 @@ class IdentityOperation(raw_types.Operation):
         return cls(qubits=qubits)
 
 
-# The one qubit identity gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, 1]]
 I = IdentityGate(num_qubits=1)
+document(
+    I, """The one qubit identity gate.
+
+    Matrix:
+
+        [[1, 0],
+         [0, 1]]
+    """)
 
 
 def identity_each(*qubits: raw_types.Qid) -> raw_types.Operation:

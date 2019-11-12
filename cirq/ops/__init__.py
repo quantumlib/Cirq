@@ -124,6 +124,7 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,)
 
 from cirq.ops.matrix_gates import (
+    MatrixGate,
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
@@ -199,13 +200,9 @@ from cirq.ops.raw_types import (
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     SWAP,
     SwapPowGate,
-)
-
-from cirq.ops.sycamore_gate import (
-    SycamoreGate,
-    SYC,
 )
 
 from cirq.ops.three_qubit_gates import (
