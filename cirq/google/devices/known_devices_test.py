@@ -75,7 +75,7 @@ valid_gate_sets {
       name: "invert_mask"
       type: REPEATED_BOOLEAN
     }
-    gate_duration_picos: 1000000
+    gate_duration_picos: 4000000
     valid_targets: "meas_targets"
   }
 }
@@ -377,7 +377,7 @@ def test_json_dict():
     assert cg.Foxtail._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Foxtail',
-        'measurement_duration': cirq.Duration(nanos=1000),
+        'measurement_duration': cirq.Duration(nanos=4000),
         'exp_w_duration': cirq.Duration(nanos=20),
         'exp_11_duration': cirq.Duration(nanos=50),
         'qubits': sorted(cirq.google.Foxtail.qubits)
@@ -386,7 +386,7 @@ def test_json_dict():
     assert cirq.google.Bristlecone._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Bristlecone',
-        'measurement_duration': cirq.Duration(nanos=1000),
+        'measurement_duration': cirq.Duration(nanos=4000),
         'exp_w_duration': cirq.Duration(nanos=20),
         'exp_11_duration': cirq.Duration(nanos=50),
         'qubits': sorted(cirq.google.Bristlecone.qubits)
