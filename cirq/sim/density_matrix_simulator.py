@@ -140,7 +140,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 simulator = cirq.DensityMatrixSimulator()
                 result = simulator.run(circuit)
 
-                The measurement result will be strictly one of |0> or |1>.
+                The measurement result will be strictly one of 0 or 1.
 
                 In the other case:
                 simulator = cirq.DensityMatrixSimulator(
@@ -148,7 +148,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 result = simulator.run(circuit)
 
                 The measurement result will be the maximally mixed state
-                with equal probability for |0> and |1>.
+                with equal probability for 0 and 1.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
