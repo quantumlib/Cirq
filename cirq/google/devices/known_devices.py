@@ -201,7 +201,7 @@ _DURATIONS_FOR_XMON = {
     'cz': 50_000,
     'xy': 20_000,
     'z': 0,
-    'meas': 4_000_000,  # 1000 ms for readout, 3000ns for "ring down"
+    'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
 }
 
 FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
