@@ -10,7 +10,9 @@ import cirq.google as cig
 
 def _unitaries_allclose(circuit1, circuit2):
     unitary1 = cirq.unitary(circuit1)
+    print(circuit2)
     unitary2 = cirq.unitary(circuit2)
+    print(unitary2)
     if unitary2.size == 1:
         # Resize the unitary of empty circuits to be 4x4 for 2q gates
         unitary2 = unitary2 * np.eye(unitary1.shape[0])
