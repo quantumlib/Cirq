@@ -138,6 +138,8 @@ the more general concept of a noisy open system quantum evolution.
     GeneralizedAmplitudeDampingChannel
     reset
     ResetChannel
+    thermal_relaxation
+    ThermalRelaxationChannel
     phase_damp
     phase_flip
     PhaseDampingChannel
