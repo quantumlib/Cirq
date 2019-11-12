@@ -1,0 +1,32 @@
+[
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": "z",
+    "invert_mask": []
+  },
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": "z",
+    "invert_mask": [
+      true,
+      false,
+      true
+    ]
+  },
+  {
+    "cirq_type": "MeasurementGate",
+    "num_qubits": 3,
+    "key": "z",
+    "invert_mask": [
+      true,
+      false
+    ],
+    "qid_shape": [
+      1,
+      2,
+      3
+    ]
+  }
+]

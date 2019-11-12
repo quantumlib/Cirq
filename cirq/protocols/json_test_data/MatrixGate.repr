@@ -1,0 +1,1 @@
+[cirq.MatrixGate(np.array([[(1+0j), 0j, 0j, 0j, 0j, 0j], [0j, (-1+0j), 0j, 0j, 0j, 0j], [0j, 0j, 1j, 0j, 0j, 0j], [0j, 0j, 0j, 1j, 0j, 0j], [0j, 0j, 0j, 0j, (-0-1j), 0j], [0j, 0j, 0j, 0j, 0j, (-1+0j)]], dtype=np.complex128), qid_shape=(2, 3))]
