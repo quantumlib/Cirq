@@ -826,10 +826,12 @@ def test_density_matrix_trial_result_repr():
 class XAsOp(cirq.Operation):
 
     def __init__(self, q):
+        # coverage: ignore
         self.q = q
 
     @property
     def qubits(self):
+        # coverage: ignore
         return self.q,
 
     def with_qubits(self, *new_qubits):
@@ -837,6 +839,7 @@ class XAsOp(cirq.Operation):
         return XAsOp(new_qubits[0])
 
     def _channel_(self):
+        # coverage: ignore
         return cirq.channel(cirq.X)
 
 
@@ -845,10 +848,12 @@ def test_works_on_operation():
     class XAsOp(cirq.Operation):
 
         def __init__(self, q):
+            # coverage: ignore
             self.q = q
 
         @property
         def qubits(self):
+            # coverage: ignore
             return self.q,
 
         def with_qubits(self, *new_qubits):
@@ -856,6 +861,7 @@ def test_works_on_operation():
             return XAsOp(new_qubits[0])
 
         def _channel_(self):
+            # coverage: ignore
             return cirq.channel(cirq.X)
 
     s = cirq.DensityMatrixSimulator()
