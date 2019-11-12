@@ -15,7 +15,6 @@
 """Simulator for density matrices that simulates noisy quantum circuits."""
 
 import collections
-import enum
 
 from typing import Dict, Iterator, List, Optional, Type, Union
 
@@ -141,14 +140,14 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 simulator = cirq.DensityMatrixSimulator()
                 result = simulator.run(circuit)
 
-                result.measurements['0'] will be strictly one of |0> or |1>.
+                The measurement result will be strictly one of |0> or |1>.
 
                 In the other case:
                 simulator = cirq.DensityMatrixSimulator(
                 replace_measurement_with_dephasing = True)
                 result = simulator.run(circuit)
 
-                result.measurements['0'] will be the maximally mixed state
+                The measurement result will be the maximally mixed state
                 with equal probability for |0> and |1>.
         """
         if dtype not in {np.complex64, np.complex128}:
