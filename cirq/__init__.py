@@ -200,6 +200,7 @@ from cirq.ops import (
     IdentityOperation,
     InterchangeableQubitsGate,
     ISWAP,
+    iswap,
     ISwapPowGate,
     ISwapRotation,
     LinearCombinationOfGates,

@@ -66,6 +66,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.SWAP
     cirq.TOFFOLI
     cirq.identity_each
+    cirq.iswap
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
