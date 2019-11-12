@@ -10,14 +10,10 @@ import cirq.google as cig
 
 def _unitaries_allclose(circuit1, circuit2):
     unitary1 = cirq.unitary(circuit1)
-    print(circuit2)
     unitary2 = cirq.unitary(circuit2)
-    print(unitary2)
     if unitary2.size == 1:
         # Resize the unitary of empty circuits to be 4x4 for 2q gates
         unitary2 = unitary2 * np.eye(unitary1.shape[0])
-    print(unitary1)
-    print(unitary2)
     return cirq.allclose_up_to_global_phase(unitary1, unitary2)
 
 
@@ -47,7 +43,7 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     """
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
-    original_circuit = cirq.Circuit().from_ops(gate(q0, q1))
+    original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
     cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
     cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
@@ -69,20 +65,13 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     """
     q0 = cirq.GridQubit(5, 3)
     q1 = cirq.GridQubit(5, 4)
-    print(gate)
-    original_circuit = cirq.Circuit().from_ops(gate(q0, q1))
+    original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
     cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
     assert len(converted_circuit) <= expected_length
 
     # Check if unitaries are the same
     for val in np.linspace(0, 2 * np.pi, 20):
-        cc = cirq.resolve_parameters(original_circuit, {'t': val})
-        print(cc)
-        cgoc.ConvertToSqrtIswapGates().optimize_circuit(cc)
-        print(cc)
-        print(cirq.resolve_parameters(converted_circuit, {'t': val}))
-        print('------')
         assert _unitaries_allclose(
             cirq.resolve_parameters(original_circuit, {'t': val}),
             cirq.resolve_parameters(converted_circuit, {'t': val}))

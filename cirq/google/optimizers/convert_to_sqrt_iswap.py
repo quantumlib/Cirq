@@ -176,8 +176,14 @@ def cphase_to_sqrt_iswap(a, b, turns):
         sign = -1.
         theta_prime = 2 * np.pi - theta
 
-    phi = np.arcsin(np.sqrt(2) * np.sin(theta_prime / 4))
-    xi = np.arctan(np.tan(phi) / np.sqrt(2))
+    if np.isclose(theta, np.pi):
+        # If we are close to pi, just set values manually to avoid possible
+        # numerical errors with arcsin of greater than 1.0 (Ahem, Windows).
+        phi = np.pi / 2
+        xi = np.pi / 2
+    else:
+        phi = np.arcsin(np.sqrt(2) * np.sin(theta_prime / 4))
+        xi = np.arctan(np.tan(phi) / np.sqrt(2))
 
     yield cirq.Rz(sign * 0.5 * theta_prime).on(a)
     yield cirq.Rz(sign * 0.5 * theta_prime).on(b)
