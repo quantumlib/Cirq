@@ -128,10 +128,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            replace_measurement_with_dephasing: if True, then the simulation 
+            replace_measurement_with_dephasing: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
-                
+
                 Example:
                 q0 = cirq.LineQubit.range(1)
                 circuit = cirq.Circuit(H(q0), cirq.measure(q0))
@@ -163,7 +163,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             self.prng = seed
         else:
             self.prng = np.random.RandomState(seed)
-        self._replace_measurement_with_dephasing = replace_measurement_with_dephasing
+        self._replace_measurement_with_dephasing = (
+            replace_measurement_with_dephasing)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -308,12 +309,13 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         else:
                             invert_mask = meas.full_invert_mask()
                             # Measure updates inline.
-                            bits, _ = density_matrix_utils.measure_density_matrix(
-                                state.tensor,
-                                indices,
-                                qid_shape=qid_shape,
-                                out=state.tensor,
-                                seed=self.prng)
+                            bits, _ = (
+                                density_matrix_utils.measure_density_matrix(
+                                    state.tensor,
+                                    indices,
+                                    qid_shape=qid_shape,
+                                    out=state.tensor,
+                                    seed=self.prng))
                             corrected = [
                                 bit ^ (bit < 2 and mask)
                                 for bit, mask in zip(bits, invert_mask)

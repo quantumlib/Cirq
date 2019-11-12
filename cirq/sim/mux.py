@@ -216,7 +216,7 @@ def final_density_matrix(
     Note that, unlike `cirq.final_wavefunction`, terminal measurements
     are not omitted. Instead, all measurements are treated as sources
     of decoherence (i.e. measurements do not collapse, they dephase).
-    
+
     Args:
         program: The circuit, schedule, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
@@ -233,7 +233,7 @@ def final_density_matrix(
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
-        replace_measurement_with_dephasing: if True, then the simulation 
+        replace_measurement_with_dephasing: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
 
