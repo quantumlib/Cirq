@@ -179,6 +179,10 @@ class IdentityOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
+    @property
+    def gate(self) -> raw_types.Gate:
+        return IdentityGate(num_qubits=len(self.qubits))
+
     def with_qubits(self, *new_qubits: raw_types.Qid) -> 'raw_types.Operation':
         return IdentityOperation(new_qubits)
 
