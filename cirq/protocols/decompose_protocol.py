@@ -216,7 +216,6 @@ def decompose(
     queue: List[Any] = [val]
     while queue:
         item = queue.pop(0)
-
         if isinstance(item, ops.Operation) and keep is not None and keep(item):
             output.append(item)
             continue
