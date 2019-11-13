@@ -45,6 +45,7 @@ class SingleQubitReadoutCalibrationResult:
             'repetitions': self.repetitions
         }
 
+    @staticmethod
     def _from_json_dict_(cirq_type, zero_state_errors, one_state_errors,
                          repetitions):
         return SingleQubitReadoutCalibrationResult(
