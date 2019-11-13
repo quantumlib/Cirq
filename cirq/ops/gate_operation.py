@@ -195,6 +195,18 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+    def _equal_up_to_global_phase_(self,
+                                   other: Any,
+                                   atol: Union[int, float] = 1e-8
+                                  ) -> Union[NotImplementedType, bool]:
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if self.qubits != other.qubits:
+            return False
+        return protocols.equal_up_to_global_phase(self.gate,
+                                                  other.gate,
+                                                  atol=atol)
+
 
 TV = TypeVar('TV', bound=raw_types.Gate)
 

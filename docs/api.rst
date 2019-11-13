@@ -192,6 +192,18 @@ Circuits, Operations, and Moments.
     cirq.Unique
 
 
+Importing and Exporting
+'''''''''''''''''''''''
+
+Utilities for interoperating with other quantum software libraries and products.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.quirk_json_to_circuit
+    cirq.quirk_url_to_circuit
+
+
 Sampling, Simulations, and Data Collection
 ''''''''''''''''''''''''''''''''''''''''''
 
