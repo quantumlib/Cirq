@@ -14,7 +14,7 @@
 from typing import TYPE_CHECKING
 
 from cirq import value, protocols
-from cirq.ops import raw_types
+from cirq.ops import gate_features, raw_types
 
 if TYPE_CHECKING:
     import cirq
