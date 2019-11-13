@@ -2,7 +2,7 @@
 https://arxiv.org/abs/1811.12926.
 """
 
-from typing import Optional, List, cast, Callable, Dict, Tuple
+from typing import Optional, List, cast, Callable, Dict, Tuple, Set
 from dataclasses import dataclass
 
 import numpy as np
@@ -171,7 +171,6 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
         measurements removed.
 
     """
-    bad_measurements = set()
     # The circuit's mapping from physical qubit to logical qubit.
     inverse_mapping: Dict[cirq.Qid, cirq.Qid] = {
         v: k for k, v in mapping.items()
@@ -179,7 +178,7 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
 
     # Calculate all the invalid parity pairs.
     data = trial_result.data
-    bad_measurements = set()
+    bad_measurements: Set[int] = set()
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
             final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
