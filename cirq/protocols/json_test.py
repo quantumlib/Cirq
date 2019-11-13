@@ -19,9 +19,8 @@ import json
 import os
 import pathlib
 import textwrap
-from typing import Tuple, Iterator, Type, List
+from typing import Tuple, Iterator, Type, List, Set, Any
 
-import pandas
 import pytest
 
 import numpy as np
@@ -29,6 +28,7 @@ import pandas as pd
 import sympy
 
 import cirq
+from cirq._compat import proper_repr, proper_eq
 
 TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
@@ -339,12 +339,16 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
-    yield from _get_all_public_classes(cirq)
-    yield from _get_all_public_classes(cirq.google)
+def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
+    result = set()
+    result.update(_get_all_public_classes(cirq))
+    result.update(_get_all_public_classes(cirq.google))
 
-    # Objects not listed at top level.
-    yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
+    from cirq.protocols.json import RESOLVER_CACHE
+    for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
+        t = v if isinstance(v, type) else None
+        result.add((k, t))
+    return result
 
 
 def test_builtins():
@@ -422,18 +426,34 @@ def test_sympy():
     assert_roundtrip(4 * t + 3 * s + 2)
 
 
-@pytest.mark.parametrize('cirq_obj_name,cls', _roundtrip_test_classes())
+def _write_test_data(key: str, *test_instances: Any):
+    """Helper method for creating initial test data."""
+    # coverage: ignore
+    cirq.to_json(test_instances, TEST_DATA_PATH / f'{key}.json')
+    with open(TEST_DATA_PATH / f'{key}.repr', 'w') as f:
+        f.write('[\n')
+        for e in test_instances:
+            f.write(proper_repr(e))
+            f.write(',\n')
+        f.write(']')
+
+
+@pytest.mark.parametrize('cirq_obj_name,cls',
+                         _find_classes_that_should_serialize())
 def test_json_test_data_coverage(cirq_obj_name: str, cls):
     if cirq_obj_name in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
-    if not (TEST_DATA_PATH / f'{cirq_obj_name}.json').exists():
+    json_path = TEST_DATA_PATH / f'{cirq_obj_name}.json'
+    json_path2 = TEST_DATA_PATH / f'{cirq_obj_name}.json_inward'
+
+    if not json_path.exists() and not json_path2.exists():
         # coverage: ignore
         raise NotImplementedError(
             textwrap.fill(
-                f"Hello intrepid developer. There is a new public object or "
-                f"class named '{cirq_obj_name}' that does not have test data "
-                f"for JSON roundtripability.\n"
+                f"Hello intrepid developer. There is a new public or "
+                f"serializable object named '{cirq_obj_name}' that does not "
+                f"have associated test data.\n"
                 f"\n"
                 f"You must create the file\n"
                 f"    cirq/protocols/json_test_data/{cirq_obj_name}.json\n"
@@ -467,7 +487,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
                 f"cirq/protocols/json_test.py source file."))
 
     repr_file = TEST_DATA_PATH / f'{cirq_obj_name}.repr'
-    if repr_file.exists():
+    if repr_file.exists() and cls is not None:
         objs = _eval_repr_data_file(repr_file)
         if not isinstance(objs, list):
             objs = [objs]
@@ -488,7 +508,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
 def test_to_from_strings():
     x_json_text = """{
   "cirq_type": "_PauliX",
-  "exponent": 1,
+  "exponent": 1.0,
   "global_shift": 0.0
 }"""
     assert cirq.to_json(cirq.X) == x_json_text
@@ -501,7 +521,7 @@ def test_to_from_strings():
 def _eval_repr_data_file(path: pathlib.Path):
     return eval(path.read_text(), {
         'cirq': cirq,
-        'pandas': pandas,
+        'pd': pd,
         'sympy': sympy,
         'np': np,
     }, {})
@@ -510,7 +530,7 @@ def _eval_repr_data_file(path: pathlib.Path):
 def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
                                          json_path: pathlib.Path,
                                          inward_only: bool):
-    if inward_only and not repr_path.exists() and not json_path.exists():
+    if not repr_path.exists() and not json_path.exists():
         return
 
     rel_repr_path = f'{TEST_DATA_REL}/{repr_path.name}'
@@ -531,7 +551,7 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
         raise IOError(
             f'Failed to parse test repr data from {rel_repr_path}.') from ex
 
-    assert json_obj == repr_obj, (
+    assert proper_eq(json_obj, repr_obj), (
         f'The json data from {rel_json_path} did not parse '
         f'into an object equivalent to the repr data from {rel_repr_path}.\n'
         f'\n'
