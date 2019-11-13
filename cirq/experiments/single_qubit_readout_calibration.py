@@ -18,7 +18,7 @@ import dataclasses
 
 import numpy as np
 
-from cirq import circuits, ops, work
+from cirq import circuits, ops, protocols, work
 
 
 @dataclasses.dataclass
@@ -38,8 +38,19 @@ class SingleQubitReadoutCalibrationResult:
     repetitions: int
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(
-            self, ['zero_state_errors', 'one_state_errors', 'repetitions'])
+        return {
+            'cirq_type': self.__class__.__name__,
+            'zero_state_errors': list(self.zero_state_errors.items()),
+            'one_state_errors': list(self.one_state_errors.items()),
+            'repetitions': self.repetitions
+        }
+
+    def _from_json_dict_(cirq_type, zero_state_errors, one_state_errors,
+                         repetitions):
+        return SingleQubitReadoutCalibrationResult(
+            zero_state_errors=dict(zero_state_errors),
+            one_state_errors=dict(one_state_errors),
+            repetitions=repetitions)
 
 
 def estimate_single_qubit_readout_errors(

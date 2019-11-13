@@ -105,6 +105,8 @@ class _ResolverCache:
                 'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
+                'SingleQubitReadoutCalibrationResult':
+                cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,

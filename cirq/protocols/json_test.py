@@ -281,6 +281,11 @@ TEST_OBJECTS = {
     cirq.SWAP,
     'SingleQubitPauliStringGateOperation':
     cirq.X(Q0),
+    'SingleQubitReadoutCalibrationResult':
+    cirq.experiments.SingleQubitReadoutCalibrationResult(
+        zero_state_errors={cirq.LineQubit(0): 0.0},
+        one_state_errors={cirq.LineQubit(0): 0.0},
+        repetitions=1000),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'SYC':
     cirq.google.SYC,
@@ -535,6 +540,8 @@ def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
 
     # Objects not listed at top level.
     yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
+    yield ('SingleQubitReadoutCalibrationResult',
+           cirq.experiments.SingleQubitReadoutCalibrationResult)
 
 
 def test_builtins():
