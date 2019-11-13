@@ -527,7 +527,7 @@ def sample_state_vector(
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
         repetitions: int = 1,
-        seed: Optional[Union[int, np.random.RandomState]] = None) -> np.ndarray:
+        seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the passed in state.
@@ -567,12 +567,7 @@ def sample_state_vector(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(state, indices, qid_shape)
@@ -596,8 +591,7 @@ def measure_state_vector(
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
         out: np.ndarray = None,
-        seed: Optional[Union[int, np.random.RandomState]] = None
-) -> Tuple[List[int], np.ndarray]:
+        seed: value.RANDOM_STATE_LIKE = None) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 
     This does not modify `state` unless the optional `out` is `state`.
@@ -643,12 +637,7 @@ def measure_state_vector(
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = value.parse_random_state(seed)
 
     # Cache initial shape.
     initial_shape = state.shape
