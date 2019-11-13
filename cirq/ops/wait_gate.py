@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class WaitGate(raw_types.Gate):
+class WaitGate(gate_features.SingleQubitGate):
     """A single-qubit idle gate that represents waiting.
 
     In non-noisy simulators, this gate is just an identity gate. But noisy
@@ -45,9 +45,6 @@ class WaitGate(raw_types.Gate):
     def _resolve_parameters_(self, param_resolver):
         return WaitGate(
             protocols.resolve_parameters(self.duration, param_resolver))
-
-    def _num_qubits_(self) -> int:
-        return 1
 
     def _has_unitary_(self) -> bool:
         return True
