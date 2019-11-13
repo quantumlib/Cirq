@@ -572,7 +572,6 @@ class Engine:
                 parent=job_resource_name))
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
-        print(result_type)
         if result_type == 'cirq.google.api.v1.Result':
             return self._get_job_results_v1(result)
         if result_type == 'cirq.google.api.v2.Result':

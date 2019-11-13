@@ -21,7 +21,6 @@ from google.protobuf import json_format
 
 from cirq import devices, ops
 from cirq.google.api import v2
-
 from cirq.google import arg_func_langs
 from cirq.google.arg_func_langs import _arg_to_proto
 
