@@ -31,7 +31,7 @@ _SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -55,7 +55,7 @@ _A_RESULT = {
 
 _RESULTS = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -86,7 +86,7 @@ _RESULTS = {
 
 _RESULTS_V2 = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.Result',
+    'type.googleapis.com/cirq.google.api.v2.Result',
     'sweepResults': [
         {
             'repetitions':
@@ -242,7 +242,7 @@ def test_run_circuit(build):
                 }
             },
             'run_context': {
-                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                '@type': 'type.googleapis.com/cirq.google.api.v1.RunContext',
                 'parameter_sweeps': [{
                     'repetitions': 1
                 }]
@@ -467,13 +467,13 @@ def test_run_sweep_params(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_params_new_proto(build):
+def test_run_sweep_params_old_proto(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
     jobs = programs.jobs()
-    results_new_proto = copy.deepcopy(_RESULTS)
-    results_new_proto['@type'] = 'type.googleapis.com/cirq.google.api.v1.Result'
+    results_old_proto = copy.deepcopy(_RESULTS)
+    results_old_proto['@type'] = 'type.googleapis.com/cirq.api.google.v1.Result'
     programs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test'
     }
@@ -489,7 +489,7 @@ def test_run_sweep_params_new_proto(build):
             'state': 'SUCCESS'
         }
     }
-    jobs.getResult().execute.return_value = {'result': results_new_proto}
+    jobs.getResult().execute.return_value = {'result': results_old_proto}
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
@@ -681,7 +681,7 @@ def test_run_sweep_v2(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_v2_new_proto(build):
+def test_run_sweep_v2_old_proto(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -701,9 +701,9 @@ def test_run_sweep_v2_new_proto(build):
             'state': 'SUCCESS'
         }
     }
-    results_new_proto = copy.deepcopy(_RESULTS_V2)
-    results_new_proto['@type'] = 'type.googleapis.com/cirq.google.api.v2.Result'
-    jobs.getResult().execute.return_value = {'result': results_new_proto}
+    results_old_proto = copy.deepcopy(_RESULTS_V2)
+    results_old_proto['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
+    jobs.getResult().execute.return_value = {'result': results_old_proto}
 
     engine = cg.Engine(
         project_id='project-id',
