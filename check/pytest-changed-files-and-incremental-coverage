@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
 
 ################################################################################
-# Finds changed uncovered lines.
+# Finds changed lines not covered by tests related to changed files.
 #
 # Usage:
-#     check/pytest-and-incremental-coverage [BASE_REVISION]
+#     check/pytest-changed-files-and-incremental-coverage [BASE_REVISION]
+#
+# This tool is not clever; it does not understand dependencies between all
+# files. If "d/x.py" or "d/x_test.py" have been modified, it will include
+# "d/x_test.py" in the arguments given to pytest. It will furthermore include
+# "--cov=d" as an argument to pytest-cov, to restrict coverage results to
+# directories containing changed files.
 #
 # You can specify a base git revision to compare against (i.e. to use when
 # determining whether or not a line is considered to have "changed"). To make
@@ -51,10 +57,31 @@ else
     rev="${base}"
 fi
 
+# Find involved files.
+cov_changed_python_file_dirs=$(git diff --name-only "${rev}" -- \
+    | grep "\.py$" \
+    | grep -v "_pb2\.py$" \
+    | xargs dirname \
+    | perl -ne 'chomp(); if (-e $_) {print "--cov=$_\n"}' \
+    | sort \
+    | uniq \
+)
+changed_python_tests=$(git diff --name-only "${rev}" -- \
+    | grep "\.py$" \
+    | sed -e "s/\.py$/_test.py/" \
+    | sed -e "s/_test_test\.py$/_test.py/" \
+    | perl -ne 'chomp(); if (-e $_) {print "$_\n"}' \
+    | sort \
+    | uniq \
+)
+if [ "${#changed_python_tests[@]}" -eq 0 ]; then
+    echo -e "\033[33mNo changed files with associated python tests.\033[0m" >&2
+    exit 0
+fi
+
 # Run tests while producing coverage files.
-check/pytest . \
-    --actually-quiet \
-    --cov \
+check/pytest "${changed_python_tests[@]}" \
+    "${cov_changed_python_file_dirs[@]}" \
     --cov-report=annotate \
     --cov-config=dev_tools/conf/.coveragerc \
     --benchmark-skip
