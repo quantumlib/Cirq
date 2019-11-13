@@ -76,8 +76,8 @@ def proper_eq(a: Any, b: Any) -> bool:
         if isinstance(a, (pd.DataFrame, pd.Index, pd.MultiIndex)):
             return a.equals(b)
         if isinstance(a, (tuple, list)):
-            return len(a) == len(b) and all(proper_eq(x, y)
-                                            for x, y in zip(a, b))
+            return len(a) == len(b) and all(
+                proper_eq(x, y) for x, y in zip(a, b))
     return a == b
 
 
