@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 
 import cirq
 import cirq.google as cg
@@ -383,6 +384,10 @@ def test_json_dict():
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Bristlecone',
     }
+
+    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
+    with pytest.raises(ValueError, match='xmon device name'):
+        _NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
 def test_sycamore_device():

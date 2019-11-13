@@ -539,14 +539,14 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
     try:
         json_from_file = json_path.read_text()
         json_obj = cirq.read_json(json_text=json_from_file)
-    except Exception as ex:
+    except Exception as ex:  # coverage: ignore
         # coverage: ignore
         raise IOError(
             f'Failed to parse test json data from {rel_json_path}.') from ex
 
     try:
         repr_obj = _eval_repr_data_file(repr_path)
-    except Exception as ex:
+    except Exception as ex:  # coverage: ignore
         # coverage: ignore
         raise IOError(
             f'Failed to parse test repr data from {rel_repr_path}.') from ex
