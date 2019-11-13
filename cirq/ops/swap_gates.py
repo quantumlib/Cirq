@@ -248,15 +248,15 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-def iswap(rads: value.TParamVal) -> ISwapPowGate:
+def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ISwapPowGate()**(2 * rads / pi)
 
 
-@deprecated(deadline='v0.7.0', fix='Use cirq.iswap, instead.')
+@deprecated(deadline='v0.7.0', fix='Use cirq.riswap, instead.')
 def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
-    return iswap(angle_rads)
+    return riswap(angle_rads)
 
 
 SWAP = SwapPowGate()

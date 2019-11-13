@@ -66,7 +66,6 @@ Unitary effects that can be applied to one or more qubits.
     cirq.SWAP
     cirq.TOFFOLI
     cirq.identity_each
-    cirq.iswap
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
@@ -90,6 +89,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.QuantumFourierTransformGate
+    cirq.riswap
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
     cirq.SwapPowGate
