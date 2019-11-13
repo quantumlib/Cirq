@@ -14,17 +14,5 @@
 
 """Converts cirq circuits into quirk circuits."""
 
-# Imports from cells are only to ensure operation reprs work correctly.
-from cirq.contrib.quirk.cells import (
-    QuirkArithmeticOperation,
-    QuirkInputRotationOperation,
-    QuirkQubitPermutationGate,
-)
-
 from cirq.contrib.quirk.export_to_quirk import (
     circuit_to_quirk_url,)
-
-from cirq.contrib.quirk.url_to_circuit import (
-    quirk_json_to_circuit,
-    quirk_url_to_circuit,
-)

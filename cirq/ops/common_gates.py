@@ -24,7 +24,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
-from typing import Any, cast, Optional, Tuple, Union
+from typing import Any, cast, Collection, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -379,6 +379,24 @@ class ZPowGate(eigen_gate.EigenGate,
     def with_canonical_global_phase(self) -> 'ZPowGate':
         """Returns an equal-up-global-phase standardized form of the gate."""
         return ZPowGate(exponent=self._exponent)
+
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Specialize controlled for ZPow to return corresponding CZPow when
+        controlled by a single qubit.
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (result.control_values == ((1,),) and  # type: ignore
+                result.control_qid_shape == (2,)):  # type: ignore
+            return cirq.CZPowGate(exponent=self._exponent,
+                                  global_shift=self._global_shift)
+        return result
 
     def _eigen_components(self):
         return [

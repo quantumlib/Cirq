@@ -19,6 +19,7 @@ from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v2
 from cirq.google.api.v2 import device_pb2
+from cirq.google.devices.serializable_device import SerializableDevice
 from cirq.google.devices.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate
 from cirq.value import Duration
@@ -183,7 +184,7 @@ class _NamedConstantXmonDevice(XmonDevice):
 
 
 Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
-                                   measurement_duration=Duration(nanos=1000),
+                                   measurement_duration=Duration(nanos=4000),
                                    exp_w_duration=Duration(nanos=20),
                                    exp_11_duration=Duration(nanos=50),
                                    qubits=_parse_device(_FOXTAIL_GRID)[0])
@@ -200,7 +201,7 @@ _DURATIONS_FOR_XMON = {
     'cz': 50_000,
     'xy': 20_000,
     'z': 0,
-    'meas': 1_000_000,
+    'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
 }
 
 FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
@@ -223,7 +224,7 @@ ABCDEFGHIJKL
 
 Bristlecone = _NamedConstantXmonDevice(
     'cirq.google.Bristlecone',
-    measurement_duration=Duration(nanos=1000),
+    measurement_duration=Duration(nanos=4000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
@@ -239,3 +240,37 @@ document(
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],
                                                      _DURATIONS_FOR_XMON)
+
+_SYCAMORE_GRID = """
+-----AB---
+----ABCD--
+---ABCDEF-
+--ABCDEFGH
+-ABCDEFGHI
+ABCDEFGHI-
+-CDEFGHI--
+--EFGHI---
+---GHI----
+----I-----
+"""
+
+_SYCAMORE_DURATIONS_PICOS = {
+    'xy': 25_000,
+    'xy_half_pi': 25_000,
+    'xy_pi': 25_000,
+    'fsim_pi_4': 32_000,
+    'inv_fsim_pi_4': 32_000,
+    'syc': 12_000,
+    'z': 0,
+    'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
+}
+
+SYCAMORE_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE_GRID,
+    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    _SYCAMORE_DURATIONS_PICOS,
+)
+
+Sycamore = SerializableDevice.from_proto(
+    proto=SYCAMORE_PROTO,
+    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
