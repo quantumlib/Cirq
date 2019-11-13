@@ -91,7 +91,7 @@ def sample_density_matrix(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         repetitions: int = 1,
-        seed: Optional[Union[int, np.random.RandomState]] = None) -> np.ndarray:
+        seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the density_matrix.
@@ -136,12 +136,7 @@ def sample_density_matrix(
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.int8)
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
     probs = _probs(density_matrix, indices, qid_shape)
@@ -158,13 +153,12 @@ def sample_density_matrix(
                     dtype=np.int8)
 
 
-def measure_density_matrix(
-        density_matrix: np.ndarray,
-        indices: List[int],
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        out: np.ndarray = None,
-        seed: Optional[Union[int, np.random.RandomState]] = None
-) -> Tuple[List[int], np.ndarray]:
+def measure_density_matrix(density_matrix: np.ndarray,
+                           indices: List[int],
+                           qid_shape: Optional[Tuple[int, ...]] = None,
+                           out: np.ndarray = None,
+                           seed: value.RANDOM_STATE_LIKE = None
+                          ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
     This does not modify `density_matrix` unless the optional `out` is
@@ -218,12 +212,7 @@ def measure_density_matrix(
         return ([], out)
         # Final else: if out is matrix then matrix will be modified in place.
 
-    if seed is None:
-        prng = np.random
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = value.parse_random_state(seed)
 
     # Cache initial shape.
     initial_shape = density_matrix.shape
