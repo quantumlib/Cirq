@@ -37,6 +37,10 @@ class SingleQubitReadoutCalibrationResult:
     one_state_errors: Dict[ops.Qid, float]
     repetitions: int
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(
+            self, ['zero_state_errors', 'one_state_errors', 'repetitions'])
+
 
 def estimate_single_qubit_readout_errors(
         sampler: work.Sampler,
