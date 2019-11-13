@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.api.google.v2 import result_pb2
 from cirq.google.api import v2
 
 
@@ -169,7 +168,7 @@ def test_results_to_proto():
         ],
     ]
     proto = v2.results_to_proto(trial_results, measurements)
-    assert isinstance(proto, result_pb2.Result)
+    assert isinstance(proto, v2.result_pb2.Result)
     assert len(proto.sweep_results) == 2
     deserialized = v2.results_from_proto(proto, measurements)
     assert len(deserialized) == 2
@@ -213,7 +212,7 @@ def test_results_from_proto_qubit_ordering():
                        slot=0,
                        invert_mask=[False, False, False])
     ]
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
@@ -254,7 +253,7 @@ def test_results_from_proto_duplicate_qubit():
                        slot=0,
                        invert_mask=[False, False, False])
     ]
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
@@ -274,7 +273,7 @@ def test_results_from_proto_duplicate_qubit():
 
 
 def test_results_from_proto_default_ordering():
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
