@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Sequence
+from typing import Dict, Iterable
 
 import dataclasses
 
@@ -41,7 +41,7 @@ class SingleQubitReadoutCalibrationResult:
 def estimate_single_qubit_readout_errors(
         sampler: work.Sampler,
         *,
-        qubits: Sequence[ops.Qid],
+        qubits: Iterable[ops.Qid],
         repetitions: int = 1000) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
@@ -59,6 +59,7 @@ def estimate_single_qubit_readout_errors(
         probabilities as well as the number of repetitions used to estimate
         the probabilties.
     """
+    qubits = list(qubits)
 
     zeros_circuit = circuits.Circuit(ops.measure_each(*qubits, key_func=repr))
     ones_circuit = circuits.Circuit(ops.X.on_each(*qubits),
