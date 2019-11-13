@@ -16,7 +16,7 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Optional, Type, Union
+from typing import Dict, Iterator, List, Type, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -119,7 +119,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: Optional[Union[int, np.random.RandomState]] = None,
+                 seed: value.RANDOM_STATE_LIKE = None,
                  replace_measurement_with_dephasing: bool = False):
         """Density matrix simulator.
 
@@ -155,14 +155,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'dtype must be complex64 or complex128, was {}'.format(dtype))
 
         self._dtype = dtype
+        self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-
-        if seed is None:
-            self.prng = None
-        elif isinstance(seed, np.random.RandomState):
-            self.prng = seed
-        else:
-            self.prng = np.random.RandomState(seed)
         self._replace_measurement_with_dephasing = (
             replace_measurement_with_dephasing)
 
@@ -193,7 +187,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                ops.MeasurementGate)]
         return step_result.sample_measurement_ops(measurement_ops,
                                                   repetitions,
-                                                  seed=self.prng)
+                                                  seed=self._prng)
 
     def _run_sweep_repeat(self,
                           circuit: circuits.Circuit,
@@ -315,7 +309,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                     indices,
                                     qid_shape=qid_shape,
                                     out=state.tensor,
-                                    seed=self.prng))
+                                    seed=self._prng))
                             corrected = [
                                 bit ^ (bit < 2 and mask)
                                 for bit, mask in zip(bits, invert_mask)
@@ -448,8 +442,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: Optional[Union[int, np.random.RandomState]] = None
-              ) -> np.ndarray:
+               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,
