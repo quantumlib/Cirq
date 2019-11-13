@@ -127,10 +127,7 @@ def sample_heavy_set(compilation_result: CompilationResult,
     if mapping:
         # Add any qubits that were not explicitly mapped, so they aren't lost in
         # the sorting.
-        for q in qubits:
-            if q not in mapping:
-                mapping[q] = q
-        key = lambda q: mapping[q]
+        key = lambda q: mapping.get(q, q)
         qubits = frozenset(mapping.keys())
 
     # Don't do a single large measurement gate because then the key will be one
@@ -180,28 +177,24 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
         v: k for k, v in mapping.items()
     }
 
+    # Calculate all the invalid parity pairs.
+    data = trial_result.data
+    bad_measurements = set()
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
-            parity_qubit = parity_mapping[original_qubit]
-            qubit_meas = trial_result.measurements[str(final_qubit)]
-            final_parity_qubit = inverse_mapping[parity_qubit]
-            parity_meas = trial_result.measurements[str(final_parity_qubit)]
-            # Check each bit's parity qubit results to see if they are correct.
-            for idx, qubit_val in enumerate(qubit_meas):
-                # The qubit's value should be equal to the parity value (since
-                # the parity bit is initialized to 0 and CNOTed)
-                if qubit_val != parity_meas[idx]:
-                    bad_measurements.add(idx)
+            final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
+            mismatches = np.nonzero(
+                data[str(final_qubit)] == data[str(final_parity_qubit)])
+            bad_measurements.update(*mismatches)
 
     # Remove the parity qubits from the measurements.
     for parity_qubit in parity_mapping.values():
-        trial_result.measurements.pop(str(inverse_mapping[parity_qubit]))
+        data.drop(str(inverse_mapping[parity_qubit]), axis=1, inplace=True)
 
     print(f"Dropping {len(bad_measurements)} measurements")
-    results = trial_result.data
-    results.drop(bad_measurements, inplace=True)
+    data.drop(bad_measurements, inplace=True)
 
-    return results
+    return data
 
 
 def compile_circuit(
@@ -227,7 +220,7 @@ def compile_circuit(
         routing_attempts: See doc for calculate_quantum_volume.
         compiler: An optional function to deconstruct the model circuit's
             gates down to the target devices gate set and then optimize it.
-        add_readout_error_correction: If true, add some parity bits that willx
+        add_readout_error_correction: If true, add some parity bits that will
             later be used to detect readout error.
 
     Returns: A tuple where the first value is the compiled circuit and the
@@ -241,19 +234,18 @@ def compile_circuit(
     # Optionally add some the parity check bits.
     parity_map: Dict[cirq.Qid, cirq.Qid] = {}  # original -> parity
     if add_readout_error_correction:
-        parity_ops = cirq.Moment()
+        num_qubits = len(compiled_circuit.all_qubits())
         # Sort just to make it deterministic.
         for idx, qubit in enumerate(sorted(compiled_circuit.all_qubits())):
             # For each qubit, create a new qubit that will serve as its parity
             # check. This parity bit is initialized to 0 and then CNOTed with
             # the original qubit. Later, these two qubits will be checked for
             # equality - if they don't match, there was likely a readout error.
-            qubit_num = idx + len(compiled_circuit.all_qubits())
+            qubit_num = idx + num_qubits
             parity_qubit = cirq.LineQubit(qubit_num)
-            parity_ops = parity_ops.with_operation(
-                cirq.CNOT(qubit, parity_qubit))
+            compiled_circuit.append(cirq.X(parity_qubit))
+            compiled_circuit.append(cirq.CNOT(qubit, parity_qubit))
             parity_map[qubit] = parity_qubit
-        compiled_circuit.append(parity_ops)
 
     # Swap Mapping (Routing). Ensure the gates can actually operate on the
     # target qubits given our topology.
@@ -360,7 +352,7 @@ def execute_circuits(
         compiler: An optional function to compiler the model circuit's
             gates down to the target devices gate set and the optimize it.
         repetitions: The number of bitstrings to sample per circuit.
-        add_readout_error_correction: If true, add some parity bits that willx
+        add_readout_error_correction: If true, add some parity bits that will
             later be used to detect readout error.
 
     Returns:
@@ -437,12 +429,12 @@ def calculate_quantum_volume(
         routing_attempts: The number of times to route each model circuit onto
             the device. Each attempt will be graded using an ideal simulator
             and the best one will be used.
-        add_readout_error_correction: If true, add some parity bits that willx
+        add_readout_error_correction: If true, add some parity bits that will
             later be used to detect readout error. WARNING: This makes the
             simulator run extremely slowly for any width/depth of 4 or more,
-            probably because it doubles the circuit size. In reality, the
-            simulator shouldn't need to use this larger circuit for the majority
-            of operations, since they only come into play at the end.
+            because it doubles the circuit size. In reality, the simulator
+            shouldn't need to use this larger circuit for the majority of
+            operations, since they only come into play at the end.
 
     Returns: A list of QuantumVolumeResults that contains all of the information
         for running the algorithm and its results.

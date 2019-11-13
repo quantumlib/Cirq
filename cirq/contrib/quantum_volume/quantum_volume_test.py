@@ -84,16 +84,17 @@ def test_sample_heavy_set_with_parity():
     """Test that we correctly sample a circuit's heavy set with a parity map"""
 
     sampler = Mock(spec=cirq.Simulator)
-    # Construct a result that returns "2" for the first two qubits, "1" for the
-    # 3rd, and "0" for the fourth. The first two bits are parity bits and are
-    # equal, so they pass. The last two bits are parity bits and are not equal,
-    # so they are dropped.
+    # Construct a result that returns [1, 0, 1, 0] for the physical qubit
+    # measurement, and [0, 1, 1, 0] for the ancilla qubit measurement. The first
+    # bitstring "10" is valid and heavy. The second "01" is valid and not
+    # heavy. The third and fourth bitstraings "11" and "00" are not valid and
+    # dropped.
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
-            '0': np.array([[1], [1]]),
-            '1': np.array([[1], [1]]),
-            '2': np.array([[0], [1]]),
+            '0': np.array([[1], [0]]),
+            '1': np.array([[0], [1]]),
+            '2': np.array([[1], [1]]),
             '3': np.array([[0], [0]])
         })
     sampler.run = MagicMock(return_value=result)
@@ -106,10 +107,10 @@ def test_sample_heavy_set_with_parity():
             cirq.LineQubit(2): cirq.LineQubit(3)
         })
     probability = cirq.contrib.quantum_volume.sample_heavy_set(
-        compilation_result, [2], sampler=sampler, repetitions=1)
+        compilation_result, [1], sampler=sampler, repetitions=1)
     # The first output is in the heavy set. The second one isn't, but it is
     # dropped.
-    assert probability == 1
+    assert probability == .5
 
 
 def test_compile_circuit_router():
