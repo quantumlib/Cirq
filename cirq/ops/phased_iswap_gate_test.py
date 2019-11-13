@@ -108,6 +108,24 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
         ignoring_global_phase=False)
 
 
+def test_diagram():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.PhasedISwapPowGate(phase_exponent=sympy.Symbol('p'),
+                                exponent=sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=2 * sympy.Symbol('p'),
+                                exponent=1 - sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.2, exponent=1).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.3, exponent=0.4).on(q0, q1),
+    )
+    cirq.testing.assert_has_diagram(
+        c, """
+0: ───PhISwap(p)─────PhISwap(2*p)───────────PhISwap(0.2)───PhISwap(0.3)───────
+      │              │                      │              │
+1: ───PhISwap(p)^t───PhISwap(2*p)^(1 - t)───PhISwap(0.2)───PhISwap(0.3)^0.4───
+""")
+
+
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
 def test_givens_rotation_unitary(angle_rads):
     actual = cirq.unitary(cirq.GivensRotation(angle_rads))
