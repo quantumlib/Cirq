@@ -17,21 +17,24 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import List, Optional, Type, Union, Sequence, cast
+from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, devices, protocols, study, schedules, devices, ops
+from cirq import circuits, protocols, study, schedules, devices, ops, value
 from cirq.sim import sparse_simulator, density_matrix_simulator
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def sample(program: Union[circuits.Circuit, schedules.Schedule],
            *,
-           noise: devices.NoiseModel = devices.NO_NOISE,
+           noise: 'cirq.NOISE_MODEL_LIKE' = None,
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: Optional[int] = None) -> study.TrialResult:
+           seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -42,22 +45,22 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
     """
+    noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
     # State vector simulation is much faster, but only works if no randomness.
-    if noise == devices.NO_NOISE and protocols.has_unitary(program):
+    if noise_model == devices.NO_NOISE and protocols.has_unitary(program):
         return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
             program=program,
             param_resolver=param_resolver,
             repetitions=repetitions)
 
     return density_matrix_simulator.DensityMatrixSimulator(
-        dtype=dtype, noise=noise).run(program=program,
-                                      param_resolver=param_resolver,
-                                      repetitions=repetitions)
+        dtype=dtype, noise=noise_model,
+        seed=seed).run(program=program,
+                       param_resolver=param_resolver,
+                       repetitions=repetitions)
 
 
 def final_wavefunction(
@@ -69,7 +72,7 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: Optional[int] = None) -> 'np.ndarray':
+        seed: value.RANDOM_STATE_LIKE = None) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -89,9 +92,7 @@ def final_wavefunction(
             be safely castable to an appropriate dtype for the simulator.
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
 
     Returns:
         The wavefunction resulting from applying the given unitary operations to
@@ -132,15 +133,14 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-def sample_sweep(
-        program: Union[circuits.Circuit, schedules.Schedule],
-        params: study.Sweepable,
-        *,
-        noise: devices.NoiseModel = devices.NO_NOISE,
-        repetitions: int = 1,
-        dtype: Type[np.number] = np.complex64,
-        seed: Optional[int] = None,
-) -> List[study.TrialResult]:
+def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
+                 params: study.Sweepable,
+                 *,
+                 noise: 'cirq.NOISE_MODEL_LIKE' = None,
+                 repetitions: int = 1,
+                 dtype: Type[np.number] = np.complex64,
+                 seed: value.RANDOM_STATE_LIKE = None
+                ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -155,16 +155,14 @@ def sample_sweep(
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
             Favors speed over precision by default, i.e. uses `numpy.complex64`.
-        seed: The random seed to use for this simulator. Sets numpy's
-            random seed. Setting numpy's seed different in between
-            use of this class will lead to non-seeded behavior.
+        seed: The random seed to use for this simulator.
 
     Returns:
         TrialResult list for this run; one for each possible parameter
         resolver.
     """
-    if seed:
-        np.random.seed(seed)
+    prng = value.parse_random_state(seed)
+
     circuit = (program.to_circuit()
                if isinstance(program, schedules.Schedule) else program)
 
@@ -174,6 +172,7 @@ def sample_sweep(
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,
-                              dtype=dtype)
+                              dtype=dtype,
+                              seed=prng)
         trial_results.append(measurements)
     return trial_results

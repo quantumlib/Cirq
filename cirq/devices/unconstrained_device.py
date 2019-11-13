@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from cirq import value, protocols
+from cirq._doc import document
 from cirq.devices import device
 
 
@@ -27,6 +28,9 @@ class _UnconstrainedDevice(device.Device):
         pass
 
     def validate_scheduled_operation(self, schedule, scheduled_operation):
+        pass
+
+    def validate_moment(self, moment):
         pass
 
     def validate_circuit(self, circuit):
@@ -46,3 +50,5 @@ class _UnconstrainedDevice(device.Device):
 
 
 UNCONSTRAINED_DEVICE: device.Device = _UnconstrainedDevice()
+document(UNCONSTRAINED_DEVICE,
+         """A device with no constraints on operations or qubits.""")

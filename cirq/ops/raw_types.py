@@ -263,21 +263,34 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def controlled_by(self,
-                      *control_qubits: Qid,
-                      control_values: Optional[Sequence[
-                          Union[int, Collection[int]]]] = None) -> 'Gate':
-        """Returns a controlled version of this gate.
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> 'Gate':
+        """Returns a controlled version of this gate. If no arguments are
+           specified, defaults to a single qubit control.
 
-        Args:
-            control_qubits: Optional qubits to control the gate by.
+            num_controls: Total number of control qubits.
+            control_values: For which control qubit values to apply the sub
+                gate.  A sequence of length `num_controls` where each
+                entry is an integer (or set of integers) corresponding to the
+                qubit value (or set of possible values) where that control is
+                enabled.  When all controls are enabled, the sub gate is
+                applied.  If unspecified, control values default to 1.
+            control_qid_shape: The qid shape of the controls.  A tuple of the
+                expected dimension of each control qid.  Defaults to
+                `(2,) * num_controls`.  Specify this argument when using qudits.
         """
         # Avoids circular import.
         from cirq.ops import ControlledGate
-        if len(control_qubits) == 0:
+        if num_controls == 0:
             return self
-        return ControlledGate(self, control_qubits, len(control_qubits),
-                              control_values)
+        return ControlledGate(self,
+                              num_controls=num_controls,
+                              control_values=control_values,
+                              control_qid_shape=control_qid_shape)
 
     # num_qubits, _num_qubits_, and _qid_shape_ are implemented with alternative
     # to keep backwards compatibility with versions of cirq where num_qubits
@@ -332,6 +345,10 @@ class Operation(metaclass=abc.ABCMeta):
     """
 
     @property
+    def gate(self) -> Optional[Gate]:
+        return None
+
+    @property
     @abc.abstractmethod
     def qubits(self) -> Tuple[Qid, ...]:
         raise NotImplementedError()
@@ -347,8 +364,14 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
-        pass
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+        """Returns the same operation, but applied to different qubits.
+
+        Args:
+            new_qubits: The new qubits to apply the operation to. The order must
+                exactly match the order of qubits returned from the operation's
+                `qubits` property.
+        """
 
     def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':
         """Returns the same operation, but with different qubits.
@@ -367,10 +390,18 @@ class Operation(metaclass=abc.ABCMeta):
                       *control_qubits: Qid,
                       control_values: Optional[Sequence[
                           Union[int, Collection[int]]]] = None) -> 'Operation':
-        """Returns a controlled version of this operation.
+        """Returns a controlled version of this operation. If no control_qubits
+           are specified, returns self.
 
         Args:
             control_qubits: Qubits to control the operation by. Required.
+            control_values: For which control qubit values to apply the
+                operation.  A sequence of the same length as `control_qubits`
+                where each entry is an integer (or set of integers)
+                corresponding to the qubit value (or set of possible values)
+                where that control is enabled.  When all controls are enabled,
+                the operation is applied.  If unspecified, control values
+                default to 1.
         """
         # Avoids circular import.
         from cirq.ops import ControlledOperation
@@ -400,8 +431,8 @@ class _InverseCompositeGate(Gate):
     def __init__(self, original: Gate) -> None:
         self._original = original
 
-    def _num_qubits_(self):
-        return protocols.num_qubits(self._original)
+    def _qid_shape_(self):
+        return protocols.qid_shape(self._original)
 
     def __pow__(self, power):
         if power == 1:
@@ -419,6 +450,7 @@ class _InverseCompositeGate(Gate):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
         sub_info = protocols.circuit_diagram_info(self._original,
+                                                  args,
                                                   default=NotImplemented)
         if sub_info is NotImplemented:
             return NotImplemented

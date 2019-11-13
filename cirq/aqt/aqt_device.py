@@ -1,3 +1,16 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Current device parameters for the AQT/UIBK ion trap device
 
 The device is based on a linear calcium ion string with
@@ -24,17 +37,17 @@ def get_op_string(op_obj: ops.Operation):
     """Find the string representation for a given gate
     Params:
         op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
-    if isinstance(op_obj, ops.XXPowGate) or ops.op_gate_of_type(
-            op_obj, ops.XXPowGate):
+    if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
+                                                       ops.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, ops.XPowGate) or ops.op_gate_of_type(
-            op_obj, ops.XPowGate):
+    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate,
+                                                        ops.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, ops.YPowGate) or ops.op_gate_of_type(
-            op_obj, ops.YPowGate):
+    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,
+                                                        ops.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, ops.MeasurementGate) or ops.op_gate_of_type(
-            op_obj, ops.MeasurementGate):
+    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(
+            op_obj.gate, ops.MeasurementGate):
         op_str = 'Meas'
     else:
         raise ValueError('Got unknown gate:', op_obj)

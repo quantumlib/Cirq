@@ -38,6 +38,8 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     boilerplate of implementing the `qubits` and `with_qubits` methods.
 
     Examples:
+    ```
+
         >>> class Add(cirq.ArithmeticOperation):
         ...     def __init__(self, target_register, input_register):
         ...         self.target_register = target_register
@@ -75,6 +77,8 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         >>> cirq.sample(c).data
            before:in  before:out  after:in  after:out
         0          2           3         2          5
+
+    ```
     """
 
     @abc.abstractmethod
@@ -182,7 +186,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
                 shape.append(1)
                 overflow_sizes.append(register + 1)
             else:
-                size = np.product([q.dimension for q in register]).item()
+                size = int(np.product([q.dimension for q in register]).item())
                 shape.append(size)
                 input_ranges.append(range(size))
                 overflow_sizes.append(size)
@@ -221,9 +225,13 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             # Copy amplitude to new location.
             cast(List[Union[int, slice]], outputs).append(slice(None))
             cast(List[Union[int, slice]], inputs).append(slice(None))
-            dst[outputs] = src[inputs]
+            dst[tuple(outputs)] = src[tuple(inputs)]
 
-        return args.available_buffer
+        # In case the reshaped arrays were copies instead of views.
+        dst.shape = transposed_args.available_buffer.shape
+        transposed_args.target_tensor[...] = dst
+
+        return args.target_tensor
 
 
 def _describe_bad_arithmetic_changed_const(

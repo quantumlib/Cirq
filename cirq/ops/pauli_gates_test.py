@@ -25,14 +25,17 @@ def test_equals():
 
 
 def test_phased_pauli_product():
+    assert cirq.X.phased_pauli_product(cirq.I) == (1, cirq.X)
     assert cirq.X.phased_pauli_product(cirq.X) == (1, cirq.I)
     assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
     assert cirq.X.phased_pauli_product(cirq.Z) == (-1j, cirq.Y)
 
+    assert cirq.Y.phased_pauli_product(cirq.I) == (1, cirq.Y)
     assert cirq.Y.phased_pauli_product(cirq.X) == (-1j, cirq.Z)
     assert cirq.Y.phased_pauli_product(cirq.Y) == (1, cirq.I)
     assert cirq.Y.phased_pauli_product(cirq.Z) == (1j, cirq.X)
 
+    assert cirq.Z.phased_pauli_product(cirq.I) == (1, cirq.Z)
     assert cirq.Z.phased_pauli_product(cirq.X) == (1j, cirq.Y)
     assert cirq.Z.phased_pauli_product(cirq.Y) == (-1j, cirq.X)
     assert cirq.Z.phased_pauli_product(cirq.Z) == (1, cirq.I)
@@ -193,6 +196,20 @@ def test_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)
+
+
+def test_identity_multiplication():
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.X(a) * cirq.I(a) == cirq.X(a)
+    assert cirq.X(a) * cirq.I(b) == cirq.X(a)
+    assert cirq.X(a) * cirq.Y(b) * cirq.I(c) == cirq.X(a) * cirq.Y(b)
+    assert cirq.I(c) * cirq.X(a) * cirq.Y(b) == cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.H(c) * cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.X(a) * cirq.Y(b) * cirq.H(c)
+    with pytest.raises(TypeError):
+        _ = cirq.I(a) * str(cirq.Y(b))
 
 
 def test_powers():

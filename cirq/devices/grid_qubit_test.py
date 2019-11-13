@@ -47,6 +47,11 @@ def test_square():
     ]
 
 
+def test_repr():
+    a = cirq.GridQubit(0, 1)
+    cirq.testing.assert_equivalent_repr(a)
+
+
 def test_rec():
     assert cirq.GridQubit.rect(
         1, 2, top=5, left=6) == [cirq.GridQubit(5, 6),
@@ -73,8 +78,17 @@ ABCDEFGHIJKL
 ----IJKL----
 -----KL-----
 """
-    assert (cirq.GridQubit.from_diagram(s) ==
-            cirq.google.known_devices._parse_device(s)[0])
+    assert len(cirq.GridQubit.from_diagram(s)) == 72
+    s2 = """
+AB
+BA"""
+    assert cirq.GridQubit.from_diagram(s2) == [
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(1, 1)
+    ]
+
     with pytest.raises(ValueError, match="Input string has invalid character"):
         cirq.GridQubit.from_diagram('@')
 
@@ -114,6 +128,21 @@ def test_grid_qubit_is_adjacent():
     assert not cirq.GridQubit(500, 999).is_adjacent(cirq.GridQubit(5034, 999))
 
 
+def test_grid_qubit_neighbors():
+    expected = {
+        cirq.GridQubit(1, 2),
+        cirq.GridQubit(2, 1),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0)
+    }
+    assert cirq.GridQubit(1, 1).neighbors() == expected
+
+    # Restrict to a list of qubits
+    restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
+    expected2 = {cirq.GridQubit(2, 1)}
+    assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == expected2
+
+
 def test_grid_qubit_add_subtract():
     assert cirq.GridQubit(1, 2) + (2, 5) == cirq.GridQubit(3, 7)
     assert cirq.GridQubit(1, 2) + (0, 0) == cirq.GridQubit(1, 2)
@@ -142,31 +171,6 @@ def test_grid_qubit_unsupported_add():
 
     with pytest.raises(TypeError, match='1'):
         _ = cirq.GridQubit(1, 1) - 1
-
-
-def test_to_proto():
-    q = cirq.GridQubit(5, 6)
-
-    # Create a new message.
-    proto = q.to_proto_dict()
-    assert proto == {'row': 5, 'col': 6}
-
-
-def test_from_proto():
-    q = cirq.GridQubit(5, 6)
-    q2 = cirq.GridQubit.from_proto_dict(q.to_proto_dict())
-    assert q2 == q
-
-
-def test_from_proto_bad_dict():
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'row': 1})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'col': 1})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({})
-    with pytest.raises(ValueError):
-        cirq.GridQubit.from_proto_dict({'nothing': 1})
 
 
 def test_to_json():

@@ -14,14 +14,16 @@
 
 import itertools
 import collections
-from datetime import timedelta
-from typing import Iterable, cast, DefaultDict, Union
+from typing import Iterable, cast, DefaultDict, TYPE_CHECKING
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate, raw_types
 from cirq.value import Duration
 from cirq.neutral_atoms import convert_to_neutral_atom_gates
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -30,10 +32,9 @@ class NeutralAtomDevice(devices.Device):
     A device with qubits placed on a grid.
     """
 
-    def __init__(self, measurement_duration: Union[Duration, timedelta],
-                 gate_duration: Union[Duration, timedelta],
-                 control_radius: float, max_parallel_z: int,
-                 max_parallel_xy: int, max_parallel_c: int,
+    def __init__(self, measurement_duration: 'cirq.DURATION_LIKE',
+                 gate_duration: 'cirq.DURATION_LIKE', control_radius: float,
+                 max_parallel_z: int, max_parallel_xy: int, max_parallel_c: int,
                  qubits: Iterable[GridQubit]) -> None:
         """
         Initializes the description of the AQuA device.
@@ -58,8 +59,8 @@ class NeutralAtomDevice(devices.Device):
             ValueError: if the wrong qubit type is provided or if invalid
                 parallel parameters are provided
         """
-        self._measurement_duration = Duration.create(measurement_duration)
-        self._gate_duration = Duration.create(gate_duration)
+        self._measurement_duration = Duration(measurement_duration)
+        self._gate_duration = Duration(gate_duration)
         self._control_radius = control_radius
         self._max_parallel_z = max_parallel_z
         self._max_parallel_xy = max_parallel_xy
@@ -210,7 +211,7 @@ class NeutralAtomDevice(devices.Device):
                         )
         }
 
-        categorized_ops = collections.defaultdict(list) #type: DefaultDict
+        categorized_ops: DefaultDict = collections.defaultdict(list)
         for op in moment.operations:
             assert isinstance(op,
                               (ops.GateOperation, ops.ParallelGateOperation))
@@ -309,7 +310,7 @@ class NeutralAtomDevice(devices.Device):
                 if len(moment.operations) > 0:
                     raise ValueError("Non-empty moment after measurement")
             for operation in moment.operations:
-                if ops.op_gate_of_type(operation, ops.MeasurementGate):
+                if isinstance(operation.gate, ops.MeasurementGate):
                     has_measurement_occurred = True
 
     def validate_scheduled_operation(self, schedule, scheduled_operation):
@@ -355,12 +356,12 @@ class NeutralAtomDevice(devices.Device):
         measurement_check_performed = False
         for so in schedule.scheduled_operations:
             self.validate_scheduled_operation(schedule, so)
-            if (ops.op_gate_of_type(so.operation, ops.MeasurementGate) and not
-                    measurement_check_performed):
-                later_ops = [op for op in schedule.scheduled_operations if
-                             op.time + op.duration > so.time + so.duration]
-                for op in later_ops:
-                    if not ops.op_gate_of_type(op, ops.MeasurementGate):
+            if (isinstance(so.operation.gate, ops.MeasurementGate) and
+                    not measurement_check_performed):
+                later_ops = (so2 for so2 in schedule.scheduled_operations
+                             if so2.time + so2.duration > so.time + so.duration)
+                for so2 in later_ops:
+                    if not isinstance(so2.operation.gate, ops.MeasurementGate):
                         raise ValueError("Non-measurement operation after"
                                          " measurement")
                 measurement_check_performed = True

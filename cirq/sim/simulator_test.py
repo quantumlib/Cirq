@@ -146,8 +146,9 @@ class FakeStepResult(cirq.StepResult):
     def __setstate__(self, state):
         pass
 
-    def sample(self, qubits, repetitions):
-        return [[qubit in self._ones_qubits for qubit in qubits]] * repetitions
+    def sample(self, qubits, repetitions, seed):
+        return np.array([[qubit in self._ones_qubits for qubit in qubits]] *
+                        repetitions)
 
 
 def test_step_sample_measurement_ops():
@@ -223,23 +224,24 @@ def test_simulation_trial_result_equality():
                                    final_simulator_state=()))
     eq.add_equality_group(
         cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                   measurements={'m': np.array([[1]])},
+                                   measurements={'m': np.array([1])},
                                    final_simulator_state=()))
     eq.add_equality_group(
         cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                   measurements={'m': np.array([[1]])},
+                                   measurements={'m': np.array([1])},
                                    final_simulator_state=(0, 1)))
 
 
 
 def test_simulation_trial_result_repr():
-    assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                           measurements={'m': np.array([[1]])},
-                                           final_simulator_state=(0, 1))) == (
-               "cirq.SimulationTrialResult("
-               "params=cirq.ParamResolver({'s': 1}), "
-               "measurements={'m': array([[1]])}, "
-               "final_simulator_state=(0, 1))")
+    assert repr(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1])},
+                                   final_simulator_state=(0, 1))) == (
+                                       "cirq.SimulationTrialResult("
+                                       "params=cirq.ParamResolver({'s': 1}), "
+                                       "measurements={'m': array([1])}, "
+                                       "final_simulator_state=(0, 1))")
 
 
 def test_simulation_trial_result_str():
@@ -249,10 +251,20 @@ def test_simulation_trial_result_str():
             measurements={},
             final_simulator_state=(0, 1))) == '(no measurements)'
 
-    assert str(cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'s': 1}),
-        measurements={'m': np.array([[1]])},
-        final_simulator_state=(0, 1))) == 'm=1'
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1])},
+                                   final_simulator_state=(0, 1))) == 'm=1'
+
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1, 2, 3])},
+                                   final_simulator_state=(0, 1))) == 'm=123'
+
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([9, 10, 11])},
+                                   final_simulator_state=(0, 1))) == 'm=9 10 11'
 
 
 def test_pretty_print():

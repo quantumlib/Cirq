@@ -23,6 +23,12 @@ from cirq.ops.clifford_gate import (
     SingleQubitCliffordGate,
 )
 
+from cirq.ops.dense_pauli_string import (
+    BaseDensePauliString,
+    DensePauliString,
+    MutableDensePauliString,
+)
+
 from cirq.ops.common_channels import (
     amplitude_damp,
     AmplitudeDampingChannel,
@@ -50,20 +56,10 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    I,
-    identity,
-    IdentityGate,
-    ISWAP,
-    ISwapPowGate,
-    measure,
-    measure_each,
-    MeasurementGate,
     Rx,
     Ry,
     Rz,
     S,
-    SWAP,
-    SwapPowGate,
     T,
     XPowGate,
     YPowGate,
@@ -72,14 +68,6 @@ from cirq.ops.common_gates import (
 
 from cirq.ops.controlled_gate import (
     ControlledGate,)
-
-from cirq.ops.display import (
-    ApproxPauliStringExpectation,
-    DensityMatrixDisplay,
-    approx_pauli_string_expectation,
-    SamplesDisplay,
-    WaveFunctionDisplay,
-)
 
 from cirq.ops.eigen_gate import (
     EigenGate,)
@@ -106,6 +94,13 @@ from cirq.ops.gate_operation import (
     op_gate_of_type,
 )
 
+from cirq.ops.identity import (
+    I,
+    identity_each,
+    IdentityGate,
+    IdentityOperation,
+)
+
 from cirq.ops.global_phase_op import (
     GlobalPhaseOperation,)
 
@@ -129,9 +124,18 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,)
 
 from cirq.ops.matrix_gates import (
+    MatrixGate,
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+
+from cirq.ops.measure_util import (
+    measure,
+    measure_each,
+)
+
+from cirq.ops.measurement_gate import (
+    MeasurementGate,)
 
 from cirq.ops.moment import (
     Moment,)
@@ -168,6 +172,7 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
+    PAULI_STRING_LIKE,
     PauliString,
     SingleQubitPauliStringGateOperation,
 )
@@ -192,6 +197,14 @@ from cirq.ops.raw_types import (
     Qid,
 )
 
+from cirq.ops.swap_gates import (
+    ISWAP,
+    ISwapPowGate,
+    ISwapRotation,
+    SWAP,
+    SwapPowGate,
+)
+
 from cirq.ops.three_qubit_gates import (
     CCNOT,
     CCX,
@@ -204,3 +217,6 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)
