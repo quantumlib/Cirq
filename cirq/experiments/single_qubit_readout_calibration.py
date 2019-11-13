@@ -67,7 +67,9 @@ def estimate_single_qubit_readout_errors(
 
     For each qubit, prepare the |0⟩ state and measure. Calculate how often a 1
     is measured. Also, prepare the |1⟩ state and calculate how often a 0 is
-    measured.
+    measured. The state preparations and measurements are done in parallel,
+    i.e., for the first experiment, we actually prepare every qubit in the |0⟩
+    state and measure them simultaneously.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
