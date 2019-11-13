@@ -1,0 +1,80 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import Dict, Sequence
+
+import dataclasses
+
+import numpy as np
+
+from cirq import circuits, ops, work
+
+
+@dataclasses.dataclass
+class SingleQubitReadoutCalibrationResult:
+    """Result of estimating single qubit readout error.
+
+    Attributes:
+        zero_state_errors: A dictionary from qubit to probability of measuring
+            a 1 when the qubit is initialized to |0⟩.
+        one_state_errors: A dictionary from qubit to probability of measuring
+            a 0 when the qubit is initialized to |1⟩.
+        repetitions: The number of repetitions that were used to estimate the
+            probabilities.
+    """
+    zero_state_errors: Dict[ops.Qid, float]
+    one_state_errors: Dict[ops.Qid, float]
+    repetitions: int
+
+
+def estimate_single_qubit_readout_errors(
+        sampler: work.Sampler,
+        *,
+        qubits: Sequence[ops.Qid],
+        repetitions: int = 1000) -> SingleQubitReadoutCalibrationResult:
+    """Estimate single-qubit readout error.
+
+    For each qubit, prepare the |0⟩ state and measure. Calculate how often a 1
+    is measured. Also, prepare the |1⟩ state and calculate how often a 0 is
+    measured.
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: The qubits being tested.
+        repetitions: The number of measurement repetitions to perform.
+
+    Returns:
+        A SingleQubitReadoutCalibrationResult storing the readout error
+        probabilities as well as the number of repetitions used to estimate
+        the probabilties.
+    """
+
+    zeros_circuit = circuits.Circuit(ops.measure_each(*qubits, key_func=repr))
+    ones_circuit = circuits.Circuit(ops.X.on_each(*qubits),
+                                    ops.measure_each(*qubits, key_func=repr))
+
+    zeros_result = sampler.run(zeros_circuit, repetitions=repetitions)
+    ones_result = sampler.run(ones_circuit, repetitions=repetitions)
+
+    zero_state_errors = {
+        q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits
+    }
+    one_state_errors = {
+        q: 1 - np.mean(ones_result.measurements[repr(q)]) for q in qubits
+    }
+
+    return SingleQubitReadoutCalibrationResult(
+        zero_state_errors=zero_state_errors,
+        one_state_errors=one_state_errors,
+        repetitions=repetitions)
