@@ -46,8 +46,8 @@ class SingleQubitReadoutCalibrationResult:
         }
 
     @classmethod
-    def _from_json_dict_(cls, cirq_type, zero_state_errors, one_state_errors,
-                         repetitions):
+    def _from_json_dict_(cls, zero_state_errors, one_state_errors, repetitions,
+                         **kwargs):
         return cls(zero_state_errors=dict(zero_state_errors),
                    one_state_errors=dict(one_state_errors),
                    repetitions=repetitions)
