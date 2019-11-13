@@ -285,7 +285,8 @@ TEST_OBJECTS = {
     cirq.experiments.SingleQubitReadoutCalibrationResult(
         zero_state_errors={cirq.LineQubit(0): 0.0},
         one_state_errors={cirq.LineQubit(0): 0.0},
-        repetitions=1000),
+        repetitions=1000,
+        timestamp=0.0),
     'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
     'SYC':
     cirq.google.SYC,

@@ -62,6 +62,7 @@ def test_estimate_single_qubit_readout_errors_no_noise():
     assert result.zero_state_errors == {q: 0 for q in qubits}
     assert result.one_state_errors == {q: 0 for q in qubits}
     assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)
 
 
 def test_estimate_single_qubit_readout_errors_with_noise():
@@ -76,3 +77,4 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     for error in result.one_state_errors.values():
         assert 0.18 < error < 0.22
     assert result.repetitions == repetitions
+    assert isinstance(result.timestamp, float)

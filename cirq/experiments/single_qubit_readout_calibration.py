@@ -15,6 +15,7 @@
 from typing import Dict, Iterable
 
 import dataclasses
+import time
 
 import numpy as np
 
@@ -32,25 +33,29 @@ class SingleQubitReadoutCalibrationResult:
             a 0 when the qubit is initialized to |1⟩.
         repetitions: The number of repetitions that were used to estimate the
             probabilities.
+        timestamp: A timestamp for the time the data was taken.
     """
     zero_state_errors: Dict[ops.Qid, float]
     one_state_errors: Dict[ops.Qid, float]
     repetitions: int
+    timestamp: float
 
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
             'zero_state_errors': list(self.zero_state_errors.items()),
             'one_state_errors': list(self.one_state_errors.items()),
-            'repetitions': self.repetitions
+            'repetitions': self.repetitions,
+            'timestamp': self.timestamp
         }
 
     @classmethod
     def _from_json_dict_(cls, zero_state_errors, one_state_errors, repetitions,
-                         **kwargs):
+                         timestamp, **kwargs):
         return cls(zero_state_errors=dict(zero_state_errors),
                    one_state_errors=dict(one_state_errors),
-                   repetitions=repetitions)
+                   repetitions=repetitions,
+                   timestamp=timestamp)
 
 
 def estimate_single_qubit_readout_errors(
@@ -82,6 +87,7 @@ def estimate_single_qubit_readout_errors(
 
     zeros_result = sampler.run(zeros_circuit, repetitions=repetitions)
     ones_result = sampler.run(ones_circuit, repetitions=repetitions)
+    timestamp = time.time()
 
     zero_state_errors = {
         q: np.mean(zeros_result.measurements[repr(q)]) for q in qubits
@@ -93,4 +99,5 @@ def estimate_single_qubit_readout_errors(
     return SingleQubitReadoutCalibrationResult(
         zero_state_errors=zero_state_errors,
         one_state_errors=one_state_errors,
-        repetitions=repetitions)
+        repetitions=repetitions,
+        timestamp=timestamp)
