@@ -254,7 +254,7 @@ def riswap(rads: value.TParamVal) -> ISwapPowGate:
     return ISwapPowGate()**(2 * rads / pi)
 
 
-@deprecated(deadline='v0.7.0', fix='Use cirq.riswap, instead.')
+@deprecated(deadline='v0.8.0', fix='Use cirq.riswap, instead.')
 def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
     return riswap(angle_rads)
 
