@@ -18,7 +18,7 @@ import dataclasses
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, work
+from cirq import circuits, ops, work
 
 
 @dataclasses.dataclass
