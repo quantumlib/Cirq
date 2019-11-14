@@ -1,0 +1,8 @@
+{
+  "cirq_type": "ConstantQubitNoiseModel",
+  "qubit_noise_gate": {
+    "cirq_type": "_PauliX",
+    "exponent": 1,
+    "global_shift": 0.0
+  }
+}
