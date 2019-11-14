@@ -1,0 +1,7 @@
+{
+  "cirq_type": "WaitGate",
+  "duration": {
+    "cirq_type": "Duration",
+    "picos": 10000
+  }
+}

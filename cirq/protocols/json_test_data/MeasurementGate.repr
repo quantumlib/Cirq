@@ -1,0 +1,1 @@
+[cirq.MeasurementGate(3, 'z', ()), cirq.MeasurementGate(3, 'z', (True, False, True)), cirq.MeasurementGate(3, 'z', (True, False), (1, 2, 3))]

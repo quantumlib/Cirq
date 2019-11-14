@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+
+################################################################################
+# Finds changed lines not covered by tests related to changed files.
+#
+# Usage:
+#     check/pytest-changed-files-and-incremental-coverage [BASE_REVISION]
+#
+# This tool is not clever; it does not understand dependencies between all
+# files. If "d/x.py" or "d/x_test.py" have been modified, it will include
+# "d/x_test.py" in the arguments given to pytest. It will furthermore include
+# "--cov=d" as an argument to pytest-cov, to restrict coverage results to
+# directories containing changed files.
+#
+# You can specify a base git revision to compare against (i.e. to use when
+# determining whether or not a line is considered to have "changed"). To make
+# the tool more consistent, it actually diffs against the most recent common
+# ancestor of the specified id and HEAD. So if you choose 'origin/master' you're
+# actually diffing against the output of 'git merge-base origin/master HEAD'.
+#
+# If you don't specify a base revision, the following defaults will be tried,
+# in order, until one exists:
+#
+#     1. upstream/master
+#     2. origin/master
+#     3. master
+#
+# If none exists, the script fails.
+################################################################################
+
+# Get the working directory to the repo root.
+cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
+cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# Figure out which revision to compare against.
+if [ ! -z "$1" ] && [[ $1 != -* ]]; then
+    if [ "$(git cat-file -t $1 2> /dev/null)" != "commit" ]; then
+        echo -e "\033[31mNo revision '$1'.\033[0m" >&2
+        exit 1
+    fi
+    rev=$1
+elif [ "$(git cat-file -t upstream/master 2> /dev/null)" == "commit" ]; then
+    rev=upstream/master
+elif [ "$(git cat-file -t origin/master 2> /dev/null)" == "commit" ]; then
+    rev=origin/master
+elif [ "$(git cat-file -t master 2> /dev/null)" == "commit" ]; then
+    rev=master
+else
+    echo -e "\033[31mNo default revision found to compare against. Argument #1 must be what to diff against (e.g. 'origin/master' or 'HEAD~1').\033[0m" >&2
+    exit 1
+fi
+base="$(git merge-base ${rev} HEAD)"
+if [ "$(git rev-parse ${rev})" == "${base}" ]; then
+    echo -e "Comparing against revision '${rev}'." >&2
+else
+    echo -e "Comparing against revision '${rev}' (merge base ${base})." >&2
+    rev="${base}"
+fi
+
+# Find involved files.
+cov_changed_python_file_dirs=$(git diff --name-only "${rev}" -- \
+    | grep "\.py$" \
+    | grep -v "_pb2\.py$" \
+    | xargs dirname \
+    | perl -ne 'chomp(); if (-e $_) {print "--cov=$_\n"}' \
+    | sort \
+    | uniq \
+)
+changed_python_tests=$(git diff --name-only "${rev}" -- \
+    | grep "\.py$" \
+    | sed -e "s/\.py$/_test.py/" \
+    | sed -e "s/_test_test\.py$/_test.py/" \
+    | perl -ne 'chomp(); if (-e $_) {print "$_\n"}' \
+    | sort \
+    | uniq \
+)
+if [ "${#changed_python_tests[@]}" -eq 0 ]; then
+    echo -e "\033[33mNo changed files with associated python tests.\033[0m" >&2
+    exit 0
+fi
+
+# Run tests while producing coverage files.
+check/pytest "${changed_python_tests[@]}" \
+    "${cov_changed_python_file_dirs[@]}" \
+    --cov-report=annotate \
+    --cov-config=dev_tools/conf/.coveragerc \
+    --benchmark-skip
+pytest_result=$?
+
+# Analyze coverage files.
+PYTHONPATH="$(pwd)" python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+cover_result=$?
+
+# Clean up generated coverage files.
+find . | grep "\.py,cover$" | xargs rm -f
+
+# Report result.
+if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
+  exit 1
+fi
+exit 0

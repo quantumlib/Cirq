@@ -1,0 +1,63 @@
+[
+  {
+    "cirq_type": "sympy.Add",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "t"
+      }
+    ]
+  },
+  {
+    "cirq_type": "sympy.Add",
+    "args": [
+      {
+        "cirq_type": "sympy.Integer",
+        "i": 1
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      }
+    ]
+  },
+  {
+    "cirq_type": "sympy.Add",
+    "args": [
+      {
+        "cirq_type": "sympy.Integer",
+        "i": -1
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      }
+    ]
+  },
+  {
+    "cirq_type": "sympy.Add",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      },
+      {
+        "cirq_type": "sympy.Mul",
+        "args": [
+          {
+            "cirq_type": "sympy.Integer",
+            "i": -1
+          },
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "t"
+          }
+        ]
+      }
+    ]
+  }
+]

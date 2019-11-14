@@ -26,7 +26,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate, raw_types
 
@@ -248,10 +248,15 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
+def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
-    pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
-    return ISwapPowGate()**(2 * angle_rads / pi)
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
+    return ISwapPowGate()**(2 * rads / pi)
+
+
+@deprecated(deadline='v0.8.0', fix='Use cirq.riswap, instead.')
+def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
+    return riswap(angle_rads)
 
 
 SWAP = SwapPowGate()

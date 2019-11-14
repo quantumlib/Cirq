@@ -254,6 +254,7 @@ def test_interchangeable_qubit_eq():
 
 def test_identity_multiplication():
     a, b, c = cirq.LineQubit.range(3)
+    assert cirq.I(a) * cirq.CX(a, b) == cirq.CX(a, b)
     assert cirq.CX(a, b) * cirq.I(a) == cirq.CX(a, b)
     assert cirq.CZ(a, b) * cirq.I(c) == cirq.CZ(a, b)
     assert cirq.CX(a, b)**0.5 * cirq.I(c) == cirq.CX(a, b)**0.5
