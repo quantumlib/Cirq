@@ -1,1 +1,0 @@
-[cirq.IdentityOperation([cirq.LineQubit(0), cirq.LineQubit(1)]), cirq.IdentityOperation([cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)])]
