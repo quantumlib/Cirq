@@ -7,7 +7,10 @@ compatibility with old serialized files, and various related guidelines.
 ## Exposed API
 
 Most Cirq objects can be converted into json using the `cirq.to_json` method.
-For example:
+This is useful to users who want to keep track of the experiments that they have
+run, or who want a simple way to communicate information between computers.
+
+Here is an example of serializing an object:
 
 ```python
 import cirq
@@ -40,7 +43,7 @@ Or read back in from a file:
 obj = cirq.read_json(filepath)
 ```
 
-Or read from a string:
+Or read back in from a string:
 
 ```python
 deserialized_obj = cirq.read_json(json_text=text)
@@ -53,7 +56,7 @@ print(deserialized_obj)
 
 When writing JSON, Cirq checks if the given object has a `_json_dict_` method.
 If it does, the object is replaced by the output of that method.
-Otherwise there are a series of several hardcoded cases for complex numbers,
+Otherwise, there are a series of several hardcoded cases for complex numbers,
 numpy arrays, sympy expressions, and a few others.
 The process of replacing an object by JSON proceeds recursively.
 For example, the `_json_dict_` method may return a dictionary that contains a
