@@ -177,14 +177,17 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not isinstance(
-                other,
-            (PauliString, numbers.Number, identity.IdentityOperation)):
-            return NotImplemented
-
-        return PauliString(cast(PAULI_STRING_LIKE, other),
-                           qubit_pauli_map=self._qubit_pauli_map,
-                           coefficient=self.coefficient)
+        known = False
+        if isinstance(other, raw_types.Operation) and isinstance(
+                other.gate, identity.IdentityGate):
+            known = True
+        elif isinstance(other, (PauliString, numbers.Number)):
+            known = True
+        if known:
+            return PauliString(cast(PAULI_STRING_LIKE, other),
+                               qubit_pauli_map=self._qubit_pauli_map,
+                               coefficient=self.coefficient)
+        return NotImplemented
 
     @property
     def gate(self) -> 'cirq.DensePauliString':
@@ -202,7 +205,8 @@ class PauliString(raw_types.Operation):
                                coefficient=self._coefficient *
                                complex(cast(SupportsComplex, other)))
 
-        if isinstance(other, identity.IdentityOperation):
+        if (isinstance(other, raw_types.Operation) and
+                isinstance(other.gate, identity.IdentityGate)):
             return self
 
         # Note: PauliString case handled by __mul__.
@@ -977,7 +981,8 @@ class _MutablePauliString:
         if isinstance(contents, PauliString):
             # Note: cirq.X/Y/Z(qubit) are PauliString instances.
             self.inline_times_pauli_string(contents)
-        elif isinstance(contents, identity.IdentityOperation):
+        elif (isinstance(contents, raw_types.Operation) and
+              isinstance(contents.gate, identity.IdentityGate)):
             pass  # No effect.
         elif isinstance(contents, Mapping):
             self._inline_times_mapping(contents)

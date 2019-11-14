@@ -189,6 +189,18 @@ class GateOperation(raw_types.Operation):
             return NotImplemented
         return self.with_gate(new_gate)
 
+    def __mul__(self, other):
+        result = self.gate._mul_with_qubits(self._qubits, other)
+
+        # python will not auto-attempt the reverse order for same type.
+        if result is NotImplemented and isinstance(other, GateOperation):
+            return other.__rmul__(self)
+
+        return result
+
+    def __rmul__(self, other):
+        return self.gate._rmul_with_qubits(self._qubits, other)
+
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate,
                               args=args,
