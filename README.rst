@@ -23,8 +23,10 @@ Installation and Documentation
 Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_:
 
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
-- `Documentation <https://cirq.readthedocs.io>`_
+- `Documentation <https://cirq.readthedocs.io> (`stable`)`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+
+Note: The (default) documentation for `stable` might be behind [`latest`](https://cirq.readthedocs.io/en/latest/tutorial.html), which can cause confusion if you are workin on branches such as `cirq-dev` or `cirq-release`.
 
 Hello Qubit
 -----------
