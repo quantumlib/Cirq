@@ -304,4 +304,3 @@ SYCAMORE23_PROTO = create_device_proto_from_diagram(
 Sycamore23 = SerializableDevice.from_proto(
     proto=SYCAMORE_PROTO,
     gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
-
