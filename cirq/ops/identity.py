@@ -99,7 +99,7 @@ class IdentityGate(raw_types.Gate):
                     format(type(target)))
         return operations
 
-    def __pow__(self, power):
+    def __pow__(self, power: Any) -> Any:
         if isinstance(power, (int, float, complex, sympy.Basic)):
             return self
         return NotImplemented
