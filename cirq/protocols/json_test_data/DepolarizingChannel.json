@@ -1,0 +1,4 @@
+{
+  "cirq_type": "DepolarizingChannel",
+  "p": 0.5
+}

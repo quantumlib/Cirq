@@ -1,0 +1,12 @@
+{
+  "cirq_type": "SingleQubitPauliStringGateOperation",
+  "pauli": {
+    "cirq_type": "_PauliX",
+    "exponent": 1,
+    "global_shift": 0.0
+  },
+  "qubit": {
+    "cirq_type": "LineQubit",
+    "x": 0
+  }
+}
