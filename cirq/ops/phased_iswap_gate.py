@@ -221,6 +221,6 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
     return PhasedISwapPowGate()**(2 * angle_rads / pi)
 
 
-@deprecated(deadline='v0.7.0', fix='Use cirq.givens, instead.')
+@deprecated(deadline='v0.8.0', fix='Use cirq.givens, instead.')
 def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
     return givens(angle_rads)
