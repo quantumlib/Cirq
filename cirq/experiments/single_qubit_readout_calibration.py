@@ -57,6 +57,13 @@ class SingleQubitReadoutCalibrationResult:
                    repetitions=repetitions,
                    timestamp=timestamp)
 
+    def __repr__(self):
+        return ('cirq.experiments.SingleQubitReadoutCalibrationResult('
+                f'zero_state_errors={self.zero_state_errors!r}, '
+                f'one_state_errors={self.one_state_errors!r}, '
+                f'repetitions={self.repetitions!r}, '
+                f'timestamp={self.timestamp!r})')
+
 
 def estimate_single_qubit_readout_errors(
         sampler: work.Sampler,
