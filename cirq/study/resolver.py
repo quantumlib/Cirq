@@ -57,9 +57,8 @@ class ParamResolver(object):
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash = None
-        self.param_dict = cast(
-            Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
-            {} if param_dict is None else param_dict)
+        self.param_dict = cast(ParamDictType,
+                               {} if param_dict is None else param_dict)
 
     def value_of(self,
                  value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
