@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import proper_repr
-from cirq.ops import common_gates, eigen_gate, op_tree, gate_features, raw_types
+from cirq.ops import eigen_gate, op_tree, gate_features, raw_types, swap_gates
 
 
 @value.value_equality(manual_cls=True)
@@ -61,7 +61,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 details.
         """
         self._phase_exponent = value.canonicalize_half_turns(phase_exponent)
-        self._iswap = common_gates.ISwapPowGate(exponent=exponent)
+        self._iswap = swap_gates.ISwapPowGate(exponent=exponent)
         super().__init__(exponent=exponent)
 
     @property
@@ -77,7 +77,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _value_equality_values_cls_(self):
         if self.phase_exponent == 0:
-            return common_gates.ISwapPowGate
+            return swap_gates.ISwapPowGate
         return PhasedISwapPowGate
 
     def _value_equality_values_(self):
@@ -156,6 +156,17 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZZ': expansion['ZZ'],
         })
 
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
+        if (isinstance(self._phase_exponent, (sympy.Basic, int)) or
+                args.precision is None):
+            s = 'PhISwap({})'.format(self._phase_exponent)
+        else:
+            s = 'PhISwap({{:.{}}})'.format(args.precision).format(
+                self._phase_exponent)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=(s, s), exponent=self._diagram_exponent(args))
+
     def __str__(self) -> str:
         if self.exponent == 1:
             return 'PhasedISWAP'
@@ -171,32 +182,40 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         return f'cirq.PhasedISwapPowGate({arg_string})'
 
 
-# In numerical linear algebra Givens rotation is any linear transformation
-# with matrix equal to the identity except for a 2x2 orthogonal submatrix
-# [[cos(a), -sin(a)], [sin(a), cos(a)]] which performs a 2D rotation on a
-# subspace spanned by two basis vectors. In quantum computational chemistry
-# the term is used to refer to the two-qubit gate defined as
-#
-#     GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
-#
-# with the matrix
-#
-#     [[1, 0, 0, 0],
-#      [0, c, -s, 0],
-#      [0, s, c, 0],
-#      [0, 0, 0, 1]]
-#
-# where
-#
-#     c = cos(a),
-#     s = sin(a).
-#
-# The matrix is a Givens rotation in the numerical linear algebra sense
-# acting on the subspace spanned by the |01⟩ and |10⟩ states.
-#
-# The gate is also equivalent to the ISWAP conjugated by T^-1 ⊗ T.
-#
 def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
-    """Returns gate with matrix exp(-i angle_rads (Y⊗X - X⊗Y) / 2)."""
+    """Returns gate with matrix exp(-i angle_rads (Y⊗X - X⊗Y) / 2).
+
+    In numerical linear algebra Givens rotation is any linear transformation
+    with matrix equal to the identity except for a 2x2 orthogonal submatrix
+    [[cos(a), -sin(a)], [sin(a), cos(a)]] which performs a 2D rotation on a
+    subspace spanned by two basis vectors. In quantum computational chemistry
+    the term is used to refer to the two-qubit gate defined as
+
+        GivensRotation(a) ≡ exp(-i a (Y⊗X - X⊗Y) / 2)
+
+    with the matrix
+
+        [[1, 0, 0, 0],
+         [0, c, -s, 0],
+         [0, s, c, 0],
+         [0, 0, 0, 1]]
+
+    where
+
+        c = cos(a),
+        s = sin(a).
+
+    The matrix is a Givens rotation in the numerical linear algebra sense
+    acting on the subspace spanned by the |01⟩ and |10⟩ states.
+
+    The gate is also equivalent to the ISWAP conjugated by T^-1 ⊗ T.
+
+
+    Args:
+        angle_rads: The rotation angle in radians.
+
+    Returns:
+        A phased iswap gate for the given rotation.
+    """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
     return PhasedISwapPowGate()**(2 * angle_rads / pi)

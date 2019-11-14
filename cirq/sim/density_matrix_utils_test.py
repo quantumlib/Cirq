@@ -204,8 +204,8 @@ def test_to_valid_density_matrix_from_state():
 
 
 def test_to_valid_density_matrix_from_state_invalid_state():
-    with pytest.raises(ValueError, match="2 qubits"):
-        cirq.to_valid_density_matrix(np.array([1, 0]), num_qubits=2)
+    with pytest.raises(ValueError, match="shape was neither"):
+        cirq.to_valid_density_matrix(np.array([1, 0, 0]), num_qubits=2)
 
 
 def test_to_valid_density_matrix_from_computational_basis():
@@ -224,7 +224,7 @@ def test_to_valid_density_matrix_from_computational_basis():
 
 
 def test_to_valid_density_matrix_from_state_invalid_computational_basis():
-    with pytest.raises(ValueError, match="positive"):
+    with pytest.raises(ValueError, match="out of range"):
         cirq.to_valid_density_matrix(-1, num_qubits=2)
 
 
@@ -279,6 +279,22 @@ def test_sample_density_matrix():
                                 [[False]])
         np.testing.assert_equal(cirq.sample_density_matrix(matrix, [0]),
                                 [[False]])
+
+
+def test_sample_density_matrix_seed():
+    density_matrix = 0.5 * np.eye(2)
+
+    samples = cirq.sample_density_matrix(density_matrix, [0],
+                                         repetitions=10,
+                                         seed=1234)
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
+
+    samples = cirq.sample_density_matrix(density_matrix, [0],
+                                         repetitions=10,
+                                         seed=np.random.RandomState(1234))
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
 
 
 def test_sample_empty_density_matrix():
@@ -440,6 +456,20 @@ def test_measure_density_matrix_collapse():
         bits, out_matrix = cirq.measure_density_matrix(matrix, [0])
         np.testing.assert_almost_equal(out_matrix, matrix)
         assert bits == [False]
+
+
+def test_measure_density_matrix_seed():
+    n = 5
+    matrix = np.eye(2**n) / 2**n
+
+    bits, out_matrix1 = cirq.measure_density_matrix(matrix, range(n), seed=1234)
+    assert bits == [False, False, True, True, False]
+
+    bits, out_matrix2 = cirq.measure_density_matrix(
+        matrix, range(n), seed=np.random.RandomState(1234))
+    assert bits == [False, False, True, True, False]
+
+    np.testing.assert_allclose(out_matrix1, out_matrix2)
 
 
 def test_measure_density_matrix_out_is_matrix():

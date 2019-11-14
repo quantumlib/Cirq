@@ -31,5 +31,16 @@ docs/generated
 # From pytest-benchmark
 *.benchmarks/
 
+<<<<<<< HEAD
 # From jupyter notebooks
 .ipynb_checkpoints/
+=======
+# Ignore generated Jupyter files
+*.ipynb_checkpoints/
+
+# Ignore Bazel files
+/bazel-*
+
+# Default pycharm virtual env
+.venv/
+>>>>>>> 4ff38cf6059a9737105ffa946d1411bb6c4b31be

@@ -37,6 +37,13 @@ def test_phased_iswap_equality():
                                     exponent=0.4) == cirq.ISWAP**0.4)
 
 
+def test_repr():
+    p = -0.25
+    t = 0.75
+    gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
+    cirq.testing.assert_equivalent_repr(gate)
+
+
 def test_phased_iswap_unitary():
     p = 0.3
     t = 0.4
@@ -58,7 +65,7 @@ def test_phased_iswap_equivalent_circuit():
     t = -0.4
     gate = cirq.PhasedISwapPowGate(phase_exponent=p, exponent=t)
     q0, q1 = cirq.LineQubit.range(2)
-    equivalent_circuit = cirq.Circuit.from_ops([
+    equivalent_circuit = cirq.Circuit([
         cirq.Z(q0)**p,
         cirq.Z(q1)**-p,
         cirq.ISWAP(q0, q1)**t,
@@ -101,6 +108,24 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
         ignoring_global_phase=False)
 
 
+def test_diagram():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.PhasedISwapPowGate(phase_exponent=sympy.Symbol('p'),
+                                exponent=sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=2 * sympy.Symbol('p'),
+                                exponent=1 - sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.2, exponent=1).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.3, exponent=0.4).on(q0, q1),
+    )
+    cirq.testing.assert_has_diagram(
+        c, """
+0: ───PhISwap(p)─────PhISwap(2*p)───────────PhISwap(0.2)───PhISwap(0.3)───────
+      │              │                      │              │
+1: ───PhISwap(p)^t───PhISwap(2*p)^(1 - t)───PhISwap(0.2)───PhISwap(0.3)^0.4───
+""")
+
+
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
 def test_givens_rotation_unitary(angle_rads):
     actual = cirq.unitary(cirq.GivensRotation(angle_rads))
@@ -131,7 +156,7 @@ def test_givens_rotation_equivalent_circuit():
     t = 2 * angle_rads / np.pi
     gate = cirq.GivensRotation(angle_rads)
     q0, q1 = cirq.LineQubit.range(2)
-    equivalent_circuit = cirq.Circuit.from_ops([
+    equivalent_circuit = cirq.Circuit([
         cirq.T(q0),
         cirq.T(q1)**-1,
         cirq.ISWAP(q0, q1)**t,

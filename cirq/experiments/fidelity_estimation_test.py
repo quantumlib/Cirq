@@ -1,3 +1,17 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import itertools
 
 from typing import Sequence
@@ -19,12 +33,9 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     incoherent_samples = np.random.randint(dim, size=n_incoherent)
     circuit_with_measurements = cirq.Circuit(
         circuit, cirq.measure(*qubit_order, key='m'))
-    # TODO(viathor): Remove conditional after #2114.
-    if n_coherent > 0:
-        r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
-        coherent_samples = r.data['m'].to_numpy()
-        return np.concatenate((coherent_samples, incoherent_samples))
-    return incoherent_samples
+    r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
+    coherent_samples = r.data['m'].to_numpy()
+    return np.concatenate((coherent_samples, incoherent_samples))
 
 
 def make_random_quantum_circuit(qubits: Sequence[cirq.Qid],
@@ -47,8 +58,13 @@ def make_random_quantum_circuit(qubits: Sequence[cirq.Qid],
     return circuit
 
 
-@pytest.mark.parametrize('depolarization', (0.0, 0.2, 0.5, 0.7, 1.0))
-def test_linear_xeb_fidelity(depolarization):
+@pytest.mark.parametrize('depolarization, estimator',
+                         itertools.product(
+                             (0.0, 0.2, 0.7, 1.0),
+                             (cirq.hog_score_xeb_fidelity_from_probabilities,
+                              cirq.linear_xeb_fidelity_from_probabilities,
+                              cirq.log_xeb_fidelity_from_probabilities)))
+def test_xeb_fidelity(depolarization, estimator):
     prng_state = np.random.get_state()
     np.random.seed(0)
 
@@ -60,35 +76,73 @@ def test_linear_xeb_fidelity(depolarization):
                                              qubits,
                                              depolarization,
                                              repetitions=5000)
-        f = cirq.linear_xeb_fidelity(circuit, bitstrings, qubits)
+
+        f = cirq.xeb_fidelity(circuit, bitstrings, qubits, estimator=estimator)
+        amplitudes = cirq.final_wavefunction(circuit)
+        f2 = cirq.xeb_fidelity(circuit,
+                               bitstrings,
+                               qubits,
+                               amplitudes=amplitudes,
+                               estimator=estimator)
+        assert np.abs(f - f2) < 1e-6
+
         fs.append(f)
+
     estimated_fidelity = np.mean(fs)
     expected_fidelity = 1 - depolarization
-    assert np.isclose(estimated_fidelity, expected_fidelity, atol=0.09)
+    assert np.isclose(estimated_fidelity, expected_fidelity, atol=0.04)
 
     np.random.set_state(prng_state)
 
 
-def test_linear_xeb_fidelity_invalid_qubits():
+def test_linear_and_log_xeb_fidelity():
+    prng_state = np.random.get_state()
+    np.random.seed(0)
+
+    depolarization = 0.5
+
+    fs_log = []
+    fs_lin = []
+    for _ in range(10):
+        qubits = cirq.LineQubit.range(5)
+        circuit = make_random_quantum_circuit(qubits, depth=12)
+        bitstrings = sample_noisy_bitstrings(circuit,
+                                             qubits,
+                                             depolarization=depolarization,
+                                             repetitions=5000)
+
+        f_log = cirq.log_xeb_fidelity(circuit, bitstrings, qubits)
+        f_lin = cirq.linear_xeb_fidelity(circuit, bitstrings, qubits)
+
+        fs_log.append(f_log)
+        fs_lin.append(f_lin)
+
+    assert np.isclose(np.mean(fs_log), 1 - depolarization, atol=0.01)
+    assert np.isclose(np.mean(fs_lin), 1 - depolarization, atol=0.09)
+
+    np.random.set_state(prng_state)
+
+
+def test_xeb_fidelity_invalid_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = sample_noisy_bitstrings(circuit, (q0, q1, q2), 0.9, 10)
     with pytest.raises(ValueError):
-        cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q2))
+        cirq.xeb_fidelity(circuit, bitstrings, (q0, q2))
 
 
-def test_linear_xeb_fidelity_invalid_bitstrings():
+def test_xeb_fidelity_invalid_bitstrings():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2, 3, 4]
     with pytest.raises(ValueError):
-        cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
+        cirq.xeb_fidelity(circuit, bitstrings, (q0, q1))
 
 
-def test_linear_xeb_fidelity_tuple_input():
+def test_xeb_fidelity_tuple_input():
     q0, q1 = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     bitstrings = [0, 1, 2]
-    f1 = cirq.linear_xeb_fidelity(circuit, bitstrings, (q0, q1))
-    f2 = cirq.linear_xeb_fidelity(circuit, tuple(bitstrings), (q0, q1))
+    f1 = cirq.xeb_fidelity(circuit, bitstrings, (q0, q1))
+    f2 = cirq.xeb_fidelity(circuit, tuple(bitstrings), (q0, q1))
     assert f1 == f2

@@ -26,13 +26,13 @@ from cirq.vis import heatmap
 
 
 @pytest.fixture
-def axes():
+def ax():
     figure = mpl.figure.Figure()
     return figure.add_subplot(111)
 
 
 @pytest.mark.parametrize('test_GridQubit', [True, False])
-def test_cells_positions(axes, test_GridQubit):
+def test_cells_positions(ax, test_GridQubit):
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     if test_GridQubit:
         qubits = [grid_qubit.GridQubit(row, col) for (row, col) in row_col_list]
@@ -40,7 +40,7 @@ def test_cells_positions(axes, test_GridQubit):
         qubits = row_col_list
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    mesh, _ = heatmap.Heatmap(test_value_map).plot(axes)
+    _, mesh, _ = heatmap.Heatmap(test_value_map).plot(ax)
 
     found_qubits = set()
     for path in mesh.get_paths():
@@ -56,14 +56,14 @@ def test_cells_positions(axes, test_GridQubit):
 @pytest.mark.parametrize(
     'colormap_name',
     ['viridis', 'Greys', 'binary', 'PiYG', 'twilight', 'Pastel1', 'flag'])
-def test_cell_colors(axes, colormap_name):
+def test_cell_colors(ax, colormap_name):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = 1.0 + 2.0 * np.random.random(len(qubits))  # [1, 3)
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
         colormap_name, vmin=vmin, vmax=vmax))
-    mesh, _ = random_heatmap.plot(axes)
+    _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
     for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
@@ -80,15 +80,15 @@ def test_cell_colors(axes, colormap_name):
         assert np.all(np.isclose(facecolor, expected_color))
 
 
-def test_default_annotation(axes):
+def test_default_annotation(ax):
     """Tests that the default annotation is '.2g' format on float(value)."""
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = ['3.752', '42', '-5.27e8', '-7.34e-9', 732, 0.432, 3.9753e28]
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     random_heatmap = heatmap.Heatmap(test_value_map)
-    random_heatmap.plot(axes)
+    random_heatmap.plot(ax)
     actual_texts = set()
-    for artist in axes.get_children():
+    for artist in ax.get_children():
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
             text = artist.get_text()
@@ -99,15 +99,15 @@ def test_default_annotation(axes):
 
 
 @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g'])
-def test_annotation_position_and_content(axes, format_string):
+def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     random_heatmap = (
         heatmap.Heatmap(test_value_map).set_annotation_format(format_string))
-    random_heatmap.plot(axes)
+    random_heatmap.plot(ax)
     actual_texts = set()
-    for artist in axes.get_children():
+    for artist in ax.get_children():
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
             text = artist.get_text()
@@ -118,7 +118,7 @@ def test_annotation_position_and_content(axes, format_string):
 
 
 @pytest.mark.parametrize('test_GridQubit', [True, False])
-def test_annotation_map(axes, test_GridQubit):
+def test_annotation_map(ax, test_GridQubit):
     row_col_list = [(0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8)]
     if test_GridQubit:
         qubits = [grid_qubit.GridQubit(*row_col) for row_col in row_col_list]
@@ -134,9 +134,9 @@ def test_annotation_map(axes, test_GridQubit):
     }
     random_heatmap = (
         heatmap.Heatmap(test_value_map).set_annotation_map(test_anno_map))
-    random_heatmap.plot(axes)
+    random_heatmap.plot(ax)
     actual_texts = set()
-    for artist in axes.get_children():
+    for artist in ax.get_children():
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
             assert (row, col) != (1, 6)
@@ -148,7 +148,7 @@ def test_annotation_map(axes, test_GridQubit):
 
 
 @pytest.mark.parametrize('format_string', ['.3e', '.2f', '.4g', 's'])
-def test_non_float_values(axes, format_string):
+def test_non_float_values(ax, format_string):
 
     class Foo:
 
@@ -177,7 +177,7 @@ def test_non_float_values(axes, format_string):
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
         colormap_name, vmin=vmin,
         vmax=vmax).set_annotation_format(format_string))
-    mesh, _ = random_heatmap.plot(axes)
+    _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
     for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
@@ -189,7 +189,7 @@ def test_non_float_values(axes, format_string):
         expected_color = np.array(colormap(color_scale))
         assert np.all(np.isclose(facecolor, expected_color))
 
-    for artist in axes.get_children():
+    for artist in ax.get_children():
         if isinstance(artist, mpl.text.Text):
             col, row = artist.get_position()
             if (row, col) in test_value_map:
@@ -200,7 +200,7 @@ def test_non_float_values(axes, format_string):
 
 
 @pytest.mark.parametrize('test_GridQubit', [True, False])
-def test_urls(axes, test_GridQubit):
+def test_urls(ax, test_GridQubit):
     row_col_list = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     if test_GridQubit:
         qubits = [grid_qubit.GridQubit(*row_col) for row_col in row_col_list]
@@ -219,7 +219,7 @@ def test_urls(axes, test_GridQubit):
     test_url_map[extra_qubit] = 'http://google.com/10+7'
 
     my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
-    mesh, _ = my_heatmap.plot(axes)
+    _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
         test_url_map.get(qubit, '')
         for row_col, qubit in sorted(zip(row_col_list, qubits))
@@ -227,7 +227,7 @@ def test_urls(axes, test_GridQubit):
     assert mesh.get_urls() == expected_urls
 
 
-def test_colorbar(axes):
+def test_colorbar(ax):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}

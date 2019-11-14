@@ -13,13 +13,17 @@
 # limitations under the License.
 
 import operator
-from typing import Callable, Iterable, List
+from typing import Callable, Iterable, List, TYPE_CHECKING
+import re
 
 import networkx as nx
 
 from cirq import circuits, ops
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.swap_network import SwapNetwork
+
+if TYPE_CHECKING:
+    import cirq
 
 BINARY_OP_PREDICATE = Callable[[ops.Operation, ops.Operation], bool]
 
@@ -73,4 +77,28 @@ def is_valid_routing(
     circuit_dag = circuits.CircuitDag.from_circuit(circuit,
                                                    can_reorder=can_reorder)
     logical_operations = swap_network.get_logical_operations()
-    return cca.is_topologically_sorted(circuit_dag, logical_operations, equals)
+    try:
+        return cca.is_topologically_sorted(circuit_dag, logical_operations,
+                                           equals)
+    except ValueError as err:
+        if re.match(r'Operation .* acts on unmapped qubit .*\.', str(err)):
+            return False
+        raise
+
+
+def get_circuit_connectivity(circuit: 'cirq.Circuit') -> nx.Graph:
+    """Return a graph of all 2q interactions in a circuit.
+
+    Nodes are qubits and undirected edges correspond to any two-qubit
+    operation.
+    """
+    g = nx.Graph()
+    for op in circuit.all_operations():
+        n_qubits = len(op.qubits)
+        if n_qubits > 2:
+            # coverage: ignore
+            raise ValueError(f"Cannot build a graph out of a circuit that "
+                             f"contains {n_qubits}-qubit operations")
+        if n_qubits == 2:
+            g.add_edge(*op.qubits)
+    return g

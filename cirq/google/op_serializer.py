@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Callable, cast, Dict, List, NamedTuple, Optional, Type,
-                    TypeVar, Union, TYPE_CHECKING)
+from dataclasses import dataclass
+from typing import (Callable, cast, Dict, List, Optional, Type, TypeVar, Union,
+                    TYPE_CHECKING)
 
 import numpy as np
-import sympy
 from google.protobuf import json_format
 
 from cirq import devices, ops
-from cirq.api.google import v2
+from cirq.google.api import v2
 from cirq.google import arg_func_langs
+from cirq.google.arg_func_langs import _arg_to_proto
 
 if TYPE_CHECKING:
     import cirq
@@ -30,17 +31,11 @@ if TYPE_CHECKING:
 Gate = TypeVar('Gate', bound=ops.Gate)
 
 
-class SerializingArg(
-        NamedTuple(
-            'SerializingArg',
-            [('serialized_name', str),
-             ('serialized_type', Type[arg_func_langs.ArgValue]),
-             ('gate_getter',
-              Union[str, Callable[['cirq.Gate'], arg_func_langs.ArgValue]]),
-             ('required', bool)])):
+@dataclass(frozen=True)
+class SerializingArg:
     """Specification of the arguments for a Gate and its serialization.
 
-    Attributes:
+    Args:
         serialized_name: The name of the argument when it is serialized.
         serialized_type: The type of the argument when it is serialized.
         gate_getter: The name of the property or attribute for getting the
@@ -51,15 +46,10 @@ class SerializingArg(
         required: Whether this argument is a required argument for the
             serialized form.
     """
-
-    def __new__(cls,
-                serialized_name,
-                serialized_type,
-                gate_getter,
-                required=True):
-        return super(SerializingArg,
-                     cls).__new__(cls, serialized_name, serialized_type,
-                                  gate_getter, required)
+    serialized_name: str
+    serialized_type: Type[arg_func_langs.ARG_LIKE]
+    gate_getter: Union[str, Callable[['cirq.Gate'], arg_func_langs.ARG_LIKE]]
+    required: bool = True
 
 
 class GateOpSerializer:
@@ -106,8 +96,11 @@ class GateOpSerializer:
         supported_gate_type = self.gate_type in type(gate).mro()
         return supported_gate_type and self.can_serialize_predicate(gate)
 
-    def to_proto_dict(self, op: 'cirq.GateOperation') -> Optional[Dict]:
-        msg = self.to_proto(op)
+    def to_proto_dict(self,
+                      op: 'cirq.GateOperation',
+                      *,
+                      arg_function_language: str = '') -> Optional[Dict]:
+        msg = self.to_proto(op, arg_function_language=arg_function_language)
         if msg is None:
             return None
         return json_format.MessageToDict(msg,
@@ -115,11 +108,15 @@ class GateOpSerializer:
                                          preserving_proto_field_name=True,
                                          use_integers_for_enums=True)
 
-    def to_proto(self,
-                 op: 'cirq.GateOperation',
-                 msg: Optional[v2.program_pb2.Operation] = None
-                ) -> Optional[v2.program_pb2.Operation]:
-        """Returns the cirq.api.google.v2.Operation message as a proto dict."""
+    def to_proto(
+            self,
+            op: 'cirq.GateOperation',
+            msg: Optional[v2.program_pb2.Operation] = None,
+            *,
+            arg_function_language: Optional[str] = '',
+    ) -> Optional[v2.program_pb2.Operation]:
+        """Returns the cirq.google.api.v2.Operation message as a proto dict."""
+
         if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
             raise ValueError('All qubits must be GridQubits')
         gate = op.gate
@@ -136,15 +133,18 @@ class GateOpSerializer:
 
         msg.gate.id = self.serialized_gate_id
         for qubit in op.qubits:
-            msg.qubits.add().id = cast(devices.GridQubit, qubit).proto_id()
+            msg.qubits.add().id = v2.qubit_to_proto_id(
+                cast(devices.GridQubit, qubit))
         for arg in self.args:
             value = self._value_from_gate(gate, arg)
             if value is not None:
-                self._arg_value_to_proto(value, msg.args[arg.serialized_name])
+                _arg_to_proto(value,
+                              out=msg.args[arg.serialized_name],
+                              arg_function_language=arg_function_language)
         return msg
 
-    def _value_from_gate(self, gate: 'cirq.Gate',
-                         arg: SerializingArg) -> arg_func_langs.ArgValue:
+    def _value_from_gate(self, gate: 'cirq.Gate', arg: SerializingArg
+                        ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
         gate_getter = arg.gate_getter
 
@@ -162,7 +162,7 @@ class GateOpSerializer:
                 'Argument {} is required, but could not get from gate {!r}'.
                 format(arg.serialized_name, gate))
 
-        if isinstance(value, sympy.Symbol):
+        if isinstance(value, arg_func_langs.SUPPORTED_SYMPY_OPS):
             return value
 
         if value is not None:
@@ -170,7 +170,7 @@ class GateOpSerializer:
 
         return value
 
-    def _check_type(self, value: arg_func_langs.ArgValue,
+    def _check_type(self, value: arg_func_langs.ARG_LIKE,
                     arg: SerializingArg) -> None:
         if arg.serialized_type == List[bool]:
             if (not isinstance(value, (list, tuple, np.ndarray)) or
@@ -186,18 +186,3 @@ class GateOpSerializer:
             raise ValueError(
                 'Argument {} had type {} but gate returned type {}'.format(
                     arg.serialized_name, arg.serialized_type, type(value)))
-
-    def _arg_value_to_proto(self, value: arg_func_langs.ArgValue,
-                            msg: v2.program_pb2.Arg) -> None:
-        if isinstance(value, (float, int)):
-            msg.arg_value.float_value = float(value)
-        elif isinstance(value, str):
-            msg.arg_value.string_value = value
-        elif (isinstance(value, (list, tuple, np.ndarray)) and
-              all(isinstance(x, (bool, np.bool_)) for x in value)):
-            msg.arg_value.bool_values.values.extend(value)
-        elif isinstance(value, sympy.Symbol):
-            msg.symbol = str(value.free_symbols.pop())
-        else:
-            raise ValueError('Unsupported type of arg value: {}'.format(
-                type(value)))

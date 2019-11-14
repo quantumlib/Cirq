@@ -16,7 +16,7 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    program = engine.create_program(ciruit)
+    program = engine.create_program(circuit)
     result0 = program.run(params=params0, repetitions=10)
     result1 = program.run(params=params1, repetitions=10)
 
@@ -26,21 +26,24 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import base64
 import enum
+import json
 import random
 import re
 import string
+import sys
+import time
 from typing import Any, Dict, List, Optional, Sequence, Union
 import warnings
 
 from apiclient import discovery, http as apiclient_http
+from apiclient.errors import HttpError
+from apiclient.http import HttpRequest
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
 from cirq import circuits, optimizers, schedules, study, value
-from cirq.api.google import v1, v2
 from cirq.google import gate_sets, serializable_gate_set
-from cirq.google.api import v1 as api_v1
-from cirq.google.api import v2 as api_v2
+from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,
                                 engine_sampler)
 
@@ -53,6 +56,13 @@ class ProtoVersion(enum.Enum):
     UNDEFINED = 0
     V1 = 1
     V2 = 2
+
+
+class EngineException(Exception):
+
+    def __init__(self, message):
+        # Call the base class constructor with the parameters it needs
+        super().__init__(message)
 
 
 # Quantum programs to run can be specified as circuits or schedules.
@@ -162,7 +172,8 @@ class Engine:
                  discovery_url: Optional[str] = None,
                  default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
-                 service_args: Optional[Dict] = None) -> None:
+                 service_args: Optional[Dict] = None,
+                 verbose: bool = True) -> None:
         """Engine service client.
 
         Args:
@@ -179,6 +190,8 @@ class Engine:
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
+            verbose: Supresses stderr messages when set to False. Default is
+                true.
         """
         if discovery_url and version:
             raise ValueError("`version` and `discovery_url` are both "
@@ -190,7 +203,9 @@ class Engine:
         self.project_id = project_id
         self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.default_gcs_prefix = default_gcs_prefix
+        self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
+        self.verbose = verbose
 
         if not service_args:
             service_args = {}
@@ -217,7 +232,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> study.TrialResult:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -241,6 +256,7 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
+        gate_set = gate_set or gate_sets.XMON
         return list(
             self.run_sweep(program=program,
                            program_id=program_id,
@@ -274,7 +290,7 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit or Schedule via Quantum Engine.
 
@@ -300,12 +316,14 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
+        gate_set = gate_set or gate_sets.XMON
         engine_program = self.create_program(program, program_id, gate_set)
         return engine_program.run_sweep(job_config=job_config,
                                         params=params,
                                         repetitions=repetitions,
                                         priority=priority,
                                         processor_ids=processor_ids)
+
 
     def create_job(
             self,
@@ -316,8 +334,9 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
+        gate_set = gate_set or gate_sets.XMON
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
@@ -347,8 +366,9 @@ class Engine:
             },
             'run_context': run_context
         }
-        response = self.service.projects().programs().jobs().create(
-            parent=program_name, body=request).execute()
+        response = self._make_request(
+            self.service.projects().programs().jobs().create(
+                parent=program_name, body=request))
 
         return engine_job.EngineJob(job_config, response, self)
 
@@ -388,6 +408,35 @@ class Engine:
             job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
                                                         job_config.job_id)
 
+    def _make_request(self, request: HttpRequest) -> Dict:
+        retryable_error_codes = [500, 503]
+        current_delay = 0.1  #100ms
+
+        while True:
+            try:
+                return request.execute()
+            except ConnectionResetError:
+                message = "Lost connection to the engine."
+            except HttpError as raw_err:
+                err = json.loads(raw_err.content).get('error')
+                message = err.get('message')
+                # Raise RuntimeError for exceptions that are not retryable.
+                # Otherwise, pass through to retry.
+                if not err.get('code') in retryable_error_codes:
+                    raise EngineException(message) from raw_err
+
+            current_delay *= 2
+            if current_delay > self.max_retry_delay:
+                raise TimeoutError(
+                    'Reached max retry attempts for error: {}'.format(message))
+            if (self.verbose):
+                print(message, file=sys.stderr)
+                print('Waiting ',
+                      current_delay,
+                      'seconds before retrying.',
+                      file=sys.stderr)
+            time.sleep(current_delay)
+
     def _serialize_run_context(
             self,
             sweeps: List[study.Sweep],
@@ -399,8 +448,7 @@ class Engine:
             context_dict = {}  # type: Dict[str, Any]
             context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
             context_dict['parameter_sweeps'] = [
-                api_v1.sweep_to_proto_dict(sweep, repetitions)
-                for sweep in sweeps
+                v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
             ]
             return context_dict
         elif proto_version == ProtoVersion.V2:
@@ -408,7 +456,7 @@ class Engine:
             for sweep in sweeps:
                 sweep_proto = run_context.parameter_sweeps.add()
                 sweep_proto.repetitions = repetitions
-                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
             return _any_dict_from_msg(run_context)
         else:
@@ -419,7 +467,7 @@ class Engine:
             self,
             program: TProgram,
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
         """Wraps a Circuit or Scheduler for use with the Quantum Engine.
 
@@ -433,6 +481,8 @@ class Engine:
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
+        gate_set = gate_set or gate_sets.XMON
+
         if not program_id:
             program_id = _make_random_id('prog-')
 
@@ -443,16 +493,18 @@ class Engine:
             'name': program_name,
             'code': self._serialize_program(program, gate_set),
         }
-        result = self.service.projects().programs().create(
-            parent=parent_name, body=request).execute()
+        result = self._make_request(self.service.projects().programs().create(
+            parent=parent_name, body=request))
 
         return engine_program.EngineProgram(result['name'], self)
 
     def _serialize_program(
             self,
             program: TProgram,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> Dict[str, Any]:
+        gate_set = gate_set or gate_sets.XMON
+
         if self.proto_version == ProtoVersion.V1:
             schedule = self.program_as_schedule(program)
             schedule.device.validate_schedule(schedule)
@@ -461,7 +513,7 @@ class Engine:
             program_dict = {}  # type: Dict[str, Any]
             program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
             program_dict['operations'] = [
-                op for op in api_v1.schedule_to_proto_dicts(schedule)
+                op for op in v1.schedule_to_proto_dicts(schedule)
             ]
             return program_dict
         elif self.proto_version == ProtoVersion.V2:
@@ -484,9 +536,8 @@ class Engine:
             A dictionary containing the metadata and the program.
         """
         program_resource_name = self._program_name_from_id(program_id)
-        return self.service.projects().programs().get(
-            name=program_resource_name).execute()
-
+        return self._make_request(
+            self.service.projects().programs().get(name=program_resource_name))
 
     def get_job(self, job_resource_name: str) -> Dict:
         """Returns metadata about a previously created job.
@@ -501,8 +552,8 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        return self.service.projects().programs().jobs().get(
-            name=job_resource_name).execute()
+        return self._make_request(self.service.projects().programs().jobs().get(
+            name=job_resource_name))
 
     def get_job_results(self,
                         job_resource_name: str) -> List[study.TrialResult]:
@@ -516,15 +567,21 @@ class Engine:
             An iterable over the TrialResult, one per parameter in the
             parameter sweep.
         """
-        response = self.service.projects().programs().jobs().getResult(
-            parent=job_resource_name).execute()
+        response = self._make_request(
+            self.service.projects().programs().jobs().getResult(
+                parent=job_resource_name))
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
-
+        if result_type == 'cirq.google.api.v1.Result':
+            return self._get_job_results_v1(result)
+        if result_type == 'cirq.google.api.v2.Result':
+            return self._get_job_results_v2(result)
         if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(response['result'])
+            return self._get_job_results_v1(result)
         if result_type == 'cirq.api.google.v2.Result':
-            return self._get_job_results_v2(response['result'])
+            # Change path to the new path
+            result['@type'] = 'type.googleapis.com/cirq.google.api.v2.Result'
+            return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
@@ -537,8 +594,8 @@ class Engine:
                          for m in sweep_result['measurementKeys']]
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
-                measurements = api_v1.unpack_results(data, sweep_repetitions,
-                                                     key_sizes)
+                measurements = v1.unpack_results(data, sweep_repetitions,
+                                                 key_sizes)
 
                 trial_results.append(
                     study.TrialResult.from_single_parameter_set(
@@ -553,8 +610,7 @@ class Engine:
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
-
-        sweep_results = api_v2.results_from_proto(result)
+        sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
             trial_result for sweep_result in sweep_results
@@ -570,8 +626,8 @@ class Engine:
             job_resource_name: A string of the form
                 `projects/project_id/programs/program_id/jobs/job_id`.
         """
-        self.service.projects().programs().jobs().cancel(
-            name=job_resource_name, body={}).execute()
+        self._make_request(self.service.projects().programs().jobs().cancel(
+            name=job_resource_name, body={}))
 
     def _program_name_from_id(self, program_id: str) -> str:
         return 'projects/%s/programs/%s' % (
@@ -582,11 +638,14 @@ class Engine:
     def _set_program_labels(self, program_id: str, labels: Dict[str, str],
                             fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)
-        self.service.projects().programs().patch(
+        self._make_request(self.service.projects().programs().patch(
             name=program_resource_name,
-            body={'name': program_resource_name, 'labels': labels,
-                  'labelFingerprint': fingerprint},
-            updateMask='labels').execute()
+            body={
+                'name': program_resource_name,
+                'labels': labels,
+                'labelFingerprint': fingerprint
+            },
+            updateMask='labels'))
 
     def set_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
@@ -614,11 +673,14 @@ class Engine:
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
-        self.service.projects().programs().jobs().patch(
+        self._make_request(self.service.projects().programs().jobs().patch(
             name=job_resource_name,
-            body={'name': job_resource_name, 'labels': labels,
-                  'labelFingerprint': fingerprint},
-            updateMask='labels').execute()
+            body={
+                'name': job_resource_name,
+                'labels': labels,
+                'labelFingerprint': fingerprint
+            },
+            updateMask='labels'))
 
     def set_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
         job = self.get_job(job_resource_name)
@@ -654,8 +716,8 @@ class Engine:
             A list of dictionaries containing the metadata of each processor.
         """
         parent = 'projects/%s' % (self.project_id)
-        response = self.service.projects().processors().list(
-            parent=parent).execute()
+        response = self._make_request(
+            self.service.projects().processors().list(parent=parent))
         return response['processors']
 
     def get_latest_calibration(self, processor_id: str
@@ -673,8 +735,9 @@ class Engine:
         """
         processor_name = 'projects/{}/processors/{}'.format(
             self.project_id, processor_id)
-        response = self.service.projects().processors().calibrations().list(
-            parent=processor_name).execute()
+        response = self._make_request(
+            self.service.projects().processors().calibrations().list(
+                parent=processor_name))
         if (not 'calibrations' in response or
                 len(response['calibrations']) < 1):
             return None
@@ -690,8 +753,9 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        response = self.service.projects().processors().calibrations().get(
-            name=calibration_name).execute()
+        response = self._make_request(
+            self.service.projects().processors().calibrations().get(
+                name=calibration_name))
         return calibration.Calibration(response['data']['data'])
 
     def sampler(self, processor_id: Union[str, List[str]],

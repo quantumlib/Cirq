@@ -260,8 +260,34 @@ def test_to_valid_state_vector():
     np.testing.assert_almost_equal(cirq.to_valid_state_vector(1, 2),
                                    np.array([0.0, 1.0, 0.0, 0.0]))
 
+    v = cirq.to_valid_state_vector([0, 1, 2, 0], qid_shape=(3, 3, 3, 3))
+    assert v.shape == (3**4,)
+    assert v[6 + 9] == 1
+
+    v = cirq.to_valid_state_vector([False, True, False, False], num_qubits=4)
+    assert v.shape == (16,)
+    assert v[4] == 1
+
+    v = cirq.to_valid_state_vector([0, 1, 0, 0], num_qubits=2)
+    assert v.shape == (4,)
+    assert v[1] == 1
+
+    v = cirq.to_valid_state_vector(np.array([1, 0], dtype=np.complex64),
+                                   qid_shape=(2, 1))
+    assert v.shape == (2,)
+    assert v[0] == 1
+
+
+def test_to_valid_state_vector_creates_new_copy():
+    state = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64)
+    out = cirq.to_valid_state_vector(state, 2)
+    assert out is not state
+
 
 def test_invalid_to_valid_state_vector():
+    with pytest.raises(ValueError, match="Must specify"):
+        _ = cirq.to_valid_state_vector(np.array([1]))
+
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(
             np.array([1.0, 0.0], dtype=np.complex64), 2)
@@ -269,10 +295,26 @@ def test_invalid_to_valid_state_vector():
         _ = cirq.to_valid_state_vector(-1, 2)
     with pytest.raises(ValueError):
         _ = cirq.to_valid_state_vector(5, 2)
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
+        _ = cirq.to_valid_state_vector('0000', 2)
+    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
         _ = cirq.to_valid_state_vector('not an int', 2)
     with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
         _ = cirq.to_valid_state_vector(0, 5, qid_shape=(1, 2, 3))
+
+    with pytest.raises(ValueError, match='out of bounds'):
+        _ = cirq.to_valid_state_vector([3], qid_shape=(3,))
+    with pytest.raises(ValueError, match='out of bounds'):
+        _ = cirq.to_valid_state_vector([-1], qid_shape=(3,))
+    with pytest.raises(ValueError, match='but its shape was neither'):
+        _ = cirq.to_valid_state_vector([], qid_shape=(3,))
+    with pytest.raises(ValueError, match='but its shape was neither'):
+        _ = cirq.to_valid_state_vector([0, 1], num_qubits=3)
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.to_valid_state_vector([1, 0], qid_shape=(2, 1))
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.to_valid_state_vector(np.array([1, 0], dtype=np.int64),
+                                       qid_shape=(2, 1))
 
 
 def test_check_state():
@@ -366,6 +408,20 @@ def test_sample_state_repetitions():
 
             result = cirq.sample_state_vector(state, perm, repetitions=3)
             np.testing.assert_equal(result, expected)
+
+
+def test_sample_state_seed():
+    state = np.ones(2) / np.sqrt(2)
+
+    samples = cirq.sample_state_vector(state, [0], repetitions=10, seed=1234)
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
+
+    samples = cirq.sample_state_vector(state, [0],
+                                       repetitions=10,
+                                       seed=np.random.RandomState(1234))
+    assert np.array_equal(samples, [[False], [True], [False], [True], [True],
+                                    [False], [False], [True], [True], [True]])
 
 
 def test_sample_state_negative_repetitions():
@@ -473,6 +529,25 @@ def test_measure_state_collapse():
         bits, state = cirq.measure_state_vector(initial_state, [0])
         np.testing.assert_almost_equal(state, initial_state)
         assert bits == [False]
+
+
+def test_measure_state_seed():
+    n = 10
+    initial_state = np.ones(2**n) / 2**(n / 2)
+
+    bits, state1 = cirq.measure_state_vector(initial_state, range(n), seed=1234)
+    np.testing.assert_equal(
+        bits,
+        [False, False, True, True, False, False, False, True, False, False])
+
+    bits, state2 = cirq.measure_state_vector(initial_state,
+                                             range(n),
+                                             seed=np.random.RandomState(1234))
+    np.testing.assert_equal(
+        bits,
+        [False, False, True, True, False, False, False, True, False, False])
+
+    np.testing.assert_allclose(state1, state2)
 
 
 def test_measure_state_out_is_state():

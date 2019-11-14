@@ -239,6 +239,44 @@ def test_add_op_tree():
         cirq.Moment([cirq.X(a), cirq.Y(b)]),
     ])
 
+    assert c + cirq.X(a) == cirq.Circuit(cirq.X(a))
+    assert c + [cirq.X(a)] == cirq.Circuit(cirq.X(a))
+    assert c + [[[cirq.X(a)], []]] == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a),) == cirq.Circuit(cirq.X(a))
+    assert c + (cirq.X(a) for _ in range(1)) == cirq.Circuit(cirq.X(a))
+    with pytest.raises(TypeError):
+        _ = c + cirq.X
+
+
+def test_radd_op_tree():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = cirq.Circuit()
+    assert [cirq.X(a), cirq.Y(b)] + c == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
+
+    assert cirq.X(a) + c == cirq.Circuit(cirq.X(a))
+    assert [cirq.X(a)] + c == cirq.Circuit(cirq.X(a))
+    assert [[[cirq.X(a)], []]] + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a),) + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a) for _ in range(1)) + c == cirq.Circuit(cirq.X(a))
+    with pytest.raises(AttributeError):
+        _ = cirq.X + c
+    with pytest.raises(TypeError):
+        _ = 0 + c
+
+    # non-empty circuit addition
+    d = cirq.Circuit()
+    d.append(cirq.Y(b))
+    assert [cirq.X(a)] + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([cirq.X(a)]) + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+
 
 def test_bool():
     assert not cirq.Circuit()
@@ -1172,7 +1210,12 @@ def test_findall_operations_until_blocked():
         assert circuit.findall_operations_until_blocked(
             start_frontier={d: idx}, is_blocker=stop_if_op) == []
         assert circuit.findall_operations_until_blocked(
-            start_frontier={a:idx, b:idx, c:idx, d: idx},
+            start_frontier={
+                a: idx,
+                b: idx,
+                c: idx,
+                d: idx
+            },
             is_blocker=stop_if_op) == []
 
     # Cases where nothing is blocked, it goes to the end
@@ -1286,7 +1329,7 @@ def test_are_all_measurements_terminal():
 
 def test_all_terminal():
     def is_x_pow_gate(op):
-        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+        return isinstance(op.gate, cirq.XPowGate)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1793,9 +1836,12 @@ def test_diagram_wgate():
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
-    cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43)^(1/8)---
-""", use_unicode_characters=False, precision=2)
+    cirq.testing.assert_has_diagram(c,
+                                    """
+a: ---PhX(0.43)^(1/8)---
+""",
+                                    use_unicode_characters=False,
+                                    precision=2)
 
 
 def test_diagram_wgate_none_precision():
@@ -1803,9 +1849,12 @@ def test_diagram_wgate_none_precision():
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
-    cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43214321)^0.12341234---
-""", use_unicode_characters=False, precision=None)
+    cirq.testing.assert_has_diagram(c,
+                                    """
+a: ---PhX(0.43214321)^0.12341234---
+""",
+                                    use_unicode_characters=False,
+                                    precision=None)
 
 
 def test_has_unitary():
@@ -3257,6 +3306,18 @@ def test_with_noise():
     c_noisy = c.with_noise(Noise())
     assert c_noisy == c_expected
 
+    # Accepts NOISE_MODEL_LIKE.
+    assert c.with_noise(None) == c
+    assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
+        cirq.X(q0),
+        cirq.Y(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Z(q1),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([cirq.X(q0)]),
+        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+    )
+
 
 def test_init_contents():
     a, b = cirq.LineQubit.range(2)
@@ -3292,3 +3353,19 @@ def test_init_contents():
     )
 
     cirq.Circuit()
+
+
+def test_transform_qubits():
+    a, b, c = cirq.LineQubit.range(3)
+    c = cirq.Circuit(cirq.X(a), cirq.CNOT(a, b), cirq.Moment(),
+                     cirq.Moment([cirq.CNOT(b, c)]))
+    x, y, z = cirq.GridQubit.rect(3, 1, 10, 20)
+    desired = cirq.Circuit(cirq.X(x), cirq.CNOT(x, y), cirq.Moment(),
+                           cirq.Moment([cirq.CNOT(y, z)]))
+    assert c.transform_qubits(lambda q: cirq.GridQubit(10 + q.x, 20)) == desired
+
+    # Device
+    c = cirq.Circuit(device=cg.Foxtail)
+    assert c.transform_qubits(lambda q: q).device is cg.Foxtail
+    assert c.transform_qubits(lambda q: q, new_device=cg.Bristlecone
+                             ).device is cg.Bristlecone
