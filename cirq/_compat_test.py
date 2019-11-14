@@ -19,7 +19,12 @@ import numpy as np
 import pandas as pd
 import sympy
 
-from cirq._compat import (proper_repr, deprecated, deprecated_parameter, proper_eq,)
+from cirq._compat import (
+    proper_repr,
+    deprecated,
+    deprecated_parameter,
+    proper_eq,
+)
 
 
 def test_proper_repr():
