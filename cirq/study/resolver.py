@@ -61,7 +61,7 @@ class ParamResolver:
             Dict[str, Union[float, str, sympy.Symbol]],
             {} if param_dict is None else {
                 param.name if isinstance(param, sympy.Symbol) else param: value
-                for param, value in param_dict.items()
+                for param, value in cast(ParamDictType, param_dict).items()
             })
 
     def value_of(self,
