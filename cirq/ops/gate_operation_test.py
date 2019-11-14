@@ -340,3 +340,49 @@ def test_gate_on_operation_besides_gate_operation():
 
     assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
                                        cirq.XPowGate)
+
+
+def test_mul():
+
+    class GateRMul(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _rmul_with_qubits(self, qubits, other):
+            if other == 2:
+                return 3
+            if (isinstance(other, cirq.Operation) and
+                    isinstance(other.gate, GateRMul)):
+                return 4
+            raise NotImplementedError()
+
+    class GateMul(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _mul_with_qubits(self, qubits, other):
+            if other == 2:
+                return 5
+            if (isinstance(other, cirq.Operation) and
+                    isinstance(other.gate, GateMul)):
+                return 6
+            raise NotImplementedError()
+
+    # Delegates right multiplication.
+    q = cirq.LineQubit(0)
+    r = GateRMul().on(q)
+    assert 2 * r == 3
+    with pytest.raises(TypeError):
+        _ = r * 2
+
+    # Delegates left multiplication.
+    m = GateMul().on(q)
+    assert m * 2 == 5
+    with pytest.raises(TypeError):
+        _ = 2 * m
+
+    # Handles the symmetric type case correctly.
+    assert m * m == 6
+    assert r * r == 4
