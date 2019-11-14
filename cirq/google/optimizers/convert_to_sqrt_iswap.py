@@ -82,7 +82,7 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
         return NotImplemented
 
-    def _on_stuck_raise(bad):
+    def _on_stuck_raise(self, bad):
         return TypeError(f"Don't know how to work with {bad}. "
                          "It isn't a native sqrt ISWAP operation, "
                          "a 1 or 2 qubit gate with a known unitary, "
