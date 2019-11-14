@@ -1,0 +1,17 @@
+[
+  {
+    "cirq_type": "complex",
+    "real": 0.0,
+    "imag": 1.0
+  },
+  {
+    "cirq_type": "complex",
+    "real": 1.0,
+    "imag": 0.0
+  },
+  {
+    "cirq_type": "complex",
+    "real": 0.0,
+    "imag": 0.0
+  }
+]
