@@ -14,6 +14,7 @@
 
 from typing import Dict, Optional, Iterable, List, Set, Tuple
 
+from cirq import value
 from cirq._doc import document
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
@@ -172,14 +173,18 @@ class _NamedConstantXmonDevice(XmonDevice):
     def __repr__(self):
         return self._repr
 
+    @classmethod
+    def _from_json_dict_(cls, constant: str, **kwargs):
+        if constant == Foxtail._repr:
+            return Foxtail
+        if constant == Bristlecone._repr:
+            return Bristlecone
+        raise ValueError(f'Unrecognized xmon device name: {constant!r}')
+
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
             'constant': self._repr,
-            'measurement_duration': self._measurement_duration,
-            'exp_w_duration': self._exp_w_duration,
-            'exp_11_duration': self._exp_z_duration,
-            'qubits': sorted(self.qubits)
         }
 
 

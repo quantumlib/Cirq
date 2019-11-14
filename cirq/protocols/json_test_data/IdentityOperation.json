@@ -1,0 +1,40 @@
+[
+  {
+    "cirq_type": "IdentityOperation",
+    "qubits": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      }
+    ]
+  },
+  {
+    "cirq_type": "IdentityOperation",
+    "qubits": [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 1
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 2
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 3
+      },
+      {
+        "cirq_type": "LineQubit",
+        "x": 4
+      }
+    ]
+  }
+]

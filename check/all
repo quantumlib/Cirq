@@ -64,14 +64,14 @@ echo "Running mypy"
 check/mypy
 
 echo "Running incremental format"
-check/format-incremental ${rev} "${apply_arg}"
+check/format-incremental "${rev}" "${apply_arg}"
 
 if [ -z "${only_changed}" ]; then
-    echo "Running pytest on changed files without incremental coverage"
-    check/pytest-changed-files ${rev}
+    echo "Running pytest and incremental coverage on changed files"
+    check/pytest-changed-files-and-incremental-coverage "${rev}"
 else
     echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage ${rev}
+    check/pytest-and-incremental-coverage "${rev}"
 fi
 
 echo "Running doctest"

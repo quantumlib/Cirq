@@ -1,0 +1,4 @@
+{
+  "cirq_type": "PhaseFlipChannel",
+  "p": 0.5
+}
