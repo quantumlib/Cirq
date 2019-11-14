@@ -296,7 +296,7 @@ ABCDE-----
 """
 
 SYCAMORE23_PROTO = create_device_proto_from_diagram(
-    _SYCAMORE_GRID,
+    _SYCAMORE23_GRID,
     [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
     _SYCAMORE_DURATIONS_PICOS,
 )
