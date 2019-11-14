@@ -317,7 +317,10 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
 
 # pylint: disable=function-redefined
 @overload
-def to_json(obj: Any, file_or_fn: Union[IO, str], *, indent=2,
+def to_json(obj: Any,
+            file_or_fn: Union[IO, pathlib.Path, str],
+            *,
+            indent=2,
             cls=CirqEncoder) -> None:
     pass
 

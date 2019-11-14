@@ -1,0 +1,6 @@
+{
+  "cirq_type": "AsymmetricDepolarizingChannel",
+  "p_x": 0.1,
+  "p_y": 0.2,
+  "p_z": 0.3
+}

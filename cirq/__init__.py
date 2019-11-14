@@ -239,6 +239,7 @@ from cirq.ops import (
     QubitOrderOrList,
     reset,
     ResetChannel,
+    riswap,
     Rx,
     Ry,
     Rz,

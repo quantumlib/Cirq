@@ -124,7 +124,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
         """
         value.validate_probability(depol_prob, 'depol prob')
         value.validate_probability(bitflip_prob, 'bitflip prob')
-        value.validate_probability(decay_prob, 'bitflip prob')
+        value.validate_probability(decay_prob, 'decay_prob')
         self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
