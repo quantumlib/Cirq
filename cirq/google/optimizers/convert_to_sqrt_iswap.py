@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -25,8 +25,6 @@ SQRT_ISWAP_INV = cirq.ISWAP**-0.5
 # TODO: Combine this with the equivalent functions in google/gate_set.py
 # Or better yet, write a proper gate set so we don't need this in two places
 def _near_mod_n(e, t, n, atol=1e-8):
-    if isinstance(e, sympy.Basic):
-        return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
@@ -68,36 +66,41 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
         if len(op.qubits) != 2:
             return NotImplemented
 
+        q0, q1 = op.qubits
+
         if isinstance(gate, cirq.CZPowGate):
             if isinstance(gate.exponent, sympy.Basic):
-                return cphase_symbols_to_sqrt_iswap(op.qubits[0], op.qubits[1],
+                return cphase_symbols_to_sqrt_iswap(q0, q1,
                                                     gate.exponent)
             else:
-                return cphase_to_sqrt_iswap(op.qubits[0], op.qubits[1],
+                return cphase_to_sqrt_iswap(q0, q1,
                                             gate.exponent)
         if isinstance(gate, cirq.SwapPowGate):
-            return swap_to_sqrt_iswap(op.qubits[0], op.qubits[1], gate.exponent)
+            return swap_to_sqrt_iswap(q0, q1, gate.exponent)
         if isinstance(gate, cirq.ISwapPowGate):
-            return iswap_to_sqrt_iswap(op.qubits[0], op.qubits[1],
+            return iswap_to_sqrt_iswap(q0, q1,
                                        gate.exponent)
         if isinstance(gate, cirq.FSimGate):
-            return fsim_gate(op.qubits[0], op.qubits[1], gate.theta, gate.phi)
+            return fsim_gate(q0, q1, gate.theta, gate.phi)
 
         return NotImplemented
 
-    def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
 
-        def on_stuck_raise(bad):
+   def _on_stuck_raise(bad):
             return TypeError(f"Don't know how to work with {bad}. "
                              "It isn't a native sqrt ISWAP operation, "
                              "a 1 or 2 qubit gate with a known unitary, "
                              "or composite.")
 
+    def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
+
+
+
         a = cirq.decompose(
             op,
             keep=is_sqrt_iswap_compatible,
             intercepting_decomposer=self._convert_one,
-            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
+            on_stuck_raise=None if self.ignore_failures else _on_stuck_raise)
         return a
 
     def optimization_at(self, circuit, index, op):
@@ -128,7 +131,7 @@ def is_sqrt_iswap(gate: Optional[cirq.Gate]) -> bool:
     ISwapPowGate or with the equivalent FSimGate.
     """
     if (isinstance(gate, cirq.FSimGate) and
-            not isinstance(gate.theta, sympy.Symbol) and
+            not isinstance(gate.theta, sympy.Basic) and
             _near_mod_2pi(abs(gate.theta), np.pi / 4) and
             _near_mod_2pi(gate.phi, 0)):
         return True
