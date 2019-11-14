@@ -1,0 +1,21 @@
+[
+  {
+    "cirq_type": "IdentityGate",
+    "num_qubits": 1
+  },
+  {
+    "cirq_type": "IdentityGate",
+    "num_qubits": 5
+  },
+  {
+    "cirq_type": "IdentityGate",
+    "num_qubits": 5,
+    "qid_shape": [
+      3,
+      3,
+      3,
+      3,
+      3
+    ]
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "cirq_type": "ZPowGate",
+  "exponent": 0.25,
+  "global_shift": 0.0
+}

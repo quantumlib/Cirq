@@ -1,0 +1,19 @@
+[
+  {
+    "cirq_type": "_QubitAsQid",
+    "qubit": {
+      "cirq_type": "NamedQubit",
+      "name": "a"
+    },
+    "dimension": 5
+  },
+  {
+    "cirq_type": "_QubitAsQid",
+    "qubit": {
+      "cirq_type": "GridQubit",
+      "row": 1,
+      "col": 2
+    },
+    "dimension": 1
+  }
+]
