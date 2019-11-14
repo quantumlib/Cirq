@@ -391,12 +391,29 @@ def test_json_dict():
 
 
 @pytest.mark.parametrize('device', [cg.Sycamore, cgdk.Sycamore23])
-def test_sycamore_device(device):
-    q0 = cirq.GridQubit(5, 4)
-    q1 = cirq.GridQubit(5, 5)
+def test_sycamore_devices(device):
+    q0 = cirq.GridQubit(5, 3)
+    q1 = cirq.GridQubit(5, 4)
     syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
     sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
     device.validate_operation(syc)
     device.validate_operation(sqrt_iswap)
-    assert cg.Sycamore.duration_of(syc) == cirq.Duration(nanos=12)
-    assert cg.Sycamore.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+    assert device.duration_of(syc) == cirq.Duration(nanos=12)
+    assert device.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+
+
+def test_sycamore_grid_layout():
+    # Qubits on Sycamore but not on Sycamore23
+    q0 = cirq.GridQubit(5, 5)
+    q1 = cirq.GridQubit(5, 6)
+    syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
+    sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
+    cg.Sycamore.validate_operation(syc)
+    cg.Sycamore.validate_operation(sqrt_iswap)
+
+    with pytest.raises(ValueError):
+        cgdk.Sycamore23.validate_operation(syc)
+    with pytest.raises(ValueError):
+        cgdk.Sycamore23.validate_operation(sqrt_iswap)
+
+
