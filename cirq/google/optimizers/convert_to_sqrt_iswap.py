@@ -70,37 +70,31 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
         if isinstance(gate, cirq.CZPowGate):
             if isinstance(gate.exponent, sympy.Basic):
-                return cphase_symbols_to_sqrt_iswap(q0, q1,
-                                                    gate.exponent)
+                return cphase_symbols_to_sqrt_iswap(q0, q1, gate.exponent)
             else:
-                return cphase_to_sqrt_iswap(q0, q1,
-                                            gate.exponent)
+                return cphase_to_sqrt_iswap(q0, q1, gate.exponent)
         if isinstance(gate, cirq.SwapPowGate):
             return swap_to_sqrt_iswap(q0, q1, gate.exponent)
         if isinstance(gate, cirq.ISwapPowGate):
-            return iswap_to_sqrt_iswap(q0, q1,
-                                       gate.exponent)
+            return iswap_to_sqrt_iswap(q0, q1, gate.exponent)
         if isinstance(gate, cirq.FSimGate):
             return fsim_gate(q0, q1, gate.theta, gate.phi)
 
         return NotImplemented
 
-
-   def _on_stuck_raise(bad):
-            return TypeError(f"Don't know how to work with {bad}. "
-                             "It isn't a native sqrt ISWAP operation, "
-                             "a 1 or 2 qubit gate with a known unitary, "
-                             "or composite.")
+    def _on_stuck_raise(bad):
+        return TypeError(f"Don't know how to work with {bad}. "
+                         "It isn't a native sqrt ISWAP operation, "
+                         "a 1 or 2 qubit gate with a known unitary, "
+                         "or composite.")
 
     def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
 
-
-
-        a = cirq.decompose(
-            op,
-            keep=is_sqrt_iswap_compatible,
-            intercepting_decomposer=self._convert_one,
-            on_stuck_raise=None if self.ignore_failures else _on_stuck_raise)
+        a = cirq.decompose(op,
+                           keep=is_sqrt_iswap_compatible,
+                           intercepting_decomposer=self._convert_one,
+                           on_stuck_raise=(None if self.ignore_failures else
+                                           self._on_stuck_raise))
         return a
 
     def optimization_at(self, circuit, index, op):
