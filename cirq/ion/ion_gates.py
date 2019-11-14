@@ -41,6 +41,6 @@ def ms(rads: float) -> ops.XXPowGate:
     return ops.XXPowGate(exponent=rads*2/np.pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.7.0', fix='Use cirq.ms, instead.')
+@deprecated(deadline='v0.8.0', fix='Use cirq.ms, instead.')
 def MS(rads: float) -> ops.XXPowGate:
     return ms(rads)
