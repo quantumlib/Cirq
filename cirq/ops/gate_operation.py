@@ -32,9 +32,7 @@ if TYPE_CHECKING:
 class GateOperation(raw_types.Operation):
     """An application of a gate to a sequence of qubits."""
 
-    def __init__(self,
-                 gate: raw_types.Gate,
-                 qubits: Sequence[raw_types.Qid]) -> None:
+    def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
         """
         Args:
             gate: The gate to apply.
@@ -45,19 +43,19 @@ class GateOperation(raw_types.Operation):
         self._qubits = tuple(qubits)
 
     @property
-    def gate(self) -> raw_types.Gate:
+    def gate(self) -> 'cirq.Gate':
         """The gate applied by the operation."""
         return self._gate
 
     @property
-    def qubits(self) -> Tuple[raw_types.Qid, ...]:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         """The qubits targeted by the operation."""
         return self._qubits
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         return self.gate.on(*new_qubits)
 
-    def with_gate(self, new_gate: raw_types.Gate) -> 'raw_types.Operation':
+    def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
@@ -78,15 +76,14 @@ class GateOperation(raw_types.Operation):
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
-    def _group_interchangeable_qubits(self) -> Tuple[
-            Union[raw_types.Qid,
-                  Tuple[int, FrozenSet[raw_types.Qid]]],
-            ...]:
+    def _group_interchangeable_qubits(
+            self
+    ) -> Tuple[Union['cirq.Qid', Tuple[int, FrozenSet['cirq.Qid']]], ...]:
 
         if not isinstance(self.gate, gate_features.InterchangeableQubitsGate):
             return self.qubits
 
-        groups: Dict[int, List[raw_types.Qid]] = {}
+        groups: Dict[int, List['cirq.Qid']] = {}
         for i, q in enumerate(self.qubits):
             k = self.gate.qubit_index_to_equivalence_group_key(i)
             if k not in groups:
@@ -168,7 +165,7 @@ class GateOperation(raw_types.Operation):
             return NotImplemented
         return GateOperation(phased_gate, self._qubits)
 
-    def __pow__(self, exponent: Any) -> 'raw_types.Operation':
+    def __pow__(self, exponent: Any) -> 'cirq.Operation':
         """Raise gate to a power, then reapply to the same qubits.
 
         Only works if the gate implements cirq.ExtrapolatableEffect.
@@ -188,6 +185,18 @@ class GateOperation(raw_types.Operation):
         if new_gate is NotImplemented:
             return NotImplemented
         return self.with_gate(new_gate)
+
+    def __mul__(self, other: Any) -> Any:
+        result = self.gate._mul_with_qubits(self._qubits, other)
+
+        # python will not auto-attempt the reverse order for same type.
+        if result is NotImplemented and isinstance(other, GateOperation):
+            return other.__rmul__(self)
+
+        return result
+
+    def __rmul__(self, other: Any) -> Any:
+        return self.gate._rmul_with_qubits(self._qubits, other)
 
     def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
         return protocols.qasm(self.gate,
