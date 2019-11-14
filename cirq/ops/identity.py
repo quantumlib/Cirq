@@ -54,7 +54,6 @@ class IdentityGate(raw_types.Gate):
             if num_qubits is None:
                 raise ValueError(
                     'Specify either the num_qubits or qid_shape argument.')
-            print(num_qubits)
             qid_shape = (2,) * num_qubits
         elif num_qubits is None:
             num_qubits = len(qid_shape)

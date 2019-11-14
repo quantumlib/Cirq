@@ -163,10 +163,12 @@ def test_identity_operation_deprecated():
 
 
 def test_identity_mul():
+
     class UnknownGate(cirq.SingleQubitGate):
         pass
 
     class UnknownOperation(cirq.Operation):
+
         @property
         def qubits(self):
             raise NotImplementedError()
