@@ -95,3 +95,7 @@ def test_equals():
 def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver())
     cirq.testing.assert_equivalent_repr(cirq.ParamResolver({'a': 2.0}))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ParamResolver({'a': sympy.Symbol('a')}))
+    cirq.testing.assert_equivalent_repr(
+        cirq.ParamResolver({sympy.Symbol('a'): sympy.Symbol('b') + 1}))
