@@ -1,0 +1,14 @@
+{
+  "cirq_type": "DensePauliString",
+  "pauli_mask": [
+    1,
+    2,
+    3,
+    0
+  ],
+  "coefficient": {
+    "cirq_type": "complex",
+    "real": 0.0,
+    "imag": 1.0
+  }
+}
