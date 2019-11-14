@@ -93,20 +93,16 @@ class ParamResolver:
         if isinstance(value, float):
             return value
 
-        # Handles 2 cases:
-        # Input is a string and maps to a number in the dictionary
-        # Input is a symbol and maps to a number in the dictionary
-        # In both cases, return it directly.
+        # Input is a string and maps to a number in the dictionary.
+        # Return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
             if isinstance(param_value, (float, int)):
                 return param_value
 
-        # Input is a string and is not in the dictionary.
+        # Input is a string and did not map to a number in the dictionary.
         # Treat it as a symbol instead.
         if isinstance(value, str):
-            # If the string is in the param_dict as a value, return it.
-            # Otherwise, try using the symbol instead.
             return self.value_of(sympy.Symbol(value))
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
