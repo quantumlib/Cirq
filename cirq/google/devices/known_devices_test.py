@@ -17,6 +17,7 @@ import pytest
 import cirq
 import cirq.google as cg
 import cirq.google.common_serializers as cgc
+import cirq.google.devices.known_devices as cgdk
 
 
 def test_foxtail_qubits():
@@ -28,7 +29,7 @@ def test_foxtail_qubits():
 
 
 def test_foxtail_device_proto():
-    assert str(cirq.google.devices.known_devices.FOXTAIL_PROTO) == """\
+    assert str(cgdk.FOXTAIL_PROTO) == """\
 valid_gate_sets {
   name: "xmon"
   valid_gates {
@@ -255,7 +256,7 @@ def test_multiple_gate_sets():
         'cz': 11_000,
         'meas': 14_141
     }
-    test_proto = cg.devices.known_devices.create_device_proto_from_diagram(
+    test_proto = cgdk.create_device_proto_from_diagram(
         "aa\naa", [cg.gate_sets.XMON, halfPiGateSet], durations_dict)
     assert str(test_proto) == """\
 valid_gate_sets {
@@ -385,17 +386,17 @@ def test_json_dict():
         'constant': 'cirq.google.Bristlecone',
     }
 
-    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
     with pytest.raises(ValueError, match='xmon device name'):
-        _NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
+        cgdk._NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
-def test_sycamore_device():
+@pytest.mark.parametrize('device', [cg.Sycamore, cgdk.Sycamore23])
+def test_sycamore_device(device):
     q0 = cirq.GridQubit(5, 4)
     q1 = cirq.GridQubit(5, 5)
     syc = cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1)
     sqrt_iswap = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
-    cg.Sycamore.validate_operation(syc)
-    cg.Sycamore.validate_operation(sqrt_iswap)
+    device.validate_operation(syc)
+    device.validate_operation(sqrt_iswap)
     assert cg.Sycamore.duration_of(syc) == cirq.Duration(nanos=12)
     assert cg.Sycamore.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
