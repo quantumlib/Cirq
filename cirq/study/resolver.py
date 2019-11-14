@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")
@@ -33,7 +33,7 @@ document(
     """Something that can be used to turn parameters into values.""")
 
 
-class ParamResolver(object):
+class ParamResolver:
     """Resolves sympy.Symbols to actual values.
 
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object
@@ -58,8 +58,11 @@ class ParamResolver(object):
 
         self._param_hash = None
         self.param_dict = cast(
-            Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
-            {} if param_dict is None else param_dict)
+            Dict[str, Union[float, str, sympy.Symbol]],
+            {} if param_dict is None else {
+                param.name if isinstance(param, sympy.Symbol) else param: value
+                for param, value in param_dict.items()
+            })
 
     def value_of(self,
                  value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':

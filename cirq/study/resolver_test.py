@@ -70,10 +70,9 @@ def test_formulas_in_param_dict():
     b = sympy.Symbol('b')
     c = sympy.Symbol('c')
     e = sympy.Symbol('e')
-    r = cirq.ParamResolver({a: b + 1, b: 2, b + c: 101, 'd': 2 * e})
+    r = cirq.ParamResolver({a: b + 1, b: 2, 'd': 2 * e})
     assert r.value_of('a') == 3
     assert r.value_of('b') == 2
-    assert r.value_of(b + c) == 101
     assert r.value_of('c') == c
     assert r.value_of('d') == 2 * e
 
