@@ -29,14 +29,17 @@ def _unitaries_allclose(circuit1, circuit2):
         (cirq.ISwapPowGate(exponent=0.5), 1),
         (cirq.ISwapPowGate(exponent=-0.5), 1),
         (cirq.FSimGate(theta=np.pi / 4, phi=0), 1),
-    ] +
-    [(cirq.SwapPowGate(exponent=a), 13) for a in np.linspace(0, 2 * np.pi, 20)]
-    + [(cirq.CZPowGate(exponent=a), 8) for a in np.linspace(0, 2 * np.pi, 20)] +
-    [(cirq.ISwapPowGate(exponent=a), 5) for a in np.linspace(0, 2 * np.pi, 20)
-    ] +
-    [(cirq.CNotPowGate(exponent=a), 9) for a in np.linspace(0, 2 * np.pi, 20)] +
-    [(cirq.FSimGate(theta=a, phi=a), 13) for a in np.linspace(0, 2 * np.pi, 20)]
-)
+        *[(cirq.SwapPowGate(exponent=a), 13)
+          for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.CZPowGate(exponent=a), 8)
+          for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.ISwapPowGate(exponent=a), 5)
+          for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.CNotPowGate(exponent=a), 9)
+          for a in np.linspace(0, 2 * np.pi, 20)],
+        *[(cirq.FSimGate(theta=a, phi=a), 13)
+          for a in np.linspace(0, 2 * np.pi, 20)]
+    ])
 def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     """Tests that two qubit gates decompose to an equivalent and
     serializable circuit with the expected length (or less).
@@ -78,7 +81,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
 
 
 def test_cphase():
-    """Test if the sqrt_iswap synthesis for a givens rotation is correct"""
+    """Test if the sqrt_iswap synthesis for a cphase rotation is correct"""
     thetas = np.linspace(0, 2 * np.pi, 100)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:

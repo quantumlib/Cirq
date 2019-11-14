@@ -11,14 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, cast
+from typing import cast, List, Optional
 
 import numpy as np
 
 import cirq
 import sympy
 
-SQRT_ISWAP = cirq.ISWAP**-0.5
+SQRT_ISWAP = cirq.ISWAP**0.5
+SQRT_ISWAP_INV = cirq.ISWAP**-0.5
 
 
 # TODO: Combine this with the equivalent functions in google/gate_set.py
@@ -88,13 +89,13 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
 
         def on_stuck_raise(bad):
             return TypeError(f"Don't know how to work with {bad}. "
-                             "It isn't a native fishfood operation, "
+                             "It isn't a native sqrt ISWAP operation, "
                              "a 1 or 2 qubit gate with a known unitary, "
                              "or composite.")
 
         a = cirq.decompose(
             op,
-            keep=is_sqrt_iswap_fishfood_compatible,
+            keep=is_sqrt_iswap_compatible,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
         return a
@@ -109,8 +110,8 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
                                              clear_qubits=op.qubits)
 
 
-def is_sqrt_iswap_fishfood_compatible(op: cirq.Operation) -> bool:
-    """Check if the given operation is compatible with the SQRT_ISWAP_FISHFOOD
+def is_sqrt_iswap_compatible(op: cirq.Operation) -> bool:
+    """Check if the given operation is compatible with the sqrt_iswap gateset
     gate set.
 
     Args:
@@ -119,10 +120,10 @@ def is_sqrt_iswap_fishfood_compatible(op: cirq.Operation) -> bool:
     Returns:
         True if the operation is native to the gate set, false otherwise.
     """
-    return (is_basic_gate(op.gate) or is_sqrt_iswap(op.gate))
+    return is_basic_gate(op.gate) or is_sqrt_iswap(op.gate)
 
 
-def is_sqrt_iswap(gate: cirq.Gate) -> bool:
+def is_sqrt_iswap(gate: Optional[cirq.Gate]) -> bool:
     """Checks if this is a ± sqrt(iSWAP) gate specified using either
     ISwapPowGate or with the equivalent FSimGate.
     """
@@ -136,15 +137,15 @@ def is_sqrt_iswap(gate: cirq.Gate) -> bool:
             _near_mod_n(abs(gate.exponent), 0.5, 4))
 
 
-def is_basic_gate(gate: cirq.Gate) -> bool:
+def is_basic_gate(gate: Optional[cirq.Gate]) -> bool:
     """Check if a gate is a basic supported one-qubit gate.
 
-    Args:
-        gate: Input gate.
+        Args:
+            gate: Input gate.
 
-    Returns:
-        True if the gate is native to the gate set, false otherwise.
-    """
+        Returns:
+            True if the gate is native to the gate set, false otherwise.
+        """
     return isinstance(gate, (cirq.MeasurementGate, cirq.PhasedXPowGate,
                              cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate))
 
@@ -185,11 +186,9 @@ def cphase_to_sqrt_iswap(a, b, turns):
     yield cirq.Rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.Rx(xi).on(a)
     yield cirq.X(b)**(-sign * 0.5)
-    yield SQRT_ISWAP(a, b)
+    yield SQRT_ISWAP_INV(a, b)
     yield cirq.Rx(-2 * phi).on(a)
-    yield cirq.Z(a)
     yield SQRT_ISWAP(a, b)
-    yield cirq.Z(a)
 
     yield cirq.Rx(xi).on(a)
     yield cirq.X(b)**(sign * 0.5)
@@ -218,11 +217,9 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     yield cirq.Rz(sign * 0.5 * theta_prime).on(b)
     yield cirq.Rx(xi).on(a)
     yield cirq.X(b)**(-sign * 0.5)
-    yield SQRT_ISWAP(a, b)
+    yield SQRT_ISWAP_INV(a, b)
     yield cirq.Rx(-2 * phi).on(a)
-    yield cirq.Z(a)
     yield SQRT_ISWAP(a, b)
-    yield cirq.Z(a)
     yield cirq.Rx(xi).on(a)
     yield cirq.X(b)**(sign * 0.5)
 
@@ -243,10 +240,10 @@ def iswap_to_sqrt_iswap(a, b, turns):
     """
     yield cirq.Z(a)**0.75
     yield cirq.Z(b)**0.25
-    yield SQRT_ISWAP(a, b)
+    yield SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a)**(-turns / 2 + 1)
     yield cirq.Z(b)**(turns / 2)
-    yield SQRT_ISWAP(a, b)
+    yield SQRT_ISWAP_INV(a, b)
     yield cirq.Z(a)**0.25
     yield cirq.Z(b)**-0.25
 
