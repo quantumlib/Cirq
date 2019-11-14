@@ -107,8 +107,8 @@ class XXPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
-                return 'cirq.MS(np.pi/2)'
-            return 'cirq.MS({!r}*np.pi/2)'.format(self._exponent)
+                return 'cirq.ms(np.pi/2)'
+            return 'cirq.ms({!r}*np.pi/2)'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'

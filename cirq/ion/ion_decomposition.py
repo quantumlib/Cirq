@@ -26,7 +26,7 @@ from typing import Iterable, List, Optional, cast, Tuple
 import numpy as np
 
 from cirq import ops, linalg, protocols, optimizers, circuits
-from cirq.ion import MS
+from cirq.ion import ms
 
 
 def two_qubit_matrix_to_ion_operations(q0: ops.Qid,
@@ -103,7 +103,7 @@ def _parity_interaction(q0: ops.Qid,
         g = cast(ops.Gate, gate)
         yield g.on(q0), g.on(q1)
 
-    yield MS(-1 * rads).on(q0, q1)
+    yield ms(-1 * rads).on(q0, q1)
 
     if gate is not None:
         g = protocols.inverse(gate)
