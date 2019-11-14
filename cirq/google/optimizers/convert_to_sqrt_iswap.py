@@ -62,38 +62,35 @@ class ConvertToSqrtIswapGates(cirq.PointOptimizer):
         if isinstance(op, cirq.GlobalPhaseOperation):
             return []
 
-        gate = cast(cirq.GateOperation, op).gate
+        gate = op.gate
 
         if len(op.qubits) != 2:
             return NotImplemented
 
         if isinstance(gate, cirq.CZPowGate):
-            turns = cast(cirq.CZPowGate, gate).exponent
-            if isinstance(turns, sympy.Basic):
+            if isinstance(gate.exponent, sympy.Basic):
                 return cphase_symbols_to_sqrt_iswap(op.qubits[0], op.qubits[1],
-                                                    turns)
+                                                    gate.exponent)
             else:
-                return cphase_to_sqrt_iswap(op.qubits[0], op.qubits[1], turns)
+                return cphase_to_sqrt_iswap(op.qubits[0], op.qubits[1],
+                                            gate.exponent)
         if isinstance(gate, cirq.SwapPowGate):
-            return swap_to_sqrt_iswap(op.qubits[0], op.qubits[1],
-                                      cast(cirq.SwapPowGate, gate).exponent)
+            return swap_to_sqrt_iswap(op.qubits[0], op.qubits[1], gate.exponent)
         if isinstance(gate, cirq.ISwapPowGate):
             return iswap_to_sqrt_iswap(op.qubits[0], op.qubits[1],
-                                       cast(cirq.ISwapPowGate, gate).exponent)
+                                       gate.exponent)
         if isinstance(gate, cirq.FSimGate):
-            return fsim_gate(op.qubits[0], op.qubits[1],
-                             cast(cirq.FSimGate, gate).theta,
-                             cast(cirq.FSimGate, gate).phi)
+            return fsim_gate(op.qubits[0], op.qubits[1], gate.theta, gate.phi)
 
         return NotImplemented
 
     def convert(self, op: cirq.Operation) -> List[cirq.Operation]:
 
         def on_stuck_raise(bad):
-            return TypeError("Don't know how to work with {!r}. "
+            return TypeError(f"Don't know how to work with {bad}. "
                              "It isn't a native fishfood operation, "
                              "a 1 or 2 qubit gate with a known unitary, "
-                             "or composite.".format(bad))
+                             "or composite.")
 
         a = cirq.decompose(
             op,
@@ -122,8 +119,7 @@ def is_sqrt_iswap_fishfood_compatible(op: cirq.Operation) -> bool:
     Returns:
         True if the operation is native to the gate set, false otherwise.
     """
-    return (isinstance(op, cirq.GateOperation) and
-            (is_basic_gate(op.gate) or is_sqrt_iswap(op.gate)))
+    return (is_basic_gate(op.gate) or is_sqrt_iswap(op.gate))
 
 
 def is_sqrt_iswap(gate: cirq.Gate) -> bool:
@@ -136,7 +132,7 @@ def is_sqrt_iswap(gate: cirq.Gate) -> bool:
             _near_mod_2pi(gate.phi, 0)):
         return True
     return (isinstance(gate, cirq.ISwapPowGate) and
-            not isinstance(gate.exponent, sympy.Symbol) and
+            not isinstance(gate.exponent, sympy.Basic) and
             _near_mod_n(abs(gate.exponent), 0.5, 4))
 
 
@@ -154,7 +150,7 @@ def is_basic_gate(gate: cirq.Gate) -> bool:
 
 
 def cphase_to_sqrt_iswap(a, b, turns):
-    """Implement a C-Phase gate using two CZ gates and single-qubit
+    """Implement a C-Phase gate using two sqrt ISWAP gates and single-qubit
     operations. The circuit is equivalent to cirq.CZPowGate(exponent=turns).
 
     Output unitary:
@@ -256,7 +252,7 @@ def iswap_to_sqrt_iswap(a, b, turns):
 
 
 def swap_to_sqrt_iswap(a, b, turns):
-    r"""Implement the evolution of the hopping term using two sqrt_iswap gates
+    """Implement the evolution of the hopping term using two sqrt_iswap gates
      and single-qubit operations. Output unitary:
     [[1, 0,        0,     0],
      [0, g·c,    -i·g·s,  0],
@@ -268,7 +264,7 @@ def swap_to_sqrt_iswap(a, b, turns):
             b: the second qubit
             theta: The rotational angle that specifies the gate, where
             c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
-        """
+    """
     yield cirq.Z(a)**1.25
     yield cirq.Z(b)**-0.25
     yield cirq.ISWAP(a, b)**-0.5
