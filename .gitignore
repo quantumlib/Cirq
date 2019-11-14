@@ -30,3 +30,6 @@ docs/generated
 
 # From pytest-benchmark
 *.benchmarks/
+
+# From jupyter notebooks
+.ipynb_checkpoints/
