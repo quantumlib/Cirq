@@ -415,5 +415,3 @@ def test_sycamore_grid_layout():
         cgdk.Sycamore23.validate_operation(syc)
     with pytest.raises(ValueError):
         cgdk.Sycamore23.validate_operation(sqrt_iswap)
-
-
