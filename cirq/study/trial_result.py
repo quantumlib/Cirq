@@ -14,7 +14,7 @@
 
 """Defines trial results."""
 
-from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
+from typing import (Iterable, Callable, Sequence, Tuple, TypeVar, Dict, Any,
                     TYPE_CHECKING, Union, Optional)
 
 import collections
@@ -317,7 +317,7 @@ class TrialResult:
                    })
 
 
-def _unpack_bits(bits_hex: str, shape: Tuple[int, ...]):
+def _unpack_bits(bits_hex: str, shape: Sequence[int, ...]):
     bits_bytes = bytes.fromhex(bits_hex)
     bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
     return bits[:np.prod(shape)].reshape(shape)
