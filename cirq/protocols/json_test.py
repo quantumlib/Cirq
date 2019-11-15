@@ -28,27 +28,7 @@ import sympy
 
 import cirq
 import cirq.protocols
-
-
-def assert_roundtrip(obj, text_should_be=None):
-    buffer = io.StringIO()
-    cirq.protocols.to_json(obj, buffer)
-
-    if text_should_be is not None:
-        buffer.seek(0)
-        text = buffer.read()
-        assert text == text_should_be
-
-    buffer.seek(0)
-    restored_obj = cirq.protocols.read_json(buffer)
-    if isinstance(obj, np.ndarray):
-        np.testing.assert_equal(restored_obj, obj)
-    elif isinstance(obj, pd.DataFrame):
-        pd.testing.assert_frame_equal(restored_obj, obj)
-    elif isinstance(obj, pd.Index):
-        pd.testing.assert_index_equal(restored_obj, obj)
-    else:
-        assert restored_obj == obj
+from cirq.testing import assert_roundtrip
 
 
 def test_line_qubit_roundtrip():
