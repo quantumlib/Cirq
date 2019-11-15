@@ -301,7 +301,6 @@ NOT_YET_SERIALIZABLE = [
     'ListSweep',
     'NeutralAtomDevice',
     'ParallelGateOperation',
-    'ParamResolver',
     'PauliInteractionGate',
     'PauliStringPhasor',
     'PauliSum',
