@@ -1,0 +1,32 @@
+{
+  "cirq_type": "ParamResolver",
+  "param_dict": [
+    [
+      "a",
+      0.1
+    ],
+    [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "b"
+      },
+      "c"
+    ],
+    [
+      "d",
+      {
+        "cirq_type": "sympy.Add",
+        "args": [
+          {
+            "cirq_type": "sympy.Integer",
+            "i": 1
+          },
+          {
+            "cirq_type": "sympy.Symbol",
+            "name": "e"
+          }
+        ]
+      }
+    ]
+  ]
+}
