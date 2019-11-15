@@ -1440,7 +1440,6 @@ def test_conjugated_by_common_two_qubit_gates():
     two_qubit_gates = [g**i for i in range(4) for g in base_two_qubit_gates]
     two_qubit_gates.extend([
         OrderSensitiveGate(),
-        cirq.Y.controlled(),
     ])
     for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
         for p2 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
@@ -1512,3 +1511,26 @@ def test_pass_operations_over_ordering_reversed():
                                     after_to_before=True).pass_operations_over(
                                         [cirq.CNOT(a, b)], after_to_before=True)
     assert out1 == out2 == out3 == cirq.Z(b)
+
+
+def test_pretty_print():
+    a, b, c = cirq.LineQubit.range(3)
+    result = cirq.PauliString({a: 'x', b: 'y', c: 'z'})
+
+    # Test Jupyter console output from
+    class FakePrinter:
+
+        def __init__(self):
+            self.text_pretty = ''
+
+        def text(self, to_print):
+            self.text_pretty += to_print
+
+    p = FakePrinter()
+    result._repr_pretty_(p, False)
+    assert p.text_pretty == 'X(0)*Y(1)*Z(2)'
+
+    # Test cycle handling
+    p = FakePrinter()
+    result._repr_pretty_(p, True)
+    assert p.text_pretty == 'cirq.PauliString(...)'

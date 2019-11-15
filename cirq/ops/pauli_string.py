@@ -1046,31 +1046,37 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
                     f'into known Cliffords: {op!r}')
 
 
+# Mypy has extreme difficulty with these constants for some reason.
+_i = cast(cirq.IdentityGate, identity.I)  # type: ignore
+_x = cast(cirq.IdentityGate, pauli_gates.X)  # type: ignore
+_y = cast(cirq.IdentityGate, pauli_gates.Y)  # type: ignore
+_z = cast(cirq.IdentityGate, pauli_gates.Z)  # type: ignore
+
 PAULI_GATE_LIKE_TO_GATE_MAP: Dict['cirq.PAULI_GATE_LIKE',
                                   Union['cirq.Pauli', 'cirq.IdentityGate']] = {
-                                      identity.I: identity.I,
-                                      pauli_gates.X: pauli_gates.X,
-                                      pauli_gates.Y: pauli_gates.Y,
-                                      pauli_gates.Z: pauli_gates.Z,
-                                      'I': identity.I,
-                                      'X': pauli_gates.X,
-                                      'Y': pauli_gates.Y,
-                                      'Z': pauli_gates.Z,
-                                      'i': identity.I,
-                                      'x': pauli_gates.X,
-                                      'y': pauli_gates.Y,
-                                      'z': pauli_gates.Z,
-                                      0: identity.I,
-                                      1: pauli_gates.X,
-                                      2: pauli_gates.Y,
-                                      3: pauli_gates.Z,
+                                      _i: _i,
+                                      _x: _x,
+                                      _y: _y,
+                                      _z: _z,
+                                      'I': _i,
+                                      'X': _x,
+                                      'Y': _y,
+                                      'Z': _z,
+                                      'i': _i,
+                                      'x': _x,
+                                      'y': _y,
+                                      'z': _z,
+                                      0: _i,
+                                      1: _x,
+                                      2: _y,
+                                      3: _z,
                                   }
 
 PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
-    identity.I: 0,
-    pauli_gates.X: 1,
-    pauli_gates.Y: 2,
-    pauli_gates.Z: 3,
+    _i: 0,
+    _x: 1,
+    _y: 2,
+    _z: 3,
     'I': 0,
     'X': 1,
     'Y': 2,
