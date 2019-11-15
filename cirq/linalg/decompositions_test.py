@@ -18,6 +18,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq import value
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -48,6 +49,7 @@ def assert_kronecker_factorization_not_within_tolerance(matrix, g, f1, f2):
     assert (np.any(np.isnan(restored) or
                    not np.allclose(restored, matrix)))
 
+
 def assert_magic_su2_within_tolerance(mat, a, b):
     M = cirq.linalg.decompositions.MAGIC
     MT = cirq.linalg.decompositions.MAGIC_CONJ_T
@@ -56,6 +58,7 @@ def assert_magic_su2_within_tolerance(mat, a, b):
         cirq.linalg.combinators.kron(a, b),
         M)
     assert np.allclose(recon, mat), "Failed to decompose within tolerance."
+
 
 @pytest.mark.parametrize('matrix', [
     X,
@@ -93,10 +96,8 @@ def test_map_eigenvalues_raise(matrix, exponent, desired):
     (X, 1j * np.eye(2)),
     (-X, 1j * np.eye(2)),
     (X, X),
-] + [
-    (cirq.testing.random_unitary(2), cirq.testing.random_unitary(2))
-    for _ in range(10)
-])
+] + [(cirq.testing.random_unitary(2), cirq.testing.random_unitary(2))
+     for _ in range(10)])
 def test_kron_factor(f1, f2):
     p = cirq.kron(f1, f2)
     g, g1, g2 = cirq.kron_factor_4x4_to_2x2s(p)
@@ -537,9 +538,15 @@ def _vector_kron(first: np.ndarray, second: np.ndarray) -> np.ndarray:
     return out.reshape(s_v + (s_0[0] * s_1[0],) * 2)
 
 
-def _local_two_qubit_unitaries(samples):
-    kl_0 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
-    kl_1 = np.array([cirq.testing.random_unitary(2) for _ in range(samples)])
+def _local_two_qubit_unitaries(samples, random_state):
+    kl_0 = np.array([
+        cirq.testing.random_unitary(2, random_state=random_state)
+        for _ in range(samples)
+    ])
+    kl_1 = np.array([
+        cirq.testing.random_unitary(2, random_state=random_state)
+        for _ in range(samples)
+    ])
 
     return _vector_kron(kl_0, kl_1)
 
@@ -547,13 +554,16 @@ def _local_two_qubit_unitaries(samples):
 _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
-def _random_two_qubit_unitaries(num_samples):
+def _random_two_qubit_unitaries(num_samples: int,
+                                random_state: value.RANDOM_STATE_LIKE):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
-    kl = _local_two_qubit_unitaries(num_samples)
-    kr = _local_two_qubit_unitaries(num_samples)
+    kl = _local_two_qubit_unitaries(num_samples, random_state)
 
+    kr = _local_two_qubit_unitaries(num_samples, random_state)
+
+    prng = value.parse_random_state(random_state)
     # Generate the non-local part by explict matrix exponentiation.
-    kak_vecs = np.random.rand(num_samples, 3) * np.pi
+    kak_vecs = prng.rand(num_samples, 3) * np.pi
     gens = np.einsum('...a,abc->...bc', kak_vecs, _kak_gens)
     evals, evecs = np.linalg.eigh(gens)
     A = np.einsum('...ab,...b,...cb', evecs, np.exp(1j * evals), evecs.conj())
@@ -601,8 +611,7 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
     return np.moveaxis(np.array([G1R, G1I, G2]), 0, -1)
 
 
-np.random.seed(11)  # for deterministic tests
-_random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100)
+_random_unitaries, _kak_vecs = _random_two_qubit_unitaries(100, random_state=11)
 
 
 def test_kak_vector_matches_vectorized():

@@ -108,9 +108,27 @@ def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
         ignoring_global_phase=False)
 
 
+def test_diagram():
+    q0, q1 = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.PhasedISwapPowGate(phase_exponent=sympy.Symbol('p'),
+                                exponent=sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=2 * sympy.Symbol('p'),
+                                exponent=1 - sympy.Symbol('t')).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.2, exponent=1).on(q0, q1),
+        cirq.PhasedISwapPowGate(phase_exponent=0.3, exponent=0.4).on(q0, q1),
+    )
+    cirq.testing.assert_has_diagram(
+        c, """
+0: ───PhISwap(p)─────PhISwap(2*p)───────────PhISwap(0.2)───PhISwap(0.3)───────
+      │              │                      │              │
+1: ───PhISwap(p)^t───PhISwap(2*p)^(1 - t)───PhISwap(0.2)───PhISwap(0.3)^0.4───
+""")
+
+
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
 def test_givens_rotation_unitary(angle_rads):
-    actual = cirq.unitary(cirq.GivensRotation(angle_rads))
+    actual = cirq.unitary(cirq.givens(angle_rads))
     c = np.cos(angle_rads)
     s = np.sin(angle_rads)
     # yapf: disable
@@ -124,7 +142,7 @@ def test_givens_rotation_unitary(angle_rads):
 
 @pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
 def test_givens_rotation_hamiltonian(angle_rads):
-    actual = cirq.unitary(cirq.GivensRotation(angle_rads))
+    actual = cirq.unitary(cirq.givens(angle_rads))
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
     yx = np.kron(y, x)
@@ -136,7 +154,7 @@ def test_givens_rotation_hamiltonian(angle_rads):
 def test_givens_rotation_equivalent_circuit():
     angle_rads = 3 * np.pi / 7
     t = 2 * angle_rads / np.pi
-    gate = cirq.GivensRotation(angle_rads)
+    gate = cirq.givens(angle_rads)
     q0, q1 = cirq.LineQubit.range(2)
     equivalent_circuit = cirq.Circuit([
         cirq.T(q0),
@@ -151,4 +169,11 @@ def test_givens_rotation_equivalent_circuit():
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
 def test_givens_rotation_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.GivensRotation(angle_rads), ignoring_global_phase=False)
+        cirq.givens(angle_rads), ignoring_global_phase=False)
+
+
+@pytest.mark.parametrize('angle_rads', (-1, -0.3, 0.1, 1))
+def test_deprecated_givens_rotation(angle_rads):
+    assert np.all(
+        cirq.unitary(cirq.GivensRotation(angle_rads)) == cirq.unitary(
+            cirq.givens(angle_rads)))

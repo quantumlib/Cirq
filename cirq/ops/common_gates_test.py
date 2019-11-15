@@ -121,6 +121,15 @@ def test_z_init():
     assert cirq.Z**0.5 != cirq.Z**-0.5
     assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
     assert cirq.Z**-1 == cirq.Z
+    assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
+        cirq.Z, num_controls=2)
+    assert cirq.Z.controlled(num_controls=1) == cirq.CZ
+    assert cirq.Z.controlled(control_values=((1,),)) == cirq.CZ
+    assert cirq.Z.controlled(control_qid_shape=(2,)) == cirq.CZ
+    assert cirq.Z.controlled(num_controls=1,
+                             control_qid_shape=(3,)) == cirq.ControlledGate(
+                                 cirq.Z, num_controls=1, control_qid_shape=(3,))
+    assert z.controlled() == cirq.CZPowGate(exponent=5)
 
 
 def test_rot_gates_eq():
@@ -245,6 +254,7 @@ def test_interchangeable_qubit_eq():
 
 def test_identity_multiplication():
     a, b, c = cirq.LineQubit.range(3)
+    assert cirq.I(a) * cirq.CX(a, b) == cirq.CX(a, b)
     assert cirq.CX(a, b) * cirq.I(a) == cirq.CX(a, b)
     assert cirq.CZ(a, b) * cirq.I(c) == cirq.CZ(a, b)
     assert cirq.CX(a, b)**0.5 * cirq.I(c) == cirq.CX(a, b)**0.5

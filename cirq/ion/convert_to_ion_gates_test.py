@@ -58,18 +58,20 @@ def test_convert_to_ion_gates():
     assert rx == [
         cirq.PhasedXPowGate(phase_exponent=1).on(cirq.GridQubit(0, 0))
     ]
-    assert rop == [cirq.Ry(np.pi/2).on(op.qubits[0]),
-                   cirq.ion.MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
-                   cirq.ops.Rx(-1*np.pi/2).on(op.qubits[0]),
-                   cirq.ops.Rx(-1*np.pi/2).on(op.qubits[1]),
-                   cirq.ops.Ry(-1*np.pi/2).on(op.qubits[0])]
+    assert rop == [
+        cirq.Ry(np.pi / 2).on(op.qubits[0]),
+        cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
+        cirq.Rx(-1 * np.pi / 2).on(op.qubits[0]),
+        cirq.Rx(-1 * np.pi / 2).on(op.qubits[1]),
+        cirq.Ry(-1 * np.pi / 2).on(op.qubits[0])
+    ]
     assert rcnot == [
         cirq.PhasedXPowGate(phase_exponent=-0.75,
                             exponent=0.5).on(cirq.GridQubit(0, 0)),
         cirq.PhasedXPowGate(phase_exponent=1,
                             exponent=0.25).on(cirq.GridQubit(0, 1)),
         cirq.T.on(cirq.GridQubit(0, 0)),
-        cirq.MS(-0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
+        cirq.ms(-0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
                                                                           1)),
         (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
         cirq.PhasedXPowGate(phase_exponent=1,
@@ -85,8 +87,9 @@ def test_convert_to_ion_circuit():
     ion_device = cirq.IonDevice(us, us, us, [q0, q1])
 
     clifford_circuit_1 = cirq.Circuit()
-    clifford_circuit_1.append([cirq.X(q0), cirq.H(q1),
-                               cirq.MS(np.pi/4).on(q0, q1)])
+    clifford_circuit_1.append(
+        [cirq.X(q0), cirq.H(q1),
+         cirq.ms(np.pi / 4).on(q0, q1)])
     ion_circuit_1 = cirq.ion.ConvertToIonGates().convert_circuit(
         clifford_circuit_1)
 
@@ -94,8 +97,10 @@ def test_convert_to_ion_circuit():
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         clifford_circuit_1, ion_circuit_1, atol=1e-6)
     clifford_circuit_2 = cirq.Circuit()
-    clifford_circuit_2.append([cirq.X(q0), cirq.CNOT(q1, q0), cirq.MS(
-        np.pi/4).on(q0, q1)])
+    clifford_circuit_2.append(
+        [cirq.X(q0),
+         cirq.CNOT(q1, q0),
+         cirq.ms(np.pi / 4).on(q0, q1)])
     ion_circuit_2 = cirq.ion.ConvertToIonGates().convert_circuit(
         clifford_circuit_2)
     ion_device.validate_circuit(ion_circuit_2)

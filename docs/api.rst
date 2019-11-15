@@ -65,7 +65,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.givens
     cirq.identity_each
+    cirq.riswap
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
@@ -190,6 +192,18 @@ Circuits, Operations, and Moments.
     cirq.Schedule
     cirq.ScheduledOperation
     cirq.Unique
+
+
+Importing and Exporting
+'''''''''''''''''''''''
+
+Utilities for interoperating with other quantum software libraries and products.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.quirk_json_to_circuit
+    cirq.quirk_url_to_circuit
 
 
 Sampling, Simulations, and Data Collection
@@ -429,6 +443,7 @@ Support for ion trap an neutral atom devices.
     :toctree: generated/
 
     cirq.MS
+    cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
     cirq.two_qubit_matrix_to_ion_operations

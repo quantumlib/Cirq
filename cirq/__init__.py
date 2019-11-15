@@ -49,6 +49,7 @@ from cirq import (
     neutral_atoms,
     api,
     google,
+    interop,
     # Applications
     experiments,
     # Extra (nothing should depend on these)
@@ -96,6 +97,11 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
     xeb_fidelity,
+)
+
+from cirq.interop import (
+    quirk_json_to_circuit,
+    quirk_url_to_circuit,
 )
 
 from cirq.linalg import (
@@ -184,6 +190,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    givens,
     GivensRotation,
     GlobalPhaseOperation,
     H,
@@ -233,6 +240,7 @@ from cirq.ops import (
     QubitOrderOrList,
     reset,
     ResetChannel,
+    riswap,
     Rx,
     Ry,
     Rz,
@@ -444,6 +452,7 @@ from cirq.ion import (
     ConvertToIonGates,
     IonDevice,
     MS,
+    ms,
     two_qubit_matrix_to_ion_operations,
 )
 from cirq.neutral_atoms import (
