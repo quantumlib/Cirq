@@ -12,17 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable
+from typing import Dict, Iterable, TYPE_CHECKING
 
 import dataclasses
 import time
 
 import numpy as np
 
-from cirq import circuits, ops, work
+from cirq import circuits, ops
+
+if TYPE_CHECKING:
+    import cirq
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class SingleQubitReadoutCalibrationResult:
     """Result of estimating single qubit readout error.
 
@@ -33,10 +36,10 @@ class SingleQubitReadoutCalibrationResult:
             a 0 when the qubit is initialized to |1⟩.
         repetitions: The number of repetitions that were used to estimate the
             probabilities.
-        timestamp: A timestamp for the time the data was taken.
+        timestamp: The time the data was taken, in seconds since the epoch.
     """
-    zero_state_errors: Dict[ops.Qid, float]
-    one_state_errors: Dict[ops.Qid, float]
+    zero_state_errors: Dict['cirq.Qid', float]
+    one_state_errors: Dict['cirq.Qid', float]
     repetitions: int
     timestamp: float
 
@@ -66,9 +69,9 @@ class SingleQubitReadoutCalibrationResult:
 
 
 def estimate_single_qubit_readout_errors(
-        sampler: work.Sampler,
+        sampler: 'cirq.Sampler',
         *,
-        qubits: Iterable[ops.Qid],
+        qubits: Iterable['cirq.Qid'],
         repetitions: int = 1000) -> SingleQubitReadoutCalibrationResult:
     """Estimate single-qubit readout error.
 
