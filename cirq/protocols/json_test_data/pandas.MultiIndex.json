@@ -1,0 +1,23 @@
+[
+  {
+    "cirq_type": "pandas.MultiIndex",
+    "tuples": [
+      [
+        1,
+        2
+      ],
+      [
+        3,
+        4
+      ],
+      [
+        5,
+        6
+      ]
+    ],
+    "names": [
+      "alice",
+      "bob"
+    ]
+  }
+]
