@@ -1,0 +1,28 @@
+{
+  "cirq_type": "TrialResult",
+  "params": {
+    "cirq_type": "ParamResolver",
+    "param_dict": [
+      [
+        "a",
+        0.5
+      ]
+    ]
+  },
+  "measurements": {
+    "m": {
+      "packed_bits": "f3c0",
+      "shape": [
+        5,
+        2
+      ]
+    },
+    "n": {
+      "packed_bits": "5bdc",
+      "shape": [
+        5,
+        3
+      ]
+    }
+  }
+}

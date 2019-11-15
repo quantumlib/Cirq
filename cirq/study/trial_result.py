@@ -294,3 +294,30 @@ class TrialResult:
                                               other.measurements[key],
                                               axis=0)
         return TrialResult(params=self.params, measurements=all_measurements)
+
+    def _json_dict_(self):
+        packed_measurements = {
+            key: {
+                'packed_bits': np.packbits(bits).tobytes().hex(),
+                'shape': bits.shape
+            } for key, bits in self.measurements.items()
+        }
+        return {
+            'cirq_type': self.__class__.__name__,
+            'params': self.params,
+            'measurements': packed_measurements
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, params, measurements, **kwargs):
+        return cls(params=params,
+                   measurements={
+                       key: _unpack_bits(val['packed_bits'], val['shape'])
+                       for key, val in measurements.items()
+                   })
+
+
+def _unpack_bits(bits_hex: str, shape: Tuple[int, ...]):
+    bits_bytes = bytes.fromhex(bits_hex)
+    bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
+    return bits[:np.prod(shape)].reshape(shape)
