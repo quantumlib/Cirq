@@ -1047,10 +1047,10 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
 
 # Mypy has extreme difficulty with these constants for some reason.
-_i = cast(cirq.IdentityGate, identity.I)  # type: ignore
-_x = cast(cirq.IdentityGate, pauli_gates.X)  # type: ignore
-_y = cast(cirq.IdentityGate, pauli_gates.Y)  # type: ignore
-_z = cast(cirq.IdentityGate, pauli_gates.Z)  # type: ignore
+_i = cast(identity.IdentityGate, identity.I)  # type: ignore
+_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
+_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
+_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
 
 PAULI_GATE_LIKE_TO_GATE_MAP: Dict['cirq.PAULI_GATE_LIKE',
                                   Union['cirq.Pauli', 'cirq.IdentityGate']] = {
