@@ -19,18 +19,15 @@ import sys
 
 from dev_tools import prepared_env, shell_tools
 
-from dev_tools import (
-    check_incremental_coverage,
-    check_pytest_with_coverage,
-)
+from dev_tools.incremental_coverage import check_for_uncovered_lines
 
 
 def main():
     if len(sys.argv) < 2:
-        print(shell_tools.highlight(
-            'Must specify a comparison branch '
-            '(e.g. "origin/master" or "HEAD~1").',
-            shell_tools.RED))
+        print(
+            shell_tools.highlight(
+                'Must specify a comparison branch '
+                '(e.g. "origin/master" or "HEAD~1").', shell_tools.RED))
         sys.exit(1)
     comparison_branch = sys.argv[1]
 
@@ -41,18 +38,8 @@ def main():
         destination_directory=os.getcwd(),
         virtual_env_path=None)
 
-    pytest = check_pytest_with_coverage.TestAndPrepareCoverageCheck()
-    incremental_coverage = check_incremental_coverage.IncrementalCoverageCheck(
-        pytest)
-
-    check_results = [
-        pytest.run(env, False, set()),
-        incremental_coverage.run(env, False, set()),
-    ]
-    if any(not e.success for e in check_results):
-        print(shell_tools.highlight(
-            'Failed.',
-            shell_tools.RED))
+    uncovered_count = check_for_uncovered_lines(env)
+    if uncovered_count:
         sys.exit(1)
 
 

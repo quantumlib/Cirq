@@ -145,8 +145,8 @@ def test_trace_distance_over_range_of_exponents():
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi, -np.pi / 3, -0.1, np.pi / 5))
-def test_iswap_rotation_unitary(angle_rads):
-    actual = cirq.unitary(cirq.ISwapRotation(angle_rads))
+def test_riswap_unitary(angle_rads):
+    actual = cirq.unitary(cirq.riswap(angle_rads))
     c = np.cos(angle_rads)
     s = 1j * np.sin(angle_rads)
     # yapf: disable
@@ -159,8 +159,8 @@ def test_iswap_rotation_unitary(angle_rads):
 
 
 @pytest.mark.parametrize('angle_rads', (-2 * np.pi / 3, -0.2, 0.4, np.pi / 4))
-def test_iswap_rotation_hamiltonian(angle_rads):
-    actual = cirq.unitary(cirq.ISwapRotation(angle_rads))
+def test_riswap_hamiltonian(angle_rads):
+    actual = cirq.unitary(cirq.riswap(angle_rads))
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
     xx = np.kron(x, x)
@@ -170,6 +170,13 @@ def test_iswap_rotation_hamiltonian(angle_rads):
 
 
 @pytest.mark.parametrize('angle_rads', (-np.pi / 5, 0.4, 2, np.pi))
-def test_iswap_rotation_has_consistent_protocols(angle_rads):
+def test_riswap_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ISwapRotation(angle_rads), ignoring_global_phase=False)
+        cirq.riswap(angle_rads), ignoring_global_phase=False)
+
+
+@pytest.mark.parametrize('angle_rads', (-1, -0.3, 0.2, 1))
+def test_deprecated_riswap(angle_rads):
+    assert np.all(
+        cirq.unitary(cirq.ISwapRotation(angle_rads)) == cirq.unitary(
+            cirq.riswap(angle_rads)))

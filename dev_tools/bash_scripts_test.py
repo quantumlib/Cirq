@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import os
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from dev_tools import shell_tools
 
@@ -33,6 +33,7 @@ def run(
         tmpdir_factory: '_pytest.tmpdir.TempdirFactory',
         arg: str = '',
         setup: str = '',
+        additional_intercepts: Iterable[str] = (),
 ) -> shell_tools.CommandOutput:
     """Invokes the given script within a temporary test environment."""
 
@@ -50,6 +51,7 @@ def run(
         'pytest',
         'mypy',
         'yapf',
+        *additional_intercepts,
     ]
     assert script_lines[0] == '#!/usr/bin/env bash\n'
     for e in intercepted:
@@ -259,11 +261,15 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
 def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
-                 arg='HEAD')
+                 arg='HEAD',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
-        'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
+        'INTERCEPTED '
+        'python dev_tools/check_incremental_coverage_annotations.py HEAD\n')
     assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
@@ -274,44 +280,61 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert "No revision 'HEAD~999999'." in result.err
 
     result = run(script_file='check/pytest-and-incremental-coverage',
-                 tmpdir_factory=tmpdir_factory)
+                 tmpdir_factory=tmpdir_factory,
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py master\n')
+        'dev_tools/check_incremental_coverage_annotations.py master\n')
     assert result.err == "Comparing against revision 'master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
-                 setup='git branch origin/master')
+                 setup='git branch origin/master',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py origin/master\n')
+        'dev_tools/check_incremental_coverage_annotations.py origin/master\n')
     assert result.err == "Comparing against revision 'origin/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
-                 setup='git branch upstream/master')
+                 setup='git branch upstream/master',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
+        'dev_tools/check_incremental_coverage_annotations.py upstream/master\n')
     assert result.err == "Comparing against revision 'upstream/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
-                 setup='git branch upstream/master; git branch origin/master')
+                 setup='git branch upstream/master; git branch origin/master',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py upstream/master\n')
+        'dev_tools/check_incremental_coverage_annotations.py upstream/master\n')
     assert result.err == "Comparing against revision 'upstream/master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
                  setup='git checkout -b other --quiet\n'
-                 'git branch -D master --quiet\n')
+                 'git branch -D master --quiet\n',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 1
     assert result.out == ''
     assert 'No default revision found to compare against' in result.err
@@ -322,22 +345,30 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  arg='HEAD',
                  setup='touch HEAD\n'
                  'git add -A\n'
-                 'git commit -m test --quiet --no-gpg-sign\n')
+                 'git commit -m test --quiet --no-gpg-sign\n',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py HEAD\n')
+        'dev_tools/check_incremental_coverage_annotations.py HEAD\n')
     assert result.err == "Comparing against revision 'HEAD'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
                  tmpdir_factory=tmpdir_factory,
                  setup='touch master\n'
                  'git add -A\n'
-                 'git commit -m test --quiet --no-gpg-sign\n')
+                 'git commit -m test --quiet --no-gpg-sign\n',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py master\n')
+        'dev_tools/check_incremental_coverage_annotations.py master\n')
     assert result.err == "Comparing against revision 'master'.\n"
 
     result = run(script_file='check/pytest-and-incremental-coverage',
@@ -349,11 +380,15 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  'touch master2\n'
                  'git add -A\n'
                  'git commit -q -m test2 --no-gpg-sign\n'
-                 'git checkout -q alt\n')
+                 'git checkout -q alt\n',
+                 additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out.startswith(
+        'INTERCEPTED check/pytest '
+        '. --actually-quiet --cov --cov-report=annotate '
+        '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED python '
-        'dev_tools/run_pytest_and_incremental_coverage.py ')
+        'dev_tools/check_incremental_coverage_annotations.py ')
     assert result.err.startswith(
         "Comparing against revision 'master' (merge base ")
 
