@@ -42,8 +42,7 @@ if TYPE_CHECKING:
 # A value that can be unambiguously converted into a `cirq.PauliString`.
 
 PAULI_STRING_LIKE = Union[
-    complex, 'cirq.OP_TREE',
-    Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE'],
+    complex, 'cirq.OP_TREE', Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE'],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
@@ -985,8 +984,7 @@ class _MutablePauliString:
         self.coef *= other.coefficient
 
     def _inline_times_mapping(
-            self, mapping: Mapping['cirq.Qid',
-                                   'cirq.PAULI_GATE_LIKE']):
+            self, mapping: Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE']):
         for qubit, pauli_like in mapping.items():
             pauli = PAULI_GATE_LIKE_TO_GATE_MAP.get(pauli_like, None)
             if pauli is None:
