@@ -16,6 +16,7 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
+from cirq._compat import proper_repr
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -151,4 +152,8 @@ class ParamResolver(object):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.ParamResolver({})'.format(repr(self.param_dict))
+        param_dict_repr = ('{' + ', '.join([
+            f'{proper_repr(k)}: {proper_repr(v)}'
+            for k, v in self.param_dict.items()
+        ]) + '}')
+        return 'cirq.ParamResolver({})'.format(param_dict_repr)
