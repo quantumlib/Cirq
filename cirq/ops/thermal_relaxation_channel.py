@@ -23,7 +23,7 @@ from cirq.ops import gate_features
 
 @value.value_equality
 class ThermalRelaxationChannel(gate_features.SingleQubitGate):
-    """Dampen qubits at varying rates through non ideal disipation.
+    """Dampen qubits at varying rates through non ideal dissipation.
 
     This channel models the effect of energy dissipation into the environment
     as well as the environment depositing energy into the system at varying
@@ -96,11 +96,9 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
             vals += 1e-9  # fix small roundoffs.
             if vals[i] < 0:
                 raise ValueError('Thermal relaxation with '
-                                 'p_exchange={}, p_relaxation={}, '
-                                 'p_dephasing={} breaks CP'
-                                 ' requirement.'.format(p_exchange,
-                                                        p_relaxation,
-                                                        p_dephasing))
+                                 f'p_exchange={p_exchange}, p_relaxation='
+                                 f'{p_relaxation}, p_dephasing={p_dephasing}'
+                                 'breaks CP requirement.')
             kraus_i = np.sqrt(vals[i]) * vecs[:, i].reshape((2, 2)).T
             self._kraus += (kraus_i,)
 
@@ -114,16 +112,14 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
         return self._p_exchange, self._p_relaxation, self._p_dephasing
 
     def __repr__(self) -> str:
-        return ('cirq.thermal_relaxation(p_exchange={!r},p_relaxation={!r},'
-                'p_dephasing={!r})').format(self._p_exchange,
-                                            self._p_relaxation,
-                                            self._p_dephasing)
+        return (f'cirq.thermal_relaxation(p_exchange={self._p_exchange},'
+                f'p_relaxation={self._p_relaxation},'
+                f'p_dephasing={self._p_dephasing})')
 
     def __str__(self) -> str:
-        return ('thermal_relaxation(p_exchange={!r},p_relaxation={!r},'
-                'p_dephasing={!r})').format(self._p_exchange,
-                                            self._p_relaxation,
-                                            self._p_dephasing)
+        return (f'thermal_relaxation(p_exchange={self._p_exchange},'
+                f'p_relaxation={self._p_relaxation},'
+                f'p_dephasing={self._p_dephasing})')
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -133,9 +129,8 @@ class ThermalRelaxationChannel(gate_features.SingleQubitGate):
                                           f).format(self._p_exchange,
                                                     self._p_relaxation,
                                                     self._p_dephasing)
-        return 'ThR({!r},{!r},{!r})'.format(self._p_exchange,
-                                            self._p_relaxation,
-                                            self._p_dephasing)
+        return (f'ThR({self._p_exchange},{self._p_relaxation},'
+                f'{self._p_dephasing})')
 
     @property
     def p_exchange(self) -> float:
