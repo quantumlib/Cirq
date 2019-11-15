@@ -49,10 +49,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
     Y_VAL = 2
     Z_VAL = 3
 
-    def __init__(self,
-                 pauli_mask: Union[str, Iterable[int], np.ndarray],
-                 *,
-                 coefficient: Union[sympy.Basic, int, float, complex] = 1):
+    def __init__(
+            self,
+            pauli_mask: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray],
+            *,
+            coefficient: Union[sympy.Basic, int, float, complex] = 1):
         """Initializes a new dense pauli string.
 
         Args:
@@ -94,14 +95,15 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
 
     @classmethod
     def one_hot(cls: Type[TCls], *, index: int, length: int,
-                pauli: Union[str, 'cirq.Gate']) -> TCls:
+                pauli: 'cirq.PAULI_GATE_LIKE') -> TCls:
         """Creates a dense pauli string with only one non-identity Pauli.
 
         Args:
             index: The index of the Pauli that is not an identity.
             pauli: The pauli gate to put at the hot index. Can be set to either
-                a string ('X', 'Y', 'Z', 'I') or a cirq gate (`cirq.X`,
-                `cirq.Y`, `cirq.Z`, or `cirq.I`).
+                a string ('X', 'Y', 'Z', 'I'), a cirq gate (`cirq.X`,
+                `cirq.Y`, `cirq.Z`, or `cirq.I`), or an integer (0=I, 1=X, 2=Y,
+                3=Z).
         """
         mask = np.zeros(length, dtype=np.uint8)
         mask[index] = _pauli_index(pauli)
@@ -477,38 +479,21 @@ class MutableDensePauliString(BaseDensePauliString):
                 next_row += 1
 
 
-def _pauli_index(val: Any):
-    if isinstance(val, str):
-        return PAULI_CHARS.index(val)
-    if isinstance(val, raw_types.Gate):
-        return PAULI_GATES.index(val)
-    if isinstance(val, int) and 0 <= val < 4:
-        return val
-    raise TypeError(f'Expected a Pauli character (IXYZ), gate, or index but '
-                    f'got {repr(val)}.')
+def _pauli_index(val: 'cirq.PAULI_GATE_LIKE') -> int:
+    m = pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP
+    if val not in m:
+        raise TypeError(
+            f'Expected a cirq.PAULI_GATE_LIKE (any of cirq.I cirq.X, cirq.Y, '
+            f'cirq.Z, "I", "X", "Y", "Z", "i", "x", "y", "z", 0, 1, 2, 3) but '
+            f'got {repr(val)}.')
+    return m[val]
 
 
-def _as_pauli_mask(val: Union[str, Iterable[int], np.ndarray]) -> np.ndarray:
+def _as_pauli_mask(val: Union[Iterable['cirq.PAULI_GATE_LIKE'], np.ndarray]
+                  ) -> np.ndarray:
     if isinstance(val, np.ndarray):
         return np.asarray(val, dtype=np.uint8)
-
-    if isinstance(val, str):
-        return _str_to_pauli_mask(val)
-
     return np.array([_pauli_index(v) for v in val], dtype=np.uint8)
-
-
-def _str_to_pauli_mask(text: str) -> np.ndarray:
-    result = np.zeros(len(text), dtype=np.uint8)
-    for i in range(len(text)):
-        c = text[i]
-        try:
-            result[i] = PAULI_CHARS.index(c)
-        except ValueError:
-            raise ValueError(
-                f'Not a Pauli character: {repr(c)}. Valid Pauli characters are '
-                f'upper case IXYZ.\ntext={repr(text)}.')
-    return result
 
 
 def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
@@ -525,7 +510,7 @@ def _attempt_value_to_pauli_index(v: Any) -> Optional[Tuple[int, int]]:
             'Got a Pauli operation, but it was applied to a qubit type '
             'other than `cirq.LineQubit` so its dense index is ambiguous.\n'
             f'v={repr(v)}.')
-    return PAULI_GATES.index(v.gate), q.x
+    return pauli_string.PAULI_GATE_LIKE_TO_INDEX_MAP[v.gate], q.x
 
 
 def _vectorized_pauli_mul_phase(lhs: Union[int, np.ndarray],

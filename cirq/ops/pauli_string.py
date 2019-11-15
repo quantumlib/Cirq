@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
-                    TYPE_CHECKING, SupportsComplex, List, Sequence)
+                    TYPE_CHECKING, SupportsComplex, List, Sequence, Any)
 
 import cmath
 import math
@@ -44,7 +43,7 @@ if TYPE_CHECKING:
 
 PAULI_STRING_LIKE = Union[
     complex, 'cirq.OP_TREE',
-    Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
+    Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE'],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
@@ -54,9 +53,23 @@ document(
     Complex numbers turn into the coefficient of an empty Pauli string.
 
     Dictionaries from qubit to Pauli operation are wrapped into a Pauli string.
+    Each Pauli operation can be specified as a cirq object (e.g. `cirq.X`) or as
+    a string (e.g. `"X"`) or as an integer where 0=I, 1=X, 2=Y, 3=Z.
 
     Collections of Pauli operations are recrusively multiplied into a single
     Pauli string.
+    """)
+
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
+document(
+    PAULI_GATE_LIKE,  # type: ignore
+    """An object that can be interpreted as a Pauli gate.
+
+    Allowed values are:
+
+    1. Cirq gates: `cirq.I`, `cirq.X`, `cirq.Y`, `cirq.Z`.
+    2. Strings: "I", "X", "Y", "Z". Equivalently "i", "x", "y", "z".
+    3. Integers from 0 to 3, with the convention 0=I, 1=X, 2=Y, 3=Z.
     """)
 
 TDefault = TypeVar('TDefault')
@@ -271,6 +284,14 @@ class PauliString(raw_types.Operation):
 
     def __len__(self) -> int:
         return len(self._qubit_pauli_map)
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Print ASCII diagram in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('cirq.PauliString(...)')
+        else:
+            p.text(str(self))
 
     def __repr__(self):
         ordered_qubits = sorted(self.qubits)
@@ -661,7 +682,7 @@ class PauliString(raw_types.Operation):
             $$
 
         For example, conjugating a +Y operation by an S operation results in a
-        +X operation.
+        +X operation (as opposed to a -X operation).
 
         In a circuit diagram where `P` is a pauli string observable immediately
         after a Clifford operation `C`, the pauli string `P.conjugated_by(C)` is
@@ -965,15 +986,16 @@ class _MutablePauliString:
 
     def _inline_times_mapping(
             self, mapping: Mapping['cirq.Qid',
-                                   Union['cirq.Pauli', 'cirq.IdentityGate']]):
-        for qubit, pauli in mapping.items():
+                                   'cirq.PAULI_GATE_LIKE']):
+        for qubit, pauli_like in mapping.items():
+            pauli = PAULI_GATE_LIKE_TO_GATE_MAP.get(pauli_like, None)
+            if pauli is None:
+                raise TypeError(f'{pauli_like!r} is not '
+                                f'cirq.I, cirq.X, cirq.Y, cirq.Z, '
+                                f'"I", "X", "Y", "Z", '
+                                f'0, 1, 2, or 3.')
             if isinstance(pauli, identity.IdentityGate):
                 continue
-
-            if not isinstance(pauli, pauli_gates.Pauli):
-                raise TypeError(
-                    f'{repr(pauli)} is not a Pauli or identity gate.')
-
             self._inline_times_pauli(qubit, pauli)
 
     def inline_times_pauli_string_like(self,
@@ -1024,3 +1046,43 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
     raise TypeError(f'Operation is not a known Clifford and did not decompose '
                     f'into known Cliffords: {op!r}')
+
+
+PAULI_GATE_LIKE_TO_GATE_MAP: Dict['cirq.PAULI_GATE_LIKE',
+                                  Union['cirq.Pauli', 'cirq.IdentityGate']] = {
+                                      identity.I: identity.I,
+                                      pauli_gates.X: pauli_gates.X,
+                                      pauli_gates.Y: pauli_gates.Y,
+                                      pauli_gates.Z: pauli_gates.Z,
+                                      'I': identity.I,
+                                      'X': pauli_gates.X,
+                                      'Y': pauli_gates.Y,
+                                      'Z': pauli_gates.Z,
+                                      'i': identity.I,
+                                      'x': pauli_gates.X,
+                                      'y': pauli_gates.Y,
+                                      'z': pauli_gates.Z,
+                                      0: identity.I,
+                                      1: pauli_gates.X,
+                                      2: pauli_gates.Y,
+                                      3: pauli_gates.Z,
+                                  }
+
+PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
+    identity.I: 0,
+    pauli_gates.X: 1,
+    pauli_gates.Y: 2,
+    pauli_gates.Z: 3,
+    'I': 0,
+    'X': 1,
+    'Y': 2,
+    'Z': 3,
+    'i': 0,
+    'x': 1,
+    'y': 2,
+    'z': 3,
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+}

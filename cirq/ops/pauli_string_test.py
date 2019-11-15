@@ -1388,6 +1388,13 @@ def test_conjugated_by_common_single_qubit_gates():
     a, b = cirq.LineQubit.range(2)
 
     base_single_qubit_gates = [
+        cirq.I,
+        cirq.X,
+        cirq.Y,
+        cirq.Z,
+        cirq.X**-0.5,
+        cirq.Y**-0.5,
+        cirq.Z**-0.5,
         cirq.X**0.5,
         cirq.Y**0.5,
         cirq.Z**0.5,
@@ -1421,13 +1428,20 @@ def test_conjugated_by_common_two_qubit_gates():
         cirq.CNOT,
         cirq.CZ,
         cirq.ISWAP,
+        cirq.ISWAP**-1,
         cirq.SWAP,
         cirq.XX**0.5,
         cirq.YY**0.5,
         cirq.ZZ**0.5,
+        cirq.XX**-0.5,
+        cirq.YY**-0.5,
+        cirq.ZZ**-0.5,
     ]
     two_qubit_gates = [g**i for i in range(4) for g in base_two_qubit_gates]
-    two_qubit_gates.append(OrderSensitiveGate())
+    two_qubit_gates.extend([
+        OrderSensitiveGate(),
+        cirq.Y.controlled(),
+    ])
     for p1 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
         for p2 in [cirq.I, cirq.X, cirq.Y, cirq.Z]:
             for g in two_qubit_gates:
