@@ -21,7 +21,6 @@ import numpy as np
 from cirq import protocols, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
                       identity)
-from cirq.protocols.json import AddJson
 
 
 @value.value_equality

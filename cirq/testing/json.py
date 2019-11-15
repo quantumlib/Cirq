@@ -17,7 +17,7 @@ def assert_roundtrip(obj, text_should_be=None, resolvers=None):
     Raises:
         AssertionError: The given object can not be round-tripped according to
             the given arguments.
-    ."""
+    """
     buffer = io.StringIO()
     cirq.protocols.to_json(obj, buffer)
 
