@@ -71,6 +71,7 @@ def assert_ms_depth_below(operations, threshold):
     assert total_ms <= threshold
 
 
+# yapf: disable
 @pytest.mark.parametrize('max_ms_depth,effect', [
     (0, np.eye(4)),
     (0, np.array([
@@ -79,7 +80,7 @@ def assert_ms_depth_below(operations, threshold):
         [0, 1, 0, 0],
         [1, 0, 0, 0j]
     ])),
-    (1, cirq.unitary(cirq.MS(np.pi/4))),
+    (1, cirq.unitary(cirq.ms(np.pi/4))),
 
     (0, cirq.unitary(cirq.CZ ** 0.00000001)),
     (0.5, cirq.unitary(cirq.CZ ** 0.5)),
@@ -124,6 +125,7 @@ def assert_ms_depth_below(operations, threshold):
 ] + [
     (2, _random_double_MS_effect()) for _ in range(10)
 ])
+# yapf: enable
 def test_two_to_ops(
         max_ms_depth: int,
         effect: np.array):

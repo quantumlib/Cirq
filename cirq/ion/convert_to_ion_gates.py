@@ -15,7 +15,7 @@
 import numpy as np
 
 from cirq import ops, protocols, optimizers, circuits
-from cirq.ion import MS, two_qubit_matrix_to_ion_operations
+from cirq.ion import ms, two_qubit_matrix_to_ion_operations
 
 
 class ConvertToIonGates:
@@ -50,15 +50,19 @@ class ConvertToIonGates:
             return [op]
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
-            return [ops.Rx(np.pi).on(op.qubits[0]),
-                    ops.Ry(-1 * np.pi/2).on(op.qubits[0])]
+            return [
+                ops.Rx(np.pi).on(op.qubits[0]),
+                ops.Ry(-1 * np.pi / 2).on(op.qubits[0])
+            ]
         # one choice of known CNOT gate decomposition
         if isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
-            return [ops.Ry(np.pi/2).on(op.qubits[0]),
-                    MS(np.pi/4).on(op.qubits[0], op.qubits[1]),
-                    ops.Rx(-1*np.pi/2).on(op.qubits[0]),
-                    ops.Rx(-1*np.pi/2).on(op.qubits[1]),
-                    ops.Ry(-1*np.pi/2).on(op.qubits[0])]
+            return [
+                ops.Ry(np.pi / 2).on(op.qubits[0]),
+                ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
+                ops.Rx(-1 * np.pi / 2).on(op.qubits[0]),
+                ops.Rx(-1 * np.pi / 2).on(op.qubits[1]),
+                ops.Ry(-1 * np.pi / 2).on(op.qubits[0])
+            ]
         # Known matrix
         mat = protocols.unitary(op, None) if len(
             op.qubits) <= 2 else None
