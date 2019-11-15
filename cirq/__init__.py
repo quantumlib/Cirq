@@ -191,6 +191,7 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    givens,
     GivensRotation,
     GlobalPhaseOperation,
     H,
@@ -452,6 +453,7 @@ from cirq.ion import (
     ConvertToIonGates,
     IonDevice,
     MS,
+    ms,
     two_qubit_matrix_to_ion_operations,
 )
 from cirq.neutral_atoms import (

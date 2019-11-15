@@ -65,6 +65,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.givens
     cirq.identity_each
     cirq.riswap
     cirq.CCXPowGate
@@ -444,6 +445,7 @@ Support for ion trap an neutral atom devices.
     :toctree: generated/
 
     cirq.MS
+    cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
     cirq.two_qubit_matrix_to_ion_operations
