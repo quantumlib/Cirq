@@ -16,13 +16,14 @@
 
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
+from cirq._compat import proper_repr
 from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Basic], Union[float, str, sympy.Symbol]]
+ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")
@@ -57,9 +58,8 @@ class ParamResolver(object):
             return  # Already initialized. Got wrapped as part of the __new__.
 
         self._param_hash = None
-        self.param_dict = cast(
-            Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Symbol]],
-            {} if param_dict is None else param_dict)
+        self.param_dict = cast(ParamDictType,
+                               {} if param_dict is None else param_dict)
 
     def value_of(self,
                  value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
@@ -152,4 +152,8 @@ class ParamResolver(object):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.ParamResolver({})'.format(repr(self.param_dict))
+        param_dict_repr = ('{' + ', '.join([
+            f'{proper_repr(k)}: {proper_repr(v)}'
+            for k, v in self.param_dict.items()
+        ]) + '}')
+        return 'cirq.ParamResolver({})'.format(param_dict_repr)
