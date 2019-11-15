@@ -22,7 +22,7 @@ import cirq.google as cg
 
 _CALIBRATION_DATA = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.MetricsSnapshot',
+    'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
     'timestampMs':
     '1562544000021',
     'metrics': [{

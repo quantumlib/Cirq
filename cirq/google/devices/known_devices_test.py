@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numpy as np
+import pytest
 
 import cirq
 import cirq.google as cg
@@ -377,20 +378,16 @@ def test_json_dict():
     assert cg.Foxtail._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Foxtail',
-        'measurement_duration': cirq.Duration(nanos=4000),
-        'exp_w_duration': cirq.Duration(nanos=20),
-        'exp_11_duration': cirq.Duration(nanos=50),
-        'qubits': sorted(cirq.google.Foxtail.qubits)
     }
 
     assert cirq.google.Bristlecone._json_dict_() == {
         'cirq_type': '_NamedConstantXmonDevice',
         'constant': 'cirq.google.Bristlecone',
-        'measurement_duration': cirq.Duration(nanos=4000),
-        'exp_w_duration': cirq.Duration(nanos=20),
-        'exp_11_duration': cirq.Duration(nanos=50),
-        'qubits': sorted(cirq.google.Bristlecone.qubits)
     }
+
+    from cirq.google.devices.known_devices import _NamedConstantXmonDevice
+    with pytest.raises(ValueError, match='xmon device name'):
+        _NamedConstantXmonDevice._from_json_dict_('the_unknown_fiddler')
 
 
 def test_sycamore_device():
@@ -402,3 +399,62 @@ def test_sycamore_device():
     cg.Sycamore.validate_operation(sqrt_iswap)
     assert cg.Sycamore.duration_of(syc) == cirq.Duration(nanos=12)
     assert cg.Sycamore.duration_of(sqrt_iswap) == cirq.Duration(nanos=32)
+
+
+def test_proto_with_waitgate():
+    wait_gateset = cg.serializable_gate_set.SerializableGateSet(
+        gate_set_name='wait_gateset',
+        serializers=[cgc.WAIT_GATE_SERIALIZER],
+        deserializers=[cgc.WAIT_GATE_DESERIALIZER],
+    )
+    wait_proto = cg.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa",
+        [wait_gateset],
+    )
+    wait_device = cg.SerializableDevice.from_proto(proto=wait_proto,
+                                                   gate_sets=[wait_gateset])
+    q0 = cirq.GridQubit(1, 1)
+    wait_op = cirq.WaitGate(duration=cirq.Duration(nanos=25))(q0)
+    wait_device.validate_operation(wait_op)
+
+    assert str(wait_proto) == """\
+valid_gate_sets {
+  name: "wait_gateset"
+  valid_gates {
+    id: "wait"
+    number_of_qubits: 1
+    valid_args {
+      name: "nanos"
+      type: FLOAT
+    }
+  }
+}
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "0_1"
+    ids: "1_1"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
+  }
+}
+"""
