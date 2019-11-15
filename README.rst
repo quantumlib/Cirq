@@ -20,13 +20,11 @@ circuits and running them against quantum computers and simulators.
 Installation and Documentation
 ------------------------------
 
-Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_:
+Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_. The (*default*) documentation for `stable <https://cirq.readthedocs.io/en/stable/>`_ might be behind `latest <https://cirq.readthedocs.io/en/latest/tutorial.html>`_:
 
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
-
-Note: The (*default*) documentation for ``stable`` might be behind ``latest`` (see `here <https://cirq.readthedocs.io/en/latest/tutorial.html>`_).
 
 Hello Qubit
 -----------
