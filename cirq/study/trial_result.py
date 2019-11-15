@@ -317,7 +317,7 @@ class TrialResult:
                    })
 
 
-def _unpack_bits(bits_hex: str, shape: Sequence[int, ...]):
+def _unpack_bits(bits_hex: str, shape: Sequence[int]):
     bits_bytes = bytes.fromhex(bits_hex)
     bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
     return bits[:np.prod(shape)].reshape(shape)
