@@ -326,6 +326,7 @@ NOT_YET_SERIALIZABLE = [
     'StateVectorMixin',
     'SYC_GATESET',
     'Sycamore',
+    'Sycamore23',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
