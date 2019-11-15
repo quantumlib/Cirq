@@ -1,0 +1,1 @@
+cirq.ParamResolver({'a': 0.1, sympy.Symbol('b'): 'c', 'd': sympy.Add(sympy.Symbol('e'), sympy.Integer(1))})
