@@ -1,0 +1,1 @@
+cirq.thermal_relaxation(p_exchange=0.1,p_relaxation=0.2,p_dephasing=0.3)
