@@ -13,8 +13,8 @@ from typing import cast
 from typing import List
 from typing import Optional
 from typing import Tuple
-import numpy as np
 import sys
+import numpy as np
 import cirq
 
 
@@ -31,19 +31,10 @@ def build_circuit():
 
 def compute_characteristic_function(circuit: cirq.Circuit,
                                     P_i: Tuple[cirq.Gate, ...],
-                                    qubits: List[cirq.Qid], physical: bool,
-                                    simulator: cirq.DensityMatrixSimulator,
-                                    density_matrix: Optional[np.ndarray]):
+                                    qubits: List[cirq.Qid],
+                                    density_matrix: np.ndarray):
     n_qubits = len(P_i)
     d = 2**n_qubits
-
-    if physical:
-        assert density_matrix is None
-        density_matrix = np.zeros([d, d], dtype=np.complex64)
-        res = simulator.run(circuit, repetitions=1).measurements['y']
-        # Convert binary to index.
-        idx = sum([res[0][i] * 2**i for i in range(len(res))])
-        density_matrix[idx][idx] = 1
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
@@ -58,19 +49,9 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     return trace, prob
 
 
-def sample_pauli_states(n_qubits: int, n_trials: int, physical: bool):
-    pauli_gates = [cirq.I, cirq.X, cirq.Y, cirq.Z]
-    if physical:
-        return [[pauli_gates[j]
-                 for j in np.random.choice(4, n_qubits)]
-                for i in range(n_trials)]
-    else:
-        return itertools.product(pauli_gates, repeat=n_qubits)
-
-
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, n_trials: int,
-                               physical: bool):
+                               noise: cirq.NoiseModel, sampled: bool,
+                               n_trials: int, samples_per_term: int):
     # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
@@ -83,32 +64,23 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     pauli_traces = []
 
     simulator = cirq.DensityMatrixSimulator()
-    if physical:
-        density_matrix = None
-    else:
-        # rho in https://arxiv.org/pdf/1104.3835.pdf
-        density_matrix = cast(cirq.DensityMatrixTrialResult,
-                              simulator.simulate(circuit)).final_density_matrix
+    # rho in https://arxiv.org/pdf/1104.3835.pdf
+    density_matrix = cast(cirq.DensityMatrixTrialResult,
+                          simulator.simulate(circuit)).final_density_matrix
 
-    for P_i in sample_pauli_states(n_qubits, n_trials, physical):
+    # TODO(tonybruguier): Sample the Pauli states more efficenitly when the
+    # circuit consists of Clifford gates only, as described on page 4 of:
+    # https://arxiv.org/pdf/1104.4695.pdf
+    for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
+                                 repeat=n_qubits):
         rho_i, Pr_i = compute_characteristic_function(circuit, P_i, qubits,
-                                                      physical, simulator,
                                                       density_matrix)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
-    if physical:
-        assert len(pauli_traces) == n_trials
-    else:
-        assert len(pauli_traces) == 4**n_qubits
+    assert len(pauli_traces) == 4**n_qubits
 
     p = [x['Pr_i'] for x in pauli_traces]
-    if physical:
-        # Sometimes, the probabilities add up to 0.0 just because of randomness
-        # and so we hard-code a 0 fidelity in this case.
-        if sum(p) == 0.0:
-            return 0.0
-    else:
-        assert np.isclose(sum(p), 1.0, atol=1e-6)
+    assert np.isclose(sum(p), 1.0, atol=1e-6)
 
     # The package np.random.choice() is quite sensitive to probabilities not
     # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
@@ -117,36 +89,60 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     norm_p = [x * inv_sum_p for x in p]
 
     simulator = cirq.DensityMatrixSimulator(noise=noise)
-    if physical:
-        density_matrix = None
+    if sampled:
+        fidelity = 0.0
+        for _ in range(n_trials):
+            # Randomly sample as per probability.
+            i = np.random.choice(len(pauli_traces), p=norm_p)
+
+            Pr_i = pauli_traces[i]['Pr_i']
+            P_i = pauli_traces[i]['P_i']
+            rho_i = pauli_traces[i]['rho_i']
+
+            pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
+            qubit_map = dict(zip(qubits, range(n_qubits)))
+
+            p = cirq.PauliSumCollector(circuit=circuit,
+                                       observable=pauli_string,
+                                       samples_per_term=samples_per_term)
+
+            completion = p.collect_async(sampler=simulator)
+            cirq.testing.assert_asyncio_will_have_result(completion, None)
+
+            sigma_i = p.estimated_energy()
+            assert np.isclose(sigma_i.imag, 0.0, atol=1e-6)
+            sigma_i = sigma_i.real
+
+            fidelity += Pr_i * sigma_i / rho_i
+
+        return fidelity
     else:
         # sigma in https://arxiv.org/pdf/1104.3835.pdf
         density_matrix = cast(cirq.DensityMatrixTrialResult,
                               simulator.simulate(circuit)).final_density_matrix
 
-    fidelity = 0.0
-    for _ in range(n_trials):
-        # Randomly sample as per probability.
-        i = np.random.choice(len(pauli_traces), p=norm_p)
+        fidelity = 0.0
+        for _ in range(n_trials):
+            # Randomly sample as per probability.
+            i = np.random.choice(len(pauli_traces), p=norm_p)
 
-        Pr_i = pauli_traces[i]['Pr_i']
-        P_i = pauli_traces[i]['P_i']
-        rho_i = pauli_traces[i]['rho_i']
+            Pr_i = pauli_traces[i]['Pr_i']
+            P_i = pauli_traces[i]['P_i']
+            rho_i = pauli_traces[i]['rho_i']
 
-        sigma_i, _ = compute_characteristic_function(circuit, P_i, qubits,
-                                                     physical, simulator,
-                                                     density_matrix)
+            sigma_i, _ = compute_characteristic_function(
+                circuit, P_i, qubits, density_matrix)
 
-        fidelity += Pr_i * sigma_i / rho_i
+            fidelity += Pr_i * sigma_i / rho_i
 
-    return fidelity / n_trials
+        return fidelity / n_trials
 
 
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')
 
-    parser.add_argument('--physical',
+    parser.add_argument('--sampled',
                         default=False,
                         type=bool,
                         help='Run and do physical measurements.')
@@ -156,20 +152,27 @@ def parse_arguments(args):
                         type=int,
                         help='Number of trials to run.')
 
+    parser.add_argument('--samples_per_term',
+                        default=10,
+                        type=int,
+                        help='Number of samples per trial.')
+
     return vars(parser.parse_args(args))
 
 
-def main(*, physical: bool, n_trials: int):
+def main(*, sampled: bool, n_trials: int, samples_per_term: int):
     circuit, qubits = build_circuit()
     circuit.append(cirq.measure(*qubits, key='y'))
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
 
-    estimated_fidelity = direct_fidelity_estimation(circuit,
-                                                    qubits,
-                                                    noise,
-                                                    n_trials=n_trials,
-                                                    physical=physical)
+    estimated_fidelity = direct_fidelity_estimation(
+        circuit,
+        qubits,
+        noise,
+        sampled=sampled,
+        n_trials=n_trials,
+        samples_per_term=samples_per_term)
     print(estimated_fidelity)
 
 
