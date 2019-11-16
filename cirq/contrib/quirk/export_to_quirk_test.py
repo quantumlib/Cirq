@@ -202,35 +202,36 @@ def test_various_unknown_gate_types():
 def test_formulaic_exponent_export():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
-    assert_links_to(
-        cirq.Circuit(
-            cirq.X(a)**t,
-            cirq.Y(a)**-t,
-            cirq.Z(a)**(t*2 + 1)),
-        """
+    assert_links_to(cirq.Circuit(
+        cirq.X(a)**t,
+        cirq.Y(a)**-t,
+        cirq.Z(a)**(t * 2 + 1)),
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             ["X^t"],
             ["Y^-t"],
             [{"arg":"2*t+1","id":"Z^ft"}]
         ]}
-    """, escape_url=False)
+    """,
+                    escape_url=False)
 
 
 def test_formulaic_rotation_xyz_export():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
-    assert_links_to(
-        cirq.Circuit(cirq.Rx(sympy.pi/2).on(a),
-                     cirq.Ry(sympy.pi*t).on(a),
-                     cirq.Rz(-sympy.pi*t).on(a),
-                     ),
-        """
+    assert_links_to(cirq.Circuit(
+        cirq.Rx(sympy.pi / 2).on(a),
+        cirq.Ry(sympy.pi * t).on(a),
+        cirq.Rz(-sympy.pi * t).on(a),
+    ),
+                    """
         http://algassert.com/quirk#circuit={"cols":[
             [{"arg":"(1/2)pi","id":"Rxft"}],
             [{"arg":"(t)pi","id":"Ryft"}],
             [{"arg":"(-t)pi","id":"Rzft"}]
         ]}
-    """, escape_url=False)
+    """,
+                    escape_url=False)
 
     with pytest.raises(ValueError, match='unsupported'):
         _ = circuit_to_quirk_url(

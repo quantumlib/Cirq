@@ -58,11 +58,8 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
 
 
 def _is_supported_formula(formula: sympy.Basic):
-    if isinstance(formula, (sympy.Symbol,
-                            sympy.Integer,
-                            sympy.Float,
-                            sympy.Rational,
-                            sympy.NumberSymbol)):
+    if isinstance(formula, (sympy.Symbol, sympy.Integer, sympy.Float,
+                            sympy.Rational, sympy.NumberSymbol)):
         return True
     if isinstance(formula, (sympy.Add, sympy.Mul)):
         return all(_is_supported_formula(f) for f in formula.args)
@@ -181,11 +178,11 @@ def z_to_quirk_op(gate: ops.ZPowGate) -> QuirkOp:
 
 
 def cz_to_quirk_op(gate: ops.CZPowGate) -> Optional[QuirkOp]:
-    return z_to_quirk_op(ops.Z ** gate.exponent).controlled()
+    return z_to_quirk_op(ops.Z**gate.exponent).controlled()
 
 
 def cnot_to_quirk_op(gate: ops.CNotPowGate) -> Optional[QuirkOp]:
-    return x_to_quirk_op(ops.X ** gate.exponent).controlled()
+    return x_to_quirk_op(ops.X**gate.exponent).controlled()
 
 
 def h_to_quirk_op(gate: ops.HPowGate) -> Optional[QuirkOp]:
