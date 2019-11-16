@@ -1071,7 +1071,7 @@ PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
     3: 3,
 }
 
-_INT_TO_PAULI = [_i, _x, _y, _z]
+_INT_TO_PAULI: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [_i, _x, _y, _z]
 
 PAULI_GATE_LIKE_TO_GATE_MAP: Dict[
     'cirq.PAULI_GATE_LIKE', Union['cirq.Pauli', 'cirq.IdentityGate']] = {
