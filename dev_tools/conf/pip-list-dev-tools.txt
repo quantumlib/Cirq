@@ -14,7 +14,7 @@ mypy-protobuf==1.10
 twine
 
 # For verifying behavior of qasm output.
-qiskit~=0.6.0
+qiskit~=0.13.0
 
 # For generating documentation.
 pypandoc

@@ -23,9 +23,11 @@ raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 from typing import Optional, Tuple
 
 import numpy as np
+import sympy
 
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
+from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate, raw_types
 
 
@@ -246,22 +248,37 @@ class ISwapPowGate(eigen_gate.EigenGate,
                                              self._global_shift)
 
 
-# The swap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, 1, 0],
-#      [0, 1, 0, 0],
-#      [0, 0, 0, 1]]
-SWAP = SwapPowGate()
+def riswap(rads: value.TParamVal) -> ISwapPowGate:
+    """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
+    return ISwapPowGate()**(2 * rads / pi)
 
-# The iswap gate.
-#
-# Matrix:
-#
-#     [[1, 0, 0, 0],
-#      [0, 0, i, 0],
-#      [0, i, 0, 0],
-#      [0, 0, 0, 1]]
+
+@deprecated(deadline='v0.8.0', fix='Use cirq.riswap, instead.')
+def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
+    return riswap(angle_rads)
+
+
+SWAP = SwapPowGate()
+document(
+    SWAP, """The swap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, 1, 0],
+         [0, 1, 0, 0],
+         [0, 0, 0, 1]]
+    """)
+
 ISWAP = ISwapPowGate()
+document(
+    ISWAP, """The iswap gate.
+
+    Matrix:
+
+        [[1, 0, 0, 0],
+         [0, 0, i, 0],
+         [0, i, 0, 0],
+         [0, 0, 0, 1]]
+    """)

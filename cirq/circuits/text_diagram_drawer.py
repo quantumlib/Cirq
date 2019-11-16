@@ -55,6 +55,7 @@ class TextDiagramDrawer:
     """
 
     def __init__(self):
+        """Initializes an empty diagram drawer."""
         self.entries: Dict[Tuple[int, int], _DiagramText] = dict()
         self.vertical_lines: List[_VerticalLine] = []
         self.horizontal_lines: List[_HorizontalLine] = []

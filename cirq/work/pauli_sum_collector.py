@@ -13,20 +13,23 @@
 # limitations under the License.
 
 import collections
-from typing import cast, Dict, Optional, Union
+from typing import cast, Dict, Optional, Union, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, study, ops
+from cirq import ops
 from cirq.work import collector
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class PauliSumCollector(collector.Collector):
     """Estimates the energy of a linear combination of Pauli observables."""
 
     def __init__(self,
-                 circuit: circuits.Circuit,
-                 observable: ops.PauliSumLike,
+                 circuit: 'cirq.Circuit',
+                 observable: 'cirq.PauliSumLike',
                  *,
                  samples_per_term: int,
                  max_samples_per_job: int = 1000000):
@@ -61,7 +64,7 @@ class PauliSumCollector(collector.Collector):
         self._samples_per_term = samples_per_term
         self._total_samples_requested = 0
 
-    def next_job(self) -> Optional[collector.CircuitSampleJob]:
+    def next_job(self) -> Optional['cirq.CircuitSampleJob']:
         i = self._total_samples_requested // self._samples_per_term
         if i >= len(self._pauli_coef_terms):
             return None
@@ -76,8 +79,8 @@ class PauliSumCollector(collector.Collector):
             repetitions=amount_to_request,
             tag=pauli)
 
-    def on_job_result(self, job: collector.CircuitSampleJob,
-                      result: study.TrialResult):
+    def on_job_result(self, job: 'cirq.CircuitSampleJob',
+                      result: 'cirq.TrialResult'):
         job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out',
                                     fold_func=lambda bits: np.sum(bits) % 2)
@@ -99,9 +102,9 @@ class PauliSumCollector(collector.Collector):
         return energy
 
 
-def _circuit_plus_pauli_string_measurements(circuit: circuits.Circuit,
-                                            pauli_string: ops.PauliString
-                                           ) -> circuits.Circuit:
+def _circuit_plus_pauli_string_measurements(circuit: 'cirq.Circuit',
+                                            pauli_string: 'cirq.PauliString'
+                                           ) -> 'cirq.Circuit':
     """A circuit measuring the given observable at the end of the given circuit.
     """
     assert pauli_string

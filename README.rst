@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/_static/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
@@ -17,11 +17,21 @@ circuits and running them against quantum computers and simulators.
     :target: https://readthedocs.org/projects/cirq/versions/
     :alt: Documentation Status
 
-Installation
-------------
+Installation and Documentation
+------------------------------
 
-Follow these
-`instructions <https://cirq.readthedocs.io/en/stable/install.html>`__.
+Cirq documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_.
+
+Documentation for the latest **unstable** version of cirq (tracks the repository's master branch; what you get if you ``pip install cirq-unstable``), is available at `cirq.readthedocs.io/latest <https://cirq.readthedocs.io/en/latest/>`_.
+
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://cirq.readthedocs.io/en/stable/>`_.
+
+
+- `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
+- `Documentation <https://cirq.readthedocs.io>`_
+- `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+
+
 
 Hello Qubit
 -----------
@@ -59,14 +69,6 @@ Example output:
   m=11000111111011001000
 
 
-Documentation
--------------
-
-See
-`here <https://cirq.readthedocs.io/en/stable/>`__
-or jump into the
-`tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`__.
-
 Contributing
 ------------
 
@@ -98,4 +100,4 @@ We *will* break your code when we make new releases.
 We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
 That way you have control over when a breaking change affects you.
 
-Cirq is not an official Google product. Copyright 2018 The Cirq Developers
+Cirq is not an official Google product. Copyright 2019 The Cirq Developers

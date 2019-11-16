@@ -184,6 +184,7 @@ from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
 
 from cirq.ops.phased_iswap_gate import (
+    givens,
     GivensRotation,
     PhasedISwapPowGate,
 )
@@ -200,6 +201,8 @@ from cirq.ops.raw_types import (
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
+    riswap,
     SWAP,
     SwapPowGate,
 )

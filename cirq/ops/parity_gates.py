@@ -20,6 +20,7 @@ import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
+from cirq._doc import document
 from cirq.ops import gate_features, eigen_gate, common_gates, pauli_gates
 
 
@@ -106,8 +107,8 @@ class XXPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
-                return 'cirq.MS(np.pi/2)'
-            return 'cirq.MS({!r}*np.pi/2)'.format(self._exponent)
+                return 'cirq.ms(np.pi/2)'
+            return 'cirq.ms({!r}*np.pi/2)'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'
@@ -259,5 +260,20 @@ class ZZPowGate(eigen_gate.EigenGate,
 
 
 XX = XXPowGate()
+document(
+    XX, """The tensor product of two X gates.
+
+    The `exponent=1` instance of `cirq.XXPowGate`.
+    """)
 YY = YYPowGate()
+document(
+    YY, """The tensor product of two Y gates.
+
+    The `exponent=1` instance of `cirq.YYPowGate`.
+    """)
 ZZ = ZZPowGate()
+document(
+    ZZ, """The tensor product of two Z gates.
+
+    The `exponent=1` instance of `cirq.ZZPowGate`.
+    """)

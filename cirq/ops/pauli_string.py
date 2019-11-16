@@ -24,6 +24,7 @@ import numpy as np
 
 from cirq import value, protocols, linalg
 from cirq._compat import deprecated
+from cirq._doc import document
 from cirq.ops import (
     global_phase_op,
     raw_types,
@@ -40,11 +41,23 @@ if TYPE_CHECKING:
     import cirq
 
 # A value that can be unambiguously converted into a `cirq.PauliString`.
+
 PAULI_STRING_LIKE = Union[
     complex, 'cirq.OP_TREE',
     Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
+document(
+    PAULI_STRING_LIKE,  # type: ignore
+    """A `cirq.PauliString` or a value that can easily be converted into one.
+
+    Complex numbers turn into the coefficient of an empty Pauli string.
+
+    Dictionaries from qubit to Pauli operation are wrapped into a Pauli string.
+
+    Collections of Pauli operations are recrusively multiplied into a single
+    Pauli string.
+    """)
 
 TDefault = TypeVar('TDefault')
 
@@ -164,14 +177,17 @@ class PauliString(raw_types.Operation):
     # pylint: enable=function-redefined
 
     def __mul__(self, other) -> 'PauliString':
-        if not isinstance(
-                other,
-            (PauliString, numbers.Number, identity.IdentityOperation)):
-            return NotImplemented
-
-        return PauliString(cast(PAULI_STRING_LIKE, other),
-                           qubit_pauli_map=self._qubit_pauli_map,
-                           coefficient=self.coefficient)
+        known = False
+        if isinstance(other, raw_types.Operation) and isinstance(
+                other.gate, identity.IdentityGate):
+            known = True
+        elif isinstance(other, (PauliString, numbers.Number)):
+            known = True
+        if known:
+            return PauliString(cast(PAULI_STRING_LIKE, other),
+                               qubit_pauli_map=self._qubit_pauli_map,
+                               coefficient=self.coefficient)
+        return NotImplemented
 
     @property
     def gate(self) -> 'cirq.DensePauliString':
@@ -189,7 +205,8 @@ class PauliString(raw_types.Operation):
                                coefficient=self._coefficient *
                                complex(cast(SupportsComplex, other)))
 
-        if isinstance(other, identity.IdentityOperation):
+        if (isinstance(other, raw_types.Operation) and
+                isinstance(other.gate, identity.IdentityGate)):
             return self
 
         # Note: PauliString case handled by __mul__.
@@ -964,7 +981,8 @@ class _MutablePauliString:
         if isinstance(contents, PauliString):
             # Note: cirq.X/Y/Z(qubit) are PauliString instances.
             self.inline_times_pauli_string(contents)
-        elif isinstance(contents, identity.IdentityOperation):
+        elif (isinstance(contents, raw_types.Operation) and
+              isinstance(contents.gate, identity.IdentityGate)):
             pass  # No effect.
         elif isinstance(contents, Mapping):
             self._inline_times_mapping(contents)

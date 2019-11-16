@@ -29,14 +29,15 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Union, Optional, Sequence
+from typing import Dict, List, Iterator, Sequence
 import collections
 import numpy as np
 import cirq
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq.ops import raw_types
-from cirq import circuits, study, ops, protocols
+from cirq.ops.dense_pauli_string import DensePauliString
+from cirq import circuits, study, ops, protocols, value
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -203,8 +204,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: Optional[Union[int, np.random.RandomState]] = None
-              ) -> np.ndarray:
+               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
 
         measurements = []
 
@@ -252,8 +252,16 @@ class CliffordState():
     def to_numpy(self):
         return self.ch_form.to_state_vector()
 
-    def stabilizers(self):
+    def stabilizers(self) -> List[DensePauliString]:
+        """Returns the stabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
         return self.tableau.stabilizers()
+
+    def destabilizers(self) -> List[DensePauliString]:
+        """Returns the destabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
+        generators above generate the full Pauli group on n qubits."""
+        return self.tableau.destabilizers()
 
     def wave_function(self):
         return self.ch_form.wave_function()

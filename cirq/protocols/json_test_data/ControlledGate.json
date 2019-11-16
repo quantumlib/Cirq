@@ -1,0 +1,20 @@
+{
+  "cirq_type": "ControlledGate",
+  "control_values": [
+    [
+      0
+    ],
+    [
+      1
+    ]
+  ],
+  "control_qid_shape": [
+    3,
+    2
+  ],
+  "sub_gate": {
+    "cirq_type": "_PauliY",
+    "exponent": 1,
+    "global_shift": 0.0
+  }
+}

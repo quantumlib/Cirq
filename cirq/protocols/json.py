@@ -67,7 +67,12 @@ class _ResolverCache:
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
-            third_party = {
+
+            def _identity_operation_from_dict(qubits, **kwargs):
+                return cirq.identity_each(*qubits)
+
+            self._crd = {
+                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
@@ -93,7 +98,7 @@ class _ResolverCache:
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
-                'IdentityOperation': cirq.IdentityOperation,
+                'IdentityOperation': _identity_operation_from_dict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
@@ -105,6 +110,7 @@ class _ResolverCache:
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+                'ParamResolver': cirq.ParamResolver,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -116,6 +122,8 @@ class _ResolverCache:
                 'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
+                'SingleQubitReadoutCalibrationResult':
+                cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
@@ -349,7 +357,10 @@ def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
 
 # pylint: disable=function-redefined
 @overload
-def to_json(obj: Any, file_or_fn: Union[IO, str], *, indent=2,
+def to_json(obj: Any,
+            file_or_fn: Union[IO, pathlib.Path, str],
+            *,
+            indent=2,
             cls=CirqEncoder) -> None:
     pass
 
