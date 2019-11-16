@@ -5,7 +5,7 @@ import pandas as pd
 import cirq
 
 
-def assert_roundtrip(obj, text_should_be=None, resolvers=None):
+def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
     """Tests that the given object can serialized and de-serialized
 
     Args:

@@ -10,6 +10,5 @@ def contrib_class_resolver(cirq_type: str):
     classes = [
         QuantumVolumeResult,
     ]
-    print(QuantumVolumeResult.__name__)
     d = {cls.__name__: cls for cls in classes}
     return d.get(cirq_type, None)

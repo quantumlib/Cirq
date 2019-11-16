@@ -55,7 +55,7 @@ from cirq.testing.equivalent_repr_eval import (
     assert_equivalent_repr,)
 
 from cirq.testing.json import (
-    assert_roundtrip,)
+    assert_json_roundtrip_works,)
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
