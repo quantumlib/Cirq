@@ -146,6 +146,7 @@ and products of Pauli operations.
     :toctree: generated/
 
     cirq.PAULI_BASIS
+    cirq.PAULI_GATE_LIKE
     cirq.PAULI_STRING_LIKE
     cirq.pow_pauli_combination
     cirq.BaseDensePauliString

@@ -47,7 +47,7 @@ def test_init():
     # Mixed types.
     assert cirq.DensePauliString([1, 'X',
                                   cirq.X]) == cirq.DensePauliString('XXX')
-    with pytest.raises(TypeError, match='Expected a Pauli'):
+    with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = cirq.DensePauliString([object()])
 
 
@@ -79,7 +79,9 @@ def test_from_text():
     assert d('XYZI') == d([1, 2, 3, 0])
     assert d('III', coefficient=-1) == d([0, 0, 0], coefficient=-1)
     assert d('XXY', coefficient=1j) == d([1, 1, 2], coefficient=1j)
-    with pytest.raises(ValueError, match='Not a Pauli character'):
+    assert d('ixyz') == d([0, 1, 2, 3])
+    assert d(['i', 'x', 'y', 'z']) == d([0, 1, 2, 3])
+    with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = d('2')
 
 
