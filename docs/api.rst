@@ -413,6 +413,7 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
+    cirq.estimate_single_qubit_readout_errors
     cirq.generate_boixo_2018_supremacy_circuits_v2
     cirq.generate_boixo_2018_supremacy_circuits_v2_bristlecone
     cirq.generate_boixo_2018_supremacy_circuits_v2_grid
@@ -431,6 +432,7 @@ run experiments.
     cirq.experiments.CrossEntropyResult
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
+    cirq.experiments.SingleQubitReadoutCalibrationResult
     cirq.experiments.T1DecayResult
     cirq.experiments.TomographyResult
 

@@ -98,6 +98,7 @@ class _ResolverCache:
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+                'ParamResolver': cirq.ParamResolver,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -109,6 +110,8 @@ class _ResolverCache:
                 'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
+                'SingleQubitReadoutCalibrationResult':
+                cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,

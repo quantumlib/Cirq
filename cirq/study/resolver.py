@@ -157,3 +157,14 @@ class ParamResolver(object):
             for k, v in self.param_dict.items()
         ]) + '}')
         return 'cirq.ParamResolver({})'.format(param_dict_repr)
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have keys of basic types.
+            'param_dict': list(self.param_dict.items())
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, param_dict, **kwargs):
+        return cls(dict(param_dict))
