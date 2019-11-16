@@ -1052,26 +1052,6 @@ _x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
 _y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
 _z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
 
-PAULI_GATE_LIKE_TO_GATE_MAP: Dict['cirq.PAULI_GATE_LIKE',
-                                  Union['cirq.Pauli', 'cirq.IdentityGate']] = {
-                                      _i: _i,
-                                      _x: _x,
-                                      _y: _y,
-                                      _z: _z,
-                                      'I': _i,
-                                      'X': _x,
-                                      'Y': _y,
-                                      'Z': _z,
-                                      'i': _i,
-                                      'x': _x,
-                                      'y': _y,
-                                      'z': _z,
-                                      0: _i,
-                                      1: _x,
-                                      2: _y,
-                                      3: _z,
-                                  }
-
 PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
     _i: 0,
     _x: 1,
@@ -1090,3 +1070,10 @@ PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
     2: 2,
     3: 3,
 }
+
+_INT_TO_PAULI = [_i, _x, _y, _z]
+
+PAULI_GATE_LIKE_TO_GATE_MAP: Dict[
+    'cirq.PAULI_GATE_LIKE', Union['cirq.Pauli', 'cirq.IdentityGate']] = {
+        k: _INT_TO_PAULI[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()
+    }
