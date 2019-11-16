@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
 import pytest
 import sympy
 
@@ -129,11 +130,16 @@ def test_parameterized_gates():
     """,
                     escape_url=False)
 
+    assert_links_to(cirq.Circuit(cirq.Z(a)**(2 * t)),
+                    """
+        http://algassert.com/quirk#circuit={"cols":[
+            [{"arg":"2*t","id":"Z^ft"}]
+        ]}
+    """,
+                    escape_url=False)
+
     with pytest.raises(ValueError, match='Symbol other than "t"'):
         _ = circuit_to_quirk_url(cirq.Circuit(cirq.X(a)**s))
-
-    with pytest.raises(NotImplementedError, match='General formula'):
-        _ = circuit_to_quirk_url(cirq.Circuit(cirq.X(a)**(2 * t)))
 
 
 class MysteryOperation(cirq.Operation):
@@ -191,6 +197,44 @@ def test_various_unknown_gate_types():
     """,
                     escape_url=False,
                     prefer_unknown_gate_to_failure=True)
+
+
+def test_formulaic_exponent_export():
+    a = cirq.LineQubit(0)
+    t = sympy.Symbol('t')
+    assert_links_to(
+        cirq.Circuit(
+            cirq.X(a)**t,
+            cirq.Y(a)**-t,
+            cirq.Z(a)**(t*2 + 1)),
+        """
+        http://algassert.com/quirk#circuit={"cols":[
+            ["X^t"],
+            ["Y^-t"],
+            [{"arg":"2*t+1","id":"Z^ft"}]
+        ]}
+    """, escape_url=False)
+
+
+def test_formulaic_rotation_xyz_export():
+    a = cirq.LineQubit(0)
+    t = sympy.Symbol('t')
+    assert_links_to(
+        cirq.Circuit(cirq.Rx(sympy.pi/2).on(a),
+                     cirq.Ry(sympy.pi*t).on(a),
+                     cirq.Rz(-sympy.pi*t).on(a),
+                     ),
+        """
+        http://algassert.com/quirk#circuit={"cols":[
+            [{"arg":"(1/2)pi","id":"Rxft"}],
+            [{"arg":"(t)pi","id":"Ryft"}],
+            [{"arg":"(-t)pi","id":"Rzft"}]
+        ]}
+    """, escape_url=False)
+
+    with pytest.raises(ValueError, match='unsupported'):
+        _ = circuit_to_quirk_url(
+            cirq.Circuit(cirq.Rx(sympy.FallingFactorial(t, t)).on(a)))
 
 
 def test_unrecognized_single_qubit_gate_with_matrix():

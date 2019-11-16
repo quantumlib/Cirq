@@ -57,23 +57,38 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
     return abs(d) < atol
 
 
-def _angle_to_formula(t: Union[float, sympy.Basic]) -> Optional[str]:
+def _is_supported_formula(formula: sympy.Basic):
+    if isinstance(formula, (sympy.Symbol,
+                            sympy.Integer,
+                            sympy.Float,
+                            sympy.Rational,
+                            sympy.NumberSymbol)):
+        return True
+    if isinstance(formula, (sympy.Add, sympy.Mul)):
+        return all(_is_supported_formula(f) for f in formula.args)
+    return False
+
+
+def _val_to_quirk_formula(t: Union[float, sympy.Basic]) -> Optional[str]:
     if isinstance(t, sympy.Basic):
         if not set(t.free_symbols) <= {sympy.Symbol('t')}:
             raise ValueError(f'Symbol other than "t": {t!r}.')
-        if t == sympy.Symbol('t'):
-            return 't'
-        raise NotImplementedError(
-            f'General formulas are not supported yet, but got {t!r}.')
+        if not _is_supported_formula(t):
+            raise ValueError(f'Formula uses unsupported operations: {t!r}')
+        return str(t)
+
     return f'{float(t):.4f}'
 
 
 def angle_to_exponent_key(t: Union[float, sympy.Basic]) -> Optional[str]:
-    if t == sympy.Symbol('t'):
-        return '^t'
+    if isinstance(t, sympy.Basic):
+        if t == sympy.Symbol('t'):
+            return '^t'
 
-    if t == sympy.Symbol('-t'):
-        return '^-t'
+        if t == -sympy.Symbol('t'):
+            return '^-t'
+
+        return None
 
     if same_half_turns(t, 1):
         return ''
@@ -140,7 +155,7 @@ def xyz_to_quirk_op(axis: str, gate: ops.EigenGate) -> QuirkOp:
     if gate.global_shift == -0.5:
         return QuirkOp({
             'id': f'R{d}ft',
-            'arg': f'({_angle_to_formula(gate.exponent)}) pi'
+            'arg': f'({_val_to_quirk_formula(gate.exponent)}) pi'
         })
 
     e = angle_to_exponent_key(gate.exponent)
@@ -149,7 +164,7 @@ def xyz_to_quirk_op(axis: str, gate: ops.EigenGate) -> QuirkOp:
 
     return QuirkOp({
         'id': f'{u}^ft',
-        'arg': f'{_angle_to_formula(gate.exponent)}'
+        'arg': f'{_val_to_quirk_formula(gate.exponent)}'
     })
 
 
