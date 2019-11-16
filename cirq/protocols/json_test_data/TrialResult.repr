@@ -1,1 +1,1 @@
-cirq.TrialResult(params=cirq.ParamResolver({'a': 0.5}), measurements={'m': np.array([[1, 1], [1, 1], [0, 0], [1, 1], [1, 1]], dtype=np.uint8), 'n': np.array([[0, 1, 0], [1, 1, 0], [1, 1, 1], [1, 0, 1], [1, 1, 0]], dtype=np.uint8)})
+cirq.TrialResult(params=cirq.ParamResolver({'a': 0.5}), measurements={'m': np.array([[0, 1], [1, 1], [0, 1], [1, 1], [0, 0]], dtype=np.uint8), 'n': np.array([[1, 0, 0], [1, 0, 0], [1, 1, 0], [1, 0, 0], [1, 0, 1]], dtype=np.uint8)})

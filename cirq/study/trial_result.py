@@ -14,10 +14,11 @@
 
 """Defines trial results."""
 
-from typing import (Iterable, Callable, Sequence, Tuple, TypeVar, Dict, Any,
+from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
                     TYPE_CHECKING, Union, Optional)
 
 import collections
+import io
 import numpy as np
 import pandas as pd
 
@@ -297,27 +298,37 @@ class TrialResult:
 
     def _json_dict_(self):
         packed_measurements = {
-            key: {
-                'packed_bits': np.packbits(bits).tobytes().hex(),
-                'shape': bits.shape
-            } for key, bits in self.measurements.items()
+            key: _pack_digits(digits)
+            for key, digits in self.measurements.items()
         }
         return {
             'cirq_type': self.__class__.__name__,
             'params': self.params,
-            'measurements': packed_measurements
+            'measurements_npy': packed_measurements
         }
 
     @classmethod
-    def _from_json_dict_(cls, params, measurements, **kwargs):
+    def _from_json_dict_(cls, params, measurements_npy, **kwargs):
         return cls(params=params,
                    measurements={
-                       key: _unpack_bits(val['packed_bits'], val['shape'])
-                       for key, val in measurements.items()
+                       key: _unpack_digits(packed_digits)
+                       for key, packed_digits in measurements_npy.items()
                    })
 
 
-def _unpack_bits(bits_hex: str, shape: Sequence[int]):
-    bits_bytes = bytes.fromhex(bits_hex)
-    bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
-    return bits[:np.prod(shape)].reshape(shape)
+def _pack_digits(digits: np.ndarray) -> str:
+    buffer = io.BytesIO()
+    np.save(buffer, digits, allow_pickle=False)
+    buffer.seek(0)
+    packed_digits = buffer.read().hex()
+    buffer.close()
+    return packed_digits
+
+
+def _unpack_digits(digits_npy_hex: str) -> np.ndarray:
+    buffer = io.BytesIO()
+    buffer.write(bytes.fromhex(digits_npy_hex))
+    buffer.seek(0)
+    digits = np.load(buffer, allow_pickle=False)
+    buffer.close()
+    return digits
