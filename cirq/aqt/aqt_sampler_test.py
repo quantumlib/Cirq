@@ -69,6 +69,14 @@ class EngineNoStatus(EngineReturn):
     This will not return a status in the second call"""
 
     def update(self, *args, **kwargs):
+        del (self.test_dict['status'])
+        return self
+
+class EngineNoStatus2(EngineReturn):
+    """A put mock class for testing error responses
+    This will not return a status in the second call"""
+
+    def update(self, *args, **kwargs):
         if self.counter >= 1:
             del (self.test_dict['status'])
         return self
@@ -89,6 +97,7 @@ def test_aqt_sampler_error_handling():
             EngineError(),
             EngineErrorSecond(),
             EngineNoStatus(),
+            EngineNoStatus2(),
             EngineNoid()
     ]:
         with mock.patch('cirq.aqt.aqt_sampler.put',

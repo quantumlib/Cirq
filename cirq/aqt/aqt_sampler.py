@@ -108,13 +108,19 @@ class AQTSampler(Sampler):
 
         The experimental data is returned via the key 'data'
         """
+        header = {"Ocp-Apim-Subscription-Key": self.access_token}
         data = put(self.remote_host,
                    data={
                        'data': json_str,
                        'access_token': self.access_token,
                        'repetitions': repetitions,
                        'no_qubits': num_qubits
-                   }).json()
+                   },
+                   header = header)
+        data = data.json()
+        if 'status' not in data.keys():
+            raise RuntimeError('Got unexpected return data from server: \n'
+                               + str(data))
         if data['status'] == 'error':
             raise RuntimeError('AQT server reported error: \n' + str(data))
 
@@ -128,8 +134,9 @@ class AQTSampler(Sampler):
                        data={
                            'id': id_str,
                            'access_token': self.access_token
-                       }).json()
-            print(data)
+                       },
+                       header=header)
+            data = data.json()
             if 'status' not in data.keys():
                 raise RuntimeError(
                     'Got unexpected return data from AQT server: \n' +
