@@ -219,6 +219,7 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
+    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
