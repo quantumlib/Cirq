@@ -11,7 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Samplers for the AQT ion trap device"""
+"""Samplers to access the AQT ion trap devices via the provided API. For
+more information on these devices see the AQT homepage:
+
+https://www.aqt.eu
+
+API keys for classical aimulators and quantum devices can be obtained at:
+
+https://gateway-portal.aqt.eu/
+
+"""
 import json
 import time
 import uuid
