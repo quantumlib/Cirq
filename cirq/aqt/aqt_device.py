@@ -30,7 +30,7 @@ from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator
 
-gate_dict = {'X': ops.X, 'Y': ops.Y, 'MS': ops.XX}
+gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX}
 
 
 def get_op_string(op_obj: ops.Operation):
@@ -46,6 +46,9 @@ def get_op_string(op_obj: ops.Operation):
     elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,
                                                         ops.YPowGate):
         op_str = 'Y'
+    elif isinstance(op_obj, ops.ZPowGate) or isinstance(op_obj.gate,
+                                                        ops.ZPowGate):
+        op_str = 'Z'
     elif isinstance(op_obj, ops.MeasurementGate) or isinstance(
             op_obj.gate, ops.MeasurementGate):
         op_str = 'Meas'

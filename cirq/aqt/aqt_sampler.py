@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Samplers to access the AQT ion trap devices via the provided API. For
 more information on these devices see the AQT homepage:
 
@@ -21,10 +22,11 @@ API keys for classical aimulators and quantum devices can be obtained at:
 https://gateway-portal.aqt.eu/
 
 """
+
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, cast
+from typing import Iterable, List, Union, Tuple, Dict, cast
 
 import numpy as np
 from requests import put
@@ -118,7 +120,7 @@ class AQTSampler(Sampler):
         The experimental data is returned via the key 'data'
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token}
-        data = put(self.remote_host,
+        response = put(self.remote_host,
                    data={
                        'data': json_str,
                        'access_token': self.access_token,
@@ -126,7 +128,8 @@ class AQTSampler(Sampler):
                        'no_qubits': num_qubits
                    },
                    headers = header)
-        data = data.json()
+        response = response.json()
+        data = cast(Dict, response)
         if 'status' not in data.keys():
             raise RuntimeError('Got unexpected return data from server: \n'
                                + str(data))
@@ -139,13 +142,14 @@ class AQTSampler(Sampler):
         id_str = data['id']
 
         while True:
-            data = put(self.remote_host,
+            response = put(self.remote_host,
                        data={
                            'id': id_str,
                            'access_token': self.access_token
                        },
                        headers=header)
-            data = data.json()
+            response = response.json()
+            data = cast(Dict, response)
             if 'status' not in data.keys():
                 raise RuntimeError(
                     'Got unexpected return data from AQT server: \n' +

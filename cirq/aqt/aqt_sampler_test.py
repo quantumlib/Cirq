@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import X, Y, Z, XX, Circuit, study
+from cirq import X, Y, Z, XX, ZZ, Circuit, study
 from cirq.aqt import AQTSampler, AQTRemoteSimulator
 from cirq.aqt.aqt_device import get_aqt_device
 
@@ -200,6 +200,7 @@ def test_aqt_sampler_ms():
     circuit = Circuit(device=device)
     for _dummy in range(9):
         circuit.append(XX(qubits[0], qubits[1])**0.5)
+    circuit.append(Z(qubits[0]) ** 0.5)
     results = sampler.run(circuit, repetitions=repetitions)
     hist = (results.histogram(key='m'))
     print(hist)
@@ -214,6 +215,6 @@ def test_aqt_sampler_wrong_gate():
     sampler = AQTRemoteSimulator()
     circuit = Circuit(device=device)
     circuit.append(Y(qubits[0])**0.5)
-    circuit.append(Z(qubits[0])**0.5)
+    circuit.append(ZZ(qubits[0],qubits[1])**0.5)
     with pytest.raises(ValueError):
         _results = sampler.run(circuit, repetitions=repetitions)
