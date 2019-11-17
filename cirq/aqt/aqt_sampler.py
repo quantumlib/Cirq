@@ -116,7 +116,7 @@ class AQTSampler(Sampler):
                        'repetitions': repetitions,
                        'no_qubits': num_qubits
                    },
-                   header = header)
+                   headers = header)
         data = data.json()
         if 'status' not in data.keys():
             raise RuntimeError('Got unexpected return data from server: \n'
@@ -135,7 +135,7 @@ class AQTSampler(Sampler):
                            'id': id_str,
                            'access_token': self.access_token
                        },
-                       header=header)
+                       headers=header)
             data = data.json()
             if 'status' not in data.keys():
                 raise RuntimeError(
