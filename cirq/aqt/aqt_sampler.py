@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Samplers to access the AQT ion trap devices via the provided API. For
 more information on these devices see the AQT homepage:
 
@@ -121,18 +120,18 @@ class AQTSampler(Sampler):
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token}
         response = put(self.remote_host,
-                   data={
-                       'data': json_str,
-                       'access_token': self.access_token,
-                       'repetitions': repetitions,
-                       'no_qubits': num_qubits
-                   },
-                   headers = header)
+                       data={
+                           'data': json_str,
+                           'access_token': self.access_token,
+                           'repetitions': repetitions,
+                           'no_qubits': num_qubits
+                       },
+                       headers=header)
         response = response.json()
         data = cast(Dict, response)
         if 'status' not in data.keys():
-            raise RuntimeError('Got unexpected return data from server: \n'
-                               + str(data))
+            raise RuntimeError('Got unexpected return data from server: \n' +
+                               str(data))
         if data['status'] == 'error':
             raise RuntimeError('AQT server reported error: \n' + str(data))
 
@@ -143,11 +142,11 @@ class AQTSampler(Sampler):
 
         while True:
             response = put(self.remote_host,
-                       data={
-                           'id': id_str,
-                           'access_token': self.access_token
-                       },
-                       headers=header)
+                           data={
+                               'id': id_str,
+                               'access_token': self.access_token
+                           },
+                           headers=header)
             response = response.json()
             data = cast(Dict, response)
             if 'status' not in data.keys():
