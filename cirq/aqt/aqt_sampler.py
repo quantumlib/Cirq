@@ -118,7 +118,8 @@ class AQTSampler(Sampler):
 
         The experimental data is returned via the key 'data'
         """
-        header = {"Ocp-Apim-Subscription-Key": self.access_token}
+        header = {"Ocp-Apim-Subscription-Key": self.access_token,
+                  "SDK": "cirq"}
         response = put(self.remote_host,
                        data={
                            'data': json_str,
