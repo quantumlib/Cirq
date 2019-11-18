@@ -88,12 +88,16 @@ class AQTNoiseModel(devices.NoiseModel):
         cast(Tuple[LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
+        idx_list = []
         for qubit in operation.qubits:
             idx = system_qubits.index(qubit)
+            idx_list.append(idx)
             neighbors = [idx - 1, idx + 1]
             for neigh_idx in neighbors:
                 if neigh_idx >= 0 and neigh_idx < num_qubits:
                     xtlk_arr[neigh_idx] = self.noise_op_dict['crosstalk']
+        for idx in idx_list:
+            xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
         if len(operation.qubits) == 1:
@@ -102,7 +106,14 @@ class AQTNoiseModel(devices.NoiseModel):
                 exponent = exponent * xtlk_arr[idx]
                 xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
                 xtlk_op_list.append(xtlk_op)
-        #TODO: Add xtalk for 2 qubit operations
+        elif len(operation.qubits) == 2:
+            for op_qubit in operation.qubits:
+                for idx in xtlk_arr.nonzero()[0]:
+                    exponent = operation.gate.exponent  # type:ignore
+                    exponent = exponent * xtlk_arr[idx]
+                    xtlk_op = gate_dict[op_str].on(op_qubit,
+                                                   system_qubits[idx])**exponent
+                    xtlk_op_list.append(xtlk_op)
         return xtlk_op_list
 
 
@@ -135,7 +146,6 @@ class AQTSimulator:
             json_string: json that specifies the sequence
         """
         self.circuit = Circuit()
-        # TODO add ion device here, is this still required?
         json_obj = json.loads(json_string)
         for gate_list in json_obj:
             gate = gate_list[0]
@@ -185,6 +195,7 @@ def get_default_noise_dict():
     default_noise_dict = {
         'X': ops.depolarize(1e-3),
         'Y': ops.depolarize(1e-3),
+        'Z': ops.depolarize(1e-3),
         'MS': ops.depolarize(1e-2),
         'crosstalk': 0.03
     }

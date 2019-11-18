@@ -204,7 +204,6 @@ def test_aqt_sampler_ms():
     circuit.append(Z(qubits[0])**0.5)
     results = sampler.run(circuit, repetitions=repetitions)
     hist = (results.histogram(key='m'))
-    print(hist)
     assert hist[12] > repetitions / 3
     assert hist[0] > repetitions / 3
 

@@ -80,7 +80,6 @@ class AQTSampler(Sampler):
 
         seq_list: List[Tuple[str, float, List[int]]] = []
         circuit = resolve_parameters(circuit, param_resolver)
-        # TODO: Check if circuit is empty
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[LineQubit], op.qubits)
             op = cast(ops.GateOperation, op)
