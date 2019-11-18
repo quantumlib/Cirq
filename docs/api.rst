@@ -90,6 +90,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhaseGradientGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
+    cirq.PhasedXZPowGate
     cirq.QuantumFourierTransformGate
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
