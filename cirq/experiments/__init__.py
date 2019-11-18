@@ -30,6 +30,11 @@ from cirq.experiments.fidelity_estimation import (
     xeb_fidelity,
 )
 
+from cirq.experiments.single_qubit_readout_calibration import (
+    estimate_single_qubit_readout_errors,
+    SingleQubitReadoutCalibrationResult,
+)
+
 from cirq.experiments.t1_decay_experiment import (
     t1_decay,
     T1DecayResult,
