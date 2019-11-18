@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 import cirq
 import cirq.contrib.routing as ccr
+from cirq.contrib.quantum_volume import CompilationResult
 
 
 def test_generate_model_circuit():
@@ -63,20 +64,53 @@ def test_sample_heavy_set():
     """Test that we correctly sample a circuit's heavy set"""
 
     sampler = Mock(spec=cirq.Simulator)
-    # Construct a result that returns "1", "2", "3", and then "0" indefinitely
+    # Construct a result that returns "1", "2", "3", "0"
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={'mock': np.array([[0, 1], [1, 0], [1, 1], [0, 0]])})
     sampler.run = MagicMock(return_value=result)
     circuit = cirq.Circuit(cirq.measure(*cirq.LineQubit.range(2)))
-
-    probability = cirq.contrib.quantum_volume.sample_heavy_set(circuit,
-                                                               [1, 2, 3],
-                                                               sampler=sampler,
-                                                               repetitions=1000)
+    compilation_result = CompilationResult(swap_network=ccr.SwapNetwork(
+        circuit, {}),
+                                           parity_map={})
+    probability = cirq.contrib.quantum_volume.sample_heavy_set(
+        compilation_result, [1, 2, 3], sampler=sampler, repetitions=10)
     # The first 3 of our outputs are in the heavy set, and then the rest are
     # not.
-    assert probability == .003
+    assert probability == .75
+
+
+def test_sample_heavy_set_with_parity():
+    """Test that we correctly sample a circuit's heavy set with a parity map"""
+
+    sampler = Mock(spec=cirq.Simulator)
+    # Construct a result that returns [1, 0, 1, 0] for the physical qubit
+    # measurement, and [0, 1, 1, 0] for the ancilla qubit measurement. The first
+    # bitstring "10" is valid and heavy. The second "01" is valid and not
+    # heavy. The third and fourth bitstraings "11" and "00" are not valid and
+    # dropped.
+    result = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({}),
+        measurements={
+            '0': np.array([[1], [0]]),
+            '1': np.array([[0], [1]]),
+            '2': np.array([[1], [1]]),
+            '3': np.array([[0], [0]])
+        })
+    sampler.run = MagicMock(return_value=result)
+    circuit = cirq.Circuit(cirq.measure(*cirq.LineQubit.range(4)))
+    compilation_result = CompilationResult(
+        swap_network=ccr.SwapNetwork(circuit,
+                                     {q: q for q in cirq.LineQubit.range(4)}),
+        parity_map={
+            cirq.LineQubit(0): cirq.LineQubit(1),
+            cirq.LineQubit(2): cirq.LineQubit(3)
+        })
+    probability = cirq.contrib.quantum_volume.sample_heavy_set(
+        compilation_result, [1], sampler=sampler, repetitions=1)
+    # The first output is in the heavy set. The second one isn't, but it is
+    # dropped.
+    assert probability == .5
 
 
 def test_compile_circuit_router():
@@ -96,17 +130,43 @@ def test_compile_circuit():
     model_circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
-    swap_network = cirq.contrib.quantum_volume.compile_circuit(
+    compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
         device=cirq.google.Bristlecone,
         compiler=compiler_mock,
         routing_attempts=1)
 
-    assert len(swap_network.final_mapping()) == 3
+    assert len(compilation_result.swap_network.final_mapping()) == 3
     assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
-        swap_network.circuit.all_operations(),
+        compilation_result.swap_network.circuit.all_operations(),
         cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
-    compiler_mock.assert_called_with(swap_network.circuit)
+    compiler_mock.assert_called_with(compilation_result.swap_network.circuit)
+
+
+def test_compile_circuit_with_readout_correction():
+    """Tests that we are able to compile a model circuit."""
+    compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
+    a, b, c = cirq.LineQubit.range(3)
+    model_circuit = cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
+    ])
+    compilation_result = cirq.contrib.quantum_volume.compile_circuit(
+        model_circuit,
+        device=cirq.google.Bristlecone,
+        compiler=compiler_mock,
+        routing_attempts=1,
+        add_readout_error_correction=True)
+
+    assert len(compilation_result.swap_network.final_mapping()) == 6
+    assert compilation_result.parity_map == {
+        cirq.LineQubit(0): cirq.LineQubit(3),
+        cirq.LineQubit(1): cirq.LineQubit(4),
+        cirq.LineQubit(2): cirq.LineQubit(5)
+    }
+    assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
+        compilation_result.swap_network.circuit.all_operations(),
+        cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
+    compiler_mock.assert_called_with(compilation_result.swap_network.circuit)
 
 
 def test_compile_circuit_multiple_routing_attempts():
@@ -128,14 +188,14 @@ def test_compile_circuit_multiple_routing_attempts():
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     model_circuit = cirq.Circuit([cirq.X.on_each(qubits)])
 
-    swap_network = cirq.contrib.quantum_volume.compile_circuit(
+    compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
         device=cirq.google.Bristlecone,
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=2)
 
-    assert swap_network.final_mapping() == initial_mapping
+    assert compilation_result.swap_network.final_mapping() == initial_mapping
     assert router_mock.call_count == 2
     compiler_mock.assert_called_with(well_routed)
 
@@ -189,3 +249,19 @@ def test_calculate_quantum_volume_loop():
         random_state=1,
         device=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()])
+
+
+def test_calculate_quantum_volume_loop_with_readout_correction():
+    """Test that calculate_quantum_volume is able to run without erring with
+       readout error correction."""
+    # Keep test from taking a long time by lowering circuits and routing
+    # attempts.
+    cirq.contrib.quantum_volume.calculate_quantum_volume(
+        num_qubits=5,
+        depth=5,
+        num_circuits=1,
+        routing_attempts=2,
+        random_state=1,
+        device=cirq.google.Bristlecone,
+        samplers=[cirq.Simulator()],
+        add_readout_error_correction=True)

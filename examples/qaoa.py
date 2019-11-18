@@ -153,7 +153,7 @@ def qaoa_max_cut_circuit(qubits, betas, gammas,
 def cut_values(bitstrings, graph):
     mat = networkx.adjacency_matrix(graph, nodelist=sorted(graph.nodes))
     vecs = (-1)**bitstrings
-    vals = 0.5 * np.einsum('...i,...i', vecs, (mat * vecs.T).T)
+    vals = 0.5 * np.sum(vecs * (mat @ vecs.T).T, axis=-1)
     vals = 0.5 * (graph.size() - vals)
     return vals
 

@@ -21,7 +21,7 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules, devices, ops
+from cirq import circuits, protocols, study, schedules, devices, ops, value
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 if TYPE_CHECKING:
@@ -34,8 +34,7 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: Optional[Union[int, np.random.RandomState]] = None
-          ) -> study.TrialResult:
+           seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
     """Simulates sampling from the given circuit or schedule.
 
     Args:
@@ -73,8 +72,7 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: Optional[Union[int, np.random.RandomState]] = None
-) -> 'np.ndarray':
+        seed: value.RANDOM_STATE_LIKE = None) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -141,7 +139,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64,
-                 seed: Optional[Union[int, np.random.RandomState]] = None
+                 seed: value.RANDOM_STATE_LIKE = None
                 ) -> List[study.TrialResult]:
     """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
 
@@ -163,12 +161,7 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
         TrialResult list for this run; one for each possible parameter
         resolver.
     """
-    if seed is None:
-        prng = None
-    elif isinstance(seed, np.random.RandomState):
-        prng = seed
-    else:
-        prng = np.random.RandomState(seed)
+    prng = value.parse_random_state(seed)
 
     circuit = (program.to_circuit()
                if isinstance(program, schedules.Schedule) else program)

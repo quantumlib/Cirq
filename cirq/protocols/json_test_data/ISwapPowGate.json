@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "ISwapPowGate",
+    "exponent": -8,
+    "global_shift": 0.0
+  },
+  {
+    "cirq_type": "ISwapPowGate",
+    "exponent": 0.123,
+    "global_shift": 0.0
+  }
+]

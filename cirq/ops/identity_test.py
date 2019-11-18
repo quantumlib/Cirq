@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 import sympy
 import cirq
+from cirq._compat_test import capture_logging
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -75,9 +76,10 @@ def test_identity_str():
 
 
 def test_identity_repr():
-    assert repr(cirq.IdentityGate(2)) == 'cirq.IdentityGate(2)'
     assert repr(cirq.I) == 'cirq.I'
-    assert repr(cirq.IdentityGate(2, (2, 3))) == 'cirq.IdentityGate(2, (2, 3))'
+    assert repr(cirq.IdentityGate(5)) == 'cirq.IdentityGate(5)'
+    assert repr(cirq.IdentityGate(
+        qid_shape=(2, 3))) == 'cirq.IdentityGate(qid_shape=(2, 3))'
 
 
 def test_identity_apply_unitary():
@@ -112,25 +114,6 @@ def test_identity_trace_distance_bound():
     assert cirq.IdentityGate(num_qubits=2)._trace_distance_bound_() == 0
 
 
-def test_identity_operation_init():
-    q = cirq.NamedQubit('q')
-    I = cirq.IdentityOperation([q])
-    assert I.qubits == (q,)
-
-    I = cirq.IdentityOperation(q)
-    assert I.qubits == (q,)
-
-
-def test_invalid_identity_operation():
-    three_qubit_gate = cirq.ThreeQubitGate()
-
-    with pytest.raises(ValueError, match="empty set of qubits"):
-        cirq.IdentityOperation([])
-    with pytest.raises(ValueError,
-                       match="Gave non-Qid objects to IdentityOperation"):
-        cirq.IdentityOperation([three_qubit_gate])
-
-
 def test_identity_pow():
     I = cirq.I
     q = cirq.NamedQubit('q')
@@ -143,27 +126,6 @@ def test_identity_pow():
         _ = (I**q)(q)
     with pytest.raises(TypeError):
         _ = I(q)**q
-
-
-def test_with_qubits_and_transform_qubits():
-    op = cirq.IdentityOperation(cirq.LineQubit.range(3))
-    assert op.with_qubits(*cirq.LineQubit.range(3, 0, -1)) \
-           == cirq.IdentityOperation(cirq.LineQubit.range(3, 0, -1))
-
-
-def test_identity_operation_repr():
-    a, b = cirq.LineQubit.range(2)
-
-    assert repr(cirq.IdentityOperation(
-        (a,))) == ('cirq.I.on(cirq.LineQubit(0))')
-    assert repr(cirq.IdentityOperation((a, b))) == (
-        'cirq.IdentityOperation(qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])')
-
-
-def test_identity_operation_str():
-    a, b = cirq.LineQubit.range(2)
-    assert str(cirq.IdentityOperation((a,))) == ('I(0)')
-    assert str(cirq.IdentityOperation((a, b))) == ('I(0, 1)')
 
 
 def test_pauli_expansion_notimplemented():
@@ -184,6 +146,46 @@ def test_identity_global():
     qids = cirq.LineQid.for_qid_shape((1, 2, 3))
     assert cirq.identity_each(*qids) == cirq.IdentityGate(3,
                                                           (1, 2, 3)).on(*qids)
-    with pytest.raises(ValueError, match='type different'):
+    with pytest.raises(ValueError, match='Not a cirq.Qid'):
         cirq.identity_each(
             qubits)  # The user forgot to expand the list for example.
+
+
+def test_identity_operation_deprecated():
+    a, b = cirq.LineQubit.range(2)
+    with capture_logging() as log:
+        actual = cirq.IdentityOperation([a, b])
+    assert len(log) == 1  # May fail if deprecated thing is used elsewhere.
+    assert 'IdentityOperation' in log[0].getMessage()
+    assert 'deprecated' in log[0].getMessage()
+
+    assert actual == cirq.IdentityGate(2).on(a, b)
+
+
+def test_identity_mul():
+
+    class UnknownGate(cirq.SingleQubitGate):
+        pass
+
+    class UnknownOperation(cirq.Operation):
+
+        @property
+        def qubits(self):
+            raise NotImplementedError()
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+    q = cirq.LineQubit(0)
+    g = UnknownGate().on(q)
+    i = cirq.I(q)
+    p = UnknownOperation()
+    assert g * i is g is i * g
+    assert p * i is p is i * p
+    assert i * i is i
+
+    with pytest.raises(TypeError):
+        _ = "test" * i
+
+    assert i * 2 == cirq.PauliString(coefficient=2)
+    assert 1j * i == cirq.PauliString(coefficient=1j)
