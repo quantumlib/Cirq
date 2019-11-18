@@ -15,8 +15,6 @@
 
 from typing import List, Union, TYPE_CHECKING
 import abc
-import asyncio
-import threading
 
 import pandas as pd
 
@@ -172,9 +170,7 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        results = await self.run_sweep_async(program, study.UnitSweep,
-                                             repetitions)
-        return results[0]
+        return self.run(program, repetitions=repetitions)
 
     async def run_sweep_async(
             self,
@@ -198,22 +194,4 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        return await run_on_thread_async(lambda: self.run_sweep(
-            program, params=params, repetitions=repetitions))
-
-
-async def run_on_thread_async(func):
-    loop = asyncio.get_event_loop()
-    done = loop.create_future()  # type: asyncio.Future['cirq.TrialResult']
-
-    def run():
-        try:
-            result = func()
-        except Exception as exc:
-            loop.call_soon_threadsafe(done.set_exception, exc)
-        else:
-            loop.call_soon_threadsafe(done.set_result, result)
-
-    t = threading.Thread(target=run)
-    t.start()
-    return await done
+        return self.run_sweep(program, params=params, repetitions=repetitions)
