@@ -57,7 +57,7 @@ def same_half_turns(a1: float, a2: float, atol=0.0001) -> bool:
     return abs(d) < atol
 
 
-def _is_supported_formula(formula: sympy.Basic):
+def _is_supported_formula(formula: sympy.Basic) -> bool:
     if isinstance(formula, (sympy.Symbol, sympy.Integer, sympy.Float,
                             sympy.Rational, sympy.NumberSymbol)):
         return True
@@ -66,7 +66,7 @@ def _is_supported_formula(formula: sympy.Basic):
     return False
 
 
-def _val_to_quirk_formula(t: Union[float, sympy.Basic]) -> Optional[str]:
+def _val_to_quirk_formula(t: Union[float, sympy.Basic]) -> str:
     if isinstance(t, sympy.Basic):
         if not set(t.free_symbols) <= {sympy.Symbol('t')}:
             raise ValueError(f'Symbol other than "t": {t!r}.')
