@@ -165,7 +165,8 @@ def _decompose_b_gate_into_two_fsims(*, fsim_gate: 'cirq.FSimGate',
 
 def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
         qubits: Sequence['cirq.Qid'],
-        kak_interaction_coefficients: Iterable[float]) -> List['cirq.Operation']:
+        kak_interaction_coefficients: Iterable[float]
+) -> List['cirq.Operation']:
     """
     References:
         Minimum construction of two-qubit quantum operations

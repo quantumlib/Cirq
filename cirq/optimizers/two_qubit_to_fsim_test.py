@@ -32,9 +32,8 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj):
     cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6),
 ] + [cirq.testing.random_unitary(4) for _ in range(10)])
 def test_decompose_two_qubit_interaction_into_fsim_gate(obj):
-    gate = cirq.FSimGate(
-        theta=np.pi / 2 + (random.random() * 2 - 1) * 0.1,
-        phi=(random.random() * 2 - 1) * 0.1)
+    gate = cirq.FSimGate(theta=np.pi / 2 + (random.random() * 2 - 1) * 0.1,
+                         phi=(random.random() * 2 - 1) * 0.1)
     circuit = cirq.Circuit(
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
             obj, fsim_gate=gate))
