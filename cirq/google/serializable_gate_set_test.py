@@ -54,7 +54,7 @@ Y_SERIALIZER = cg.GateOpSerializer(
 
 Y_DESERIALIZER = cg.GateOpDeserializer(
     serialized_gate_id='y_pow',
-    gate_constructor=cirq.XPowGate,
+    gate_constructor=cirq.YPowGate,
     args=[
         cg.DeserializingArg(
             serialized_name='half_turns',
@@ -387,6 +387,66 @@ def test_gateset_with_added_gates():
     assert xy_gateset.gate_set_name == 'xy'
     assert xy_gateset.is_supported_gate(cirq.X)
     assert xy_gateset.is_supported_gate(cirq.Y)
+
+    # test serialization and deserialization
+    proto = {
+        'gate': {
+            'id': 'y_pow'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }]
+    }
+
+    expected_gate = cirq.YPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
+    assert xy_gateset.serialize_op_dict(expected_gate) == proto
+    assert xy_gateset.deserialize_op_dict(proto) == expected_gate
+
+
+def test_gateset_with_added_gates_again():
+    """Verify that adding a serializer twice doesn't mess anything up."""
+    x_gateset = cg.SerializableGateSet(
+        gate_set_name='x',
+        serializers=[X_SERIALIZER],
+        deserializers=[X_DESERIALIZER],
+    )
+    xx_gateset = x_gateset.with_added_gates(
+        gate_set_name='xx',
+        serializers=[X_SERIALIZER],
+        deserializers=[X_DESERIALIZER],
+    )
+
+    assert xx_gateset.gate_set_name == 'xx'
+    assert xx_gateset.is_supported_gate(cirq.X)
+    assert not xx_gateset.is_supported_gate(cirq.Y)
+
+    # test serialization and deserialization
+    proto = {
+        'gate': {
+            'id': 'x_pow'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }]
+    }
+
+    expected_gate = cirq.XPowGate(exponent=0.125)(cirq.GridQubit(1, 1))
+    assert xx_gateset.serialize_op_dict(expected_gate) == proto
+    assert xx_gateset.deserialize_op_dict(proto) == expected_gate
 
 
 def test_deserialize_op_invalid_gate():
