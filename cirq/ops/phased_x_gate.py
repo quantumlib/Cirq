@@ -22,7 +22,7 @@ import sympy
 import cirq
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, raw_types, op_tree, common_gates
+from cirq.ops import gate_features, common_gates
 from cirq.type_workarounds import NotImplementedType
 
 
@@ -46,8 +46,8 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         self._exponent = exponent
         self._global_shift = global_shift
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if cirq.is_parameterized(self):
             return None
 
@@ -69,8 +69,7 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             'u3({0:half_turns}, {1:half_turns}, {2:half_turns}) {3};\n',
             -e, p + 0.5, -p - 0.5, qubits[0])
 
-    def _decompose_(self, qubits: Sequence[raw_types.Qid]
-                          ) -> op_tree.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         assert len(qubits) == 1
         q = qubits[0]
         z = cirq.Z(q)**self._phase_exponent

@@ -400,7 +400,7 @@ class NeutralAtomDevice(devices.Device):
         ]
         return [e for e in possibles if e in self.qubits]
 
-    def distance(self, p: raw_types.Qid, q: raw_types.Qid) -> float:
+    def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
         p = cast(GridQubit, p)
         q = cast(GridQubit, q)
         return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2)

@@ -42,7 +42,7 @@ class ControlledOperation(raw_types.Operation):
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
-                 sub_operation: raw_types.Operation,
+                 sub_operation: 'cirq.Operation',
                  control_values: Optional[Sequence[
                      Union[int, Collection[int]]]] = None):
         if control_values is None:
@@ -193,7 +193,7 @@ class ControlledOperation(raw_types.Operation):
         return ControlledOperation(self.controls, new_sub_op,
                                    self.control_values)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Optional['protocols.CircuitDiagramInfo']:
         n = len(self.controls)
 

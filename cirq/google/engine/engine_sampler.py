@@ -21,7 +21,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-
 class QuantumEngineSampler(work.Sampler):
     """A sampler that samples from processors managed by the Quantum Engine.
 
@@ -62,3 +61,7 @@ class QuantumEngineSampler(work.Sampler):
                                          processor_ids=self._processor_ids,
                                          gate_set=self._gate_set)
         return job.results()
+
+    @property
+    def engine(self) -> 'cirq.google.Engine':
+        return self._engine
