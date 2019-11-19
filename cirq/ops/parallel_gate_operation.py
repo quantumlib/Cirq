@@ -13,21 +13,23 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, Any, Optional
+from typing import Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, op_tree
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
-    def __init__(self,
-                 gate: raw_types.Gate,
+    def __init__(self, gate: 'cirq.Gate',
                  qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
@@ -53,12 +55,11 @@ class ParallelGateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self,
-                    *new_qubits: raw_types.Qid) -> 'ParallelGateOperation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'ParallelGateOperation':
         """ParallelGateOperation with same the gate but new qubits"""
         return ParallelGateOperation(self.gate, new_qubits)
 
-    def with_gate(self, new_gate: raw_types.Gate) -> 'ParallelGateOperation':
+    def with_gate(self, new_gate: 'cirq.Gate') -> 'ParallelGateOperation':
         """ParallelGateOperation with same qubits but a new gate"""
         return ParallelGateOperation(new_gate, self.qubits)
 
@@ -74,7 +75,7 @@ class ParallelGateOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return self.gate, frozenset(self.qubits)
 
-    def _decompose_(self) -> op_tree.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         """List of gate operations that correspond to applying the single qubit
            gate to each of the target qubits individually
         """
@@ -123,8 +124,8 @@ class ParallelGateOperation(raw_types.Operation):
             return 1.0
         return np.sin(angle)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         diagram_info = protocols.circuit_diagram_info(self.gate,
                                                       args,
                                                       NotImplemented)

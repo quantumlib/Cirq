@@ -45,3 +45,11 @@ def test_run_engine_program():
                                          processor_ids=['tmp'],
                                          repetitions=5)
     engine.run_sweep.assert_not_called()
+
+
+def test_engine_sampler_engine_property():
+    engine = mock.Mock()
+    sampler = cg.QuantumEngineSampler(engine=engine,
+                                      processor_id='tmp',
+                                      gate_set=cg.XMON)
+    assert sampler.engine is engine

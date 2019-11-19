@@ -27,9 +27,7 @@ from cirq.ops import (
     controlled_gate,
     eigen_gate,
     gate_features,
-    op_tree,
     pauli_gates,
-    raw_types,
     swap_gates,
 )
 
@@ -123,14 +121,14 @@ class CCZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', '@'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -205,8 +203,8 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             for angle in self._diag_angles_radians
         ])
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         rounded_angles = np.array(self._diag_angles_radians)
         if args.precision is not None:
             rounded_angles = rounded_angles.round(args.precision)
@@ -368,14 +366,14 @@ class CCXPowGate(eigen_gate.EigenGate,
         yield CCZ(c1, c2, t)**self._exponent
         yield common_gates.H(t)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             ('@', '@', 'X'),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None
 
@@ -436,11 +434,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
 
         return self._decompose_outside_control(c, t1, t2)
 
-    def _decompose_inside_control(self,
-                                  target1: raw_types.Qid,
-                                  control: raw_types.Qid,
-                                  target2: raw_types.Qid
-                                  ) -> op_tree.OP_TREE:
+    def _decompose_inside_control(self, target1: 'cirq.Qid',
+                                  control: 'cirq.Qid',
+                                  target2: 'cirq.Qid') -> 'cirq.OP_TREE':
         """A decomposition assuming the control separates the targets.
 
         target1: ─@─X───────T──────@────────@─────────X───@─────X^-0.5─
@@ -482,11 +478,9 @@ class CSwapGate(gate_features.ThreeQubitGate,
                                        args.available_buffer, args.axes),
             default=NotImplemented)
 
-    def _decompose_outside_control(self,
-                                   control: raw_types.Qid,
-                                   near_target: raw_types.Qid,
-                                   far_target: raw_types.Qid
-                                   ) -> op_tree.OP_TREE:
+    def _decompose_outside_control(self, control: 'cirq.Qid',
+                                   near_target: 'cirq.Qid',
+                                   far_target: 'cirq.Qid') -> 'cirq.OP_TREE':
         """A decomposition assuming one of the targets is in the middle.
 
         control: ───T──────@────────@───@────────────@────────────────
@@ -524,14 +518,14 @@ class CSwapGate(gate_features.ThreeQubitGate,
                                  np.array([[0, 1], [1, 0]]),
                                  np.diag([1]))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(('@', 'swap', 'swap'))
         return protocols.CircuitDiagramInfo(('@', '×', '×'))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return args.format('cswap {0},{1},{2};\n',
                            qubits[0], qubits[1], qubits[2])

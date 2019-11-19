@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-def qubit_to_proto_id(q: ops.Qid) -> str:
+def qubit_to_proto_id(q: 'cirq.Qid') -> str:
     """Return a proto id for a `cirq.Qid`.
 
     For `cirq.GridQubit`s this id `{row}_{col}` where `{row}` is the integer
