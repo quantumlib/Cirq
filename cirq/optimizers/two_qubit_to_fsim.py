@@ -199,8 +199,11 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     a, b = qubits
     x, y, z = kak_interaction_coefficients
     r = (np.sin(y) * np.cos(z))**2
+    r = max(0.0, min(0.5, r))  # Clamp out-of-range floating point error.
     b1 = np.arccos(1 - 4 * r)
-    b2 = np.arcsin(np.sqrt(np.cos(y * 2) * np.cos(z * 2) / (1 - 2 * r)))
+    a2 = np.cos(y * 2) * np.cos(z * 2) / (1 - 2 * r)
+    a2 = max(0.0, min(1, a2))  # Clamp out-of-range floating point error.
+    b2 = np.arcsin(np.sqrt(a2))
     s = 1 if z < 0 else -1
     return [
         _B(a, b),
