@@ -145,6 +145,7 @@ def test_sampler_async_not_run_inline():
     ran = False
 
     class S(cirq.Sampler):
+
         def run_sweep(self, *args, **kwargs):
             nonlocal ran
             ran = True

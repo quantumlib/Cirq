@@ -159,9 +159,9 @@ class Sampler(metaclass=abc.ABCMeta):
                         *, repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit or Schedule.
 
-        By default, this method calls `run` on another thread and yields the
-        result via the asyncio event loop. However, child classes are free to
-        override it to use other strategies.
+        By default, this method invokes `run` synchronously and simply exposes
+        its result is an awaitable. Child classes that are capable of true
+        asynchronous sampling should override it to use other strategies.
 
         Args:
             program: The circuit or schedule to sample from.
@@ -180,9 +180,9 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> List['cirq.TrialResult']:
         """Asynchronously sweeps and samples from the given Circuit or Schedule.
 
-        By default, this method calls `run_sweep` on another thread and yields
-        the result via the asyncio event loop. However, child classes are free
-        to override it to use other strategies.
+        By default, this method invokes `run_sweep` synchronously and simply
+        exposes its result is an awaitable. Child classes that are capable of
+        true asynchronous sampling should override it to use other strategies.
 
         Args:
             program: The circuit or schedule to sample from.
