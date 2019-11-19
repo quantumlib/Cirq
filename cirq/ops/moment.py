@@ -63,7 +63,7 @@ class Moment:
     def qubits(self) -> FrozenSet[raw_types.Qid]:
         return self._qubits
 
-    def operates_on_single_qubit(self, qubit: raw_types.Qid) -> bool:
+    def operates_on_single_qubit(self, qubit: 'cirq.Qid') -> bool:
         """Determines if the moment has operations touching the given qubit.
         Args:
             qubit: The qubit that may or may not be touched by operations.
@@ -83,7 +83,7 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def with_operation(self, operation: raw_types.Operation):
+    def with_operation(self, operation: 'cirq.Operation'):
         """Returns an equal moment, but with the given op added.
 
         Args:

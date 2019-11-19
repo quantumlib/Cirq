@@ -125,7 +125,7 @@ class XPowGate(eigen_gate.EigenGate,
             'X': -1j * phase * np.sin(angle),
         })
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
@@ -137,8 +137,8 @@ class XPowGate(eigen_gate.EigenGate,
             wire_symbols=('X',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('x {0};\n', qubits[0])
@@ -264,7 +264,7 @@ class YPowGate(eigen_gate.EigenGate,
             'Y': -1j * phase * np.sin(angle),
         })
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
@@ -276,8 +276,8 @@ class YPowGate(eigen_gate.EigenGate,
             wire_symbols=('Y',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('y {0};\n', qubits[0])
@@ -422,7 +422,7 @@ class ZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             return _rads_func_symbol(
@@ -445,8 +445,8 @@ class ZPowGate(eigen_gate.EigenGate,
             wire_symbols=('Z',),
             exponent=e)
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('z {0};\n', qubits[0])
@@ -583,14 +583,14 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         yield XPowGate(exponent=self._exponent).on(q)
         yield YPowGate(exponent=-0.25).on(q)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('H',),
             exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         if self._exponent == 1:
             return args.format('h {0};\n', qubits[0])
@@ -684,14 +684,14 @@ class CZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
                 wire_symbols=('@', '@'),
                 exponent=self._diagram_exponent(args))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -781,8 +781,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@', 'X'),
             exponent=self._diagram_exponent(args))
@@ -815,8 +815,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZX': global_phase * -c,
         })
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
@@ -837,8 +837,8 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'global_shift={!r})'
         ).format(proper_repr(self._exponent), self._global_shift)
 
-    def on(self, *args: raw_types.Qid,
-           **kwargs: raw_types.Qid) -> raw_types.Operation:
+    def on(self, *args: 'cirq.Qid',
+           **kwargs: 'cirq.Qid') -> raw_types.Operation:
         if not kwargs:
             return super().on(*args)
         if not args and set(kwargs.keys()) == {'control', 'target'}:
