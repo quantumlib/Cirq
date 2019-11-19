@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import deprecated, proper_repr
-from cirq.ops import eigen_gate, op_tree, gate_features, raw_types, swap_gates
+from cirq.ops import eigen_gate, gate_features, swap_gates
 
 
 @value.value_equality(manual_cls=True)
@@ -125,7 +125,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                                       out=args.available_buffer)
         return args.available_buffer
 
-    def _decompose_(self, qubits: Sequence[raw_types.Qid]) -> op_tree.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         if len(qubits) != 2:
             raise ValueError(f'Expected two qubits, got {len(qubits)}')
         a, b = qubits

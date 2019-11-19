@@ -12,16 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast
+from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast, \
+    TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import common_gates, gate_features, named_qubit, op_tree, \
-    pauli_gates, raw_types
+from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates
 from cirq.ops.pauli_gates import Pauli
 
+if TYPE_CHECKING:
+    import cirq
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 document(PauliTransform, """+X, -X, +Y, -Y, +Z, or -Z.""")
@@ -271,8 +273,7 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             mat = protocols.unitary(op).dot(mat)
         return mat
 
-    def _decompose_(self, qubits: Sequence[raw_types.Qid]
-                          ) -> op_tree.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         qubit, = qubits
         if self == SingleQubitCliffordGate.H:
             return common_gates.H(qubit),
@@ -348,8 +349,8 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
                 '+-'[self.transform(pauli_gates.Z).flip],
                      self.transform(pauli_gates.Z).to)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         well_known_map = {
             SingleQubitCliffordGate.I: 'I',
             SingleQubitCliffordGate.H: 'H',
