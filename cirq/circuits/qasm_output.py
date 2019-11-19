@@ -144,7 +144,7 @@ class QasmOutput:
 
     def __init__(self,
                  operations: 'cirq.OP_TREE',
-                 qubits: Tuple[ops.Qid, ...],
+                 qubits: Tuple['cirq.Qid', ...],
                  header: str = '',
                  precision: int = 10,
                  version: str = '2.0') -> None:
@@ -183,7 +183,7 @@ class QasmOutput:
             meas_key_id_map[key] = meas_id
         return meas_key_id_map, meas_comments
 
-    def _generate_qubit_ids(self) -> Dict[ops.Qid, str]:
+    def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
         return {qubit: 'q[{}]'.format(i) for i, qubit in enumerate(self.qubits)}
 
     def is_valid_qasm_id(self, id_str: str) -> bool:

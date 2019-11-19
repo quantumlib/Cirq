@@ -11,14 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TYPE_CHECKING
 
 from cirq import ops, circuits, devices
 
+if TYPE_CHECKING:
+    import cirq
+
 
 def nonoptimal_toffoli_circuit(
-        q0: ops.Qid,
-        q1: ops.Qid,
-        q2: ops.Qid,
+        q0: 'cirq.Qid',
+        q1: 'cirq.Qid',
+        q2: 'cirq.Qid',
         device: devices.Device = devices.UNCONSTRAINED_DEVICE
 ) -> circuits.Circuit:
     return circuits.Circuit(ops.Y(q2)**0.5,

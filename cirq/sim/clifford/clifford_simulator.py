@@ -35,7 +35,6 @@ import numpy as np
 import cirq
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
-from cirq.ops import raw_types
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import circuits, study, ops, protocols, value
 
@@ -266,7 +265,7 @@ class CliffordState():
     def wave_function(self):
         return self.ch_form.wave_function()
 
-    def apply_unitary(self, op: raw_types.Operation):
+    def apply_unitary(self, op: 'cirq.Operation'):
         if op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
