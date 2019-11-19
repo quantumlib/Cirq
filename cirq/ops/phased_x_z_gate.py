@@ -1,5 +1,5 @@
 import numbers
-from typing import Union, TYPE_CHECKING, Tuple, Optional, cast, Sequence
+from typing import Union, TYPE_CHECKING, Tuple, Optional, Sequence
 
 import numpy as np
 import sympy
@@ -21,12 +21,9 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
     exponent (x). Then the z exponent (z) decides how much to phase the qubit.
     """
 
-    def __init__(self,
-                 *,
-                 x_exponent: Union[numbers.Real, sympy.Basic],
+    def __init__(self, *, x_exponent: Union[numbers.Real, sympy.Basic],
                  z_exponent: Union[numbers.Real, sympy.Basic],
-                 axis_phase_exponent: Union[numbers.Real, sympy.Basic]
-                 ) -> None:
+                 axis_phase_exponent: Union[numbers.Real, sympy.Basic]) -> None:
         """
         Args:
             x_exponent: The $x$ in $Z^z Z^a X^x Z^{-a}$.
@@ -74,7 +71,9 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
                 a -= 1
                 x = -x
 
-        return PhasedXZPowGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
+        return PhasedXZPowGate(x_exponent=x,
+                               z_exponent=z,
+                               axis_phase_exponent=a)
 
     @property
     def x_exponent(self) -> Union[numbers.Real, sympy.Basic]:
@@ -105,19 +104,17 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
         rotation /= np.pi
         pre_phase -= 0.5
         post_phase += 0.5
-        return PhasedXZPowGate(
-            x_exponent=rotation,
-            axis_phase_exponent=-pre_phase,
-            z_exponent=post_phase + pre_phase
-        )._canonical()
+        return PhasedXZPowGate(x_exponent=rotation,
+                               axis_phase_exponent=-pre_phase,
+                               z_exponent=post_phase + pre_phase)._canonical()
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
-        qasm_gate = qasm_output.QasmUGate(
-            lmda=0.5 - self._axis_phase_exponent,
-            theta=self._x_exponent,
-            phi=self._z_exponent + self._axis_phase_exponent - 0.5)
+        qasm_gate = qasm_output.QasmUGate(lmda=0.5 - self._axis_phase_exponent,
+                                          theta=self._x_exponent,
+                                          phi=self._z_exponent +
+                                          self._axis_phase_exponent - 0.5)
         return protocols.qasm(qasm_gate, args=args, qubits=qubits)
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
@@ -155,13 +152,13 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZPowGate':
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
-        return PhasedXZPowGate(
-            x_exponent=self._x_exponent,
-            z_exponent=self._z_exponent,
-            axis_phase_exponent=self._axis_phase_exponent + phase_turns * 2)
+        return PhasedXZPowGate(x_exponent=self._x_exponent,
+                               z_exponent=self._z_exponent,
+                               axis_phase_exponent=self._axis_phase_exponent +
+                               phase_turns * 2)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'cirq.CircuitDiagramInfoArgs') -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""
         return (f'PhXZ('
                 f'p={args.format_real(self._axis_phase_exponent)},'
