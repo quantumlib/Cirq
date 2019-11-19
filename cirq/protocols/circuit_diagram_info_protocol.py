@@ -134,14 +134,14 @@ class CircuitDiagramInfoArgs:
                                          self.use_unicode_characters,
                                          self.precision, self.qubit_map))
 
-    def format_real(self, val: Union[sympy.Basic, int, float]):
+    def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):
             return str(val)
         if val == int(val):
             return str(int(val))
         if self.precision is None:
             return str(val)
-        return '{{:.{}}}'.format(self.precision).format(float(val))
+        return f'{float(val):.{self.precision}}'
 
     def copy(self):
         return self.__class__(
