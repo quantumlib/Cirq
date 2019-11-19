@@ -29,7 +29,7 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
             x_exponent: The $x$ in $Z^z Z^a X^x Z^{-a}$.
             z_exponent: The $z$ in $Z^z Z^a X^x Z^{-a}$. Note that the $Z^z$
                 operation happens last.
-            axis_phase_exponent: The $a$ $Z^z Z^a X^x Z^{-a}$.
+            axis_phase_exponent: The $a$ in $Z^z Z^a X^x Z^{-a}$.
         """
         self._x_exponent = x_exponent
         self._z_exponent = z_exponent
@@ -40,7 +40,7 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
         z = self.z_exponent
         a = self.axis_phase_exponent
 
-        # Canonicalize X exponent (-1, +1].
+        # Canonicalize X exponent into (-1, +1].
         if isinstance(x, numbers.Real):
             x %= 2
             if x > 1:
@@ -53,7 +53,7 @@ class PhasedXZPowGate(gate_features.SingleQubitGate):
             a -= z / 2
             z = 0
 
-        # Canonicalize Z exponent (-1, +1].
+        # Canonicalize Z exponent into (-1, +1].
         if isinstance(z, numbers.Real):
             z %= 2
             if z > 1:
