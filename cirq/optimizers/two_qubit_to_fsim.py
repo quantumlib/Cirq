@@ -20,14 +20,17 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
     gates. It works by decomposing into two B gates and then decomposing each
     B gate into two of the given FSim gate.
 
-    TODO: describe the feasible angles.
+    This decomposition only works for FSim gates with a theta (iswap angle)
+    between 3/8π and 5/8π (i.e. within 22.5° of maximum strength) and a
+    phi (cphase angle) between -π/4 and +π/4 (i.e. within 45° of minimum
+    strength).
 
     Args:
         interaction: The two qubit operation to synthesize. This can either be
             a cirq object (such as a gate, operation, or circuit) or a raw numpy
             array specifying the 4x4 unitary matrix.
         fsim_gate: The only two qubit gate that is permitted to appear in the
-            output.
+            output. Must satisfy 3/8π < phi < 5/8π and abs(theta) < pi/4.
         qubits: The qubits that the resulting operations should apply the
             desired interaction to. If not set then defaults to either the
             qubits of the given interaction (if it is a `cirq.Operation`) or
@@ -38,6 +41,10 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         list will include four operations of the given fsim gate, various single
         qubit operations, and a global phase operation.
     """
+    if not 3 / 8 * np.pi < fsim_gate.theta < 5 / 8 * np.pi:
+        raise ValueError('Must have 3π/8 < fsim_gate.theta < 5π/8')
+    if abs(fsim_gate.phi) >= np.pi / 4:
+        raise ValueError('Must have abs(fsim_gate.phi) < π/4')
     if qubits is None:
         if isinstance(interaction, ops.Operation):
             qubits = interaction.qubits
@@ -120,21 +127,13 @@ class _BGate(ops.Gate):
             ops.YY(a, b)**0.25,
         ]
 
-    def __str__(self):
-        return 'B'
+
+_B = _BGate()
 
 
 def _decompose_two_qubit_interaction_into_two_b_gates(
-        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
-        *,
-        qubits: Sequence['cirq.Qid'] = None) -> List['cirq.Operation']:
-    if qubits is None:
-        if isinstance(interaction, ops.Operation):
-            qubits = interaction.qubits
-        else:
-            qubits = devices.LineQubit.range(2)
-    if len(qubits) != 2:
-        raise ValueError(f'Expected a pair of qubits, but got {qubits!r}.')
+        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any], *,
+        qubits: Sequence['cirq.Qid']) -> List['cirq.Operation']:
     kak = linalg.kak_decomposition(interaction)
 
     result = _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
@@ -149,7 +148,7 @@ def _decompose_two_qubit_interaction_into_two_b_gates(
 def _decompose_b_gate_into_two_fsims(*, fsim_gate: 'cirq.FSimGate',
                                      qubits: Sequence['cirq.Qid']
                                     ) -> List['cirq.Operation']:
-    kak = linalg.kak_decomposition(_BGate())
+    kak = linalg.kak_decomposition(_B)
 
     result = _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
         qubits=qubits,
@@ -174,24 +173,39 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     """
     a, b = qubits
     x, y, z = kak_interaction_coefficients
-    B = _BGate()
     r = (np.sin(y) * np.cos(z))**2
     b1 = np.arccos(1 - 4 * r)
     b2 = np.arcsin(np.sqrt(np.cos(y * 2) * np.cos(z * 2) / (1 - 2 * r)))
     s = 1 if z < 0 else -1
     return [
-        B(a, b),
+        _B(a, b),
         ops.Ry(s * 2 * x).on(a),
         ops.Rz(b2).on(b),
         ops.Ry(b1).on(b),
         ops.Rz(b2).on(b),
-        B(a, b),
+        _B(a, b),
     ]
 
 
 def _fix_single_qubit_gates_around_kak_interaction(
-        desired: 'cirq.KakDecomposition', qubits: Sequence['cirq.Qid'],
-        operations: List['cirq.Operation']) -> Iterator['cirq.Operation']:
+        *,
+        desired: 'cirq.KakDecomposition',
+        operations: List['cirq.Operation'],
+        qubits: Sequence['cirq.Qid'],
+) -> Iterator['cirq.Operation']:
+    """Adds single qubit operations to complete a desired interaction.
+
+    Args:
+        desired: The kak decomposition of the desired operation.
+        qubits: The pair of qubits that is being operated on.
+        operations: A list of operations that composes into the desired kak
+            interaction coefficients, but may not have the desired before/after
+            single qubit operations or the desired global phase.
+
+    Returns:
+        A list of operations whose kak decomposition approximately equals the
+        desired kak decomposition.
+    """
     actual = linalg.kak_decomposition(circuits.Circuit(operations))
 
     def dag(a: np.ndarray) -> np.ndarray:
