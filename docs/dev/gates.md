@@ -5,7 +5,7 @@ by Cirq.
 In particular, we have a stricter standard than what is required of users of the
 library.
 
-For a user of cirq, specifying either a `_unitary_` method or a `_decompose_`
+For a user of Cirq, specifying either a `_unitary_` method or a `_decompose_`
 method is sufficient to get a gate working.
 Most other protocols will infer what they need from these two methods.
 A gate specified in this way will not be particularly performant, but it will
