@@ -20,7 +20,7 @@ import sympy
 import cirq
 
 
-def test_sampler_fail():
+def test_sampler_async_fail():
 
     class FailingSampler(cirq.Sampler):
 
@@ -29,6 +29,11 @@ def test_sampler_fail():
 
     cirq.testing.assert_asyncio_will_raise(FailingSampler().run_async(
         cirq.Circuit(), repetitions=1),
+                                           ValueError,
+                                           match='test')
+
+    cirq.testing.assert_asyncio_will_raise(FailingSampler().run_sweep_async(
+        cirq.Circuit(), repetitions=1, params=None),
                                            ValueError,
                                            match='test')
 
@@ -134,3 +139,19 @@ def test_sampler_sample_inconsistent_keys():
                 'b': 2
             },
         ])
+
+
+def test_sampler_async_not_run_inline():
+    ran = False
+
+    class S(cirq.Sampler):
+
+        def run_sweep(self, *args, **kwargs):
+            nonlocal ran
+            ran = True
+            return []
+
+    a = S().run_sweep_async(cirq.Circuit(), params=None)
+    assert not ran
+    cirq.testing.assert_asyncio_will_have_result(a, [])
+    assert ran
