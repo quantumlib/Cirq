@@ -275,6 +275,9 @@ def test_matrix_gate_pow():
     assert cirq.pow(cirq.MatrixGate(1j * np.eye(1)),
                     2) == cirq.MatrixGate(-np.eye(1))
 
+    m = cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,))
+    assert m**3 == cirq.MatrixGate(np.diag([1, -1j, -1]), qid_shape=(3,))
+
 
 def test_phase_by():
     # Single qubit case.
@@ -301,3 +304,10 @@ def test_phase_by():
     m = cirq.MatrixGate(np.eye(3), qid_shape=[3])
     with pytest.raises(TypeError, match='returned NotImplemented'):
         _ = cirq.phase_by(m, 0.25, 0)
+
+
+def test_protocols_and_repr():
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.MatrixGate(np.diag([1, 1j, 1, -1])))
+    cirq.testing.assert_implements_consistent_protocols(
+        cirq.MatrixGate(np.diag([1, 1j, -1]), qid_shape=(3,)))

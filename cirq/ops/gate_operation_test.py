@@ -307,6 +307,27 @@ def test_op_gate_isinstance():
     assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
 
 
+@pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [
+    (cirq.Rz(0.3 * np.pi), cirq.Z**0.3, True),
+    (cirq.Rz(0.3), cirq.Z**0.3, False),
+    (cirq.ZZPowGate(global_shift=0.5), cirq.ZZ, True),
+    (cirq.ZPowGate(global_shift=0.5)**sympy.Symbol('e'), cirq.Z, False),
+    (cirq.Z**sympy.Symbol('e'), cirq.Z**sympy.Symbol('f'), False),
+])
+def test_equal_up_to_global_phase_on_gates(gate1, gate2, eq_up_to_global_phase):
+    num_qubits1, num_qubits2 = (cirq.num_qubits(g) for g in (gate1, gate2))
+    qubits = cirq.LineQubit.range(max(num_qubits1, num_qubits2) + 1)
+    op1, op2 = gate1(*qubits[:num_qubits1]), gate2(*qubits[:num_qubits2])
+    assert cirq.equal_up_to_global_phase(op1, op2) == eq_up_to_global_phase
+    op2_on_diff_qubits = gate2(*qubits[1:num_qubits2 + 1])
+    assert not cirq.equal_up_to_global_phase(op1, op2_on_diff_qubits)
+
+
+def test_equal_up_to_global_phase_on_diff_types():
+    op = cirq.X(cirq.LineQubit(0))
+    assert not cirq.equal_up_to_global_phase(op, 3)
+
+
 def test_gate_on_operation_besides_gate_operation():
     a, b = cirq.LineQubit.range(2)
 
@@ -319,3 +340,49 @@ def test_gate_on_operation_besides_gate_operation():
 
     assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
                                        cirq.XPowGate)
+
+
+def test_mul():
+
+    class GateRMul(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _rmul_with_qubits(self, qubits, other):
+            if other == 2:
+                return 3
+            if (isinstance(other, cirq.Operation) and
+                    isinstance(other.gate, GateRMul)):
+                return 4
+            raise NotImplementedError()
+
+    class GateMul(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _mul_with_qubits(self, qubits, other):
+            if other == 2:
+                return 5
+            if (isinstance(other, cirq.Operation) and
+                    isinstance(other.gate, GateMul)):
+                return 6
+            raise NotImplementedError()
+
+    # Delegates right multiplication.
+    q = cirq.LineQubit(0)
+    r = GateRMul().on(q)
+    assert 2 * r == 3
+    with pytest.raises(TypeError):
+        _ = r * 2
+
+    # Delegates left multiplication.
+    m = GateMul().on(q)
+    assert m * 2 == 5
+    with pytest.raises(TypeError):
+        _ = 2 * m
+
+    # Handles the symmetric type case correctly.
+    assert m * m == 6
+    assert r * r == 4

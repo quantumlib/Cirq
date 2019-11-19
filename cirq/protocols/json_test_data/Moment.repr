@@ -1,0 +1,5 @@
+[cirq.Moment(operations=[
+    cirq.X.on(cirq.LineQubit(0)),
+    cirq.Y.on(cirq.LineQubit(1)),
+    cirq.Z.on(cirq.LineQubit(2)),
+])]

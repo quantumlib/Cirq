@@ -74,9 +74,9 @@ def test_xx_repr():
     assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
 
     ms = cirq.XXPowGate(global_shift=-0.5)
-    assert (repr(ms) == 'cirq.MS(np.pi/2)')
-    assert (repr(ms**2) == 'cirq.MS(2.0*np.pi/2)')
-    assert (repr(ms**-0.5) == 'cirq.MS(-0.5*np.pi/2)')
+    assert (repr(ms) == 'cirq.ms(np.pi/2)')
+    assert (repr(ms**2) == 'cirq.ms(2.0*np.pi/2)')
+    assert (repr(ms**-0.5) == 'cirq.ms(-0.5*np.pi/2)')
 
 
 def test_xx_matrix():

@@ -1,4 +1,4 @@
-.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/Cirq_logo_color.png
+.. image:: https://raw.githubusercontent.com/quantumlib/Cirq/master/docs/_static/Cirq_logo_color.png
   :target: https://github.com/quantumlib/cirq
   :alt: Cirq
   :width: 500px
@@ -20,11 +20,18 @@ circuits and running them against quantum computers and simulators.
 Installation and Documentation
 ------------------------------
 
-Documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_:
+Cirq documentation is available at `cirq.readthedocs.io <https://cirq.readthedocs.io>`_.
+
+Documentation for the latest **unstable** version of cirq (tracks the repository's master branch; what you get if you ``pip install cirq-unstable``), is available at `cirq.readthedocs.io/latest <https://cirq.readthedocs.io/en/latest/>`_.
+
+Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://cirq.readthedocs.io/en/stable/>`_.
+
 
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+
+
 
 Hello Qubit
 -----------
