@@ -111,7 +111,6 @@ matrix:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v
         "#" | xargs pip install
     script: check/pylint
-  build-protos has been historically flaky, so it is disabled.
   Example: https://github.com/quantumlib/Cirq/issues/2565
   - stage: test
     os: linux
