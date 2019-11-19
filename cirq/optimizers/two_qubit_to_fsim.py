@@ -1,4 +1,13 @@
-from typing import Sequence, Union, Any, List, Iterator, TYPE_CHECKING, Iterable
+from typing import (
+    Sequence,
+    Union,
+    Any,
+    List,
+    Iterator,
+    TYPE_CHECKING,
+    Iterable,
+    Optional,
+)
 
 import numpy as np
 
@@ -41,10 +50,10 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         list will include four operations of the given fsim gate, various single
         qubit operations, and a global phase operation.
     """
-    if not 3 / 8 * np.pi < fsim_gate.theta < 5 / 8 * np.pi:
-        raise ValueError('Must have 3π/8 < fsim_gate.theta < 5π/8')
-    if abs(fsim_gate.phi) >= np.pi / 4:
-        raise ValueError('Must have abs(fsim_gate.phi) < π/4')
+    if not 3 / 8 * np.pi <= fsim_gate.theta <= 5 / 8 * np.pi:
+        raise ValueError('Must have 3π/8 ≤ fsim_gate.theta ≤ 5π/8')
+    if abs(fsim_gate.phi) > np.pi / 4:
+        raise ValueError('Must have abs(fsim_gate.phi) ≤ π/4')
     if qubits is None:
         if isinstance(interaction, ops.Operation):
             qubits = interaction.qubits
@@ -72,10 +81,23 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
     return circuit
 
 
+def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
+    if 0 <= v <= 1:
+        return v
+    if 1 < v <= 1 + atol:
+        return 1
+    if 0 > v >= -atol:
+        return 0
+    return None
+
+
 def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
-        *, qubits: Sequence['cirq.Qid'], fsim_gate: 'cirq.FSimGate',
+        *,
+        qubits: Sequence['cirq.Qid'],
+        fsim_gate: 'cirq.FSimGate',
         canonical_x_kak_coefficient: float,
-        canonical_y_kak_coefficient: float) -> List['cirq.Operation']:
+        canonical_y_kak_coefficient: float,
+        atol: float = 1e-8) -> List['cirq.Operation']:
     x = canonical_x_kak_coefficient
     y = canonical_y_kak_coefficient
     assert 0 <= y <= x <= np.pi / 4
@@ -88,15 +110,18 @@ def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
     s_sum = (eta - np.sin(t)**2) / kappa
     s_dif = 0.5 * xi / kappa
 
-    x_dif = np.arcsin(np.sqrt(s_sum + s_dif))
-    x_sum = np.arcsin(np.sqrt(s_sum - s_dif))
-
-    x_a = x_sum + x_dif
-    x_b = x_dif - x_sum
-    if np.isnan(x_b):
+    a_dif = _sticky_0_to_1(s_sum + s_dif, atol=atol)
+    a_sum = _sticky_0_to_1(s_sum - s_dif, atol=atol)
+    if a_dif is None or a_sum is None:
         raise ValueError(
             f'Failed to synthesize XX^{x/np.pi}·YY^{y/np.pi} from two '
             f'{fsim_gate!r} separated by single qubit operations.')
+
+    x_dif = np.arcsin(np.sqrt(a_dif))
+    x_sum = np.arcsin(np.sqrt(a_sum))
+
+    x_a = x_sum + x_dif
+    x_b = x_dif - x_sum
 
     a, b = qubits
     return [

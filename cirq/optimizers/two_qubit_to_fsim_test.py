@@ -27,6 +27,11 @@ FEASIBLE_FSIM_GATES = [
     cirq.FSimGate(5 * np.pi / 9, 0),
     cirq.FSimGate(4 * np.pi / 9, -np.pi / 6),
     cirq.FSimGate(4 * np.pi / 9, 0),
+    # Extreme points.
+    cirq.FSimGate(np.pi * 3 / 8, -np.pi / 4),
+    cirq.FSimGate(np.pi * 5 / 8, -np.pi / 4),
+    cirq.FSimGate(np.pi * 3 / 8, +np.pi / 4),
+    cirq.FSimGate(np.pi * 5 / 8, +np.pi / 4),
 ] + [
     cirq.FSimGate(theta=random.uniform(np.pi * 3 / 8, np.pi * 5 / 8),
                   phi=random.uniform(-np.pi / 4, np.pi / 4)) for _ in range(5)
