@@ -1,7 +1,7 @@
 # Gate and Operation Guidelines
 
 This developer document explains what is expected of a gate or operation exposed
-by cirq.
+by Cirq.
 In particular, we have a stricter standard than what is required of users of the
 library.
 
