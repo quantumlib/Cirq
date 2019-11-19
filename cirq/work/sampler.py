@@ -15,8 +15,6 @@
 
 from typing import List, Union, TYPE_CHECKING
 import abc
-import asyncio
-import threading
 
 import pandas as pd
 
@@ -161,9 +159,9 @@ class Sampler(metaclass=abc.ABCMeta):
                         *, repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit or Schedule.
 
-        By default, this method calls `run` on another thread and yields the
-        result via the asyncio event loop. However, child classes are free to
-        override it to use other strategies.
+        By default, this method invokes `run` synchronously and simply exposes
+        its result is an awaitable. Child classes that are capable of true
+        asynchronous sampling should override it to use other strategies.
 
         Args:
             program: The circuit or schedule to sample from.
@@ -172,9 +170,7 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        results = await self.run_sweep_async(program, study.UnitSweep,
-                                             repetitions)
-        return results[0]
+        return self.run(program, repetitions=repetitions)
 
     async def run_sweep_async(
             self,
@@ -184,9 +180,9 @@ class Sampler(metaclass=abc.ABCMeta):
     ) -> List['cirq.TrialResult']:
         """Asynchronously sweeps and samples from the given Circuit or Schedule.
 
-        By default, this method calls `run_sweep` on another thread and yields
-        the result via the asyncio event loop. However, child classes are free
-        to override it to use other strategies.
+        By default, this method invokes `run_sweep` synchronously and simply
+        exposes its result is an awaitable. Child classes that are capable of
+        true asynchronous sampling should override it to use other strategies.
 
         Args:
             program: The circuit or schedule to sample from.
@@ -198,22 +194,4 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             An awaitable TrialResult.
         """
-        return await run_on_thread_async(lambda: self.run_sweep(
-            program, params=params, repetitions=repetitions))
-
-
-async def run_on_thread_async(func):
-    loop = asyncio.get_event_loop()
-    done = loop.create_future()  # type: asyncio.Future['cirq.TrialResult']
-
-    def run():
-        try:
-            result = func()
-        except Exception as exc:
-            loop.call_soon_threadsafe(done.set_exception, exc)
-        else:
-            loop.call_soon_threadsafe(done.set_result, result)
-
-    t = threading.Thread(target=run)
-    t.start()
-    return await done
+        return self.run_sweep(program, params=params, repetitions=repetitions)

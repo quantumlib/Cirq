@@ -12,16 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Tuple, cast, Dict
+from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.ops import raw_types, gate_features, common_gates, eigen_gate, \
-        op_tree, pauli_gates
+from cirq.ops import gate_features, common_gates, eigen_gate, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 
+if TYPE_CHECKING:
+    import cirq
 
 pauli_eigen_map = cast(
     Dict[pauli_gates.Pauli, np.ndarray], {
@@ -90,8 +91,7 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         comp0 = np.eye(4) - comp1
         return [(0, comp0), (1, comp1)]
 
-    def _decompose_(self, qubits: Sequence[raw_types.Qid]
-                          ) -> op_tree.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         q0, q1 = qubits
         right_gate0 = SingleQubitCliffordGate.from_single_map(
             z_to=(self.pauli0, self.invert0))
@@ -106,8 +106,8 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         yield right_gate0(q0)
         yield right_gate1(q1)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         labels = cast(Dict[pauli_gates.Pauli, np.ndarray], {
             pauli_gates.X: 'X',
             pauli_gates.Y: 'Y',

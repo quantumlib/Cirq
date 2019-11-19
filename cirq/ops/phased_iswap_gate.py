@@ -21,7 +21,7 @@ import sympy
 import cirq
 from cirq import linalg, protocols, value
 from cirq._compat import deprecated, proper_repr
-from cirq.ops import eigen_gate, op_tree, gate_features, raw_types, swap_gates
+from cirq.ops import eigen_gate, gate_features, swap_gates
 
 
 @value.value_equality(manual_cls=True)
@@ -125,7 +125,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                                       out=args.available_buffer)
         return args.available_buffer
 
-    def _decompose_(self, qubits: Sequence[raw_types.Qid]) -> op_tree.OP_TREE:
+    def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         if len(qubits) != 2:
             raise ValueError(f'Expected two qubits, got {len(qubits)}')
         a, b = qubits
@@ -156,14 +156,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZZ': expansion['ZZ'],
         })
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
-        if (isinstance(self._phase_exponent, (sympy.Basic, int)) or
-                args.precision is None):
-            s = 'PhISwap({})'.format(self._phase_exponent)
-        else:
-            s = 'PhISwap({{:.{}}})'.format(args.precision).format(
-                self._phase_exponent)
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
+        s = f'PhISwap({args.format_real(self._phase_exponent)})'
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s, s), exponent=self._diagram_exponent(args))
 

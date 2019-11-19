@@ -186,6 +186,7 @@ SHOULDNT_BE_SERIALIZED = [
     'DURATION_LIKE',
     'NOISE_MODEL_LIKE',
     'OP_TREE',
+    'PAULI_GATE_LIKE',
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
