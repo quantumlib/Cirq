@@ -160,7 +160,7 @@ class IdentityGate(raw_types.Gate):
     def _circuit_diagram_info_(self, args):
         return ('I',) * self.num_qubits()
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
+    def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
