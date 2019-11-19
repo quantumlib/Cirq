@@ -156,14 +156,9 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZZ': expansion['ZZ'],
         })
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
-        if (isinstance(self._phase_exponent, (sympy.Basic, int)) or
-                args.precision is None):
-            s = 'PhISwap({})'.format(self._phase_exponent)
-        else:
-            s = 'PhISwap({{:.{}}})'.format(args.precision).format(
-                self._phase_exponent)
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
+        s = f'PhISwap({args.format_real(self._phase_exponent)})'
         return protocols.CircuitDiagramInfo(
             wire_symbols=(s, s), exponent=self._diagram_exponent(args))
 

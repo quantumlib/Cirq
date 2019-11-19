@@ -54,24 +54,26 @@ class QasmUGate(ops.SingleQubitGate):
             pre_phase / np.pi,
         )
 
-    def _qasm_(self, qubits: Tuple[ops.Qid, ...], args: 'cirq.QasmArgs') -> str:
+    def _qasm_(self, qubits: Tuple['cirq.Qid', ...],
+               args: 'cirq.QasmArgs') -> str:
         args.validate_version('2.0')
         return args.format(
             'u3({0:half_turns},{1:half_turns},{2:half_turns}) {3};\n',
             self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
-        return 'cirq.QasmUGate({}, {}, {})'.format(self.theta, self.phi,
-                                                   self.lmda)
+        return (f'cirq.circuits.qasm_output.QasmUGate('
+                f'theta={self.theta!r}, '
+                f'phi={self.phi!r}, '
+                f'lmda={self.lmda})')
 
-    def _unitary_(self) -> np.ndarray:
-        # Source: https://arxiv.org/abs/1707.03429 (equation 2)
-        operations = [
-            ops.Rz(self.phi * np.pi),
-            ops.Ry(self.theta * np.pi),
-            ops.Rz(self.lmda * np.pi),
+    def _decompose_(self, qubits):
+        q = qubits[0]
+        return [
+            ops.Rz(self.lmda * np.pi).on(q),
+            ops.Ry(self.theta * np.pi).on(q),
+            ops.Rz(self.phi * np.pi).on(q),
         ]
-        return linalg.dot(*map(protocols.unitary, operations))
 
     def _value_equality_values_(self):
         return self.lmda, self.theta, self.phi

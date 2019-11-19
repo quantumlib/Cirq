@@ -146,18 +146,12 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             phase_exponent=self._phase_exponent + phase_turns * 2,
             global_shift=self._global_shift)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         """See `cirq.SupportsCircuitDiagramInfo`."""
 
-        if (isinstance(self.phase_exponent, (sympy.Basic, int)) or
-                args.precision is None):
-            s = 'PhX({})'.format(self.phase_exponent)
-        else:
-            s = 'PhX({{:.{}}})'.format(args.precision).format(
-                self.phase_exponent)
         return protocols.CircuitDiagramInfo(
-            wire_symbols=(s,),
+            wire_symbols=(f'PhX({args.format_real(self.phase_exponent)})',),
             exponent=value.canonicalize_half_turns(self._exponent))
 
     def __str__(self):
