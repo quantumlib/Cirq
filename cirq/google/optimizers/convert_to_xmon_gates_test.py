@@ -42,7 +42,7 @@ def test_avoids_infinite_cycle_when_matrix_available():
     q = cirq.GridQubit(0, 0)
     c = cirq.Circuit(OtherX().on(q), OtherOtherX().on(q))
     cirq.google.ConvertToXmonGates().optimize_circuit(c)
-    cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1.0)───PhX(1.0)───')
+    cirq.testing.assert_has_diagram(c, '(0, 0): ───PhX(1)───PhX(1)───')
     cirq.protocols.decompose(c)
 
 
