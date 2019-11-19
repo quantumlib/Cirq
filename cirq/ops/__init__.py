@@ -172,6 +172,7 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
+    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliString,
     SingleQubitPauliStringGateOperation,
