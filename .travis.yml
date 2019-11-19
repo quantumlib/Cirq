@@ -111,17 +111,15 @@ matrix:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v
         "#" | xargs pip install
     script: check/pylint
-  # build-protos has been historically flaky, so it is disabled.
-  # Example: https://github.com/quantumlib/Cirq/issues/2565
-  # - stage: test
-  #   os: linux
-  #   env: NAME=build-protos
-  #   python: '3.6'
-  #   install:
-  #     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-  #     - wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
-  #     - sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
-  #   script: check/build-protos
+  - stage: test
+    os: linux
+    env: NAME=build-protos
+    python: '3.6'
+    install:
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
+      - sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
+    script: check/build-protos
   - stage: deploy
     os: linux
     env: NAME=dev-release
