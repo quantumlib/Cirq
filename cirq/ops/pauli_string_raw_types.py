@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Sequence, Tuple, TypeVar
+from typing import Any, Dict, Sequence, Tuple, TypeVar, TYPE_CHECKING
 
 import abc
 
 from cirq import protocols
 from cirq.ops import pauli_string as ps, raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 TSelf_PauliStringGateOperation = TypeVar('TSelf_PauliStringGateOperation',
                                          bound='PauliStringGateOperation')
@@ -33,8 +36,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
             raise ValueError('Incorrect number of qubits for gate')
 
     def with_qubits(self: TSelf_PauliStringGateOperation,
-                    *new_qubits: raw_types.Qid
-                   ) -> TSelf_PauliStringGateOperation:
+                    *new_qubits: 'cirq.Qid') -> TSelf_PauliStringGateOperation:
         self.validate_args(new_qubits)
         return self.map_qubits(dict(zip(self.pauli_string.qubits, new_qubits)))
 
@@ -56,7 +58,7 @@ class PauliStringGateOperation(raw_types.Operation, metaclass=abc.ABCMeta):
             self,
             args: 'protocols.CircuitDiagramInfoArgs',
             exponent: Any = 1,
-    ) -> 'protocols.CircuitDiagramInfo':
+    ) -> 'cirq.CircuitDiagramInfo':
         qubits = self.qubits if args.known_qubits is None else args.known_qubits
         syms = tuple(
             '[{}]'.format(self.pauli_string[qubit]) for qubit in qubits)

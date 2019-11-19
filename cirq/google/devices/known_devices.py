@@ -14,7 +14,6 @@
 
 from typing import Dict, Optional, Iterable, List, Set, Tuple
 
-from cirq import value
 from cirq._doc import document
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set

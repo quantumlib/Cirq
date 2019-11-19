@@ -155,7 +155,7 @@ class StateVectorMixin():
             [self.qubit_map[q] for q in qubits] if qubits is not None else None,
             qid_shape=self._qid_shape)
 
-    def bloch_vector_of(self, qubit: ops.Qid) -> np.ndarray:
+    def bloch_vector_of(self, qubit: 'cirq.Qid') -> np.ndarray:
         """Returns the bloch vector of a qubit in the state.
 
         Calculates the bloch vector of the given qubit
