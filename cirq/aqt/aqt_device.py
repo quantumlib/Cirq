@@ -36,7 +36,9 @@ gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX}
 def get_op_string(op_obj: ops.Operation) -> str:
     """Find the string representation for a given gate
     Args:
-        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate"""
+        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate
+    Returns:
+        String representing the gate operation"""
     if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
                                                        ops.XXPowGate):
         op_str = 'MS'
