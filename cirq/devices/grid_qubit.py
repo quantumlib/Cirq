@@ -13,9 +13,12 @@
 # limitations under the License.
 
 
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from cirq import ops, protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class GridQubit(ops.Qid):
@@ -45,7 +48,7 @@ class GridQubit(ops.Qid):
     def dimension(self) -> int:
         return 2
 
-    def is_adjacent(self, other: ops.Qid) -> bool:
+    def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)

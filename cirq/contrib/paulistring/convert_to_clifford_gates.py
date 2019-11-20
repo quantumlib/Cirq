@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
@@ -22,6 +22,9 @@ from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ConvertToSingleQubitCliffordGates(PointOptimizer):
@@ -63,8 +66,8 @@ class ConvertToSingleQubitCliffordGates(PointOptimizer):
 
         return ops.SingleQubitCliffordGate.I
 
-    def _matrix_to_clifford_op(self, mat: np.ndarray, qubit: ops.Qid
-                               ) -> Optional[ops.Operation]:
+    def _matrix_to_clifford_op(self, mat: np.ndarray,
+                               qubit: 'cirq.Qid') -> Optional[ops.Operation]:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
         clifford_gate = ops.SingleQubitCliffordGate.I
