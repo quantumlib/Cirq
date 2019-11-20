@@ -40,10 +40,9 @@ Developer Documentation
 -----------------------
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    dev/plotting
-    dev/serialization
+    dev/index.rst
 
 
 API Reference

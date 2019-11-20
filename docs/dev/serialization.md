@@ -1,3 +1,5 @@
+# Serialization Guidelines
+
 This developer document explains how Cirq serializes objects into (and out of)
 JSON.
 It also explains how to add a new serializable object,

@@ -1797,7 +1797,7 @@ def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
                        - info.exponent) < 10**-args.precision:
                     return '({})'.format(approx_frac)
 
-            return '{{:.{}}}'.format(args.precision).format(info.exponent)
+            return args.format_real(info.exponent)
         return repr(info.exponent)
 
     # If the exponent is any other object, use its string representation.

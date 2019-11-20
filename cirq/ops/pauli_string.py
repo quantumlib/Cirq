@@ -132,7 +132,7 @@ class PauliString(raw_types.Operation):
     @staticmethod
     @deprecated(deadline="v0.7.0",
                 fix="call cirq.PauliString(pauli(qubit)) instead")
-    def from_single(qubit: raw_types.Qid,
+    def from_single(qubit: 'cirq.Qid',
                     pauli: pauli_gates.Pauli) -> 'PauliString':
         """Creates a PauliString with a single qubit."""
         return PauliString(qubit_pauli_map={qubit: pauli})
@@ -171,20 +171,20 @@ class PauliString(raw_types.Operation):
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def __getitem__(self, key: raw_types.Qid) -> pauli_gates.Pauli:
+    def __getitem__(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: raw_types.Qid) -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
         pass
 
     @overload
-    def get(self, key: raw_types.Qid,
+    def get(self, key: 'cirq.Qid',
             default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
-    def get(self, key: raw_types.Qid, default=None):
+    def get(self, key: 'cirq.Qid', default=None):
         return self._qubit_pauli_map.get(key, default)
     # pylint: enable=function-redefined
 
@@ -245,7 +245,7 @@ class PauliString(raw_types.Operation):
     def __rsub__(self, other):
         return -self.__sub__(other)
 
-    def __contains__(self, key: raw_types.Qid) -> bool:
+    def __contains__(self, key: 'cirq.Qid') -> bool:
         return key in self._qubit_pauli_map
 
     def _decompose_(self):
@@ -264,7 +264,7 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
                            coefficient=self._coefficient)
@@ -791,7 +791,7 @@ class PauliString(raw_types.Operation):
 
     @staticmethod
     def _pass_operation_over(pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
-                             op: raw_types.Operation,
+                             op: 'cirq.Operation',
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
             gate = op.gate
@@ -811,7 +811,7 @@ class PauliString(raw_types.Operation):
     def _pass_single_clifford_gate_over(
             pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
             gate: clifford_gate.SingleQubitCliffordGate,
-            qubit: raw_types.Qid,
+            qubit: 'cirq.Qid',
             after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
             return False
@@ -825,11 +825,11 @@ class PauliString(raw_types.Operation):
     def _pass_pauli_interaction_gate_over(
             pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
             gate: pauli_interaction_gate.PauliInteractionGate,
-            qubit0: raw_types.Qid,
-            qubit1: raw_types.Qid,
+            qubit0: 'cirq.Qid',
+            qubit1: 'cirq.Qid',
             after_to_before: bool = False) -> bool:
 
-        def merge_and_kickback(qubit: raw_types.Qid,
+        def merge_and_kickback(qubit: 'cirq.Qid',
                                pauli_left: Optional[pauli_gates.Pauli],
                                pauli_right: Optional[pauli_gates.Pauli],
                                inv: bool) -> int:
@@ -868,7 +868,7 @@ class PauliString(raw_types.Operation):
 
 
 def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
-                            pauli_qubits: Tuple[raw_types.Qid, ...],
+                            pauli_qubits: Tuple['cirq.Qid', ...],
                             num_state_qubits: int) -> None:
     """Validates that a qubit map is a valid mapping.
 
@@ -908,12 +908,12 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     GateOperation(X, [q]).
     """
 
-    def __init__(self, pauli: pauli_gates.Pauli, qubit: raw_types.Qid):
+    def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
         PauliString.__init__(self, {qubit: pauli})
         gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
                                               [qubit])
 
-    def with_qubits(self, *new_qubits: raw_types.Qid
+    def with_qubits(self, *new_qubits: 'cirq.Qid'
                    ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
             raise ValueError("len(new_qubits) != 1")
@@ -952,7 +952,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     @classmethod
     def _from_json_dict_(  # type: ignore
-            cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):
+            cls, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid', **kwargs):
         # Note, this method is required or else superclasses' deserialization
         # would be used
         return cls(pauli=pauli, qubit=qubit)
