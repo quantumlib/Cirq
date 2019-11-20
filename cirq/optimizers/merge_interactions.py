@@ -14,12 +14,16 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import Callable, List, Optional, Sequence, Tuple, cast
+from typing import Callable, List, Optional, Sequence, Tuple, cast, \
+    TYPE_CHECKING
 
 import numpy as np
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import two_qubit_decompositions
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class MergeInteractions(circuits.PointOptimizer):
@@ -88,7 +92,7 @@ class MergeInteractions(circuits.PointOptimizer):
             new_operations=new_operations)
 
     def _op_to_matrix(self, op: ops.Operation,
-                      qubits: Tuple[ops.Qid, ...]) -> Optional[np.ndarray]:
+                      qubits: Tuple['cirq.Qid', ...]) -> Optional[np.ndarray]:
         """Determines the effect of an operation on the given qubits.
 
         If the operation is a 1-qubit operation on one of the given qubits,
@@ -126,10 +130,8 @@ class MergeInteractions(circuits.PointOptimizer):
         return None
 
     def _scan_two_qubit_ops_into_matrix(
-            self,
-            circuit: circuits.Circuit,
-            index: Optional[int],
-            qubits: Tuple[ops.Qid, ...]
+            self, circuit: circuits.Circuit, index: Optional[int],
+            qubits: Tuple['cirq.Qid', ...]
     ) -> Tuple[List[ops.Operation], List[int], np.ndarray]:
         """Accumulates operations affecting the given pair of qubits.
 
