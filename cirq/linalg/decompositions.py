@@ -444,7 +444,7 @@ class KakDecomposition:
             interaction_coefficients: x, y, z from the above equation.
             single_qubit_operations_after: a0, a1 from the above equation.
         """
-        self.global_phase: complex = global_phase
+        self.global_phase = global_phase
         self.single_qubit_operations_before = single_qubit_operations_before
         self.interaction_coefficients = interaction_coefficients
         self.single_qubit_operations_after = single_qubit_operations_after
