@@ -77,8 +77,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    def on(self,
-           *qubits: raw_types.Qid) -> 'SingleQubitPauliStringGateOperation':
+    def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:

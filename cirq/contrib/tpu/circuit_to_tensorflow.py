@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Callable, Dict, List, NamedTuple, Tuple, TypeVar, Union
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    NamedTuple,
+    Tuple,
+    TypeVar,
+    Union,
+    TYPE_CHECKING,
+)
 
 from collections import namedtuple
 
@@ -20,6 +30,9 @@ import numpy as np
 import tensorflow as tf
 
 from cirq import ops, circuits, linalg, protocols, optimizers
+
+if TYPE_CHECKING:
+    import cirq
 
 
 # We logically divide the qubits into groups of this size, and operate on each
@@ -153,10 +166,10 @@ class _QubitGrouping:
                     for group_id, group in enumerate(self.groups)
                     for item_id, qubit in enumerate(group)}
 
-    def loc(self, q: ops.Qid) -> Tuple[int, int]:
+    def loc(self, q: 'cirq.Qid') -> Tuple[int, int]:
         return self.map[q]
 
-    def ind(self, q: ops.Qid) -> int:
+    def ind(self, q: 'cirq.Qid') -> int:
         g, a = self.loc(q)
         past = sum(len(h) for h in self.groups[:g])
         return self.qubit_count() - 1 - a - past
@@ -170,7 +183,7 @@ class _QubitGrouping:
     def flat_shape(self) -> Tuple[int]:
         return self.system_size(),
 
-    def all_in_same_group(self, *qubits: ops.Qid) -> bool:
+    def all_in_same_group(self, *qubits: 'cirq.Qid') -> bool:
         return len({self.loc(q)[0] for q in qubits}) <= 1
 
     def decompose_keep_func(self, op: ops.Operation) -> bool:

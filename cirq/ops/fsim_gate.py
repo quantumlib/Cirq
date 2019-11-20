@@ -169,6 +169,6 @@ def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
     if radians == -np.pi:
         return '-' + unit
     if args.precision is not None:
-        quantity = '{{:.{}}}'.format(args.precision).format(radians / np.pi)
+        quantity = args.format_real(radians / np.pi)
         return quantity + unit
     return repr(radians)
