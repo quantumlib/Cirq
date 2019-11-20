@@ -298,25 +298,35 @@ class TrialResult:
 
     def _json_dict_(self):
         packed_measurements = {
-            key: _pack_digits(digits)
-            for key, digits in self.measurements.items()
+            key: {
+                'packed_digits': _pack_digits(digits),
+                # Save the dtype because serialization may alter it to save
+                # space. Note that this implementation only supports
+                # fixed-width values, not arbitrary Python objects.
+                'dtype': digits.dtype.name
+            } for key, digits in self.measurements.items()
         }
         return {
             'cirq_type': self.__class__.__name__,
             'params': self.params,
-            'measurements_npy': packed_measurements
+            'measurements': packed_measurements
         }
 
     @classmethod
-    def _from_json_dict_(cls, params, measurements_npy, **kwargs):
+    def _from_json_dict_(cls, params, measurements, **kwargs):
         return cls(params=params,
                    measurements={
-                       key: _unpack_digits(packed_digits)
-                       for key, packed_digits in measurements_npy.items()
+                       key: _unpack_digits(val['packed_digits'], val['dtype'])
+                       for key, val in measurements.items()
                    })
 
 
 def _pack_digits(digits: np.ndarray) -> str:
+    # If digits are binary, pack them as bools to save space
+    bools = digits.astype(np.bool)
+    if np.array_equal(digits, bools):
+        digits = bools
+
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
     buffer.seek(0)
@@ -325,10 +335,10 @@ def _pack_digits(digits: np.ndarray) -> str:
     return packed_digits
 
 
-def _unpack_digits(digits_npy_hex: str) -> np.ndarray:
+def _unpack_digits(digits_npy_hex: str, dtype: str) -> np.ndarray:
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(digits_npy_hex))
     buffer.seek(0)
-    digits = np.load(buffer, allow_pickle=False)
+    digits = np.load(buffer, allow_pickle=False).astype(np.dtype(dtype))
     buffer.close()
     return digits
