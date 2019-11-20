@@ -35,15 +35,7 @@ User Documentation
     qudits
     development
     examples
-
-Developer Documentation
------------------------
-
-.. toctree::
-    :maxdepth: 2
-
     dev/plotting
-    dev/serialization
 
 
 API Reference

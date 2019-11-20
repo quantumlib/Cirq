@@ -1,4 +1,0 @@
-[
-cirq.IdentityGate(2).on(cirq.LineQubit(0), cirq.LineQubit(1)),
-cirq.IdentityGate(5).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4))
-]

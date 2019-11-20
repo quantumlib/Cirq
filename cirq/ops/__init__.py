@@ -172,7 +172,6 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
-    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliString,
     SingleQubitPauliStringGateOperation,
@@ -185,7 +184,6 @@ from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
 
 from cirq.ops.phased_iswap_gate import (
-    givens,
     GivensRotation,
     PhasedISwapPowGate,
 )

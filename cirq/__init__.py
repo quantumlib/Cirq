@@ -88,7 +88,6 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
-    estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
@@ -191,7 +190,6 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
-    givens,
     GivensRotation,
     GlobalPhaseOperation,
     H,
@@ -219,7 +217,6 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
-    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -454,7 +451,6 @@ from cirq.ion import (
     ConvertToIonGates,
     IonDevice,
     MS,
-    ms,
     two_qubit_matrix_to_ion_operations,
 )
 from cirq.neutral_atoms import (
