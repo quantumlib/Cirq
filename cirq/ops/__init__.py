@@ -194,7 +194,7 @@ from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
 
 from cirq.ops.phased_x_z_gate import (
-    PhasedXZPowGate,)
+    PhasedXPowZPowGate,)
 
 from cirq.ops.raw_types import (
     Gate,
