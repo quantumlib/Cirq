@@ -97,7 +97,7 @@ class AQTSampler(Sampler):
                    json_str: str,
                    id_str: Union[str, uuid.UUID],
                    repetitions: int = 1,
-                   num_qubits: int = 1):
+                   num_qubits: int = 1) -> np.ndarray:
         """Sends the json string to the remote AQT device
         Args:
             json_str: Json representation of the circuit.

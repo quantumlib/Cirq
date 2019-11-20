@@ -24,7 +24,7 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 
 """
 import json
-from typing import Union, Tuple, List, Sequence, cast
+from typing import Union, Tuple, List, Dict, Sequence, Any, cast
 import numpy as np
 from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
@@ -33,7 +33,7 @@ from cirq import DensityMatrixSimulator
 gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX}
 
 
-def get_op_string(op_obj: ops.Operation):
+def get_op_string(op_obj: ops.Operation) -> str:
     """Find the string representation for a given gate
     Args:
         op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate"""
@@ -64,10 +64,10 @@ class AQTNoiseModel(devices.NoiseModel):
         self.noise_op_dict = get_default_noise_dict()
 
     def noisy_moment(self, moment: ops.Moment,
-                     system_qubits: Sequence[ops.Qid]):
-        """Returns a list of noisy moments including
-        Depolarizing noise with gate-dependent strength
-        Crosstalk  between neighboring qubbits
+                     system_qubits: Sequence[ops.Qid]) -> List[ops.Operation]:
+        """Returns a list of noisy moments. The model incluldes
+        - Depolarizing noise with gate-dependent strength
+        - Crosstalk  between neighboring qubits
         Args:
             moment: ideal moment
             system_qubits: List of qubits
@@ -87,7 +87,8 @@ class AQTNoiseModel(devices.NoiseModel):
         return list(moment) + noise_list
 
     def get_crosstalk_operation(self, operation: ops.Operation,
-                                system_qubits: Sequence[ops.Qid]):
+                                system_qubits: Sequence[ops.Qid]
+                               ) -> List[ops.Operation]:
         """
         Returns a list of operations including crosstalk
         Args:
@@ -203,7 +204,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
     return ion_device, qubit_list
 
 
-def get_default_noise_dict():
+def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
         'X': ops.depolarize(1e-3),
