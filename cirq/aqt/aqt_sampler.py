@@ -16,7 +16,7 @@ more information on these devices see the AQT homepage:
 
 https://www.aqt.eu
 
-API keys for classical aimulators and quantum devices can be obtained at:
+API keys for classical simulators and quantum devices can be obtained at:
 
 https://gateway-portal.aqt.eu/
 
@@ -73,7 +73,7 @@ class AQTSampler(Sampler):
         which is a list of sequential quantum operations,
         each operation defined by:
 
-        op_string: str that specifies the operation type, either "X","Y","MS"
+        op_string: str that specifies the operation type, either "X","Y","Z","MS"
         gate_exponent: float that specifies the gate_exponent of the operation
         qubits: list of qubits where the operation acts on.
         """
@@ -111,7 +111,7 @@ class AQTSampler(Sampler):
         The first PUT will insert the circuit into the remote queue,
         given a valid access key.
 
-        Every subsequent PUT will retturn a dictionary, where the key "status"
+        Every subsequent PUT will return a dictionary, where the key "status"
         is either 'queued', if the circuit has not been processed yet or
         'finished' if the circuit has been processed.
 
@@ -209,15 +209,17 @@ class AQTSampler(Sampler):
         return trial_results
 
 
-class AQTRemoteSimulator(AQTSampler):
-    """Sampler using the AQT simulator
-    When the attribute simulate_ideal is set to True,0
+class AQTSamplerLocalSimulator(AQTSampler):
+    """Sampler using the AQT simulator on the local machine.
+    Can be used as a replacement for the AQTSampler
+
+    When the attribute simulate_ideal is set to True,
     an ideal circuit is sampled
 
     If not, the error model defined in aqt_simulator_test.py is used
     Example for running the ideal sampler:
 
-    sampler = AQTSamplerSim()
+    sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal=True
     """
 

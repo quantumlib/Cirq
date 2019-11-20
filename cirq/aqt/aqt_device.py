@@ -35,8 +35,8 @@ gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX}
 
 def get_op_string(op_obj: ops.Operation):
     """Find the string representation for a given gate
-    Params:
-        op_obj: Gate object, out of: XXPowGate, XPowGate, YPowGate"""
+    Args:
+        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate"""
     if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
                                                        ops.XXPowGate):
         op_str = 'MS'
@@ -65,6 +65,15 @@ class AQTNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: ops.Moment,
                      system_qubits: Sequence[ops.Qid]):
+        """Returns a list of noisy moments including
+        Depolarizing noise with gate-dependent strength
+        Crosstalk  between neighboring qubbits
+        Args:
+            moment: ideal moment
+            system_qubits: List of qubits
+        Returns:
+            List of ideal and noisy moments
+        """
         noise_list = []
         for op in moment.operations:
             op_str = get_op_string(op)
@@ -80,10 +89,12 @@ class AQTNoiseModel(devices.NoiseModel):
     def get_crosstalk_operation(self, operation: ops.Operation,
                                 system_qubits: Sequence[ops.Qid]):
         """
-        Returns operation on
+        Returns a list of operations including crosstalk
         Args:
             operation: Ideal operation
             system_qubits: Tuple of line qubits
+        Returns:
+            List of operations including crosstalk
         """
         cast(Tuple[LineQubit], system_qubits)
         num_qubits = len(system_qubits)
@@ -119,7 +130,6 @@ class AQTNoiseModel(devices.NoiseModel):
 
 class AQTSimulator:
     """A simulator for the AQT device."""
-
     def __init__(self,
                  num_qubits: int,
                  circuit: Circuit = Circuit(),
@@ -141,7 +151,9 @@ class AQTSimulator:
         self.simulate_ideal = simulate_ideal
 
     def generate_circuit_from_list(self, json_string: str):
-        """Generates a list of cirq operations from a json string
+        """Generates a list of cirq operations from a json string.
+        The default behavior is to add a measurement to any qubit at the end
+        of the circuit as there are no measurements defined in the AQT API.
         Args:
             json_string: json that specifies the sequence
         """
@@ -152,7 +164,7 @@ class AQTSimulator:
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
             self.circuit.append(gate_dict[gate].on(*qubits)**angle)
-        # TODO: Better solution for measurement at the end
+        #TODO: Better solution for measurement at the end
         self.circuit.append(
             ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
