@@ -284,9 +284,9 @@ def test_str_diagram():
                                 z_exponent=0.25,
                                 axis_phase_exponent=0.125)
 
-    assert str(g) == "PhXZ(p=0.125,x=0.5,z=0.25)"
+    assert str(g) == "PhXZ(a=0.125,x=0.5,z=0.25)"
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(g.on(cirq.LineQubit(0))), """
-0: ───PhXZ(p=0.125,x=0.5,z=0.25)───
+0: ───PhXZ(a=0.125,x=0.5,z=0.25)───
     """)
