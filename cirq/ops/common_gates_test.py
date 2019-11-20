@@ -125,6 +125,7 @@ def test_z_init():
 
 def test_z_control():
     # Single qubit control on Z gives a CZ
+    assert cirq.Z.controlled() == cirq.CZ
     assert cirq.Z.controlled(num_controls=1) == cirq.CZ
     assert cirq.Z.controlled(control_values=((1,),)) == cirq.CZ
     assert cirq.Z.controlled(control_qid_shape=(2,)) == cirq.CZ
@@ -134,6 +135,8 @@ def test_z_control():
 
     # For multi-qudit controls, if the last control is a qubit with control
     # value 1, construct a CZ leaving the rest of the controls as is.
+    assert cirq.Z.controlled().controlled() == cirq.ControlledGate(
+        cirq.CZ, num_controls=1)
     assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
         cirq.CZ, num_controls=1)
     assert cirq.Z.controlled(control_values=((0,), (0,),
