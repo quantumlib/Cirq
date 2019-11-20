@@ -13,7 +13,7 @@
 # limitations under the License.
 from collections import defaultdict
 from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
-                    DefaultDict)
+                    DefaultDict, TYPE_CHECKING)
 import numbers
 
 import numpy as np
@@ -24,6 +24,9 @@ from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 from cirq.value.linear_dict import _format_terms
+
+if TYPE_CHECKING:
+    import cirq
 
 UnitPauliStringT = FrozenSet[Tuple[raw_types.Qid, pauli_gates.Pauli]]
 PauliSumLike = Union[int, float, complex, PauliString, 'PauliSum', pauli_string.
@@ -73,7 +76,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         any_gate = next(iter(self))
         return any_gate.num_qubits()
 
-    def _is_compatible(self, gate: raw_types.Gate) -> bool:
+    def _is_compatible(self, gate: 'cirq.Gate') -> bool:
         return (self.num_qubits() is None or
                 self.num_qubits() == gate.num_qubits())
 
@@ -190,7 +193,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         """
         super().__init__(terms, validator=self._is_compatible)
 
-    def _is_compatible(self, operation: raw_types.Operation) -> bool:
+    def _is_compatible(self, operation: 'cirq.Operation') -> bool:
         return isinstance(operation, raw_types.Operation)
 
     @property
@@ -246,17 +249,16 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         """Computes Pauli expansion of self from Pauli expansions of terms."""
 
-        def extend_term(pauli_names: str, qubits: Tuple[raw_types.Qid, ...],
-                        all_qubits: Tuple[raw_types.Qid, ...]) -> str:
+        def extend_term(pauli_names: str, qubits: Tuple['cirq.Qid', ...],
+                        all_qubits: Tuple['cirq.Qid', ...]) -> str:
             """Extends Pauli product on qubits to product on all_qubits."""
             assert len(pauli_names) == len(qubits)
             qubit_to_pauli_name = dict(zip(qubits, pauli_names))
             return ''.join(qubit_to_pauli_name.get(q, 'I') for q in all_qubits)
 
         def extend(expansion: value.LinearDict[str],
-                   qubits: Tuple[raw_types.Qid, ...],
-                   all_qubits: Tuple[raw_types.Qid, ...]
-                  ) -> value.LinearDict[str]:
+                   qubits: Tuple['cirq.Qid', ...],
+                   all_qubits: Tuple['cirq.Qid', ...]) -> value.LinearDict[str]:
             """Extends Pauli expansion on qubits to expansion on all_qubits."""
             return value.LinearDict({
                 extend_term(p, qubits, all_qubits): c

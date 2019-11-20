@@ -21,7 +21,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq._compat import deprecated
-from cirq.ops import raw_types, gate_features, op_tree
+from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> op_tree.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         return protocols.decompose_once_with_qubits(self.gate,
                                                     self.qubits,
                                                     NotImplemented)
@@ -140,8 +140,8 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)
