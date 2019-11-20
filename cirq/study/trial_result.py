@@ -14,8 +14,8 @@
 
 """Defines trial results."""
 
-from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
-                    TYPE_CHECKING, Union, Optional)
+from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
+                    TYPE_CHECKING, Tuple, TypeVar, Union)
 
 import collections
 import io
@@ -297,15 +297,15 @@ class TrialResult:
         return TrialResult(params=self.params, measurements=all_measurements)
 
     def _json_dict_(self):
-        packed_measurements = {
-            key: {
-                'packed_digits': _pack_digits(digits),
-                # Save the dtype because serialization may alter it to save
-                # space. Note that this implementation only supports
-                # fixed-width values, not arbitrary Python objects.
-                'dtype': digits.dtype.name
-            } for key, digits in self.measurements.items()
-        }
+        packed_measurements = {}
+        for key, digits in self.measurements.items():
+            packed_digits, binary = _pack_digits(digits)
+            packed_measurements[key] = {
+                'packed_digits': packed_digits,
+                'binary': binary,
+                'dtype': digits.dtype.name,
+                'shape': digits.shape
+            }
         return {
             'cirq_type': self.__class__.__name__,
             'params': self.params,
@@ -314,31 +314,44 @@ class TrialResult:
 
     @classmethod
     def _from_json_dict_(cls, params, measurements, **kwargs):
-        return cls(params=params,
-                   measurements={
-                       key: _unpack_digits(val['packed_digits'], val['dtype'])
-                       for key, val in measurements.items()
-                   })
+        return cls(
+            params=params,
+            measurements={
+                key: _unpack_digits(**val) for key, val in measurements.items()
+            })
 
 
-def _pack_digits(digits: np.ndarray) -> str:
-    # If digits are binary, pack them as bools to save space
-    bools = digits.astype(np.bool)
-    if np.array_equal(digits, bools):
-        digits = bools
-
+def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
+    """Returns a string of packed digits and a boolean indicating whether the
+    digits were packed as binary values."""
+    # If digits are binary, pack them better to save space
+    if np.array_equal(digits, digits.astype(np.bool)):
+        return _pack_bits(digits), True
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
     buffer.seek(0)
     packed_digits = buffer.read().hex()
     buffer.close()
-    return packed_digits
+    return packed_digits, False
 
 
-def _unpack_digits(digits_npy_hex: str, dtype: str) -> np.ndarray:
+def _pack_bits(bits: np.ndarray) -> str:
+    return np.packbits(bits).tobytes().hex()
+
+
+def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
+                   shape: Sequence[int]) -> np.ndarray:
+    if binary:
+        return _unpack_bits(packed_digits, dtype, shape)
     buffer = io.BytesIO()
-    buffer.write(bytes.fromhex(digits_npy_hex))
+    buffer.write(bytes.fromhex(packed_digits))
     buffer.seek(0)
     digits = np.load(buffer, allow_pickle=False).astype(np.dtype(dtype))
     buffer.close()
     return digits
+
+
+def _unpack_bits(packed_bits: str, dtype: str, shape: Sequence[int]):
+    bits_bytes = bytes.fromhex(packed_bits)
+    bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
+    return bits[:np.prod(shape)].reshape(shape).astype(np.dtype(dtype))
