@@ -346,7 +346,7 @@ def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(packed_digits))
     buffer.seek(0)
-    digits = np.load(buffer, allow_pickle=False).astype(np.dtype(dtype))
+    digits = np.load(buffer, allow_pickle=False)
     buffer.close()
     return digits
 
