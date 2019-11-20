@@ -544,9 +544,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
-    cirq.testing.assert_asyncio_still_running
-    cirq.testing.assert_asyncio_will_have_result
-    cirq.testing.assert_asyncio_will_raise
+    cirq.testing.asyncio_not_finishing
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
