@@ -15,28 +15,25 @@
 """Pushes 180 degree rotations around axes in the XY plane later in the circuit.
 """
 
-from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple
+from typing import Optional, cast, TYPE_CHECKING, Iterable, Tuple, Dict, List
 import sympy
 
 from cirq import circuits, ops, value, protocols
 from cirq.optimizers import decompositions
 
 if TYPE_CHECKING:
-    from typing import Dict, List
-
-
-
+    import cirq
 
 
 class _OptimizerState:
     def __init__(self):
         # The phases of the W gates currently being pushed along each qubit.
-        self.held_w_phases = {}  # type: Dict[ops.Qid, value.TParamVal]
+        self.held_w_phases: Dict[ops.Qid, value.TParamVal] = {}
 
         # Accumulated commands to batch-apply to the circuit later.
-        self.deletions = []  # type: List[Tuple[int, ops.Operation]]
-        self.inline_intos = []  # type: List[Tuple[int, ops.Operation]]
-        self.insertions = []  # type: List[Tuple[int, ops.Operation]]
+        self.deletions: List[Tuple[int, ops.Operation]] = []
+        self.inline_intos: List[Tuple[int, ops.Operation]] = []
+        self.insertions: List[Tuple[int, ops.Operation]] = []
 
 
 class EjectPhasedPaulis():
@@ -231,9 +228,8 @@ def _potential_cross_partial_w(moment_index: int,
     state.inline_intos.append((moment_index, new_op))
 
 
-def _single_cross_over_cz(moment_index: int,
-                          op: ops.Operation,
-                          qubit_with_w: ops.Qid,
+def _single_cross_over_cz(moment_index: int, op: ops.Operation,
+                          qubit_with_w: 'cirq.Qid',
                           state: _OptimizerState) -> None:
     """Crosses exactly one W flip over a partial CZ.
 

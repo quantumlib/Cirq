@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Optional, Tuple
+from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -20,12 +20,15 @@ from cirq import protocols
 from cirq.ops import raw_types
 from cirq.ops.measurement_gate import MeasurementGate
 
+if TYPE_CHECKING:
+    import cirq
+
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
 
 
-def measure(*target: raw_types.Qid,
+def measure(*target: 'cirq.Qid',
             key: Optional[str] = None,
             invert_mask: Tuple[bool, ...] = ()) -> raw_types.Operation:
     """Returns a single MeasurementGate applied to all the given qubits.
@@ -61,7 +64,7 @@ def measure(*target: raw_types.Qid,
     return MeasurementGate(len(target), key, invert_mask, qid_shape).on(*target)
 
 
-def measure_each(*qubits: raw_types.Qid,
+def measure_each(*qubits: 'cirq.Qid',
                  key_func: Callable[[raw_types.Qid], str] = str
                 ) -> List[raw_types.Operation]:
     """Returns a list of operations individually measuring the given qubits.

@@ -85,7 +85,7 @@ class FSimGate(gate_features.TwoQubitGate,
         return not self._is_parameterized_()
 
     def _unitary_(self) -> Optional[np.ndarray]:
-        if cirq.is_parameterized(self):
+        if self._is_parameterized_():
             return None
         a = math.cos(self.theta)
         b = -1j * math.sin(self.theta)
@@ -172,6 +172,6 @@ def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
     if radians == -np.pi:
         return '-' + unit
     if args.precision is not None:
-        quantity = '{{:.{}}}'.format(args.precision).format(radians / np.pi)
+        quantity = args.format_real(radians / np.pi)
         return quantity + unit
     return repr(radians)
