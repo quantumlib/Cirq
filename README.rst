@@ -26,7 +26,6 @@ Documentation for the latest **unstable** version of cirq (tracks the repository
 
 Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://cirq.readthedocs.io/en/stable/>`_.
 
-
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
