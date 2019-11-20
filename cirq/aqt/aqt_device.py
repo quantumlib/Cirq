@@ -130,6 +130,7 @@ class AQTNoiseModel(devices.NoiseModel):
 
 class AQTSimulator:
     """A simulator for the AQT device."""
+
     def __init__(self,
                  num_qubits: int,
                  circuit: Circuit = Circuit(),

@@ -73,7 +73,7 @@ class AQTSampler(Sampler):
         which is a list of sequential quantum operations,
         each operation defined by:
 
-        op_string: str that specifies the operation type, either "X","Y","Z","MS"
+        op_string: str that specifies the operation type: "X","Y","Z","MS"
         gate_exponent: float that specifies the gate_exponent of the operation
         qubits: list of qubits where the operation acts on.
         """
@@ -119,8 +119,7 @@ class AQTSampler(Sampler):
 
         The experimental data is returned via the key 'data'
         """
-        header = {"Ocp-Apim-Subscription-Key": self.access_token,
-                  "SDK": "cirq"}
+        header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
         response = put(self.remote_host,
                        data={
                            'data': json_str,

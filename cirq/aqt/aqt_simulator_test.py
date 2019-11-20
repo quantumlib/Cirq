@@ -55,8 +55,8 @@ def test_x_crosstalk_n_noise():
     noise_mod = AQTNoiseModel()
     device, qubits = get_aqt_device(num_qubits)
     circuit = Circuit(device=device)
-    circuit.append(Y(qubits[1]) ** 0.5)
-    circuit.append(Z(qubits[1]) ** 0.5)
+    circuit.append(Y(qubits[1])**0.5)
+    circuit.append(Z(qubits[1])**0.5)
     circuit.append(X(qubits[1])**0.5)
     for moment in circuit.moments:
         noisy_moment = noise_mod.noisy_moment(moment, qubits)
