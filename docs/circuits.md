@@ -449,9 +449,9 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 |`sdg`|`cirq.S**-1`|| 
 |`t`|`cirq.T`|| 
 |`tdg`|`cirq.T**-1`||
-|`rx(θ)`|`cirq.Rx(θ)`|| 
-|`ry(θ)`|`cirq.Ry(θ)`|| 
-|`rz(θ)`|`cirq.Rz(θ)`|| 
+|`rx(θ)`|`cirq.rx(θ)`|| 
+|`ry(θ)`|`cirq.ry(θ)`|| 
+|`rz(θ)`|`cirq.rz(θ)`|| 
 |`cx`|`cirq.CX`|| 
 |`cy`|`cirq.ControlledGate(cirq.Y)`|| 
 |`cz`|`cirq.CZ`|| 

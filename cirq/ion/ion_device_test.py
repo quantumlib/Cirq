@@ -77,8 +77,9 @@ def test_decomposition():
     q0 = cirq.LineQubit(0)
     q1 = cirq.LineQubit(1)
     assert d.decompose_operation(cirq.H(q0)) == [
-        cirq.Rx(np.pi*1.0).on(cirq.LineQubit(0)),
-        cirq.Ry(np.pi*-0.5).on(cirq.LineQubit(0))]
+        cirq.rx(np.pi * 1.0).on(cirq.LineQubit(0)),
+        cirq.ry(np.pi * -0.5).on(cirq.LineQubit(0))
+    ]
     circuit = cirq.Circuit()
     circuit.append([cirq.X(q0), cirq.CNOT(q0, q1)])
     ion_circuit = d.decompose_circuit(circuit)
