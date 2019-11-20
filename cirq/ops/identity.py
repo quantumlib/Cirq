@@ -183,9 +183,6 @@ class IdentityOperation(raw_types.Operation):
     def __new__(cls, qubits: Sequence['cirq.Qid']):
         return IdentityGate(qid_shape=protocols.qid_shape(qubits)).on(*qubits)
 
-    def gate(self) -> 'cirq.IdentityGate':
-        return IdentityGate(qid_shape=self._qid_shape_())
-
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         raise NotImplementedError('deprecated')

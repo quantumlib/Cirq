@@ -439,9 +439,6 @@ def test_inverse_composite_standards():
         def _has_unitary_(self):
             return True
 
-        def _circuit_diagram_info_(self, args):
-            return 's!'
-
         def _value_equality_values_(self):
             return ()
 
