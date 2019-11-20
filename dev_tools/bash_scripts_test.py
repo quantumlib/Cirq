@@ -240,7 +240,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err.split() == (
-       "Comparing against revision 'HEAD'.\n"
+        "Comparing against revision 'HEAD'.\n"
         "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
