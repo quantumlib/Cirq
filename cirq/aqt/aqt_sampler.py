@@ -87,6 +87,8 @@ class AQTSampler(Sampler):
             op_str = get_op_string(op)
             gate = cast(ops.EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
+        if len(seq_list) == 0:
+            raise RuntimeError('Cannot send an empty circuit')
         json_str = json.dumps(seq_list)
         return json_str
 

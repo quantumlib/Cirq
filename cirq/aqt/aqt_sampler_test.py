@@ -121,6 +121,21 @@ def test_aqt_sampler_error_handling():
                                              params=sweep,
                                              repetitions=repetitions)
 
+def test_aqt_sampler_empty_circuit():
+    num_points = 10
+    max_angle = np.pi
+    repetitions = 1000
+    num_qubits = 4
+    device, qubits = get_aqt_device(num_qubits)
+    sampler = AQTSamplerLocalSimulator()
+    sampler.simulate_ideal = True
+    circuit = Circuit(device=device)
+    sweep = study.Linspace(key='theta',
+                           start=0.1,
+                           stop=max_angle / np.pi,
+                           length=num_points)
+    with pytest.raises(RuntimeError):
+        _results = sampler.run_sweep(circuit, params=sweep, repetitions=repetitions)
 
 def test_aqt_sampler():
     put_call_args0 = {
