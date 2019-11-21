@@ -33,7 +33,7 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import proper_repr
 from cirq._doc import document
-from cirq.ops import gate_features, eigen_gate, raw_types
+from cirq.ops import controlled_gate, gate_features, eigen_gate, raw_types
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -387,15 +387,20 @@ class ZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for ZPow to return corresponding CZPow when
-        controlled by a single qubit.
+        Specialize controlled for ZPow to return corresponding controlled CZPow
+        when the last control (which acts first semantically) is a default-type
+        control qubit.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (result.control_values == ((1,),) and  # type: ignore
-                result.control_qid_shape == (2,)):  # type: ignore
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
             return cirq.CZPowGate(exponent=self._exponent,
-                                  global_shift=self._global_shift)
+                                  global_shift=self._global_shift).controlled(
+                                      result.num_controls() - 1,
+                                      result.control_values[:-1],
+                                      result.control_qid_shape[:-1])
         return result
 
     def _eigen_components(self):
