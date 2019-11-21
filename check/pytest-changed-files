@@ -73,4 +73,4 @@ echo "Found ${num_changed} test files associated with changes." >&2
 if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
-pytest ${rest} "${changed[@]}"
+pytest ${rest} ${changed[@]}
