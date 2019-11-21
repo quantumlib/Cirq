@@ -1,0 +1,10 @@
+[
+  {
+    "cirq_type": "_NamedConstantXmonDevice",
+    "constant": "cirq.google.Foxtail"
+  },
+  {
+    "cirq_type": "_NamedConstantXmonDevice",
+    "constant": "cirq.google.Bristlecone"
+  }
+]

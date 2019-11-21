@@ -420,8 +420,7 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: Optional[Union[int, np.random.RandomState]] = None
-              ) -> np.ndarray:
+               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -440,12 +439,11 @@ class StepResult(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
-    def sample_measurement_ops(
-            self,
-            measurement_ops: List[ops.GateOperation],
-            repetitions: int = 1,
-            seed: Optional[Union[int, np.random.RandomState]] = None
-    ) -> Dict[str, np.ndarray]:
+    def sample_measurement_ops(self,
+                               measurement_ops: List[ops.GateOperation],
+                               repetitions: int = 1,
+                               seed: value.RANDOM_STATE_LIKE = None
+                              ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.

@@ -35,7 +35,14 @@ User Documentation
     qudits
     development
     examples
-    dev/plotting
+
+Developer Documentation
+-----------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    dev/index.rst
 
 
 API Reference

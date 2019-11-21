@@ -14,13 +14,16 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple, Optional, Iterable
+from typing import cast, Any, Tuple, Optional, Iterable, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, protocols
 from cirq._compat import proper_repr, deprecated
 from cirq.ops import gate_features, raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class MatrixGate(raw_types.Gate):
@@ -43,8 +46,9 @@ class MatrixGate(raw_types.Gate):
         if qid_shape is None:
             n = int(np.round(np.log2(matrix.shape[0] or 1)))
             if 2**n != matrix.shape[0]:
-                raise ValueError('Matrix width is not a power of 2 and '
-                                 'qid_shape is not specified.')
+                raise ValueError(
+                    f'Matrix width ({matrix.shape[0]}) is not a power of 2 and '
+                    f'qid_shape is not specified.')
             qid_shape = (2,) * n
 
         self._matrix = matrix
@@ -77,7 +81,7 @@ class MatrixGate(raw_types.Gate):
             return NotImplemented
         e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
-        return MatrixGate(new_mat)
+        return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
         if not isinstance(phase_turns, (int, float)):
@@ -100,8 +104,8 @@ class MatrixGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.copy(self._matrix)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
@@ -125,7 +129,10 @@ class MatrixGate(raw_types.Gate):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.MatrixGate({})'.format(proper_repr(self._matrix))
+        if all(e == 2 for e in self._qid_shape):
+            return f'cirq.MatrixGate({proper_repr(self._matrix)})'
+        return (f'cirq.MatrixGate({proper_repr(self._matrix)}, '
+                f'qid_shape={self._qid_shape})')
 
     def __str__(self):
         return str(self._matrix.round(3))

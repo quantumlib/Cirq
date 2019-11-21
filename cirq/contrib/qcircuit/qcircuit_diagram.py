@@ -11,13 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import TYPE_CHECKING
 
 from cirq import circuits, ops
 from cirq.contrib.qcircuit.qcircuit_diagram_info import (
     escape_text_for_latex, get_qcircuit_diagram_info)
 
+if TYPE_CHECKING:
+    import cirq
 
-def qcircuit_qubit_namer(qubit: ops.Qid) -> str:
+
+def qcircuit_qubit_namer(qubit: 'cirq.Qid') -> str:
     """Returns the latex code for a QCircuit label of given qubit.
 
         Args:

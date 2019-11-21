@@ -65,7 +65,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.givens
     cirq.identity_each
+    cirq.riswap
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
@@ -144,6 +146,7 @@ and products of Pauli operations.
     :toctree: generated/
 
     cirq.PAULI_BASIS
+    cirq.PAULI_GATE_LIKE
     cirq.PAULI_STRING_LIKE
     cirq.pow_pauli_combination
     cirq.BaseDensePauliString
@@ -410,6 +413,7 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
+    cirq.estimate_single_qubit_readout_errors
     cirq.generate_boixo_2018_supremacy_circuits_v2
     cirq.generate_boixo_2018_supremacy_circuits_v2_bristlecone
     cirq.generate_boixo_2018_supremacy_circuits_v2_grid
@@ -428,6 +432,7 @@ run experiments.
     cirq.experiments.CrossEntropyResult
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
+    cirq.experiments.SingleQubitReadoutCalibrationResult
     cirq.experiments.T1DecayResult
     cirq.experiments.TomographyResult
 
@@ -441,6 +446,7 @@ Support for ion trap an neutral atom devices.
     :toctree: generated/
 
     cirq.MS
+    cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
     cirq.two_qubit_matrix_to_ion_operations

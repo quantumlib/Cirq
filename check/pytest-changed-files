@@ -58,13 +58,19 @@ changed=$(git diff --name-only ${rev} -- \
     | sed -e "s/\.py$/_test.py/" \
     | sed -e "s/_test_test\.py$/_test.py/" \
     | perl -ne 'chomp(); if (-e $_) {print "$_\n"}' \
+    | sort \
     | uniq \
 )
-num_changed=$(echo -e "${changed}" | wc -w)
+if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
+  # Include global API tests when an __init__ file is touched.
+  changed+=('docs/docs_coverage_test.py')
+  changed+=('cirq/protocols/json_test.py')
+fi
+num_changed=$(echo -e "${changed[@]}" | wc -w)
 
 # Run it.
-echo "Found ${num_changed} differing files with associated tests." >&2
-if [ -z "${changed}" ]; then
+echo "Found ${num_changed} test files associated with changes." >&2
+if [ "${num_changed}" -eq 0 ]; then
     exit 0
 fi
-pytest ${rest} ${changed}
+pytest ${rest} "${changed[@]}"
