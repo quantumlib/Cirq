@@ -23,9 +23,9 @@ def test_consistency_with_qasm_output_and_qiskit():
     qubits = [cirq.NamedQubit('q_{}'.format(i)) for i in range(4)]
     a, b, c, d = qubits
     circuit1 = cirq.Circuit(
-        cirq.Rx(np.pi / 2).on(a),
-        cirq.Ry(np.pi / 2).on(b),
-        cirq.Rz(np.pi / 2).on(b),
+        cirq.rx(np.pi / 2).on(a),
+        cirq.ry(np.pi / 2).on(b),
+        cirq.rz(np.pi / 2).on(b),
         cirq.X.on(a),
         cirq.Y.on(b),
         cirq.Z.on(c),

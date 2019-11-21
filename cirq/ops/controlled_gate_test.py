@@ -310,8 +310,8 @@ def test_unitary():
     [
         cirq.X,
         cirq.X**0.5,
-        cirq.Rx(np.pi),
-        cirq.Rx(np.pi / 2),
+        cirq.rx(np.pi),
+        cirq.rx(np.pi / 2),
         cirq.Z,
         cirq.H,
         cirq.CNOT,

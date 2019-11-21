@@ -381,9 +381,9 @@ def test_unknown_function():
 
 
 rotation_gates = [
-    ('rx', cirq.Rx),
-    ('ry', cirq.Ry),
-    ('rz', cirq.Rz),
+    ('rx', cirq.rx),
+    ('ry', cirq.ry),
+    ('rz', cirq.rz),
 ]
 
 

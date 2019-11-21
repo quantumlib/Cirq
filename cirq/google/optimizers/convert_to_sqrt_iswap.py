@@ -179,15 +179,15 @@ def cphase_to_sqrt_iswap(a, b, turns):
         phi = np.arcsin(np.sqrt(2) * np.sin(theta_prime / 4))
         xi = np.arctan(np.tan(phi) / np.sqrt(2))
 
-    yield cirq.Rz(sign * 0.5 * theta_prime).on(a)
-    yield cirq.Rz(sign * 0.5 * theta_prime).on(b)
-    yield cirq.Rx(xi).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(b)
+    yield cirq.rx(xi).on(a)
     yield cirq.X(b)**(-sign * 0.5)
     yield SQRT_ISWAP_INV(a, b)
-    yield cirq.Rx(-2 * phi).on(a)
+    yield cirq.rx(-2 * phi).on(a)
     yield SQRT_ISWAP(a, b)
 
-    yield cirq.Rx(xi).on(a)
+    yield cirq.rx(xi).on(a)
     yield cirq.X(b)**(sign * 0.5)
     # Corrects global phase
     yield cirq.GlobalPhaseOperation(np.exp(sign * theta_prime * 0.25j))
@@ -210,14 +210,14 @@ def cphase_symbols_to_sqrt_iswap(a, b, turns):
     phi = sympy.asin(np.sqrt(2) * sympy.sin(theta_prime / 4))
     xi = sympy.atan(sympy.tan(phi) / np.sqrt(2))
 
-    yield cirq.Rz(sign * 0.5 * theta_prime).on(a)
-    yield cirq.Rz(sign * 0.5 * theta_prime).on(b)
-    yield cirq.Rx(xi).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(a)
+    yield cirq.rz(sign * 0.5 * theta_prime).on(b)
+    yield cirq.rx(xi).on(a)
     yield cirq.X(b)**(-sign * 0.5)
     yield SQRT_ISWAP_INV(a, b)
-    yield cirq.Rx(-2 * phi).on(a)
+    yield cirq.rx(-2 * phi).on(a)
     yield SQRT_ISWAP(a, b)
-    yield cirq.Rx(xi).on(a)
+    yield cirq.rx(xi).on(a)
     yield cirq.X(b)**(sign * 0.5)
 
 
