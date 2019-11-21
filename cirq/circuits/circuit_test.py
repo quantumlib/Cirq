@@ -37,15 +37,6 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
             raise ValueError('not isinstance({!r}, {!r})'.format(
                 moment, cirq.Moment))
 
-    def duration_of(self, operation):
-        return cirq.Duration(picos=0) # coverage: ignore
-
-    def validate_schedule(self, schedule):
-        pass
-
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        pass
-
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
@@ -125,20 +116,7 @@ def test_approx_eq():
 
     class TestDevice(cirq.Device):
 
-        def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
-            pass
-
         def validate_operation(self, operation: cirq.Operation) -> None:
-            pass
-
-        def validate_scheduled_operation(
-                self,
-                schedule: cirq.Schedule,
-                scheduled_operation: cirq.ScheduledOperation
-        ) -> None:
-            pass
-
-        def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
             pass
 
     a = cirq.NamedQubit('a')

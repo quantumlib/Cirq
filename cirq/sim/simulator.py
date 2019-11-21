@@ -34,8 +34,8 @@ from typing import (
     List,
     Sequence,
     Tuple,
-    Union,
     Optional,
+    TYPE_CHECKING,
 )
 
 import abc
@@ -43,8 +43,10 @@ import collections
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, schedules, study, value, work
+from cirq import circuits, ops, protocols, study, value, work
 
+if TYPE_CHECKING:
+    import cirq
 
 
 class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
@@ -55,17 +57,17 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
     def run_sweep(
         self,
-        program: Union[circuits.Circuit, schedules.Schedule],
+        program: 'cirq.Circuit',
         params: study.Sweepable,
         repetitions: int = 1,
     ) -> List[study.TrialResult]:
-        """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
+        """Runs the supplied Circuit, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
@@ -73,8 +75,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        circuit = (program.to_circuit()
-                   if isinstance(program, schedules.Schedule) else program)
+        circuit = program
         if not circuit.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
@@ -123,7 +124,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
 
     def compute_amplitudes(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
+            program: 'cirq.Circuit',
             bitstrings: Sequence[int],
             param_resolver: 'study.ParamResolverOrSimilarType' = None,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -133,7 +134,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         The initial state is assumed to be the all zeros state.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
@@ -153,7 +154,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def compute_amplitudes_sweep(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
+            program: 'cirq.Circuit',
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -163,7 +164,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
         The initial state is assumed to be the all zeros state.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             bitstrings: The bitstrings whose amplitudes are desired, input
                 as an integer array where each integer is formed from measured
                 qubit values according to `qubit_order` from most to least
@@ -193,18 +194,18 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
 
     def simulate(
         self,
-        program: Union[circuits.Circuit, schedules.Schedule],
+        program: 'cirq.Circuit',
         param_resolver: 'study.ParamResolverOrSimilarType' = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> 'SimulationTrialResult':
-        """Simulates the supplied Circuit or Schedule.
+        """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
         wave function.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             param_resolver: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -225,19 +226,19 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def simulate_sweep(
         self,
-        program: Union[circuits.Circuit, schedules.Schedule],
+        program: 'cirq.Circuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
-        """Simulates the supplied Circuit or Schedule.
+        """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
         over different parameter values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -266,19 +267,19 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
 
     def simulate_sweep(
         self,
-        program: Union[circuits.Circuit, schedules.Schedule],
+        program: 'cirq.Circuit',
         params: study.Sweepable,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
-        """Simulates the supplied Circuit or Schedule.
+        """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
         wave function. In contrast to simulate, this allows for sweeping
         over different parameter values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             params: Parameters to run with the program.
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
@@ -291,8 +292,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = (program.to_circuit()
-                   if isinstance(program, schedules.Schedule) else program)
+        circuit = program
 
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)

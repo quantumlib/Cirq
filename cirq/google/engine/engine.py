@@ -41,7 +41,7 @@ from apiclient.http import HttpRequest
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, optimizers, schedules, study, value
+from cirq import circuits, optimizers, study, value
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,
@@ -65,8 +65,8 @@ class EngineException(Exception):
         super().__init__(message)
 
 
-# Quantum programs to run can be specified as circuits or schedules.
-TProgram = Union[circuits.Circuit, schedules.Schedule]
+# Quantum programs to run can be specified as circuits.
+TProgram = 'cirq.Circuit'
 
 
 def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
@@ -234,10 +234,10 @@ class Engine:
             processor_ids: Sequence[str] = ('xmonsim',),
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
+            program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
@@ -267,19 +267,6 @@ class Engine:
                            processor_ids=processor_ids,
                            gate_set=gate_set))[0]
 
-    def program_as_schedule(self, program: TProgram) -> schedules.Schedule:
-        if isinstance(program, circuits.Circuit):
-            device = program.device
-            circuit_copy = program.copy()
-            optimizers.DropEmptyMoments().optimize_circuit(circuit_copy)
-            device.validate_circuit(circuit_copy)
-            return schedules.moment_by_moment_schedule(device, circuit_copy)
-
-        if isinstance(program, schedules.Schedule):
-            return program
-
-        raise TypeError('Unexpected program type.')
-
     def run_sweep(
             self,
             *,  # Force keyword args.
@@ -292,13 +279,13 @@ class Engine:
             processor_ids: Sequence[str] = ('xmonsim',),
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
+            program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
@@ -469,11 +456,10 @@ class Engine:
             program_id: Optional[str] = None,
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit or Scheduler for use with the Quantum Engine.
+        """Wraps a Circuitr for use with the Quantum Engine.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
+            program: The Circuit to execute.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
@@ -506,19 +492,18 @@ class Engine:
         gate_set = gate_set or gate_sets.XMON
 
         if self.proto_version == ProtoVersion.V1:
-            schedule = self.program_as_schedule(program)
-            schedule.device.validate_schedule(schedule)
-
+            if isinstance(program, circuits.Circuit):
+                program.device.validate_circuit(program)
+            else:
+                raise TypeError(f'Unrecognized program type: {type(program)}')
             program_descriptor = v1.program_pb2.Program.DESCRIPTOR
             program_dict = {}  # type: Dict[str, Any]
             program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
             program_dict['operations'] = [
-                op for op in v1.schedule_to_proto_dicts(schedule)
+                op for op in v1.circuit_as_schedule_to_proto_dicts(program)
             ]
             return program_dict
         elif self.proto_version == ProtoVersion.V2:
-            if isinstance(program, schedules.Schedule):
-                program.device.validate_schedule(program)
             program = gate_set.serialize(program)
             return _any_dict_from_msg(program)
         else:

@@ -32,7 +32,7 @@ from requests import put
 from cirq import circuits, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep
 from cirq.aqt.aqt_device import AQTSimulator, get_op_string
-from cirq import study, ops, schedules, IonDevice
+from cirq import study, ops, IonDevice
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
@@ -168,16 +168,16 @@ class AQTSampler(Sampler):
         return measurements
 
     def run_sweep(self,
-                  program: Union[circuits.Circuit, schedules.Schedule],
+                  program: 'cirq.Circuit',
                   params: study.Sweepable,
                   repetitions: int = 1) -> List[study.TrialResult]:
-        """Samples from the given Circuit or Schedule.
+        """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
 
         Args:
-            program: The circuit or schedule to simulate.
+            program: The circuit to simulate.
             Should be generated using AQTSampler.generate_circuit_from_list
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -187,8 +187,7 @@ class AQTSampler(Sampler):
             resolver.
         """
         meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
-        circuit = (program.to_circuit()
-                   if isinstance(program, schedules.Schedule) else program)
+        circuit = program
         assert isinstance(circuit.device, IonDevice)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in study.to_resolvers(params):

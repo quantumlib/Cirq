@@ -39,7 +39,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
 
     def run_sweep(
             self,
-            program: Union[cirq.Circuit, cirq.Schedule],
+            program: 'cirq.Circuit',
             params: cirq.Sweepable,
             repetitions: int = 1,
     ) -> List[cirq.TrialResult]:

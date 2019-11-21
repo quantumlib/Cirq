@@ -103,20 +103,6 @@ class IonDevice(devices.Device):
                    for q in XXPow_op.qubits
                    for p in other_op.qubits)
 
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        self.validate_operation(scheduled_operation.operation)
-
-        if isinstance(scheduled_operation.operation.gate, ops.XXPowGate):
-            for other in schedule.operations_happening_at_same_time_as(
-                    scheduled_operation):
-                if self._check_if_XXPow_operation_interacts(
-                        cast(ops.GateOperation, scheduled_operation.operation),
-                        cast(ops.GateOperation, other.operation)):
-                    raise ValueError(
-                        'Simultaneous two-qubit '
-                        'operations on same qubit: {} vs {}.'.format(
-                            scheduled_operation, other))
-
     def validate_circuit(self, circuit: circuits.Circuit):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
@@ -132,12 +118,6 @@ class IonDevice(devices.Device):
                 cast(ops.GateOperation, operation),
                 cast(Iterable[ops.GateOperation], moment.operations))
         return True
-
-    def validate_schedule(self, schedule):
-        _verify_unique_measurement_keys(
-            s.operation for s in schedule.scheduled_operations)
-        for scheduled_operation in schedule.scheduled_operations:
-            self.validate_scheduled_operation(schedule, scheduled_operation)
 
     def at(self, position: int) -> Optional[devices.LineQubit]:
         """Returns the qubit at the given position, if there is one, else None.
