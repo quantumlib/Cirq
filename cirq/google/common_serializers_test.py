@@ -185,8 +185,8 @@ def test_serialize_sqrt_y_pow_gate():
     (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
     (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
     (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
-    (cirq.Rx(0.125 * np.pi), 0.0, 0.125),
-    (cirq.Ry(0.25 * np.pi), 0.5, 0.25),
+    (cirq.rx(0.125 * np.pi), 0.0, 0.125),
+    (cirq.ry(0.25 * np.pi), 0.5, 0.25),
 ])
 def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     op = gate.on(cirq.GridQubit(1, 2))
@@ -273,8 +273,8 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     (cirq.Y, 0.5, 1.0),
     (cirq.Y**0.25, 0.5, 0.25),
     (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
-    (cirq.Rx(0.125 * np.pi), 0.0, 0.125),
-    (cirq.Ry(0.25 * np.pi), 0.5, 0.25),
+    (cirq.rx(0.125 * np.pi), 0.0, 0.125),
+    (cirq.ry(0.25 * np.pi), 0.5, 0.25),
 ])
 def test_serialize_xy(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
@@ -361,7 +361,7 @@ def test_serialize_xy_parameterized_axis_half_turns():
 @pytest.mark.parametrize(('gate', 'half_turns'), [
     (cirq.Z, 1.0),
     (cirq.Z**0.125, 0.125),
-    (cirq.Rz(0.125 * np.pi), 0.125),
+    (cirq.rz(0.125 * np.pi), 0.125),
 ])
 def test_serialize_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
