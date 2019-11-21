@@ -11,11 +11,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Samplers for the AQT ion trap device"""
+"""Samplers to access the AQT ion trap devices via the provided API. For
+more information on these devices see the AQT homepage:
+
+https://www.aqt.eu
+
+API keys for classical simulators and quantum devices can be obtained at:
+
+https://gateway-portal.aqt.eu/
+
+"""
+
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, cast
+from typing import Iterable, List, Union, Tuple, Dict, cast
 
 import numpy as np
 from requests import put
@@ -48,13 +58,7 @@ class AQTSampler(Sampler):
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolverOrSimilarType,
     ) -> str:
-        """
-        Args:
-            circuit: Circuit to be run
-            param_resolver: Param resolver for the
-
-        Returns:
-            json formatted string of the sequence
+        """Generates the JSON string from a Circuit
 
         The json format is defined as follows:
 
@@ -63,14 +67,20 @@ class AQTSampler(Sampler):
         which is a list of sequential quantum operations,
         each operation defined by:
 
-        op_string: str that specifies the operation type, either "X","Y","MS"
+        op_string: str that specifies the operation type: "X","Y","Z","MS"
         gate_exponent: float that specifies the gate_exponent of the operation
         qubits: list of qubits where the operation acts on.
+
+        Args:
+            circuit: Circuit to be run
+            param_resolver: Param resolver for the
+
+        Returns:
+            json formatted string of the sequence
         """
 
         seq_list: List[Tuple[str, float, List[int]]] = []
         circuit = resolve_parameters(circuit, param_resolver)
-        # TODO: Check if circuit is empty
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[LineQubit], op.qubits)
             op = cast(ops.GateOperation, op)
@@ -78,6 +88,8 @@ class AQTSampler(Sampler):
             op_str = get_op_string(op)
             gate = cast(ops.EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
+        if len(seq_list) == 0:
+            raise RuntimeError('Cannot send an empty circuit')
         json_str = json.dumps(seq_list)
         return json_str
 
@@ -86,8 +98,17 @@ class AQTSampler(Sampler):
                    json_str: str,
                    id_str: Union[str, uuid.UUID],
                    repetitions: int = 1,
-                   num_qubits: int = 1):
+                   num_qubits: int = 1) -> np.ndarray:
         """Sends the json string to the remote AQT device
+
+        The interface is given by PUT requests to a single endpoint URL.
+        The first PUT will insert the circuit into the remote queue,
+        given a valid access key.
+        Every subsequent PUT will return a dictionary, where the key "status"
+        is either 'queued', if the circuit has not been processed yet or
+        'finished' if the circuit has been processed.
+        The experimental data is returned via the key 'data'
+
         Args:
             json_str: Json representation of the circuit.
             id_str: Unique id of the datapoint.
@@ -96,25 +117,21 @@ class AQTSampler(Sampler):
 
         Returns:
             Measurement results as an array of boolean.
-
-        The interface is given by PUT requests to a single endpoint URL.
-
-        The first PUT will insert the circuit into the remote queue,
-        given a valid access key.
-
-        Every subsequent PUT will retturn a dictionary, where the key "status"
-        is either 'queued', if the circuit has not been processed yet or
-        'finished' if the circuit has been processed.
-
-        The experimental data is returned via the key 'data'
         """
-        data = put(self.remote_host,
-                   data={
-                       'data': json_str,
-                       'access_token': self.access_token,
-                       'repetitions': repetitions,
-                       'no_qubits': num_qubits
-                   }).json()
+        header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
+        response = put(self.remote_host,
+                       data={
+                           'data': json_str,
+                           'access_token': self.access_token,
+                           'repetitions': repetitions,
+                           'no_qubits': num_qubits
+                       },
+                       headers=header)
+        response = response.json()
+        data = cast(Dict, response)
+        if 'status' not in data.keys():
+            raise RuntimeError('Got unexpected return data from server: \n' +
+                               str(data))
         if data['status'] == 'error':
             raise RuntimeError('AQT server reported error: \n' + str(data))
 
@@ -124,12 +141,14 @@ class AQTSampler(Sampler):
         id_str = data['id']
 
         while True:
-            data = put(self.remote_host,
-                       data={
-                           'id': id_str,
-                           'access_token': self.access_token
-                       }).json()
-            print(data)
+            response = put(self.remote_host,
+                           data={
+                               'id': id_str,
+                               'access_token': self.access_token
+                           },
+                           headers=header)
+            response = response.json()
+            data = cast(Dict, response)
             if 'status' not in data.keys():
                 raise RuntimeError(
                     'Got unexpected return data from AQT server: \n' +
@@ -163,13 +182,11 @@ class AQTSampler(Sampler):
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
-        The parameters remote_host and access_token are not used.
-
         Returns:
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        meas_name = 'm'  # TODO: Get measurement name from circuit
+        meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
         circuit = (program.to_circuit()
                    if isinstance(program, schedules.Schedule) else program)
         assert isinstance(circuit.device, IonDevice)
@@ -190,15 +207,16 @@ class AQTSampler(Sampler):
         return trial_results
 
 
-class AQTRemoteSimulator(AQTSampler):
-    """Sampler using the AQT simulator
-    When the attribute simulate_ideal is set to True,0
-    an ideal circuit is sampled
+class AQTSamplerLocalSimulator(AQTSampler):
+    """Sampler using the AQT simulator on the local machine.
 
+    Can be used as a replacement for the AQTSampler
+    When the attribute simulate_ideal is set to True,
+    an ideal circuit is sampled
     If not, the error model defined in aqt_simulator_test.py is used
     Example for running the ideal sampler:
 
-    sampler = AQTSamplerSim()
+    sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal=True
     """
 
@@ -206,9 +224,7 @@ class AQTRemoteSimulator(AQTSampler):
                  remote_host: str = '',
                  access_token: str = '',
                  simulate_ideal: bool = False):
-        """
-
-        Args:
+        """Args:
             remote_host: Remote host is not used by the local simulator.
             access_token: Access token is not used by the local simulator.
             simulate_ideal: Boolean that determines whether a noisy or
@@ -225,6 +241,7 @@ class AQTRemoteSimulator(AQTSampler):
                    repetitions: int = 1,
                    num_qubits: int = 1) -> np.ndarray:
         """Replaces the remote host with a local simulator
+
         Args:
             json_str: Json representation of the circuit.
             id_str: Unique id of the datapoint.
