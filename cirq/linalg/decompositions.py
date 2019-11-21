@@ -430,10 +430,12 @@ class KakDecomposition:
 
     def __init__(self,
                  *,
-                 global_phase: complex,
-                 single_qubit_operations_before: Tuple[np.ndarray, np.ndarray],
+                 global_phase: complex = complex(1),
+                 single_qubit_operations_before: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None,
                  interaction_coefficients: Tuple[float, float, float],
-                 single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
+                 single_qubit_operations_after: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None):
         """Initializes a decomposition for a two-qubit operation U.
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
@@ -444,10 +446,18 @@ class KakDecomposition:
             interaction_coefficients: x, y, z from the above equation.
             single_qubit_operations_after: a0, a1 from the above equation.
         """
-        self.global_phase = global_phase
-        self.single_qubit_operations_before = single_qubit_operations_before
+        self.global_phase: complex = global_phase
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after = single_qubit_operations_after
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
 
     def _value_equality_values_(self):
         def flatten(x):

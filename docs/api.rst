@@ -388,6 +388,7 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
