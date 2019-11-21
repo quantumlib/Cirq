@@ -63,7 +63,5 @@ def test_gates():
     q1 = cirq.GridQubit(0, 1)
 
     # Create a circuit
-    circuit = cirq.Circuit(
-        cirq.CZ00(q0, q1)**0.5,
-    )
+    circuit = cirq.Circuit(cirq.CZ00(q0, q1)**0.5,)
     cirq.final_wavefunction(circuit)
