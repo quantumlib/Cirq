@@ -22,6 +22,7 @@ from typing import Optional, Union
 
 import numpy as np
 
+import cirq
 from cirq import protocols
 from cirq._compat import proper_repr
 from cirq._doc import document

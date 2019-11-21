@@ -64,11 +64,6 @@ def test_gates():
 
     # Create a circuit
     circuit = cirq.Circuit(
-        cirq.CZ00(q0, q1)**0.5,  # Square root of NOT.
+        cirq.CZ00(q0, q1)**0.5,
     )
-    print("Circuit:")
-    print(circuit)
-
-    # Simulate the circuit several times.
-    simulator = cirq.Simulator()
-    simulator.run(circuit, repetitions=20)
+    cirq.final_wavefunction(circuit)
