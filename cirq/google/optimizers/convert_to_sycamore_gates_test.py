@@ -146,7 +146,7 @@ def test_zztheta_qaoa_like():
     class ConvertZZToSycamore(cirq.PointOptimizer):
 
         def optimization_at(self, circuit, index, op):
-            if cirq.op_gate_of_type(op, cirq.ZZPowGate):
+            if isinstance(op, cirq.ZZPowGate):
                 return cirq.PointOptimizationSummary(
                     clear_span=1,
                     clear_qubits=op.qubits,
