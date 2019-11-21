@@ -35,6 +35,7 @@ from cirq.google.devices import (
     Foxtail,
     SerializableDevice,
     Sycamore,
+    Sycamore23,
     XmonDevice,
 )
 

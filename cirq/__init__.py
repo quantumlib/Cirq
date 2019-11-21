@@ -244,8 +244,11 @@ from cirq.ops import (
     ResetChannel,
     riswap,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     SingleQubitCliffordGate,
     SingleQubitGate,
@@ -277,6 +280,7 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
