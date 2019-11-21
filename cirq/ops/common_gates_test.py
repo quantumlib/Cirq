@@ -121,15 +121,59 @@ def test_z_init():
     assert cirq.Z**0.5 != cirq.Z**-0.5
     assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
     assert cirq.Z**-1 == cirq.Z
-    assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
-        cirq.Z, num_controls=2)
+
+
+def test_z_control():
+    # Single qubit control on Z gives a CZ
+    assert cirq.Z.controlled() == cirq.CZ
     assert cirq.Z.controlled(num_controls=1) == cirq.CZ
     assert cirq.Z.controlled(control_values=((1,),)) == cirq.CZ
     assert cirq.Z.controlled(control_qid_shape=(2,)) == cirq.CZ
+
+    # Also works for any ZPow.
+    assert cirq.ZPowGate(exponent=5).controlled() == cirq.CZPowGate(exponent=5)
+
+    # For multi-qudit controls, if the last control is a qubit with control
+    # value 1, construct a CZ leaving the rest of the controls as is.
+    assert cirq.Z.controlled().controlled() == cirq.ControlledGate(
+        cirq.CZ, num_controls=1)
+    assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
+        cirq.CZ, num_controls=1)
+    assert cirq.Z.controlled(control_values=((0,), (0,),
+                                             (1,))) == cirq.ControlledGate(
+                                                 cirq.CZ,
+                                                 num_controls=2,
+                                                 control_values=((0,), (0,)))
+    assert cirq.Z.controlled(control_qid_shape=(3, 3,
+                                                2)) == cirq.ControlledGate(
+                                                    cirq.CZ,
+                                                    num_controls=2,
+                                                    control_qid_shape=(3, 3))
+    assert cirq.Z.controlled(control_qid_shape=(2,)).controlled(
+        control_qid_shape=(3,)).controlled(
+            control_qid_shape=(4,)) == cirq.ControlledGate(
+                cirq.CZ, num_controls=2, control_qid_shape=(3, 4))
+
+    # When a control_value 1 qubit is not acting first, results in a regular
+    # ControlledGate on Z instance.
     assert cirq.Z.controlled(num_controls=1,
                              control_qid_shape=(3,)) == cirq.ControlledGate(
                                  cirq.Z, num_controls=1, control_qid_shape=(3,))
-    assert z.controlled() == cirq.CZPowGate(exponent=5)
+    assert cirq.Z.controlled(control_values=((0,), (1,),
+                                             (0,))) == cirq.ControlledGate(
+                                                 cirq.Z,
+                                                 num_controls=3,
+                                                 control_values=((0,), (1,),
+                                                                 (0,)))
+    assert cirq.Z.controlled(control_qid_shape=(3, 2,
+                                                3)) == cirq.ControlledGate(
+                                                    cirq.Z,
+                                                    num_controls=3,
+                                                    control_qid_shape=(3, 2, 3))
+    assert cirq.Z.controlled(control_qid_shape=(3,)).controlled(
+        control_qid_shape=(2,)).controlled(
+            control_qid_shape=(4,)) == cirq.ControlledGate(
+                cirq.Z, num_controls=3, control_qid_shape=(3, 2, 4))
 
 
 def test_rot_gates_eq():
