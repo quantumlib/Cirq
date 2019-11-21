@@ -548,7 +548,6 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
-    cirq.testing.asyncio_not_finishing
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
@@ -563,6 +562,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.asyncio_not_finishing
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
     cirq.testing.random_circuit
