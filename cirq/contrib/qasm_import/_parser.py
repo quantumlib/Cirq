@@ -173,17 +173,17 @@ class QasmParser:
     qelib_gates = {
         'rx':
         QasmGateStatement(qasm_gate='rx',
-                          cirq_gate=(lambda params: ops.Rx(params[0])),
+                          cirq_gate=(lambda params: ops.rx(params[0])),
                           num_params=1,
                           num_args=1),
         'ry':
         QasmGateStatement(qasm_gate='ry',
-                          cirq_gate=(lambda params: ops.Ry(params[0])),
+                          cirq_gate=(lambda params: ops.ry(params[0])),
                           num_params=1,
                           num_args=1),
         'rz':
         QasmGateStatement(qasm_gate='rz',
-                          cirq_gate=(lambda params: ops.Rz(params[0])),
+                          cirq_gate=(lambda params: ops.rz(params[0])),
                           num_params=1,
                           num_args=1),
         'id':

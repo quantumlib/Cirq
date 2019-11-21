@@ -52,6 +52,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.XX
     cirq.YY
     cirq.ZZ
+    cirq.rx
+    cirq.ry
+    cirq.rz
     cirq.Rx
     cirq.Ry
     cirq.Rz

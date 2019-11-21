@@ -31,7 +31,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq._doc import document
 from cirq.ops import controlled_gate, gate_features, eigen_gate, raw_types
 
@@ -64,7 +64,7 @@ class XPowGate(eigen_gate.EigenGate,
 
     Note in particular that this gate has a global phase factor of
     e^{i·π·t/2} vs the traditionally defined rotation matrices
-    about the Pauli X axis. See `cirq.Rx` for rotations without the global
+    about the Pauli X axis. See `cirq.rx` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
@@ -171,10 +171,10 @@ class XPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.Rx({})'.format(
+                return 'cirq.rx({})'.format(
                     proper_repr(sympy.pi * self._exponent))
 
-            return 'cirq.Rx(np.pi*{})'.format(proper_repr(self._exponent))
+            return 'cirq.rx(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.X'
@@ -203,7 +203,7 @@ class YPowGate(eigen_gate.EigenGate,
 
     Note in particular that this gate has a global phase factor of
     e^{i·π·t/2} vs the traditionally defined rotation matrices
-    about the Pauli Y axis. See `cirq.Ry` for rotations without the global
+    about the Pauli Y axis. See `cirq.ry` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
@@ -310,10 +310,10 @@ class YPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.Ry({})'.format(
+                return 'cirq.ry({})'.format(
                     proper_repr(sympy.pi * self._exponent))
 
-            return 'cirq.Ry(np.pi*{})'.format(proper_repr(self._exponent))
+            return 'cirq.ry(np.pi*{})'.format(proper_repr(self._exponent))
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.Y'
@@ -340,7 +340,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
     Note in particular that this gate has a global phase factor of
     e^{i·π·t/2} vs the traditionally defined rotation matrices
-    about the Pauli Z axis. See `cirq.Rz` for rotations without the global
+    about the Pauli Z axis. See `cirq.rz` for rotations without the global
     phase. The global phase factor can be adjusted by using the `global_shift`
     parameter when initializing.
 
@@ -482,10 +482,10 @@ class ZPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5:
             if protocols.is_parameterized(self._exponent):
-                return 'cirq.Rz({})'.format(proper_repr(
-                    sympy.pi * self._exponent))
+                return 'cirq.rz({})'.format(
+                    proper_repr(sympy.pi * self._exponent))
 
-            return 'cirq.Rz(np.pi*{!r})'.format(self._exponent)
+            return 'cirq.rz(np.pi*{!r})'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 0.25:
                 return 'cirq.T'
@@ -854,22 +854,40 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 args, kwargs))
 
 
-def Rx(rads: value.TParamVal) -> XPowGate:
+def rx(rads: value.TParamVal) -> XPowGate:
     """Returns a gate with the matrix e^{-i X rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Ry(rads: value.TParamVal) -> YPowGate:
+@deprecated(deadline='v0.8.0', fix='Use cirq.rx, instead.')
+def Rx(rads: value.TParamVal) -> XPowGate:
+    """Returns a gate with the matrix e^{-i X rads / 2}."""
+    return rx(rads)
+
+
+def ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-def Rz(rads: value.TParamVal) -> ZPowGate:
+@deprecated(deadline='v0.8.0', fix='Use cirq.ry, instead.')
+def Ry(rads: value.TParamVal) -> YPowGate:
+    """Returns a gate with the matrix e^{-i Y rads / 2}."""
+    return ry(rads)
+
+
+def rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
+
+
+@deprecated(deadline='v0.8.0', fix='Use cirq.rz, instead.')
+def Rz(rads: value.TParamVal) -> ZPowGate:
+    """Returns a gate with the matrix e^{-i Z rads / 2}."""
+    return rz(rads)
 
 
 H = HPowGate()

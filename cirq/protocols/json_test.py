@@ -76,7 +76,7 @@ def test_gridqubit_roundtrip():
 
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
-    op1 = cirq.Rx(.123).on(q)
+    op1 = cirq.rx(.123).on(q)
     assert_roundtrip(op1,
                      text_should_be="""{
   "cirq_type": "GateOperation",
@@ -97,7 +97,7 @@ def test_op_roundtrip():
 def test_op_roundtrip_filename(tmpdir):
     filename = f'{tmpdir}/op.json'
     q = cirq.LineQubit(5)
-    op1 = cirq.Rx(.123).on(q)
+    op1 = cirq.rx(.123).on(q)
     cirq.to_json(op1, filename)
     assert os.path.exists(filename)
     op2 = cirq.read_json(filename)
@@ -123,11 +123,11 @@ def test_fail_to_resolve():
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
-# TODO: Include cirq.Rx in the Circuit test case file.
+# TODO: Include cirq.rx in the Circuit test case file.
 # Note that even the following doesn't work because theta gets
 #       multiplied by 1/pi.
 #       https://github.com/quantumlib/Cirq/issues/2014
-# cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
+# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
 

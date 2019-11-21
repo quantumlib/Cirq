@@ -108,12 +108,12 @@ def test_dynamic_single_qubit_rotations():
     assert_url_to_circuit_returns(
         '{"cols":[["e^iXt","e^iYt","e^iZt"],["e^-iXt","e^-iYt","e^-iZt"]]}',
         cirq.Circuit(
-            cirq.Rx(2 * sympy.pi * t).on(a),
-            cirq.Ry(2 * sympy.pi * t).on(b),
-            cirq.Rz(2 * sympy.pi * t).on(c),
-            cirq.Rx(2 * sympy.pi * -t).on(a),
-            cirq.Ry(2 * sympy.pi * -t).on(b),
-            cirq.Rz(2 * sympy.pi * -t).on(c),
+            cirq.rx(2 * sympy.pi * t).on(a),
+            cirq.ry(2 * sympy.pi * t).on(b),
+            cirq.rz(2 * sympy.pi * t).on(c),
+            cirq.rx(2 * sympy.pi * -t).on(a),
+            cirq.ry(2 * sympy.pi * -t).on(b),
+            cirq.rz(2 * sympy.pi * -t).on(c),
         ))
 
 
@@ -142,18 +142,18 @@ def test_formulaic_gates():
     assert_url_to_circuit_returns(
         '{"cols":[["Rxft",{"id":"Rxft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.Rx(sympy.pi * t * t).on(a),
-            cirq.Rx(t * t).on(b),
+            cirq.rx(sympy.pi * t * t).on(a),
+            cirq.rx(t * t).on(b),
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["Ryft",{"id":"Ryft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.Ry(sympy.pi * t * t).on(a),
-            cirq.Ry(t * t).on(b),
+            cirq.ry(sympy.pi * t * t).on(a),
+            cirq.ry(t * t).on(b),
         ))
     assert_url_to_circuit_returns(
         '{"cols":[["Rzft",{"id":"Rzft","arg":"t*t"}]]}',
         cirq.Circuit(
-            cirq.Rz(sympy.pi * t * t).on(a),
-            cirq.Rz(t * t).on(b),
+            cirq.rz(sympy.pi * t * t).on(a),
+            cirq.rz(t * t).on(b),
         ))
