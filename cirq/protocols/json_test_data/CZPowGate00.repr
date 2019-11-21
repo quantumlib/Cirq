@@ -1,0 +1,1 @@
+cirq.CZPowGate00(exponent=0.123, global_shift=0.456)

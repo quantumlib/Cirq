@@ -71,6 +71,7 @@ class _ResolverCache:
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
+                'CZPowGate00': cirq.CZPowGate00,
                 'Circuit': cirq.Circuit,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,

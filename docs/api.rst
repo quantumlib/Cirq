@@ -60,6 +60,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CCZ
     cirq.CNOT
     cirq.CSWAP
+    cirq.CZ00
     cirq.FREDKIN
     cirq.ISWAP
     cirq.QFT
@@ -73,6 +74,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CNotPowGate
     cirq.CSwapGate
     cirq.CZPowGate
+    cirq.CZPowGate00
     cirq.ControlledGate
     cirq.ControlledOperation
     cirq.EigenGate
