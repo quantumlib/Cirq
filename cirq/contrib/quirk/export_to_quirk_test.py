@@ -219,9 +219,9 @@ def test_formulaic_rotation_xyz_export():
     a = cirq.LineQubit(0)
     t = sympy.Symbol('t')
     assert_links_to(cirq.Circuit(
-        cirq.Rx(sympy.pi / 2).on(a),
-        cirq.Ry(sympy.pi * t).on(a),
-        cirq.Rz(-sympy.pi * t).on(a),
+        cirq.rx(sympy.pi / 2).on(a),
+        cirq.ry(sympy.pi * t).on(a),
+        cirq.rz(-sympy.pi * t).on(a),
     ),
                     """
         http://algassert.com/quirk#circuit={"cols":[
@@ -234,7 +234,7 @@ def test_formulaic_rotation_xyz_export():
 
     with pytest.raises(ValueError, match='unsupported'):
         _ = circuit_to_quirk_url(
-            cirq.Circuit(cirq.Rx(sympy.FallingFactorial(t, t)).on(a)))
+            cirq.Circuit(cirq.rx(sympy.FallingFactorial(t, t)).on(a)))
 
 
 def test_unrecognized_single_qubit_gate_with_matrix():

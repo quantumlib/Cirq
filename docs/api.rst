@@ -52,9 +52,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.XX
     cirq.YY
     cirq.ZZ
-    cirq.Rx
-    cirq.Ry
-    cirq.Rz
+    cirq.rx
+    cirq.ry
+    cirq.rz
     cirq.CCNOT
     cirq.CCX
     cirq.CCZ
@@ -80,11 +80,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.EigenGate
     cirq.FSimGate
     cirq.Gate
-    cirq.GivensRotation
     cirq.GlobalPhaseOperation
     cirq.HPowGate
     cirq.ISwapPowGate
-    cirq.ISwapRotation
     cirq.IdentityGate
     cirq.IdentityOperation
     cirq.MatrixGate
@@ -387,6 +385,7 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
@@ -447,7 +446,6 @@ Support for ion trap an neutral atom devices.
 .. autosummary::
     :toctree: generated/
 
-    cirq.MS
     cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
@@ -504,6 +502,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SerializableGateSet
     cirq.google.SerializingArg
     cirq.google.Sycamore
+    cirq.google.Sycamore23
     cirq.google.SycamoreGate
     cirq.google.XmonDevice
 
@@ -658,5 +657,11 @@ These objects will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
+    cirq.MS
+    cirq.Rx
+    cirq.Ry
+    cirq.Rz
+    cirq.GivensRotation
+    cirq.ISwapRotation
     cirq.ThreeQubitGate
     cirq.TwoQubitGate
