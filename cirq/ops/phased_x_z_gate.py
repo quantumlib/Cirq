@@ -78,9 +78,7 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 a -= 1
                 x = -x
 
-        return PhasedXZGate(x_exponent=x,
-                                  z_exponent=z,
-                                  axis_phase_exponent=a)
+        return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
     @property
     def x_exponent(self) -> Union[numbers.Real, sympy.Basic]:
@@ -112,9 +110,8 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         pre_phase -= 0.5
         post_phase += 0.5
         return PhasedXZGate(x_exponent=rotation,
-                                  axis_phase_exponent=-pre_phase,
-                                  z_exponent=post_phase +
-                                  pre_phase)._canonical()
+                            axis_phase_exponent=-pre_phase,
+                            z_exponent=post_phase + pre_phase)._canonical()
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -160,10 +157,10 @@ class PhasedXZGate(gate_features.SingleQubitGate):
     def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
-        return PhasedXZGate(
-            x_exponent=self._x_exponent,
-            z_exponent=self._z_exponent,
-            axis_phase_exponent=self._axis_phase_exponent + phase_turns * 2)
+        return PhasedXZGate(x_exponent=self._x_exponent,
+                            z_exponent=self._z_exponent,
+                            axis_phase_exponent=self._axis_phase_exponent +
+                            phase_turns * 2)
 
     def _circuit_diagram_info_(self,
                                args: 'cirq.CircuitDiagramInfoArgs') -> str:
