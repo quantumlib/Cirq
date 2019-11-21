@@ -502,6 +502,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SerializableGateSet
     cirq.google.SerializingArg
     cirq.google.Sycamore
+    cirq.google.Sycamore23
     cirq.google.SycamoreGate
     cirq.google.XmonDevice
 
