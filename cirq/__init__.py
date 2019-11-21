@@ -88,6 +88,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
@@ -218,6 +219,7 @@ from cirq.ops import (
     Operation,
     ParallelGateOperation,
     Pauli,
+    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -242,8 +244,11 @@ from cirq.ops import (
     ResetChannel,
     riswap,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     SingleQubitCliffordGate,
     SingleQubitGate,

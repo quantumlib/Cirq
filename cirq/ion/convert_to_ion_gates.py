@@ -51,17 +51,17 @@ class ConvertToIonGates:
         # one choice of known Hadamard gate decomposition
         if isinstance(op.gate, ops.HPowGate) and op.gate.exponent == 1:
             return [
-                ops.Rx(np.pi).on(op.qubits[0]),
-                ops.Ry(-1 * np.pi / 2).on(op.qubits[0])
+                ops.rx(np.pi).on(op.qubits[0]),
+                ops.ry(-1 * np.pi / 2).on(op.qubits[0])
             ]
         # one choice of known CNOT gate decomposition
         if isinstance(op.gate, ops.CNotPowGate) and op.gate.exponent == 1:
             return [
-                ops.Ry(np.pi / 2).on(op.qubits[0]),
+                ops.ry(np.pi / 2).on(op.qubits[0]),
                 ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
-                ops.Rx(-1 * np.pi / 2).on(op.qubits[0]),
-                ops.Rx(-1 * np.pi / 2).on(op.qubits[1]),
-                ops.Ry(-1 * np.pi / 2).on(op.qubits[0])
+                ops.rx(-1 * np.pi / 2).on(op.qubits[0]),
+                ops.rx(-1 * np.pi / 2).on(op.qubits[1]),
+                ops.ry(-1 * np.pi / 2).on(op.qubits[0])
             ]
         # Known matrix
         mat = protocols.unitary(op, None) if len(

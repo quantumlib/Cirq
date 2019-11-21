@@ -276,8 +276,10 @@ class Circuit:
         if not isinstance(other, (ops.Operation, Iterable)):
             return NotImplemented
         # Auto wrap OP_TREE inputs into a circuit.
-        result = Circuit(other)
-        return result.__iadd__(self)
+        result = self.copy()
+        result._moments[:0] = Circuit(other)._moments
+        result._device.validate_circuit(result)
+        return result
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -1797,7 +1799,7 @@ def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
                        - info.exponent) < 10**-args.precision:
                     return '({})'.format(approx_frac)
 
-            return '{{:.{}}}'.format(args.precision).format(info.exponent)
+            return args.format_real(info.exponent)
         return repr(info.exponent)
 
     # If the exponent is any other object, use its string representation.
