@@ -14,6 +14,8 @@
 
 from typing import List, Union
 
+import numpy as np
+
 import cirq
 
 
@@ -44,11 +46,12 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
             for bits in result.measurements.values():
-                for i in range(bits.shape[0]):
-                    if bits[i, 0] == 0 and self.prng.uniform() < self.p0:
-                        bits[i, 0] = 1
-                    elif self.prng.uniform() < self.p1:
-                        bits[i, 0] = 0
+                with np.nditer(bits, op_flags=['readwrite']) as it:
+                    for x in it:
+                        if x == 0 and self.prng.uniform() < self.p0:
+                            x[...] = 1
+                        elif self.prng.uniform() < self.p1:
+                            x[...] = 0
         return results
 
 
