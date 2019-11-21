@@ -125,16 +125,16 @@ def test_exponentiate_single_value_as_exponent():
     q = cirq.LineQubit(0)
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.X(q)),
-                          cirq.Rx(0.25 * math.pi).on(q))
+                          cirq.rx(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Y(q)),
-                          cirq.Ry(0.25 * math.pi).on(q))
+                          cirq.ry(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Z(q)),
-                          cirq.Rz(0.25 * math.pi).on(q))
+                          cirq.rz(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(np.exp(-0.3j * math.pi * cirq.X(q)),
-                          cirq.Rx(0.3 * math.pi).on(q))
+                          cirq.rx(0.3 * math.pi).on(q))
 
     assert cirq.approx_eq(cirq.X(q)**0.5, cirq.XPowGate(exponent=0.5).on(q))
 
