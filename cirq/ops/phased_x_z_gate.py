@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class PhasedXPowZPowGate(gate_features.SingleQubitGate):
+class PhasedXZGate(gate_features.SingleQubitGate):
     """A single qubit operation expressed as $Z^z Z^a X^x Z^{-a}$.
 
     The above expression is a matrix multiplication with time going to the left.
@@ -42,7 +42,7 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
         self._z_exponent = z_exponent
         self._axis_phase_exponent = axis_phase_exponent
 
-    def _canonical(self) -> 'cirq.PhasedXPowZPowGate':
+    def _canonical(self) -> 'cirq.PhasedXZGate':
         x = self.x_exponent
         z = self.z_exponent
         a = self.axis_phase_exponent
@@ -78,7 +78,7 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
                 a -= 1
                 x = -x
 
-        return PhasedXPowZPowGate(x_exponent=x,
+        return PhasedXZGate(x_exponent=x,
                                   z_exponent=z,
                                   axis_phase_exponent=a)
 
@@ -103,7 +103,7 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
         )
 
     @staticmethod
-    def from_matrix(mat: np.array) -> 'cirq.PhasedXPowZPowGate':
+    def from_matrix(mat: np.array) -> 'cirq.PhasedXZGate':
         pre_phase, rotation, post_phase = (
             linalg.deconstruct_single_qubit_matrix_into_angles(mat))
         pre_phase /= np.pi
@@ -111,7 +111,7 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
         rotation /= np.pi
         pre_phase -= 0.5
         post_phase += 0.5
-        return PhasedXPowZPowGate(x_exponent=rotation,
+        return PhasedXZGate(x_exponent=rotation,
                                   axis_phase_exponent=-pre_phase,
                                   z_exponent=post_phase +
                                   pre_phase)._canonical()
@@ -131,11 +131,11 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
         yield ops.X(q)**self._x_exponent
         yield ops.Z(q)**(self._axis_phase_exponent + self._z_exponent)
 
-    def __pow__(self, exponent: Union[float, int]) -> 'PhasedXPowZPowGate':
+    def __pow__(self, exponent: Union[float, int]) -> 'PhasedXZGate':
         if exponent == 1:
             return self
         if exponent == -1:
-            return PhasedXPowZPowGate(
+            return PhasedXZGate(
                 x_exponent=-self._x_exponent,
                 z_exponent=-self._z_exponent,
                 axis_phase_exponent=self._z_exponent + self.axis_phase_exponent,
@@ -148,19 +148,19 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
                 protocols.is_parameterized(self._z_exponent) or
                 protocols.is_parameterized(self._axis_phase_exponent))
 
-    def _resolve_parameters_(self, param_resolver) -> 'cirq.PhasedXPowZPowGate':
+    def _resolve_parameters_(self, param_resolver) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsParameterization`."""
-        return PhasedXPowZPowGate(
+        return PhasedXZGate(
             z_exponent=param_resolver.value_of(self._z_exponent),
             x_exponent=param_resolver.value_of(self._x_exponent),
             axis_phase_exponent=param_resolver.value_of(
                 self._axis_phase_exponent),
         )
 
-    def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXPowZPowGate':
+    def _phase_by_(self, phase_turns, qubit_index) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsPhase`."""
         assert qubit_index == 0
-        return PhasedXPowZPowGate(
+        return PhasedXZGate(
             x_exponent=self._x_exponent,
             z_exponent=self._z_exponent,
             axis_phase_exponent=self._axis_phase_exponent + phase_turns * 2)
@@ -177,7 +177,7 @@ class PhasedXPowZPowGate(gate_features.SingleQubitGate):
         return protocols.circuit_diagram_info(self).wire_symbols[0]
 
     def __repr__(self):
-        return (f'cirq.PhasedXPowZPowGate('
+        return (f'cirq.PhasedXZGate('
                 f'axis_phase_exponent={proper_repr(self._axis_phase_exponent)},'
                 f' x_exponent={proper_repr(self._x_exponent)}, '
                 f'z_exponent={proper_repr(self._z_exponent)})')
