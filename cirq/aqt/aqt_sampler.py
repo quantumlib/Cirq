@@ -58,13 +58,7 @@ class AQTSampler(Sampler):
             circuit: circuits.Circuit,
             param_resolver: study.ParamResolverOrSimilarType,
     ) -> str:
-        """
-        Args:
-            circuit: Circuit to be run
-            param_resolver: Param resolver for the
-
-        Returns:
-            json formatted string of the sequence
+        """Generates the JSON string from a Circuit
 
         The json format is defined as follows:
 
@@ -76,6 +70,13 @@ class AQTSampler(Sampler):
         op_string: str that specifies the operation type: "X","Y","Z","MS"
         gate_exponent: float that specifies the gate_exponent of the operation
         qubits: list of qubits where the operation acts on.
+
+        Args:
+            circuit: Circuit to be run
+            param_resolver: Param resolver for the
+
+        Returns:
+            json formatted string of the sequence
         """
 
         seq_list: List[Tuple[str, float, List[int]]] = []
@@ -99,6 +100,15 @@ class AQTSampler(Sampler):
                    repetitions: int = 1,
                    num_qubits: int = 1) -> np.ndarray:
         """Sends the json string to the remote AQT device
+
+        The interface is given by PUT requests to a single endpoint URL.
+        The first PUT will insert the circuit into the remote queue,
+        given a valid access key.
+        Every subsequent PUT will return a dictionary, where the key "status"
+        is either 'queued', if the circuit has not been processed yet or
+        'finished' if the circuit has been processed.
+        The experimental data is returned via the key 'data'
+
         Args:
             json_str: Json representation of the circuit.
             id_str: Unique id of the datapoint.
@@ -107,17 +117,6 @@ class AQTSampler(Sampler):
 
         Returns:
             Measurement results as an array of boolean.
-
-        The interface is given by PUT requests to a single endpoint URL.
-
-        The first PUT will insert the circuit into the remote queue,
-        given a valid access key.
-
-        Every subsequent PUT will return a dictionary, where the key "status"
-        is either 'queued', if the circuit has not been processed yet or
-        'finished' if the circuit has been processed.
-
-        The experimental data is returned via the key 'data'
         """
         header = {"Ocp-Apim-Subscription-Key": self.access_token, "SDK": "cirq"}
         response = put(self.remote_host,
@@ -183,13 +182,11 @@ class AQTSampler(Sampler):
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
 
-        The parameters remote_host and access_token are not used.
-
         Returns:
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        meas_name = 'm'  # TODO: Get measurement name from circuit
+        meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
         circuit = (program.to_circuit()
                    if isinstance(program, schedules.Schedule) else program)
         assert isinstance(circuit.device, IonDevice)
@@ -212,11 +209,10 @@ class AQTSampler(Sampler):
 
 class AQTSamplerLocalSimulator(AQTSampler):
     """Sampler using the AQT simulator on the local machine.
-    Can be used as a replacement for the AQTSampler
 
+    Can be used as a replacement for the AQTSampler
     When the attribute simulate_ideal is set to True,
     an ideal circuit is sampled
-
     If not, the error model defined in aqt_simulator_test.py is used
     Example for running the ideal sampler:
 
@@ -228,9 +224,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
                  remote_host: str = '',
                  access_token: str = '',
                  simulate_ideal: bool = False):
-        """
-
-        Args:
+        """Args:
             remote_host: Remote host is not used by the local simulator.
             access_token: Access token is not used by the local simulator.
             simulate_ideal: Boolean that determines whether a noisy or
@@ -247,6 +241,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
                    repetitions: int = 1,
                    num_qubits: int = 1) -> np.ndarray:
         """Replaces the remote host with a local simulator
+
         Args:
             json_str: Json representation of the circuit.
             id_str: Unique id of the datapoint.
