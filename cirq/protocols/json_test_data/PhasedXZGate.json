@@ -1,0 +1,8 @@
+[
+  {
+    "cirq_type": "PhasedXZGate",
+    "axis_phase_exponent": 0.75,
+    "x_exponent": 0.5,
+    "z_exponent": 0.25
+  }
+]
