@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Quantum gates that are commonly used in the literature.
 This module creates Gate instances for the following gates:
     CZ: Controlled phase gate.
@@ -19,12 +18,11 @@ Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
 
-from typing import Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 
-import cirq
-from cirq import protocols, value
+from cirq import protocols
 from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import gate_features, eigen_gate
@@ -32,9 +30,8 @@ from cirq.ops import gate_features, eigen_gate
 from cirq.type_workarounds import NotImplementedType
 
 
-class CZPowGate00(eigen_gate.EigenGate,
-                gate_features.TwoQubitGate,
-                gate_features.InterchangeableQubitsGate):
+class CZPowGate00(eigen_gate.EigenGate, gate_features.TwoQubitGate,
+                  gate_features.InterchangeableQubitsGate):
     """A gate that applies a phase to the |00⟩ state of two qubits.
     The unitary matrix of `CZPowGate00(exponent=t)` is:
         [[g, 0, 0, 0],
@@ -77,8 +74,7 @@ class CZPowGate00(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-                wire_symbols=('@', '@00'),
-                exponent=self._diagram_exponent(args))
+            wire_symbols=('@', '@00'), exponent=self._diagram_exponent(args))
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -90,10 +86,9 @@ class CZPowGate00(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.CZ00'
             return '(cirq.CZ00**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.CZPowGate00(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.CZPowGate00(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
 
 CZ00 = CZPowGate00()
@@ -106,4 +101,3 @@ document(
          [. . 1 .],
          [. . . 1]]
     """)
-    

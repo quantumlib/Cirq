@@ -13,10 +13,10 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 import sympy
 
 import cirq
+
 
 def test_cz00_str():
     assert str(cirq.CZ00) == 'CZ00'
@@ -31,31 +31,21 @@ def test_cz00_repr():
 
 
 def test_cz00_unitary():
-    assert np.allclose(cirq.unitary(cirq.CZ00),
-                       np.array([[-1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ00),
+        np.array([[-1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ00**0.5),
-                       np.array([[1j, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ00**0.5),
+        np.array([[1j, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ00**0),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ00**0),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ00**-0.5),
-                       np.array([[-1j, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
-
-
+    assert np.allclose(
+        cirq.unitary(cirq.CZ00**-0.5),
+        np.array([[-1j, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
 
 def test_trace_distance():
@@ -63,10 +53,8 @@ def test_trace_distance():
     scz00 = cirq.CZ00**foo
     assert cirq.trace_distance_bound(scz00) == 1.0
 
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ00 ** (1 / 9)),
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ00**(1 / 9)),
                           np.sin(np.pi / 18))
-
-
 
 
 def test_gates():
@@ -76,11 +64,11 @@ def test_gates():
 
     # Create a circuit
     circuit = cirq.Circuit(
-        cirq.CZ00(q0, q1) ** 0.5,  # Square root of NOT.
+        cirq.CZ00(q0, q1)**0.5,  # Square root of NOT.
     )
     print("Circuit:")
     print(circuit)
 
     # Simulate the circuit several times.
     simulator = cirq.Simulator()
-    result = simulator.run(circuit, repetitions=20) 
+    simulator.run(circuit, repetitions=20)
