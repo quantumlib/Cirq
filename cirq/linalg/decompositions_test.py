@@ -405,12 +405,12 @@ def test_axis_angle_decomposition_unitary():
 
 
 def test_axis_angle():
-    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.Ry(1e-10))),
+    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.ry(1e-10))),
                           cirq.AxisAngleDecomposition(angle=0,
                                                       axis=(1, 0, 0),
                                                       global_phase=1),
                           atol=1e-8)
-    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.Rx(np.pi))),
+    assert cirq.approx_eq(cirq.axis_angle(cirq.unitary(cirq.rx(np.pi))),
                           cirq.AxisAngleDecomposition(angle=np.pi,
                                                       axis=(1, 0, 0),
                                                       global_phase=1),
