@@ -17,7 +17,7 @@ import math
 import numpy as np
 import scipy.linalg
 from cirq import circuits, google, linalg, ops, optimizers, protocols
-from cirq.google import SycamoreGate
+from cirq.google.ops import SycamoreGate
 
 UNITARY_ZZ = np.kron(protocols.unitary(ops.Z), protocols.unitary(ops.Z))
 PAULI_OPS = [
