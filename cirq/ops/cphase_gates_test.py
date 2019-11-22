@@ -28,6 +28,9 @@ def test_cz00_repr():
     assert repr(cirq.CZ00) == 'cirq.CZ00'
     assert repr(cirq.CZ00**0.5) == '(cirq.CZ00**0.5)'
     assert repr(cirq.CZ00**-0.25) == '(cirq.CZ00**-0.25)'
+    assert repr(cirq.CZPowGate00(
+        exponent=1,
+        global_shift=-0.5)) == 'cirq.CZPowGate00(exponent=1, global_shift=-0.5)'
 
 
 def test_cz00_unitary():
@@ -57,11 +60,40 @@ def test_trace_distance():
                           np.sin(np.pi / 18))
 
 
-def test_gates():
-    # Pick a qubit.
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(0, 1)
+def test_phase_by():
+    g = cirq.CZPowGate00(exponent=0.25)
+    g2 = cirq.phase_by(g, 0.25, 0)
+    assert g2 == g
 
-    # Create a circuit
-    circuit = cirq.Circuit(cirq.CZ00(q0, q1)**0.5,)
-    cirq.final_wavefunction(circuit)
+
+def test_text_diagrams():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    circuit = cirq.Circuit(
+        cirq.X(a),
+        cirq.Y(a),
+        cirq.Z(a),
+        cirq.Z(a)**sympy.Symbol('x'),
+        cirq.rx(sympy.Symbol('x')).on(a),
+        cirq.CZ00(a, b),
+    )
+
+    cirq.testing.assert_has_diagram(
+        circuit, """
+a: ───X───Y───Z───Z^x───Rx(x)───@─────
+                                │
+b: ─────────────────────────────@00───
+""")
+    cirq.testing.assert_has_diagram(circuit,
+                                    """
+a: ---X---Y---Z---Z^x---Rx(x)---@-----
+                                |
+b: -----------------------------@00---
+
+    """,
+                                    use_unicode_characters=False)
+
+
+def test_czpowgate00_consistent():
+    gate = cirq.CZPowGate00(exponent=0.5, global_shift=0.1)
+    cirq.testing.assert_implements_consistent_protocols(gate)

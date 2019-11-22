@@ -22,7 +22,6 @@ from typing import Optional, Union
 
 import numpy as np
 
-import cirq
 from cirq import protocols
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -62,8 +61,8 @@ class CZPowGate00(eigen_gate.EigenGate, gate_features.TwoQubitGate,
             return NotImplemented
 
         c = 1j**(2 * self._exponent)
-        one_one = args.subspace_index(0b00)
-        args.target_tensor[one_one] *= c
+        zero_zero = args.subspace_index(0b00)
+        args.target_tensor[zero_zero] *= c
         p = 1j**(2 * self._exponent * self._global_shift)
         if p != 1:
             args.target_tensor *= p
@@ -72,8 +71,8 @@ class CZPowGate00(eigen_gate.EigenGate, gate_features.TwoQubitGate,
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> 'cirq.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> 'protocols.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('@', '@00'), exponent=self._diagram_exponent(args))
 
