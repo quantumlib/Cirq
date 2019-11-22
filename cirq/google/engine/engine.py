@@ -41,7 +41,7 @@ from apiclient.http import HttpRequest
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, optimizers, study, value
+from cirq import circuits, study, value
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,

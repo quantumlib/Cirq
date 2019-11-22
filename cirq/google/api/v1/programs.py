@@ -18,7 +18,6 @@ import numpy as np
 import sympy
 
 from cirq import devices, ops, protocols, value, circuits
-from cirq.value import Timestamp
 
 if TYPE_CHECKING:
     import cirq

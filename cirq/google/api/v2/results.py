@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (cast, Dict, Iterable, Iterator, List, NamedTuple, Optional,
-                    Set, Union, TYPE_CHECKING)
+                    Set, TYPE_CHECKING)
 
 from collections import OrderedDict
 import numpy as np

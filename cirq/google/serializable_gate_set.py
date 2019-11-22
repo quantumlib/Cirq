@@ -21,13 +21,12 @@ from typing import (
     Optional,
     Tuple,
     Type,
-    Union,
     TYPE_CHECKING,
 )
 
 from google.protobuf import json_format
 
-from cirq import circuits, ops, value
+from cirq import circuits, ops
 from cirq.google import op_deserializer, op_serializer, arg_func_langs
 from cirq.google.api import v2
 

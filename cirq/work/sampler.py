@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Union, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 import abc
 
 import pandas as pd
