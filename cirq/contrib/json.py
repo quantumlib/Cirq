@@ -3,7 +3,6 @@ classes in Contrib.
 
 """
 
-import cirq
 from cirq.protocols.json import DEFAULT_RESOLVERS
 
 
