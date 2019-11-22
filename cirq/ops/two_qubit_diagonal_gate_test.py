@@ -20,12 +20,10 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize('gate,ignoring_global_phase',
-                         ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]), False),
-                          (cirq.TwoQubitDiagonalGate([0, 0, 0, 0]), False)))
-def test_consistent_protocols(gate, ignoring_global_phase):
-    cirq.testing.assert_implements_consistent_protocols(
-        gate, ignoring_global_phase=ignoring_global_phase)
+@pytest.mark.parametrize('gate', ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]),
+                                   (cirq.TwoQubitDiagonalGate([0, 0, 0, 0])))))
+def test_consistent_protocols(gate):
+    cirq.testing.assert_implements_consistent_protocols(gate)
 
 
 def test_unitary():
