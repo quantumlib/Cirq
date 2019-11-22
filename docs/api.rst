@@ -55,9 +55,6 @@ Unitary effects that can be applied to one or more qubits.
     cirq.rx
     cirq.ry
     cirq.rz
-    cirq.Rx
-    cirq.Ry
-    cirq.Rz
     cirq.CCNOT
     cirq.CCX
     cirq.CCZ
@@ -81,11 +78,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.EigenGate
     cirq.FSimGate
     cirq.Gate
-    cirq.GivensRotation
     cirq.GlobalPhaseOperation
     cirq.HPowGate
     cirq.ISwapPowGate
-    cirq.ISwapRotation
     cirq.IdentityGate
     cirq.IdentityOperation
     cirq.MatrixGate
@@ -93,6 +88,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhaseGradientGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
+    cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
@@ -388,6 +384,7 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
@@ -448,7 +445,6 @@ Support for ion trap an neutral atom devices.
 .. autosummary::
     :toctree: generated/
 
-    cirq.MS
     cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
@@ -660,5 +656,11 @@ These objects will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
+    cirq.MS
+    cirq.Rx
+    cirq.Ry
+    cirq.Rz
+    cirq.GivensRotation
+    cirq.ISwapRotation
     cirq.ThreeQubitGate
     cirq.TwoQubitGate
