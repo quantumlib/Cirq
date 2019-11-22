@@ -481,6 +481,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.ConvertToSqrtIswapGates
+    cirq.google.ConvertToSycamoreGates
     cirq.google.ConvertToXmonGates
     cirq.google.DeserializingArg
     cirq.google.Engine

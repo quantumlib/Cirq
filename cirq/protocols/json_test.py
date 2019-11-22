@@ -116,6 +116,8 @@ SHOULDNT_BE_SERIALIZED = [
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
+    'ConvertToSqrtIswapGates',
+    'ConvertToSycamoreGates',
     'ConvertToXmonGates',
     'DropEmptyMoments',
     'DropNegligible',
