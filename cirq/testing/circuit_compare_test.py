@@ -200,7 +200,7 @@ def test_measuring_qubits():
 def test_random_same_matrix(circuit):
     a, b = cirq.LineQubit.range(2)
     same = cirq.Circuit(
-        cirq.TwoQubitMatrixGate(
+        cirq.MatrixGate(
             circuit.unitary(qubits_that_should_be_present=[a, b])).on(a, b))
 
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(

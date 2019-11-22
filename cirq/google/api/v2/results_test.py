@@ -39,24 +39,6 @@ def test_find_measurements_simple_circuit():
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0)
 
 
-def test_find_measurements_simple_schedule():
-    schedule = cirq.Schedule(
-        device=cirq.UNCONSTRAINED_DEVICE,
-        scheduled_operations=[
-            cirq.ScheduledOperation(
-                time=cirq.Timestamp(picos=10_000),
-                duration=cirq.Duration(nanos=1000),
-                operation=cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k'),
-            ),
-        ],
-    )
-    measurements = v2.find_measurements(schedule)
-
-    assert len(measurements) == 1
-    m = measurements[0]
-    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 10_000)
-
-
 def test_find_measurements_invert_mask():
     circuit = cirq.Circuit()
     circuit.append(

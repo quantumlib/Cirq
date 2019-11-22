@@ -14,7 +14,7 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Sequence, Tuple, Union
+from typing import Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -22,6 +22,9 @@ from cirq import protocols, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
                       identity)
 from cirq.protocols.json import AddJson
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -584,7 +587,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
 
-def reset(qubit: raw_types.Qid) -> raw_types.Operation:
+def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
     """Returns a `ResetChannel` on the given qubit.
     """
     return ResetChannel(qubit.dimension).on(qubit)

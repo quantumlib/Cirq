@@ -160,7 +160,7 @@ class IdentityGate(raw_types.Gate):
     def _circuit_diagram_info_(self, args):
         return ('I',) * self.num_qubits()
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
+    def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
@@ -176,7 +176,7 @@ class IdentityOperation(raw_types.Operation):
 
     @deprecated(deadline='v0.8',
                 fix='Use cirq.IdentityGate or cirq.identity_each instead.',
-                func_name='IdentityOperation.__new__')
+                name='IdentityOperation')
     def __new__(cls, qubits: Sequence['cirq.Qid']):
         return IdentityGate(qid_shape=protocols.qid_shape(qubits)).on(*qubits)
 

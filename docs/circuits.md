@@ -2,15 +2,9 @@
 
 ### Conceptual overview
 
-There are two primary representations of quantum programs in Cirq, each of
-which are represented by a class: `Circuit` and `Schedule`. 
-Conceptually a Circuit object is very closely related to the 
-abstract quantum circuit model, while a Schedule object is
-like the abstract quantum circuit model but includes detailed timing
-information.
-
-Conceptually: a `Circuit` is a collection of ``Moments``. A
-`Moment` is a collection of ``Operations`` that all act during
+The primary representation of quantum programs in Cirq is the `Circuit` class.
+A `Circuit` is a collection of ``Moments``.
+A `Moment` is a collection of ``Operations`` that all act during
 the same abstract time slice. An `Operation` is a
 some effect that operates on a specific subset of ``Qubits``,
 the most common type of `Operation` is a `GateOperation`.
@@ -449,9 +443,9 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 |`sdg`|`cirq.S**-1`|| 
 |`t`|`cirq.T`|| 
 |`tdg`|`cirq.T**-1`||
-|`rx(θ)`|`cirq.Rx(θ)`|| 
-|`ry(θ)`|`cirq.Ry(θ)`|| 
-|`rz(θ)`|`cirq.Rz(θ)`|| 
+|`rx(θ)`|`cirq.rx(θ)`|| 
+|`ry(θ)`|`cirq.ry(θ)`|| 
+|`rz(θ)`|`cirq.rz(θ)`|| 
 |`cx`|`cirq.CX`|| 
 |`cy`|`cirq.ControlledGate(cirq.Y)`|| 
 |`cz`|`cirq.CZ`|| 
