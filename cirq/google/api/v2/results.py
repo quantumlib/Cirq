@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (cast, Dict, Iterable, Iterator, List, NamedTuple, Optional,
-                    Set, Union, TYPE_CHECKING)
+                    Set, TYPE_CHECKING)
 
 from collections import OrderedDict
 import numpy as np
@@ -23,7 +23,6 @@ from cirq.google.api.v2 import result_pb2
 from cirq import circuits
 from cirq import devices
 from cirq import ops
-from cirq import schedules
 from cirq import study
 
 if TYPE_CHECKING:
@@ -37,7 +36,7 @@ class MeasureInfo(
             ('slot', int),
             ('invert_mask', List[bool]),
         ])):
-    """Extra info about a single measurement within a circuit or schedule.
+    """Extra info about a single measurement within a circuit.
 
     Attributes:
         key: String identifying this measurement.
@@ -52,9 +51,8 @@ class MeasureInfo(
     """
 
 
-def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
-                     ) -> List[MeasureInfo]:
-    """Find measurements in the given program (circuit or schedule).
+def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
+    """Find measurements in the given program (circuit).
 
     Returns:
         List of Measurement objects with named measurements in this program.
@@ -64,8 +62,6 @@ def find_measurements(program: Union[circuits.Circuit, schedules.Schedule],
 
     if isinstance(program, circuits.Circuit):
         measure_iter = _circuit_measurements(program)
-    elif isinstance(program, schedules.Schedule):
-        measure_iter = _schedule_measurements(program)
     else:
         raise NotImplementedError(f'Unrecognized program type: {type(program)}')
 
@@ -87,18 +83,6 @@ def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
                                   qubits=_grid_qubits(op),
                                   slot=i,
                                   invert_mask=_full_mask(op))
-
-
-def _schedule_measurements(schedule: schedules.Schedule
-                          ) -> Iterator[MeasureInfo]:
-    for so in schedule.scheduled_operations:
-        op = so.operation
-        if (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate, ops.MeasurementGate)):
-            yield MeasureInfo(key=op.gate.key,
-                              qubits=_grid_qubits(op),
-                              slot=so.time.raw_picos(),
-                              invert_mask=_full_mask(op))
 
 
 def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:

@@ -23,16 +23,14 @@ from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
 def test_moment_is_measurements():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops(
-        [cirq.X(q[0]), cirq.X(q[1]),
-         cirq.measure(*q, key='z')])
+    circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(*q, key='z')])
     assert not _homogeneous_moment_is_measurements(circ[0])
     assert _homogeneous_moment_is_measurements(circ[1])
 
 
 def test_moment_is_measurements_mixed1():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops([
+    circ = cirq.Circuit([
         cirq.X(q[0]),
         cirq.X(q[1]),
         cirq.measure(q[0], key='z'),
@@ -46,7 +44,7 @@ def test_moment_is_measurements_mixed1():
 
 def test_moment_is_measurements_mixed2():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops([
+    circ = cirq.Circuit([
         cirq.X(q[0]),
         cirq.X(q[1]),
         cirq.Z(q[0]),

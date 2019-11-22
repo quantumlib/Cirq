@@ -99,8 +99,8 @@ class EigenGate(raw_types.Gate):
                     exp(i * pi * global_shift * exponent)
 
                 For example, `cirq.X**t` uses a `global_shift` of 0 but
-                `cirq.Rx(t)` uses a `global_shift` of -0.5, which is why
-                `cirq.unitary(cirq.Rx(pi))` equals -iX instead of X.
+                `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
+                `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
         """
         self._exponent = exponent
         self._global_shift = global_shift

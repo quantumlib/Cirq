@@ -37,15 +37,6 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
             raise ValueError('not isinstance({!r}, {!r})'.format(
                 moment, cirq.Moment))
 
-    def duration_of(self, operation):
-        return cirq.Duration(picos=0) # coverage: ignore
-
-    def validate_schedule(self, schedule):
-        pass
-
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        pass
-
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
@@ -125,20 +116,7 @@ def test_approx_eq():
 
     class TestDevice(cirq.Device):
 
-        def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
-            pass
-
         def validate_operation(self, operation: cirq.Operation) -> None:
-            pass
-
-        def validate_scheduled_operation(
-                self,
-                schedule: cirq.Schedule,
-                scheduled_operation: cirq.ScheduledOperation
-        ) -> None:
-            pass
-
-        def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
             pass
 
     a = cirq.NamedQubit('a')
@@ -1594,24 +1572,21 @@ def test_deprecated_from_ops():
     assert 'Circuit.from_ops' in log[0].getMessage()
     assert 'deprecated' in log[0].getMessage()
 
-    with capture_logging() as log:
-        _ = cirq.Circuit.from_ops()
-    assert len(log) == 0
-
-    actual = cirq.Circuit.from_ops(
-        cirq.X(a),
-        [cirq.Y(a), cirq.Z(b)],
-        cirq.CZ(a, b),
-        cirq.X(a),
-        [cirq.Z(b), cirq.Y(a)],
-    )
-    assert actual == cirq.Circuit([
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-        cirq.Moment([cirq.CZ(a, b)]),
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-    ])
+    with capture_logging():
+        actual = cirq.Circuit.from_ops(
+            cirq.X(a),
+            [cirq.Y(a), cirq.Z(b)],
+            cirq.CZ(a, b),
+            cirq.X(a),
+            [cirq.Z(b), cirq.Y(a)],
+        )
+        assert actual == cirq.Circuit([
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+            cirq.Moment([cirq.CZ(a, b)]),
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+        ])
 
 
 def test_to_text_diagram_teleportation_to_diagram():

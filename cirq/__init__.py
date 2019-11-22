@@ -38,7 +38,6 @@ with _import.delay_import('cirq.protocols'):
 from cirq import (
     # Core
     circuits,
-    schedules,
     # Optimize and run
     optimizers,
     work,
@@ -234,6 +233,7 @@ from cirq.ops import (
     PhaseGradientGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
+    PhasedXZGate,
     PhaseFlipChannel,
     QFT,
     Qid,
@@ -244,8 +244,11 @@ from cirq.ops import (
     ResetChannel,
     riswap,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     SingleQubitCliffordGate,
     SingleQubitGate,
@@ -278,6 +281,7 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -293,12 +297,6 @@ from cirq.optimizers import (
     single_qubit_op_to_framed_phase_form,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
-)
-
-from cirq.schedules import (
-    moment_by_moment_schedule,
-    Schedule,
-    ScheduledOperation,
 )
 
 from cirq.sim import (
