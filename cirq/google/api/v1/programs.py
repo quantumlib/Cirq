@@ -155,17 +155,17 @@ def circuit_as_schedule_to_proto_dicts(circuit: 'cirq.Circuit'
     Yields:
         A proto dictionary corresponding to an Operation proto.
     """
-    last_time_picos: Optional[int] = None
+    last_picos: Optional[int] = None
     time_picos = 0
     for op in circuit.all_operations():
-        op = gate_to_proto_dict(op.gate, op.qubits)
-        if last_time_picos is None:
-            op['incremental_delay_picoseconds'] = time_picos
+        proto = gate_to_proto_dict(cast(ops.Gate, op.gate), op.qubits)
+        if last_picos is None:
+            proto['incremental_delay_picoseconds'] = time_picos
         else:
-            op['incremental_delay_picoseconds'] = time_picos - last_time_picos
+            proto['incremental_delay_picoseconds'] = time_picos - last_picos
         time_picos += 1
-        last_time_picos = time_picos
-        yield op
+        last_picos = time_picos
+        yield proto
 
 
 def circuit_from_schedule_from_proto_dicts(

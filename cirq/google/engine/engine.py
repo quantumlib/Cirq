@@ -32,7 +32,7 @@ import re
 import string
 import sys
 import time
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 import warnings
 
 from apiclient import discovery, http as apiclient_http
@@ -46,6 +46,9 @@ from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,
                                 engine_sampler)
+
+if TYPE_CHECKING:
+    import cirq
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'

@@ -25,7 +25,7 @@ https://gateway-portal.aqt.eu/
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, Dict, cast
+from typing import Iterable, List, Union, Tuple, Dict, cast, TYPE_CHECKING
 
 import numpy as np
 from requests import put
@@ -33,6 +33,9 @@ from cirq import circuits, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep
 from cirq.aqt.aqt_device import AQTSimulator, get_op_string
 from cirq import study, ops, IonDevice
+
+if TYPE_CHECKING:
+    import cirq
 
 Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
                   Iterable[Sweep]]
