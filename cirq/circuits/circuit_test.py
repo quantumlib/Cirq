@@ -1594,24 +1594,21 @@ def test_deprecated_from_ops():
     assert 'Circuit.from_ops' in log[0].getMessage()
     assert 'deprecated' in log[0].getMessage()
 
-    with capture_logging() as log:
-        _ = cirq.Circuit.from_ops()
-    assert len(log) == 0
-
-    actual = cirq.Circuit.from_ops(
-        cirq.X(a),
-        [cirq.Y(a), cirq.Z(b)],
-        cirq.CZ(a, b),
-        cirq.X(a),
-        [cirq.Z(b), cirq.Y(a)],
-    )
-    assert actual == cirq.Circuit([
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-        cirq.Moment([cirq.CZ(a, b)]),
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-    ])
+    with capture_logging():
+        actual = cirq.Circuit.from_ops(
+            cirq.X(a),
+            [cirq.Y(a), cirq.Z(b)],
+            cirq.CZ(a, b),
+            cirq.X(a),
+            [cirq.Z(b), cirq.Y(a)],
+        )
+        assert actual == cirq.Circuit([
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+            cirq.Moment([cirq.CZ(a, b)]),
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+        ])
 
 
 def test_to_text_diagram_teleportation_to_diagram():
