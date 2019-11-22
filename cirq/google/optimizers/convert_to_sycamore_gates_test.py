@@ -1,6 +1,4 @@
 import pytest
-import functools
-import itertools
 import numpy as np
 
 import scipy.linalg
@@ -142,19 +140,6 @@ def test_zztheta_zzpow():
 
 
 def test_zztheta_qaoa_like():
-
-    class ConvertZZToSycamore(cirq.PointOptimizer):
-
-        def optimization_at(self, circuit, index, op):
-            if isinstance(op, cirq.ZZPowGate):
-                return cirq.PointOptimizationSummary(
-                    clear_span=1,
-                    clear_qubits=op.qubits,
-                    new_operations=cgoc.ConvertToSycamoreGates().rzz(
-                        theta=np.pi * op.gate.exponent / 2,
-                        q0=op.qubits[0],
-                        q1=op.qubits[1]))
-
     qubits = cirq.LineQubit.range(4)
     for exponent in np.linspace(-1, 1, 10):
         cirq_circuit = cirq.Circuit([
@@ -164,7 +149,7 @@ def test_zztheta_qaoa_like():
             cirq.Rx(.123).on_each(qubits),
         ])
         syc_circuit = cirq_circuit.copy()
-        ConvertZZToSycamore().optimize_circuit(syc_circuit)
+        cgoc.ConvertToSycamoreGates().optimize_circuit(syc_circuit)
 
         cirq.testing.assert_allclose_up_to_global_phase(
             cirq.unitary(cirq_circuit), cirq.unitary(syc_circuit), atol=1e-7)
