@@ -38,7 +38,6 @@ with _import.delay_import('cirq.protocols'):
 from cirq import (
     # Core
     circuits,
-    schedules,
     # Optimize and run
     optimizers,
     work,
@@ -297,12 +296,6 @@ from cirq.optimizers import (
     single_qubit_op_to_framed_phase_form,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
-)
-
-from cirq.schedules import (
-    moment_by_moment_schedule,
-    Schedule,
-    ScheduledOperation,
 )
 
 from cirq.sim import (

@@ -1,4 +1,4 @@
-from typing import cast, List, Tuple
+from typing import cast
 import numpy as np
 import pytest
 import sympy

@@ -59,6 +59,16 @@ class _ResolverCache:
             def _identity_operation_from_dict(qubits, **kwargs):
                 return cirq.identity_each(*qubits)
 
+            def single_qubit_matrix_gate(matrix):
+                if not isinstance(matrix, np.ndarray):
+                    matrix = np.array(matrix, dtype=np.complex128)
+                return cirq.MatrixGate(matrix, qid_shape=(matrix.shape[0],))
+
+            def two_qubit_matrix_gate(matrix):
+                if not isinstance(matrix, np.ndarray):
+                    matrix = np.array(matrix, dtype=np.complex128)
+                return cirq.MatrixGate(matrix, qid_shape=(2, 2))
+
             self._crd = {
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
@@ -108,14 +118,14 @@ class _ResolverCache:
                 'PhasedXZGate': cirq.PhasedXZGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
-                'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
+                'SingleQubitMatrixGate': single_qubit_matrix_gate,
                 'SingleQubitPauliStringGateOperation':
                 cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
-                'TwoQubitMatrixGate': cirq.TwoQubitMatrixGate,
+                'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,

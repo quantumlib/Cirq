@@ -45,8 +45,7 @@ class QuantumEngineSampler(work.Sampler):
 
     def run_sweep(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule',
-                           'cirq.google.EngineProgram'],
+            program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
             params: 'cirq.Sweepable',
             repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
