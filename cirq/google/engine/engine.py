@@ -65,10 +65,6 @@ class EngineException(Exception):
         super().__init__(message)
 
 
-# Quantum programs to run can be specified as circuits.
-TProgram = 'cirq.Circuit'
-
-
 def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
     any_message = any_pb2.Any()
     any_message.Pack(message)
@@ -225,7 +221,7 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             param_resolver: study.ParamResolver = study.ParamResolver({}),
@@ -270,7 +266,7 @@ class Engine:
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             params: study.Sweepable = None,
@@ -452,7 +448,7 @@ class Engine:
 
     def create_program(
             self,
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
@@ -486,7 +482,7 @@ class Engine:
 
     def _serialize_program(
             self,
-            program: TProgram,
+            program: 'cirq.Circuit',
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> Dict[str, Any]:
         gate_set = gate_set or gate_sets.XMON

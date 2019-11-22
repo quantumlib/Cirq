@@ -83,8 +83,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                              '1-dimensional array of ints. Got an array with '
                              f'shape {bitstrings.shape}.')
 
-        circuit = program
-        trial_results = self.simulate_sweep(circuit, params, qubit_order)
+        trial_results = self.simulate_sweep(program, params, qubit_order)
 
         # 1-dimensional tuples don't trigger advanced Numpy array indexing
         # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html

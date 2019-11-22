@@ -162,11 +162,9 @@ def sample_sweep(program: 'cirq.Circuit',
     """
     prng = value.parse_random_state(seed)
 
-    circuit = program
-
     trial_results = []  # type: List[study.TrialResult]
     for param_resolver in study.to_resolvers(params):
-        measurements = sample(circuit,
+        measurements = sample(program,
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,

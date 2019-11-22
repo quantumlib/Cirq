@@ -187,13 +187,12 @@ class AQTSampler(Sampler):
             resolver.
         """
         meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
-        circuit = program
-        assert isinstance(circuit.device, IonDevice)
+        assert isinstance(program.device, IonDevice)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in study.to_resolvers(params):
             id_str = uuid.uuid1()
-            num_qubits = len(circuit.device.qubits)
-            json_str = self._generate_json(circuit=circuit,
+            num_qubits = len(program.device.qubits)
+            json_str = self._generate_json(circuit=program,
                                            param_resolver=param_resolver)
             results = self._send_json(json_str=json_str,
                                       id_str=id_str,

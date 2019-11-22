@@ -75,13 +75,12 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        circuit = program
-        if not circuit.has_measurements():
+        if not program.has_measurements():
             raise ValueError("Circuit has no measurements to sample.")
 
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in study.to_resolvers(params):
-            measurements = self._run(circuit=circuit,
+            measurements = self._run(circuit=program,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
             trial_results.append(
@@ -292,15 +291,11 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
             List of SimulationTrialResults for this run, one for each
             possible parameter resolver.
         """
-        circuit = program
-
         trial_results = []
         qubit_order = ops.QubitOrder.as_qubit_order(qubit_order)
         for param_resolver in study.to_resolvers(params):
-            all_step_results = self.simulate_moment_steps(circuit,
-                                                          param_resolver,
-                                                          qubit_order,
-                                                          initial_state)
+            all_step_results = self.simulate_moment_steps(
+                program, param_resolver, qubit_order, initial_state)
             measurements = {}  # type: Dict[str, np.ndarray]
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
