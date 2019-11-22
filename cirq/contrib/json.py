@@ -4,6 +4,7 @@ classes in Contrib.
 """
 
 import cirq
+from cirq.protocols.json import DEFAULT_RESOLVERS
 
 
 def contrib_class_resolver(cirq_type: str):
@@ -16,5 +17,4 @@ def contrib_class_resolver(cirq_type: str):
     return d.get(cirq_type, None)
 
 
-DEFAULT_CONTRIB_RESOLVERS = [contrib_class_resolver
-                            ] + cirq.protocols.json.DEFAULT_RESOLVERS
+DEFAULT_CONTRIB_RESOLVERS = [contrib_class_resolver] + DEFAULT_RESOLVERS
