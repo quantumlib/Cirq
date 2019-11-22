@@ -338,7 +338,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
 
     def cphase(self, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
         """
-        Implement a cphase using the Ising gate generated from two Sycamore gates
+        Implement a cphase using the Ising gate generated from 2 Sycamore gates
 
         A CPHASE gate has the matrix diag([1, 1, 1, exp(1j * theta)]) and can
         be mapped to the Ising gate by prep and post rotations of Z-pi/4.
