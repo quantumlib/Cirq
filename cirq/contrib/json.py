@@ -3,6 +3,8 @@ classes in Contrib.
 
 """
 
+import cirq
+
 
 def contrib_class_resolver(cirq_type: str):
     """Extend cirq's JSON API with resolvers for cirq contrib classes."""
@@ -12,3 +14,7 @@ def contrib_class_resolver(cirq_type: str):
     ]
     d = {cls.__name__: cls for cls in classes}
     return d.get(cirq_type, None)
+
+
+DEFAULT_CONTRIB_RESOLVERS = [contrib_class_resolver
+                            ] + cirq.protocols.json.DEFAULT_RESOLVERS
