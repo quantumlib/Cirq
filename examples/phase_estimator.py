@@ -63,8 +63,8 @@ def experiment(qnum, repetitions=100):
         eigen value exp(2*Pi*i*phi)
         """
 
-        gate = cirq.SingleQubitMatrixGate(
-            matrix=np.array([[np.exp(2*np.pi*1.0j*phi), 0], [0, 1]]))
+        gate = cirq.MatrixGate(
+            matrix=np.array([[np.exp(2 * np.pi * 1.0j * phi), 0], [0, 1]]))
         return gate
 
     print(f'Testing with {qnum} qubits.')
