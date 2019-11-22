@@ -247,7 +247,7 @@ class SerializableGateSet:
                 device,
                 arg_function_language=proto.language.arg_function_language)
 
-        raise ValueError('Program proto does not contain a circuit.')
+        raise NotImplementedError('Program proto does not contain a circuit.')
 
     def deserialize_op_dict(self,
                             operation_proto: Dict,
