@@ -182,8 +182,9 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
     for final_qubit, original_qubit in mapping.items():
         if original_qubit in parity_mapping:
             final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
-            mismatches = np.nonzero(np.atleast_1d(
-                data[str(final_qubit)] == data[str(final_parity_qubit)]))
+            mismatches = np.nonzero(
+                np.atleast_1d(
+                    data[str(final_qubit)] == data[str(final_parity_qubit)]))
             bad_measurements.update(*mismatches)
 
     # Remove the parity qubits from the measurements.

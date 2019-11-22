@@ -68,8 +68,7 @@ def test_single_qubit_init():
 def test_single_qubit_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.MatrixGate(np.eye(2)))
-    eq.make_equality_group(
-        lambda: cirq.MatrixGate(np.array([[0, 1], [1, 0]])))
+    eq.make_equality_group(lambda: cirq.MatrixGate(np.array([[0, 1], [1, 0]])))
     x2 = np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5)
     eq.make_equality_group(lambda: cirq.MatrixGate(x2))
     eq.add_equality_group(cirq.MatrixGate(PLUS_ONE, qid_shape=(3,)))
@@ -77,8 +76,7 @@ def test_single_qubit_eq():
 
 def test_single_qubit_trace_distance_bound():
     x = cirq.MatrixGate(np.array([[0, 1], [1, 0]]))
-    x2 = cirq.MatrixGate(
-        np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
+    x2 = cirq.MatrixGate(np.array([[1, 1j], [1j, 1]]) * np.sqrt(0.5))
     assert cirq.trace_distance_bound(x) >= 1
     assert cirq.trace_distance_bound(x2) >= 0.5
 
@@ -86,8 +84,7 @@ def test_single_qubit_trace_distance_bound():
 def test_single_qubit_approx_eq():
     x = cirq.MatrixGate(np.array([[0, 1], [1, 0]]))
     i = cirq.MatrixGate(np.array([[1, 0], [0, 1]]))
-    i_ish = cirq.MatrixGate(
-        np.array([[1, 0.000000000000001], [0, 1]]))
+    i_ish = cirq.MatrixGate(np.array([[1, 0.000000000000001], [0, 1]]))
     assert cirq.approx_eq(i, i_ish, atol=1e-9)
     assert cirq.approx_eq(i, i, atol=1e-9)
     assert not cirq.approx_eq(i, x, atol=1e-9)
@@ -97,8 +94,7 @@ def test_single_qubit_approx_eq():
 def test_single_qubit_extrapolate():
     i = cirq.MatrixGate(np.eye(2))
     x = cirq.MatrixGate(np.array([[0, 1], [1, 0]]))
-    x2 = cirq.MatrixGate(
-        np.array([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
+    x2 = cirq.MatrixGate(np.array([[1, 1j], [1j, 1]]) * (1 - 1j) / 2)
     assert cirq.has_unitary(x2)
     x2i = cirq.MatrixGate(np.conj(cirq.unitary(x2).T))
 
@@ -110,8 +106,7 @@ def test_single_qubit_extrapolate():
     assert cirq.approx_eq(x**-1, x, atol=1e-9)
 
     z2 = cirq.MatrixGate(np.array([[1, 0], [0, 1j]]))
-    z4 = cirq.MatrixGate(
-        np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
+    z4 = cirq.MatrixGate(np.array([[1, 0], [0, (1 + 1j) * np.sqrt(0.5)]]))
     assert cirq.approx_eq(z2**0.5, z4, atol=1e-9)
     with pytest.raises(TypeError):
         _ = x**sympy.Symbol('a')
@@ -137,11 +132,7 @@ def test_two_qubit_approx_eq():
 
     assert cirq.approx_eq(f, cirq.MatrixGate(QFT2), atol=1e-9)
 
-    assert not cirq.approx_eq(
-        f,
-        cirq.MatrixGate(QFT2 + perturb),
-        atol=1e-9
-    )
+    assert not cirq.approx_eq(f, cirq.MatrixGate(QFT2 + perturb), atol=1e-9)
     assert cirq.approx_eq(f, cirq.MatrixGate(QFT2 + perturb), atol=1e-7)
 
     assert not cirq.approx_eq(f, cirq.MatrixGate(HH), atol=1e-9)
