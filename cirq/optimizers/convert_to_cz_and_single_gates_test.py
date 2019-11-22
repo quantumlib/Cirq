@@ -142,7 +142,7 @@ def test_allow_partial_czs():
 
     # yapf: disable
     circuit2 = cirq.Circuit(
-        cirq.TwoQubitMatrixGate((np.array([[1, 0, 0, 0],
+        cirq.MatrixGate((np.array([[1, 0, 0, 0],
                                            [0, 1, 0, 0],
                                            [0, 0, 1, 0],
                                            [0, 0, 0, 1j]]))).on(q0, q1))

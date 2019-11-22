@@ -165,8 +165,8 @@ and products of Pauli operations.
     cirq.StabilizerStateChForm
 
 
-Circuits and Schedules
-''''''''''''''''''''''
+Circuits
+''''''''
 
 Utilities for representing and manipulating quantum computations via
 Circuits, Operations, and Moments.
@@ -177,7 +177,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.moment_by_moment_schedule
     cirq.op_gate_isinstance
     cirq.op_gate_of_type
     cirq.transform_op_tree
@@ -189,8 +188,6 @@ Circuits, Operations, and Moments.
     cirq.ParallelGateOperation
     cirq.QubitOrder
     cirq.QubitOrderOrList
-    cirq.Schedule
-    cirq.ScheduledOperation
     cirq.Unique
 
 
@@ -468,6 +465,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
+    cirq.google.circuit_as_schedule_to_proto_dicts
+    cirq.google.circuit_from_schedule_from_proto_dicts
     cirq.google.engine_from_environment
     cirq.google.gate_to_proto_dict
     cirq.google.is_native_xmon_gate
@@ -475,8 +474,6 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.line_on_device
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
-    cirq.google.schedule_from_proto_dicts
-    cirq.google.schedule_to_proto_dicts
     cirq.google.sweep_from_proto_dict
     cirq.google.sweep_to_proto_dict
     cirq.google.unpack_results

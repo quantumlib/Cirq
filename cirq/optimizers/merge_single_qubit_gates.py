@@ -73,7 +73,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
             return self._synthesizer(q, unitary)
 
         # Just use the default.
-        return ops.SingleQubitMatrixGate(unitary).on(q)
+        return ops.MatrixGate(unitary).on(q)
 
     def optimization_at(self,
                         circuit: circuits.Circuit,

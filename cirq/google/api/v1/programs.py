@@ -13,13 +13,11 @@
 # limitations under the License.
 import json
 from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
-                    TYPE_CHECKING)
+                    TYPE_CHECKING, Iterator)
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols, value
-from cirq.schedules import Schedule, ScheduledOperation
-from cirq.value import Timestamp
+from cirq import devices, ops, protocols, value, circuits
 
 if TYPE_CHECKING:
     import cirq
@@ -145,51 +143,40 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
     return {'measurement': measurement}
 
 
-
-def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
-    """Convert a schedule into an iterable of proto dictionaries.
+def circuit_as_schedule_to_proto_dicts(circuit: 'cirq.Circuit'
+                                      ) -> Iterator[Dict]:
+    """Convert a circuit into an iterable of proto dictionaries.
 
     Args:
-        schedule: The schedule to convert to a proto dict. Must contain only
+        circuit: The circuit to convert to a proto dict. Must contain only
             gates that can be cast to xmon gates.
 
     Yields:
         A proto dictionary corresponding to an Operation proto.
     """
-    last_time_picos: Optional[int] = None
-    for so in schedule.scheduled_operations:
-        op = gate_to_proto_dict(
-            cast(ops.GateOperation, so.operation).gate, so.operation.qubits)
-        time_picos = so.time.raw_picos()
-        if last_time_picos is None:
-            op['incremental_delay_picoseconds'] = time_picos
+    last_picos: Optional[int] = None
+    time_picos = 0
+    for op in circuit.all_operations():
+        proto = gate_to_proto_dict(cast(ops.Gate, op.gate), op.qubits)
+        if last_picos is None:
+            proto['incremental_delay_picoseconds'] = time_picos
         else:
-            op['incremental_delay_picoseconds'] = time_picos - last_time_picos
-        last_time_picos = time_picos
-        yield op
+            proto['incremental_delay_picoseconds'] = time_picos - last_picos
+        time_picos += 1
+        last_picos = time_picos
+        yield proto
 
 
-def schedule_from_proto_dicts(
+def circuit_from_schedule_from_proto_dicts(
         device: 'cirq.google.XmonDevice',
         ops: Iterable[Dict],
-) -> Schedule:
-    """Convert proto dictionaries into a Schedule for the given device."""
-    scheduled_ops = []
-    last_time_picos = 0
+) -> 'cirq.Circuit':
+    """Convert proto dictionaries into a Circuit for the given device."""
+    result = []
     for op in ops:
-        delay_picos = 0
-        if 'incremental_delay_picoseconds' in op:
-            delay_picos = op['incremental_delay_picoseconds']
-        time_picos = last_time_picos + delay_picos
-        last_time_picos = time_picos
         xmon_op = xmon_op_from_proto_dict(op)
-        scheduled_ops.append(
-            ScheduledOperation.op_at_on(
-                operation=xmon_op,
-                time=Timestamp(picos=time_picos),
-                device=device,
-            ))
-    return Schedule(device, scheduled_ops)
+        result.append(xmon_op)
+    return circuits.Circuit(result, device=device)
 
 
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:

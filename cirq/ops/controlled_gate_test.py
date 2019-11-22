@@ -322,7 +322,7 @@ def test_unitary():
         GateAllocatingNewSpaceForResult(),
         cirq.IdentityGate(qid_shape=(3, 4)),
         # Single qudit gate with dimension 4.
-        cirq.SingleQubitMatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
+        cirq.MatrixGate(np.kron(*(cirq.unitary(cirq.H),) * 2)),
     ])
 def test_controlled_gate_is_consistent(gate: cirq.Gate):
     cgate = cirq.ControlledGate(gate)

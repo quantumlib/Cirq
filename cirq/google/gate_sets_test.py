@@ -272,57 +272,6 @@ def test_serialize_circuit():
     assert cg.XMON.serialize_dict(circuit) == expected
 
 
-def test_serialize_schedule():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    scheduled_ops = [
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q0, q1),
-                                         cirq.Timestamp(nanos=0),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.Z(q1),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0, key='a'),
-                                         cirq.Timestamp(nanos=400),
-                                         device=cg.Bristlecone)
-    ]
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=scheduled_ops)
-    expected = {
-        'language': {
-            'arg_function_language': '',
-            'gate_set': 'xmon'
-        },
-        'schedule': {
-            'scheduled_operations': [{
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.CZ(q0, q1)),
-                'start_time_picos':
-                '0'
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.X(q0)),
-                'start_time_picos':
-                '200000',
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.Z(q1)),
-                'start_time_picos':
-                '200000',
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.measure(q0, key='a')),
-                'start_time_picos':
-                '400000',
-            }]
-        },
-    }
-    assert cg.XMON.serialize_dict(schedule) == expected
-
-
 @pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [
     (0.25, 0.25),
     (0, 0.25),
@@ -538,24 +487,13 @@ def test_deserialize_circuit():
 
 
 def test_deserialize_schedule():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    scheduled_ops = [
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q0, q1),
-                                         cirq.Timestamp(nanos=0),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.Z(q1),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0, key='a'),
-                                         cirq.Timestamp(nanos=400),
-                                         device=cg.Bristlecone)
-    ]
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=scheduled_ops)
+    q0 = cirq.GridQubit(4, 4)
+    q1 = cirq.GridQubit(4, 5)
+    circuit = cirq.Circuit(cirq.CZ(q0, q1),
+                           cirq.X(q0),
+                           cirq.Z(q1),
+                           cirq.measure(q0, key='a'),
+                           device=cg.Bristlecone)
     serialized = {
         'language': {
             'gate_set': 'xmon'
@@ -584,7 +522,7 @@ def test_deserialize_schedule():
             }]
         },
     }
-    assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == schedule
+    assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == circuit
 
 
 def test_serialize_deserialize_syc():
