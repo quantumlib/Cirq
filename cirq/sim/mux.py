@@ -21,24 +21,24 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules, devices, ops, value
+from cirq import circuits, protocols, study, devices, ops, value
 from cirq.sim import sparse_simulator, density_matrix_simulator
 
 if TYPE_CHECKING:
     import cirq
 
 
-def sample(program: Union[circuits.Circuit, schedules.Schedule],
+def sample(program: 'cirq.Circuit',
            *,
            noise: 'cirq.NOISE_MODEL_LIKE' = None,
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
            seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
-    """Simulates sampling from the given circuit or schedule.
+    """Simulates sampling from the given circuit.
 
     Args:
-        program: The circuit or schedule to sample from.
+        program: The circuit to sample from.
         noise: Noise model to use while running the simulation.
         param_resolver: Parameters to run with the program.
         repetitions: The number of samples to take.
@@ -64,8 +64,7 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
 
 
 def final_wavefunction(
-        program: Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
-                       Schedule],
+        program: Union['cirq.Circuit', 'cirq.Gate', 'cirq.OP_TREE'],
         *,
         initial_state: Union[int, Sequence[Union[int, float, complex]], np.
                              ndarray] = 0,
@@ -79,7 +78,7 @@ def final_wavefunction(
     case the output is just the first column of the implied unitary matrix.
 
     Args:
-        program: The circuit, schedule, gate, operation, or tree of operations
+        program: The circuit, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
         param_resolver: Parameters to run with the program.
         qubit_order: Determines the canonical ordering of the qubits. This
@@ -105,7 +104,7 @@ def final_wavefunction(
     if not isinstance(initial_state, int):
         initial_state = np.asarray(initial_state, dtype=dtype)
 
-    if isinstance(program, (schedules.Schedule, circuits.Circuit)):
+    if isinstance(program, circuits.Circuit):
         # No change needed.
         pass
     elif isinstance(program, ops.Gate):
@@ -125,7 +124,7 @@ def final_wavefunction(
             "Program: {!r}".format(program))
 
     result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
-        program=cast(Union[circuits.Circuit, schedules.Schedule], program),
+        program=cast('cirq.Circuit', program),
         initial_state=initial_state,
         qubit_order=qubit_order,
         param_resolver=param_resolver)
@@ -133,7 +132,7 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
+def sample_sweep(program: 'cirq.Circuit',
                  params: study.Sweepable,
                  *,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -141,13 +140,13 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  dtype: Type[np.number] = np.complex64,
                  seed: value.RANDOM_STATE_LIKE = None
                 ) -> List[study.TrialResult]:
-    """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
+    """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
     values.
 
     Args:
-        program: The circuit or schedule to simulate.
+        program: The circuit to simulate.
         params: Parameters to run with the program.
         noise: Noise model to use while running the simulation.
         repetitions: The number of repetitions to simulate, per set of
@@ -163,12 +162,9 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
     """
     prng = value.parse_random_state(seed)
 
-    circuit = (program.to_circuit()
-               if isinstance(program, schedules.Schedule) else program)
-
     trial_results = []  # type: List[study.TrialResult]
     for param_resolver in study.to_resolvers(params):
-        measurements = sample(circuit,
+        measurements = sample(program,
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,

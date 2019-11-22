@@ -126,10 +126,10 @@ def _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops(
     a, b = qubits
     return [
         fsim_gate(a, b),
-        ops.Rz(t + np.pi).on(a),
-        ops.Rz(t).on(b),
-        ops.Rx(x_a).on(a),
-        ops.Rx(x_b).on(b),
+        ops.rz(t + np.pi).on(a),
+        ops.rz(t).on(b),
+        ops.rx(x_a).on(a),
+        ops.rx(x_b).on(b),
         fsim_gate(a, b),
     ]
 
@@ -207,10 +207,10 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
     s = 1 if z < 0 else -1
     return [
         _B(a, b),
-        ops.Ry(s * 2 * x).on(a),
-        ops.Rz(b2).on(b),
-        ops.Ry(b1).on(b),
-        ops.Rz(b2).on(b),
+        ops.ry(s * 2 * x).on(a),
+        ops.rz(b2).on(b),
+        ops.ry(b1).on(b),
+        ops.rz(b2).on(b),
         _B(a, b),
     ]
 

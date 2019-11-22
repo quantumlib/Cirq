@@ -27,7 +27,6 @@ import cirq
 import cirq.google as cg
 
 _CIRCUIT = cirq.Circuit()
-_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
@@ -269,22 +268,6 @@ def test_circuit_device_validation_fails(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_schedule_device_validation_fails(build):
-    scheduled_op = cirq.ScheduledOperation(time=None,
-                                           duration=cirq.Duration(),
-                                           operation=cirq.H.on(
-                                               cirq.NamedQubit("dorothy")))
-    schedule = cirq.Schedule(device=cg.Foxtail,
-                             scheduled_operations=[scheduled_op])
-
-    engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError):
-        engine.run_sweep(program=schedule)
-    with pytest.raises(ValueError):
-        engine.create_program(schedule)
-
-
-@mock.patch.object(discovery, 'build')
 def test_unsupported_program_type(build):
     engine = cg.Engine(project_id='project-id')
     with pytest.raises(TypeError, match='program'):
@@ -437,7 +420,7 @@ def test_run_sweep_params(build):
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
-        program=_SCHEDULE,
+        program=_CIRCUIT,
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
@@ -493,7 +476,7 @@ def test_run_sweep_params_old_proto(build):
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
-        program=_SCHEDULE,
+        program=_CIRCUIT,
         job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
@@ -540,7 +523,7 @@ def test_run_sweep_v1(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(program=_SCHEDULE,
+    job = engine.run_sweep(program=_CIRCUIT,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -593,7 +576,7 @@ def test_run_multiple_times(build):
     jobs.getResult().execute.return_value = {'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(program=_SCHEDULE)
+    program = engine.create_program(program=_CIRCUIT)
     program.run(param_resolver=cirq.ParamResolver({'a': 1}))
     sweeps1 = jobs.create.call_args[1]['body']['run_context'][
         'parameter_sweeps']
@@ -652,7 +635,7 @@ def test_run_sweep_v2(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(program=_SCHEDULE,
+    job = engine.run_sweep(program=_CIRCUIT,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -709,7 +692,7 @@ def test_run_sweep_v2_old_proto(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(program=_SCHEDULE,
+    job = engine.run_sweep(program=_CIRCUIT,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -773,7 +756,7 @@ def test_bad_result_proto(build):
 
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(program=_SCHEDULE,
+    job = engine.run_sweep(program=_CIRCUIT,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'),
                            params=cirq.Points('a', [1, 2]))
@@ -821,7 +804,7 @@ def test_cancel(build):
         'executionStatus': {'state': 'CANCELLED'}}
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(program=_SCHEDULE,
+    job = engine.run_sweep(program=_CIRCUIT,
                            job_config=cg.JobConfig(
                                'project-id', gcs_prefix='gs://bucket/folder'))
     job.cancel()
@@ -1058,7 +1041,7 @@ def test_calibration_from_job(build):
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
-        program=_SCHEDULE,
+        program=_CIRCUIT,
         job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
 
     calibration = job.get_calibration()
@@ -1126,7 +1109,7 @@ def test_sampler(build):
     engine = cg.Engine(project_id='project-id')
     sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
     results = sampler.run_sweep(
-        program=_SCHEDULE,
+        program=_CIRCUIT,
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
     assert len(results) == 2
