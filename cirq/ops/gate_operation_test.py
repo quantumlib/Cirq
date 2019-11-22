@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 import sympy
 import cirq
+from cirq._compat_test import capture_logging
 
 
 def test_gate_operation_init():
@@ -268,6 +269,24 @@ def test_repr():
 
     assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
+
+
+def test_op_gate_of_type():
+    a = cirq.NamedQubit('a')
+    op = cirq.X(a)
+    with capture_logging():
+        assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
+        assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
+
+        class NonGateOperation(cirq.Operation):
+
+            def qubits(self):
+                pass
+
+            def with_qubits(self, *new_qubits):
+                pass
+
+        assert cirq.op_gate_of_type(NonGateOperation(), cirq.XPowGate) is None
 
 
 @pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [

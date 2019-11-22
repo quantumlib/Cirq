@@ -218,3 +218,11 @@ class GateOperation(raw_types.Operation):
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)
+
+
+@deprecated(deadline='v0.8.0',
+            fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
+def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
+    """Returns gate of given type, if op has that gate otherwise None."""
+    gate = getattr(op, 'gate', None)
+    return gate if isinstance(gate, gate_type) else None
