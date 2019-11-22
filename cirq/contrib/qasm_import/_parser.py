@@ -93,7 +93,7 @@ class QasmGateStatement:
                                 "at line {}".format(reg_sizes, lineno))
 
         # the actual gate we'll apply the arguments to might be a parameterized
-        # or non-parametrized gate
+        # or non-parameterized gate
         final_gate: ops.Gate = (self.cirq_gate if isinstance(
             self.cirq_gate, ops.Gate) else self.cirq_gate(params))
         # OpenQASM gates can be applied on single qubits and qubit registers.
