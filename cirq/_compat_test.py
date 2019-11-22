@@ -75,24 +75,19 @@ def test_proper_eq():
     assert not proper_eq(pd.Index([1, 2, 3]), pd.Index([1, 4, 3]))
 
 
+@deprecated(deadline='vNever', fix='Roll some dice.', name='test_func')
+def f(a, b):
+    return a + b
+
+
 def test_deprecated():
 
-    @deprecated(deadline='vNever', fix='Roll some dice.', func_name='test_func')
-    def f(a, b):
-        return a + b
-
-    # Warns on first use.
     with capture_logging() as log:
         assert f(1, 2) == 3
     assert len(log) == 1
-    assert 'function test_func was used' in log[0].getMessage()
+    assert 'test_func was used' in log[0].getMessage()
     assert 'will be removed in cirq vNever' in log[0].getMessage()
     assert 'Roll some dice.' in log[0].getMessage()
-
-    # Only warns once.
-    with capture_logging() as log:
-        assert f(1, 2) == 3
-    assert len(log) == 0
 
 
 def test_deprecated_parameter():
@@ -115,7 +110,6 @@ def test_deprecated_parameter():
         assert f(new_count=1) == 1
     assert len(log) == 0
 
-    # Warns on first use.
     with capture_logging() as log:
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
@@ -127,15 +121,6 @@ def test_deprecated_parameter():
     assert 'will be removed in cirq vAlready' in log[0].getMessage()
     assert 'Double it yourself.' in log[0].getMessage()
 
-    # Only warns once.
-    with capture_logging() as log:
-        # pylint: disable=unexpected-keyword-arg
-        # pylint: disable=no-value-for-parameter
-        assert f(double_count=1) == 2
-        # pylint: enable=no-value-for-parameter
-        # pylint: enable=unexpected-keyword-arg
-    assert len(log) == 0
-
 
 def capture_logging() -> ContextManager[List[logging.LogRecord]]:
     records = []
@@ -146,10 +131,12 @@ def capture_logging() -> ContextManager[List[logging.LogRecord]]:
             records.append(record)
 
         def __enter__(self):
+            logging.captureWarnings(True)
             logging.getLogger().addHandler(self)
             return records
 
         def __exit__(self, exc_type, exc_val, exc_tb):
             logging.getLogger().removeHandler(self)
+            logging.captureWarnings(False)
 
     return Handler()

@@ -70,9 +70,9 @@ class QasmUGate(ops.SingleQubitGate):
     def _decompose_(self, qubits):
         q = qubits[0]
         return [
-            ops.Rz(self.lmda * np.pi).on(q),
-            ops.Ry(self.theta * np.pi).on(q),
-            ops.Rz(self.phi * np.pi).on(q),
+            ops.rz(self.lmda * np.pi).on(q),
+            ops.ry(self.theta * np.pi).on(q),
+            ops.rz(self.phi * np.pi).on(q),
         ]
 
     def _value_equality_values_(self):

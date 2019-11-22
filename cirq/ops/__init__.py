@@ -57,8 +57,11 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     T,
     XPowGate,
@@ -192,6 +195,9 @@ from cirq.ops.phased_iswap_gate import (
 
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
+
+from cirq.ops.phased_x_z_gate import (
+    PhasedXZGate,)
 
 from cirq.ops.raw_types import (
     Gate,

@@ -1501,12 +1501,12 @@ class Circuit:
         return result.reshape((state_len,))
 
     to_unitary_matrix = deprecated(
-        func_name='Circuit.to_unitary_matrix',
+        name='Circuit.to_unitary_matrix',
         deadline='v0.7.0',
         fix='Use `Circuit.unitary()` instead.')(unitary)
 
     apply_unitary_effect_to_state = deprecated(
-        func_name='Circuit.apply_unitary_effect_to_state',
+        name='Circuit.apply_unitary_effect_to_state',
         deadline='v0.7.0',
         fix="Use `cirq.final_wavefunction(circuit)` or "
         "`Circuit.final_wavefunction()` instead")(final_wavefunction)

@@ -66,10 +66,10 @@ class FSimGate(gate_features.TwoQubitGate,
             theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
                 Determined by the strength and duration of the XX+YY
                 interaction. Note: uses opposite sign convention to the
-                iSWAP gate.
+                iSWAP gate. Maximum strength (full iswap) is at pi/2.
             phi: Controlled phase angle, in radians. Determines how much the
                 ``|11⟩`` state is phased. Note: uses opposite sign convention to
-                the CZPowGate.
+                the CZPowGate. Maximum strength (full cz) is at pi/2.
         """
         self.theta = theta
         self.phi = phi
@@ -120,7 +120,7 @@ class FSimGate(gate_features.TwoQubitGate,
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
-            inner_matrix = protocols.unitary(cirq.Rx(2 * self.theta))
+            inner_matrix = protocols.unitary(cirq.rx(2 * self.theta))
             oi = args.subspace_index(0b01)
             io = args.subspace_index(0b10)
             out = cirq.apply_matrix_to_slices(args.target_tensor,
