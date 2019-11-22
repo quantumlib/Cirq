@@ -22,7 +22,7 @@ def asyncio_pending(future: Union[Awaitable, asyncio.Future, Coroutine],
 
     This method is used in tests checking that a future actually depends on some
     given event having happened. The test can assert, before the event, that the
-    future is not finishing and then assert, after the event, that the future
+    future is still pending and then assert, after the event, that the future
     has a result.
 
     Args:
@@ -34,9 +34,9 @@ def asyncio_pending(future: Union[Awaitable, asyncio.Future, Coroutine],
             future to resolve.
 
     Returns:
-        True if the future did not complete despite being given a bit of time to
-        do so. False if the future did complete (or fail) or was already
-        completed (or already failed).
+        True if the future is still pending after the timeout elapses. False if
+        the future did complete (or fail) or was already completed (or already
+        failed).
 
     Examples:
         >>> import asyncio
