@@ -20,13 +20,13 @@ import sympy
 import cirq
 
 
-@pytest.mark.parametrize(
-    'gate,ignoring_global_phase',
-    ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]), True),
-     (cirq.TwoQubitDiagonalGate([0, 0, 0, 0]), True)))
+@pytest.mark.parametrize('gate,ignoring_global_phase',
+                         ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]), True),
+                          (cirq.TwoQubitDiagonalGate([0, 0, 0, 0]), True)))
 def test_consistent_protocols(gate, ignoring_global_phase):
     cirq.testing.assert_implements_consistent_protocols(
         gate, ignoring_global_phase=ignoring_global_phase)
+
 
 def test_unitary():
     diagonal_angles = [2, 3, 5, 7]
@@ -38,8 +38,8 @@ def test_unitary():
 
 
 @pytest.mark.parametrize('op,max_two_cost', [
-    (cirq.TwoQubitDiagonalGate([2, 3, 5, 7])(
-        cirq.LineQubit(1), cirq.LineQubit(2)), 1),
+    (cirq.TwoQubitDiagonalGate([2, 3, 5, 7])(cirq.LineQubit(1),
+                                             cirq.LineQubit(2)), 1),
 ])
 def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     ops = tuple(
@@ -107,7 +107,7 @@ def test_resolve():
 
     diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'a': 5})
     assert diagonal_gate == cirq.TwoQubitDiagonalGate(diagonal_angles[:3] +
-                                                        [sympy.Symbol('b')])
+                                                      [sympy.Symbol('b')])
     assert cirq.is_parameterized(diagonal_gate)
 
     diagonal_gate = cirq.resolve_parameters(diagonal_gate, {'b': 7})

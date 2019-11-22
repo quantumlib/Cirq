@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Common quantum gates that target three qubits."""
 
 from typing import Any, List, TYPE_CHECKING
@@ -26,7 +25,6 @@ from cirq.ops import gate_features
 if TYPE_CHECKING:
     # pylint: disable=unused-import
     import cirq
-
 
 
 @value.value_equality()
@@ -98,7 +96,3 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     def __repr__(self) -> str:
         return 'cirq.TwoQubitDiagonalGate([{}])'.format(','.join(
             proper_repr(angle) for angle in self._diag_angles_radians))
-
-
-
-
