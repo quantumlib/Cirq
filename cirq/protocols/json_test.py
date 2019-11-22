@@ -330,6 +330,7 @@ NOT_YET_SERIALIZABLE = [
     'ThreeQubitDiagonalGate',
     'Timestamp',
     'TrialResult',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
