@@ -51,7 +51,7 @@ def generate_model_circuit(num_qubits: int,
             # Convert the decomposed unitary to Cirq operations and add them to
             # the circuit.
             circuit.append(
-                cirq.TwoQubitMatrixGate(special_unitary).on(
+                cirq.MatrixGate(special_unitary).on(
                     qubits[permuted_indices[0]], qubits[permuted_indices[1]]))
 
     # Don't measure all of the qubits at the end of the circuit because we will
@@ -183,7 +183,8 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
         if original_qubit in parity_mapping:
             final_parity_qubit = inverse_mapping[parity_mapping[original_qubit]]
             mismatches = np.nonzero(
-                data[str(final_qubit)] == data[str(final_parity_qubit)])
+                np.atleast_1d(
+                    data[str(final_qubit)] == data[str(final_parity_qubit)]))
             bad_measurements.update(*mismatches)
 
     # Remove the parity qubits from the measurements.

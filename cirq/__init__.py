@@ -233,6 +233,7 @@ from cirq.ops import (
     PhaseGradientGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
+    PhasedXZGate,
     PhaseFlipChannel,
     QFT,
     Qid,
