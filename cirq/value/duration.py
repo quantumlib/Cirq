@@ -86,7 +86,7 @@ class Duration:
     @classmethod
     @deprecated(deadline='v0.7',
                 fix='Use `cirq.Duration(...)` instead.',
-                func_name='cirq.Duration.create')
+                name='cirq.Duration.create')
     def create(cls, duration: DURATION_LIKE) -> 'Duration':
         """Creates a Duration from datetime.timedelta if necessary"""
         return Duration(duration)

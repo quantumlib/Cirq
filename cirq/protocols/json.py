@@ -105,6 +105,7 @@ class _ResolverCache:
                 'PhaseGradientGate': cirq.PhaseGradientGate,
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
+                'PhasedXZGate': cirq.PhasedXZGate,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': cirq.SingleQubitMatrixGate,
