@@ -20,26 +20,26 @@ import cirq
 
 
 @pytest.mark.asyncio
-async def test_asyncio_not_finishing():
+async def test_asyncio_pending():
     f = asyncio.Future()
 
-    assert await cirq.testing.asyncio_not_finishing(f)
+    assert await cirq.testing.asyncio_pending(f)
     f.set_result(5)
-    assert not await cirq.testing.asyncio_not_finishing(f)
-    assert not await cirq.testing.asyncio_not_finishing(f, timeout=100)
+    assert not await cirq.testing.asyncio_pending(f)
+    assert not await cirq.testing.asyncio_pending(f, timeout=100)
 
     e = asyncio.Future()
 
-    assert await cirq.testing.asyncio_not_finishing(e)
+    assert await cirq.testing.asyncio_pending(e)
     e.set_exception(ValueError('test fail'))
-    assert not await cirq.testing.asyncio_not_finishing(e)
-    assert not await cirq.testing.asyncio_not_finishing(e, timeout=100)
+    assert not await cirq.testing.asyncio_pending(e)
+    assert not await cirq.testing.asyncio_pending(e, timeout=100)
 
 
 @pytest.mark.asyncio
-async def test_asyncio_not_finishing_common_mistake_caught():
+async def test_asyncio_pending_common_mistake_caught():
     f = asyncio.Future()
-    f = cirq.testing.asyncio_not_finishing(f)
+    pending = cirq.testing.asyncio_pending(f)
     with pytest.raises(RuntimeError, match='forgot the "await"'):
-        assert f
-    assert await f
+        assert pending
+    assert await pending

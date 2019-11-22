@@ -16,8 +16,8 @@ import asyncio
 from typing import Union, Awaitable, Coroutine
 
 
-def asyncio_not_finishing(future: Union[Awaitable, asyncio.Future, Coroutine],
-                          timeout: float = 0.001) -> Awaitable[bool]:
+def asyncio_pending(future: Union[Awaitable, asyncio.Future, Coroutine],
+                    timeout: float = 0.001) -> Awaitable[bool]:
     """Gives the given future a chance to complete, and determines if it didn't.
 
     This method is used in tests checking that a future actually depends on some
@@ -44,7 +44,7 @@ def asyncio_not_finishing(future: Union[Awaitable, asyncio.Future, Coroutine],
         >>> @pytest.mark.asyncio
         ... async def test_completion_only_when_expected():
         ...     f = asyncio.Future()
-        ...     assert await cirq.testing.asyncio_not_finishing(f)
+        ...     assert await cirq.testing.asyncio_pending(f)
         ...     f.set_result(5)
         ...     assert await f == 5
     """
@@ -66,9 +66,8 @@ class _AwaitBeforeAssert:
         self.awaitable = awaitable
 
     def __bool__(self):
-        raise RuntimeError(
-            'You forgot the "await" in '
-            '"assert await cirq.testing.asyncio_not_finishing(...)".')
+        raise RuntimeError('You forgot the "await" in '
+                           '"assert await cirq.testing.asyncio_pending(...)".')
 
     def __await__(self):
         return self.awaitable.__await__()
