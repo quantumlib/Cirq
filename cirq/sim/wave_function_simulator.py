@@ -26,6 +26,7 @@ from cirq.sim import simulator, wave_function
 if TYPE_CHECKING:
     import cirq
 
+
 class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                                         simulator.SimulatesIntermediateState,
                                         metaclass=abc.ABCMeta):

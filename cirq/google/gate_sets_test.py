@@ -489,12 +489,11 @@ def test_deserialize_circuit():
 def test_deserialize_schedule():
     q0 = cirq.GridQubit(4, 4)
     q1 = cirq.GridQubit(4, 5)
-    circuit = cirq.Circuit(
-        cirq.CZ(q0, q1),
-        cirq.X(q0),
-        cirq.Z(q1),
-        cirq.measure(q0, key='a'),
-        device=cg.Bristlecone)
+    circuit = cirq.Circuit(cirq.CZ(q0, q1),
+                           cirq.X(q0),
+                           cirq.Z(q1),
+                           cirq.measure(q0, key='a'),
+                           device=cg.Bristlecone)
     serialized = {
         'language': {
             'gate_set': 'xmon'

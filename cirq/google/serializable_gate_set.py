@@ -215,8 +215,7 @@ class SerializableGateSet:
 
     def deserialize(self,
                     proto: v2.program_pb2.Program,
-                    device: Optional['cirq.Device'] = None
-                   ) -> 'cirq.Circuit':
+                    device: Optional['cirq.Device'] = None) -> 'cirq.Circuit':
         """Deserialize a Circuit from a cirq.google.api.v2.Program.
 
         Args:
@@ -249,8 +248,7 @@ class SerializableGateSet:
                 device,
                 arg_function_language=proto.language.arg_function_language)
 
-        raise ValueError(
-            'Program proto does not contain a circuit.')
+        raise ValueError('Program proto does not contain a circuit.')
 
     def deserialize_op_dict(self,
                             operation_proto: Dict,
@@ -339,7 +337,8 @@ class SerializableGateSet:
             if not scheduled_op_proto.HasField('operation'):
                 raise ValueError('Scheduled op missing an operation {}'.format(
                     scheduled_op_proto))
-            result.append(self.deserialize_op(
-                scheduled_op_proto.operation,
-                arg_function_language=arg_function_language))
+            result.append(
+                self.deserialize_op(
+                    scheduled_op_proto.operation,
+                    arg_function_language=arg_function_language))
         return circuits.Circuit(result, device=device)

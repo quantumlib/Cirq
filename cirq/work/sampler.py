@@ -155,8 +155,8 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self, program: 'cirq.Circuit',
-                        *, repetitions: int) -> 'cirq.TrialResult':
+    async def run_async(self, program: 'cirq.Circuit', *,
+                        repetitions: int) -> 'cirq.TrialResult':
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes

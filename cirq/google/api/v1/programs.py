@@ -145,7 +145,7 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
 
 
 def circuit_as_schedule_to_proto_dicts(circuit: 'cirq.Circuit'
-                                       ) -> Iterator[Dict]:
+                                      ) -> Iterator[Dict]:
     """Convert a circuit into an iterable of proto dictionaries.
 
     Args:

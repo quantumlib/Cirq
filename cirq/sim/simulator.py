@@ -56,10 +56,10 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
     """
 
     def run_sweep(
-        self,
-        program: 'cirq.Circuit',
-        params: study.Sweepable,
-        repetitions: int = 1,
+            self,
+            program: 'cirq.Circuit',
+            params: study.Sweepable,
+            repetitions: int = 1,
     ) -> List[study.TrialResult]:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -193,11 +193,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     """
 
     def simulate(
-        self,
-        program: 'cirq.Circuit',
-        param_resolver: 'study.ParamResolverOrSimilarType' = None,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Any = None,
+            self,
+            program: 'cirq.Circuit',
+            param_resolver: 'study.ParamResolverOrSimilarType' = None,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Any = None,
     ) -> 'SimulationTrialResult':
         """Simulates the supplied Circuit.
 
@@ -225,11 +225,11 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def simulate_sweep(
-        self,
-        program: 'cirq.Circuit',
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Any = None,
+            self,
+            program: 'cirq.Circuit',
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit.
 
@@ -266,11 +266,11 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     """
 
     def simulate_sweep(
-        self,
-        program: 'cirq.Circuit',
-        params: study.Sweepable,
-        qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
-        initial_state: Any = None,
+            self,
+            program: 'cirq.Circuit',
+            params: study.Sweepable,
+            qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
+            initial_state: Any = None,
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit.
 

@@ -34,7 +34,8 @@ def test_protobuf_round_trip():
         cirq.CZ(q, q2)
         for q in [cirq.GridQubit(0, 0)]
         for q2 in device.neighbors_of(q)
-    ], device=device)
+    ],
+                           device=device)
 
     protos = list(cg.circuit_as_schedule_to_proto_dicts(circuit))
     s2 = cg.circuit_from_schedule_from_proto_dicts(device, protos)

@@ -51,8 +51,7 @@ class MeasureInfo(
     """
 
 
-def find_measurements(program: 'cirq.Circuit',
-                     ) -> List[MeasureInfo]:
+def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
