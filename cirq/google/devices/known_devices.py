@@ -281,7 +281,6 @@ Sycamore = SerializableDevice.from_proto(
     proto=SYCAMORE_PROTO,
     gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
 
-
 # Subset of the Sycamore grid with a reduced layout.
 _SYCAMORE23_GRID = """
 ----------

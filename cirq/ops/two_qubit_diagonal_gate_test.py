@@ -21,8 +21,8 @@ import cirq
 
 
 @pytest.mark.parametrize('gate,ignoring_global_phase',
-                         ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]), True),
-                          (cirq.TwoQubitDiagonalGate([0, 0, 0, 0]), True)))
+                         ((cirq.TwoQubitDiagonalGate([2, 3, 5, 7]), False),
+                          (cirq.TwoQubitDiagonalGate([0, 0, 0, 0]), False)))
 def test_consistent_protocols(gate, ignoring_global_phase):
     cirq.testing.assert_implements_consistent_protocols(
         gate, ignoring_global_phase=ignoring_global_phase)
@@ -48,19 +48,6 @@ def test_decomposition_cost(op: cirq.Operation, max_two_cost: int):
     over_cost = len([e for e in ops if len(e.qubits) > 2])
     assert over_cost == 0
     assert two_cost == max_two_cost
-
-
-@pytest.mark.parametrize('gate', [
-    cirq.TwoQubitDiagonalGate([2, 3, 5, 7]),
-])
-def test_decomposition_respects_locality(gate):
-    a = cirq.GridQubit(0, 0)
-    b = cirq.GridQubit(1, 0)
-
-    for x, y in itertools.permutations([a, b]):
-        circuit = cirq.Circuit(gate(x, y))
-        cirq.google.ConvertToXmonGates().optimize_circuit(circuit)
-        cirq.google.Foxtail.validate_circuit(circuit)
 
 
 def test_diagram():
