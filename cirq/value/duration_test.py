@@ -93,16 +93,6 @@ def test_eq():
     assert Duration(picos=1) != 0
 
 
-def test_create_deprecated():
-    with capture_logging() as log:
-        actual = cirq.Duration.create(timedelta(0))
-    assert len(log) == 1
-    assert 'cirq.Duration.create was used' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.Duration()
-
-
 def test_parameterized():
     t = sympy.Symbol('t')
     assert not cirq.is_parameterized(Duration())

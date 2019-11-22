@@ -83,14 +83,6 @@ class Duration:
                                                        micros * 1000_000 +
                                                        millis * 1000_000_000)
 
-    @classmethod
-    @deprecated(deadline='v0.7',
-                fix='Use `cirq.Duration(...)` instead.',
-                name='cirq.Duration.create')
-    def create(cls, duration: DURATION_LIKE) -> 'Duration':
-        """Creates a Duration from datetime.timedelta if necessary"""
-        return Duration(duration)
-
     def _is_parameterized_(self):
         return protocols.is_parameterized(self._picos)
 

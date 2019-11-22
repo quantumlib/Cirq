@@ -3186,25 +3186,6 @@ def test_moment_groups():
 """, use_unicode_characters=True)
 
 
-def test_deprecated_to_unitary_matrix():
-    with capture_logging() as log:
-        np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
-                                   cirq.Circuit().unitary())
-    assert len(log) == 1
-    assert 'to_unitary_matrix' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-
-def test_deprecated_apply_unitary_effect_to_state():
-    with capture_logging() as log:
-        np.testing.assert_allclose(
-            cirq.Circuit().apply_unitary_effect_to_state(),
-            cirq.Circuit().final_wavefunction())
-    assert len(log) == 1
-    assert 'apply_unitary_effect_to_state' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-
 def test_moments_property():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit(cirq.X(q), cirq.Y(q))

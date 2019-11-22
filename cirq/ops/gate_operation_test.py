@@ -270,43 +270,6 @@ def test_repr():
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
 
 
-def test_op_gate_of_type():
-    a = cirq.NamedQubit('a')
-    op = cirq.X(a)
-    assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
-    assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
-
-    class NonGateOperation(cirq.Operation):
-
-        def qubits(self):
-            pass
-
-        def with_qubits(self, *new_qubits):
-            pass
-
-    assert cirq.op_gate_of_type(NonGateOperation(), cirq.XPowGate) is None
-
-
-def test_op_gate_isinstance():
-    a = cirq.NamedQubit('a')
-    op = cirq.X(a)
-    assert cirq.op_gate_isinstance(op, cirq.XPowGate)
-    assert not cirq.op_gate_isinstance(op, cirq.YPowGate)
-    assert cirq.op_gate_isinstance(op, (cirq.XPowGate, cirq.YPowGate))
-    assert not cirq.op_gate_isinstance(op, (cirq.YPowGate, cirq.ZPowGate))
-
-    class NonGateOperation(cirq.Operation):
-
-        def qubits(self):
-            pass
-
-        def with_qubits(self, *new_qubits):
-            pass
-
-    assert not cirq.op_gate_isinstance(NonGateOperation(), cirq.XPowGate)
-    assert not cirq.op_gate_isinstance(NonGateOperation(), NonGateOperation)
-
-
 @pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [
     (cirq.rz(0.3 * np.pi), cirq.Z**0.3, True),
     (cirq.rz(0.3), cirq.Z**0.3, False),
@@ -331,15 +294,10 @@ def test_equal_up_to_global_phase_on_diff_types():
 def test_gate_on_operation_besides_gate_operation():
     a, b = cirq.LineQubit.range(2)
 
-    assert cirq.op_gate_of_type(
-        -1j * cirq.X(a) * cirq.Y(b),
-        cirq.DensePauliString) == -1j * cirq.DensePauliString('XY')
-
-    assert cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
-                                   cirq.DensePauliString)
-
-    assert not cirq.op_gate_isinstance(-1j * cirq.X(a) * cirq.Y(b),
-                                       cirq.XPowGate)
+    op = -1j * cirq.X(a) * cirq.Y(b)
+    assert isinstance(op.gate, cirq.DensePauliString)
+    assert op.gate == -1j * cirq.DensePauliString('XY')
+    assert not isinstance(op.gate, cirq.XPowGate)
 
 
 def test_mul():
