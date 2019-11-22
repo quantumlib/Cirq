@@ -172,7 +172,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             return self.decompose_swap_into_syc(qubit_a, qubit_b)
         elif isinstance(gate, ops.ISwapPowGate) and math.isclose(
                 cast(ops.ISwapPowGate, gate).exponent, 1.0):
-            return self.decompose_iswap_into_syc(qubit_a, qubit_b)
+            return ConvertToSycamoreGates.decompose_iswap_into_syc(
+                qubit_a, qubit_b)
         elif isinstance(gate, ops.ZZPowGate):
             return self.rzz(
                 cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
@@ -198,7 +199,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         else:
             raise ValueError("Unrecognized gate: {!r}".format(op))
 
-    def decompose_cz_into_syc(self, a: ops.Qid, b: ops.Qid):
+    @staticmethod
+    def decompose_cz_into_syc(a: ops.Qid, b: ops.Qid):
         """Decompose CZ into sycamore gates using precomputed coefficients"""
         yield ops.PhasedXPowGate(phase_exponent=0.5678998743900456,
                                  exponent=0.5863459345743176).on(a)
@@ -213,7 +215,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         yield (ops.Z**-0.9255092746611595).on(b),
         yield (ops.Z**-1.333333333333333).on(a),
 
-    def decompose_iswap_into_syc(self, a: ops.Qid, b: ops.Qid):
+    @staticmethod
+    def decompose_iswap_into_syc(a: ops.Qid, b: ops.Qid):
         """Decompose ISWAP into sycamore gates using precomputed coefficients"""
         yield ops.PhasedXPowGate(phase_exponent=-0.27250925776964596,
                                  exponent=0.2893438375555899).on(a)
@@ -231,7 +234,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         yield (ops.Z**-1.1551880579397293).on(b),
         yield (ops.Z**0.31848343246696365).on(a),
 
-    def decompose_swap_into_syc(self, a: ops.Qid, b: ops.Qid):
+    @staticmethod
+    def decompose_swap_into_syc(a: ops.Qid, b: ops.Qid):
         """Decompose SWAP into sycamore gates using precomputed coefficients"""
         yield ops.PhasedXPowGate(phase_exponent=0.44650378384076217,
                                  exponent=0.8817921214052824).on(a)
@@ -252,8 +256,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         yield (ops.Z**-0.7384700844660306).on(b)
         yield (ops.Z**-0.7034535141382525).on(a)
 
-    def find_local_equivalents(self, unitary1: np.ndarray,
-                               unitary2: np.ndarray):
+    @staticmethod
+    def find_local_equivalents(unitary1: np.ndarray, unitary2: np.ndarray):
         """
         Given two unitaries with the same interaction coefficients but different
         local unitary rotations determine the local unitaries that turns
@@ -285,11 +289,12 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
 
         return v_0, v_1, u_0, u_1
 
-    def create_corrected_circuit(self, target_unitary: np.ndarray,
+    @classmethod
+    def create_corrected_circuit(cls, target_unitary: np.ndarray,
                                  program: circuits.Circuit, q0: ops.Qid,
                                  q1: ops.Qid):
         # Get the local equivalents
-        b_0, b_1, a_0, a_1 = self.find_local_equivalents(
+        b_0, b_1, a_0, a_1 = cls.find_local_equivalents(
             target_unitary,
             program.unitary(qubit_order=ops.QubitOrder.explicit([q0, q1])))
 
@@ -308,7 +313,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         yield (
             gate(q1) for gate in optimizers.single_qubit_matrix_to_gates(a_1))
 
-    def rzz(self, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
+    @classmethod
+    def rzz(cls, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
         """Generate exp(-1j * theta * zz) from Sycamore gates.
 
         Args:
@@ -331,12 +337,13 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
 
         # Prepare program that has same Schmidt coeffs as exp(1j theta ZZ)
         program = circuits.Circuit(google.SYC.on(q0, q1),
-                                   ops.Rx(2 * np.arccos(c2)).on(q1),
+                                   ops.rx(2 * np.arccos(c2)).on(q1),
                                    google.SYC.on(q0, q1))
 
-        yield self.create_corrected_circuit(target_unitary, program, q0, q1)
+        yield cls.create_corrected_circuit(target_unitary, program, q0, q1)
 
-    def cphase(self, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
+    @classmethod
+    def cphase(cls, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
         """
         Implement a cphase using the Ising gate generated from 2 Sycamore gates
 
@@ -351,11 +358,12 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         returns:
             a cirq program implementating cphase
         """
-        yield self.rzz(-theta / 4, q0, q1)
-        yield ops.Rz(theta / 2).on(q0)
-        yield ops.Rz(theta / 2).on(q1)
+        yield cls.rzz(-theta / 4, q0, q1)
+        yield ops.rz(theta / 2).on(q0)
+        yield ops.rz(theta / 2).on(q1)
 
-    def swap_rzz(self, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
+    @classmethod
+    def swap_rzz(cls, theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
         """
         An implementation of SWAP * EXP(1j theta ZZ) using three sycamore gates.
 
@@ -374,7 +382,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         circuit = circuits.Circuit()
         angle_offset = np.pi / 24 - np.pi / 4
         circuit.append(google.SYC(q0, q1))
-        circuit.append(self.rzz(theta - angle_offset, q0, q1))
+        circuit.append(cls.rzz(theta - angle_offset, q0, q1))
 
         # Get the intended circuit.
         intended_circuit = circuits.Circuit(
@@ -382,4 +390,4 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             ops.ZZPowGate(exponent=2 * theta / np.pi,
                           global_shift=-0.5).on(q0, q1))
 
-        yield self.create_corrected_circuit(intended_circuit, circuit, q0, q1)
+        yield cls.create_corrected_circuit(intended_circuit, circuit, q0, q1)

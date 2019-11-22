@@ -37,7 +37,7 @@ def test_convert_to_sycamore_gates_swap_zz():
 def test_single_qubit_gate():
     q = cirq.LineQubit(0)
     mat = cirq.testing.random_unitary(2)
-    gate = cirq.SingleQubitMatrixGate(mat)
+    gate = cirq.MatrixGate(mat, qid_shape=(2,))
     circuit = cirq.Circuit(gate(q))
     converted_circuit = circuit.copy()
     cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
@@ -97,8 +97,8 @@ def test_three_qubit_gate():
 
 def random_single_qubit_unitary():
     a, b, c = np.random.random(3) * 2 * np.pi
-    circuit = cirq.unitary(cirq.Rz(a)) @ cirq.unitary(
-        cirq.Ry(b)) @ cirq.unitary(cirq.Rz(c))
+    circuit = cirq.unitary(cirq.rz(a)) @ cirq.unitary(
+        cirq.ry(b)) @ cirq.unitary(cirq.rz(c))
     assert np.allclose(circuit.conj().T @ circuit, np.eye(2))
     return circuit
 
@@ -146,7 +146,7 @@ def test_zztheta_qaoa_like():
             cirq.H.on_each(qubits),
             cirq.ZZPowGate(exponent=exponent)(qubits[0], qubits[1]),
             cirq.ZZPowGate(exponent=exponent)(qubits[2], qubits[3]),
-            cirq.Rx(.123).on_each(qubits),
+            cirq.rx(.123).on_each(qubits),
         ])
         syc_circuit = cirq_circuit.copy()
         cgoc.ConvertToSycamoreGates().optimize_circuit(syc_circuit)
@@ -205,8 +205,7 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
     ]
     assert len(multi_qubit_ops) == 2
     assert all(
-        cirq.op_gate_isinstance(e, cirq.google.SycamoreGate)
-        for e in multi_qubit_ops)
+        isinstance(e.gate, cirq.google.SycamoreGate) for e in multi_qubit_ops)
 
 
 @pytest.mark.parametrize('gate', [
