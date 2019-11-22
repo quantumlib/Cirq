@@ -148,7 +148,7 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
 
     @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
-                func_name='cirq.SingleQubitMatrixGate')
+                name='cirq.SingleQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Initializes the single qubit matrix gate.
@@ -183,7 +183,7 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
 
     @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
-                func_name='cirq.TwoQubitMatrixGate')
+                name='cirq.TwoQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Initializes the 2-qubit matrix gate.
