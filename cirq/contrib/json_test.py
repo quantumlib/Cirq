@@ -1,7 +1,7 @@
 import cirq
 from cirq.contrib.quantum_volume import QuantumVolumeResult
 from cirq.testing import assert_json_roundtrip_works
-from cirq.contrib.json import contrib_class_resolver, DEFAULT_CONTRIB_RESOLVERS
+from cirq.contrib.json import DEFAULT_CONTRIB_RESOLVERS
 
 
 def test_quantum_volume():
