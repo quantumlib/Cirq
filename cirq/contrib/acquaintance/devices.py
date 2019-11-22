@@ -16,7 +16,7 @@ from typing import Union, TYPE_CHECKING
 
 import abc
 
-from cirq import circuits, devices, ops, schedules
+from cirq import circuits, devices, ops
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
 from cirq.contrib.acquaintance.bipartite import (
@@ -31,12 +31,7 @@ if TYPE_CHECKING:
 
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
-    """A device that contains only acquaintance and permutation gates.
-
-    Raises:
-        NotImplementedError: Any of the schedule-related methods (duration_of,
-            validate_schedule[d_operation]) is called.
-    """
+    """A device that contains only acquaintance and permutation gates."""
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
@@ -46,20 +41,6 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
                     'not (isinstance({0!r}, {1!r}) and '
                           'ininstance({0!r}.gate, {2!r})'.format(
                         operation, ops.Operation, self.gate_types))
-
-    def duration_of(self, operation):
-        raise NotImplementedError()
-
-    def validate_scheduled_operation(
-            self,
-            schedule: schedules.Schedule,
-            scheduled_operation: schedules.ScheduledOperation
-    ) -> None:
-        raise NotImplementedError()
-
-
-    def validate_schedule(self, schedule: schedules.Schedule) -> None:
-        raise NotImplementedError()
 
 
 def is_acquaintance_strategy(circuit: 'cirq.Circuit'):

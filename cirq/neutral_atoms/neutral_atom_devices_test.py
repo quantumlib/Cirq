@@ -252,51 +252,6 @@ def test_validate_circuit_errors():
         d.validate_circuit(c)
 
 
-def test_validate_scheduled_operation_errors():
-    d = square_device(2, 2)
-    s = cirq.Schedule(device=cirq.UNCONSTRAINED_DEVICE)
-    q00 = cirq.GridQubit(0, 0)
-    so = cirq.ScheduledOperation(cirq.Timestamp(), cirq.Duration(nanos=1),
-                                 cirq.X.on(q00))
-    with pytest.raises(ValueError, match="Incompatible operation duration"):
-        d.validate_scheduled_operation(s, so)
-
-
-def test_validate_schedule_errors():
-    d = square_device(2, 2, max_controls=3)
-    s = cirq.Schedule(device=cirq.UNCONSTRAINED_DEVICE)
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    q10 = cirq.GridQubit(1, 0)
-    q11 = cirq.GridQubit(1, 1)
-    us = cirq.Duration(nanos=10**3)
-    ms = cirq.Duration(nanos=10**6)
-    msone = cirq.Timestamp(nanos=10**6)
-    mstwo = cirq.Timestamp(nanos=2*10**6)
-    msthree = cirq.Timestamp(nanos=3*10**6)
-    for qubit in d.qubits:
-        s.include(cirq.ScheduledOperation(cirq.Timestamp(nanos=0), 100*us,
-                                          cirq.X.on(qubit)))
-    s.include(cirq.ScheduledOperation(msone, 100*us,
-                                      cirq.TOFFOLI.on(q00,q01,q10)))
-    s.include(cirq.ScheduledOperation(mstwo, 100*us, cirq.ParallelGateOperation(
-        cirq.X, [q00, q01])))
-    s.include(cirq.ScheduledOperation(mstwo, 100*us, cirq.ParallelGateOperation(
-        cirq.Z, [q10, q11])))
-    for qubit in d.qubits:
-        s.include(cirq.ScheduledOperation(msthree,
-                                          50*ms,
-                                          cirq.GateOperation(
-                                              cirq.MeasurementGate(1, qubit),
-                                              [qubit])))
-    d.validate_schedule(s)
-    s.include(cirq.ScheduledOperation(cirq.Timestamp(nanos=10**9), 100*us,
-                                      cirq.X.on(q00)))
-    with pytest.raises(ValueError, match="Non-measurement operation after "
-                       "measurement"):
-        d.validate_schedule(s)
-
-
 def test_repr():
     d = square_device(1, 1)
     cirq.testing.assert_equivalent_repr(d)

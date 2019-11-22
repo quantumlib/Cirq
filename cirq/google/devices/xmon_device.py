@@ -122,19 +122,6 @@ class XmonDevice(devices.Device):
             for q in exp11_op.qubits
             for p in other_op.qubits)
 
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        self.validate_operation(scheduled_operation.operation)
-
-        if isinstance(scheduled_operation.operation.gate, ops.CZPowGate):
-            for other in schedule.operations_happening_at_same_time_as(
-                    scheduled_operation):
-                if self._check_if_exp11_operation_interacts(
-                        cast(ops.GateOperation, scheduled_operation.operation),
-                        cast(ops.GateOperation, other.operation)):
-                    raise ValueError(
-                        'Adjacent Exp11 operations: {} vs {}.'.format(
-                            scheduled_operation, other))
-
     def validate_circuit(self, circuit: 'cirq.Circuit'):
         super().validate_circuit(circuit)
         _verify_unique_measurement_keys(circuit.all_operations())
@@ -162,12 +149,6 @@ class XmonDevice(devices.Device):
                 cast(ops.GateOperation, operation),
                 cast(Iterable['cirq.GateOperation'], moment.operations))
         return True
-
-    def validate_schedule(self, schedule):
-        _verify_unique_measurement_keys(
-            s.operation for s in schedule.scheduled_operations)
-        for scheduled_operation in schedule.scheduled_operations:
-            self.validate_scheduled_operation(schedule, scheduled_operation)
 
     def at(self, row: int, col: int) -> Optional[GridQubit]:
         """Returns the qubit at the given position, if there is one, else None.

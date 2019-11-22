@@ -13,7 +13,7 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, Union, TYPE_CHECKING
+from typing import List, TYPE_CHECKING
 import abc
 
 import pandas as pd
@@ -29,17 +29,17 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def run(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            program: 'cirq.Circuit',
             param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
     ) -> 'cirq.TrialResult':
-        """Samples from the given Circuit or Schedule.
+        """Samples from the given Circuit.
 
         By default, the `run_async` method invokes this method on another
         thread. So this method is supposed to be thread safe.
 
         Args:
-            program: The circuit or schedule to sample from.
+            program: The circuit to sample from.
             param_resolver: Parameters to run with the program.
             repetitions: The number of times to sample.
 
@@ -51,15 +51,15 @@ class Sampler(metaclass=abc.ABCMeta):
 
     def sample(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            program: 'cirq.Circuit',
             *,
             repetitions: int = 1,
             params: 'cirq.Sweepable' = None,
     ) -> 'pd.DataFrame':
-        """Samples the given Circuit or Schedule, producing a pandas data frame.
+        """Samples the given Circuit, producing a pandas data frame.
 
         Args:
-            program: The circuit or schedule to sample from.
+            program: The circuit to sample from.
             repetitions: The number of times to sample the program, for each
                 parameter mapping.
             params: Maps symbols to one or more values. This argument can be
@@ -136,17 +136,17 @@ class Sampler(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def run_sweep(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            program: 'cirq.Circuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
-        """Samples from the given Circuit or Schedule.
+        """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
         values.
 
         Args:
-            program: The circuit or schedule to sample from.
+            program: The circuit to sample from.
             params: Parameters to run with the program.
             repetitions: The number of times to sample.
 
@@ -155,16 +155,16 @@ class Sampler(metaclass=abc.ABCMeta):
             resolver.
         """
 
-    async def run_async(self, program: Union['cirq.Circuit', 'cirq.Schedule'],
-                        *, repetitions: int) -> 'cirq.TrialResult':
-        """Asynchronously samples from the given Circuit or Schedule.
+    async def run_async(self, program: 'cirq.Circuit', *,
+                        repetitions: int) -> 'cirq.TrialResult':
+        """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes
         its result is an awaitable. Child classes that are capable of true
         asynchronous sampling should override it to use other strategies.
 
         Args:
-            program: The circuit or schedule to sample from.
+            program: The circuit to sample from.
             repetitions: The number of times to sample.
 
         Returns:
@@ -174,18 +174,18 @@ class Sampler(metaclass=abc.ABCMeta):
 
     async def run_sweep_async(
             self,
-            program: Union['cirq.Circuit', 'cirq.Schedule'],
+            program: 'cirq.Circuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
-        """Asynchronously sweeps and samples from the given Circuit or Schedule.
+        """Asynchronously sweeps and samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
         exposes its result is an awaitable. Child classes that are capable of
         true asynchronous sampling should override it to use other strategies.
 
         Args:
-            program: The circuit or schedule to sample from.
+            program: The circuit to sample from.
             params: One or more mappings from parameter keys to parameter values
                 to use. For each parameter assignment, `repetitions` samples
                 will be taken.

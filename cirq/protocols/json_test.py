@@ -293,8 +293,6 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
-    'Schedule',
-    'ScheduledOperation',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
