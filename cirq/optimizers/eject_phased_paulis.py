@@ -54,7 +54,7 @@ class EjectPhasedPaulis():
                  permitted to simply drop negligible combinations gates with a
                  threshold determined by this tolerance.
             eject_parameterized: If True, the optimization will attempt to eject
-                parametrized gates as well.  This may result in other gates
+                parameterized gates as well.  This may result in other gates
                 parameterized by symbolic expressions.
         """
         self.tolerance = tolerance
