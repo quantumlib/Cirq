@@ -289,7 +289,8 @@ def test_pretty_print():
     assert p.text_pretty == 'SimulationTrialResult(...)'
 
 
-def test_async_sample():
+@pytest.mark.asyncio
+async def test_async_sample():
     m = {'mock': np.array([[0], [1]])}
 
     class MockSimulator(cirq.SimulatesSamples):
@@ -299,7 +300,7 @@ def test_async_sample():
 
     q = cirq.LineQubit(0)
     f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
-    result = cirq.testing.assert_asyncio_will_have_result(f)
+    result = await f
     np.testing.assert_equal(result.measurements, m)
 
 
