@@ -177,7 +177,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.op_gate_isinstance
     cirq.op_gate_of_type
     cirq.transform_op_tree
     cirq.Circuit
