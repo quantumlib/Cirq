@@ -17,7 +17,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 from cirq.value import Duration
 
 

@@ -19,7 +19,7 @@ import datetime
 import sympy
 
 from cirq import protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr
 from cirq._doc import document
 
 if TYPE_CHECKING:

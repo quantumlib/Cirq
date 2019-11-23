@@ -21,7 +21,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 
 def _make_qubits(n):
