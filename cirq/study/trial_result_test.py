@@ -267,3 +267,24 @@ def test_text_diagram_jupyter():
     p = FakePrinter()
     result._repr_pretty_(p, True)
     assert p.text_pretty == 'TrialResult(...)'
+
+
+def test_json_bit_packing_and_dtype():
+    prng = np.random.RandomState(1234)
+    bits = prng.randint(2, size=(256, 256)).astype(np.uint8)
+    digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
+
+    bits_result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                                   measurements={'m': bits})
+    digits_result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                                     measurements={'m': digits})
+
+    bits_json = cirq.to_json(bits_result)
+    digits_json = cirq.to_json(digits_result)
+
+    loaded_bits_result = cirq.read_json(json_text=bits_json)
+    loaded_digits_result = cirq.read_json(json_text=digits_json)
+
+    assert loaded_bits_result.measurements['m'].dtype == np.uint8
+    assert loaded_digits_result.measurements['m'].dtype == np.uint8
+    np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)
