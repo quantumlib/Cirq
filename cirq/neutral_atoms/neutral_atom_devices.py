@@ -313,59 +313,6 @@ class NeutralAtomDevice(devices.Device):
                 if isinstance(operation.gate, ops.MeasurementGate):
                     has_measurement_occurred = True
 
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        """
-        Raises an error if the given scheduled_operation is isn't valid in the
-        device. Also raises an error if the operations that overlap with the
-        given operation would form an invalid moment on the device.
-
-        Args:
-            schedule: The schedule the scheduled operation is part of
-            scheduled_operation: The operation to validate
-
-        Raises:
-            ValueError: If the scheduled operation is invalid in the schedule
-        """
-
-        super().validate_scheduled_operation(schedule, scheduled_operation)
-
-        # The duration of the scheduled operation cannot be shorter than the
-        # hardware duration
-        if scheduled_operation.duration < self.duration_of(
-                scheduled_operation.operation):
-            raise ValueError("Incompatible operation duration")
-
-        simul_ops_tree = [so.operation for so in
-                          schedule.operations_happening_at_same_time_as(
-                           scheduled_operation)]
-        self.validate_moment(ops.Moment(simul_ops_tree))
-
-    def validate_schedule(self, schedule):
-        """
-        Raises an error if the given schedule is invalid on this device.
-
-        Args:
-            schedule: The schedule to validate
-
-        Raises:
-            ValueError: If the schedule is invalid
-        """
-        super().validate_schedule(schedule)
-        # Validate each scheduled operation in the schedule
-        # If operation is a measurement, ensure only measurements come after it
-        measurement_check_performed = False
-        for so in schedule.scheduled_operations:
-            self.validate_scheduled_operation(schedule, so)
-            if (isinstance(so.operation.gate, ops.MeasurementGate) and
-                    not measurement_check_performed):
-                later_ops = (so2 for so2 in schedule.scheduled_operations
-                             if so2.time + so2.duration > so.time + so.duration)
-                for so2 in later_ops:
-                    if not isinstance(so2.operation.gate, ops.MeasurementGate):
-                        raise ValueError("Non-measurement operation after"
-                                         " measurement")
-                measurement_check_performed = True
-
     def _value_equality_values_(self):
         return (self._measurement_duration,
                 self._gate_duration,

@@ -34,13 +34,12 @@ def test_protobuf_round_trip():
         cirq.CZ(q, q2)
         for q in [cirq.GridQubit(0, 0)]
         for q2 in device.neighbors_of(q)
-    ])
-    s1 = cirq.moment_by_moment_schedule(device, circuit)
+    ],
+                           device=device)
 
-    protos = list(cg.schedule_to_proto_dicts(s1))
-    s2 = cg.schedule_from_proto_dicts(device, protos)
-
-    assert s2 == s1
+    protos = list(cg.circuit_as_schedule_to_proto_dicts(circuit))
+    s2 = cg.circuit_from_schedule_from_proto_dicts(device, protos)
+    assert s2 == circuit
 
 
 def make_bytes(s: str) -> bytes:

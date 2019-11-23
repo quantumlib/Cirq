@@ -16,8 +16,6 @@ from typing import TYPE_CHECKING
 
 import abc
 
-from cirq.value import Duration
-
 
 if TYPE_CHECKING:
     import cirq
@@ -26,7 +24,7 @@ if TYPE_CHECKING:
 
 
 class Device(metaclass=abc.ABCMeta):
-    """Hardware constraints for validating circuits and schedules."""
+    """Hardware constraints for validating circuits."""
 
     def decompose_operation(self, operation: 'cirq.Operation'
                             ) -> 'cirq.OP_TREE':
@@ -39,10 +37,6 @@ class Device(metaclass=abc.ABCMeta):
         return operation
 
     @abc.abstractmethod
-    def duration_of(self, operation: 'cirq.Operation') -> Duration:
-        pass
-
-    @abc.abstractmethod
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
 
@@ -51,23 +45,6 @@ class Device(metaclass=abc.ABCMeta):
 
         Raises:
             ValueError: The operation isn't valid for this device.
-        """
-
-    @abc.abstractmethod
-    def validate_scheduled_operation(
-            self,
-            schedule: 'cirq.Schedule',
-            scheduled_operation: 'cirq.ScheduledOperation'
-    ) -> None:
-        """Raises an exception if the scheduled operation is not valid.
-
-        Args:
-            schedule: The schedule to validate against.
-            scheduled_operation: The scheduled operation to validate.
-
-        Raises:
-            ValueError: If the scheduled operation is not valid for the
-                schedule.
         """
 
     def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
@@ -110,14 +87,3 @@ class Device(metaclass=abc.ABCMeta):
             Whether or not the moment will validate after adding the operation.
         """
         return not moment.operates_on(operation.qubits)
-
-    @abc.abstractmethod
-    def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
-        """Raises an exception if a schedule is not valid.
-
-        Args:
-            schedule: The schedule to validate.
-
-        Raises:
-            ValueError: The schedule isn't valid for this device.
-        """

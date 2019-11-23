@@ -172,68 +172,6 @@ def test_validate_operation_supported_gate():
         d.validate_operation(NotImplementedOperation())
 
 
-def test_validate_scheduled_operation_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(1, 0)
-    q2 = cirq.GridQubit(2, 0)
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q1, q2), cirq.Timestamp(), d),
-    ])
-    d.validate_schedule(s)
-
-
-def test_validate_scheduled_operation_adjacent_exp_11_exp_z():
-    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(1, 0)
-    q2 = cirq.GridQubit(2, 0)
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.Z(q0), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q1, q2), cirq.Timestamp(), d),
-    ])
-    d.validate_schedule(s)
-
-
-def test_validate_scheduled_operation_adjacent_exp_11_measure():
-    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(1, 0)
-    q2 = cirq.GridQubit(2, 0)
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q1, q2), cirq.Timestamp(), d),
-    ])
-    d.validate_schedule(s)
-
-
-def test_validate_scheduled_operation_not_adjacent_exp_11_exp_w():
-    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
-    q0 = cirq.GridQubit(0, 0)
-    p1 = cirq.GridQubit(1, 2)
-    p2 = cirq.GridQubit(2, 2)
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(p1, p2), cirq.Timestamp(), d),
-    ])
-    d.validate_schedule(s)
-
-
-def test_validate_scheduled_operation_adjacent_exp_11s_not_allowed():
-    d = square_device(3, 3, holes=[cirq.GridQubit(1, 1)])
-    q0 = cirq.GridQubit(0, 0)
-    q1 = cirq.GridQubit(0, 1)
-    p0 = cirq.GridQubit(1, 0)
-    p1 = cirq.GridQubit(1, 1)
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q0, q1), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(p0, p1), cirq.Timestamp(), d),
-    ])
-    with pytest.raises(ValueError, match='Adjacent Exp11 operations'):
-        d.validate_schedule(s)
-
-
 def test_validate_circuit_repeat_measurement_keys():
     d = square_device(3, 3)
 
@@ -245,20 +183,6 @@ def test_validate_circuit_repeat_measurement_keys():
 
     with pytest.raises(ValueError, match='Measurement key a repeated'):
         d.validate_circuit(circuit)
-
-
-def test_validate_schedule_repeat_measurement_keys():
-    d = square_device(3, 3)
-
-    s = cirq.Schedule(d, [
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.GridQubit(0, 0), key='a'), cirq.Timestamp(), d),
-        cirq.ScheduledOperation.op_at_on(
-            cirq.measure(cirq.GridQubit(0, 1), key='a'), cirq.Timestamp(), d),
-    ])
-
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        d.validate_schedule(s)
 
 
 def test_xmon_device_eq():

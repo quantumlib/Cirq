@@ -31,7 +31,7 @@ User Documentation
     gates
     noise
     simulation
-    schedules
+    devices
     qudits
     development
     examples

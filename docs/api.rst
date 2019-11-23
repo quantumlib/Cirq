@@ -55,9 +55,6 @@ Unitary effects that can be applied to one or more qubits.
     cirq.rx
     cirq.ry
     cirq.rz
-    cirq.Rx
-    cirq.Ry
-    cirq.Rz
     cirq.CCNOT
     cirq.CCX
     cirq.CCZ
@@ -81,11 +78,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.EigenGate
     cirq.FSimGate
     cirq.Gate
-    cirq.GivensRotation
     cirq.GlobalPhaseOperation
     cirq.HPowGate
     cirq.ISwapPowGate
-    cirq.ISwapRotation
     cirq.IdentityGate
     cirq.IdentityOperation
     cirq.MatrixGate
@@ -93,6 +88,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhaseGradientGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
+    cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
@@ -169,8 +165,8 @@ and products of Pauli operations.
     cirq.StabilizerStateChForm
 
 
-Circuits and Schedules
-''''''''''''''''''''''
+Circuits
+''''''''
 
 Utilities for representing and manipulating quantum computations via
 Circuits, Operations, and Moments.
@@ -181,7 +177,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.moment_by_moment_schedule
     cirq.op_gate_isinstance
     cirq.op_gate_of_type
     cirq.transform_op_tree
@@ -193,8 +188,6 @@ Circuits, Operations, and Moments.
     cirq.ParallelGateOperation
     cirq.QubitOrder
     cirq.QubitOrderOrList
-    cirq.Schedule
-    cirq.ScheduledOperation
     cirq.Unique
 
 
@@ -388,6 +381,7 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
@@ -448,7 +442,6 @@ Support for ion trap an neutral atom devices.
 .. autosummary::
     :toctree: generated/
 
-    cirq.MS
     cirq.ms
     cirq.is_native_neutral_atom_gate
     cirq.is_native_neutral_atom_op
@@ -472,6 +465,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
+    cirq.google.circuit_as_schedule_to_proto_dicts
+    cirq.google.circuit_from_schedule_from_proto_dicts
     cirq.google.engine_from_environment
     cirq.google.gate_to_proto_dict
     cirq.google.is_native_xmon_gate
@@ -479,8 +474,6 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.line_on_device
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
-    cirq.google.schedule_from_proto_dicts
-    cirq.google.schedule_to_proto_dicts
     cirq.google.sweep_from_proto_dict
     cirq.google.sweep_to_proto_dict
     cirq.google.unpack_results
@@ -488,6 +481,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.ConvertToSqrtIswapGates
+    cirq.google.ConvertToSycamoreGates
     cirq.google.ConvertToXmonGates
     cirq.google.DeserializingArg
     cirq.google.Engine
@@ -548,9 +543,6 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
-    cirq.testing.assert_asyncio_still_running
-    cirq.testing.assert_asyncio_will_have_result
-    cirq.testing.assert_asyncio_will_raise
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
@@ -565,6 +557,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
     cirq.testing.random_circuit
@@ -660,5 +653,11 @@ These objects will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
+    cirq.MS
+    cirq.Rx
+    cirq.Ry
+    cirq.Rz
+    cirq.GivensRotation
+    cirq.ISwapRotation
     cirq.ThreeQubitGate
     cirq.TwoQubitGate
