@@ -115,6 +115,29 @@ class XPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Specialize controlled for XPow to return corresponding controlled
+        CNotPow when the last control (which acts first semantically) is a
+        default-type control qubit.
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CNotPowGate(exponent=self._exponent,
+                                    global_shift=self._global_shift).controlled(
+                                        result.num_controls() - 1,
+                                        result.control_values[:-1],
+                                        result.control_qid_shape[:-1])
+        return result
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -689,6 +712,29 @@ class CZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Specialize controlled for CZPow to return corresponding controlled
+        CCZPow when the last control (which acts first semantically) is a
+        default-type control qubit.
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CCZPowGate(exponent=self._exponent,
+                                   global_shift=self._global_shift).controlled(
+                                       result.num_controls() - 1,
+                                       result.control_values[:-1],
+                                       result.control_qid_shape[:-1])
+        return result
+
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
@@ -819,6 +865,29 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZI': global_phase * c,
             'ZX': global_phase * -c,
         })
+
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Specialize controlled for CNotPow to return corresponding controlled
+        CCXPow when the last control (which acts first semantically) is a
+        default-type control qubit.
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CCXPowGate(exponent=self._exponent,
+                                   global_shift=self._global_shift).controlled(
+                                       result.num_controls() - 1,
+                                       result.control_values[:-1],
+                                       result.control_qid_shape[:-1])
+        return result
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
