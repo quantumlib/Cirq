@@ -27,7 +27,8 @@ def _make_qubits(n):
 
 def test_u_gate_repr():
     gate = QasmUGate(0.1, 0.2, 0.3)
-    assert repr(gate) == 'cirq.QasmUGate(0.1, 0.2, 0.3)'
+    assert repr(gate) == ('cirq.circuits.qasm_output.QasmUGate('
+                          'theta=0.1, phi=0.2, lmda=0.3)')
 
 
 def test_u_gate_eq():
@@ -50,6 +51,8 @@ def test_qasm_u_qubit_gate_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g),
                                                     u,
                                                     atol=1e-7)
+
+    cirq.testing.assert_implements_consistent_protocols(g)
 
 
 def test_qasm_two_qubit_gate_unitary():

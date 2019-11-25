@@ -14,7 +14,6 @@
 
 from typing import Dict, Optional, Iterable, List, Set, Tuple
 
-from cirq import value
 from cirq._doc import document
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
@@ -280,4 +279,29 @@ SYCAMORE_PROTO = create_device_proto_from_diagram(
 
 Sycamore = SerializableDevice.from_proto(
     proto=SYCAMORE_PROTO,
+    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
+
+
+# Subset of the Sycamore grid with a reduced layout.
+_SYCAMORE23_GRID = """
+----------
+----------
+----------
+--A-------
+-ABC------
+ABCDE-----
+-CDEFG----
+--EFGHI---
+---GHI----
+----I-----
+"""
+
+SYCAMORE23_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE23_GRID,
+    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    _SYCAMORE_DURATIONS_PICOS,
+)
+
+Sycamore23 = SerializableDevice.from_proto(
+    proto=SYCAMORE23_PROTO,
     gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])

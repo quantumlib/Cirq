@@ -281,11 +281,3 @@ class SerializableDevice(devices.Device):
                 # Target is not within the target sets specified by the gate.
                 raise ValueError(
                     f'Operation does not use valid qubit target: {operation}.')
-
-    def validate_scheduled_operation(
-            self, schedule: 'cirq.Schedule',
-            scheduled_operation: 'cirq.ScheduledOperation') -> None:
-        pass
-
-    def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
-        pass

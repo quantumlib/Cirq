@@ -14,13 +14,16 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple, Optional, Iterable
+from typing import cast, Any, Tuple, Optional, Iterable, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, protocols
 from cirq._compat import proper_repr, deprecated
 from cirq.ops import gate_features, raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class MatrixGate(raw_types.Gate):
@@ -101,8 +104,8 @@ class MatrixGate(raw_types.Gate):
     def _unitary_(self) -> np.ndarray:
         return np.copy(self._matrix)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         main = _matrix_to_diagram_symbol(self._matrix, args)
         rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
@@ -145,7 +148,7 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
 
     @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
-                func_name='cirq.SingleQubitMatrixGate')
+                name='cirq.SingleQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Initializes the single qubit matrix gate.
@@ -180,7 +183,7 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
 
     @deprecated(deadline='v0.8',
                 fix='Use `cirq.MatrixGate` instead.',
-                func_name='cirq.TwoQubitMatrixGate')
+                name='cirq.TwoQubitMatrixGate')
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Initializes the 2-qubit matrix gate.

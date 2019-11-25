@@ -20,17 +20,21 @@ import sympy
 import cirq
 
 
-def test_sampler_fail():
+@pytest.mark.asyncio
+async def test_sampler_async_fail():
 
     class FailingSampler(cirq.Sampler):
 
         def run_sweep(self, program, params, repetitions: int = 1):
             raise ValueError('test')
 
-    cirq.testing.assert_asyncio_will_raise(FailingSampler().run_async(
-        cirq.Circuit(), repetitions=1),
-                                           ValueError,
-                                           match='test')
+    with pytest.raises(ValueError, match='test'):
+        await FailingSampler().run_async(cirq.Circuit(), repetitions=1)
+
+    with pytest.raises(ValueError, match='test'):
+        await FailingSampler().run_sweep_async(cirq.Circuit(),
+                                               repetitions=1,
+                                               params=None)
 
 
 def test_sampler_sample_multiple_params():
@@ -134,3 +138,20 @@ def test_sampler_sample_inconsistent_keys():
                 'b': 2
             },
         ])
+
+
+@pytest.mark.asyncio
+async def test_sampler_async_not_run_inline():
+    ran = False
+
+    class S(cirq.Sampler):
+
+        def run_sweep(self, *args, **kwargs):
+            nonlocal ran
+            ran = True
+            return []
+
+    a = S().run_sweep_async(cirq.Circuit(), params=None)
+    assert not ran
+    assert await a == []
+    assert ran

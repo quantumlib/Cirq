@@ -148,30 +148,17 @@ def test_graph_device():
     moment = cirq.Moment([cirq.CNOT(*qubits[:2]), cirq.CNOT(*qubits[2:])])
     with pytest.raises(ValueError):
         graph_device.validate_moment(moment)
-    with pytest.raises(ValueError):
-        scheduled_operations = (cirq.ScheduledOperation.op_at_on(
-            op, cirq.Timestamp(), graph_device) for op in moment.operations)
-        schedule = cirq.Schedule(graph_device, scheduled_operations)
-        graph_device.validate_schedule(schedule)
 
     moment = cirq.Moment(
         [cirq.CNOT(qubits[0], qubits[3]),
          cirq.CZ(qubits[1], qubits[2])])
     graph_device.validate_moment(moment)
-    circuit = cirq.Circuit(moment, device=graph_device)
-    schedule = cirq.moment_by_moment_schedule(graph_device, circuit)
-    assert graph_device.validate_schedule(schedule) is None
 
     moment = cirq.Moment(
         [cirq.CNOT(qubits[0], qubits[3]),
          cirq.CNOT(qubits[1], qubits[2])])
     with pytest.raises(ValueError):
         graph_device.validate_moment(moment)
-    with pytest.raises(ValueError):
-        scheduled_operations = (cirq.ScheduledOperation.op_at_on(
-            op, cirq.Timestamp(), graph_device) for op in moment.operations)
-        schedule = cirq.Schedule(graph_device, scheduled_operations)
-        graph_device.validate_schedule(schedule)
 
 
 def test_graph_device_copy_and_add():

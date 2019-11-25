@@ -21,7 +21,7 @@ import numpy as np
 
 from cirq import protocols, value
 from cirq._compat import deprecated
-from cirq.ops import raw_types, gate_features, op_tree
+from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -100,7 +100,7 @@ class GateOperation(raw_types.Operation):
     def _num_qubits_(self):
         return len(self._qubits)
 
-    def _decompose_(self) -> op_tree.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         return protocols.decompose_once_with_qubits(self.gate,
                                                     self.qubits,
                                                     NotImplemented)
@@ -140,8 +140,8 @@ class GateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return GateOperation(resolved_gate, self._qubits)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.circuit_diagram_info(self.gate,
                                               args,
                                               NotImplemented)
@@ -220,16 +220,9 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
-@deprecated(deadline='v0.7.0',
+@deprecated(deadline='v0.8.0',
             fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
 def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     """Returns gate of given type, if op has that gate otherwise None."""
     gate = getattr(op, 'gate', None)
     return gate if isinstance(gate, gate_type) else None
-
-
-@deprecated(deadline='v0.7.0', fix='use: `isinstance(op.gate, gate_type)`')
-def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
-    """Determines if op is a GateOperation with a gate of the given type."""
-    gate = getattr(op, 'gate', None)
-    return isinstance(gate, gate_type)

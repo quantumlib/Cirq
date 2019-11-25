@@ -11,10 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
                     Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
-                    TYPE_CHECKING, SupportsComplex, List, Sequence)
+                    TYPE_CHECKING, SupportsComplex, List, Sequence, Any)
 
 import cmath
 import math
@@ -23,7 +22,6 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (
     global_phase_op,
@@ -43,8 +41,7 @@ if TYPE_CHECKING:
 # A value that can be unambiguously converted into a `cirq.PauliString`.
 
 PAULI_STRING_LIKE = Union[
-    complex, 'cirq.OP_TREE',
-    Mapping['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']],
+    complex, 'cirq.OP_TREE', Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE'],
     Iterable,  # of PAULI_STRING_LIKE, but mypy doesn't do recursive types yet.
 ]
 document(
@@ -54,9 +51,23 @@ document(
     Complex numbers turn into the coefficient of an empty Pauli string.
 
     Dictionaries from qubit to Pauli operation are wrapped into a Pauli string.
+    Each Pauli operation can be specified as a cirq object (e.g. `cirq.X`) or as
+    a string (e.g. `"X"`) or as an integer where 0=I, 1=X, 2=Y, 3=Z.
 
     Collections of Pauli operations are recrusively multiplied into a single
     Pauli string.
+    """)
+
+PAULI_GATE_LIKE = Union['cirq.Pauli', 'cirq.IdentityGate', str, int,]
+document(
+    PAULI_GATE_LIKE,  # type: ignore
+    """An object that can be interpreted as a Pauli gate.
+
+    Allowed values are:
+
+    1. Cirq gates: `cirq.I`, `cirq.X`, `cirq.Y`, `cirq.Z`.
+    2. Strings: "I", "X", "Y", "Z". Equivalently "i", "x", "y", "z".
+    3. Integers from 0 to 3, with the convention 0=I, 1=X, 2=Y, 3=Z.
     """)
 
 TDefault = TypeVar('TDefault')
@@ -117,14 +128,6 @@ class PauliString(raw_types.Operation):
         self._qubit_pauli_map = p.paulis
         self._coefficient = p.coef
 
-    @staticmethod
-    @deprecated(deadline="v0.7.0",
-                fix="call cirq.PauliString(pauli(qubit)) instead")
-    def from_single(qubit: raw_types.Qid,
-                    pauli: pauli_gates.Pauli) -> 'PauliString':
-        """Creates a PauliString with a single qubit."""
-        return PauliString(qubit_pauli_map={qubit: pauli})
-
     @property
     def coefficient(self) -> complex:
         return self._coefficient
@@ -159,20 +162,20 @@ class PauliString(raw_types.Operation):
     def equal_up_to_coefficient(self, other: 'PauliString') -> bool:
         return self._qubit_pauli_map == other._qubit_pauli_map
 
-    def __getitem__(self, key: raw_types.Qid) -> pauli_gates.Pauli:
+    def __getitem__(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
         return self._qubit_pauli_map[key]
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: raw_types.Qid) -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
         pass
 
     @overload
-    def get(self, key: raw_types.Qid,
+    def get(self, key: 'cirq.Qid',
             default: TDefault) -> Union[pauli_gates.Pauli, TDefault]:
         pass
 
-    def get(self, key: raw_types.Qid, default=None):
+    def get(self, key: 'cirq.Qid', default=None):
         return self._qubit_pauli_map.get(key, default)
     # pylint: enable=function-redefined
 
@@ -233,7 +236,7 @@ class PauliString(raw_types.Operation):
     def __rsub__(self, other):
         return -self.__sub__(other)
 
-    def __contains__(self, key: raw_types.Qid) -> bool:
+    def __contains__(self, key: 'cirq.Qid') -> bool:
         return key in self._qubit_pauli_map
 
     def _decompose_(self):
@@ -252,7 +255,7 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
-    def with_qubits(self, *new_qubits: raw_types.Qid) -> 'PauliString':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
                            coefficient=self._coefficient)
@@ -271,6 +274,14 @@ class PauliString(raw_types.Operation):
 
     def __len__(self) -> int:
         return len(self._qubit_pauli_map)
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Print ASCII diagram in Jupyter."""
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('cirq.PauliString(...)')
+        else:
+            p.text(str(self))
 
     def __repr__(self):
         ordered_qubits = sorted(self.qubits)
@@ -661,7 +672,7 @@ class PauliString(raw_types.Operation):
             $$
 
         For example, conjugating a +Y operation by an S operation results in a
-        +X operation.
+        +X operation (as opposed to a -X operation).
 
         In a circuit diagram where `P` is a pauli string observable immediately
         after a Clifford operation `C`, the pauli string `P.conjugated_by(C)` is
@@ -771,7 +782,7 @@ class PauliString(raw_types.Operation):
 
     @staticmethod
     def _pass_operation_over(pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
-                             op: raw_types.Operation,
+                             op: 'cirq.Operation',
                              after_to_before: bool = False) -> bool:
         if isinstance(op, gate_operation.GateOperation):
             gate = op.gate
@@ -791,7 +802,7 @@ class PauliString(raw_types.Operation):
     def _pass_single_clifford_gate_over(
             pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
             gate: clifford_gate.SingleQubitCliffordGate,
-            qubit: raw_types.Qid,
+            qubit: 'cirq.Qid',
             after_to_before: bool = False) -> bool:
         if qubit not in pauli_map:
             return False
@@ -805,11 +816,11 @@ class PauliString(raw_types.Operation):
     def _pass_pauli_interaction_gate_over(
             pauli_map: Dict[raw_types.Qid, pauli_gates.Pauli],
             gate: pauli_interaction_gate.PauliInteractionGate,
-            qubit0: raw_types.Qid,
-            qubit1: raw_types.Qid,
+            qubit0: 'cirq.Qid',
+            qubit1: 'cirq.Qid',
             after_to_before: bool = False) -> bool:
 
-        def merge_and_kickback(qubit: raw_types.Qid,
+        def merge_and_kickback(qubit: 'cirq.Qid',
                                pauli_left: Optional[pauli_gates.Pauli],
                                pauli_right: Optional[pauli_gates.Pauli],
                                inv: bool) -> int:
@@ -848,7 +859,7 @@ class PauliString(raw_types.Operation):
 
 
 def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
-                            pauli_qubits: Tuple[raw_types.Qid, ...],
+                            pauli_qubits: Tuple['cirq.Qid', ...],
                             num_state_qubits: int) -> None:
     """Validates that a qubit map is a valid mapping.
 
@@ -888,12 +899,12 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     GateOperation(X, [q]).
     """
 
-    def __init__(self, pauli: pauli_gates.Pauli, qubit: raw_types.Qid):
+    def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
         PauliString.__init__(self, {qubit: pauli})
         gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
                                               [qubit])
 
-    def with_qubits(self, *new_qubits: raw_types.Qid
+    def with_qubits(self, *new_qubits: 'cirq.Qid'
                    ) -> 'SingleQubitPauliStringGateOperation':
         if len(new_qubits) != 1:
             raise ValueError("len(new_qubits) != 1")
@@ -932,7 +943,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
 
     @classmethod
     def _from_json_dict_(  # type: ignore
-            cls, pauli: pauli_gates.Pauli, qubit: raw_types.Qid, **kwargs):
+            cls, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid', **kwargs):
         # Note, this method is required or else superclasses' deserialization
         # would be used
         return cls(pauli=pauli, qubit=qubit)
@@ -964,16 +975,16 @@ class _MutablePauliString:
         self.coef *= other.coefficient
 
     def _inline_times_mapping(
-            self, mapping: Mapping['cirq.Qid',
-                                   Union['cirq.Pauli', 'cirq.IdentityGate']]):
-        for qubit, pauli in mapping.items():
+            self, mapping: Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE']):
+        for qubit, pauli_like in mapping.items():
+            pauli = PAULI_GATE_LIKE_TO_GATE_MAP.get(pauli_like, None)
+            if pauli is None:
+                raise TypeError(f'{pauli_like!r} is not '
+                                f'cirq.I, cirq.X, cirq.Y, cirq.Z, '
+                                f'"I", "X", "Y", "Z", '
+                                f'0, 1, 2, or 3.')
             if isinstance(pauli, identity.IdentityGate):
                 continue
-
-            if not isinstance(pauli, pauli_gates.Pauli):
-                raise TypeError(
-                    f'{repr(pauli)} is not a Pauli or identity gate.')
-
             self._inline_times_pauli(qubit, pauli)
 
     def inline_times_pauli_string_like(self,
@@ -1024,3 +1035,36 @@ def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
 
     raise TypeError(f'Operation is not a known Clifford and did not decompose '
                     f'into known Cliffords: {op!r}')
+
+
+# Mypy has extreme difficulty with these constants for some reason.
+_i = cast(identity.IdentityGate, identity.I)  # type: ignore
+_x = cast(pauli_gates.Pauli, pauli_gates.X)  # type: ignore
+_y = cast(pauli_gates.Pauli, pauli_gates.Y)  # type: ignore
+_z = cast(pauli_gates.Pauli, pauli_gates.Z)  # type: ignore
+
+PAULI_GATE_LIKE_TO_INDEX_MAP: Dict['cirq.PAULI_GATE_LIKE', int] = {
+    _i: 0,
+    _x: 1,
+    _y: 2,
+    _z: 3,
+    'I': 0,
+    'X': 1,
+    'Y': 2,
+    'Z': 3,
+    'i': 0,
+    'x': 1,
+    'y': 2,
+    'z': 3,
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+}
+
+_INT_TO_PAULI: List[Union['cirq.Pauli', 'cirq.IdentityGate']] = [_i, _x, _y, _z]
+
+PAULI_GATE_LIKE_TO_GATE_MAP: Dict[
+    'cirq.PAULI_GATE_LIKE', Union['cirq.Pauli', 'cirq.IdentityGate']] = {
+        k: _INT_TO_PAULI[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()
+    }
