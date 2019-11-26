@@ -133,7 +133,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 process.
 
                 Example:
-                >>> q0 = cirq.LineQubit.range(1)
+                >>> (q0,) = cirq.LineQubit.range(1)
                 >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
 
                 Default case (ignore_measurement_results = False):
@@ -144,7 +144,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
                 In the other case:
                 >>> simulator = cirq.DensityMatrixSimulator(
-                >>> ignore_measurement_results = True)
+                ...     ignore_measurement_results = True)
                 >>> result = simulator.run(circuit)
 
                 The measurement result will be the maximally mixed state
