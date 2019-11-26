@@ -14,6 +14,14 @@ def test_simulate_no_circuit():
     assert len(result.measurements) == 0
 
 
+def test_run_no_repititions():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    result = simulator.run(circuit, repetitions=0)
+    assert sum(result.measurements['0']) == 0
+
+
 def test_run_hadamard():
     q0 = cirq.LineQubit(0)
     simulator = cirq.CliffordSimulator()
