@@ -925,7 +925,7 @@ def test_implied_job_config(build):
     # Infer all from project id.
     implied = eng.implied_job_config(cg.JobConfig())
     assert implied.job_id.startswith('job-')
-    assert len(implied.job_id) == 10
+    assert len(implied.job_id) == 26
     assert implied.gcs_prefix == 'gs://gqe-project_id/'
     assert re.match(r'gs://gqe-project_id/jobs/job-', implied.gcs_results)
 

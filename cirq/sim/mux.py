@@ -31,8 +31,8 @@ if TYPE_CHECKING:
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
     return all(
-        op[1].gate in
-        clifford_simulator.CliffordSimulator.get_supported_gates() for op in
+        op.gate in clifford_simulator.CliffordSimulator.get_supported_gates()
+        for _, op in
         program.findall_operations(lambda op: not protocols.is_measurement(op)))
 
 
@@ -60,6 +60,8 @@ def sample(program: 'cirq.Circuit',
     # State vector simulation is much faster, but only works if no randomness.
     if noise_model == devices.NO_NOISE:
         if _is_clifford_circuit(program):
+            # If all non-measurement operations are clifford, use the Clifford
+            # simulator.
             return clifford_simulator.CliffordSimulator().run(
                 program, param_resolver=param_resolver, repetitions=repetitions)
         if protocols.has_unitary(program):
