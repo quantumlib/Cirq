@@ -33,8 +33,9 @@ CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
                      Schedule]
 document(
     CIRCUIT_LIKE,  # type: ignore
-    """A `cirq.Circuit`, a `schedules.Schedule`,  or a value that can be
-    trivially converted into one of these.
+    """A `cirq.Circuit`, a `cirq.Schedule`,  or a value that can be trivially
+    converted into one of these: a gate, an operation, and a list or tree of
+    operations.
     """)
 
 
@@ -204,11 +205,13 @@ def final_density_matrix(
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
         seed: Optional[Union[int, np.random.RandomState]] = None,
-        replace_measurement_with_dephasing: bool = True) -> 'np.ndarray':
+        ignore_measurement_results: bool = True) -> 'np.ndarray':
     """Returns the density matrix resulting from simulating the circuit.
+
     Note that, unlike `cirq.final_wavefunction`, terminal measurements
     are not omitted. Instead, all measurements are treated as sources
-    of decoherence (i.e. measurements do not collapse, they dephase).
+    of decoherence (i.e. measurements do not collapse, they dephase). See
+    ignore_measurement_results for details.
 
     Args:
         program: The circuit, schedule, gate, operation, or tree of operations
@@ -226,9 +229,13 @@ def final_density_matrix(
         dtype: The `numpy.dtype` used by the simulation. Typically one of
             `numpy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
-        replace_measurement_with_dephasing: if True, then the simulation
-                will treat measurement as dephasing instead of collapsing
-                process.
+        ignore_measurement_results: Defaults to True. When True, the returned
+            density matrix is not conditioned on any measurement results.
+            For example, this effectively replaces computational basis
+            measurement with dephasing noise. The result density matrix in this 
+            case should be unique. When False, the result will be conditioned on
+            sampled (but unreported) measurement results. In this case the
+            result may vary from call to call.
 
     Returns:
         The density matrix for the state which results from applying the given
@@ -269,8 +276,8 @@ def final_density_matrix(
             dtype=dtype,
             noise=noise,
             seed=seed,
-            replace_measurement_with_dephasing=(
-                replace_measurement_with_dephasing)).simulate(
+            ignore_measurement_results=(
+                ignore_measurement_results)).simulate(
                     program=circuit_like,
                     initial_state=initial_state_like,
                     qubit_order=qubit_order,

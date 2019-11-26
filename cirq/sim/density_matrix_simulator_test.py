@@ -101,7 +101,7 @@ def test_run_bit_flips(dtype):
 def test_run_bit_flips_with_dephasing(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(
-        dtype=dtype, replace_measurement_with_dephasing=True)
+        dtype=dtype, ignore_measurement_results=True)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
@@ -857,8 +857,7 @@ def test_works_on_operation():
             return self.q,
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return XAsOp(new_qubits[0])
+            raise NotImplementedError()
 
         def _channel_(self):
             # coverage: ignore
@@ -883,13 +882,12 @@ def test_works_on_operation_dephased():
             return self.q,
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return HAsOp(new_qubits[0])
+            raise NotImplementedError()
 
         def _channel_(self):
             return cirq.channel(cirq.H)
 
-    s = cirq.DensityMatrixSimulator(replace_measurement_with_dephasing=True)
+    s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
     c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))
     np.testing.assert_allclose(s.simulate(c).final_density_matrix,
                                [[0.5 + 0.j, 0.5 + 0.j], [0.5 + 0.j, 0.5 + 0.j]],

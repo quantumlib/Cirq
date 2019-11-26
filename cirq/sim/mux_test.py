@@ -355,12 +355,12 @@ def test_final_density_matrix_seed_with_collapsing():
     np.testing.assert_allclose(cirq.final_density_matrix(
         [cirq.X(a)**0.5, cirq.measure(a)],
         seed=123,
-        replace_measurement_with_dephasing=False), [[0, 0], [0, 1]],
+        ignore_measurement_results=False), [[0, 0], [0, 1]],
                                atol=1e-4)
     np.testing.assert_allclose(cirq.final_density_matrix(
         [cirq.X(a)**0.5, cirq.measure(a)],
         seed=124,
-        replace_measurement_with_dephasing=False), [[1, 0], [0, 0]],
+        ignore_measurement_results=False), [[1, 0], [0, 0]],
                                atol=1e-4)
 
 

@@ -120,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  seed: value.RANDOM_STATE_LIKE = None,
-                 replace_measurement_with_dephasing: bool = False):
+                 ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
          Args:
@@ -128,24 +128,24 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
-            replace_measurement_with_dephasing: if True, then the simulation
+            ignore_measurement_results: if True, then the simulation
                 will treat measurement as dephasing instead of collapsing
                 process.
 
                 Example:
-                q0 = cirq.LineQubit.range(1)
-                circuit = cirq.Circuit(H(q0), cirq.measure(q0))
+                >>> q0 = cirq.LineQubit.range(1)
+                >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
 
-                Default case (replace_measurement_with_dephasing = False):
-                simulator = cirq.DensityMatrixSimulator()
-                result = simulator.run(circuit)
+                Default case (ignore_measurement_results = False):
+                >>> simulator = cirq.DensityMatrixSimulator()
+                >>> result = simulator.run(circuit)
 
                 The measurement result will be strictly one of 0 or 1.
 
                 In the other case:
-                simulator = cirq.DensityMatrixSimulator(
-                replace_measurement_with_dephasing = True)
-                result = simulator.run(circuit)
+                >>> simulator = cirq.DensityMatrixSimulator(
+                >>> ignore_measurement_results = True)
+                >>> result = simulator.run(circuit)
 
                 The measurement result will be the maximally mixed state
                 with equal probability for 0 and 1.
@@ -157,8 +157,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._replace_measurement_with_dephasing = (
-            replace_measurement_with_dephasing)
+        self._ignore_measurement_results = (
+            ignore_measurement_results)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -295,7 +295,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 if isinstance(op.gate, ops.MeasurementGate):
                     meas = op.gate
                     if perform_measurements:
-                        if self._replace_measurement_with_dephasing:
+                        if self._ignore_measurement_results:
                             for i, q in enumerate(op.qubits):
                                 self._apply_op_channel(
                                     cirq.phase_damp(1).on(q), state,
