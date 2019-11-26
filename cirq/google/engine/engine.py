@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+import datetime
 import enum
 import json
 import random
@@ -87,12 +88,13 @@ def _user_project_header_request_builder(project_id: str):
     return request_builder
 
 
-def _make_random_id(prefix: str, length: int = 6):
+def _make_random_id(prefix: str, length: int = 16):
     random_digits = [
         random.choice(string.ascii_uppercase + string.digits)
         for _ in range(length)
     ]
     suffix = ''.join(random_digits)
+    suffix += datetime.date.today().strftime('%y%m%d')
     return '%s%s' % (prefix, suffix)
 
 
@@ -241,7 +243,8 @@ class Engine:
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             job_config: Configures the names and properties of jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -289,7 +292,8 @@ class Engine:
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             job_config: Configures the names and properties of jobs.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
@@ -462,7 +466,8 @@ class Engine:
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
