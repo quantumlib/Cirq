@@ -116,10 +116,10 @@ def test_init():
     assert_url_to_circuit_returns(
         '{"cols":[],"init":[0,1,"+","-","i","-i"]}',
         cirq.Circuit(cirq.X(b),
-                     cirq.Ry(np.pi / 2).on(c),
-                     cirq.Ry(-np.pi / 2).on(d),
-                     cirq.Rx(-np.pi / 2).on(e),
-                     cirq.Rx(np.pi / 2).on(f)))
+                     cirq.ry(np.pi / 2).on(c),
+                     cirq.ry(-np.pi / 2).on(d),
+                     cirq.rx(-np.pi / 2).on(e),
+                     cirq.rx(np.pi / 2).on(f)))
 
     assert_url_to_circuit_returns('{"cols":[],"init":["+"]}',
                                   output_amplitudes_from_quirk=[{

@@ -176,7 +176,7 @@ class IdentityOperation(raw_types.Operation):
 
     @deprecated(deadline='v0.8',
                 fix='Use cirq.IdentityGate or cirq.identity_each instead.',
-                func_name='IdentityOperation.__new__')
+                name='IdentityOperation')
     def __new__(cls, qubits: Sequence['cirq.Qid']):
         return IdentityGate(qid_shape=protocols.qid_shape(qubits)).on(*qubits)
 

@@ -27,16 +27,10 @@ class _UnconstrainedDevice(device.Device):
     def validate_operation(self, operation):
         pass
 
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        pass
-
     def validate_moment(self, moment):
         pass
 
     def validate_circuit(self, circuit):
-        pass
-
-    def validate_schedule(self, schedule):
         pass
 
     def __repr__(self):

@@ -276,8 +276,10 @@ class Circuit:
         if not isinstance(other, (ops.Operation, Iterable)):
             return NotImplemented
         # Auto wrap OP_TREE inputs into a circuit.
-        result = Circuit(other)
-        return result.__iadd__(self)
+        result = self.copy()
+        result._moments[:0] = Circuit(other)._moments
+        result._device.validate_circuit(result)
+        return result
 
     def __imul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -1497,17 +1499,6 @@ class Circuit:
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
-
-    to_unitary_matrix = deprecated(
-        func_name='Circuit.to_unitary_matrix',
-        deadline='v0.7.0',
-        fix='Use `Circuit.unitary()` instead.')(unitary)
-
-    apply_unitary_effect_to_state = deprecated(
-        func_name='Circuit.apply_unitary_effect_to_state',
-        deadline='v0.7.0',
-        fix="Use `cirq.final_wavefunction(circuit)` or "
-        "`Circuit.final_wavefunction()` instead")(final_wavefunction)
 
     def to_text_diagram(
             self,

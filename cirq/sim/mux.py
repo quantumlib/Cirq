@@ -21,7 +21,7 @@ from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, protocols, study, schedules, devices, ops, value
+from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import (sparse_simulator, density_matrix_simulator,
                       wave_function_simulator)
@@ -29,27 +29,25 @@ from cirq.sim import (sparse_simulator, density_matrix_simulator,
 if TYPE_CHECKING:
     import cirq
 
-CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE, schedules.
-                     Schedule]
+CIRCUIT_LIKE = Union[circuits.Circuit, ops.Gate, ops.OP_TREE]
 document(
     CIRCUIT_LIKE,  # type: ignore
-    """A `cirq.Circuit`, a `cirq.Schedule`,  or a value that can be trivially
-    converted into one of these: a gate, an operation, and a list or tree of
-    operations.
+    """A `circuits.Circuit` or a value that can be trivially converted into it:
+        a gate, an operation, and a list or tree of operations.
     """)
 
 
-def sample(program: Union[circuits.Circuit, schedules.Schedule],
+def sample(program: 'cirq.Circuit',
            *,
            noise: 'cirq.NOISE_MODEL_LIKE' = None,
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
            seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
-    """Simulates sampling from the given circuit or schedule.
+    """Simulates sampling from the given circuit.
 
     Args:
-        program: The circuit or schedule to sample from.
+        program: The circuit to sample from.
         noise: Noise model to use while running the simulation.
         param_resolver: Parameters to run with the program.
         repetitions: The number of samples to take.
@@ -74,10 +72,10 @@ def sample(program: Union[circuits.Circuit, schedules.Schedule],
                        repetitions=repetitions)
 
 
-def _to_circuit_or_schedule(program: 'cirq.CIRCUIT_LIKE'
-                           ) -> 'Union[circuits.Circuit, schedules.Schedule]':
+def _to_circuit(program: 'cirq.CIRCUIT_LIKE'
+                           ) -> 'cirq.Circuit':
     result = None
-    if isinstance(program, (schedules.Schedule, circuits.Circuit)):
+    if isinstance(program, circuits.Circuit):
         # No change needed.
         result = program
     elif isinstance(program, ops.Gate):
@@ -86,7 +84,7 @@ def _to_circuit_or_schedule(program: 'cirq.CIRCUIT_LIKE'
     else:
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
-    return cast(Union[circuits.Circuit, schedules.Schedule], result)
+    return cast('cirq.Circuit',result)
 
 
 def final_wavefunction(
@@ -104,7 +102,7 @@ def final_wavefunction(
     case the output is just the first column of the implied unitary matrix.
 
     Args:
-        program: The circuit, schedule, gate, operation, or tree of operations
+        program: The circuit, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
         param_resolver: Parameters to run with the program.
         qubit_order: Determines the canonical ordering of the qubits. This
@@ -130,7 +128,7 @@ def final_wavefunction(
     if not isinstance(initial_state, int):
         initial_state = np.asarray(initial_state, dtype=dtype)
 
-    circuit_like = _to_circuit_or_schedule(program)
+    circuit_like = _to_circuit(program)
 
     if not protocols.has_unitary(
             protocols.resolve_parameters(circuit_like, param_resolver)):
@@ -150,7 +148,7 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
+def sample_sweep(program: 'cirq.Circuit',
                  params: study.Sweepable,
                  *,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
@@ -158,13 +156,13 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
                  dtype: Type[np.number] = np.complex64,
                  seed: value.RANDOM_STATE_LIKE = None
                 ) -> List[study.TrialResult]:
-    """Runs the supplied Circuit or Schedule, mimicking quantum hardware.
+    """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
     values.
 
     Args:
-        program: The circuit or schedule to simulate.
+        program: The circuit to simulate.
         params: Parameters to run with the program.
         noise: Noise model to use while running the simulation.
         repetitions: The number of repetitions to simulate, per set of
@@ -180,12 +178,9 @@ def sample_sweep(program: Union[circuits.Circuit, schedules.Schedule],
     """
     prng = value.parse_random_state(seed)
 
-    circuit = (program.to_circuit()
-               if isinstance(program, schedules.Schedule) else program)
-
     trial_results = []  # type: List[study.TrialResult]
     for param_resolver in study.to_resolvers(params):
-        measurements = sample(circuit,
+        measurements = sample(program,
                               noise=noise,
                               param_resolver=param_resolver,
                               repetitions=repetitions,
@@ -214,7 +209,7 @@ def final_density_matrix(
     ignore_measurement_results for details.
 
     Args:
-        program: The circuit, schedule, gate, operation, or tree of operations
+        program: The circuit, gate, operation, or tree of operations
             to apply to the initial state in order to produce the result.
         noise: Noise model to use while running the simulation.
         param_resolver: Parameters to run with the program.
@@ -249,7 +244,7 @@ def final_density_matrix(
         initial_state_like = initial_state
 
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
-    circuit_like = _to_circuit_or_schedule(program)
+    circuit_like = _to_circuit(program)
 
     can_do_unitary_simulation = True
     if not protocols.has_unitary(circuit_like):

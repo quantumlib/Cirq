@@ -257,7 +257,7 @@ def test_merge_with():
         op1.merged_with(op2)
 
 
-def test_is_parametrized():
+def test_is_parameterized():
     op = cirq.PauliStringPhasor(cirq.PauliString({}))
     assert not cirq.is_parameterized(op)
     assert not cirq.is_parameterized(op**0.1)

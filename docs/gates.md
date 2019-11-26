@@ -157,8 +157,8 @@ This gate is a rotation about an axis in the XY plane of the Bloch sphere.
 The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
 The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
 
-**cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
-The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
+**cirq.Z / cirq.rz** Rotations about the Pauli ``Z`` axis.
+The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.rz(θ)` is `exp(-i Z θ/2)`.
 Note that in quantum computing hardware, this gate is often implemented in the
 classical control hardware as a phase change on later operations, instead of as
 a physical modification applied to the qubits.

@@ -89,7 +89,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -101,7 +101,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
-        "Found 1 differing files with associated tests.\n").split()
+        "Found 1 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -113,7 +113,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
-        "Found 1 differing files with associated tests.\n").split()
+        "Found 1 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -126,7 +126,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
-        "Found 1 differing files with associated tests.\n").split()
+        "Found 1 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -139,7 +139,21 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
     assert result.out == 'INTERCEPTED pytest file_test.py\n'
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
-        "Found 1 differing files with associated tests.\n").split()
+        "Found 1 test files associated with changes.\n").split()
+
+    result = run(script_file='check/pytest-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD',
+                 setup='touch __init__.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n'
+                 'echo x > __init__.py\n')
+    assert result.exit_code == 0
+    assert result.out == ('INTERCEPTED pytest docs/docs_coverage_test.py '
+                          'cirq/protocols/json_test.py\n')
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD'.\n"
+        "Found 2 test files associated with changes.\n").split()
 
 
 @only_on_posix
@@ -152,7 +166,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -167,7 +181,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -176,7 +190,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'origin/master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -185,7 +199,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'upstream/master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -194,7 +208,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'upstream/master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -226,8 +240,8 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.exit_code == 0
     assert result.out == ''
     assert result.err.split() == (
-       "Comparing against revision 'HEAD'.\n"
-       "Found 0 differing files with associated tests.\n").split()
+        "Comparing against revision 'HEAD'.\n"
+        "Found 0 test files associated with changes.\n").split()
 
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
@@ -238,7 +252,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
     # Works on remotes.
     result = run(script_file='check/pytest-changed-files',
@@ -254,7 +268,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
     assert result.out == ''
     assert result.err.split() == (
         "Comparing against revision 'origin/master'.\n"
-        "Found 0 differing files with associated tests.\n").split()
+        "Found 0 test files associated with changes.\n").split()
 
 
 @only_on_posix
