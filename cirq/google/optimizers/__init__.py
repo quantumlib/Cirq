@@ -15,6 +15,12 @@
 Package for optimizers and gate compilers related to Google-specific devices.
 """
 
+from cirq.google.optimizers.convert_to_sycamore_gates import (
+    ConvertToSycamoreGates,)
+
+from cirq.google.optimizers.convert_to_sqrt_iswap import (
+    ConvertToSqrtIswapGates,)
+
 from cirq.google.optimizers.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 

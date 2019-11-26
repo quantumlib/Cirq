@@ -209,50 +209,6 @@ def test_serialize_unrecognized():
         MY_GATE_SET.serialize("not quite right")
 
 
-def test_serialize_deserialize_schedule():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    scheduled_ops = [
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=0),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q1),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=400),
-                                         device=cg.Bristlecone),
-    ]
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=scheduled_ops)
-
-    proto = {
-        'language': {
-            'arg_function_language': '',
-            'gate_set': 'my_gate_set'
-        },
-        'schedule': {
-            'scheduled_operations': [
-                {
-                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
-                    'start_time_picos': '0'
-                },
-                {
-                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q1)),
-                    'start_time_picos': '200000',
-                },
-                {
-                    'operation': X_SERIALIZER.to_proto_dict(cirq.X(q0)),
-                    'start_time_picos': '400000',
-                },
-            ]
-        },
-    }
-    assert proto == MY_GATE_SET.serialize_dict(schedule)
-    assert MY_GATE_SET.deserialize_dict(proto,
-                                        cirq.google.Bristlecone) == schedule
-
-
 def test_serialize_deserialize_schedule_no_device():
     q0 = cirq.GridQubit(1, 1)
     q1 = cirq.GridQubit(1, 2)
@@ -280,21 +236,6 @@ def test_serialize_deserialize_schedule_no_device():
     }
     with pytest.raises(ValueError):
         MY_GATE_SET.deserialize_dict(proto)
-
-
-def test_serialize_deserialize_empty_schedule():
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=[])
-
-    proto = {
-        'language': {
-            'arg_function_language': '',
-            'gate_set': 'my_gate_set'
-        }
-    }
-    assert proto == MY_GATE_SET.serialize_dict(schedule)
-    with pytest.raises(ValueError):
-        MY_GATE_SET.deserialize_dict(proto, cirq.google.Bristlecone)
 
 
 def test_serialize_deserialize_op():

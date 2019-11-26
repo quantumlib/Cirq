@@ -22,7 +22,6 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (
     global_phase_op,
@@ -128,14 +127,6 @@ class PauliString(raw_types.Operation):
         p.inline_times_pauli_string_like(contents)
         self._qubit_pauli_map = p.paulis
         self._coefficient = p.coef
-
-    @staticmethod
-    @deprecated(deadline="v0.7.0",
-                fix="call cirq.PauliString(pauli(qubit)) instead")
-    def from_single(qubit: 'cirq.Qid',
-                    pauli: pauli_gates.Pauli) -> 'PauliString':
-        """Creates a PauliString with a single qubit."""
-        return PauliString(qubit_pauli_map={qubit: pauli})
 
     @property
     def coefficient(self) -> complex:

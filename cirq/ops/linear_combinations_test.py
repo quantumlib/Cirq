@@ -233,10 +233,10 @@ def assert_linear_combinations_are_equal(
     (cirq.X - cirq.Y, -cirq.Y + cirq.X),
     (cirq.X + cirq.S - cirq.X, cirq.S),
     (cirq.Y - 2 * cirq.Y, -cirq.Y),
-    (cirq.Rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
+    (cirq.rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
     (1j * cirq.H * 1j, -cirq.H),
-    (-1j * cirq.Y, cirq.Ry(np.pi)),
-    (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
+    (-1j * cirq.Y, cirq.ry(np.pi)),
+    (np.sqrt(-1j) * cirq.S, cirq.rz(np.pi / 2)),
     (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ), cirq.SWAP),
     ((cirq.IdentityGate(2) + 1j *
       (cirq.XX + cirq.YY) + cirq.ZZ) / 2, cirq.ISWAP),
