@@ -226,7 +226,7 @@ def final_density_matrix(
         ignore_measurement_results: Defaults to True. When True, the returned
             density matrix is not conditioned on any measurement results.
             For example, this effectively replaces computational basis
-            measurement with dephasing noise. The result density matrix in this 
+            measurement with dephasing noise. The result density matrix in this
             case should be unique. When False, the result will be conditioned on
             sampled (but unreported) measurement results. In this case the
             result may vary from call to call.
