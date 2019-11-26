@@ -157,8 +157,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-        self._ignore_measurement_results = (
-            ignore_measurement_results)
+        self._ignore_measurement_results = (ignore_measurement_results)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,

@@ -72,8 +72,7 @@ def sample(program: 'cirq.Circuit',
                        repetitions=repetitions)
 
 
-def _to_circuit(program: 'cirq.CIRCUIT_LIKE'
-                           ) -> 'cirq.Circuit':
+def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     result = None
     if isinstance(program, circuits.Circuit):
         # No change needed.
@@ -84,7 +83,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE'
     else:
         # It should be an OP_TREE.
         result = circuits.Circuit(program)
-    return cast('cirq.Circuit',result)
+    return cast('cirq.Circuit', result)
 
 
 def final_wavefunction(
@@ -271,11 +270,10 @@ def final_density_matrix(
             dtype=dtype,
             noise=noise,
             seed=seed,
-            ignore_measurement_results=(
-                ignore_measurement_results)).simulate(
-                    program=circuit_like,
-                    initial_state=initial_state_like,
-                    qubit_order=qubit_order,
-                    param_resolver=param_resolver)
+            ignore_measurement_results=(ignore_measurement_results)).simulate(
+                program=circuit_like,
+                initial_state=initial_state_like,
+                qubit_order=qubit_order,
+                param_resolver=param_resolver)
         return cast(density_matrix_simulator.DensityMatrixTrialResult,
                     result).final_density_matrix

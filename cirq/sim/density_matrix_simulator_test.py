@@ -100,8 +100,8 @@ def test_run_bit_flips(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_bit_flips_with_dephasing(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    simulator = cirq.DensityMatrixSimulator(
-        dtype=dtype, ignore_measurement_results=True)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype,
+                                            ignore_measurement_results=True)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
