@@ -26,14 +26,13 @@ TSelf_Moment = TypeVar('TSelf_Moment', bound='Moment')
 
 
 class Moment:
-    """A simplified time-slice of operations within a sequenced circuit.
+    """A time-slice of operations within a circuit.
 
-    Note that grouping sequenced circuits into moments is an abstraction that
-    may not carry over directly to the scheduling on the hardware or simulator.
-    Operations in the same moment may or may not actually end up scheduled to
-    occur at the same time. However the topological quantum circuit ordering
-    will be preserved, and many schedulers or consumers will attempt to
-    maximize the moment representation.
+    Grouping operations into moments is intended to be a strong suggestion to
+    whatever is scheduling operations on real hardware. Operations in the same
+    moment should execute at the same time (to the extent possible; not all
+    operations have the same duration) and it is expected that all operations
+    in a moment should be completed before beginning the next moment.
     """
 
     def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:

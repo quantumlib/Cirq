@@ -21,7 +21,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 
 def _make_qubits(n):
@@ -125,16 +124,16 @@ def test_exponentiate_single_value_as_exponent():
     q = cirq.LineQubit(0)
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.X(q)),
-                          cirq.Rx(0.25 * math.pi).on(q))
+                          cirq.rx(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Y(q)),
-                          cirq.Ry(0.25 * math.pi).on(q))
+                          cirq.ry(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Z(q)),
-                          cirq.Rz(0.25 * math.pi).on(q))
+                          cirq.rz(0.25 * math.pi).on(q))
 
     assert cirq.approx_eq(np.exp(-0.3j * math.pi * cirq.X(q)),
-                          cirq.Rx(0.3 * math.pi).on(q))
+                          cirq.rx(0.3 * math.pi).on(q))
 
     assert cirq.approx_eq(cirq.X(q)**0.5, cirq.XPowGate(exponent=0.5).on(q))
 
@@ -218,17 +217,6 @@ def test_constructor_flexibility():
     assert cirq.PauliString(1, 2, 3, {a: cirq.X},
                             cirq.Y(a)) == cirq.PauliString(
                                 qubit_pauli_map={a: cirq.Z}, coefficient=6j)
-
-
-def test_deprecated_from_single():
-    q0 = cirq.LineQubit(0)
-    with capture_logging() as log:
-        actual = cirq.PauliString.from_single(q0, cirq.X)
-    assert len(log) == 1  # May fail if deprecated thing is used elsewhere.
-    assert 'PauliString.from_single' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.PauliString([cirq.X(q0)])
 
 
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())

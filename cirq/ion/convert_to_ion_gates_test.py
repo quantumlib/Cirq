@@ -59,11 +59,11 @@ def test_convert_to_ion_gates():
         cirq.PhasedXPowGate(phase_exponent=1).on(cirq.GridQubit(0, 0))
     ]
     assert rop == [
-        cirq.Ry(np.pi / 2).on(op.qubits[0]),
+        cirq.ry(np.pi / 2).on(op.qubits[0]),
         cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
-        cirq.Rx(-1 * np.pi / 2).on(op.qubits[0]),
-        cirq.Rx(-1 * np.pi / 2).on(op.qubits[1]),
-        cirq.Ry(-1 * np.pi / 2).on(op.qubits[0])
+        cirq.rx(-1 * np.pi / 2).on(op.qubits[0]),
+        cirq.rx(-1 * np.pi / 2).on(op.qubits[1]),
+        cirq.ry(-1 * np.pi / 2).on(op.qubits[0])
     ]
     assert rcnot == [
         cirq.PhasedXPowGate(phase_exponent=-0.75,

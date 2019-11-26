@@ -96,7 +96,7 @@ def test_raises_no_pauli_expansion(val):
         'X': np.sqrt(0.5),
         'Z': np.sqrt(0.5)
     })),
-    (cirq.Ry(np.pi / 2),
+    (cirq.ry(np.pi / 2),
      cirq.LinearDict({
          'I': np.cos(np.pi / 4),
          'Y': -1j * np.sin(np.pi / 4)

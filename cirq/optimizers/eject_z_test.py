@@ -282,7 +282,7 @@ def test_unknown_operation_blocks():
 
 def test_swap():
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit([cirq.Rz(.123).on(a), cirq.SWAP(a, b)])
+    original = cirq.Circuit([cirq.rz(.123).on(a), cirq.SWAP(a, b)])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)
@@ -307,7 +307,7 @@ def test_not_a_swap(exponent):
 def test_swap_fsim(theta):
     a, b = cirq.LineQubit.range(2)
     original = cirq.Circuit(
-        [cirq.Rz(.123).on(a),
+        [cirq.rz(.123).on(a),
          cirq.FSimGate(theta=theta, phi=.123).on(a, b)])
     optimized = original.copy()
 
@@ -333,7 +333,7 @@ def test_not_a_swap_fsim(theta):
 @pytest.mark.parametrize('exponent', (1, -1))
 def test_swap_iswap(exponent):
     a, b = cirq.LineQubit.range(2)
-    original = cirq.Circuit([cirq.Rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
+    original = cirq.Circuit([cirq.rz(.123).on(a), cirq.ISWAP(a, b)**exponent])
     optimized = original.copy()
 
     cirq.EjectZ().optimize_circuit(optimized)

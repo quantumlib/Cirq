@@ -98,7 +98,7 @@ def test_absorbs_z():
             [],
         ))
 
-    # Parametrized Z.
+    # parameterized Z.
     assert_optimizes(
         before=quick_circuit(
             [cirq.PhasedXPowGate(phase_exponent=0.125).on(q)],
