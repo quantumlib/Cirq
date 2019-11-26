@@ -195,7 +195,7 @@ class Simulator(simulator.SimulatesSamples,
         if repetitions == 0:
             for _, op, _ in circuit.findall_operations_with_gate_type(
                     ops.MeasurementGate):
-                measurements[protocols.measurement_key(op)] = []
+                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
