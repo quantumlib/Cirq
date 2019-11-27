@@ -79,7 +79,7 @@ def test_run_simulator_sweeps_with_duplicate_measurement_keys():
     ])
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
-    with pytest.raises(ValueError, match='Measurement key ['a'] repeated'):
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
         simulator.run_sweep(program=circuit,
                             repetitions=10,
                             params=param_resolvers)
