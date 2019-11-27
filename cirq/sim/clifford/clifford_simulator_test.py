@@ -15,7 +15,7 @@ def test_simulate_no_circuit():
     assert len(result.measurements) == 0
 
 
-def test_run_no_repititions():
+def test_run_no_repetitions():
     q0 = cirq.LineQubit(0)
     simulator = cirq.CliffordSimulator()
     circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
