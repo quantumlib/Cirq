@@ -145,7 +145,7 @@ def parse_arguments(args):
     parser.add_argument('--sampled',
                         default=False,
                         type=bool,
-                        help='Run and do physical measurements.')
+                        help='Run and do measurements on a real device.')
 
     parser.add_argument('--n_trials',
                         default=10,
