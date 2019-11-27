@@ -87,6 +87,7 @@ def test_foxtail():
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
         gate_sets=[cg.gate_sets.XMON])
+    assert foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))

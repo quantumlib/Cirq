@@ -14,7 +14,7 @@
 
 import itertools
 import collections
-from typing import Iterable, cast, DefaultDict, TYPE_CHECKING
+from typing import Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
@@ -72,6 +72,9 @@ class NeutralAtomDevice(devices.Device):
             if not isinstance(q, GridQubit):
                 raise ValueError('Unsupported qubit type: {!r}'.format(q))
         self.qubits = frozenset(qubits)
+
+    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
+        return self.qubits
 
     def qubit_list(self):
         return [qubit for qubit in self.qubits]
