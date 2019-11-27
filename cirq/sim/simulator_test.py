@@ -29,6 +29,7 @@ def test_run_simulator_run():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    _verify_unique_measurement_keys = mock.Mock()
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult.from_single_parameter_set(
         measurements=expected_measurements, params=param_resolver)
@@ -48,6 +49,7 @@ def test_run_simulator_sweeps():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    _verify_unique_measurement_keys = mock.Mock()
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
     expected_results = [
@@ -77,7 +79,7 @@ def test_run_simulator_sweeps_with_duplicate_measurement_keys():
     ])
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
+    with pytest.raises(ValueError, match='Measurement key ['a'] repeated'):
         simulator.run_sweep(program=circuit,
                             repetitions=10,
                             params=param_resolvers)
