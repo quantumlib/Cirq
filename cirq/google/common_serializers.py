@@ -129,7 +129,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
 
 #
 # PhasedXZ gate (de)serializer
-# TODO(maffoo): Move to SINGLE_QUBIT_(DE)SERIALIZERS when server support is in.
+# TODO(#2602): Move to SINGLE_QUBIT_(DE)SERIALIZERS when server support is in.
 #
 
 PHASED_X_Z_SERIALIZER = op_serializer.GateOpSerializer(
@@ -172,7 +172,6 @@ PHASED_X_Z_DESERIALIZER = op_deserializer.GateOpDeserializer(
         ),
     ],
 )
-
 
 
 #
