@@ -65,6 +65,37 @@ def test_run_simulator_sweeps():
     assert simulator._run.call_count == 2
 
 
+@mock.patch.multiple(cirq.SimulatesSamples,
+                     __abstractmethods__=set(),
+                     _run=mock.Mock())
+def test_run_simulator_sweeps():
+    simulator = cirq.SimulatesSamples()
+    circuit = cirq.Circuit()
+    circuit.append([
+        cirq.measure(cirq.GridQubit(0, 0), key='a'),
+        cirq.measure(cirq.GridQubit(0, 1), key='a')
+    ])
+    param_resolvers = [mock.Mock(cirq.ParamResolver),
+                       mock.Mock(cirq.ParamResolver)]
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
+        simulator.run_sweep(program=circuit,
+                            repetitions=10,
+                            params=param_resolvers)
+
+
+def test_repeat_measurement_keys_error_in_run_sweep_simulates_samples():
+    d = square_device(3, 3)
+
+    circuit = cirq.Circuit()
+    circuit.append([
+        cirq.measure(cirq.GridQubit(0, 0), key='a'),
+        cirq.measure(cirq.GridQubit(0, 1), key='a')
+    ])
+
+    with pytest.raises(ValueError, match='Measurement key a repeated'):
+        d.validate_circuit(circuit)
+
+
 @mock.patch.multiple(cirq.SimulatesIntermediateState,
                      __abstractmethods__=set(),
                      _simulator_iterator=mock.Mock())
