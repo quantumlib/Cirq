@@ -128,6 +128,53 @@ SINGLE_QUBIT_DESERIALIZERS = [
 
 
 #
+# PhasedXZ gate (de)serializer
+# TODO(#2602): Move to SINGLE_QUBIT_(DE)SERIALIZERS when server support is in.
+#
+
+PHASED_X_Z_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.PhasedXZGate,
+    serialized_gate_id='xyz',
+    args=[
+        op_serializer.SerializingArg(
+            serialized_name='x_exponent',
+            serialized_type=float,
+            gate_getter='x_exponent',
+        ),
+        op_serializer.SerializingArg(
+            serialized_name='z_exponent',
+            serialized_type=float,
+            gate_getter='z_exponent',
+        ),
+        op_serializer.SerializingArg(
+            serialized_name='axis_phase_exponent',
+            serialized_type=float,
+            gate_getter='axis_phase_exponent',
+        ),
+    ],
+)
+
+PHASED_X_Z_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='xyz',
+    gate_constructor=ops.PhasedXZGate,
+    args=[
+        op_deserializer.DeserializingArg(
+            serialized_name='x_exponent',
+            constructor_arg_name='x_exponent',
+        ),
+        op_deserializer.DeserializingArg(
+            serialized_name='z_exponent',
+            constructor_arg_name='z_exponent',
+        ),
+        op_deserializer.DeserializingArg(
+            serialized_name='axis_phase_exponent',
+            constructor_arg_name='axis_phase_exponent',
+        ),
+    ],
+)
+
+
+#
 # Measurement Serializer and Deserializer
 #
 MEASUREMENT_SERIALIZER = op_serializer.GateOpSerializer(
