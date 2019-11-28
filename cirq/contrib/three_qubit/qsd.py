@@ -46,16 +46,14 @@ a, b, c = cirq.LineQubit.range(3)
 # Note: we are using / 2 as the thetas are half angles
 # we are using CZ's as an optimization as per Appendix A.1 in
 circuit_CS = cirq.Circuit([
-    cirq.Ry((theta[0] + theta[1] + theta[2] + theta[3]) / 2).on(a),
-    cirq.CZ(b, a),
-    cirq.Ry((theta[0] + theta[1] - theta[2] - theta[3]) / 2).on(a),
-    cirq.CZ(b, a),
-    cirq.CZ(c, a),
-    cirq.Ry((theta[0] - theta[1] + theta[2] - theta[3]) / 2).on(a),
-    cirq.CZ(b, a),
-    cirq.Ry((theta[0] - theta[1] - theta[2] + theta[3]) / 2).on(a),
-    cirq.CZ(b, a),
-    cirq.CZ(c, a)])
+    cirq.Ry((theta[0]+theta[1]+theta[2]+theta[3])/2).on(a),
+    cirq.CZ(b,a),
+    cirq.Ry((theta[0]+theta[1]-theta[2]-theta[3])/2).on(a),
+    cirq.CZ(c,a),
+    cirq.Ry((theta[0]-theta[1]-theta[2]+theta[3])/2).on(a),
+    cirq.CZ(b,a),
+    cirq.Ry((theta[0]-theta[1]+theta[2]-theta[3])/2).on(a),
+    cirq.CZ(c,a)])
 
 print(circuit_CS)
 
@@ -126,12 +124,10 @@ def multiplexor_to_circuit(u1, u2):
         cirq.Rz((theta2[0] + theta2[1] + theta2[2] + theta2[3]) / 4).on(a),
         cirq.CNOT(b, a),
         cirq.Rz((theta2[0] + theta2[1] - theta2[2] - theta2[3]) / 4).on(a),
-        cirq.CNOT(b, a),
         cirq.CNOT(c, a),
-        cirq.Rz((theta2[0] - theta2[1] + theta2[2] - theta2[3]) / 4).on(a),
-        cirq.CNOT(b, a),
         cirq.Rz((theta2[0] - theta2[1] - theta2[2] + theta2[3]) / 4).on(a),
         cirq.CNOT(b, a),
+        cirq.Rz((theta2[0] - theta2[1] + theta2[2] - theta2[3]) / 4).on(a),
         cirq.CNOT(c, a)])
 
     #     print(circuit_u1u2_mid)
@@ -172,6 +168,6 @@ cirq.testing.assert_allclose_up_to_global_phase(U, final_circuit._unitary_(),
 print(final_circuit)
 print(sum(
     [1 for op in final_circuit.all_operations() if op.gate.num_qubits() == 2]),
-      len(final_circuit))
+    len(final_circuit))
 for op in final_circuit.all_operations():
     if op.gate.num_qubits() == 2:  print(op)
