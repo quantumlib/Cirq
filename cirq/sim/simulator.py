@@ -584,4 +584,4 @@ def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result[None] = 0
     duplicates = [k for k, v in result.most_common() if v > 1]
     if duplicates:
-        raise ValueError('Measurement key {} repeated'.format(duplicates))
+        raise ValueError('Measurement key {} repeated'.format(",".join(duplicates)))

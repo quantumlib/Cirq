@@ -321,10 +321,12 @@ def test_verify_unique_measurement_keys():
     circuit = cirq.Circuit()
     circuit.append([
         cirq.measure(q[0], key='a'),
-        cirq.measure(q[1], key='a')
+        cirq.measure(q[1], key='a'),
+        cirq.measure(q[0], key='b'),
+        cirq.measure(q[1], key='b')
     ])
-    with pytest.raises(ValueError, match='Measurement key a repeated'):
-        cirq.Simulator().simulate(circuit)
+    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
+        cirq.sample(circuit)
 
 
 def test_simulate_with_invert_mask():
