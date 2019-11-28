@@ -16,11 +16,6 @@ print(U)
 
 P = int(M / 2)  # number of rows in upper left block
 u1, u2, v1h, v2h, theta = cs_decomp(U, P, P)
-print(u1)
-print(u2)
-print(v1h)
-print(v2h)
-print(theta)
 
 decimals = 14  # desired precision
 
@@ -43,16 +38,17 @@ CS = np.vstack((np.hstack((C, -S)), np.hstack((S, C))))
 assert_almost_equal(U, UD @ CS @ VDH, decimals)
 
 a, b, c = cirq.LineQubit.range(3)
-# Note: we are using / 2 as the thetas are half angles
+# Note: we are using / 2 as the thetas are already half angles - and ry takes
+# full angles.
 # we are using CZ's as an optimization as per Appendix A.1 in
 circuit_CS = cirq.Circuit([
-    cirq.Ry((theta[0]+theta[1]+theta[2]+theta[3])/2).on(a),
+    cirq.ry((theta[0]+theta[1]+theta[2]+theta[3])/2).on(a),
     cirq.CZ(b,a),
-    cirq.Ry((theta[0]+theta[1]-theta[2]-theta[3])/2).on(a),
+    cirq.ry((theta[0]+theta[1]-theta[2]-theta[3])/2).on(a),
     cirq.CZ(c,a),
-    cirq.Ry((theta[0]-theta[1]-theta[2]+theta[3])/2).on(a),
+    cirq.ry((theta[0]-theta[1]-theta[2]+theta[3])/2).on(a),
     cirq.CZ(b,a),
-    cirq.Ry((theta[0]-theta[1]+theta[2]-theta[3])/2).on(a),
+    cirq.ry((theta[0]-theta[1]+theta[2]-theta[3])/2).on(a),
     cirq.CZ(c,a)])
 
 print(circuit_CS)
@@ -73,7 +69,7 @@ assert_almost_equal(circuit_CS._unitary_(), CS, decimals)
 # print(np.cos(theta))
 # print(np.sin(theta))
 # for th in theta:
-#     print(cirq.Ry(th*2)._unitary_())
+#     print(cirq.ry(th*2)._unitary_())
 
 def multiplexor_to_circuit(u1, u2):
     u1u2 = u1 @ u2.conj().T
@@ -119,15 +115,15 @@ def multiplexor_to_circuit(u1, u2):
     #     print(np.array2string(theta2, precision=2,suppress_small=True))
     #     print(np.exp(theta2 / 2 * 1j))
     #     for th in theta2:
-    #         print(cirq.Rz(th)._unitary_())
+    #         print(cirq.rz(th)._unitary_())
     circuit_u1u2_mid = cirq.Circuit([
-        cirq.Rz((theta2[0] + theta2[1] + theta2[2] + theta2[3]) / 4).on(a),
+        cirq.rz((theta2[0] + theta2[1] + theta2[2] + theta2[3]) / 4).on(a),
         cirq.CNOT(b, a),
-        cirq.Rz((theta2[0] + theta2[1] - theta2[2] - theta2[3]) / 4).on(a),
+        cirq.rz((theta2[0] + theta2[1] - theta2[2] - theta2[3]) / 4).on(a),
         cirq.CNOT(c, a),
-        cirq.Rz((theta2[0] - theta2[1] - theta2[2] + theta2[3]) / 4).on(a),
+        cirq.rz((theta2[0] - theta2[1] - theta2[2] + theta2[3]) / 4).on(a),
         cirq.CNOT(b, a),
-        cirq.Rz((theta2[0] - theta2[1] + theta2[2] - theta2[3]) / 4).on(a),
+        cirq.rz((theta2[0] - theta2[1] + theta2[2] - theta2[3]) / 4).on(a),
         cirq.CNOT(c, a)])
 
     #     print(circuit_u1u2_mid)
