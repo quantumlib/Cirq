@@ -8,6 +8,7 @@ https://arxiv.org/abs/1104.3835
 """
 
 import argparse
+import asyncio
 import itertools
 from typing import cast
 from typing import List
@@ -49,9 +50,32 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     return trace, prob
 
 
+async def estimate_characteristic_function(
+        circuit: cirq.Circuit, P_i: Tuple[cirq.Gate, ...],
+        qubits: List[cirq.Qid], simulator: cirq.DensityMatrixSimulator,
+        samples_per_term: int):
+    n_qubits = len(P_i)
+
+    pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
+    qubit_map = dict(zip(qubits, range(n_qubits)))
+
+    p = cirq.PauliSumCollector(circuit=circuit,
+                               observable=pauli_string,
+                               samples_per_term=samples_per_term)
+
+    completion = p.collect_async(sampler=simulator)
+    assert await completion is None
+
+    sigma_i = p.estimated_energy()
+    assert np.isclose(sigma_i.imag, 0.0, atol=1e-6)
+    sigma_i = sigma_i.real
+
+    return sigma_i
+
+
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, sampled: bool,
-                               n_trials: int, samples_per_term: int):
+                               noise: cirq.NoiseModel, n_trials: int,
+                               samples_per_term: int):
     # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
@@ -65,8 +89,9 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     simulator = cirq.DensityMatrixSimulator()
     # rho in https://arxiv.org/pdf/1104.3835.pdf
-    density_matrix = cast(cirq.DensityMatrixTrialResult,
-                          simulator.simulate(circuit)).final_density_matrix
+    clean_density_matrix = cast(
+        cirq.DensityMatrixTrialResult,
+        simulator.simulate(circuit)).final_density_matrix
 
     # TODO(tonybruguier): Sample the Pauli states more efficenitly when the
     # circuit consists of Clifford gates only, as described on page 4 of:
@@ -74,78 +99,52 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                  repeat=n_qubits):
         rho_i, Pr_i = compute_characteristic_function(circuit, P_i, qubits,
-                                                      density_matrix)
+                                                      clean_density_matrix)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
     assert len(pauli_traces) == 4**n_qubits
 
-    p = [x['Pr_i'] for x in pauli_traces]
-    assert np.isclose(sum(p), 1.0, atol=1e-6)
+    p = np.asarray([x['Pr_i'] for x in pauli_traces])
+    assert np.isclose(np.sum(p), 1.0, atol=1e-6)
 
     # The package np.random.choice() is quite sensitive to probabilities not
     # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
     # above) does bother it, so we re-normalize the probs.
-    inv_sum_p = 1 / sum(p)
-    norm_p = [x * inv_sum_p for x in p]
+    p /= np.sum(p)
 
     simulator = cirq.DensityMatrixSimulator(noise=noise)
-    if sampled:
-        fidelity = 0.0
-        for _ in range(n_trials):
-            # Randomly sample as per probability.
-            i = np.random.choice(len(pauli_traces), p=norm_p)
+    fidelity = 0.0
 
-            Pr_i = pauli_traces[i]['Pr_i']
-            P_i = pauli_traces[i]['P_i']
-            rho_i = pauli_traces[i]['rho_i']
-
-            pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
-            qubit_map = dict(zip(qubits, range(n_qubits)))
-
-            p = cirq.PauliSumCollector(circuit=circuit,
-                                       observable=pauli_string,
-                                       samples_per_term=samples_per_term)
-
-            completion = p.collect_async(sampler=simulator)
-            cirq.testing.assert_asyncio_will_have_result(completion, None)
-
-            sigma_i = p.estimated_energy()
-            assert np.isclose(sigma_i.imag, 0.0, atol=1e-6)
-            sigma_i = sigma_i.real
-
-            fidelity += Pr_i * sigma_i / rho_i
-
-        return fidelity
-    else:
+    if samples_per_term == 0:
         # sigma in https://arxiv.org/pdf/1104.3835.pdf
-        density_matrix = cast(cirq.DensityMatrixTrialResult,
-                              simulator.simulate(circuit)).final_density_matrix
+        noisy_density_matrix = cast(
+            cirq.DensityMatrixTrialResult,
+            simulator.simulate(circuit)).final_density_matrix
 
-        fidelity = 0.0
-        for _ in range(n_trials):
-            # Randomly sample as per probability.
-            i = np.random.choice(len(pauli_traces), p=norm_p)
+    for _ in range(n_trials):
+        # Randomly sample as per probability.
+        i = np.random.choice(len(pauli_traces), p=p)
 
-            Pr_i = pauli_traces[i]['Pr_i']
-            P_i = pauli_traces[i]['P_i']
-            rho_i = pauli_traces[i]['rho_i']
+        Pr_i = pauli_traces[i]['Pr_i']
+        P_i = pauli_traces[i]['P_i']
+        rho_i = pauli_traces[i]['rho_i']
 
+        if samples_per_term > 0:
+            sigma_i = asyncio.run(
+                estimate_characteristic_function(circuit, P_i, qubits,
+                                                 simulator, samples_per_term))
+        else:
             sigma_i, _ = compute_characteristic_function(
-                circuit, P_i, qubits, density_matrix)
+                circuit, P_i, qubits, noisy_density_matrix)
 
-            fidelity += Pr_i * sigma_i / rho_i
+        fidelity += Pr_i * sigma_i / rho_i
 
-        return fidelity / n_trials
+    return fidelity / n_trials
 
 
 def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')
-
-    parser.add_argument('--sampled',
-                        default=False,
-                        type=bool,
-                        help='Run and do measurements on a real device.')
 
     parser.add_argument('--n_trials',
                         default=10,
@@ -153,14 +152,14 @@ def parse_arguments(args):
                         help='Number of trials to run.')
 
     parser.add_argument('--samples_per_term',
-                        default=10,
+                        default=0,
                         type=int,
-                        help='Number of samples per trial.')
+                        help='Number of samples per trial or 0 if no sampling.')
 
     return vars(parser.parse_args(args))
 
 
-def main(*, sampled: bool, n_trials: int, samples_per_term: int):
+def main(*, n_trials: int, samples_per_term: int):
     circuit, qubits = build_circuit()
     circuit.append(cirq.measure(*qubits, key='y'))
 
@@ -170,7 +169,6 @@ def main(*, sampled: bool, n_trials: int, samples_per_term: int):
         circuit,
         qubits,
         noise,
-        sampled=sampled,
         n_trials=n_trials,
         samples_per_term=samples_per_term)
     print(estimated_fidelity)

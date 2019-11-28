@@ -12,14 +12,10 @@ def test_direct_fidelity_estimation():
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
-        circuit, qubits, noise, sampled=False, n_trials=10, samples_per_term=10)
+        circuit, qubits, noise, n_trials=10, samples_per_term=10)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
 def test_calling_main():
-    direct_fidelity_estimation.main(sampled=False,
-                                    n_trials=10,
-                                    samples_per_term=10)
-    direct_fidelity_estimation.main(sampled=True,
-                                    n_trials=10,
-                                    samples_per_term=10)
+    direct_fidelity_estimation.main(n_trials=10, samples_per_term=0)
+    direct_fidelity_estimation.main(n_trials=10, samples_per_term=10)
