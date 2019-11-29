@@ -775,8 +775,8 @@ def test_random_seed_does_not_modify_global_state_terminal_measurements():
 def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(
-        cirq.X(a)**0.5, cirq.measure(a),
-        cirq.X(a)**0.5, cirq.measure(a))
+        cirq.X(a)**0.5, cirq.measure(a, key='a0'),
+        cirq.X(a)**0.5, cirq.measure(a, key='a1'))
 
     sim = cirq.Simulator(seed=1234)
     result1 = sim.run(circuit, repetitions=50)
