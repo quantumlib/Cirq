@@ -29,6 +29,7 @@ def test_run_simulator_run():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult.from_single_parameter_set(
         measurements=expected_measurements, params=param_resolver)
@@ -48,6 +49,7 @@ def test_run_simulator_sweeps():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
     expected_results = [
@@ -312,6 +314,19 @@ def test_simulation_trial_result_qubit_map():
     result = cirq.DensityMatrixSimulator().simulate(
         cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+
+def test_verify_unique_measurement_keys():
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append([
+        cirq.measure(q[0], key='a'),
+        cirq.measure(q[1], key='a'),
+        cirq.measure(q[0], key='b'),
+        cirq.measure(q[1], key='b')
+    ])
+    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
+        _ = cirq.sample(circuit)
 
 
 def test_simulate_with_invert_mask():
