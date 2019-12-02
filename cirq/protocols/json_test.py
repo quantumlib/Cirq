@@ -29,36 +29,16 @@ import sympy
 
 import cirq
 from cirq._compat import proper_repr, proper_eq
+from cirq.testing import assert_json_roundtrip_works
 
 TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
 
 
-def assert_roundtrip(obj, text_should_be=None):
-    buffer = io.StringIO()
-    cirq.to_json(obj, buffer)
-
-    if text_should_be is not None:
-        buffer.seek(0)
-        text = buffer.read()
-        assert text == text_should_be
-
-    buffer.seek(0)
-    restored_obj = cirq.read_json(buffer)
-    if isinstance(obj, np.ndarray):
-        np.testing.assert_equal(restored_obj, obj)
-    elif isinstance(obj, pd.DataFrame):
-        pd.testing.assert_frame_equal(restored_obj, obj)
-    elif isinstance(obj, pd.Index):
-        pd.testing.assert_index_equal(restored_obj, obj)
-    else:
-        assert restored_obj == obj
-
-
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
-    assert_roundtrip(q1,
-                     text_should_be="""{
+    assert_json_roundtrip_works(q1,
+                                text_should_be="""{
   "cirq_type": "LineQubit",
   "x": 12
 }""")
@@ -66,8 +46,8 @@ def test_line_qubit_roundtrip():
 
 def test_gridqubit_roundtrip():
     q = cirq.GridQubit(15, 18)
-    assert_roundtrip(q,
-                     text_should_be="""{
+    assert_json_roundtrip_works(q,
+                                text_should_be="""{
   "cirq_type": "GridQubit",
   "row": 15,
   "col": 18
@@ -77,8 +57,8 @@ def test_gridqubit_roundtrip():
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
     op1 = cirq.rx(.123).on(q)
-    assert_roundtrip(op1,
-                     text_should_be="""{
+    assert_json_roundtrip_works(op1,
+                                text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
     "cirq_type": "XPowGate",
@@ -352,10 +332,10 @@ def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
 
 
 def test_builtins():
-    assert_roundtrip(True)
-    assert_roundtrip(1)
-    assert_roundtrip(1 + 2j)
-    assert_roundtrip({
+    assert_json_roundtrip_works(True)
+    assert_json_roundtrip_works(1)
+    assert_json_roundtrip_works(1 + 2j)
+    assert_json_roundtrip_works({
         'test': [123, 5.5],
         'key2': 'asdf',
         '3': None,
@@ -366,39 +346,39 @@ def test_builtins():
 def test_numpy():
     x = np.ones(1)[0]
 
-    assert_roundtrip(x.astype(np.bool))
-    assert_roundtrip(x.astype(np.int8))
-    assert_roundtrip(x.astype(np.int16))
-    assert_roundtrip(x.astype(np.int32))
-    assert_roundtrip(x.astype(np.int64))
-    assert_roundtrip(x.astype(np.uint8))
-    assert_roundtrip(x.astype(np.uint16))
-    assert_roundtrip(x.astype(np.uint32))
-    assert_roundtrip(x.astype(np.uint64))
-    assert_roundtrip(x.astype(np.float32))
-    assert_roundtrip(x.astype(np.float64))
-    assert_roundtrip(x.astype(np.complex64))
-    assert_roundtrip(x.astype(np.complex128))
+    assert_json_roundtrip_works(x.astype(np.bool))
+    assert_json_roundtrip_works(x.astype(np.int8))
+    assert_json_roundtrip_works(x.astype(np.int16))
+    assert_json_roundtrip_works(x.astype(np.int32))
+    assert_json_roundtrip_works(x.astype(np.int64))
+    assert_json_roundtrip_works(x.astype(np.uint8))
+    assert_json_roundtrip_works(x.astype(np.uint16))
+    assert_json_roundtrip_works(x.astype(np.uint32))
+    assert_json_roundtrip_works(x.astype(np.uint64))
+    assert_json_roundtrip_works(x.astype(np.float32))
+    assert_json_roundtrip_works(x.astype(np.float64))
+    assert_json_roundtrip_works(x.astype(np.complex64))
+    assert_json_roundtrip_works(x.astype(np.complex128))
 
-    assert_roundtrip(np.ones((11, 5)))
-    assert_roundtrip(np.arange(3))
+    assert_json_roundtrip_works(np.ones((11, 5)))
+    assert_json_roundtrip_works(np.arange(3))
 
 
 def test_pandas():
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
                      columns=['x', 'y', 'z'],
                      index=[2, 5]))
-    assert_roundtrip(pd.Index([1, 2, 3], name='test'))
-    assert_roundtrip(
+    assert_json_roundtrip_works(pd.Index([1, 2, 3], name='test'))
+    assert_json_roundtrip_works(
         pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)],
                                   names=['alice', 'bob']))
 
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
                      columns=['a', 'b']))
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
                                                      names=['x', 'y']),
                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
@@ -407,23 +387,23 @@ def test_pandas():
 
 def test_sympy():
     # Raw values.
-    assert_roundtrip(sympy.Symbol('theta'))
-    assert_roundtrip(sympy.Integer(5))
-    assert_roundtrip(sympy.Rational(2, 3))
-    assert_roundtrip(sympy.Float(1.1))
+    assert_json_roundtrip_works(sympy.Symbol('theta'))
+    assert_json_roundtrip_works(sympy.Integer(5))
+    assert_json_roundtrip_works(sympy.Rational(2, 3))
+    assert_json_roundtrip_works(sympy.Float(1.1))
 
     # Basic operations.
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
-    assert_roundtrip(t + s)
-    assert_roundtrip(t * s)
-    assert_roundtrip(t / s)
-    assert_roundtrip(t - s)
-    assert_roundtrip(t**s)
+    assert_json_roundtrip_works(t + s)
+    assert_json_roundtrip_works(t * s)
+    assert_json_roundtrip_works(t / s)
+    assert_json_roundtrip_works(t - s)
+    assert_json_roundtrip_works(t**s)
 
     # Linear combinations.
-    assert_roundtrip(t * 2)
-    assert_roundtrip(4 * t + 3 * s + 2)
+    assert_json_roundtrip_works(t * 2)
+    assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
 
 def _write_test_data(key: str, *test_instances: Any):
