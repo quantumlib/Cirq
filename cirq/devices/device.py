@@ -25,10 +25,6 @@ class Device(metaclass=abc.ABCMeta):
     def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
         """Returns a set or frozenset of qubits on the device, if possible.
 
-        This method returns None when the set of qubits is unavailable. For
-        example, `cirq.UnconstrainedDevice` returns `None` because allows any
-        and all qubits; it has no finite qubit set to return.
-
         Returns:
             If the device has a finite set of qubits, then a set or frozen set
             of all qubits on the device is returned.
