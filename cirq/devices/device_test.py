@@ -1,5 +1,3 @@
-import pytest
-
 import cirq
 
 
@@ -34,7 +32,7 @@ def test_qubit_set():
 
     class PrivateQubitMethodDevice(cirq.Device):
 
-        def qubits(self):
+        def _qubits(self):
             return cirq.LineQubit.range(6)
 
     assert PrivateQubitMethodDevice().qubit_set() == frozenset(
