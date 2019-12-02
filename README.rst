@@ -96,8 +96,8 @@ Alpha Disclaimer
 
 **Cirq is currently in alpha.**
 We are still making breaking changes.
-We deprecate features for a release and remove them in subsequent releases. We don't deprecate features in
-(contrib)[https://github.com/quantumlib/Cirq/tree/master/cirq/contrib].
+We deprecate features for a release and remove them in subsequent releases.
+We don't deprecate `contrib <https://github.com/quantumlib/Cirq/tree/master/cirq/contrib>`__. features.
 We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
 That way you have control over when a breaking change affects you.
 
