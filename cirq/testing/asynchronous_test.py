@@ -19,48 +19,27 @@ import pytest
 import cirq
 
 
-def test_assert_still_running():
+@pytest.mark.asyncio
+async def test_asyncio_pending():
     f = asyncio.Future()
-    cirq.testing.assert_asyncio_still_running(f)
 
+    assert await cirq.testing.asyncio_pending(f)
     f.set_result(5)
-    with pytest.raises(AssertionError, match="Not running"):
-        cirq.testing.assert_asyncio_still_running(f)
+    assert not await cirq.testing.asyncio_pending(f)
+    assert not await cirq.testing.asyncio_pending(f, timeout=100)
 
     e = asyncio.Future()
+
+    assert await cirq.testing.asyncio_pending(e)
     e.set_exception(ValueError('test fail'))
-    with pytest.raises(ValueError, match="test fail"):
-        cirq.testing.assert_asyncio_still_running(e)
+    assert not await cirq.testing.asyncio_pending(e)
+    assert not await cirq.testing.asyncio_pending(e, timeout=100)
 
 
-def test_assert_will_have_result():
+@pytest.mark.asyncio
+async def test_asyncio_pending_common_mistake_caught():
     f = asyncio.Future()
-    with pytest.raises(AssertionError, match="Not done"):
-        cirq.testing.assert_asyncio_will_have_result(f, 5, timeout=0.01)
-
-    f.set_result(5)
-    assert cirq.testing.assert_asyncio_will_have_result(f, 5) == 5
-    with pytest.raises(AssertionError, match="!="):
-        cirq.testing.assert_asyncio_will_have_result(f, 6)
-
-    e = asyncio.Future()
-    e.set_exception(ValueError('test fail'))
-    with pytest.raises(ValueError, match="test fail"):
-        cirq.testing.assert_asyncio_will_have_result(e, 5)
-
-
-def test_assert_will_raise():
-    f = asyncio.Future()
-    with pytest.raises(AssertionError, match="Not done"):
-        cirq.testing.assert_asyncio_will_raise(f,
-                                               ValueError,
-                                               match='',
-                                               timeout=0.01)
-
-    f.set_result(5)
-    with pytest.raises(BaseException, match="DID NOT RAISE"):
-        cirq.testing.assert_asyncio_will_raise(f, ValueError, match='')
-
-    e = asyncio.Future()
-    e.set_exception(ValueError('test fail'))
-    cirq.testing.assert_asyncio_will_raise(e, ValueError, match="test fail")
+    pending = cirq.testing.asyncio_pending(f)
+    with pytest.raises(RuntimeError, match='forgot the "await"'):
+        assert pending
+    assert await pending

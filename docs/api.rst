@@ -177,7 +177,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.op_gate_isinstance
     cirq.op_gate_of_type
     cirq.transform_op_tree
     cirq.Circuit
@@ -481,6 +480,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.ConvertToSqrtIswapGates
+    cirq.google.ConvertToSycamoreGates
     cirq.google.ConvertToXmonGates
     cirq.google.DeserializingArg
     cirq.google.Engine
@@ -541,9 +542,6 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
-    cirq.testing.assert_asyncio_still_running
-    cirq.testing.assert_asyncio_will_have_result
-    cirq.testing.assert_asyncio_will_raise
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
@@ -559,6 +557,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
     cirq.testing.random_circuit
