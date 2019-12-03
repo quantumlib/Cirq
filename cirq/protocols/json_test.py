@@ -56,8 +56,7 @@ def test_gridqubit_roundtrip():
 
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
-
-    op1 = cirq.Rx(.123).on(q)
+    op1 = cirq.rx(.123).on(q)
     assert_json_roundtrip_works(op1,
                                 text_should_be="""{
   "cirq_type": "GateOperation",
@@ -117,6 +116,8 @@ SHOULDNT_BE_SERIALIZED = [
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
+    'ConvertToSqrtIswapGates',
+    'ConvertToSycamoreGates',
     'ConvertToXmonGates',
     'DropEmptyMoments',
     'DropNegligible',
@@ -309,7 +310,6 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
-    'TrialResult',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
