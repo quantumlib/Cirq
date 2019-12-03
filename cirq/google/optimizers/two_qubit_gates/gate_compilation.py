@@ -6,7 +6,7 @@ from typing import Tuple, Sequence, List, NamedTuple
 from dataclasses import dataclass
 import numpy as np
 
-import cirq
+from cirq import linalg, value
 from cirq.google.optimizers.two_qubit_gates.math_utils import (
     kak_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary,
     kak_vector_to_unitary)
@@ -78,7 +78,7 @@ class GateTabulation:
             unitaries and resulting product above.
         """
         unitary = np.asarray(unitary)
-        kak_vec = cirq.kak_vector(unitary, check_preconditions=False)
+        kak_vec = linalg.kak_vector(unitary, check_preconditions=False)
         infidelities = kak_vector_infidelity(kak_vec,
                                              self.kak_vecs,
                                              ignore_equivalent_vectors=True)
@@ -131,8 +131,8 @@ def _outer_locals_for_unitary(
             2-tuples of (2x2) single qubit unitaries.
         actual: The outcome of kL @ base @ kR
     """
-    target_decomp = cirq.kak_decomposition(target)
-    base_decomp = cirq.kak_decomposition(base)
+    target_decomp = linalg.kak_decomposition(target)
+    base_decomp = linalg.kak_decomposition(base)
 
     # From the KAK decomposition, we have
     # kLt At kRt = kL kLb Ab KRb kR
@@ -202,7 +202,7 @@ def _tabulate_kak_vectors(
     for local_cycle in local_cycles[1:]:
         np.einsum('ab,...bc,...cd', base_gate, local_cycle, prods, out=prods)
 
-    kak_vectors = cirq.kak_vector(prods, check_preconditions=False)
+    kak_vectors = linalg.kak_vector(prods, check_preconditions=False)
 
     kept_kaks = []
     kept_cycles = []
@@ -231,7 +231,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
                             *,
                             sample_scaling: int = 50,
                             allow_missed_points: bool = True,
-                            random_state: cirq.value.RANDOM_STATE_LIKE = None
+                            random_state: value.RANDOM_STATE_LIKE = None
                            ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
@@ -254,7 +254,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
         A GateTabulation object used to compile new two-qubit gates from
         products of the base gate with 1-local unitaries.
     """
-    rng = cirq.value.parse_random_state(random_state)
+    rng = value.parse_random_state(random_state)
 
     assert 1 / 2 > max_infidelity > 0
     spacing = np.sqrt(max_infidelity / 3)
@@ -268,7 +268,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
     num_samples = num_mesh_points * sample_scaling
 
     # include the base gate itself
-    kak_vecs = [cirq.kak_vector(base_gate, check_preconditions=False)]
+    kak_vecs = [linalg.kak_vector(base_gate, check_preconditions=False)]
     sq_cycles: List[Tuple[_SingleQubitGatePair, ...]] = [()]
 
     # Tabulate gates that are close to gates in the mesh
@@ -344,7 +344,7 @@ def gate_product_tabulation(base_gate: np.ndarray,
 
         products = np.einsum('ab,...bc,cd', base_gate_dag, u_locals,
                              missing_unitary)
-        kaks = cirq.kak_vector(products, check_preconditions=False)
+        kaks = linalg.kak_vector(products, check_preconditions=False)
         kaks = kaks[..., np.newaxis, :]
 
         dists2 = np.sum((kaks - kak_vecs_single)**2, axis=-1)
@@ -362,7 +362,8 @@ def gate_product_tabulation(base_gate: np.ndarray,
             # Add to the enumeration
             sq_cycles.append((old_sq_cycle, kL))
             kak_vecs.append(
-                cirq.kak_vector(base_gate @ actual, check_preconditions=False))
+                linalg.kak_vector(base_gate @ actual,
+                                  check_preconditions=False))
         elif not allow_missed_points:
             raise ValueError(f'Failed to tabulate a KAK vector near '
                              f'{missing_vec}')
