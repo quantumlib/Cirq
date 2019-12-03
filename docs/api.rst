@@ -528,4 +528,3 @@ waiting area.
     contrib.paulistring
     contrib.qcircuit
     contrib.quirk
-    contrib.tpu
