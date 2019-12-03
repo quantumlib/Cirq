@@ -519,7 +519,6 @@ contrib may change without notice.
     cirq.contrib.paulistring
     cirq.contrib.qcircuit
     cirq.contrib.quirk
-    cirq.contrib.tpu
 
 
 Coding and Testing Tools
