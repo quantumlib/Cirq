@@ -30,7 +30,7 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
-`Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`_
+- `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`_
 
 
 
