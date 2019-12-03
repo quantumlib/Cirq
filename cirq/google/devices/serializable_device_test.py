@@ -384,3 +384,23 @@ def test_multiple_fsim_gatesets():
     half_pi = cirq.XPowGate(exponent=0.5)
     assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
     assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
+
+
+def test_serializable_device_str_grid_qubits():
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cg.SYC_GATESET])
+    device = cg.SerializableDevice.from_proto(proto=spec,
+                                              gate_sets=[cg.SYC_GATESET])
+    assert str(device) == """\
+(0, 0)───(0, 1)
+│        │
+│        │
+(1, 0)───(1, 1)"""
+
+
+def test_serializable_device_str_named_qubits():
+    device = cg.SerializableDevice(
+        qubits=[cirq.NamedQubit('a'),
+                cirq.NamedQubit('b')],
+        gate_definitions={})
+    assert device.__class__.__name__ in str(device)
