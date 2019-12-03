@@ -220,17 +220,6 @@ def test_constructor_flexibility():
                                 qubit_pauli_map={a: cirq.Z}, coefficient=6j)
 
 
-def test_deprecated_from_single():
-    q0 = cirq.LineQubit(0)
-    with capture_logging() as log:
-        actual = cirq.PauliString.from_single(q0, cirq.X)
-    assert len(log) == 1  # May fail if deprecated thing is used elsewhere.
-    assert 'PauliString.from_single' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.PauliString([cirq.X(q0)])
-
-
 @pytest.mark.parametrize('qubit_pauli_map', _sample_qubit_pauli_maps())
 def test_getitem(qubit_pauli_map):
     other = cirq.NamedQubit('other')
