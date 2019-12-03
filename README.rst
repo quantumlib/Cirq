@@ -30,7 +30,7 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
-
+- `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`_
 
 
 Hello Qubit
@@ -99,5 +99,7 @@ We are still making breaking changes.
 We *will* break your code when we make new releases.
 We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
 That way you have control over when a breaking change affects you.
+Please join our cirq-announce `email list <https://groups.google.com/forum/#!forum/cirq-announce>`_
+for announcements of new releases, features, and breaking changes.
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers
