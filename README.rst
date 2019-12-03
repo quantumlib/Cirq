@@ -97,7 +97,7 @@ Alpha Disclaimer
 **Cirq is currently in alpha.**
 We may change or remove parts of Cirq's API when making new releases.
 To be informed of deprecations and breaking changes, subscribe to the
-`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce`__.
+`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce>`__.
 
 
 Cirq is not an official Google product. Copyright 2019 The Cirq Developers
