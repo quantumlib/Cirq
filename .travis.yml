@@ -6,6 +6,7 @@ cache:
 branches:
   only:
   - master
+  - v0.6.0-dev
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
