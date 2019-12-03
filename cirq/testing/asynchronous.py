@@ -13,103 +13,61 @@
 # limitations under the License.
 
 import asyncio
-import re
-from collections.abc import Awaitable, Coroutine
-from typing import Any, Type, Union
-
-# A placeholder default value used to detect that callers did not specify an
-# 'expected' value argument in `assert_asyncio_will_have_result`, and so the
-# result should be returned without checking it.
-JUST_RETURN_RESULT = object()  # type: Any
+from typing import Union, Awaitable, Coroutine
 
 
-def _run_loop_waiting_for(future: Union[Awaitable, asyncio.Future, Coroutine],
-                          timeout: float):
-    return asyncio.get_event_loop().run_until_complete(
-        asyncio.wait_for(asyncio.shield(future), timeout=timeout))
+def asyncio_pending(future: Union[Awaitable, asyncio.Future, Coroutine],
+                    timeout: float = 0.001) -> Awaitable[bool]:
+    """Gives the given future a chance to complete, and determines if it didn't.
 
-
-def assert_asyncio_still_running(
-        future: Union[Awaitable, asyncio.Future, Coroutine],
-        timeout: float = 0.001):
-    """Checks that the given asyncio future has not completed.
-
-    Works by running the asyncio event loop for a short amount of time.
+    This method is used in tests checking that a future actually depends on some
+    given event having happened. The test can assert, before the event, that the
+    future is still pending and then assert, after the event, that the future
+    has a result.
 
     Args:
-        future: The future that should not yet be resolved.
-        timeout: The number of seconds to wait for the future. Make sure this is
-             a small value, because it holds up the passing test!
-
-    Raises:
-        AssertError: The future completed or failed within the timeout.
-    """
-    try:
-        _run_loop_waiting_for(future, timeout)
-        assert False, "Not running: {!r}".format(future)
-    except asyncio.TimeoutError:
-        pass
-
-
-def assert_asyncio_will_have_result(
-        future: Union[Awaitable, asyncio.Future, Coroutine],
-        expected: Any = JUST_RETURN_RESULT,
-        timeout: float = 1.0) -> Any:
-    """Checks that the given asyncio future completes with the given value.
-
-    Works by running the asyncio event loop for up to the given timeout.
-
-    Args:
-        future: The asyncio awaitable that should complete.
-        expected: The result that the future should have after it completes.
-            If not specified, nothing is asserted about the result.
-        timeout: The maximum number of seconds to run the event loop until the
-            future resolves.
+        future: The future that may or may not be able to resolve when given
+            a bit of time.
+        timeout: The number of seconds to wait for the future. This should
+            generally be a small value (milliseconds) when expecting the future
+            to not resolve, and a large value (seconds) when expecting the
+            future to resolve.
 
     Returns:
-        The future's result.
+        True if the future is still pending after the timeout elapses. False if
+        the future did complete (or fail) or was already completed (or already
+        failed).
 
-    Raises:
-        AssertError: The future did not complete in time, or did not contain
-            the expected result.
+    Examples:
+        >>> import asyncio
+        >>> import pytest
+        >>> @pytest.mark.asyncio
+        ... async def test_completion_only_when_expected():
+        ...     f = asyncio.Future()
+        ...     assert await cirq.testing.asyncio_pending(f)
+        ...     f.set_result(5)
+        ...     assert await f == 5
     """
-    try:
-        actual = _run_loop_waiting_for(future, timeout)
-        if expected is not JUST_RETURN_RESULT:
-            assert actual == expected, "{!r} != {!r} from {!r}".format(
-                actual, expected, future)
-        return actual
-    except asyncio.TimeoutError:
-        assert False, "Not done: {!r}".format(future)
+
+    async def body():
+        f = asyncio.shield(future)
+        t = asyncio.ensure_future(asyncio.sleep(timeout))
+        done, _ = await asyncio.wait([f, t],
+                                     return_when=asyncio.FIRST_COMPLETED)
+        t.cancel()
+        return f not in done
+
+    return _AwaitBeforeAssert(body())
 
 
-def assert_asyncio_will_raise(
-        future: Union[Awaitable, asyncio.Future, Coroutine],
-        expected: Type,
-        *,
-        match: str,
-        timeout: float = 1.0):
-    """Checks that the given asyncio future fails with a matching error.
+class _AwaitBeforeAssert:
 
-    Works by running the asyncio event loop for up to the given timeout.
+    def __init__(self, awaitable: Awaitable):
+        self.awaitable = awaitable
 
-    Args:
-        future: The asyncio awaitable that should error.
-        expected: The exception type that the future should end up containing.
-        match: A regex that must match the exception's message.
-        timeout: The maximum number of seconds to run the event loop until the
-            future resolves.
+    def __bool__(self):
+        raise RuntimeError('You forgot the "await" in '
+                           '"assert await cirq.testing.asyncio_pending(...)".')
 
-    Raises:
-        AssertError: The future did not resolve in time, or did not contain
-            a matching exception.
-    """
-    try:
-        _run_loop_waiting_for(future, timeout)
-    except expected as exc:
-        if match and not re.search(match, str(exc)):
-            assert False, "Pattern '{}' not found in '{}'".format(match, exc)
-    except asyncio.TimeoutError:
-        assert False, "Not done: {!r}".format(future)
-    else:
-        assert False, "DID NOT RAISE {}".format(expected)
+    def __await__(self):
+        return self.awaitable.__await__()
