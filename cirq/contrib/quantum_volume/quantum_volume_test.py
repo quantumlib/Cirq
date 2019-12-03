@@ -144,9 +144,12 @@ def test_compile_circuit():
 
 
 def test_compile_circuit_with_readout_correction():
-    """Tests that we are able to compile a model circuit."""
+    """Tests that we are able to compile a model circuit with readout error
+    correction."""
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
+    router_mock = MagicMock(side_effect=lambda circuit, network: ccr.SwapNetwork(circuit, {}))
     a, b, c = cirq.LineQubit.range(3)
+    ap, bp, cp = cirq.LineQubit.range(3, 6)
     model_circuit = cirq.Circuit([
         cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
     ])
@@ -154,36 +157,36 @@ def test_compile_circuit_with_readout_correction():
         model_circuit,
         device=cirq.google.Bristlecone,
         compiler=compiler_mock,
+        router=router_mock,
         routing_attempts=1,
         add_readout_error_correction=True)
 
-    assert len(compilation_result.swap_network.final_mapping()) == 6
-    assert compilation_result.parity_map == {
-        cirq.LineQubit(0): cirq.LineQubit(3),
-        cirq.LineQubit(1): cirq.LineQubit(4),
-        cirq.LineQubit(2): cirq.LineQubit(5)
-    }
-    assert cirq.contrib.routing.ops_are_consistent_with_device_graph(
-        compilation_result.swap_network.circuit.all_operations(),
-        cirq.contrib.routing.xmon_device_to_graph(cirq.google.Bristlecone))
-    compiler_mock.assert_called_with(compilation_result.swap_network.circuit)
+    assert compilation_result.swap_network.circuit == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b), cirq.Z(c)]),
+        cirq.Moment([cirq.X(a), cirq.X(b), cirq.X(c)]),
+        cirq.Moment([cirq.CNOT(a, ap), cirq.CNOT(b, bp), cirq.CNOT(c, cp)]),
+        cirq.Moment([cirq.X(a), cirq.X(b), cirq.X(c)]),
+    ])
 
 
 def test_compile_circuit_multiple_routing_attempts():
-    """Tests that we make multiple attempts at r
-    outing and keep the best one."""
+    """Tests that we make multiple attempts at routing and keep the best one."""
     qubits = cirq.LineQubit.range(3)
     initial_mapping = dict(zip(qubits, qubits))
-    badly_routed = cirq.Circuit([
+    more_operations = cirq.Circuit([
         cirq.X.on_each(qubits),
         cirq.Y.on_each(qubits),
+    ])
+    more_qubits = cirq.Circuit([
+        cirq.X.on_each(cirq.LineQubit.range(4)),
     ])
     well_routed = cirq.Circuit([
         cirq.X.on_each(qubits),
     ])
     router_mock = MagicMock(side_effect=[
-        ccr.SwapNetwork(badly_routed, initial_mapping),
+        ccr.SwapNetwork(more_operations, initial_mapping),
         ccr.SwapNetwork(well_routed, initial_mapping),
+        ccr.SwapNetwork(more_qubits, initial_mapping),
     ])
     compiler_mock = MagicMock(side_effect=lambda circuit: circuit)
     model_circuit = cirq.Circuit([cirq.X.on_each(qubits)])
@@ -193,10 +196,10 @@ def test_compile_circuit_multiple_routing_attempts():
         device=cirq.google.Bristlecone,
         compiler=compiler_mock,
         router=router_mock,
-        routing_attempts=2)
+        routing_attempts=3)
 
     assert compilation_result.swap_network.final_mapping() == initial_mapping
-    assert router_mock.call_count == 2
+    assert router_mock.call_count == 3
     compiler_mock.assert_called_with(well_routed)
 
 
