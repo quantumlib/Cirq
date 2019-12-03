@@ -519,7 +519,6 @@ contrib may change without notice.
     cirq.contrib.paulistring
     cirq.contrib.qcircuit
     cirq.contrib.quirk
-    cirq.contrib.tpu
 
 
 Coding and Testing Tools
@@ -552,6 +551,7 @@ operation.
     cirq.testing.assert_has_consistent_trace_distance_bound
     cirq.testing.assert_has_diagram
     cirq.testing.assert_implements_consistent_protocols
+    cirq.testing.assert_json_roundtrip_works
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
