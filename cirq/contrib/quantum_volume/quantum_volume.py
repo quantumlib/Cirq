@@ -197,20 +197,23 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
 
     return data
 
+
 class SwapPermutationReplacer(cirq.PointOptimizer):
-    """Replaces SwapPermutationGates with their underlying implementation gate."""
-    
+    """Replaces SwapPermutationGates with their underlying implementation
+    gate."""
+
     def __init__(self):
         super().__init__()
 
     def optimization_at(self, circuit, index, op):
-        new_ops = op
         if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
             new_ops = op.gate.swap_gate.on(*op.qubits)
-        return cirq.PointOptimizationSummary(clear_span=1,
-                                             clear_qubits=op.qubits,
-                                             new_operations=new_ops)
-        
+            return cirq.PointOptimizationSummary(clear_span=1,
+                                                 clear_qubits=op.qubits,
+                                                 new_operations=new_ops)
+        return None  # Don't make changes to other gates.
+
+
 def compile_circuit(
         circuit: cirq.Circuit,
         *,
@@ -257,7 +260,7 @@ def compile_circuit(
             # if they are equal, there was likely a readout error.
             qubit_num = idx + num_qubits
             parity_qubit = cirq.LineQubit(qubit_num)
-            compiled_circuit.append(cirq.X(qubit))            
+            compiled_circuit.append(cirq.X(qubit))
             compiled_circuit.append(cirq.CNOT(qubit, parity_qubit))
             compiled_circuit.append(cirq.X(qubit))
             parity_map[qubit] = parity_qubit
@@ -281,7 +284,8 @@ def compile_circuit(
 
     # Sort by the least number of qubits first (as routing sometimes adds extra
     # ancilla qubits), and then the length of the circuit second.
-    swap_networks.sort(key=lambda swap_network: (len(swap_network.circuit.all_qubits()), len(swap_network.circuit)))
+    swap_networks.sort(key=lambda swap_network: (len(
+        swap_network.circuit.all_qubits()), len(swap_network.circuit)))
 
     routed_circuit = swap_networks[0].circuit
     mapping = swap_networks[0].final_mapping()
@@ -410,11 +414,10 @@ def execute_circuits(
                                     sampler=sampler)
             print(f"    Compiled HOG probability #{circuit_i + 1}: {prob}")
             results.append(
-                QuantumVolumeResult(
-                    model_circuit=model_circuit,
-                    heavy_set=heavy_set,
-                    compiled_circuit=compilation_result.circuit,
-                    sampler_result=prob))
+                QuantumVolumeResult(model_circuit=model_circuit,
+                                    heavy_set=heavy_set,
+                                    compiled_circuit=compilation_result.circuit,
+                                    sampler_result=prob))
     return results
 
 
