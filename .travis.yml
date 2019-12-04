@@ -20,7 +20,7 @@ matrix:
     python: '3.6'
     install: skip
     script: check/misc
-  - stage: quick_test
+  - stage: test
     os: linux
     env: NAME=pytest-changed-files
     python: '3.6'
