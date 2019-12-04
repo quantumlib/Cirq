@@ -132,8 +132,3 @@ matrix:
       - python -m pip install -r requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     script: check/all
-before_deploy:
-- echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'"
-deploy:
-- provider: github
-  distributions: bdist_wheel
