@@ -3,9 +3,9 @@ import numpy as np
 import pytest
 
 from cirq import unitary, FSimGate, value
-from cirq.contrib.two_qubit_gates.gate_compilation import (
+from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
-from cirq.contrib.two_qubit_gates.math_utils import (
+from cirq.google.optimizers.two_qubit_gates.math_utils import (
     unitary_entanglement_fidelity)
 from cirq.testing import random_special_unitary
 
