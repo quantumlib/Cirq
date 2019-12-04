@@ -30,9 +30,9 @@ from typing import (
 )
 
 import numpy as np
+from typing_extensions import Protocol
 import pandas as pd
 import sympy
-from typing_extensions import Protocol
 
 from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType

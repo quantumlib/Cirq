@@ -21,9 +21,8 @@ import pathlib
 import textwrap
 from typing import Tuple, Iterator, Type, List, Set, Any
 
-import pytest
-
 import numpy as np
+import pytest
 import pandas as pd
 import sympy
 

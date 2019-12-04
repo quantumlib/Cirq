@@ -36,11 +36,11 @@ import time
 from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 import warnings
 
+import google.protobuf as gp
+from google.protobuf import any_pb2
 from apiclient import discovery, http as apiclient_http
 from apiclient.errors import HttpError
 from apiclient.http import HttpRequest
-import google.protobuf as gp
-from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
 from cirq.google import gate_sets, serializable_gate_set

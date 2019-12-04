@@ -14,9 +14,8 @@
 
 from typing import Sequence, Union
 
-import pytest
-
 import numpy as np
+import pytest
 import sympy
 
 import cirq

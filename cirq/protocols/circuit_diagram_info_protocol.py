@@ -15,8 +15,8 @@
 from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable)
 
-import sympy
 from typing_extensions import Protocol
+import sympy
 
 from cirq import value
 

@@ -14,10 +14,8 @@
 
 import numpy as np
 import pytest
-import sympy
-
 from google.protobuf import json_format
-
+import sympy
 import cirq
 from cirq.google.arg_func_langs import (
     _arg_from_proto,
