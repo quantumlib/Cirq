@@ -52,17 +52,18 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         Args:
             tabulation: If set, a tabulation for the Sycamore gate to use for
                 decomposing Matrix gates. If unset, an analytic calculation is
-                used for Matrix gates. To get a GateTabulation, provide its
-                constructor a base gate (in this case, usually cirq.google.SYC)
-                and a maximmum infidelity.
+                used for Matrix gates. To get a GateTabulation, call the
+                gate_product_tabulation method with a base gate (in this case,
+                usually cirq.google.SYC) and a maximum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
-        assert tabulation is None or isinstance(
-            tabulation, GateTabulation
-        ), "provided tabulation must be of type GateTabulation"
+        if tabulation is not None and not isinstance(tabulation,
+                                                     GateTabulation):
+            raise ValueError(
+                "provided tabulation must be of type GateTabulation")
         self.tabulation = tabulation
 
     def _is_native_sycamore_op(self, op: ops.Operation) -> bool:
@@ -213,8 +214,7 @@ def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
         tabulation: A tabulation for the Sycamore gate.
     Returns:
         New operations iterable object
-
-        """
+    """
     new_ops = []
     result = tabulation.compile_two_qubit_gate(protocols.unitary(op))
     local_gates = result.local_unitaries

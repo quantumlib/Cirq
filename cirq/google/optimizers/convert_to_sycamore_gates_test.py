@@ -243,3 +243,10 @@ def test_convert_to_sycamore_tabulation():
     u2 = cirq.unitary(operation)
     overlap = abs(np.trace(u1.conj().T @ u2))
     assert np.isclose(overlap, 4.0, .1)
+
+
+def test_sycamore_invalid_tabulation():
+    # An object other than a tabulation.
+    sycamore_tabulation = {}
+    with pytest.raises(ValueError):
+        cgoc.ConvertToSycamoreGates(sycamore_tabulation)
