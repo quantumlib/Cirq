@@ -205,7 +205,9 @@ class SwapPermutationReplacer(cirq.PointOptimizer):
     def __init__(self):
         super().__init__()
 
-    def optimization_at(self, circuit, index, op):
+    def optimization_at(self, circuit: cirq.Circuit, index: int,
+                        op: cirq.Operation
+                       ) -> Optional[cirq.PointOptimizationSummary]:
         if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
             new_ops = op.gate.swap_gate.on(*op.qubits)
             return cirq.PointOptimizationSummary(clear_span=1,

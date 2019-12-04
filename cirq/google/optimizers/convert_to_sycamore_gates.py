@@ -51,12 +51,18 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         """
         Args:
             tabulation: If set, a tabulation for the Sycamore gate to use for
-                decomposing gates.
+                decomposing Matrix gates. If unset, an analytic calculation is
+                used for Matrix gates. To get a GateTabulation, provide its
+                constructor a base gate (in this case, usually cirq.google.SYC)
+                and a maximmum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
+        assert tabulation is None or isinstance(
+            tabulation, GateTabulation
+        ), "provided tabulation must be of type GateTabulation"
         self.tabulation = tabulation
 
     def _is_native_sycamore_op(self, op: ops.Operation) -> bool:
@@ -186,19 +192,19 @@ def known_two_q_operations_to_sycamore_operations(
         return rzz(cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
     elif isinstance(gate, ops.MatrixGate) and len(op.qubits) == 2:
         if tabulation:
-            return decompose_arbitrary_into_syc_tabulation_(
+            return decompose_arbitrary_into_syc_tabulation(
                 qubit_a, qubit_b, op, tabulation)
         else:
-            return decompose_arbitrary_into_syc_analytic_(qubit_a, qubit_b, op)
+            return decompose_arbitrary_into_syc_analytic(qubit_a, qubit_b, op)
     else:
         raise ValueError("Unrecognized gate: {!r}".format(op))
 
 
-def decompose_arbitrary_into_syc_tabulation_(qubit_a: ops.Qid, qubit_b: ops.Qid,
-                                             op: ops.GateOperation,
-                                             tabulation: GateTabulation):
-    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using the
-    given Tabulation.
+def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
+                                            op: ops.GateOperation,
+                                            tabulation: GateTabulation):
+    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
+    the given Tabulation.
 
     Args:
         qubit_a: first qubit of the operation
@@ -226,10 +232,10 @@ def decompose_arbitrary_into_syc_tabulation_(qubit_a: ops.Qid, qubit_b: ops.Qid,
     return new_ops
 
 
-def decompose_arbitrary_into_syc_analytic_(qubit_a: ops.Qid, qubit_b: ops.Qid,
-                                           op: ops.GateOperation):
-    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using the
-    given Tabulation.
+def decompose_arbitrary_into_syc_analytic(qubit_a: ops.Qid, qubit_b: ops.Qid,
+                                          op: ops.GateOperation):
+    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
+    the given Tabulation.
 
      Args:
             qubit_a: first qubit of the operation

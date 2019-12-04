@@ -8,6 +8,8 @@ import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
 from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
     gate_product_tabulation)
 
+_rng = cirq.value.parse_random_state(11)  # for determinism
+
 
 def test_convert_to_sycamore_gates_swap_zz():
     qubits = cirq.LineQubit.range(3)
@@ -230,7 +232,8 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
 def test_convert_to_sycamore_tabulation():
     # A tabulation for the sycamore gate with an infidelity of .1.
     sycamore_tabulation = gate_product_tabulation(cirq.unitary(cirq.google.SYC),
-                                                  .1)
+                                                  .1,
+                                                  random_state=_rng)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     operation = cirq.MatrixGate(cirq.unitary(cirq.CX),
                                 qid_shape=(2, 2)).on(qubits[0], qubits[1])
