@@ -114,7 +114,7 @@ class PreparedEnv:
         response = requests.post(url, json=payload)
 
         if response.status_code != 201:
-            raise IOError('Request failed. Code: {}. Content: {}.'.format(
+            raise IOError('Request failed. Code: {}. Content: {!r}.'.format(
                 response.status_code, response.content))
 
     def get_changed_files(self) -> List[str]:
