@@ -125,6 +125,14 @@ matrix:
     env: NAME=dev-release
     python: '3.7'
     script: export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+  - stage: test
+    os: linux
+    env: NAME=testall
+    python: '3.6'
+    install:
+      - python -m pip install -r requirements.txt
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/all
 before_deploy:
 - echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'"
 deploy:
