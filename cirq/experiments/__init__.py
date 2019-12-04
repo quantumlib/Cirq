@@ -30,6 +30,13 @@ from cirq.experiments.fidelity_estimation import (
     xeb_fidelity,
 )
 
+from cirq.experiments.random_quantum_circuit import (
+    GMON_EASY_PATTERN,
+    GMON_HARD_PATTERN,
+    GmonLayer,
+    random_quantum_circuit,
+)
+
 from cirq.experiments.single_qubit_readout_calibration import (
     estimate_single_qubit_readout_errors,
     SingleQubitReadoutCalibrationResult,

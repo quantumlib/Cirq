@@ -420,12 +420,16 @@ run experiments.
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.rabi_oscillations
+    cirq.experiments.random_quantum_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
     cirq.experiments.single_qubit_state_tomography
     cirq.experiments.t1_decay
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
+    cirq.experiments.GmonLayer
+    cirq.experiments.GMON_EASY_PATTERN
+    cirq.experiments.GMON_HARD_PATTERN
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
