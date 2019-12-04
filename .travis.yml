@@ -9,13 +9,12 @@ branches:
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
-- quick_test
 - test
 - name: deploy
   if: type = push AND branch = master
 matrix:
   include:
-  - stage: quick_test
+  - stage: test
     os: linux
     env: NAME=misc
     python: '3.6'
@@ -28,14 +27,14 @@ matrix:
     install:
     - dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
     script: check/pytest-changed-files
-  - stage: quick_test
+  - stage: test
     os: linux
     env: NAME=format
     python: '3.6'
     install:
       - cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
     script: check/format-incremental
-  - stage: quick_test
+  - stage: test
     os: linux
     env: NAME=mypy
     python: '3.6'
