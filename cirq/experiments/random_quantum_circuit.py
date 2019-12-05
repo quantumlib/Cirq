@@ -1,7 +1,5 @@
-from typing import (Callable, Container, Dict, Iterable, List, Sequence, Set,
-                    TYPE_CHECKING, Tuple, cast)
-
-import abc
+from typing import (Callable, Container, Dict, Iterable, List, Sequence,
+                    TYPE_CHECKING, Tuple)
 
 from cirq import circuits, devices, google, ops, value
 from cirq._doc import document
