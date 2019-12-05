@@ -13,18 +13,21 @@
 # limitations under the License.
 
 import itertools
-from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Set, Tuple, Union)
+from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple, TYPE_CHECKING)
 
 import numpy as np
 import networkx as nx
 
-from cirq import circuits, ops
+from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (get_time_slices,
                                         ops_are_consistent_with_device_graph)
+
+if TYPE_CHECKING:
+    import cirq
 
 SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
@@ -90,14 +93,9 @@ class _GreedyRouter:
             initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
             can_reorder: Callable[[ops.Operation, ops.Operation],
                                   bool] = circuits.circuit_dag._disjoint_qubits,
-            random_state: Optional[Union[np.random.RandomState, int]] = None):
+            random_state: value.RANDOM_STATE_LIKE = None):
 
-        if random_state is None:
-            self.prng = np.random
-        elif isinstance(random_state, np.random.RandomState):
-            self.prng = random_state
-        else:
-            self.prng = np.random.RandomState(random_state)
+        self.prng = value.parse_random_state(random_state)
 
         self.device_graph = device_graph
         self.physical_distances: Dict[QidPair, int] = {
@@ -130,12 +128,12 @@ class _GreedyRouter:
             ]
         return self.edge_sets[edge_set_size]
 
-    def log_to_phys(self, *qubits: ops.Qid) -> Iterable[ops.Qid]:
+    def log_to_phys(self, *qubits: 'cirq.Qid') -> Iterable[ops.Qid]:
         """Returns an iterator over the physical qubits mapped to by the given
         logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
-    def phys_to_log(self, *qubits: ops.Qid) -> Iterable[Optional[ops.Qid]]:
+    def phys_to_log(self, *qubits: 'cirq.Qid') -> Iterable[Optional[ops.Qid]]:
         """Returns an iterator over the logical qubits that map to the given
         physical qubits."""
         return (self._phys_to_log[q] for q in qubits)

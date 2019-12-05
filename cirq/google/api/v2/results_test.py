@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.api.google.v2 import result_pb2
 from cirq.google.api import v2
 
 
@@ -38,24 +37,6 @@ def test_find_measurements_simple_circuit():
     assert len(measurements) == 1
     m = measurements[0]
     _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 0)
-
-
-def test_find_measurements_simple_schedule():
-    schedule = cirq.Schedule(
-        device=cirq.UNCONSTRAINED_DEVICE,
-        scheduled_operations=[
-            cirq.ScheduledOperation(
-                time=cirq.Timestamp(picos=10_000),
-                duration=cirq.Duration(nanos=1000),
-                operation=cirq.measure(q(0, 0), q(0, 1), q(0, 2), key='k'),
-            ),
-        ],
-    )
-    measurements = v2.find_measurements(schedule)
-
-    assert len(measurements) == 1
-    m = measurements[0]
-    _check_measurement(m, 'k', [q(0, 0), q(0, 1), q(0, 2)], 10_000)
 
 
 def test_find_measurements_invert_mask():
@@ -169,7 +150,7 @@ def test_results_to_proto():
         ],
     ]
     proto = v2.results_to_proto(trial_results, measurements)
-    assert isinstance(proto, result_pb2.Result)
+    assert isinstance(proto, v2.result_pb2.Result)
     assert len(proto.sweep_results) == 2
     deserialized = v2.results_from_proto(proto, measurements)
     assert len(deserialized) == 2
@@ -213,7 +194,7 @@ def test_results_from_proto_qubit_ordering():
                        slot=0,
                        invert_mask=[False, False, False])
     ]
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
@@ -254,7 +235,7 @@ def test_results_from_proto_duplicate_qubit():
                        slot=0,
                        invert_mask=[False, False, False])
     ]
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()
@@ -274,7 +255,7 @@ def test_results_from_proto_duplicate_qubit():
 
 
 def test_results_from_proto_default_ordering():
-    proto = result_pb2.Result()
+    proto = v2.result_pb2.Result()
     sr = proto.sweep_results.add()
     sr.repetitions = 8
     pr = sr.parameterized_results.add()

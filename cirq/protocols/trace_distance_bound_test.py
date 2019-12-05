@@ -36,9 +36,9 @@ def test_trace_distance_bound():
         def _trace_distance_bound_(self) -> float:
             return self.bound
 
-    x = cirq.SingleQubitMatrixGate(cirq.unitary(cirq.X))
-    cx = cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CX))
-    cxh = cirq.TwoQubitMatrixGate(cirq.unitary(cirq.CX**0.5))
+    x = cirq.MatrixGate(cirq.unitary(cirq.X))
+    cx = cirq.MatrixGate(cirq.unitary(cirq.CX))
+    cxh = cirq.MatrixGate(cirq.unitary(cirq.CX**0.5))
 
     assert np.isclose(cirq.trace_distance_bound(x),
                       cirq.trace_distance_bound(cirq.X))
