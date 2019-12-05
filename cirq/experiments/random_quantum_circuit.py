@@ -1,4 +1,4 @@
-from typing import (Callable, Container, Iterable, List, Sequence, Set,
+from typing import (Callable, Container, Dict, Iterable, List, Sequence, Set,
                     TYPE_CHECKING, Tuple, cast)
 
 import abc
@@ -7,7 +7,6 @@ from cirq import circuits, devices, google, ops, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from typing import Dict
     import numpy as np
     import cirq
 
@@ -166,7 +165,7 @@ def random_quantum_circuit(
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
 
     circuit = circuits.Circuit()
-    previous_single_qubit_layer = []  # type: List[cirq.GateOperation]
+    previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
     for i in range(depth):
         single_qubit_layer = _single_qubit_layer(qubits, single_qubit_gates,
                                                  previous_single_qubit_layer,
@@ -174,13 +173,15 @@ def random_quantum_circuit(
         two_qubit_layer = _two_qubit_layer(coupled_qubit_pairs,
                                            two_qubit_op_factory,
                                            pattern[i % len(pattern)], prng)
-        circuit.append(single_qubit_layer,
+        circuit.append([g.on(q) for q, g in single_qubit_layer.items()],
                        strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
         circuit.append(two_qubit_layer,
                        strategy=circuits.InsertStrategy.EARLIEST)
         previous_single_qubit_layer = single_qubit_layer
-    circuit.append(_single_qubit_layer(qubits, single_qubit_gates,
-                                       previous_single_qubit_layer, prng),
+    final_single_qubit_layer = _single_qubit_layer(qubits, single_qubit_gates,
+                                                   previous_single_qubit_layer,
+                                                   prng)
+    circuit.append([g.on(q) for q, g in final_single_qubit_layer.items()],
                    strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
 
     return circuit
@@ -206,22 +207,17 @@ def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
 def _single_qubit_layer(
         qubits: List['cirq.GridQubit'],
         single_qubit_gates: Sequence['cirq.Gate'],
-        previous_single_qubit_layer: List['cirq.GateOperation'],
+        previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate'],
         prng: 'np.random.RandomState',
-) -> List['cirq.GateOperation']:
-
-    excluded_gates = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
-    if previous_single_qubit_layer:
-        for op in previous_single_qubit_layer:
-            excluded_gates[cast('cirq.GridQubit', op.qubits[0])] = op.gate
+) -> Dict['cirq.GridQubit', 'cirq.Gate']:
 
     def random_gate(qubit: 'cirq.GridQubit',
                     prng: 'np.random.RandomState') -> 'cirq.Gate':
-        excluded_gate = excluded_gates.get(qubit, None)
+        excluded_gate = previous_single_qubit_layer.get(qubit, None)
         allowed_gates = [g for g in single_qubit_gates if g != excluded_gate]
         return allowed_gates[prng.randint(0, len(allowed_gates))]
 
-    return [random_gate(q, prng).on(q) for q in qubits]
+    return {q: random_gate(q, prng) for q in qubits}
 
 
 def _two_qubit_layer(
