@@ -74,8 +74,7 @@ class GmonLayer(TwoQubitInteractionLayer):
         self.vertical = vertical
         self.stagger = stagger
 
-    def __contains__(self,
-                     pair: Tuple[devices.GridQubit, devices.GridQubit]) -> bool:
+    def __contains__(self, pair) -> bool:
         """Checks whether a pair is in this layer."""
         if self.vertical:
             # Transpose row, col coords for vertical orientation.
