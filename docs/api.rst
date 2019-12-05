@@ -417,6 +417,8 @@ run experiments.
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
     cirq.log_xeb_fidelity_from_probabilities
+    cirq.experiments.GMON_EASY_PATTERN
+    cirq.experiments.GMON_HARD_PATTERN
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.rabi_oscillations
@@ -428,8 +430,6 @@ run experiments.
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
     cirq.experiments.GmonLayer
-    cirq.experiments.GMON_EASY_PATTERN
-    cirq.experiments.GMON_HARD_PATTERN
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
