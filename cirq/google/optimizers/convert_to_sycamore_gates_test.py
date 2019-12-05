@@ -5,6 +5,10 @@ import scipy.linalg
 
 import cirq
 import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
+from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
+    gate_product_tabulation)
+
+_rng = cirq.value.parse_random_state(11)  # for determinism
 
 
 def test_convert_to_sycamore_gates_swap_zz():
@@ -223,3 +227,26 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
     cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
+
+
+def test_convert_to_sycamore_tabulation():
+    # A tabulation for the sycamore gate with an infidelity of .1.
+    sycamore_tabulation = gate_product_tabulation(cirq.unitary(cirq.google.SYC),
+                                                  .1,
+                                                  random_state=_rng)
+    qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
+    operation = cirq.MatrixGate(cirq.unitary(cirq.CX),
+                                qid_shape=(2, 2)).on(qubits[0], qubits[1])
+    converted = cgoc.ConvertToSycamoreGates(sycamore_tabulation).convert(
+        operation)
+    u1 = cirq.unitary(cirq.Circuit(converted))
+    u2 = cirq.unitary(operation)
+    overlap = abs(np.trace(u1.conj().T @ u2))
+    assert np.isclose(overlap, 4.0, .1)
+
+
+def test_sycamore_invalid_tabulation():
+    # An object other than a tabulation.
+    sycamore_tabulation = {}
+    with pytest.raises(ValueError):
+        cgoc.ConvertToSycamoreGates(sycamore_tabulation)
