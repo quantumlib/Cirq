@@ -12,20 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Optional, Union
+from typing import cast, Any, Optional, Union
 
 import numpy as np
 
-RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int]]
+RANDOM_STATE_LIKE = Optional[Union[np.random.RandomState, int, Any]]
 
 
 def parse_random_state(random_state: RANDOM_STATE_LIKE
                       ) -> np.random.RandomState:
+    """Interpret an object as the state of a pseudorandom number generator.
+
+    If `random_state` is None, returns the module `np.random`.
+    If `random_state` is an integer, returns
+    `np.random.RandomState(random_state)`.
+    Otherwise, returns `random_state` unmodified.
+    """
     if random_state is None:
         return cast(np.random.RandomState, np.random)
-    elif (isinstance(random_state, np.random.RandomState) or
-          random_state == np.random):
-        return cast(np.random.RandomState, random_state)
     elif isinstance(random_state, int):
         return np.random.RandomState(random_state)
-    raise TypeError(f'Argument must be of type cirq.value.RANDOM_STATE_LIKE.')
+    else:
+        return cast(np.random.RandomState, random_state)
