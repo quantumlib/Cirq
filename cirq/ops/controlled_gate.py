@@ -24,15 +24,18 @@ from cirq.type_workarounds import NotImplementedType
 
 @value.value_equality
 class ControlledGate(raw_types.Gate):
-    """Augments existing gates with a control qubit."""
+    """Augments existing gates to have one or more control qubits.
+
+    This object is typically created via `gate.controlled()`.
+    """
 
     def __init__(
             self,
-            sub_gate: raw_types.Gate,
+            sub_gate: 'cirq.Gate',
             num_controls: int = None,
             control_values: Optional[Sequence[
                 Union[int, Collection[int]]]] = None,
-            control_qid_shape: Optional[Tuple[int, ...]] = None,
+            control_qid_shape: Optional[Sequence[int]] = None,
     ) -> None:
         """Initializes the controlled gate. If no arguments are specified for
            the controls, defaults to a single qubit control.
@@ -110,7 +113,7 @@ class ControlledGate(raw_types.Gate):
                                         self.control_values))
         return decomposed
 
-    def on(self, *qubits: raw_types.Qid) -> cop.ControlledOperation:
+    def on(self, *qubits: 'cirq.Qid') -> cop.ControlledOperation:
         if len(qubits) == 0:
             raise ValueError(
                 "Applied a gate to an empty set of qubits. Gate: {!r}".format(
@@ -177,8 +180,8 @@ class ControlledGate(raw_types.Gate):
         angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
         return protocols.trace_distance_from_angle_list(angle_list)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         sub_args = protocols.CircuitDiagramInfoArgs(
             known_qubit_count=(args.known_qubit_count - self.num_controls()
                                if args.known_qubit_count is not None else None),
@@ -229,3 +232,11 @@ class ControlledGate(raw_types.Gate):
                 'control_qid_shape={!r})'.format(self.sub_gate,
                                                  self.control_values,
                                                  self.control_qid_shape))
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'control_values': self.control_values,
+            'control_qid_shape': self.control_qid_shape,
+            'sub_gate': self.sub_gate,
+        }

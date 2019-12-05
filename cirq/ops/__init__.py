@@ -57,8 +57,11 @@ from cirq.ops.common_gates import (
     H,
     HPowGate,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     T,
     XPowGate,
@@ -90,7 +93,6 @@ from cirq.ops.gate_features import (
 
 from cirq.ops.gate_operation import (
     GateOperation,
-    op_gate_isinstance,
     op_gate_of_type,
 )
 
@@ -124,6 +126,7 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,)
 
 from cirq.ops.matrix_gates import (
+    MatrixGate,
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
@@ -171,6 +174,7 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
+    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliString,
     SingleQubitPauliStringGateOperation,
@@ -183,12 +187,16 @@ from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
 
 from cirq.ops.phased_iswap_gate import (
+    givens,
     GivensRotation,
     PhasedISwapPowGate,
 )
 
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
+
+from cirq.ops.phased_x_z_gate import (
+    PhasedXZGate,)
 
 from cirq.ops.raw_types import (
     Gate,
@@ -199,6 +207,8 @@ from cirq.ops.raw_types import (
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
+    riswap,
     SWAP,
     SwapPowGate,
 )

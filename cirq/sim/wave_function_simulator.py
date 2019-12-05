@@ -16,12 +16,15 @@
 
 import abc
 
-from typing import Any, cast, Dict, Iterator, Sequence, Union
+from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, ops, schedules, study, value
+from cirq import circuits, ops, study, value
 from cirq.sim import simulator, wave_function
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
@@ -70,7 +73,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
 
     def compute_amplitudes_sweep(
             self,
-            program: Union[circuits.Circuit, schedules.Schedule],
+            program: 'cirq.Circuit',
             bitstrings: Sequence[int],
             params: study.Sweepable,
             qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
@@ -80,9 +83,7 @@ class SimulatesIntermediateWaveFunction(simulator.SimulatesAmplitudes,
                              '1-dimensional array of ints. Got an array with '
                              f'shape {bitstrings.shape}.')
 
-        circuit = (program.to_circuit()
-                   if isinstance(program, schedules.Schedule) else program)
-        trial_results = self.simulate_sweep(circuit, params, qubit_order)
+        trial_results = self.simulate_sweep(program, params, qubit_order)
 
         # 1-dimensional tuples don't trigger advanced Numpy array indexing
         # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html

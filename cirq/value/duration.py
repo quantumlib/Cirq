@@ -19,13 +19,26 @@ import datetime
 import sympy
 
 from cirq import protocols
-from cirq._compat import proper_repr, deprecated
+from cirq._compat import proper_repr
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
-# 0 is also a DURATION_LIKE, but it would be misleading to include `int`.
+
 DURATION_LIKE = Union[None, datetime.timedelta, 'cirq.Duration']
+document(
+    DURATION_LIKE,  # type: ignore
+    """A `cirq.Duration` or value that can trivially converted to one.
+
+    A `datetime.timedelta` is a `cirq.DURATION_LIKE`. It is converted while
+    preserving its duration.
+
+    `None` is a `cirq.DURATION_LIKE` that converts into a zero-length duration.
+
+    Note that 0 is a `DURATION_LIKE`, despite the fact that `int` is not listed,
+    because 0 is the only integer where the physical unit doesn't matter.
+    """)
 
 
 class Duration:
@@ -69,14 +82,6 @@ class Duration:
         self._picos: Union[float, int, sympy.Basic] = (picos + nanos * 1000 +
                                                        micros * 1000_000 +
                                                        millis * 1000_000_000)
-
-    @classmethod
-    @deprecated(deadline='v0.7',
-                fix='Use `cirq.Duration(...)` instead.',
-                func_name='cirq.Duration.create')
-    def create(cls, duration: DURATION_LIKE) -> 'Duration':
-        """Creates a Duration from datetime.timedelta if necessary"""
-        return Duration(duration)
 
     def _is_parameterized_(self):
         return protocols.is_parameterized(self._picos)

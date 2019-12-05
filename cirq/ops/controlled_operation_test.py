@@ -279,17 +279,17 @@ def test_non_diagrammable_subop():
 
 @pytest.mark.parametrize('gate', [
     cirq.X(cirq.NamedQubit('q1')),
-    cirq.X(cirq.NamedQubit('q1')) ** 0.5,
-    cirq.Rx(np.pi)(cirq.NamedQubit('q1')),
-    cirq.Rx(np.pi / 2)(cirq.NamedQubit('q1')),
+    cirq.X(cirq.NamedQubit('q1'))**0.5,
+    cirq.rx(np.pi)(cirq.NamedQubit('q1')),
+    cirq.rx(np.pi / 2)(cirq.NamedQubit('q1')),
     cirq.Z(cirq.NamedQubit('q1')),
     cirq.H(cirq.NamedQubit('q1')),
     cirq.CNOT(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
-        *cirq.LineQubit.range(5)),
+    cirq.ControlledGate(cirq.ControlledGate(
+        cirq.CCZ))(*cirq.LineQubit.range(5)),
     GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
     GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])
@@ -328,3 +328,21 @@ def test_bounded_effect():
     assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
     mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
     assert cirq.approx_eq(cirq.trace_distance_bound(mock), 1)
+
+
+def test_controlled_operation_gate():
+    gate = cirq.X.controlled(control_values=[0, 1], control_qid_shape=[2, 3])
+    op = gate.on(cirq.LineQubit(0), cirq.LineQid(1, 3), cirq.LineQubit(2))
+    assert op.gate == gate
+
+    class Gateless(cirq.Operation):
+
+        @property
+        def qubits(self):
+            return ()  # coverage: ignore
+
+        def with_qubits(self, *new_qubits):
+            return self  # coverage: ignore
+
+    op = Gateless().controlled_by(cirq.LineQubit(0))
+    assert op.gate is None
