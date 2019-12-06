@@ -78,23 +78,24 @@ def optimized_for_gmon(circuit: 'cirq.Circuit',
                        qubit_map: Callable[['cirq.Qid'], devices.GridQubit] =
                        lambda e: cast(devices.GridQubit, e),
                        optimizer_type: str = 'sqrt_iswap') -> 'cirq.Circuit':
-    """Optimizes a circuit with XmonDevice in mind.
+    """Optimizes a circuit for Google devices.
 
-  Starts by converting the circuit's operations to the xmon gate set, then
-  begins merging interactions and rotations, ejecting pi-rotations and phasing
-  operations, dropping unnecessary operations, and pushing operations earlier.
-
-  Args:
-      circuit: The circuit to optimize.
-      new_device: The device the optimized circuit should be targeted at. If
-          set to None, the circuit's current device is used.
-      qubit_map: Transforms the qubits (e.g. so that they are GridQubits).
-      optimizer_type: A string defining the optimizations to apply.
-          Possible values are  'xmon', 'xmon_partial_cz', 'sqrt_iswap',
-          'sycamore'
-  Returns:
-      The optimized circuit.
-  """
+    Uses a set of optimizers that will compile to the proper gateset for the
+    device (xmon, sqrt_iswap, or sycamore gates) and then use optimizers to
+    compresss the gate depth down as much as is easily algorithmically possible
+    by merging rotations, ejecting Z gates, etc.
+    
+    Args:
+        circuit: The circuit to optimize.
+        new_device: The device the optimized circuit should be targeted at. If
+            set to None, the circuit's current device is used.
+        qubit_map: Transforms the qubits (e.g. so that they are GridQubits).
+        optimizer_type: A string defining the optimizations to apply.
+            Possible values are  'xmon', 'xmon_partial_cz', 'sqrt_iswap',
+            'sycamore'
+    Returns:
+        The optimized circuit.
+    """
     copy = circuit.copy()
     if optimizer_type not in _OPTIMIZER_TYPES:
         raise ValueError(f'{optimizer_type} is not an allowed type.  Allowed '
