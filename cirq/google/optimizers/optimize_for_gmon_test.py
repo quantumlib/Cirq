@@ -39,5 +39,5 @@ def test_invalid_input():
         circuit = cirq.Circuit(cirq.CZ(q0, q1),
                                cirq.X(q0)**0.2,
                                cirq.Z(q1)**0.2, cirq.measure(q0, q1, key='m'))
-        new_circuit = cg.optimized_for_gmon(circuit,
+        _ = cg.optimized_for_gmon(circuit,
                                             optimizer_type='for_tis_100')
