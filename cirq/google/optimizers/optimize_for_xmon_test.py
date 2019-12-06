@@ -35,7 +35,7 @@ def test_swap_field(n: int, d: int):
         for j in range(i % 2, n - 1, 2))
     before.append(cirq.measure(*before.all_qubits()))
 
-    after = cg.optimized_for_xmon(before)
+    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
 
     assert len(after) == d * 4 + 2
     if n <= 5:
@@ -49,7 +49,7 @@ def test_ccz():
         cirq.CCZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6),
                  cirq.GridQubit(5, 7)))
 
-    after = cg.optimized_for_xmon(before)
+    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
 
     assert len(after) <= 22
     assert_circuits_with_terminal_measurements_are_equivalent(before,
@@ -65,7 +65,9 @@ def test_adjacent_cz_get_split_apart():
         ])
     ])
 
-    after = cg.optimized_for_xmon(before, new_device=cg.Foxtail)
+    after = cg.optimized_for_gmon(before,
+                                  new_device=cg.Foxtail,
+                                  optimizer_type='xmon')
 
     assert after == cirq.Circuit([
         cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
@@ -78,9 +80,10 @@ def test_remap_qubits():
     before = cirq.Circuit(
         [cirq.Moment([cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))])])
 
-    after = cg.optimized_for_xmon(before,
+    after = cg.optimized_for_gmon(before,
                                   new_device=cg.Foxtail,
-                                  qubit_map=lambda q: cirq.GridQubit(q.x, 0))
+                                  qubit_map=lambda q: cirq.GridQubit(q.x, 0),
+                                  optimizer_type='xmon')
 
     assert after == cirq.Circuit(
         [cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
@@ -92,7 +95,7 @@ def test_dont_allow_partial_czs():
         cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
     ])
 
-    after = cg.optimized_for_xmon(before, allow_partial_czs=False)
+    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
 
     cz_gates = [
         op.gate
@@ -111,7 +114,7 @@ def test_allow_partial_czs():
         cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
     ])
 
-    after = cg.optimized_for_xmon(before, allow_partial_czs=True)
+    after = cg.optimized_for_gmon(before, optimizer_type='xmon_partial_cz')
 
     cz_gates = [
         op.gate
