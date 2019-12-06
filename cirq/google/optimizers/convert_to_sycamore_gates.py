@@ -170,15 +170,16 @@ def known_two_q_operations_to_sycamore_operations(
     """
     gate = op.gate
     if isinstance(gate, ops.PhasedISwapPowGate):
-        if math.isclose(gate.phase_exponent, .25):
-            # This is the only phase_exponent supported at the moment, which is
-            # adequate for many use-cases (e.g. Givens rotations).
-            return decompose_phased_iswap_into_syc(gate.exponent * np.pi / 2,
-                                                   qubit_a, qubit_b)
+        if math.isclose(gate.exponent, 1):
+            return decompose_phased_iswap_into_syc(gate.phase_exponent, qubit_a,
+                                                   qubit_b)
+        elif math.isclose(gate.phase_exponent, .25):
+            return decompose_phased_iswap_into_syc_precomputed(
+                gate.exponent * np.pi / 2, qubit_a, qubit_b)
         else:
             raise ValueError(
-                "Only PhasedISwapPowGate with a phase_exponent of .25 is "
-                "supported, but got: {!r}".format(op))
+                "To decompose PhasedISwapPowGate, it must have a phase_exponent"
+                " of .25 OR an exponent of 1.0, but got: {!r}".format(op))
     if isinstance(gate, ops.CNotPowGate):
         return [
             ops.Y(qubit_b)**-0.5,
@@ -211,12 +212,43 @@ def known_two_q_operations_to_sycamore_operations(
         raise ValueError("Unrecognized gate: {!r}".format(op))
 
 
-def decompose_phased_iswap_into_syc(theta, a: ops.Qid, b: ops.Qid):
+def decompose_phased_iswap_into_syc(phase_exponent: float, a: ops.Qid,
+                                    b: ops.Qid):
+    """Decompose PhasedISwap with an exponent of 1.
+
+    This should only be called if the Gate has an exponent of 1 - otherwise,
+    decompose_phased_iswap_into_syc_precomputed should be used instead. The
+    advantage of using this function is that the resulting circuit will be
+    smaller.
+
+    Args:
+        phase_exponent: The exponent on the Z gates.
+        a: First qubit id to operate on
+        b: Second qubit id to operate on
+    Returns:
+        a Cirq program implementing the Phased ISWAP gate
+
+    """
+
+    yield ops.Z(a)**phase_exponent,
+    yield ops.Z(b)**-phase_exponent,
+    yield decompose_iswap_into_syc(a, b),
+    yield ops.Z(a)**-phase_exponent,
+    yield ops.Z(b)**phase_exponent,
+
+
+def decompose_phased_iswap_into_syc_precomputed(theta: float, a: ops.Qid,
+                                                b: ops.Qid):
     """Decompose PhasedISwap into sycamore gates using precomputed coefficients.
 
-    This synthesize a Ryxxy rotation in terms of four sycamore gates.  This
-    compilation first converts the Ryxxy into a circuit involving two CZ gates.
-    Then represents each CZ gate as two Sycamore gates and single-qubit
+    This should only be called if the Gate has a phase_exponent of .25. If the
+    gate has an exponent of 1, decompose_phased_iswap_into_syc should be used
+    instead. Converting PhasedISwap gates to Sycamore is not supported if
+    neither of these constraints are satsified.
+
+    This synthesize a PhasedISwap in terms of four sycamore gates.  This
+    compilation converts the gate into a circuit involving two CZ gates, which
+    themselves are each represented as two Sycamore gates and single-qubit
     rotations
 
     Args:
@@ -227,6 +259,7 @@ def decompose_phased_iswap_into_syc(theta, a: ops.Qid, b: ops.Qid):
         a Cirq program implementing the Phased ISWAP gate
 
     """
+
     yield ops.PhasedXPowGate(phase_exponent=0.41175161497166024,
                              exponent=0.5653807577895922).on(a)
     yield ops.PhasedXPowGate(phase_exponent=1.0, exponent=0.5).on(b),
