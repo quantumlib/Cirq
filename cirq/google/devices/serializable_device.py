@@ -220,18 +220,16 @@ class SerializableDevice(devices.Device):
 
             qubits = cast(List['cirq.GridQubit'], self.qubits)
             for q in qubits:
-                print()
                 diagram.write(q.col, q.row, str(q))
 
             # Find pairs that are connected by two-qubit gates.
             Pair = Tuple['cirq.GridQubit', 'cirq.GridQubit']
-            pairs: Set[Pair] = set()
-            for gate_defs in self.gate_definitions.values():
-                for gate_def in gate_defs:
-                    if gate_def.number_of_qubits == 2:
-                        for pair in gate_def.target_set:
-                            if len(pair) == 2:
-                                pairs.add(cast(Pair, pair))
+            pairs = {
+                cast(Pair, pair)
+                for gate_defs in self.gate_definitions.values()
+                for gate_def in gate_defs if gate_def.number_of_qubits == 2
+                for pair in gate_def.target_set if len(pair) == 2
+            }
 
             # Draw lines between connected pairs. Limit to horizontal/vertical
             # lines since that is all the diagram drawer can handle.
