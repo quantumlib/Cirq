@@ -1,7 +1,6 @@
 import cirq
 from cirq.contrib.quantum_volume import QuantumVolumeResult
 from cirq.testing import assert_json_roundtrip_works
-
 from cirq.contrib.json import DEFAULT_CONTRIB_RESOLVERS
 from cirq.contrib.acquaintance import SwapPermutationGate
 

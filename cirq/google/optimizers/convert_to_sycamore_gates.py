@@ -169,6 +169,16 @@ def known_two_q_operations_to_sycamore_operations(
         New operations iterable object
     """
     gate = op.gate
+    if isinstance(gate, ops.PhasedISwapPowGate):
+        if math.isclose(gate.phase_exponent, .25):
+            # This is the only phase_exponent supported at the moment, which is
+            # adequate for many use-cases (e.g. Givens rotations).
+            return decompose_phased_iswap_into_syc(gate.exponent * np.pi / 2,
+                                                   qubit_a, qubit_b)
+        else:
+            raise ValueError(
+                "Only PhasedISwapPowGate with a phase_exponent of .25 is "
+                "supported, but got: {!r}".format(op))
     if isinstance(gate, ops.CNotPowGate):
         return [
             ops.Y(qubit_b)**-0.5,
@@ -199,6 +209,55 @@ def known_two_q_operations_to_sycamore_operations(
             return decompose_arbitrary_into_syc_analytic(qubit_a, qubit_b, op)
     else:
         raise ValueError("Unrecognized gate: {!r}".format(op))
+
+
+def decompose_phased_iswap_into_syc(theta, a: ops.Qid, b: ops.Qid):
+    """Decompose PhasedISwap into sycamore gates using precomputed coefficients.
+
+    This synthesize a Ryxxy rotation in terms of four sycamore gates.  This
+    compilation first converts the Ryxxy into a circuit involving two CZ gates.
+    Then represents each CZ gate as two Sycamore gates and single-qubit
+    rotations
+
+    Args:
+        theta: rotation parameter
+        a: First qubit id to operate on
+        b: Second qubit id to operate on
+    Returns:
+        a Cirq program implementing the Phased ISWAP gate
+
+    """
+    yield ops.PhasedXPowGate(phase_exponent=0.41175161497166024,
+                             exponent=0.5653807577895922).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=1.0, exponent=0.5).on(b),
+    yield (ops.Z**0.7099892314883478).on(b),
+    yield (ops.Z**0.6746023442550453).on(a),
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.5154334589432878,
+                             exponent=0.5228733015013345).on(b)
+    yield ops.PhasedXPowGate(phase_exponent=0.06774925307475355).on(a)
+    yield SycamoreGate().on(a, b),
+    yield ops.PhasedXPowGate(phase_exponent=-0.5987667922766213,
+                             exponent=0.4136540654256824).on(a)
+    yield (ops.Z**-0.9255092746611595).on(b)
+    yield (ops.Z**-1.333333333333333).on(a)
+    yield ops.rx(-theta).on(a)
+    yield ops.rx(-theta).on(b)
+
+    yield ops.PhasedXPowGate(phase_exponent=0.5678998743900456,
+                             exponent=0.5863459345743176).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=0.3549946157441739).on(b)
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.5154334589432878,
+                             exponent=0.5228733015013345).on(b)
+    yield ops.PhasedXPowGate(phase_exponent=0.06774925307475355).on(a)
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.8151665352515929,
+                             exponent=0.8906746535691492).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=-0.07449072533884049,
+                             exponent=0.5).on(b)
+    yield (ops.Z**-0.9255092746611595).on(b)
+    yield (ops.Z**-0.9777346353961884).on(a)
 
 
 def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
