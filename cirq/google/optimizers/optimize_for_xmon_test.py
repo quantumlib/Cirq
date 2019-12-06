@@ -36,7 +36,6 @@ def test_swap_field(n: int, d: int):
     before.append(cirq.measure(*before.all_qubits()))
 
     after = cg.optimized_for_gmon(before, optimizer_type='xmon')
-
     assert len(after) == d * 4 + 2
     if n <= 5:
         assert_circuits_with_terminal_measurements_are_equivalent(before,
@@ -97,6 +96,10 @@ def test_dont_allow_partial_czs():
 
     after = cg.optimized_for_gmon(before, optimizer_type='xmon')
 
+    # Test deprecated interface
+    after_deprecated = cg.optimized_for_xmon(before, allow_partial_czs=False)
+    assert after == after_deprecated
+
     cz_gates = [
         op.gate
         for op in after.all_operations()
@@ -115,6 +118,9 @@ def test_allow_partial_czs():
     ])
 
     after = cg.optimized_for_gmon(before, optimizer_type='xmon_partial_cz')
+    # Test deprecated interface
+    after_deprecated = cg.optimized_for_xmon(before, allow_partial_czs=True)
+    assert after == after_deprecated
 
     cz_gates = [
         op.gate

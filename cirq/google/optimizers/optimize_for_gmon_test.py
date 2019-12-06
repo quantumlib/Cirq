@@ -31,3 +31,13 @@ def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
     for moment in new_circuit:
         for op in moment:
             assert gateset.is_supported_gate(op.gate)
+
+
+def test_invalid_input():
+    with pytest.raises(ValueError):
+        q0, q1 = cirq.LineQubit.range(2)
+        circuit = cirq.Circuit(cirq.CZ(q0, q1),
+                               cirq.X(q0)**0.2,
+                               cirq.Z(q1)**0.2, cirq.measure(q0, q1, key='m'))
+        new_circuit = cg.optimized_for_gmon(circuit,
+                                            optimizer_type='for_tis_100')

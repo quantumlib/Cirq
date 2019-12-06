@@ -84,7 +84,7 @@ def optimized_for_gmon(circuit: 'cirq.Circuit',
     device (xmon, sqrt_iswap, or sycamore gates) and then use optimizers to
     compresss the gate depth down as much as is easily algorithmically possible
     by merging rotations, ejecting Z gates, etc.
-    
+
     Args:
         circuit: The circuit to optimize.
         new_device: The device the optimized circuit should be targeted at. If
