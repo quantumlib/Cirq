@@ -284,7 +284,13 @@ class _GreedyRouter:
                 ]
                 if len(candidate_swap_sets) == 1:
                     self.apply_swap(*candidate_swap_sets[0])
-                    return
+
+                    if list(
+                            self.remaining_dag.findall_nodes_until_blocked(
+                                self.acts_on_nonadjacent_qubits)):
+                        return
+                    else:
+                        break
 
         frontier_edges = sorted(time_slices[0].edges)
         self.bring_farthest_pair_together(frontier_edges)
