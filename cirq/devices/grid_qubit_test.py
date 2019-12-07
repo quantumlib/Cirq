@@ -47,6 +47,11 @@ def test_square():
     ]
 
 
+def test_repr():
+    a = cirq.GridQubit(0, 1)
+    cirq.testing.assert_equivalent_repr(a)
+
+
 def test_rec():
     assert cirq.GridQubit.rect(
         1, 2, top=5, left=6) == [cirq.GridQubit(5, 6),
@@ -73,8 +78,17 @@ ABCDEFGHIJKL
 ----IJKL----
 -----KL-----
 """
-    assert (cirq.GridQubit.from_diagram(s) ==
-            cirq.google.known_devices._parse_device(s)[0])
+    assert len(cirq.GridQubit.from_diagram(s)) == 72
+    s2 = """
+AB
+BA"""
+    assert cirq.GridQubit.from_diagram(s2) == [
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(1, 1)
+    ]
+
     with pytest.raises(ValueError, match="Input string has invalid character"):
         cirq.GridQubit.from_diagram('@')
 

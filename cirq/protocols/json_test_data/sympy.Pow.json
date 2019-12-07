@@ -1,0 +1,41 @@
+[
+  {
+    "cirq_type": "sympy.Pow",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "t"
+      }
+    ]
+  },
+  {
+    "cirq_type": "sympy.Pow",
+    "args": [
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      },
+      {
+        "cirq_type": "sympy.Integer",
+        "i": 2
+      }
+    ]
+  },
+  {
+    "cirq_type": "sympy.Pow",
+    "args": [
+      {
+        "cirq_type": "sympy.Integer",
+        "i": 2
+      },
+      {
+        "cirq_type": "sympy.Symbol",
+        "name": "s"
+      }
+    ]
+  }
+]

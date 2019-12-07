@@ -13,19 +13,21 @@
 # limitations under the License.
 
 import itertools
-import random
-from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Set, Tuple)
+from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple, TYPE_CHECKING)
 
 import numpy as np
 import networkx as nx
 
-from cirq import circuits, ops
+from cirq import circuits, ops, value
 import cirq.contrib.acquaintance as cca
 from cirq.contrib.routing.initialization import get_initial_mapping
 from cirq.contrib.routing.swap_network import SwapNetwork
 from cirq.contrib.routing.utils import (get_time_slices,
                                         ops_are_consistent_with_device_graph)
+
+if TYPE_CHECKING:
+    import cirq
 
 SWAP = cca.SwapPermutationGate()
 QidPair = Tuple[ops.Qid, ops.Qid]
@@ -67,6 +69,7 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
             to use. Defaults to a greedy initialization.
         can_reorder: A predicate that determines if two operations may be
             reordered.
+        random_state: Random state or random state seed.
     """
 
     router = _GreedyRouter(circuit, device_graph, **kwargs)
@@ -81,15 +84,19 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
 class _GreedyRouter:
     """Keeps track of the state of a greedy circuit routing procedure."""
 
-    def __init__(self,
-                 circuit,
-                 device_graph: nx.Graph,
-                 *,
-                 max_search_radius: int = 1,
-                 initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
-                 can_reorder: Callable[[ops.Operation, ops.
-                                        Operation], bool] = circuits.
-                 circuit_dag._disjoint_qubits):
+    def __init__(
+            self,
+            circuit,
+            device_graph: nx.Graph,
+            *,
+            max_search_radius: int = 1,
+            initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
+            can_reorder: Callable[[ops.Operation, ops.Operation],
+                                  bool] = circuits.circuit_dag._disjoint_qubits,
+            random_state: value.RANDOM_STATE_LIKE = None):
+
+        self.prng = value.parse_random_state(random_state)
+
         self.device_graph = device_graph
         self.physical_distances: Dict[QidPair, int] = {
             (a, b): d
@@ -121,12 +128,12 @@ class _GreedyRouter:
             ]
         return self.edge_sets[edge_set_size]
 
-    def log_to_phys(self, *qubits: ops.Qid) -> Iterable[ops.Qid]:
+    def log_to_phys(self, *qubits: 'cirq.Qid') -> Iterable[ops.Qid]:
         """Returns an iterator over the physical qubits mapped to by the given
         logical qubits."""
         return (self._log_to_phys[q] for q in qubits)
 
-    def phys_to_log(self, *qubits: ops.Qid) -> Iterable[Optional[ops.Qid]]:
+    def phys_to_log(self, *qubits: 'cirq.Qid') -> Iterable[Optional[ops.Qid]]:
         """Returns an iterator over the logical qubits that map to the given
         physical qubits."""
         return (self._phys_to_log[q] for q in qubits)
@@ -165,7 +172,8 @@ class _GreedyRouter:
                 logical_graph = time_slices[0]
                 logical_graph.add_nodes_from(self.logical_qubits)
                 initial_mapping = get_initial_mapping(logical_graph,
-                                                      self.device_graph)
+                                                      self.device_graph,
+                                                      self.prng)
         self.initial_mapping = initial_mapping
         self._phys_to_log = {
             q: initial_mapping.get(q) for q in self.physical_qubits
@@ -228,7 +236,7 @@ class _GreedyRouter:
         for i in range(len(path) - 1):
             self.apply_swap(cast(QidPair, path[i:i + 2]))
 
-    def bring_farthest_pair_together(self, pairs: Iterable[QidPair]):
+    def bring_farthest_pair_together(self, pairs: Sequence[QidPair]):
         """Adds SWAPs to bring the farthest-apart pair of logical qubits
         together."""
         distances = [self.distance(pair) for pair in pairs]
@@ -237,7 +245,8 @@ class _GreedyRouter:
         farthest_pairs = [
             pair for pair, d in zip(pairs, distances) if d == max_distance
         ]
-        farthest_pair = random.choice(farthest_pairs)
+        choice = self.prng.choice(len(farthest_pairs))
+        farthest_pair = farthest_pairs[choice]
         edge = self.log_to_phys(*farthest_pair)
         shortest_path = nx.shortest_path(self.device_graph, *edge)
         assert len(shortest_path) - 1 == max_distance
@@ -264,8 +273,9 @@ class _GreedyRouter:
         for k in range(1, self.max_search_radius + 1):
             candidate_swap_sets = list(self.get_edge_sets(k))
             for time_slice in time_slices:
+                edges = sorted(time_slice.edges)
                 distance_vectors = list(
-                    self.get_distance_vector(time_slice.edges, swap_set)
+                    self.get_distance_vector(edges, swap_set)
                     for swap_set in candidate_swap_sets)
                 dominated_indices = _get_dominated_indices(distance_vectors)
                 candidate_swap_sets = [
@@ -274,9 +284,15 @@ class _GreedyRouter:
                 ]
                 if len(candidate_swap_sets) == 1:
                     self.apply_swap(*candidate_swap_sets[0])
-                    return
 
-        frontier_edges = time_slices[0].edges
+                    if list(
+                            self.remaining_dag.findall_nodes_until_blocked(
+                                self.acts_on_nonadjacent_qubits)):
+                        return
+                    else:
+                        break
+
+        frontier_edges = sorted(time_slices[0].edges)
         self.bring_farthest_pair_together(frontier_edges)
 
     def route(self):

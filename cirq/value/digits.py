@@ -18,6 +18,12 @@ from typing import List, Iterable, Any, Union, Optional, overload
 def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
     """Returns the big-endian integer specified by the given bits.
 
+    Args:
+        bits: Descending bits of the integer, with the 1s bit at the end.
+
+    Returns:
+        The integer.
+
     Examples:
 
         >>> cirq.big_endian_bits_to_int([0, 1])
@@ -31,12 +37,6 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
 
         >>> cirq.big_endian_bits_to_int([1, 0, 0, 1, 0])
         18
-
-    Args:
-        bits: Descending bits of the integer, with the 1s bit at the end.
-
-    Returns:
-        The integer.
     """
     result = 0
     for e in bits:
@@ -49,16 +49,6 @@ def big_endian_bits_to_int(bits: Iterable[Any]) -> int:
 def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
     """Returns the big-endian bits of an integer.
 
-    Examples:
-        >>> cirq.big_endian_int_to_bits(19, bit_count=8)
-        [0, 0, 0, 1, 0, 0, 1, 1]
-
-        >>> cirq.big_endian_int_to_bits(19, bit_count=4)
-        [0, 0, 1, 1]
-
-        >>> cirq.big_endian_int_to_bits(-3, bit_count=4)
-        [1, 1, 0, 1]
-
     Args:
         val: The integer to get bits from. This integer is permitted to be
             larger than `2**bit_count` (in which case the high bits of the
@@ -68,6 +58,16 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
 
     Returns:
         The bits.
+
+    Examples:
+        >>> cirq.big_endian_int_to_bits(19, bit_count=8)
+        [0, 0, 0, 1, 0, 0, 1, 1]
+
+        >>> cirq.big_endian_int_to_bits(19, bit_count=4)
+        [0, 0, 1, 1]
+
+        >>> cirq.big_endian_int_to_bits(-3, bit_count=4)
+        [1, 1, 0, 1]
     """
     return [(val >> i) & 1 for i in range(bit_count)[::-1]]
 
@@ -75,17 +75,6 @@ def big_endian_int_to_bits(val: int, *, bit_count: int) -> List[int]:
 def big_endian_digits_to_int(digits: Iterable[int], *,
                              base: Union[int, Iterable[int]]) -> int:
     """Returns the big-endian integer specified by the given digits and base.
-
-    Examples:
-
-        >>> cirq.big_endian_digits_to_int([0, 1], base=10)
-        1
-
-        >>> cirq.big_endian_digits_to_int([1, 0], base=10)
-        10
-
-        >>> cirq.big_endian_digits_to_int([1, 2, 3], base=[2, 3, 4])
-        23
 
     Args:
         digits: Digits of the integer, with the least significant digit at the
@@ -104,6 +93,17 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
             One of the digits is out of range for its base.
             The base was specified per-digit (as a list) but the length of the
                 bases list is different from the number of digits.
+
+    Examples:
+
+        >>> cirq.big_endian_digits_to_int([0, 1], base=10)
+        1
+
+        >>> cirq.big_endian_digits_to_int([1, 0], base=10)
+        10
+
+        >>> cirq.big_endian_digits_to_int([1, 2, 3], base=[2, 3, 4])
+        23
     """
     digits = tuple(digits)
     base = (base,) * len(digits) if isinstance(base, int) else tuple(base)
@@ -138,13 +138,6 @@ def big_endian_int_to_digits(val: int,
                              base: Union[int, Iterable[int]]) -> List[int]:
     """Separates an integer into big-endian digits.
 
-    Examples:
-        >>> cirq.big_endian_int_to_digits(11, digit_count=4, base=10)
-        [0, 0, 1, 1]
-
-        >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
-        [0, 2, 3]
-
     Args:
         val: The integer to get digits from. Must be non-negative and less than
             the maximum representable value, given the specified base(s) and
@@ -165,6 +158,13 @@ def big_endian_int_to_digits(val: int,
                 `digit_count` was not provided.
             Inconsistent digit count. The `base` was specified as a per-digit
                 list, and `digit_count` was also provided, but they disagree.
+
+    Examples:
+        >>> cirq.big_endian_int_to_digits(11, digit_count=4, base=10)
+        [0, 0, 1, 1]
+
+        >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
+        [0, 2, 3]
     """
     if isinstance(base, int):
         if digit_count is None:

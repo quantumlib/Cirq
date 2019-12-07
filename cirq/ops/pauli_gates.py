@@ -16,8 +16,10 @@ from typing import cast, Any, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
 from cirq._compat import deprecated
-from cirq.ops import common_gates, raw_types
+from cirq._doc import document
+from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType
+
 
 if TYPE_CHECKING:
     import cirq
@@ -47,15 +49,14 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
-                       ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
 
-    commutes_with = deprecated(
-        deadline='v0.7.0',
-        fix='Use `cirq.commutes()` instead.')(_commutes_with_)
+    commutes_with = deprecated(deadline='v0.7.0',
+                               fix='Use `cirq.commutes()` instead.')(_commutes_)
 
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
@@ -65,11 +66,11 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         return (self._index - second._index + 1) % 3 - 1
 
     def phased_pauli_product(
-            self, other: Union['cirq.Pauli', 'cirq.IdentityGate']
-    ) -> Tuple[complex, Union['cirq.Pauli', 'cirq.IdentityGate']]:
+            self, other: Union['cirq.Pauli', 'identity.IdentityGate']
+    ) -> Tuple[complex, Union['cirq.Pauli', 'identity.IdentityGate']]:
         if self == other:
-            return 1, common_gates.I
-        if other is common_gates.I:
+            return 1, identity.I
+        if other is identity.I:
             return 1, self
         return 1j**cast(Pauli, other).relative_index(self), self.third(
             cast(Pauli, other))
@@ -84,8 +85,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
             return NotImplemented
         return (other._index - self._index) % 3 == 1
 
-    def on(self,
-           *qubits: raw_types.Qid) -> 'SingleQubitPauliStringGateOperation':
+    def on(self, *qubits: 'cirq.Qid') -> 'SingleQubitPauliStringGateOperation':
         """Returns an application of this gate to the given qubits.
 
         Args:
@@ -151,28 +151,34 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         return cls(exponent=exponent)
 
 
-# The Pauli X gate.
-#
-# Matrix:
-#
-#   [[0, 1],
-#    [1, 0]]
 X = _PauliX()
+document(
+    X, """The Pauli X gate.
 
-# The Pauli Y gate.
-#
-# Matrix:
-#
-#     [[0, -i],
-#      [i, 0]]
+    Matrix:
+
+        [[0, 1],
+         [1, 0]]
+    """)
+
 Y = _PauliY()
+document(
+    Y, """The Pauli Y gate.
 
-# The Pauli Z gate.
-#
-# Matrix:
-#
-#     [[1, 0],
-#      [0, -1]]
+    Matrix:
+
+        [[0, -i],
+         [i, 0]]
+    """)
+
 Z = _PauliZ()
+document(
+    Z, """The Pauli Z gate.
+
+    Matrix:
+
+        [[1, 0],
+         [0, -1]]
+    """)
 
 Pauli._XYZ = (X, Y, Z)

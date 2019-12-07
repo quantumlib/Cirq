@@ -151,8 +151,8 @@ class SwapPermutationGate(PermutationGate):
     def _value_equality_values_(self):
         return (self.swap_gate,)
 
-    def _commutes_with_(self, other: Any, atol: Union[int, float] = 1e-8
-                       ) -> Union[bool, NotImplementedType]:
+    def _commutes_(self, other: Any, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
         if (isinstance(other, ops.Gate) and
                 isinstance(other, ops.InterchangeableQubitsGate) and
                 protocols.num_qubits(other) == 2):

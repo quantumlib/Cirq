@@ -1,0 +1,23 @@
+[cirq.Circuit([
+    cirq.Moment(operations=[
+        cirq.H.on(cirq.LineQubit(0)),
+        cirq.H.on(cirq.LineQubit(1)),
+        cirq.H.on(cirq.LineQubit(2)),
+        cirq.H.on(cirq.LineQubit(3)),
+        cirq.H.on(cirq.LineQubit(4)),
+    ]),
+    cirq.Moment(operations=[
+        cirq.MeasurementGate(5, '0,1,2,3,4', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
+    ]),
+]), cirq.Circuit([
+    cirq.Moment(operations=[
+        cirq.TOFFOLI.on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)),
+    ]),
+    cirq.Moment(operations=[
+        (cirq.X**0.123).on(cirq.LineQubit(0)),
+    ]),
+]), cirq.Circuit([
+    cirq.Moment(operations=[
+        (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
+    ]),
+])]

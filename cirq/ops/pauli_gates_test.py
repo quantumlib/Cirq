@@ -176,7 +176,7 @@ def test_third():
     assert cirq.Z.third(cirq.Z) == cirq.Z
 
 
-def test_commutes_with():
+def test_commutes():
     for A, B in itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2):
         assert cirq.commutes(A, B) == (A == B)
     assert cirq.commutes(cirq.X, 'X') == NotImplemented
@@ -193,6 +193,20 @@ def test_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)
+
+
+def test_identity_multiplication():
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.X(a) * cirq.I(a) == cirq.X(a)
+    assert cirq.X(a) * cirq.I(b) == cirq.X(a)
+    assert cirq.X(a) * cirq.Y(b) * cirq.I(c) == cirq.X(a) * cirq.Y(b)
+    assert cirq.I(c) * cirq.X(a) * cirq.Y(b) == cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.H(c) * cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.X(a) * cirq.Y(b) * cirq.H(c)
+    with pytest.raises(TypeError):
+        _ = cirq.I(a) * str(cirq.Y(b))
 
 
 def test_powers():

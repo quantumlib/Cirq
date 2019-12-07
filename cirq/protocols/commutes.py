@@ -25,15 +25,16 @@ TDefault = TypeVar('TDefault')
 
 def commutes(left_val: Any,
              right_val: Any,
+             *,
              atol: Union[int, float] = 1e-8,
              default: TDefault = NotImplemented) -> Union[bool, TDefault]:
     """Determines whether two values commute.
 
     This is determined by any one of the following techniques:
 
-    - Either value has a `_commutes_with_` method that returns something besides
+    - Either value has a `_commutes_` method that returns something besides
       NotImplemented. The return value is the boolean value returned by the
-      method. left_val._commutes_with_ is attempted first.
+      method. left_val._commutes_ is attempted first.
     - Both values are matrices. The return value indicates whether these two
       matrices commute.
 
@@ -55,11 +56,11 @@ def commutes(left_val: Any,
     """
 
     strats = [
-        _strat_commutes_from_commutes_with,
+        _strat_commutes_from_commutes,
         _strat_commutes_from_matrix,
     ]
     for strat in strats:
-        result = strat(left_val, right_val, atol)
+        result = strat(left_val, right_val, atol=atol)
         if result is not NotImplemented:
             return result
     return default
@@ -67,26 +68,28 @@ def commutes(left_val: Any,
 
 def definitely_commutes(left_val: Any,
                         right_val: Any,
+                        *,
                         atol: Union[int, float] = 1e-8) -> bool:
     """Determines whether two values definitely commute.
 
     If the commutation relation cannot be determined, returns False.
     """
-    return commutes(left_val, right_val, atol, default=False)
+    return commutes(left_val, right_val, atol=atol, default=False)
 
 
-def _strat_commutes_from_commutes_with(left_val: Any,
-                                       right_val: Any,
-                                       atol: Union[int, float] = 1e-8
-                                      ) -> Union[NotImplementedType, bool]:
-    """Attempts to determine commutativity via the objects' _commutes_with_
+def _strat_commutes_from_commutes(left_val: Any,
+                                  right_val: Any,
+                                  *,
+                                  atol: Union[int, float] = 1e-8
+                                 ) -> Union[NotImplementedType, bool]:
+    """Attempts to determine commutativity via the objects' _commutes_
     method."""
 
     for a, b in [(left_val, right_val), (right_val, left_val)]:
-        getter = getattr(a, '_commutes_with_', None)
+        getter = getattr(a, '_commutes_', None)
         if getter is None:
             continue
-        val = getter(b, atol)
+        val = getter(b, atol=atol)
         if val is not NotImplemented:
             return val
     return NotImplemented
@@ -94,6 +97,7 @@ def _strat_commutes_from_commutes_with(left_val: Any,
 
 def _strat_commutes_from_matrix(left_val: np.ndarray,
                                 right_val: np.ndarray,
+                                *,
                                 atol: Union[int, float] = 1e-8
                                ) -> Union[NotImplementedType, bool]:
     """Attempts to determine commutativity of matrices."""
