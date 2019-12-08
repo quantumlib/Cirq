@@ -94,7 +94,8 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
 
 @dataclass
 class CompilationResult:
-    swap_network: ccr.SwapNetwork
+    circuit: cirq.Circuit
+    mapping: Dict[cirq.Qid, cirq.Qid]
     parity_map: Dict[cirq.Qid, cirq.Qid]
 
 
@@ -117,8 +118,8 @@ def sample_heavy_set(compilation_result: CompilationResult,
         output bit-strings were in the heavy set.
 
     """
-    mapping = compilation_result.swap_network.final_mapping()
-    circuit = compilation_result.swap_network.circuit
+    mapping = compilation_result.mapping
+    circuit = compilation_result.circuit
 
     # Add measure gates to the end of (a copy of) the circuit. Ensure that those
     # gates measure those in the given mapping, preserving this order.
@@ -197,6 +198,24 @@ def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
     return data
 
 
+class SwapPermutationReplacer(cirq.PointOptimizer):
+    """Replaces SwapPermutationGates with their underlying implementation
+    gate."""
+
+    def __init__(self):
+        super().__init__()
+
+    def optimization_at(self, circuit: cirq.Circuit, index: int,
+                        op: cirq.Operation
+                       ) -> Optional[cirq.PointOptimizationSummary]:
+        if isinstance(op.gate, cirq.contrib.acquaintance.SwapPermutationGate):
+            new_ops = op.gate.swap_gate.on(*op.qubits)
+            return cirq.PointOptimizationSummary(clear_span=1,
+                                                 clear_qubits=op.qubits,
+                                                 new_operations=new_ops)
+        return None  # Don't make changes to other gates.
+
+
 def compile_circuit(
         circuit: cirq.Circuit,
         *,
@@ -238,13 +257,14 @@ def compile_circuit(
         # Sort just to make it deterministic.
         for idx, qubit in enumerate(sorted(compiled_circuit.all_qubits())):
             # For each qubit, create a new qubit that will serve as its parity
-            # check. This parity bit is initialized to 0 and then CNOTed with
-            # the original qubit. Later, these two qubits will be checked for
-            # equality - if they don't match, there was likely a readout error.
+            # check. An inverse-controlled-NOT is performed on the qubit and its
+            # parity bit. Later, these two qubits will be checked for parity -
+            # if they are equal, there was likely a readout error.
             qubit_num = idx + num_qubits
             parity_qubit = cirq.LineQubit(qubit_num)
-            compiled_circuit.append(cirq.X(parity_qubit))
+            compiled_circuit.append(cirq.X(qubit))
             compiled_circuit.append(cirq.CNOT(qubit, parity_qubit))
+            compiled_circuit.append(cirq.X(qubit))
             parity_map[qubit] = parity_qubit
 
     # Swap Mapping (Routing). Ensure the gates can actually operate on the
@@ -264,10 +284,20 @@ def compile_circuit(
         swap_networks.append(swap_network)
     assert len(swap_networks) > 0, 'Unable to get routing for circuit'
 
-    swap_networks.sort(key=lambda swap_network: len(swap_network.circuit))
+    # Sort by the least number of qubits first (as routing sometimes adds extra
+    # ancilla qubits), and then the length of the circuit second.
+    swap_networks.sort(key=lambda swap_network: (len(
+        swap_network.circuit.all_qubits()), len(swap_network.circuit)))
+
+    routed_circuit = swap_networks[0].circuit
+    mapping = swap_networks[0].final_mapping()
+    # Replace the PermutationGates with regular gates, so we don't proliferate
+    # the routing implementation details to the compiler and the device itself.
+    SwapPermutationReplacer().optimize_circuit(routed_circuit)
 
     if not compiler:
-        return CompilationResult(swap_network=swap_networks[0],
+        return CompilationResult(circuit=routed_circuit,
+                                 mapping=mapping,
                                  parity_map=parity_map)
 
     # Compile. This should decompose the routed circuit down to a gate set that
@@ -275,8 +305,8 @@ def compile_circuit(
     # compiling techniques - because Quantum Volume is intended to test those
     # as well, we allow this to be passed in. This compiler is not allowed to
     # change the order of the qubits.
-    swap_networks[0].circuit = compiler(swap_networks[0].circuit)
-    return CompilationResult(swap_network=swap_networks[0],
+    return CompilationResult(circuit=compiler(swap_networks[0].circuit),
+                             mapping=mapping,
                              parity_map=parity_map)
 
 
@@ -386,11 +416,10 @@ def execute_circuits(
                                     sampler=sampler)
             print(f"    Compiled HOG probability #{circuit_i + 1}: {prob}")
             results.append(
-                QuantumVolumeResult(
-                    model_circuit=model_circuit,
-                    heavy_set=heavy_set,
-                    compiled_circuit=compilation_result.swap_network.circuit,
-                    sampler_result=prob))
+                QuantumVolumeResult(model_circuit=model_circuit,
+                                    heavy_set=heavy_set,
+                                    compiled_circuit=compilation_result.circuit,
+                                    sampler_result=prob))
     return results
 
 
