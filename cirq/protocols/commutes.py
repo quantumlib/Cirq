@@ -20,6 +20,12 @@ import numpy as np
 from cirq import linalg
 from cirq.type_workarounds import NotImplementedType
 
+# This is a special indicator value used by the unitary method to determine
+# whether or not the caller provided a 'default' argument.
+# It is checked for using `is`, so it won't have a false positive if the user
+# provides a different np.array([]) value.
+RaiseTypeErrorIfNotProvided = np.array([])
+
 TDefault = TypeVar('TDefault')
 
 
@@ -27,7 +33,8 @@ def commutes(left_val: Any,
              right_val: Any,
              *,
              atol: Union[int, float] = 1e-8,
-             default: TDefault = NotImplemented) -> Union[bool, TDefault]:
+             default: TDefault = RaiseTypeErrorIfNotProvided
+            ) -> Union[bool, TDefault]:
     """Determines whether two values commute.
 
     This is determined by any one of the following techniques:
@@ -63,7 +70,12 @@ def commutes(left_val: Any,
         result = strat(left_val, right_val, atol=atol)
         if result is not NotImplemented:
             return result
-    return default
+    if default is not RaiseTypeErrorIfNotProvided:
+        return default
+    raise TypeError(
+        "cirq.commutes failed. "
+        f"The values {left_val!r} and {right_val!r} do not have a\n"
+        "well-defined commutation relation, or it coould not be determined.\n")
 
 
 def definitely_commutes(left_val: Any,

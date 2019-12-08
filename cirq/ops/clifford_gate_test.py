@@ -398,7 +398,8 @@ def test_inverse_matrix(gate):
 
 
 def test_commutes_notimplemented_type():
-    assert cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X') == NotImplemented
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X')
     assert (cirq.commutes(cirq.SingleQubitCliffordGate.X,
                           'X',
                           default='default') == 'default')

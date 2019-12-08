@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -43,8 +44,11 @@ def test_commutes_on_gates_and_gate_operations():
     a, b = cirq.LineQubit.range(2)
     for A in (XGate, YGate, ZGate):
         assert cirq.commutes(A, A)
-        assert cirq.commutes(A(a), A)
-        assert cirq.commutes(A, A(a))
+        assert A._commutes_on_qids_(a, A) == NotImplemented
+        with pytest.raises(TypeError):
+            cirq.commutes(A(a), A)
+        with pytest.raises(TypeError):
+            cirq.commutes(A, A(a))
         assert cirq.commutes(A(a), A(a))
         assert cirq.commutes(A, XXGate, default='default') == 'default'
     for A, B in [(XGate, YGate), (XGate, ZGate), (ZGate, YGate),
@@ -52,20 +56,29 @@ def test_commutes_on_gates_and_gate_operations():
         assert not cirq.commutes(A, B)
         assert cirq.commutes(A(a), B(b))
         assert not cirq.commutes(A(a), B(a))
-        assert not cirq.commutes(A, B(a))
+        with pytest.raises(TypeError):
+            cirq.commutes(A, B(a))
     for A, B in [(XXGate, YYGate), (XXGate, ZZGate)]:
         assert cirq.commutes(A, B)
-        assert cirq.commutes(A(a, b), B)
-        assert cirq.commutes(A, B(a, b))
+        with pytest.raises(TypeError):
+            cirq.commutes(A(a, b), B)
+        with pytest.raises(TypeError):
+            cirq.commutes(A, B(a, b))
         assert cirq.commutes(A(a, b), B(a, b))
         assert cirq.definitely_commutes(A(a, b), B(a, b))
-        assert cirq.commutes(A(a, b), B(b, a)) == NotImplemented
+        with pytest.raises(TypeError):
+            cirq.commutes(A(a, b), B(b, a))
         assert not cirq.definitely_commutes(A(a, b), B(b, a))
     for A, B in [(XGate, XXGate), (XGate, YYGate)]:
-        assert cirq.commutes(A, B(a, b)) == NotImplemented
+        with pytest.raises(TypeError):
+            cirq.commutes(A, B(a, b))
         assert not cirq.definitely_commutes(A, B(a, b))
-        assert cirq.commutes(A(b), B) == NotImplemented
-        assert cirq.commutes(A, B) == NotImplemented
-    assert cirq.commutes(XGate, cirq.X**sympy.Symbol('e')) == NotImplemented
-    assert cirq.commutes(XGate(a), 'Gate') == NotImplemented
+        with pytest.raises(TypeError):
+            assert cirq.commutes(A(b), B)
+        with pytest.raises(TypeError):
+            assert cirq.commutes(A, B)
+    with pytest.raises(TypeError):
+        assert cirq.commutes(XGate, cirq.X**sympy.Symbol('e'))
+    with pytest.raises(TypeError):
+        assert cirq.commutes(XGate(a), 'Gate')
     assert cirq.commutes(XGate(a), 'Gate', default='default') == 'default'

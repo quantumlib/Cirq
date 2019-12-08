@@ -121,16 +121,7 @@ class GateOperation(raw_types.Operation):
     def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
                   ) -> Union[bool, NotImplementedType]:
         if isinstance(other, type(self)):
-            if set(self.qubits).isdisjoint(other.qubits):
-                return True
-            if self.qubits != other.qubits:
-                return NotImplemented
-            return protocols.commutes(self.gate, other.gate)
-        elif isinstance(other, raw_types.Gate):
-            if (protocols.qid_shape(self, None) != protocols.qid_shape(
-                    other, None)):
-                return NotImplemented
-            return protocols.commutes(self.gate, other)
+            return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         return NotImplemented
 
     def _has_mixture_(self) -> bool:

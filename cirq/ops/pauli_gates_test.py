@@ -179,7 +179,8 @@ def test_third():
 def test_commutes():
     for A, B in itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2):
         assert cirq.commutes(A, B) == (A == B)
-    assert cirq.commutes(cirq.X, 'X') == NotImplemented
+    with pytest.raises(TypeError):
+        assert cirq.commutes(cirq.X, 'X')
     assert cirq.commutes(cirq.X, 'X', default='default') == 'default'
 
 

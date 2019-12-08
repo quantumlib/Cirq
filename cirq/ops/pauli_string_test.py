@@ -352,7 +352,8 @@ def test_commutes():
     qubits = _make_qubits(3)
 
     ps1 = cirq.PauliString([cirq.X(qubits[0])])
-    assert cirq.commutes(ps1, 'X') == NotImplemented
+    with pytest.raises(TypeError):
+        cirq.commutes(ps1, 'X')
     assert cirq.commutes(ps1, 'X', default='default') == 'default'
     for A, commutes in [(cirq.X, True), (cirq.Y, False)]:
         assert (cirq.commutes(ps1,
