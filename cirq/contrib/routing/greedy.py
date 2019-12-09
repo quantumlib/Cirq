@@ -65,6 +65,8 @@ def route_circuit_greedily(circuit: circuits.Circuit, device_graph: nx.Graph,
             qubits.
         max_search_radius: The maximum number of disjoint device edges to
             consider routing on.
+        max_num_empty_steps: The maximum number of swap sets to apply without
+            allowing a new logical operation to be performed.
         initial_mapping: The initial mapping of physical to logical qubits
             to use. Defaults to a greedy initialization.
         can_reorder: A predicate that determines if two operations may be
@@ -90,6 +92,7 @@ class _GreedyRouter:
             device_graph: nx.Graph,
             *,
             max_search_radius: int = 1,
+            max_num_empty_steps: int = 5,
             initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
             can_reorder: Callable[[ops.Operation, ops.Operation],
                                   bool] = circuits.circuit_dag._disjoint_qubits,
@@ -114,7 +117,13 @@ class _GreedyRouter:
 
         self.set_initial_mapping(initial_mapping)
 
+        if max_search_radius < 1:
+            raise ValueError('max_search_radius must be a positive integer.')
         self.max_search_radius = max_search_radius
+
+        if max_num_empty_steps < 1:
+            raise ValueError('max_num_empty_steps must be a positive integer.')
+        self.max_num_empty_steps = max_num_empty_steps
 
     def get_edge_sets(self, edge_set_size: int) -> Iterable[Sequence[QidPair]]:
         """Returns matchings of the device graph of a given size."""
@@ -195,11 +204,11 @@ class _GreedyRouter:
         return tuple(
             self.log_to_phys(*op.qubits)) not in self.device_graph.edges
 
-    def apply_possible_ops(self):
+    def apply_possible_ops(self) -> int:
         """Applies all logical operations possible given the current mapping."""
-        nodes = self.remaining_dag.findall_nodes_until_blocked(
-            self.acts_on_nonadjacent_qubits)
-        nodes = list(nodes)
+        nodes = list(
+            self.remaining_dag.findall_nodes_until_blocked(
+                self.acts_on_nonadjacent_qubits))
         assert not any(
             self.remaining_dag.has_edge(b, a)
             for a, b in itertools.combinations(nodes, 2))
@@ -219,6 +228,7 @@ class _GreedyRouter:
             assert len(physical_op.qubits
                       ) < 2 or physical_op.qubits in self.device_graph.edges
             self.physical_ops.append(physical_op)
+        return len(nodes)
 
     @property
     def swap_network(self) -> SwapNetwork:
@@ -263,13 +273,20 @@ class _GreedyRouter:
         self.update_mapping(*swaps)
         return distance_vector
 
-    def apply_next_swaps(self):
+    def apply_next_swaps(self, require_frontier_adjacency: bool = False):
         """Applies a few SWAPs to get the mapping closer to one in which the
         next logical gates can be applied.
 
         See route_circuit_greedily for more details.
         """
+
         time_slices = get_time_slices(self.remaining_dag)
+
+        if require_frontier_adjacency:
+            frontier_edges = sorted(time_slices[0].edges)
+            self.bring_farthest_pair_together(frontier_edges)
+            return
+
         for k in range(1, self.max_search_radius + 1):
             candidate_swap_sets = list(self.get_edge_sets(k))
             for time_slice in time_slices:
@@ -284,22 +301,20 @@ class _GreedyRouter:
                 ]
                 if len(candidate_swap_sets) == 1:
                     self.apply_swap(*candidate_swap_sets[0])
+                    return
 
-                    if list(
-                            self.remaining_dag.findall_nodes_until_blocked(
-                                self.acts_on_nonadjacent_qubits)):
-                        return
-                    else:
-                        break
-
-        frontier_edges = sorted(time_slices[0].edges)
-        self.bring_farthest_pair_together(frontier_edges)
+        self.apply_next_swaps(True)
 
     def route(self):
         self.apply_possible_ops()
+        empty_steps_remaining = self.max_num_empty_steps
         while self.remaining_dag:
-            self.apply_next_swaps()
-            self.apply_possible_ops()
+            self.apply_next_swaps(not empty_steps_remaining)
+            n_applied_ops = self.apply_possible_ops()
+            if n_applied_ops:
+                empty_steps_remaining = self.max_num_empty_steps
+            else:
+                empty_steps_remaining -= 1
         assert ops_are_consistent_with_device_graph(self.physical_ops,
                                                     self.device_graph)
 
