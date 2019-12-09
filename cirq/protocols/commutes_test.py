@@ -58,6 +58,8 @@ def test_commutes_on_gates_and_gate_operations():
         assert not cirq.commutes(A(a), B(a))
         with pytest.raises(TypeError):
             cirq.commutes(A, B(a))
+        cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(
+            A, B)
     for A, B in [(XXGate, YYGate), (XXGate, ZZGate)]:
         assert cirq.commutes(A, B)
         with pytest.raises(TypeError):
@@ -66,9 +68,11 @@ def test_commutes_on_gates_and_gate_operations():
             cirq.commutes(A, B(a, b))
         assert cirq.commutes(A(a, b), B(a, b))
         assert cirq.definitely_commutes(A(a, b), B(a, b))
-        with pytest.raises(TypeError):
-            cirq.commutes(A(a, b), B(b, a))
+        assert (cirq.commutes(A(a, b), B(b, a),
+                              default=NotImplemented) == NotImplemented)
         assert not cirq.definitely_commutes(A(a, b), B(b, a))
+        cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(
+            A, B)
     for A, B in [(XGate, XXGate), (XGate, YYGate)]:
         with pytest.raises(TypeError):
             cirq.commutes(A, B(a, b))
@@ -77,6 +81,8 @@ def test_commutes_on_gates_and_gate_operations():
             assert cirq.commutes(A(b), B)
         with pytest.raises(TypeError):
             assert cirq.commutes(A, B)
+        cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(
+            A, B)
     with pytest.raises(TypeError):
         assert cirq.commutes(XGate, cirq.X**sympy.Symbol('e'))
     with pytest.raises(TypeError):

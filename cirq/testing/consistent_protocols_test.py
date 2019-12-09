@@ -254,3 +254,12 @@ def test_assert_eigengate_implements_consistent_protocols():
         cirq.testing.assert_eigengate_implements_consistent_protocols(
             BadEigenGate,
             global_vals={'BadEigenGate': BadEigenGate})
+
+
+def test_assert_commutes_magic_method_consistent_with_unitaries():
+    gate_op = cirq.CNOT(*cirq.LineQubit.range(2))
+    with pytest.raises(TypeError):
+        cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(gate_op)
+
+    gates = [cirq.ZPowGate(exponent=sympy.Symbol(l)) for l in 'st']
+    cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(*gates)
