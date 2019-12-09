@@ -333,11 +333,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
                            other: Any,
                            *,
                            atol: Union[int, float] = 1e-8
-                          ) -> Union[bool, NotImplementedType]:
+                          ) -> Union[bool, NotImplementedType, None]:
         # Avoids circular import.
         from cirq.ops import gate_operation
         if not isinstance(other, gate_operation.GateOperation):
-            return NotImplemented
+            return None
         if set(qids).isdisjoint(other.qubits):
             return True
         elif qids != other.qubits:
@@ -349,11 +349,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return linalg.commutes(self_unitary, other_unitary, atol=atol)
 
     def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType]:
+                  ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Gate):
             return NotImplemented
         if protocols.qid_shape(self) != protocols.qid_shape(other):
-            return NotImplemented
+            return None
         # HACK: break cycle
         from cirq.devices import line_qubit
         qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))

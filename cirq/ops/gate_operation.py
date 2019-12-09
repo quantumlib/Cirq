@@ -119,7 +119,7 @@ class GateOperation(raw_types.Operation):
         return protocols.unitary(self.gate, default=None)
 
     def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType]:
+                  ) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, type(self)):
             return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
         return NotImplemented

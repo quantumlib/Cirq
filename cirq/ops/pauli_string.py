@@ -554,7 +554,7 @@ class PauliString(raw_types.Operation):
         return (paulis for qubit, paulis in self.zip_items(other))
 
     def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType]:
+                  ) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
         return sum(not protocols.commutes(p0, p1)

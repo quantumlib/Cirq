@@ -68,6 +68,8 @@ def commutes(left_val: Any,
     ]
     for strat in strats:
         result = strat(left_val, right_val, atol=atol)
+        if result is None:
+            break
         if result is not NotImplemented:
             return result
     if default is not RaiseTypeErrorIfNotProvided:
@@ -93,7 +95,7 @@ def _strat_commutes_from_commutes(left_val: Any,
                                   right_val: Any,
                                   *,
                                   atol: Union[int, float] = 1e-8
-                                 ) -> Union[NotImplementedType, bool]:
+                                 ) -> Union[bool, NotImplementedType, None]:
     """Attempts to determine commutativity via the objects' _commutes_
     method."""
 
@@ -111,10 +113,10 @@ def _strat_commutes_from_matrix(left_val: np.ndarray,
                                 right_val: np.ndarray,
                                 *,
                                 atol: Union[int, float] = 1e-8
-                               ) -> Union[NotImplementedType, bool]:
+                               ) -> Union[bool, NotImplementedType, None]:
     """Attempts to determine commutativity of matrices."""
     if not all(isinstance(val, np.ndarray) for val in (left_val, right_val)):
         return NotImplemented
     if left_val.shape != right_val.shape:
-        return NotImplemented
+        return None
     return linalg.commutes(left_val, right_val, atol=atol)
