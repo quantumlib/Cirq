@@ -44,7 +44,7 @@ def test_commutes_on_gates_and_gate_operations():
     a, b = cirq.LineQubit.range(2)
     for A in (XGate, YGate, ZGate):
         assert cirq.commutes(A, A)
-        assert A._commutes_on_qids_(a, A) == NotImplemented
+        assert A._commutes_on_qids_(a, A) == None
         with pytest.raises(TypeError):
             cirq.commutes(A(a), A)
         with pytest.raises(TypeError):
