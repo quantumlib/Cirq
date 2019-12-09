@@ -28,19 +28,3 @@ def test_bad_args():
 
     with pytest.raises(ValueError):
         route_circuit_greedily(circuit, device_graph, max_num_empty_steps=0)
-
-
-def test_random_choice():
-    x, y, z = (cirq.NamedQubit(s) for s in 'xyz')
-    a, b = (cirq.NamedQubit(s) for s in 'ab')
-    circuit = cirq.Circuit(cirq.CZ(a, b))
-    device_graph = nx.Graph([(x, y), (y, z)])
-    initial_mapping = {x: a, z: b}
-    route_circuit_greedily(circuit,
-                           device_graph,
-                           initial_mapping=initial_mapping,
-                           max_search_radius=1)
-
-
-def test_loop_break():
-    pass
