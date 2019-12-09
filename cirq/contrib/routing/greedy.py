@@ -310,7 +310,8 @@ class _GreedyRouter:
         empty_steps_remaining = self.max_num_empty_steps
         while self.remaining_dag:
             self.apply_next_swaps(not empty_steps_remaining)
-            if self.apply_possible_ops():
+            n_applied_ops = self.apply_possible_ops()
+            if n_applied_ops:
                 empty_steps_remaining = self.max_num_empty_steps
             else:
                 empty_steps_remaining -= 1
