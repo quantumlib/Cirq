@@ -326,7 +326,7 @@ def _get_dominated_indices(vectors: List[np.ndarray]) -> Set[int]:
     dominated_indices = set()
     for i, v in enumerate(vectors):
         for w in vectors[:i] + vectors[i + 1:]:
-            if all(v >= w):
+            if all(v > w):
                 dominated_indices.add(i)
                 break
     return dominated_indices
