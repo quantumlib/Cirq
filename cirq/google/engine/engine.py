@@ -737,8 +737,8 @@ class Engine:
 
         Params:
             calibration_name: A string of the form
-                `projects/<project_id>/processors/<processor name>`
-                `/calibrations/<ms since epoch>`
+                `projects/<project_id>/processors/<processor id>`
+                `/calibrations/<timestamp in seconds since epoch>`
 
         Returns:
             A dictionary containing the metadata.
