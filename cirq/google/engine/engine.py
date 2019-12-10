@@ -737,7 +737,8 @@ class Engine:
 
         Params:
             calibration_name: A string of the form
-                `<processor name>/calibrations/<ms since epoch>`
+                `projects/<project_id>/processors/<processor id>`
+                `/calibrations/<timestamp in seconds since epoch>`
 
         Returns:
             A dictionary containing the metadata.
@@ -745,7 +746,7 @@ class Engine:
         response = self._make_request(
             self.service.projects().processors().calibrations().get(
                 name=calibration_name))
-        return calibration.Calibration(response['data']['data'])
+        return calibration.Calibration(response['data'])
 
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet
