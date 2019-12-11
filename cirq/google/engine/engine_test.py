@@ -1037,7 +1037,7 @@ def test_calibration_from_job(build):
         },
     }
     calibrations = service.projects().processors().calibrations()
-    calibrations.get().execute.return_value = {'data': _CALIBRATION}
+    calibrations.get().execute.return_value = _CALIBRATION
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
