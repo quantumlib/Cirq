@@ -35,7 +35,7 @@ def test_swap_field(n: int, d: int):
         for j in range(i % 2, n - 1, 2))
     before.append(cirq.measure(*before.all_qubits()))
 
-    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
+    after = cg.optimized_for_xmon(before)
     assert len(after) == d * 4 + 2
     if n <= 5:
         assert_circuits_with_terminal_measurements_are_equivalent(before,
@@ -48,7 +48,7 @@ def test_ccz():
         cirq.CCZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6),
                  cirq.GridQubit(5, 7)))
 
-    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
+    after = cg.optimized_for_xmon(before)
 
     assert len(after) <= 22
     assert_circuits_with_terminal_measurements_are_equivalent(before,
@@ -64,9 +64,7 @@ def test_adjacent_cz_get_split_apart():
         ])
     ])
 
-    after = cg.optimized_for_gmon(before,
-                                  new_device=cg.Foxtail,
-                                  optimizer_type='xmon')
+    after = cg.optimized_for_xmon(before, new_device=cg.Foxtail)
 
     assert after == cirq.Circuit([
         cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(0, 1))]),
@@ -79,10 +77,9 @@ def test_remap_qubits():
     before = cirq.Circuit(
         [cirq.Moment([cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))])])
 
-    after = cg.optimized_for_gmon(before,
+    after = cg.optimized_for_xmon(before,
                                   new_device=cg.Foxtail,
-                                  qubit_map=lambda q: cirq.GridQubit(q.x, 0),
-                                  optimizer_type='xmon')
+                                  qubit_map=lambda q: cirq.GridQubit(q.x, 0))
 
     assert after == cirq.Circuit(
         [cirq.Moment([cirq.CZ(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0))])],
@@ -94,11 +91,7 @@ def test_dont_allow_partial_czs():
         cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
     ])
 
-    after = cg.optimized_for_gmon(before, optimizer_type='xmon')
-
-    # Test deprecated interface
-    after_deprecated = cg.optimized_for_xmon(before, allow_partial_czs=False)
-    assert after == after_deprecated
+    after = cg.optimized_for_xmon(before, allow_partial_czs=False)
 
     cz_gates = [
         op.gate
@@ -117,10 +110,7 @@ def test_allow_partial_czs():
         cirq.Moment([cirq.CZ(cirq.GridQubit(5, 5), cirq.GridQubit(5, 6))**0.5])
     ])
 
-    after = cg.optimized_for_gmon(before, optimizer_type='xmon_partial_cz')
-    # Test deprecated interface
-    after_deprecated = cg.optimized_for_xmon(before, allow_partial_czs=True)
-    assert after == after_deprecated
+    after = cg.optimized_for_xmon(before, allow_partial_czs=True)
 
     cz_gates = [
         op.gate

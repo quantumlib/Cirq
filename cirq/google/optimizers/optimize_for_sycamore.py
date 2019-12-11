@@ -73,11 +73,12 @@ _OPTIMIZER_TYPES = {
 }
 
 
-def optimized_for_gmon(circuit: 'cirq.Circuit',
-                       new_device: Optional['cirq.google.XmonDevice'] = None,
-                       qubit_map: Callable[['cirq.Qid'], devices.GridQubit] =
-                       lambda e: cast(devices.GridQubit, e),
-                       optimizer_type: str = 'sqrt_iswap') -> 'cirq.Circuit':
+def optimized_for_sycamore(
+        circuit: 'cirq.Circuit',
+        new_device: Optional['cirq.google.XmonDevice'] = None,
+        qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
+            devices.GridQubit, e),
+        optimizer_type: str = 'sqrt_iswap') -> 'cirq.Circuit':
     """Optimizes a circuit for Google devices.
 
     Uses a set of optimizers that will compile to the proper gateset for the

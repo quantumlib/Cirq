@@ -15,16 +15,12 @@
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
 from cirq import devices
-from cirq._compat import deprecated
-from cirq.google.optimizers import optimized_for_gmon
+from cirq.google.optimizers import optimized_for_sycamore
 
 if TYPE_CHECKING:
     import cirq
 
 
-@deprecated(deadline='v0.7.0',
-            fix='Use optimized_for_gmon with '
-            'optimizer_type of xmon or xmon_partial_cz')
 def optimized_for_xmon(
         circuit: 'cirq.Circuit',
         new_device: Optional['cirq.google.XmonDevice'] = None,
@@ -33,7 +29,7 @@ def optimized_for_xmon(
         allow_partial_czs: bool = False,
 ) -> 'cirq.Circuit':
     if allow_partial_czs:
-        return optimized_for_gmon(circuit, new_device, qubit_map,
-                                  'xmon_partial_cz')
+        return optimized_for_sycamore(circuit, new_device, qubit_map,
+                                      'xmon_partial_cz')
     else:
-        return optimized_for_gmon(circuit, new_device, qubit_map, 'xmon')
+        return optimized_for_sycamore(circuit, new_device, qubit_map, 'xmon')
