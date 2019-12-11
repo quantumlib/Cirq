@@ -36,12 +36,12 @@ from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
 import cirq._version
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -1625,7 +1625,7 @@ class Circuit:
             header: Optional[str] = None,
             precision: int = 10,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> QasmOutput:
+    ) -> 'QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
         Args:
@@ -1640,6 +1640,8 @@ class Circuit:
                 cirq._version.__version__)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
+        # HACK: avoid circular import
+        from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
         return QasmOutput(operations=self.all_operations(),
                           qubits=qubits,
                           header=header,
