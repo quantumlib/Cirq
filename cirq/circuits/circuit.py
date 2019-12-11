@@ -36,8 +36,7 @@ from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
-from cirq.interop.qasm.qasm_output.qasm_output import (
-    QasmOutput,)
+from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
 from cirq.type_workarounds import NotImplementedType
 import cirq._version
 

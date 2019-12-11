@@ -41,8 +41,8 @@ def test_u_gate_eq():
 
 
 def test_qasm_two_qubit_gate_repr():
-    cirq.testing.assert_equivalent_repr(QasmTwoQubitGate.from_matrix(
-        cirq.testing.random_unitary(4)))
+    cirq.testing.assert_equivalent_repr(
+        QasmTwoQubitGate.from_matrix(cirq.testing.random_unitary(4)))
 
 
 def test_qasm_u_qubit_gate_unitary():
@@ -64,8 +64,7 @@ def test_qasm_two_qubit_gate_unitary():
 def test_empty_circuit_one_qubit():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -86,10 +85,10 @@ include "qelib1.inc";
 
 def test_header():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((), (q0,), header="""My test circuit
+    output = cirq.QasmOutput((), (q0,),
+                             header="""My test circuit
 Device: Bristlecone""")
-    assert (str(output) ==
-            """// My test circuit
+    assert (str(output) == """// My test circuit
 // Device: Bristlecone
 
 OPENQASM 2.0;
@@ -100,12 +99,12 @@ include "qelib1.inc";
 qreg q[1];
 """)
 
-    output = cirq.QasmOutput((), (q0,), header="""
+    output = cirq.QasmOutput((), (q0,),
+                             header="""
 My test circuit
 Device: Bristlecone
 """)
-    assert (str(output) ==
-            """//
+    assert (str(output) == """//
 // My test circuit
 // Device: Bristlecone
 //
@@ -122,8 +121,7 @@ qreg q[1];
 def test_single_gate_no_parameter():
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((cirq.X(q0),), (q0,))
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -137,9 +135,8 @@ x q[0];
 
 def test_single_gate_with_parameter():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((cirq.X(q0) ** 0.25,), (q0,))
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    output = cirq.QasmOutput((cirq.X(q0)**0.25,), (q0,))
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -153,9 +150,8 @@ rx(pi*0.25) q[0];
 
 def test_h_gate_with_parameter():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((cirq.H(q0) ** 0.25,), (q0,))
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    output = cirq.QasmOutput((cirq.H(q0)**0.25,), (q0,))
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -171,9 +167,8 @@ ry(pi*-0.25) q[0];
 
 def test_precision():
     q0, = _make_qubits(1)
-    output = cirq.QasmOutput((cirq.X(q0) ** 0.1234567,), (q0,), precision=3)
-    assert (str(output) ==
-            """OPENQASM 2.0;
+    output = cirq.QasmOutput((cirq.X(q0)**0.1234567,), (q0,), precision=3)
+    assert (str(output) == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -199,8 +194,7 @@ def test_save_to_file(tmpdir):
     output.save(file_path)
     with open(file_path, 'r') as f:
         file_content = f.read()
-    assert (file_content ==
-            """OPENQASM 2.0;
+    assert (file_content == """OPENQASM 2.0;
 include "qelib1.inc";
 
 
@@ -282,7 +276,8 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
 def test_output_unitary_same_as_qiskit():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
-    output = cirq.QasmOutput(operations, qubits,
+    output = cirq.QasmOutput(operations,
+                             qubits,
                              header='Generated from Cirq',
                              precision=10)
     text = str(output)
@@ -293,6 +288,7 @@ def test_output_unitary_same_as_qiskit():
 
 
 def test_fails_on_big_unknowns():
+
     class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
 
@@ -302,12 +298,14 @@ def test_fails_on_big_unknowns():
 
 
 def test_output_format():
+
     def filter_unpredictable_numbers(text):
         return re.sub(r'u3\(.+\)', r'u3(<not-repeatable>)', text)
 
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits)
-    output = cirq.QasmOutput(operations, qubits,
+    output = cirq.QasmOutput(operations,
+                             qubits,
                              header='Generated from Cirq!',
                              precision=5)
     assert (filter_unpredictable_numbers(

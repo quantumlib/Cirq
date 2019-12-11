@@ -386,7 +386,6 @@ rotation_gates = [
     ('rz', cirq.rz),
 ]
 
-
 single_qubit_gates = [
     ('x', cirq.X),
     ('y', cirq.Y),

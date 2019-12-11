@@ -28,6 +28,7 @@ from cirq.interop.qasm.qasm_input.exception import QasmException
 
 class Qasm:
     """Qasm stores the final result of the Qasm parsing."""
+
     def __init__(self, supported_format: bool, qelib1_include: bool,
                  qregs: dict, cregs: dict, c: Circuit):
         # defines whether the Quantum Experience standard header

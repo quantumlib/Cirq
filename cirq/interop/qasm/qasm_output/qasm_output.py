@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utility classes for representing QASM."""
 
 from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union,
@@ -81,6 +80,7 @@ class QasmUGate(ops.SingleQubitGate):
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
+
     def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
@@ -158,15 +158,13 @@ class QasmOutput:
         meas_key_id_map, meas_comments = self._generate_measurement_ids()
         self.meas_comments = meas_comments
         qubit_id_map = self._generate_qubit_ids()
-        self.args = protocols.QasmArgs(
-            precision=precision,
-            version=version,
-            qubit_id_map=qubit_id_map,
-            meas_key_id_map=meas_key_id_map)
+        self.args = protocols.QasmArgs(precision=precision,
+                                       version=version,
+                                       qubit_id_map=qubit_id_map,
+                                       meas_key_id_map=meas_key_id_map)
 
-    def _generate_measurement_ids(self
-                                  ) -> Tuple[Dict[str, str],
-                                             Dict[str, Optional[str]]]:
+    def _generate_measurement_ids(
+            self) -> Tuple[Dict[str, str], Dict[str, Optional[str]]]:
         # Pick an id for the creg that will store each measurement
         meas_key_id_map = {}  # type: Dict[str, str]
         meas_comments = {}  # type: Dict[str, Optional[str]]
@@ -195,6 +193,7 @@ class QasmOutput:
     def save(self, path: Union[str, bytes, int]) -> None:
         """Write QASM output to a file specified by path."""
         with open(path, 'w') as f:
+
             def write(s: str) -> None:
                 f.write(s)
 
@@ -284,11 +283,10 @@ class QasmOutput:
                 'Cannot output operation as QASM: {!r}'.format(bad_op))
 
         for main_op in ops.flatten_op_tree(op_tree):
-            decomposed = protocols.decompose(
-                main_op,
-                keep=keep,
-                fallback_decomposer=fallback,
-                on_stuck_raise=on_stuck)
+            decomposed = protocols.decompose(main_op,
+                                             keep=keep,
+                                             fallback_decomposer=fallback,
+                                             on_stuck_raise=on_stuck)
 
             should_annotate = decomposed != [main_op]
             if should_annotate:

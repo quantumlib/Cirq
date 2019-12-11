@@ -43,7 +43,8 @@ def test_consistency_with_qasm_output_and_qiskit():
         cirq.CZ.on(a, b),
         cirq.ControlledGate(cirq.H).on(b, c),
         cirq.IdentityGate(1).on(c),
-        cirq.interop.qasm.qasm_output.qasm_output.QasmUGate(1.0, 2.0, 3.0).on(d),
+        cirq.interop.qasm.qasm_output.qasm_output.QasmUGate(1.0, 2.0,
+                                                            3.0).on(d),
     )
 
     qasm = cirq.qasm(circuit1)
