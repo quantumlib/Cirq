@@ -133,8 +133,8 @@ def test_constant_qubit_noise_repr():
 def test_two_qubit_noise():
     a, b, c = cirq.LineQubit.range(3)
     depol_single = cirq.depolarize(0.5)
-    depol_two = two_qubit_depolarize(0.5)
-    depol_all = TwoQubitNoiseModel(depol_single, depol_two)
+    depol_two = cirq.two_qubit_depolarize(0.5)
+    depol_all = cirq.TwoQubitNoiseModel(depol_single, depol_two)
     assert depol_all.noisy_moments(
         [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.CNOT(a,b)]), cirq.Moment()],
         [a, b, c]) == [[(cirq.X(a), depol_single(a))], [(cirq.CNOT(a, b), depol_two(a, b))], []]
