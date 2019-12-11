@@ -15,9 +15,18 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
+from cirq.ops.arithmetic_operation import (
+    ArithmeticOperation,)
+
 from cirq.ops.clifford_gate import (
     PauliTransform,
     SingleQubitCliffordGate,
+)
+
+from cirq.ops.dense_pauli_string import (
+    BaseDensePauliString,
+    DensePauliString,
+    MutableDensePauliString,
 )
 
 from cirq.ops.common_channels import (
@@ -35,6 +44,8 @@ from cirq.ops.common_channels import (
     phase_flip,
     PhaseDampingChannel,
     PhaseFlipChannel,
+    reset,
+    ResetChannel,
 )
 
 from cirq.ops.common_gates import (
@@ -45,19 +56,13 @@ from cirq.ops.common_gates import (
     CZPowGate,
     H,
     HPowGate,
-    I,
-    IdentityGate,
-    ISWAP,
-    ISwapPowGate,
-    measure,
-    measure_each,
-    MeasurementGate,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
-    SWAP,
-    SwapPowGate,
     T,
     XPowGate,
     YPowGate,
@@ -67,17 +72,14 @@ from cirq.ops.common_gates import (
 from cirq.ops.controlled_gate import (
     ControlledGate,)
 
-from cirq.ops.display import (
-    ApproxPauliStringExpectation,
-    DensityMatrixDisplay,
-    pauli_string_expectation,
-    PauliStringExpectation,
-    SamplesDisplay,
-    WaveFunctionDisplay,
-)
-
 from cirq.ops.eigen_gate import (
     EigenGate,)
+
+from cirq.ops.fourier_transform import (
+    PhaseGradientGate,
+    QFT,
+    QuantumFourierTransformGate,
+)
 
 from cirq.ops.fsim_gate import (
     FSimGate,)
@@ -91,8 +93,14 @@ from cirq.ops.gate_features import (
 
 from cirq.ops.gate_operation import (
     GateOperation,
-    op_gate_isinstance,
     op_gate_of_type,
+)
+
+from cirq.ops.identity import (
+    I,
+    identity_each,
+    IdentityGate,
+    IdentityOperation,
 )
 
 from cirq.ops.global_phase_op import (
@@ -118,9 +126,18 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,)
 
 from cirq.ops.matrix_gates import (
+    MatrixGate,
     SingleQubitMatrixGate,
     TwoQubitMatrixGate,
 )
+
+from cirq.ops.measure_util import (
+    measure,
+    measure_each,
+)
+
+from cirq.ops.measurement_gate import (
+    MeasurementGate,)
 
 from cirq.ops.moment import (
     Moment,)
@@ -131,7 +148,8 @@ from cirq.ops.named_qubit import (
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
-    max_qid_shape,
+    flatten_to_ops,
+    flatten_to_ops_or_moments,
     OP_TREE,
     transform_op_tree,
 )
@@ -156,20 +174,43 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
+    PAULI_GATE_LIKE,
+    PAULI_STRING_LIKE,
     PauliString,
     SingleQubitPauliStringGateOperation,
 )
+
 from cirq.ops.pauli_string_phasor import (
     PauliStringPhasor,)
+
 from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
+
+from cirq.ops.phased_iswap_gate import (
+    givens,
+    GivensRotation,
+    PhasedISwapPowGate,
+)
+
 from cirq.ops.phased_x_gate import (
     PhasedXPowGate,)
+
+from cirq.ops.phased_x_z_gate import (
+    PhasedXZGate,)
 
 from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
+)
+
+from cirq.ops.swap_gates import (
+    ISWAP,
+    ISwapPowGate,
+    ISwapRotation,
+    riswap,
+    SWAP,
+    SwapPowGate,
 )
 
 from cirq.ops.three_qubit_gates import (
@@ -181,5 +222,9 @@ from cirq.ops.three_qubit_gates import (
     CSWAP,
     CSwapGate,
     FREDKIN,
+    ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.wait_gate import (
+    WaitGate,)

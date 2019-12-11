@@ -14,7 +14,7 @@
 
 import collections
 
-from typing import Optional, Sequence, TYPE_CHECKING, Union
+from typing import cast, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 
 from cirq import circuits, ops, optimizers
 
@@ -26,17 +26,13 @@ from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from cirq.ops import Gate
-    from typing import Dict, List, Type
+    import cirq
 
 STRATEGY_GATE = Union[AcquaintanceOpportunityGate, PermutationGate]
 
 
-def rectify_acquaintance_strategy(
-        circuit: circuits.Circuit,
-        acquaint_first: bool=True
-        ) -> None:
+def rectify_acquaintance_strategy(circuit: 'cirq.Circuit',
+                                  acquaint_first: bool = True) -> None:
     """Splits moments so that they contain either only acquaintance gates
     or only permutation gates. Orders resulting moments so that the first one
     is of the same type as the previous one.
@@ -52,11 +48,13 @@ def rectify_acquaintance_strategy(
 
     rectified_moments = []
     for moment in circuit:
-        gate_type_to_ops = collections.defaultdict(list
-                ) # type: Dict[bool, List[ops.GateOperation]]
+        gate_type_to_ops: Dict[bool, List[
+            ops.GateOperation]] = collections.defaultdict(list)
         for op in moment.operations:
-            gate_type_to_ops[isinstance(op.gate, AcquaintanceOpportunityGate)
-                    ].append(op)
+            gate_op = cast(ops.GateOperation, op)
+            is_acquaintance = isinstance(gate_op.gate,
+                                         AcquaintanceOpportunityGate)
+            gate_type_to_ops[is_acquaintance].append(gate_op)
         if len(gate_type_to_ops) == 1:
             rectified_moments.append(moment)
             continue
@@ -67,12 +65,11 @@ def rectify_acquaintance_strategy(
     circuit._moments = rectified_moments
 
 
-def replace_acquaintance_with_swap_network(
-        circuit: circuits.Circuit,
-        qubit_order: Sequence[ops.Qid],
-        acquaintance_size: Optional[int] = 0,
-        swap_gate: ops.Gate = ops.SWAP
-        ) -> bool:
+def replace_acquaintance_with_swap_network(circuit: 'cirq.Circuit',
+                                           qubit_order: Sequence['cirq.Qid'],
+                                           acquaintance_size: Optional[int] = 0,
+                                           swap_gate: 'cirq.Gate' = ops.SWAP
+                                          ) -> bool:
     """
     Replace every moment containing acquaintance gates (after
     rectification) with a generalized swap network, with the partition
@@ -103,7 +100,8 @@ def replace_acquaintance_with_swap_network(
     for moment_index, moment in enumerate(circuit):
         if reflected:
             moment = moment.transform_qubits(reverse_map.__getitem__)
-        if all(isinstance(op.gate, AcquaintanceOpportunityGate)
+        if all(
+                isinstance(op.gate, AcquaintanceOpportunityGate)
                 for op in moment.operations):
             swap_network_gate = SwapNetworkGate.from_operations(
                     qubit_order, moment.operations,
@@ -121,7 +119,7 @@ class ExposeAcquaintanceGates(optimizers.ExpandComposite):
     def __init__(self):
         circuits.PointOptimizer.__init__(self)
         self.no_decomp = lambda op: (not get_acquaintance_size(
-            op) or ops.op_gate_of_type(op, AcquaintanceOpportunityGate))
+            op) or isinstance(op.gate, AcquaintanceOpportunityGate))
 
 
 expose_acquaintance_gates = ExposeAcquaintanceGates()

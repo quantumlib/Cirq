@@ -13,30 +13,28 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, TYPE_CHECKING, Any
+from typing import Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import raw_types, op_tree
+from cirq.ops import raw_types
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Dict, List
+    import cirq
 
 
 @value.value_equality
 class ParallelGateOperation(raw_types.Operation):
     """An application of several copies of a gate to a group of qubits."""
 
-    def __init__(self,
-                 gate: raw_types.Gate,
+    def __init__(self, gate: 'cirq.Gate',
                  qubits: Sequence[raw_types.Qid]) -> None:
         """
         Args:
-            gate: the gate to apply
-            qubits: lists of lists of qubits to apply the gate to.
+            gate: the gate to apply.
+            qubits: list of qubits to apply the gate to.
         """
         if gate.num_qubits() != 1:
             raise ValueError("gate must be a single qubit gate")
@@ -57,12 +55,11 @@ class ParallelGateOperation(raw_types.Operation):
         """The qubits targeted by the operation."""
         return self._qubits
 
-    def with_qubits(self,
-                    *new_qubits: raw_types.Qid) -> 'ParallelGateOperation':
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'ParallelGateOperation':
         """ParallelGateOperation with same the gate but new qubits"""
         return ParallelGateOperation(self.gate, new_qubits)
 
-    def with_gate(self, new_gate: raw_types.Gate) -> 'ParallelGateOperation':
+    def with_gate(self, new_gate: 'cirq.Gate') -> 'ParallelGateOperation':
         """ParallelGateOperation with same qubits but a new gate"""
         return ParallelGateOperation(new_gate, self.qubits)
 
@@ -78,20 +75,20 @@ class ParallelGateOperation(raw_types.Operation):
     def _value_equality_values_(self):
         return self.gate, frozenset(self.qubits)
 
-    def _decompose_(self) -> op_tree.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         """List of gate operations that correspond to applying the single qubit
            gate to each of the target qubits individually
         """
         return [self.gate.on(qubit) for qubit in self.qubits]
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs
-                        ) -> Union[np.ndarray, None, NotImplementedType]:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
         """Replicates the logic the simulators use to apply the equivalent
            sequence of GateOperations
         """
         if not protocols.has_unitary(self.gate):
             return NotImplemented
-        return protocols.apply_unitaries((self.gate(q) for q in self.qubits),
+        return protocols.apply_unitaries((self.gate.on(q) for q in self.qubits),
                                          self.qubits, args)
 
     def _has_unitary_(self) -> bool:
@@ -120,9 +117,15 @@ class ParallelGateOperation(raw_types.Operation):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
         return self.with_gate(resolved_gate)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> protocols.CircuitDiagramInfo:
+    def _trace_distance_bound_(self) -> Optional[float]:
+        angle = (len(self.qubits) *
+                 np.arcsin(protocols.trace_distance_bound(self._gate)))
+        if angle >= np.pi * 0.5:
+            return 1.0
+        return np.sin(angle)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         diagram_info = protocols.circuit_diagram_info(self.gate,
                                                       args,
                                                       NotImplemented)

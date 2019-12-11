@@ -1,0 +1,244 @@
+# Copyright 2019 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from typing import List
+import numpy as np
+
+import cirq
+from cirq.ops.dense_pauli_string import DensePauliString
+
+
+class CliffordTableau():
+    """ Tableau representation of a stabilizer state
+    (based on Aaronson and Gottesman 2006).
+
+    The tableau stores the stabilizer generators of
+    the state using three binary arrays: xs, zs, and rs.
+
+    Each row of the arrays represents a Pauli string, P, that is
+    an eigenoperator of the wavefunction with eigenvalue one: P|psi> = |psi>.
+    """
+
+    def __init__(self, num_qubits, initial_state=0):
+        self.n = num_qubits
+
+        self.rs = np.zeros(2 * self.n + 1, dtype=bool)
+
+        def bits(s):
+            while s > 0:
+                yield s & 1
+                s >>= 1
+
+        for (i, val) in enumerate(bits(initial_state)):
+            self.rs[2 * self.n - i - 1] = bool(val)
+
+        self.xs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+        self.zs = np.zeros((2 * self.n + 1, self.n), dtype=bool)
+
+        for i in range(self.n):
+            self.xs[i, i] = True
+            self.zs[self.n + i, i] = True
+
+    def copy(self):
+        state = CliffordTableau(self.n)
+        state.rs = self.rs.copy()
+        state.xs = self.xs.copy()
+        state.zs = self.zs.copy()
+
+        return state
+
+    def __repr__(self):
+        return "stabilizers: [{}]".format(", ".join(
+            [repr(stab) for stab in self.stabilizers()]))
+
+    def __str__(self):
+        string = ""
+
+        for i in range(self.n, 2 * self.n):
+            string += "- " if self.rs[i] else "+ "
+
+            for k in range(0, self.n):
+                if self.xs[i, k] & (not self.zs[i, k]):
+                    string += "X "
+                elif (not self.xs[i, k]) & self.zs[i, k]:
+                    string += "Z "
+                elif self.xs[i, k] & self.zs[i, k]:
+                    string += "Y "
+                else:
+                    string += "I "
+
+            if i < 2 * self.n - 1:
+                string += "\n"
+
+        return string
+
+    def _str_full_(self):
+        string = ""
+
+        string += "stable" + " " * max(self.n * 2 - 3, 1)
+        string += "| destable\n"
+        string += "-" * max(7, self.n * 2 + 3) + "+" + "-" * max(
+            10, self.n * 2 + 4) + "\n"
+
+        for j in range(self.n):
+            for i in [j + self.n, j]:
+                string += "- " if self.rs[i] else "+ "
+
+                for k in range(0, self.n):
+                    if self.xs[i, k] & (not self.zs[i, k]):
+                        string += "X%d" % k
+                    elif (not self.xs[i, k]) & self.zs[i, k]:
+                        string += "Z%d" % k
+                    elif self.xs[i, k] & self.zs[i, k]:
+                        string += "Y%d" % k
+                    else:
+                        string += "  "
+
+                if i == j + self.n:
+                    string += " " * max(0, 4 - self.n * 2) + " | "
+
+            string += "\n"
+
+        return string
+
+    def _CZ(self, q, r):
+        self._H(r)
+        self._CNOT(q, r)
+        self._H(r)
+
+    def _X(self, q):
+        self.rs[:] ^= self.zs[:, q]
+
+    def _Y(self, q):
+        self.rs[:] ^= self.xs[:, q] | self.zs[:, q]
+
+    def _Z(self, q):
+        self.rs[:] ^= self.xs[:, q]
+
+    def _S(self, q):
+        self.rs[:] ^= (self.xs[:, q] & self.zs[:, q])
+        self.zs[:, q] ^= self.xs[:, q]
+
+    def _H(self, q):
+        (self.xs[:, q], self.zs[:, q]) = (self.zs[:, q].copy(),
+                                          self.xs[:, q].copy())
+        self.rs[:] ^= (self.xs[:, q] & self.zs[:, q])
+
+    def _CNOT(self, q1, q2):
+        self.rs[:] ^= self.xs[:,q1] & self.zs[:,q2] & \
+            (~(self.xs[:,q2] ^ self.zs[:,q1]))
+        self.xs[:, q2] ^= self.xs[:, q1]
+        self.zs[:, q1] ^= self.zs[:, q2]
+
+    def _rowsum(self, q1, q2):
+        """Implements the "rowsum" routine defined by
+        Aaronson and Gottesman.
+        Multiplies the stabilizer in row q1 by the stabilizer in row q2."""
+
+        def g(x1, z1, x2, z2):
+            if not x1 and not z1:
+                return 0
+            elif x1 and z1:
+                return int(z2) - int(x2)
+            elif x1 and not z1:
+                return int(z2) * (2 * int(x2) - 1)
+            else:
+                return int(x2) * (1 - 2 * int(z2))
+
+        r = 2 * int(self.rs[q1]) + 2 * int(self.rs[q2])
+        for j in range(self.n):
+            r += g(self.xs[q2, j], self.zs[q2, j], self.xs[q1, j],
+                   self.zs[q1, j])
+
+        r %= 4
+
+        self.rs[q1] = bool(r)
+
+        self.xs[q1, :] ^= self.xs[q2, :]
+        self.zs[q1, :] ^= self.zs[q2, :]
+
+    def _row_to_dense_pauli(self, i: int) -> DensePauliString:
+        """
+        Args:
+            i: index of the row in the tableau.
+        Returns:
+            A DensePauliString representing the row. The length of the string
+            is equal to the total number of qubits and each character
+            represents the effective single Pauli operator on that qubit. The
+            overall phase is captured in the coefficient.
+        """
+        coefficient = -1 if self.rs[i] else 1
+        pauli_mask = ""
+
+        for k in range(self.n):
+            if self.xs[i, k] & (not self.zs[i, k]):
+                pauli_mask += "X"
+            elif (not self.xs[i, k]) & self.zs[i, k]:
+                pauli_mask += "Z"
+            elif self.xs[i, k] & self.zs[i, k]:
+                pauli_mask += "Y"
+            else:
+                pauli_mask += "I"
+        return cirq.DensePauliString(pauli_mask, coefficient=coefficient)
+
+    def stabilizers(self) -> List[DensePauliString]:
+        """Returns the stabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
+        return [self._row_to_dense_pauli(i) for i in range(self.n, 2 * self.n)]
+
+    def destabilizers(self) -> List[DensePauliString]:
+        """Returns the destabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
+        generators above generate the full Pauli group on n qubits."""
+        return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
+
+    def _measure(self, q):
+        """ Performs a projective measurement on the q'th qubit.
+
+        Returns: the result (0 or 1) of the measurement.
+        """
+        is_commuting = True
+        for i in range(self.n, 2 * self.n):
+            if self.xs[i, q]:
+                p = i
+                is_commuting = False
+                break
+
+        if is_commuting:
+            self.xs[2 * self.n, :] = False
+            self.zs[2 * self.n, :] = False
+            self.rs[2 * self.n] = False
+
+            for i in range(self.n):
+                if self.xs[i, q]:
+                    self._rowsum(2 * self.n, self.n + i)
+            return int(self.rs[2 * self.n])
+
+        else:
+            for i in range(2 * self.n):
+                if i != p and self.xs[i, q]:
+                    self._rowsum(i, p)
+
+            self.xs[p - self.n, :] = self.xs[p, :]
+            self.zs[p - self.n, :] = self.zs[p, :]
+            self.rs[p - self.n] = self.rs[p]
+
+            self.xs[p, :] = False
+            self.zs[p, :] = False
+
+            self.zs[p, q] = True
+
+            self.rs[p] = bool(np.random.randint(2))
+
+            return int(self.rs[p])

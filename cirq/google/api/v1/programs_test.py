@@ -30,17 +30,16 @@ def assert_proto_dict_convert(gate: cirq.Gate, proto_dict: Dict,
 
 def test_protobuf_round_trip():
     device = cg.Foxtail
-    circuit = cirq.Circuit.from_ops([cirq.X(q)**0.5 for q in device.qubits], [
+    circuit = cirq.Circuit([cirq.X(q)**0.5 for q in device.qubits], [
         cirq.CZ(q, q2)
         for q in [cirq.GridQubit(0, 0)]
         for q2 in device.neighbors_of(q)
-    ])
-    s1 = cirq.moment_by_moment_schedule(device, circuit)
+    ],
+                           device=device)
 
-    protos = list(cg.schedule_to_proto_dicts(s1))
-    s2 = cg.schedule_from_proto_dicts(device, protos)
-
-    assert s2 == s1
+    protos = list(cg.circuit_as_schedule_to_proto_dicts(circuit))
+    s2 = cg.circuit_from_schedule_from_proto_dicts(device, protos)
+    assert s2 == circuit
 
 
 def make_bytes(s: str) -> bytes:
@@ -189,6 +188,22 @@ def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
         }
     }
     assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+
+
+def test_proto_dict_convert_invert_mask_bools():
+    gate = cirq.MeasurementGate(1, 'test', invert_mask=(True,))
+    proto_dict = {
+        'measurement': {
+            'targets': [{
+                'row': 2,
+                'col': 3
+            }],
+            'key': 'test',
+            'invert_mask': [True]
+        }
+    }
+    # Conversion only works one way, since the reverse converts True to string
+    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(cirq.GridQubit(2, 3))
 
 
 def test_single_qubit_measurement_to_proto_dict_pad_invert_mask():
@@ -500,6 +515,21 @@ def test_invalid_to_proto_dict_qubit_number():
         cg.gate_to_proto_dict(
             cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
+
+
+def test_invalid_qubit_from_proto():
+    with pytest.raises(ValueError, match='does not contain row or col'):
+        proto_dict = {
+            'exp_z': {
+                'target': {
+                    'row': 2,
+                },
+                'half_turns': {
+                    'raw': 1
+                },
+            }
+        }
+        _ = cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_parameterized_value_from_proto():

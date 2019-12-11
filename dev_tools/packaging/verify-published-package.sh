@@ -15,8 +15,11 @@
 # limitations under the License.
 
 ################################################################################
-# Downloads and tests cirq wheels from the pypi package repository. Uses the
-# prod pypi repository unless the --test switch is added.
+# Downloads and tests cirq wheels from the pypi package repository.
+# Can verify prod, test, or unstable versions.
+#   --unstable: cirq-unstable from prod pypi
+#   --test: cirq from test pypi
+#   --prod: cirq from prod pypi
 #
 # CAUTION: when targeting the test pypi repository, this script assumes that the
 # local version of cirq has the same dependencies as the remote one (because the
@@ -24,11 +27,11 @@
 # dependencies disagree, the tests can spuriously fail.
 #
 # Usage:
-#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION [--test|--prod]
+#     dev_tools/packaging/verify-published-package.sh PACKAGE_VERSION --test|--prod|--unstable
 ################################################################################
 
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 
 PROJECT_NAME=cirq
@@ -36,18 +39,24 @@ PROJECT_VERSION=$1
 PROD_SWITCH=$2
 
 if [ -z "${PROJECT_VERSION}" ]; then
-    echo -e "\e[31mFirst argument must be the package version to test.\e[0m"
+    echo -e "\033[31mFirst argument must be the package version to test.\033[0m"
     exit 1
 fi
 
 if [ "${PROD_SWITCH}" = "--test" ]; then
     PYPI_REPOSITORY_FLAG="--index-url=https://test.pypi.org/simple/"
     PYPI_REPO_NAME="TEST"
-elif [ -z "${PROD_SWITCH}" ] || [ "${PROD_SWITCH}" = "--prod" ]; then
+    PYPI_PROJECT_NAME="cirq"
+elif [ "${PROD_SWITCH}" = "--prod" ]; then
     PYPI_REPOSITORY_FLAG=''
     PYPI_REPO_NAME="PROD"
+    PYPI_PROJECT_NAME="cirq"
+elif [ "${PROD_SWITCH}" = "--unstable" ]; then
+    PYPI_REPOSITORY_FLAG=''
+    PYPI_REPO_NAME="PROD"
+    PYPI_PROJECT_NAME="cirq-unstable"
 else
-    echo -e "\e[31mSecond argument must be empty, '--prod' or '--test'.\e[0m"
+    echo -e "\033[31mSecond argument must be '--prod' or '--test' or '--unstable'.\033[0m"
     exit 1
 fi
 
@@ -66,7 +75,7 @@ for PYTHON_VERSION in python3; do
     RUNTIME_DEPS_FILE="${REPO_ROOT}/requirements.txt"
     CONTRIB_DEPS_FILE="${REPO_ROOT}/cirq/contrib/contrib-requirements.txt"
 
-    echo -e "\n\e[32m${PYTHON_VERSION}\e[0m"
+    echo -e "\n\033[32m${PYTHON_VERSION}\033[0m"
     echo "Working in a fresh virtualenv at ${tmp_dir}/${PYTHON_VERSION}"
     virtualenv --quiet "--python=/usr/bin/${PYTHON_VERSION}" "${tmp_dir}/${PYTHON_VERSION}"
 
@@ -75,17 +84,17 @@ for PYTHON_VERSION in python3; do
         echo "Pre-installing dependencies since they don't all exist in TEST pypi"
         "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet -r "${RUNTIME_DEPS_FILE}"
     fi
-    echo Installing "${PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PROJECT_NAME}==${PROJECT_VERSION}"
+    echo Installing "${PYPI_PROJECT_NAME}==${PROJECT_VERSION} from ${PYPI_REPO_NAME} pypi"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet ${PYPI_REPOSITORY_FLAG} "${PYPI_PROJECT_NAME}==${PROJECT_VERSION}"
 
     # Check that code runs without dev deps.
     echo Checking that code executes
     "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.google.Foxtail)"
-    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit.from_ops(cirq.CZ(*cirq.LineQubit.range(2))))"
+    "${tmp_dir}/${PYTHON_VERSION}/bin/python" -c "import cirq; print(cirq.Circuit(cirq.CZ(*cirq.LineQubit.range(2))))"
 
     # Run tests.
     echo Installing pytest requirements
-    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest pytest-benchmark
+    "${tmp_dir}/${PYTHON_VERSION}/bin/pip" install --quiet pytest pytest-benchmark pytest-asyncio
     PY_VER=$(ls "${tmp_dir}/${PYTHON_VERSION}/lib")
     echo Running cirq tests
     cirq_dir="${tmp_dir}/${PYTHON_VERSION}/lib/${PY_VER}/site-packages/${PROJECT_NAME}"
@@ -99,4 +108,4 @@ for PYTHON_VERSION in python3; do
 done
 
 echo
-echo -e '\e[32mVERIFIED\e[0m'
+echo -e '\033[32mVERIFIED\033[0m'

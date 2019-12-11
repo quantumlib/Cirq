@@ -53,14 +53,23 @@ class FSimGate(gate_features.TwoQubitGate,
         a = cos(theta)
         b = -i·sin(theta)
         c = exp(-i·phi)
+
+    Note the difference in sign conventions between FSimGate and the
+    ISWAP and CZPowGate:
+
+        FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
     def __init__(self, theta: float, phi: float):
         """
         Args:
-            theta: The strength of the XX+YY interaction, in radians.
-            phi: CPhase angle in radians. Determines how much the |11⟩ state is
-                phased.
+            theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
+                Determined by the strength and duration of the XX+YY
+                interaction. Note: uses opposite sign convention to the
+                iSWAP gate. Maximum strength (full iswap) is at pi/2.
+            phi: Controlled phase angle, in radians. Determines how much the
+                ``|11⟩`` state is phased. Note: uses opposite sign convention to
+                the CZPowGate. Maximum strength (full cz) is at pi/2.
         """
         self.theta = theta
         self.phi = phi
@@ -111,7 +120,7 @@ class FSimGate(gate_features.TwoQubitGate,
         if cirq.is_parameterized(self):
             return None
         if self.theta != 0:
-            inner_matrix = protocols.unitary(cirq.Rx(2 * self.theta))
+            inner_matrix = protocols.unitary(cirq.rx(2 * self.theta))
             oi = args.subspace_index(0b01)
             io = args.subspace_index(0b10)
             out = cirq.apply_matrix_to_slices(args.target_tensor,
@@ -145,6 +154,9 @@ class FSimGate(gate_features.TwoQubitGate,
         return 'cirq.FSimGate(theta={}, phi={})'.format(proper_repr(self.theta),
                                                         proper_repr(self.phi))
 
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['theta', 'phi'])
+
 
 def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
     if cirq.is_parameterized(radians):
@@ -157,6 +169,6 @@ def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
     if radians == -np.pi:
         return '-' + unit
     if args.precision is not None:
-        quantity = '{{:.{}}}'.format(args.precision).format(radians / np.pi)
+        quantity = args.format_real(radians / np.pi)
         return quantity + unit
     return repr(radians)

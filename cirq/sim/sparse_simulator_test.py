@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import random
 from unittest import mock
 import numpy as np
 import pytest
@@ -29,7 +30,7 @@ def test_run_no_measurements(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
 
-    circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1))
     with pytest.raises(ValueError, match="no measurements"):
         simulator.run(circuit)
 
@@ -39,7 +40,7 @@ def test_run_no_results(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
 
-    circuit = cirq.Circuit.from_ops(cirq.X(q0), cirq.X(q1))
+    circuit = cirq.Circuit(cirq.X(q0), cirq.X(q1))
     with pytest.raises(ValueError, match="no measurements"):
         simulator.run(circuit)
 
@@ -52,15 +53,32 @@ def test_run_empty_circuit(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_reset(dtype):
+    q0, q1 = cirq.LineQid.for_qid_shape((2, 3))
+    simulator = cirq.Simulator(dtype=dtype)
+    circuit = cirq.Circuit(
+        cirq.H(q0),
+        PlusGate(3, 2)(q1),
+        cirq.reset(q0),
+        cirq.measure(q0, key='m0'),
+        cirq.measure(q1, key='m1a'),
+        cirq.reset(q1),
+        cirq.measure(q1, key='m1b'),
+    )
+    meas = simulator.run(circuit, repetitions=100).measurements
+    assert np.array_equal(meas['m0'], np.zeros((100, 1)))
+    assert np.array_equal(meas['m1a'], np.full((100, 1), 2))
+    assert np.array_equal(meas['m1b'], np.zeros((100, 1)))
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_bit_flips(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
             result = simulator.run(circuit)
             np.testing.assert_equal(result.measurements,
                                     {'0': [[b0]], '1': [[b1]]})
@@ -74,15 +92,57 @@ def test_run_repetitions_measure_at_end(dtype):
                            wraps=simulator._base_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
-                circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                                (cirq.X**b1)(q1),
-                                                cirq.measure(q0),
-                                                cirq.measure(q1))
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1))
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(result.measurements,
                                         {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
         assert mock_sim.call_count == 4
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_invert_mask_measure_not_terminal(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0,
+                                                    q1,
+                                                    key='m',
+                                                    invert_mask=(True, False)),
+                                       cirq.X(q0))
+                result = simulator.run(circuit, repetitions=3)
+                np.testing.assert_equal(result.measurements,
+                                        {'m': [[1 - b0, b1]] * 3})
+                assert result.repetitions == 3
+        assert mock_sim.call_count == 12
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_partial_invert_mask_measure_not_terminal(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0,
+                                                    q1,
+                                                    key='m',
+                                                    invert_mask=(True,)),
+                                       cirq.X(q0))
+                result = simulator.run(circuit, repetitions=3)
+                np.testing.assert_equal(result.measurements,
+                                        {'m': [[1 - b0, b1]] * 3})
+                assert result.repetitions == 3
+        assert mock_sim.call_count == 12
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -93,17 +153,14 @@ def test_run_repetitions_measurement_not_terminal(dtype):
                            wraps=simulator._base_iterator) as mock_sim:
         for b0 in [0, 1]:
             for b1 in [0, 1]:
-                circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                                (cirq.X**b1)(q1),
-                                                cirq.measure(q0),
-                                                cirq.measure(q1),
-                                                cirq.H(q0),
-                                                cirq.H(q1))
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1),
+                                       cirq.H(q0), cirq.H(q1))
                 result = simulator.run(circuit, repetitions=3)
                 np.testing.assert_equal(result.measurements,
                                         {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
-        assert  mock_sim.call_count == 12
+        assert mock_sim.call_count == 12
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -112,10 +169,9 @@ def test_run_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
-                                            (cirq.X**sympy.Symbol('b1'))(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
+            circuit = cirq.Circuit((cirq.X**sympy.Symbol('b0'))(q0),
+                                   (cirq.X**sympy.Symbol('b1'))(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
             param_resolver = cirq.ParamResolver({'b0': b0, 'b1': b1})
             result = simulator.run(circuit, param_resolver=param_resolver)
             np.testing.assert_equal(result.measurements,
@@ -127,7 +183,7 @@ def test_run_param_resolver(dtype):
 def test_run_mixture(dtype):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit.from_ops(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80
     assert sum(result.measurements['0'])[0] > 20
@@ -137,8 +193,9 @@ def test_run_mixture(dtype):
 def test_run_mixture_with_gates(dtype):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.phase_flip(0.5)(q0),
-                                    cirq.H(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.H(q0),
+                           cirq.phase_flip(0.5)(q0), cirq.H(q0),
+                           cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80
     assert sum(result.measurements['0'])[0] > 20
@@ -148,8 +205,7 @@ def test_run_mixture_with_gates(dtype):
 def test_run_correlations(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1),
-                                    cirq.measure(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.measure(q0, q1))
     for _ in range(10):
         result = simulator.run(circuit)
         bits = result.measurements['0,1'][0]
@@ -162,9 +218,8 @@ def test_run_measure_multiple_qubits(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0, q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0, q1))
             result = simulator.run(circuit, repetitions=3)
             np.testing.assert_equal(result.measurements,
                                     {'0,1': [[b0, b1]] * 3})
@@ -176,10 +231,9 @@ def test_run_sweeps_param_resolvers(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
-                                            (cirq.X**sympy.Symbol('b1'))(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
+            circuit = cirq.Circuit((cirq.X**sympy.Symbol('b0'))(q0),
+                                   (cirq.X**sympy.Symbol('b1'))(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
             params = [cirq.ParamResolver({'b0': b0, 'b1': b1}),
                       cirq.ParamResolver({'b0': b1, 'b1': b0})]
             results = simulator.run_sweep(circuit, params=params)
@@ -227,10 +281,56 @@ def test_simulate_no_circuit(dtype,):
 def test_simulate(dtype,):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     np.testing.assert_almost_equal(result.final_state,
                                    np.array([0.5, 0.5, 0.5, 0.5]))
+    assert len(result.measurements) == 0
+
+
+class PlusGate(cirq.Gate):
+    """A qudit gate that increments a qudit state mod its dimension."""
+
+    def __init__(self, dimension, increment=1):
+        self.dimension = dimension
+        self.increment = increment % dimension
+
+    def _qid_shape_(self):
+        return (self.dimension,)
+
+    def _unitary_(self):
+        inc = (self.increment - 1) % self.dimension + 1
+        u = np.empty((self.dimension, self.dimension))
+        u[inc:] = np.eye(self.dimension)[:-inc]
+        u[:inc] = np.eye(self.dimension)[-inc:]
+        return u
+
+
+class _TestMixture(cirq.Gate):
+
+    def __init__(self, gate_options):
+        self.gate_options = gate_options
+
+    def _qid_shape_(self):
+        return cirq.qid_shape(self.gate_options[0], ())
+
+    def _mixture_(self):
+        return [(1 / len(self.gate_options), cirq.unitary(g))
+                for g in self.gate_options]
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_qudits(dtype,):
+    q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
+    simulator = cirq.Simulator(dtype=dtype)
+    circuit = cirq.Circuit(
+        PlusGate(3)(q0),
+        PlusGate(4, increment=3)(q1),
+    )
+    result = simulator.simulate(circuit, qubit_order=[q0, q1])
+    expected = np.zeros(12)
+    expected[4 * 1 + 3] = 1
+    np.testing.assert_almost_equal(result.final_state, expected)
     assert len(result.measurements) == 0
 
 
@@ -238,7 +338,7 @@ def test_simulate(dtype,):
 def test_simulate_mixtures(dtype,):
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator(dtype=dtype)
-    circuit = cirq.Circuit.from_ops(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.bit_flip(0.5)(q0), cirq.measure(q0))
     count = 0
     for _ in range(100):
         result = simulator.simulate(circuit, qubit_order=[q0])
@@ -253,15 +353,31 @@ def test_simulate_mixtures(dtype,):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_simulate_qudit_mixtures(dtype,):
+    q0 = cirq.LineQid(0, 3)
+    simulator = cirq.Simulator(dtype=dtype)
+    mixture = _TestMixture([PlusGate(3, 0), PlusGate(3, 1), PlusGate(3, 2)])
+    circuit = cirq.Circuit(mixture(q0), cirq.measure(q0))
+    counts = {0: 0, 1: 0, 2: 0}
+    for _ in range(300):
+        result = simulator.simulate(circuit, qubit_order=[q0])
+        meas = result.measurements['0 (d=3)'][0]
+        counts[meas] += 1
+        np.testing.assert_almost_equal(
+            result.final_state, np.array([meas == 0, meas == 1, meas == 2]))
+    assert counts[0] < 160 and counts[0] > 40
+    assert counts[1] < 160 and counts[1] > 40
+    assert counts[2] < 160 and counts[2] > 40
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_bit_flips(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0),
-                                            cirq.measure(q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
             result = simulator.simulate(circuit)
             np.testing.assert_equal(result.measurements, {'0': [b0], '1': [b1]})
             expected_state = np.zeros(shape=(2, 2))
@@ -276,7 +392,7 @@ def test_simulate_initial_state(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0), (cirq.X**b1)(q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1))
             result = simulator.simulate(circuit, initial_state=1)
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b0][1 - b1] = 1.0
@@ -290,7 +406,7 @@ def test_simulate_qubit_order(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0), (cirq.X**b1)(q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1))
             result = simulator.simulate(circuit, qubit_order=[q1, q0])
             expected_state = np.zeros(shape=(2, 2))
             expected_state[b1][b0] = 1.0
@@ -304,8 +420,8 @@ def test_simulate_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
-                                            (cirq.X**sympy.Symbol('b1'))(q1))
+            circuit = cirq.Circuit((cirq.X**sympy.Symbol('b0'))(q0),
+                                   (cirq.X**sympy.Symbol('b1'))(q1))
             resolver = {'b0': b0, 'b1': b1}
             result = simulator.simulate(circuit, param_resolver=resolver)
             expected_state = np.zeros(shape=(2, 2))
@@ -322,9 +438,8 @@ def test_simulate_measure_multiple_qubits(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**b0)(q0),
-                                            (cirq.X**b1)(q1),
-                                            cirq.measure(q0, q1))
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0, q1))
             result = simulator.simulate(circuit)
             np.testing.assert_equal(result.measurements,
                                     {'0,1': [b0, b1]})
@@ -336,8 +451,8 @@ def test_simulate_sweeps_param_resolver(dtype):
     simulator = cirq.Simulator(dtype=dtype)
     for b0 in [0, 1]:
         for b1 in [0, 1]:
-            circuit = cirq.Circuit.from_ops((cirq.X**sympy.Symbol('b0'))(q0),
-                                            (cirq.X**sympy.Symbol('b1'))(q1))
+            circuit = cirq.Circuit((cirq.X**sympy.Symbol('b0'))(q0),
+                                   (cirq.X**sympy.Symbol('b1'))(q1))
             params = [cirq.ParamResolver({'b0': b0, 'b1': b1}),
                       cirq.ParamResolver({'b0': b1, 'b1': b0})]
             results = simulator.simulate_sweep(circuit, params=params)
@@ -358,8 +473,7 @@ def test_simulate_sweeps_param_resolver(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), cirq.H(q0),
-                                    cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
@@ -384,8 +498,7 @@ def test_simulate_moment_steps_empty_circuit(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_set_state(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), cirq.H(q0),
-                                    cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         np.testing.assert_almost_equal(step.state_vector(), np.array([0.5] * 4))
@@ -396,7 +509,7 @@ def test_simulate_moment_steps_set_state(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_sample(dtype):
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
@@ -414,7 +527,7 @@ def test_simulate_moment_steps_sample(dtype):
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_moment_steps_intermediate_measurement(dtype):
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
     simulator = cirq.Simulator(dtype=dtype)
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 1:
@@ -427,103 +540,12 @@ def test_simulate_moment_steps_intermediate_measurement(dtype):
             np.testing.assert_almost_equal(step.state_vector(), expected)
 
 
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_compute_displays(dtype):
-    qubits = cirq.LineQubit.range(4)
-    circuit = cirq.Circuit.from_ops(
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.Z}),
-            key='z3'
-        ),
-        cirq.X(qubits[1]),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.Z}),
-            key='z0z1'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.Z,
-                              qubits[1]: cirq.X}),
-            key='z0x1'
-        ),
-        cirq.H(qubits[2]),
-        cirq.X(qubits[3]),
-        cirq.H(qubits[3]),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X}),
-            key='z1x2'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[0]: cirq.X,
-                              qubits[1]: cirq.Z}),
-            key='x0z1'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[3]: cirq.X}),
-            key='x3'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({qubits[1]: cirq.Z,
-                              qubits[2]: cirq.X}),
-            num_samples=1,
-            key='approx_z1x2'
-        ),
-    )
-    simulator = cirq.Simulator(dtype=dtype)
-    result = simulator.compute_displays(circuit)
-
-    np.testing.assert_allclose(result.display_values['z3'], 1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z0z1'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z0x1'], 0, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['z1x2'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['x0z1'], 0, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['x3'], -1, atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
-                               atol=1e-7)
-
-
-@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
-def test_compute_samples_displays(dtype):
-    a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(
-        cirq.X(a),
-        cirq.H(b),
-        cirq.X(c),
-        cirq.H(c),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({c: cirq.X}),
-            key='x3'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              b: cirq.X}),
-            num_samples=10,
-            key='approx_z1x2'
-        ),
-        cirq.pauli_string_expectation(
-            cirq.PauliString({a: cirq.Z,
-                              c: cirq.X}),
-            num_samples=10,
-            key='approx_z1x3'
-        ),
-    )
-    simulator = cirq.Simulator(dtype=dtype)
-    result = simulator.compute_samples_displays(circuit)
-
-    assert 'x3' not in result.display_values
-    np.testing.assert_allclose(result.display_values['approx_z1x2'], -1,
-                               atol=1e-7)
-    np.testing.assert_allclose(result.display_values['approx_z1x3'], 1,
-                               atol=1e-7)
-
-
 def test_invalid_run_no_unitary():
     class NoUnitary(cirq.SingleQubitGate):
         pass
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
-    circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
+    circuit = cirq.Circuit(NoUnitary()(q0))
     circuit.append([cirq.measure(q0, key='meas')])
     with pytest.raises(TypeError, match='unitary'):
         simulator.run(circuit)
@@ -540,12 +562,36 @@ def test_allocates_new_state():
 
     q0 = cirq.LineQubit(0)
     simulator = cirq.Simulator()
-    circuit = cirq.Circuit.from_ops(NoUnitary()(q0))
+    circuit = cirq.Circuit(NoUnitary()(q0))
 
     initial_state = np.array([np.sqrt(0.5), np.sqrt(0.5)], dtype=np.complex64)
     result = simulator.simulate(circuit, initial_state=initial_state)
     np.testing.assert_array_almost_equal(result.state_vector(), initial_state)
     assert not initial_state is result.state_vector()
+
+
+def test_does_not_modify_initial_state():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+
+    class InPlaceUnitary(cirq.SingleQubitGate):
+
+        def _has_unitary_(self):
+            return True
+
+        def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
+            args.target_tensor[0], args.target_tensor[1] = (
+                args.target_tensor[1], args.target_tensor[0])
+            return args.target_tensor
+
+    circuit = cirq.Circuit(InPlaceUnitary()(q0))
+
+    initial_state = np.array([1, 0], dtype=np.complex64)
+    result = simulator.simulate(circuit, initial_state=initial_state)
+    np.testing.assert_array_almost_equal(np.array([1, 0], dtype=np.complex64),
+                                         initial_state)
+    np.testing.assert_array_almost_equal(result.state_vector(),
+                                         np.array([0, 1], dtype=np.complex64))
 
 
 def test_simulator_step_state_mixin():
@@ -575,7 +621,7 @@ class MultiHTestGate(cirq.TwoQubitGate):
 
 
 def test_simulates_composite():
-    c = cirq.Circuit.from_ops(MultiHTestGate().on(*cirq.LineQubit.range(2)))
+    c = cirq.Circuit(MultiHTestGate().on(*cirq.LineQubit.range(2)))
     expected = np.array([0.5] * 4)
     np.testing.assert_allclose(c.final_wavefunction(), expected)
     np.testing.assert_allclose(cirq.Simulator().simulate(c).state_vector(),
@@ -585,16 +631,16 @@ def test_simulates_composite():
 def test_simulate_measurement_inversions():
     q = cirq.NamedQubit('q')
 
-    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(True,)))
+    c = cirq.Circuit(cirq.measure(q, key='q', invert_mask=(True,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([True])}
 
-    c = cirq.Circuit.from_ops(cirq.measure(q, key='q', invert_mask=(False,)))
+    c = cirq.Circuit(cirq.measure(q, key='q', invert_mask=(False,)))
     assert cirq.Simulator().simulate(c).measurements == {'q': np.array([False])}
 
 
 def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit.from_ops(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    c = cirq.Circuit(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
     sim = cirq.Simulator()
     result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4),
@@ -604,9 +650,204 @@ def test_works_on_pauli_string_phasor():
 
 def test_works_on_pauli_string():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit.from_ops(cirq.X(a) * cirq.X(b))
+    c = cirq.Circuit(cirq.X(a) * cirq.X(b))
     sim = cirq.Simulator()
     result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4),
                                np.array([0, 0, 0, 1]),
                                atol=1e-8)
+
+
+def test_measure_at_end_invert_mask():
+    simulator = cirq.Simulator()
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.measure(a, key='a', invert_mask=(True,)))
+    result = simulator.run(circuit, repetitions=4)
+    np.testing.assert_equal(result.measurements['a'], np.array([[1]] * 4))
+
+
+def test_measure_at_end_invert_mask_multiple_qubits():
+    simulator = cirq.Simulator()
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(
+        cirq.measure(a, key='a', invert_mask=(True,)),
+        cirq.measure(b, c, key='bc', invert_mask=(False, True)))
+    result = simulator.run(circuit, repetitions=4)
+    np.testing.assert_equal(result.measurements['a'], np.array([[True]] * 4))
+    np.testing.assert_equal(result.measurements['bc'], np.array([[0, 1]] * 4))
+
+
+def test_measure_at_end_invert_mask_partial():
+    simulator = cirq.Simulator()
+    a, _, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit(cirq.measure(a, c, key='ac', invert_mask=(True,)))
+    result = simulator.run(circuit, repetitions=4)
+    np.testing.assert_equal(result.measurements['ac'], np.array([[1, 0]] * 4))
+
+
+def test_qudit_invert_mask():
+    q0, q1, q2, q3, q4 = cirq.LineQid.for_qid_shape((2, 3, 3, 3, 4))
+    c = cirq.Circuit(
+        PlusGate(2, 1)(q0),
+        PlusGate(3, 1)(q2),
+        PlusGate(3, 2)(q3),
+        PlusGate(4, 3)(q4),
+        cirq.measure(q0, q1, q2, q3, q4, key='a', invert_mask=(True,) * 4),
+    )
+    assert np.all(
+        cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
+
+
+def test_compute_amplitudes():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(a), cirq.H(a), cirq.H(b))
+    sim = cirq.Simulator()
+
+    result = sim.compute_amplitudes(c, [0])
+    np.testing.assert_allclose(np.array(result), np.array([0.5]))
+
+    result = sim.compute_amplitudes(c, [1, 2, 3])
+    np.testing.assert_allclose(np.array(result), np.array([0.5, -0.5, -0.5]))
+
+    result = sim.compute_amplitudes(c, (1, 2, 3), qubit_order=(b, a))
+    np.testing.assert_allclose(np.array(result), np.array([-0.5, 0.5, -0.5]))
+
+
+def test_compute_amplitudes_bad_input():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(a), cirq.H(a), cirq.H(b))
+    sim = cirq.Simulator()
+
+    with pytest.raises(ValueError, match='1-dimensional'):
+        _ = sim.compute_amplitudes(c, np.array([[0, 0]]))
+
+
+def test_run_sweep_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_simulate_sweep_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.Simulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.simulate_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_random_seed():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+    sim = cirq.Simulator(seed=np.random.RandomState(1234))
+    result = sim.run(circuit, repetitions=10)
+    assert np.all(
+        result.measurements['a'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_random_seed_does_not_modify_global_state_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a0'),
+        cirq.X(a)**0.5, cirq.measure(a, key='a1'))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_does_not_modify_global_state_mixture():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(a), cirq.measure(a))
+
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=50)
+
+    sim = cirq.Simulator(seed=1234)
+    _ = np.random.random()
+    _ = random.random()
+    result2 = sim.run(circuit, repetitions=50)
+
+    assert result1 == result2
+
+
+def test_random_seed_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a, key='a'))
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=30)
+    result2 = sim.run(circuit, repetitions=30)
+    assert np.all(result1.measurements['a'] ==
+                  [[0], [1], [0], [1], [1], [0], [0], [1], [1], [1], [0], [1],
+                   [1], [1], [0], [1], [1], [0], [1], [1], [0], [1], [0], [0],
+                   [1], [1], [0], [1], [0], [1]])
+    assert np.all(result2.measurements['a'] ==
+                  [[1], [0], [1], [0], [1], [1], [0], [1], [0], [1], [0], [0],
+                   [0], [1], [1], [1], [0], [1], [0], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [1], [1], [1]])
+
+
+def test_random_seed_non_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a'),
+        cirq.X(a)**0.5, cirq.measure(a, key='b'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[0], [0], [1], [0], [1], [0], [1], [0], [1], [1], [0], [0],
+                   [1], [0], [0], [1], [1], [1], [0], [0], [0], [0], [1], [0],
+                   [0], [0], [1], [1], [1], [1]])
+    assert np.all(result.measurements['b'] ==
+                  [[1], [1], [0], [1], [1], [1], [1], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [0], [0], [1], [1], [1], [0], [1], [1], [1],
+                   [1], [1], [0], [1], [1], [1]])
+
+
+def test_random_seed_mixture_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a), cirq.measure(a, key='a'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[1], [0], [0], [0], [1], [0], [0], [1], [1], [1], [1], [1],
+                   [0], [1], [0], [0], [0], [0], [0], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [1], [1], [0]])

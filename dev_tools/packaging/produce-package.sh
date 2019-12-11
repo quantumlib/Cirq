@@ -28,10 +28,10 @@
 PROJECT_NAME=cirq
 
 set -e
-trap "{ echo -e '\e[31mFAILED\e[0m'; }" ERR
+trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 
 if [ -z "${1}" ]; then
-  echo -e "\e[31mNo output directory given.\e[0m"
+  echo -e "\033[31mNo output directory given.\033[0m"
   exit 1
 fi
 out_dir=$(realpath "${1}")
@@ -45,7 +45,7 @@ cd "${repo_dir}"
 
 # Make a clean copy of HEAD, without files ignored by git (but potentially kept by setup.py).
 if [ ! -z "$(git status --short)" ]; then
-    echo -e "\e[31mWARNING: You have uncommitted changes. They won't be included in the package.\e[0m"
+    echo -e "\033[31mWARNING: You have uncommitted changes. They won't be included in the package.\033[0m"
 fi
 tmp_git_dir=$(mktemp -d "/tmp/produce-package-git.XXXXXXXXXXXXXXXX")
 trap "{ rm -rf ${tmp_git_dir}; }" EXIT

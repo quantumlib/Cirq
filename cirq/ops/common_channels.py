@@ -14,12 +14,16 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Sequence, Tuple, Union
+from typing import Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq.ops import common_gates, pauli_gates, gate_features
+from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
+                      identity)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -60,7 +64,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                                                    'p_x + p_y + p_z')
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return ((self._p_i, protocols.unitary(common_gates.I)),
+        return ((self._p_i, protocols.unitary(identity.I)),
                 (self._p_x, protocols.unitary(pauli_gates.X)),
                 (self._p_y, protocols.unitary(pauli_gates.Y)),
                 (self._p_z, protocols.unitary(pauli_gates.Z)))
@@ -81,14 +85,31 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             self._p_x, self._p_y, self._p_z
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'A({},{},{})'.format(f, f, f).format(self._p_x, self._p_y,
                                                         self._p_z)
         return 'A({!r},{!r},{!r})'.format(self._p_x, self._p_y, self._p_z)
+
+    @property
+    def p_x(self) -> float:
+        """The probability that a Pauli X and no other gate occurs."""
+        return self._p_x
+
+    @property
+    def p_y(self) -> float:
+        """The probability that a Pauli Y and no other gate occurs."""
+        return self._p_y
+
+    @property
+    def p_z(self) -> float:
+        """The probability that a Pauli Z and no other gate occurs."""
+        return self._p_z
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p_x', 'p_y', 'p_z'])
 
 
 def asymmetric_depolarize(
@@ -118,7 +139,7 @@ def asymmetric_depolarize(
 class DepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes a qubit."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The symmetric depolarizing channel.
 
         This channel applies one of four disjoint possibilities: nothing (the
@@ -161,10 +182,23 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'depolarize(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'D({})'.format(f).format(self._p)
         return 'D({!r})'.format(self._p)
+
+    @property
+    def p(self) -> float:
+        """The probability that one of the Pauli gates is applied.
+
+        Each of the Pauli gates is applied independently with probability p / 3.
+        """
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def depolarize(p: float) -> DepolarizingChannel:
@@ -287,10 +321,25 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
             self._p, self._gamma
         )
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'GAD({},{})'.format(f, f).format(self._p, self._gamma)
         return 'GAD({!r},{!r})'.format(self._p, self._gamma)
+
+    @property
+    def p(self) -> float:
+        """The probability of the qubit and environment exchanging energy."""
+        return self._p
+
+    @property
+    def gamma(self) -> float:
+        """The probability of the interaction being dissipative."""
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
 def generalized_amplitude_damp(
@@ -351,7 +400,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     surrounding environment.
     """
 
-    def __init__(self, gamma) -> None:
+    def __init__(self, gamma: float) -> None:
         r"""The amplitude damping channel.
 
         Construct a channel that dissipates energy. The probability of
@@ -405,10 +454,20 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'amplitude_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'AD({})'.format(f).format(self._gamma)
         return 'AD({!r})'.format(self._gamma)
+
+    @property
+    def gamma(self) -> float:
+        """The probability of the interaction being dissipative."""
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
 def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
@@ -447,6 +506,92 @@ def amplitude_damp(gamma: float) -> AmplitudeDampingChannel:
 
 
 @value.value_equality
+class ResetChannel(gate_features.SingleQubitGate):
+    """Reset a qubit back to its |0⟩ state.
+
+    The reset channel is equivalent to performing an unobserved measurement
+    which then controls a bit flip onto the targeted qubit.
+    """
+
+    def __init__(self, dimension: int = 2) -> None:
+        r"""The reset channel.
+
+        Construct a channel that resets the qubit.
+
+        This channel evolves a density matrix as follows:
+
+            $$
+            \rho \rightarrow M_0 \rho M_0^\dagger + M_1 \rho M_1^\dagger
+            $$
+
+        With:
+
+            $$
+            \begin{aligned}
+            M_0 =& \begin{bmatrix}
+                    1 & 0  \\
+                    0 & 0
+                  \end{bmatrix}
+            \\
+            M_1 =& \begin{bmatrix}
+                    0 & 1 \\
+                    0 & 0
+                  \end{bmatrix}
+            \end{aligned}
+            $$
+
+        Args:
+            dimension: Specify this argument when resetting a qudit.  There will
+                be `dimension` number of dimension by dimension matrices
+                describing the channel, each with a 1 at a different position in
+                the top row.
+        """
+        self._dimension = dimension
+
+    def _qid_shape_(self):
+        return (self._dimension,)
+
+    def _channel_(self) -> Iterable[np.ndarray]:
+        # The first axis is over the list of channel matrices
+        channel = np.zeros((self._dimension,) * 3, dtype=np.complex64)
+        channel[:, 0, :] = np.eye(self._dimension)
+        return channel
+
+    def _has_channel_(self) -> bool:
+        return True
+
+    def _value_equality_values_(self):
+        return self._dimension
+
+    def __repr__(self) -> str:
+        if self._dimension == 2:
+            return 'cirq.ResetChannel()'
+        else:
+            return 'cirq.ResetChannel(dimension={!r})'.format(self._dimension)
+
+    def __str__(self) -> str:
+        return 'reset'
+
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        return 'R'
+
+    @property
+    def dimension(self) -> int:
+        """The dimension of the qudit being reset."""
+        return self._dimension
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['dimension'])
+
+
+def reset(qubit: 'cirq.Qid') -> raw_types.Operation:
+    """Returns a `ResetChannel` on the given qubit.
+    """
+    return ResetChannel(qubit.dimension).on(qubit)
+
+
+@value.value_equality
 class PhaseDampingChannel(gate_features.SingleQubitGate):
     """Dampen qubit phase.
 
@@ -454,7 +599,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     information without the loss of energy.
     """
 
-    def __init__(self, gamma) -> None:
+    def __init__(self, gamma: float) -> None:
         r"""The phase damping channel.
 
         Construct a channel that enacts a phase damping constant gamma.
@@ -507,10 +652,20 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_damp(gamma={!r})'.format(self._gamma)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'PD({})'.format(f).format(self._gamma)
         return 'PD({!r})'.format(self._gamma)
+
+    @property
+    def gamma(self) -> float:
+        """The damping constant."""
+        return self._gamma
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
 def phase_damp(gamma: float) -> PhaseDampingChannel:
@@ -552,7 +707,7 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 class PhaseFlipChannel(gate_features.SingleQubitGate):
     """Probabilistically flip the sign of the phase of a qubit."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The phase flip channel.
 
         Construct a channel to flip the phase with probability p.
@@ -605,10 +760,20 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'phase_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'PF({})'.format(f).format(self._p)
         return 'PF({!r})'.format(self._p)
+
+    @property
+    def p(self) -> float:
+        """The probability of a phase flip."""
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def _phase_flip_Z() -> common_gates.ZPowGate:
@@ -698,7 +863,7 @@ def phase_flip(
 class BitFlipChannel(gate_features.SingleQubitGate):
     r"""Probabilistically flip a qubit from 1 to 0 state or vice versa."""
 
-    def __init__(self, p) -> None:
+    def __init__(self, p: float) -> None:
         r"""The bit flip channel.
 
         Construct a channel that flips a qubit with probability p.
@@ -751,10 +916,20 @@ class BitFlipChannel(gate_features.SingleQubitGate):
     def __str__(self) -> str:
         return 'bit_flip(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-        self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            return 'BF({})'.format(f).format(self._p)
         return 'BF({!r})'.format(self._p)
+
+    @property
+    def p(self) -> float:
+        """The probability of a bit flip."""
+        return self._p
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['p'])
 
 
 def _bit_flip(p: float) -> BitFlipChannel:

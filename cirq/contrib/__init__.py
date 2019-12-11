@@ -20,4 +20,6 @@ this package.
 
 from cirq.contrib import acquaintance
 from cirq.contrib import graph_device
+from cirq.contrib import quirk
 from cirq.contrib.qcircuit import circuit_to_latex_using_qcircuit
+from cirq.contrib import json

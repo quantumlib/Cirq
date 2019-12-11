@@ -15,17 +15,21 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import Set, NamedTuple, Union  # pylint: disable=unused-import
-from typing import Callable, List, Tuple, TypeVar
+from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
+                    Optional, TYPE_CHECKING, Sequence)
 
 import math
 import cmath
 import numpy as np
 
-from cirq import value
+import matplotlib.pyplot as plt
+
+from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates
 
+if TYPE_CHECKING:
+    import cirq
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
@@ -85,8 +89,8 @@ def _group_similar(items: List[T],
   Returns:
     A list of groups of items.
   """
-    groups = []  # type: List[List[T]]
-    used = set()  # type: Set[int]
+    groups: List[List[T]] = []
+    used: Set[int] = set()
     for i in range(len(items)):
         if i not in used:
             group = [items[i]]
@@ -426,10 +430,12 @@ class KakDecomposition:
 
     def __init__(self,
                  *,
-                 global_phase: complex,
-                 single_qubit_operations_before: Tuple[np.ndarray, np.ndarray],
+                 global_phase: complex = complex(1),
+                 single_qubit_operations_before: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None,
                  interaction_coefficients: Tuple[float, float, float],
-                 single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
+                 single_qubit_operations_after: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None):
         """Initializes a decomposition for a two-qubit operation U.
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
@@ -440,18 +446,24 @@ class KakDecomposition:
             interaction_coefficients: x, y, z from the above equation.
             single_qubit_operations_after: a0, a1 from the above equation.
         """
-        self.global_phase = global_phase
-        self.single_qubit_operations_before = single_qubit_operations_before
+        self.global_phase: complex = global_phase
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after = single_qubit_operations_after
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
 
     def _value_equality_values_(self):
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
 
-        return (type(KakDecomposition),
-                self.global_phase,
-                tuple(self.interaction_coefficients),
+        return (self.global_phase, tuple(self.interaction_coefficients),
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
 
@@ -513,6 +525,136 @@ class KakDecomposition:
             interaction_matrix(y_mat, y),
             interaction_matrix(x_mat, x),
             before)
+
+
+def scatter_plot_normalized_kak_interaction_coefficients(
+        interactions: Iterable[
+            Union[np.ndarray, 'cirq.SupportsUnitary', 'KakDecomposition']],
+        *,
+        include_frame: bool = True,
+        ax: Optional[plt.Axes] = None,
+        **kwargs):
+    r"""Plots the interaction coefficients of many two-qubit operations.
+
+    Plots:
+        A point for the (x, y, z) normalized interaction coefficients of
+        each interaction from the given interactions. The (x, y, z) coordinates
+        are normalized so that the maximum value is at 1 instead of at pi/4.
+
+        If `include_frame` is set to True, then a black wireframe outline of the
+        canonicalized normalized KAK coefficient space. The space is defined by
+        the following two constraints:
+
+            0 <= abs(z) <= y <= x <= 1
+            if x = 1 then z >= 0
+
+        The wireframe includes lines along the surface of the space at z=0.
+
+        The space is a prism with the identity at the origin, a crease along
+        y=z=0 leading to the CZ/CNOT at x=1 and a vertical triangular face that
+        contains the iswap at x=y=1,z=0 and the swap at x=y=z=1:
+
+                                 (x=1,y=1,z=0)
+                             swap___iswap___swap (x=1,y=1,z=+-1)
+                               _/\    |    /
+                             _/   \   |   /
+                           _/      \  |  /
+                         _/         \ | /
+                       _/            \|/
+        (x=0,y=0,z=0) I---------------CZ (x=1,y=0,z=0)
+
+    Args:
+        interactions: An iterable of two qubit unitary interactions. Each
+            interaction can be specified as a raw 4x4 unitary matrix, or an
+            object with a 4x4 unitary matrix according to `cirq.unitary` (
+            (e.g. `cirq.CZ` or a `cirq.KakDecomposition` or a `cirq.Circuit`
+            over two qubits).
+        include_frame: Determines whether or not to draw the kak space
+            wireframe. Defaults to `True`.
+        ax: A matplotlib 3d axes object to plot into. If not specified, a new
+            figure is created, plotted, and shown.
+        kwargs: Arguments forwarded into the call to `scatter` that plots the
+            points. Working arguments include color `c='blue'`, scale `s=2`,
+            labelling `label="theta=pi/4"`, etc. For reference see the
+            `matplotlib.pyplot.scatter` documentation:
+            https://matplotlib.org/3.1.1/api/_as_gen/matplotlib.pyplot.scatter.html
+
+    Returns:
+        The matplotlib 3d axes object that was plotted into.
+
+    Examples:
+        >>> ax = None
+        >>> for y in np.linspace(0, 0.5, 4):
+        ...     a, b = cirq.LineQubit.range(2)
+        ...     circuits = [
+        ...         cirq.Circuit(
+        ...             cirq.CZ(a, b)**0.5,
+        ...             cirq.X(a)**y, cirq.X(b)**x,
+        ...             cirq.CZ(a, b)**0.5,
+        ...             cirq.X(a)**x, cirq.X(b)**y,
+        ...             cirq.CZ(a, b) ** 0.5,
+        ...         )
+        ...         for x in np.linspace(0, 1, 25)
+        ...     ]
+        ...     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(
+        ...         circuits,
+        ...         include_frame=ax is None,
+        ...         ax=ax,
+        ...         s=1,
+        ...         label=f'y={y:0.2f}')
+        >>> _ = ax.legend()
+        >>> import matplotlib.pyplot as plt
+        >>> plt.show()
+    """
+    show_plot = not ax
+    if not ax:
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+
+    def coord_transform(
+            pts: Sequence[Tuple[float, float, float]]
+    ) -> Tuple[Iterable[float], Iterable[float], Iterable[float]]:
+        if len(pts) == 0:
+            return [], [], []
+        xs, ys, zs = zip(*pts)
+        return xs, zs, ys
+
+    if include_frame:
+        envelope = [
+            (0, 0, 0),
+            (1, 1, 1),
+            (1, 1, -1),
+            (0, 0, 0),
+            (1, 1, 1),
+            (1, 0, 0),
+            (0, 0, 0),
+            (1, 1, -1),
+            (1, 0, 0),
+            (0, 0, 0),
+            (1, 0, 0),
+            (1, 1, 0),
+            (0, 0, 0),
+        ]
+        ax.plot(*coord_transform(envelope), c='black', linewidth=1)
+
+    # parse input and extract KAK vector
+    if not isinstance(interactions, np.ndarray):
+        interactions = [
+            a if isinstance(a, np.ndarray) else protocols.unitary(a)
+            for a in interactions
+        ]
+
+    points = kak_vector(interactions) * 4 / np.pi
+
+    ax.scatter(*coord_transform(points), **kwargs)
+    ax.set_xlim(0, +1)
+    ax.set_ylim(-1, +1)
+    ax.set_zlim(0, +1)
+
+    if show_plot:
+        fig.show()
+
+    return ax
 
 
 def kak_canonicalize_vector(x: float, y: float, z: float,
@@ -628,16 +770,35 @@ def kak_canonicalize_vector(x: float, y: float, z: float,
         single_qubit_operations_before=(right[1], right[0]))
 
 
-def kak_decomposition(
-        mat: np.ndarray,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> KakDecomposition:
+# yapf: disable
+KAK_MAGIC = np.array([[1, 0, 0, 1j],
+                      [0, 1j, 1, 0],
+                      [0, 1j, -1, 0],
+                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
+
+KAK_MAGIC_DAG = np.conjugate(np.transpose(KAK_MAGIC))
+KAK_GAMMA = np.array([[1, 1, 1, 1],
+                      [1, 1, -1, -1],
+                      [-1, 1, -1, 1],
+                      [1, -1, -1, 1]]) * 0.25
+# yapf: enable
+
+
+def kak_decomposition(unitary_object: Union[np.ndarray, 'cirq.SupportsUnitary'],
+                      *,
+                      rtol: float = 1e-5,
+                      atol: float = 1e-8,
+                      check_preconditions: bool = True) -> KakDecomposition:
     """Decomposes a 2-qubit unitary into 1-qubit ops and XX/YY/ZZ interactions.
 
     Args:
-        mat: The 4x4 unitary matrix to decompose.
+        unitary_object: The value to decompose. Can either be a 4x4 unitary
+            matrix, or an object that has a 4x4 unitary matrix (via the
+            `cirq.SupportsUnitary` protocol).
         rtol: Per-matrix-entry relative tolerance on equality.
         atol: Per-matrix-entry absolute tolerance on equality.
+        check_preconditions: If set, verifies that the input corresponds to a
+            4x4 unitary before decomposing.
 
     Returns:
         A `cirq.KakDecomposition` canonicalized such that the interaction
@@ -654,18 +815,21 @@ def kak_decomposition(
         'An Introduction to Cartan's KAK Decomposition for QC Programmers'
         https://arxiv.org/abs/quant-ph/0507171
     """
-    magic = np.array([[1, 0, 0, 1j],
-                      [0, 1j, 1, 0],
-                      [0, 1j, -1, 0],
-                      [1, 0, 0, -1j]]) * np.sqrt(0.5)
-    gamma = np.array([[1, 1, 1, 1],
-                      [1, 1, -1, -1],
-                      [-1, 1, -1, 1],
-                      [1, -1, -1, 1]]) * 0.25
+    if isinstance(unitary_object, KakDecomposition):
+        return unitary_object
+    if isinstance(unitary_object, np.ndarray):
+        mat = unitary_object
+    else:
+        mat = protocols.unitary(unitary_object)
+    if check_preconditions and (
+            mat.shape !=
+        (4, 4) or not predicates.is_unitary(mat, rtol=rtol, atol=atol)):
+        raise ValueError('Input must correspond to a 4x4 unitary matrix. '
+                         'Received matrix:\n' + str(mat))
 
     # Diagonalize in magic basis.
     left, d, right = diagonalize.bidiagonalize_unitary_with_special_orthogonals(
-        combinators.dot(np.conj(magic.T), mat, magic),
+        KAK_MAGIC_DAG @ mat @ KAK_MAGIC,
         atol=atol,
         rtol=rtol,
         check_preconditions=False)
@@ -679,7 +843,7 @@ def kak_decomposition(
                                atol=atol,
                                rtol=rtol,
                                check_preconditions=False)
-    w, x, y, z = gamma.dot(np.vstack(np.angle(d))).flatten()
+    w, x, y, z = (KAK_GAMMA @ np.vstack(np.angle(d))).flatten()
     g = np.exp(1j * w)
 
     # Canonicalize.
@@ -694,3 +858,147 @@ def kak_decomposition(
         global_phase=g * inner_cannon.global_phase,
         single_qubit_operations_before=(b1, b0),
         single_qubit_operations_after=(a1, a0))
+
+
+def kak_vector(unitary: Union[Iterable[np.ndarray], np.ndarray],
+               *,
+               rtol: float = 1e-5,
+               atol: float = 1e-8,
+               check_preconditions: bool = True) -> np.ndarray:
+    r"""Compute the KAK vectors of one or more two qubit unitaries.
+
+    Any 2 qubit unitary may be expressed as
+
+    $$ U = k_l A k_r $$
+    where $k_l, k_r$ are single qubit (local) unitaries and
+
+    $$ A= \exp \left(i \sum_{s=x,y,z} k_s \sigma_{s}^{(0)} \sigma_{s}^{(1)}
+                 \right) $$
+
+    The vector entries are ordered such that
+        $$ 0 ≤ |k_z| ≤ k_y ≤ k_x ≤ π/4 $$
+    if $k_x$ = π/4, $k_z \geq 0$.
+
+    Args:
+        unitary: A unitary matrix, or a multi-dimensional array of unitary
+            matrices. Must have shape (..., 4, 4), where the last two axes are
+            for the unitary matrix and other axes are for broadcasting the kak
+            vector computation.
+        rtol: Per-matrix-entry relative tolerance on equality. Used in unitarity
+            check of input.
+        atol: Per-matrix-entry absolute tolerance on equality. Used in unitarity
+            check of input. This also determines how close $k_x$ must be to π/4
+            to guarantee $k_z$ ≥ 0. Must be non-negative.
+        check_preconditions: When set to False, skips verifying that the input
+            is unitary in order to increase performance.
+
+    Returns:
+        The KAK vector of the given unitary or unitaries. The output shape is
+        the same as the input shape, except the two unitary matrix axes are
+        replaced by the kak vector axis (i.e. the output has shape
+        `unitary.shape[:-2] + (3,)`).
+
+    References:
+        The appendix section of "Lower bounds on the complexity of simulating
+        quantum gates".
+        http://arxiv.org/abs/quant-ph/0307190v1
+
+    Examples:
+        >>> cirq.kak_vector(np.eye(4))
+        array([0., 0., 0.])
+        >>> unitaries = [cirq.unitary(cirq.CZ),cirq.unitary(cirq.ISWAP)]
+        >>> cirq.kak_vector(unitaries) * 4 / np.pi
+        array([[ 1.,  0., -0.],
+               [ 1.,  1.,  0.]])
+    """
+    unitary = np.asarray(unitary)
+    if len(unitary) == 0:
+        return np.zeros(shape=(0, 3), dtype=np.float64)
+
+    if unitary.ndim < 2 or unitary.shape[-2:] != (4, 4):
+        raise ValueError(f'Expected input unitary to have shape (...,4,4), but'
+                         f'got {unitary.shape}.')
+
+    if atol < 0:
+        raise ValueError(f'Input atol must be positive, got {atol}.')
+
+    if check_preconditions:
+        actual = np.einsum('...ba,...bc', unitary.conj(), unitary) - np.eye(4)
+        if not np.allclose(actual, np.zeros_like(actual), rtol, atol):
+            raise ValueError(
+                'Input must correspond to a 4x4 unitary matrix or tensor of '
+                f'unitary matrices. Received input:\n{unitary}')
+
+    UB = np.einsum('...ab,...bc,...cd', MAGIC_CONJ_T, unitary, MAGIC)
+
+    m = np.einsum('...ab,...cb', UB, UB)
+
+    evals, _ = np.linalg.eig(m)
+
+    # The algorithm in the appendix mentioned above is slightly incorrect in
+    # that it only works for elements of SU(4). A phase correction must be
+    # added to deal with U(4).
+    phases = np.log(-1j * np.linalg.det(unitary)).imag + np.pi / 2
+    evals *= np.exp(-1j * phases / 2)[..., np.newaxis]
+
+    # The following steps follow the appendix exactly.
+    S2 = np.log(-1j * evals).imag + np.pi / 2
+    S2 = np.sort(S2, axis=-1)[..., ::-1]
+
+    n_shifted = (np.round(S2.sum(axis=-1) / (2 * np.pi))).astype(int)
+    for n in range(1, 5):
+        S2[n_shifted == n, :n] -= 2 * np.pi
+
+    # Fix pathological case of SWAP gate
+    S2[n_shifted == -1, :3] += 2 * np.pi
+
+    k_vec = (np.einsum('ab,...b', KAK_GAMMA, S2))[..., 1:] / 2
+
+    return _canonicalize_kak_vector(k_vec, atol)
+
+
+def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
+    r"""Map a KAK vector into its Weyl chamber equivalent vector.
+
+    This implementation is vectorized but does not produce the single qubit
+    unitaries required to bring the KAK vector into canonical form.
+
+    Args:
+        k_vec: THe KAK vector to be canonicalized. This input may be vectorized,
+            with shape (...,3), where the final axis denotes the k_vector and
+            all other axes are broadcast.
+        atol: How close x2 must be to π/4 to guarantee z2 >= 0.
+
+    Returns:
+        The canonicalized decomposition, with vector coefficients (x2, y2, z2)
+        satisfying:
+
+            0 ≤ abs(z2) ≤ y2 ≤ x2 ≤ π/4
+            if x2 = π/4, z2 >= 0
+        The output is vectorized, with shape k_vec.shape[:-1] + (3,).
+    """
+
+    # Get all strengths to (-¼π, ¼π]
+    k_vec = np.mod(k_vec + np.pi / 4, np.pi / 2) - np.pi / 4
+
+    # Sort in descending order with respect to absolute value.
+    order = np.argsort(np.abs(k_vec), axis=-1)
+    k_vec = np.take_along_axis(k_vec, order, axis=-1)[..., ::-1]
+
+    # Multiply x,z and y,z components by -1 to fix x,y sign.
+    x_negative = k_vec[..., 0] < 0
+    k_vec[x_negative, 0] *= -1
+    k_vec[x_negative, 2] *= -1
+    y_negative = k_vec[..., 1] < 0
+    k_vec[y_negative, 1] *= -1
+    k_vec[y_negative, 2] *= -1
+
+    # If x = π/4, force z to be positive.
+    x_is_pi_over_4 = np.isclose(k_vec[..., 0], np.pi / 4, atol=atol)
+    z_is_negative = k_vec[..., 2] < 0
+    need_diff = np.logical_and(x_is_pi_over_4, z_is_negative)
+    # -1 to x and z components, then shift x up by pi/2. Since x is pi/4, we
+    # actually do nothing to that index.
+    k_vec[need_diff, 2] *= -1
+
+    return k_vec

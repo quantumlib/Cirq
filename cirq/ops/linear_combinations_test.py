@@ -17,6 +17,7 @@ from typing import Union
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -119,6 +120,83 @@ def test_linear_combination_of_gates_has_correct_pauli_expansion(
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
+@pytest.mark.parametrize('terms, exponent, expected_terms', (
+    ({
+        cirq.X: 1,
+    }, 2, {
+        cirq.I: 1,
+    }),
+    ({
+        cirq.X: 1,
+    }, 3, {
+        cirq.X: 1,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 10, {
+        cirq.I: 2**-10,
+    }),
+    ({
+        cirq.Y: 0.5,
+    }, 11, {
+        cirq.Y: 2**-11,
+    }),
+    ({
+        cirq.I: 1,
+        cirq.X: 2,
+        cirq.Y: 3,
+        cirq.Z: 4,
+    }, 2, {
+        cirq.I: 30,
+        cirq.X: 4,
+        cirq.Y: 6,
+        cirq.Z: 8,
+    }),
+    ({
+        cirq.X: 1,
+        cirq.Y: 1j,
+    }, 2, {}),
+    ({
+        cirq.X: 0.4,
+        cirq.Y: 0.4,
+    }, 0, {
+        cirq.I: 1,
+    }),
+))
+def test_linear_combinations_of_gates_valid_powers(terms, exponent,
+                                                   expected_terms):
+    combination = cirq.LinearCombinationOfGates(terms)
+    actual_result = combination**exponent
+    expected_result = cirq.LinearCombinationOfGates(expected_terms)
+    assert cirq.approx_eq(actual_result, expected_result)
+    assert len(actual_result) == len(expected_terms)
+
+
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
+        cirq.H: 1,
+    }, 2),
+    ({
+        cirq.CNOT: 2,
+    }, 2),
+    ({
+        cirq.X: 1,
+        cirq.S: -1,
+    }, 2),
+    ({
+        cirq.X: 1,
+    }, -1),
+    ({
+        cirq.Y: 1,
+    }, sympy.Symbol('k')),
+))
+def test_linear_combinations_of_gates_invalid_powers(terms, exponent):
+    combination = cirq.LinearCombinationOfGates(terms)
+    with pytest.raises(TypeError):
+        _ = combination**exponent
+
+
 def get_matrix(operator: Union[cirq.Gate, cirq.GateOperation, cirq.
                                LinearCombinationOfGates, cirq.
                                LinearCombinationOfOperations]) -> np.ndarray:
@@ -134,6 +212,11 @@ def assert_linear_combinations_are_equal(
                       LinearCombinationOfOperations],
         expected: Union[cirq.LinearCombinationOfGates, cirq.
                         LinearCombinationOfOperations]) -> None:
+    if not actual and not expected:
+        assert len(actual) == 0
+        assert len(expected) == 0
+        return
+
     actual_matrix = get_matrix(actual)
     expected_matrix = get_matrix(expected)
     assert np.allclose(actual_matrix, expected_matrix)
@@ -150,16 +233,25 @@ def assert_linear_combinations_are_equal(
     (cirq.X - cirq.Y, -cirq.Y + cirq.X),
     (cirq.X + cirq.S - cirq.X, cirq.S),
     (cirq.Y - 2 * cirq.Y, -cirq.Y),
-    (cirq.Rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
+    (cirq.rx(0.2), np.cos(0.1) * cirq.I - 1j * np.sin(0.1) * cirq.X),
     (1j * cirq.H * 1j, -cirq.H),
-    (-1j * cirq.Y, cirq.Ry(np.pi)),
-    (np.sqrt(-1j) * cirq.S, cirq.Rz(np.pi / 2)),
+    (-1j * cirq.Y, cirq.ry(np.pi)),
+    (np.sqrt(-1j) * cirq.S, cirq.rz(np.pi / 2)),
     (0.5 * (cirq.IdentityGate(2) + cirq.XX + cirq.YY + cirq.ZZ), cirq.SWAP),
-    ((cirq.IdentityGate(2) + 1j * (cirq.XX + cirq.YY) + cirq.ZZ) / 2,
-        cirq.ISWAP),
+    ((cirq.IdentityGate(2) + 1j *
+      (cirq.XX + cirq.YY) + cirq.ZZ) / 2, cirq.ISWAP),
     (cirq.CNOT + 0 * cirq.SWAP, cirq.CNOT),
     (0.5 * cirq.FREDKIN, cirq.FREDKIN / 2),
     (cirq.FREDKIN * 0.5, cirq.FREDKIN / 2),
+    (((cirq.X + cirq.Y) / np.sqrt(2))**2, cirq.I),
+    ((cirq.X + cirq.Z)**3, 2 * (cirq.X + cirq.Z)),
+    ((cirq.X + 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    ((cirq.X - 1j * cirq.Y)**2, cirq.LinearCombinationOfGates({})),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**24, cirq.I),
+    (((3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13)**25,
+     (3 * cirq.X - 4 * cirq.Y + 12 * cirq.Z) / 13),
+    ((cirq.X + cirq.Y + cirq.Z)**0, cirq.I),
+    ((cirq.X - 1j * cirq.Y)**0, cirq.I),
 ))
 def test_gate_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
@@ -544,6 +636,87 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
         assert abs(actual_expansion[name] - expected_expansion[name]) < 1e-12
 
 
+@pytest.mark.parametrize('terms, exponent, expected_terms', (
+    ({
+        cirq.X(q0): 1,
+    }, 2, {
+        cirq.I(q0): 1,
+    }),
+    ({
+        cirq.X(q0): 1,
+    }, 3, {
+        cirq.X(q0): 1,
+    }),
+    ({
+        cirq.Y(q0): 0.5,
+    }, 10, {
+        cirq.I(q0): 2**-10,
+    }),
+    ({
+        cirq.Y(q0): 0.5,
+    }, 11, {
+        cirq.Y(q0): 2**-11,
+    }),
+    ({
+        cirq.I(q0): 1,
+        cirq.X(q0): 2,
+        cirq.Y(q0): 3,
+        cirq.Z(q0): 4,
+    }, 2, {
+        cirq.I(q0): 30,
+        cirq.X(q0): 4,
+        cirq.Y(q0): 6,
+        cirq.Z(q0): 8,
+    }),
+    ({
+        cirq.X(q0): 1,
+        cirq.Y(q0): 1j,
+    }, 2, {}),
+    ({
+        cirq.Y(q1): 2,
+        cirq.Z(q1): 3,
+    }, 0, {
+        cirq.I(q1): 1,
+    }),
+))
+def test_linear_combinations_of_operations_valid_powers(terms, exponent,
+                                                        expected_terms):
+    combination = cirq.LinearCombinationOfOperations(terms)
+    actual_result = combination**exponent
+    expected_result = cirq.LinearCombinationOfOperations(expected_terms)
+    assert cirq.approx_eq(actual_result, expected_result)
+    assert len(actual_result) == len(expected_terms)
+
+
+@pytest.mark.parametrize('terms, exponent', (
+    ({}, 2),
+    ({
+        cirq.H(q0): 1,
+    }, 2),
+    ({
+        cirq.CNOT(q0, q1): 2,
+    }, 2),
+    ({
+        cirq.X(q0): 1,
+        cirq.S(q0): -1,
+    }, 2),
+    ({
+        cirq.X(q0): 1,
+        cirq.Y(q1): 1,
+    }, 2),
+    ({
+        cirq.Z(q0): 1,
+    }, -1),
+    ({
+        cirq.X(q0): 1,
+    }, sympy.Symbol('k')),
+))
+def test_linear_combinations_of_operations_invalid_powers(terms, exponent):
+    combination = cirq.LinearCombinationOfOperations(terms)
+    with pytest.raises(TypeError):
+        _ = combination**exponent
+
+
 @pytest.mark.parametrize('expression, expected_result', (
     (cirq.LinearCombinationOfOperations({cirq.XX(q0, q1): 2}),
      cirq.LinearCombinationOfOperations(
@@ -559,6 +732,46 @@ def test_linear_combination_of_operations_has_correct_pauli_expansion(
                  q1: cirq.X,
              }): -1
          })),
+    (cirq.LinearCombinationOfOperations({cirq.X(q0): 1})**
+     2, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): np.sqrt(0.5),
+        cirq.Y(q0): np.sqrt(0.5)
+    })**2, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 1,
+        cirq.Z(q0): 1
+    })**3, cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 2,
+        cirq.Z(q0): 2
+    })),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 1j,
+        cirq.Y(q0): 1
+    })**2, cirq.LinearCombinationOfOperations({})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): -1j,
+        cirq.Y(q0): 1
+    })**2, cirq.LinearCombinationOfOperations({})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 3 / 13,
+        cirq.Y(q0): -4 / 13,
+        cirq.Z(q0): 12 / 13
+    })**24, cirq.LinearCombinationOfOperations({cirq.I(q0): 1})),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q0): 3 / 13,
+        cirq.Y(q0): -4 / 13,
+        cirq.Z(q0): 12 / 13
+    })**25,
+     cirq.LinearCombinationOfOperations({
+         cirq.X(q0): 3 / 13,
+         cirq.Y(q0): -4 / 13,
+         cirq.Z(q0): 12 / 13
+     })),
+    (cirq.LinearCombinationOfOperations({
+        cirq.X(q1): 2,
+        cirq.Z(q1): 3
+    })**0, cirq.LinearCombinationOfOperations({cirq.I(q1): 1})),
 ))
 def test_operation_expressions(expression, expected_result):
     assert_linear_combinations_are_equal(expression, expected_result)
@@ -577,6 +790,16 @@ def test_pauli_sum_construction():
 
     zero = cirq.PauliSum()
     assert len(zero) == 0
+
+
+@pytest.mark.parametrize('psum, expected_qubits', (
+    (cirq.Z(q1), (q1,)),
+    (cirq.X(q0) + cirq.Y(q0), (q0,)),
+    (cirq.X(q0) + cirq.Y(q2), (q0, q2)),
+    (cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), (q0, q1, q3)),
+))
+def test_pauli_sum_qubits(psum, expected_qubits):
+    assert psum.qubits == expected_qubits
 
 
 def test_pauli_sum_from_single_pauli():
@@ -731,7 +954,6 @@ def test_bad_arithmetic():
 
     with pytest.raises(TypeError):
         _ = psum - 'hi mom'
-
     with pytest.raises(TypeError):
         psum *= [1, 2, 3]
 
@@ -743,3 +965,359 @@ def test_bad_arithmetic():
 
     with pytest.raises(TypeError):
         _ = psum / [1, 2, 3]
+
+    with pytest.raises(TypeError):
+        _ = psum**1.2
+
+    with pytest.raises(TypeError):
+        _ = psum**-2
+
+    with pytest.raises(TypeError):
+        _ = psum**"string"
+
+
+def test_paulisum_mul_paulistring():
+    q0, q1 = cirq.LineQubit.range(2)
+
+    psum1 = cirq.X(q0) + 2 * cirq.Y(q0) + 3 * cirq.Z(q0)
+    x0 = cirq.PauliString(cirq.X(q0))
+    y1 = cirq.PauliString(cirq.Y(q1))
+    assert x0 * psum1 == cirq.PauliString(cirq.I(q0)) \
+                         + 2j * cirq.PauliString(cirq.Z(q0)) \
+                         - 3j * cirq.PauliString(cirq.Y(q0))
+    assert y1 * psum1 == cirq.PauliString(cirq.X(q0) * cirq.Y(q1)) \
+                         + 2 * cirq.PauliString(cirq.Y(q0) * cirq.Y(q1)) \
+                         + 3 * cirq.PauliString(cirq.Z(q0) * cirq.Y(q1))
+    assert cirq.PauliString(cirq.I(q0)) * psum1 == psum1
+    assert psum1 * x0 == cirq.PauliString(cirq.I(q0)) \
+                         - 2j * cirq.PauliString(cirq.Z(q0)) \
+                         + 3j * cirq.PauliString(cirq.Y(q0))
+    assert psum1 * y1 == y1 * psum1
+
+    psum1 *= cirq.Z(q0)
+    assert psum1 == -1j * cirq.Y(q0) + 2j * cirq.X(q0) + 3
+
+
+def test_paulisum_mul_paulisum():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+
+    psum1 = cirq.X(q0) + 2 * cirq.Y(q0) * cirq.Y(q1)
+    psum2 = cirq.X(q0) * cirq.Y(q1) + 3 * cirq.Z(q2)
+    assert psum1 * psum2 == cirq.Y(q1) + 3 * cirq.X(q0) * cirq.Z(q2) \
+                            - 2j * cirq.Z(q0) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Z(q2)
+    assert psum2 * psum1 == cirq.Y(q1) + 3 * cirq.X(q0) * cirq.Z(q2) \
+                            + 2j * cirq.Z(q0) \
+                            + 6 * cirq.Y(q0) * cirq.Y(q1) * cirq.Z(q2)
+    psum3 = cirq.X(q1) + cirq.X(q2)
+    psum1 *= psum3
+    assert psum1 == cirq.X(q0) * cirq.X(q1) - 2j * cirq.Y(q0) * cirq.Z(q1) \
+        + cirq.X(q0) * cirq.X(q2) + 2 * cirq.Y(q0) * cirq.Y(q1) * cirq.X(q2)
+
+    psum4 = cirq.X(q0) + cirq.Y(q0) + cirq.Z(q1)
+    psum5 = cirq.Z(q0) + cirq.Y(q0) + cirq.PauliString(coefficient=1.2)
+    assert psum4 * psum5 == -1j * cirq.Y(q0) + 1j * (cirq.X(q0) + cirq.Z(q0)) \
+                            + (cirq.Z(q0) + cirq.Y(q0)) * cirq.Z(q1) + 1 \
+                            + 1.2 * psum4
+    assert psum5 * psum4 == 1j * cirq.Y(q0) + -1j * (cirq.X(q0) + cirq.Z(q0)) \
+                            + (cirq.Z(q0) + cirq.Y(q0)) * cirq.Z(q1) + 1 \
+                            + 1.2 * psum4
+
+
+def test_pauli_sum_pow():
+    identity = cirq.PauliSum.from_pauli_strings(
+        [cirq.PauliString(coefficient=1)])
+    psum1 = cirq.X(q0) + cirq.Y(q0)
+    assert psum1**2 == psum1 * psum1
+    assert psum1**2 == 2 * identity
+
+    psum2 = cirq.X(q0) + cirq.Y(q1)
+    assert psum2**2 == cirq.PauliString(
+        cirq.I(q0)) + 2 * cirq.X(q0) * cirq.Y(q1) + cirq.PauliString(cirq.I(q1))
+
+    psum3 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q0)
+    sqd = cirq.PauliSum.from_pauli_strings(
+        [2.69 * cirq.PauliString(cirq.I(q0))])
+    assert cirq.approx_eq(psum3**2, sqd, atol=1e-8)
+
+    psum4 = cirq.X(q0) * cirq.Z(q1) + 1.3 * cirq.Z(q1)
+    sqd2 = cirq.PauliSum.from_pauli_strings(
+        [2.69 * cirq.PauliString(cirq.I(q0)), 2.6 * cirq.X(q0)])
+    assert cirq.approx_eq(psum4**2, sqd2, atol=1e-8)
+
+    for psum in [psum1, psum2, psum3, psum4]:
+        assert cirq.approx_eq(psum**0, identity)
+
+
+def test_imul_aliasing():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    psum1 = cirq.X(q0) + cirq.Y(q1)
+    psum2 = psum1
+    psum2 *= (cirq.X(q0) * cirq.Y(q2))
+    assert psum1 is psum2
+    assert psum1 == psum2
+
+
+def test_expectation_from_wavefunction_invalid_input():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q3: 2}
+    wf = np.array([1, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+
+    im_psum = (1j + 1) * psum
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_psum.expectation_from_wavefunction(wf, q_map)
+
+    with pytest.raises(TypeError, match='dtype'):
+        psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.int),
+                                           q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_wavefunction(wf, "bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_wavefunction(wf, {"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_wavefunction(wf, {q0: "bad value"})
+    with pytest.raises(ValueError, match='complete'):
+        psum.expectation_from_wavefunction(wf, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        psum.expectation_from_wavefunction(wf, {q0: 0, q2: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_wavefunction(wf, {q0: -1, q1: 1, q3: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_wavefunction(wf, {q0: 0, q1: 3, q3: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_wavefunction(wf, {q0: 0, q1: 0, q3: 2})
+
+    with pytest.raises(ValueError, match='9'):
+        psum.expectation_from_wavefunction(np.arange(9, dtype=np.complex64),
+                                           q_map)
+    q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
+    with pytest.raises(ValueError, match='normalized'):
+        psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                           q_map_2)
+
+    wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_wavefunction(wf.reshape((16, 1)), q_map_2)
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
+
+
+def test_expectation_from_wavefunction_check_preconditions():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q2: 2, q3: 3}
+
+    with pytest.raises(ValueError, match='normalized'):
+        psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                           q_map)
+
+    _ = psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+                                           q_map,
+                                           check_preconditions=False)
+
+
+def test_expectation_from_wavefunction_basis_states():
+    q = cirq.LineQubit.range(2)
+    psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
+    q_map = {x: i for i, x in enumerate(q)}
+
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), 1)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), -1)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, 1j], dtype=np.complex) /
+                                           np.sqrt(2),
+                                           qubit_map=q_map), 2)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(
+            np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map),
+        -2)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
+                                           qubit_map=q_map), 3)
+    np.testing.assert_allclose(
+        psum.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
+                                           qubit_map=q_map), -3)
+
+
+def test_expectation_from_wavefunction_two_qubit_states():
+    q = cirq.LineQubit.range(2)
+    q_map = {x: i for i, x in enumerate(q)}
+
+    psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
+    psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
+    wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
+    for state in [wf1, wf1.reshape(2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_wavefunction(
+            state, qubit_map=q_map),
+                                   -2.2,
+                                   atol=1e-7)
+        np.testing.assert_allclose(psum2.expectation_from_wavefunction(
+            state, qubit_map=q_map),
+                                   0,
+                                   atol=1e-7)
+
+    wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    for state in [wf2, wf2.reshape(2, 2)]:
+        np.testing.assert_allclose(psum1.expectation_from_wavefunction(
+            state, qubit_map=q_map),
+                                   0,
+                                   atol=1e-7)
+        np.testing.assert_allclose(psum2.expectation_from_wavefunction(
+            state, qubit_map=q_map),
+                                   1,
+                                   atol=1e-7)
+
+    psum3 = cirq.Z(q[0]) + cirq.X(q[1])
+    wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
+    q_map_2 = {q0: 1, q1: 0}
+    for state in [wf3, wf3.reshape(2, 2)]:
+        np.testing.assert_allclose(psum3.expectation_from_wavefunction(
+            state, qubit_map=q_map),
+                                   2,
+                                   atol=1e-7)
+        np.testing.assert_allclose(psum3.expectation_from_wavefunction(
+            state, qubit_map=q_map_2),
+                                   0,
+                                   atol=1e-7)
+
+
+def test_expectation_from_density_matrix_invalid_input():
+    q0, q1, q2, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q3: 2}
+    wf = np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    rho = np.kron(wf.conjugate().T, wf).reshape(8, 8)
+
+    im_psum = (1j + 1) * psum
+    with pytest.raises(NotImplementedError, match='non-Hermitian'):
+        im_psum.expectation_from_density_matrix(rho, q_map)
+
+    with pytest.raises(TypeError, match='dtype'):
+        psum.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int),
+                                             q_map)
+
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_density_matrix(rho, "bad type")
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_density_matrix(rho, {"bad key": 1})
+    with pytest.raises(TypeError, match='mapping'):
+        psum.expectation_from_density_matrix(rho, {q0: "bad value"})
+    with pytest.raises(ValueError, match='complete'):
+        psum.expectation_from_density_matrix(rho, {q0: 0})
+    with pytest.raises(ValueError, match='complete'):
+        psum.expectation_from_density_matrix(rho, {q0: 0, q2: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_density_matrix(rho, {q0: -1, q1: 1, q3: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_density_matrix(rho, {q0: 0, q1: 3, q3: 2})
+    with pytest.raises(ValueError, match='indices'):
+        psum.expectation_from_density_matrix(rho, {q0: 0, q1: 0, q3: 2})
+
+    with pytest.raises(ValueError, match='hermitian'):
+        psum.expectation_from_density_matrix(1j * np.eye(8), q_map)
+    with pytest.raises(ValueError, match='trace'):
+        psum.expectation_from_density_matrix(np.eye(8, dtype=np.complex64),
+                                             q_map)
+
+    not_psd = np.zeros((8, 8), dtype=np.complex64)
+    not_psd[0, 0] = 1.1
+    not_psd[1, 1] = -0.1
+    with pytest.raises(ValueError, match='semidefinite'):
+        psum.expectation_from_density_matrix(not_psd, q_map)
+
+    not_square = np.ones((8, 9), dtype=np.complex64)
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_density_matrix(not_square, q_map)
+    bad_wf = np.zeros(128, dtype=np.complex64)
+    bad_wf[0] = 1
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_density_matrix(bad_wf, q_map)
+
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_density_matrix(rho.reshape((8, 8, 1)), q_map)
+    with pytest.raises(ValueError, match='shape'):
+        psum.expectation_from_density_matrix(rho.reshape((-1)), q_map)
+
+
+def test_expectation_from_density_matrix_check_preconditions():
+    q0, q1, _, q3 = cirq.LineQubit.range(4)
+    psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
+    q_map = {q0: 0, q1: 1, q3: 2}
+    not_psd = np.zeros((8, 8), dtype=np.complex64)
+    not_psd[0, 0] = 1.1
+    not_psd[1, 1] = -0.1
+
+    with pytest.raises(ValueError, match='semidefinite'):
+        psum.expectation_from_density_matrix(not_psd, q_map)
+
+    _ = psum.expectation_from_density_matrix(not_psd,
+                                             q_map,
+                                             check_preconditions=False)
+
+
+def test_expectation_from_density_matrix_basis_states():
+    q = cirq.LineQubit.range(2)
+    psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
+    q_map = {x: i for i, x in enumerate(q)}
+
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[1, 1], [1, 1]], dtype=np.complex) / 2, q_map), 1)
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[1, -1], [-1, 1]], dtype=np.complex) / 2, q_map), -1)
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[1, -1j], [1j, 1]], dtype=np.complex) / 2,
+            qubit_map=q_map), 2)
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[1, 1j], [-1j, 1]], dtype=np.complex) / 2,
+            qubit_map=q_map), -2)
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[1, 0], [0, 0]], dtype=np.complex), q_map), 3)
+    np.testing.assert_allclose(
+        psum.expectation_from_density_matrix(
+            np.array([[0, 0], [0, 1]], dtype=np.complex), q_map), -3)
+
+
+def test_expectation_from_density_matrix_two_qubit_states():
+    q = cirq.LineQubit.range(2)
+    q_map = {x: i for i, x in enumerate(q)}
+
+    psum1 = cirq.Z(q[0]) + 3.2 * cirq.Z(q[1])
+    psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
+    wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
+    rho1 = np.kron(wf1, wf1).reshape(4, 4)
+    for state in [rho1, rho1.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            psum1.expectation_from_density_matrix(state, qubit_map=q_map), -2.2)
+        np.testing.assert_allclose(
+            psum2.expectation_from_density_matrix(state, qubit_map=q_map), 0)
+
+    wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
+    rho2 = np.kron(wf2, wf2).reshape(4, 4)
+    for state in [rho2, rho2.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            psum1.expectation_from_density_matrix(state, qubit_map=q_map), 0)
+        np.testing.assert_allclose(
+            psum2.expectation_from_density_matrix(state, qubit_map=q_map), 1)
+
+    psum3 = cirq.Z(q[0]) + cirq.X(q[1])
+    wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
+    rho3 = np.kron(wf3, wf3).reshape(4, 4)
+    q_map_2 = {q0: 1, q1: 0}
+    for state in [rho3, rho3.reshape(2, 2, 2, 2)]:
+        np.testing.assert_allclose(
+            psum3.expectation_from_density_matrix(state, qubit_map=q_map), 2)
+        np.testing.assert_allclose(
+            psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0)

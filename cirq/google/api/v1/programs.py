@@ -12,22 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import json
-from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    Union)
+from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Iterator)
 import numpy as np
 import sympy
 
-from cirq import devices, ops, protocols
-from cirq.schedules import Schedule, ScheduledOperation
-from cirq.value import Timestamp
+from cirq import devices, ops, protocols, value, circuits
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Optional
-    from cirq.google import xmon_device
+    import cirq
 
 
-def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
+def _load_json_bool(b: Any):
+    """Converts a json field to bool.  If already a bool, pass through."""
+    if isinstance(b, bool):
+        return b
+    return json.loads(b)
+
+
+def gate_to_proto_dict(gate: 'cirq.Gate',
+                       qubits: Tuple['cirq.Qid', ...]) -> Dict:
     if isinstance(gate, ops.MeasurementGate):
         return _measure_to_proto_dict(gate, qubits)
 
@@ -64,27 +68,27 @@ def gate_to_proto_dict(gate: ops.Gate, qubits: Tuple[ops.Qid, ...]) -> Dict:
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
-def _x_to_proto_dict(gate: ops.XPowGate, q: ops.Qid) -> Dict:
+def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns': _parameterized_value_to_proto_dict(0),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_w': exp_w}
 
 
-def _y_to_proto_dict(gate: ops.YPowGate, q: ops.Qid) -> Dict:
+def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_w': exp_w}
 
 
-def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
+def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
     exp_w = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'axis_half_turns':
         _parameterized_value_to_proto_dict(gate.phase_exponent),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
@@ -92,25 +96,33 @@ def _phased_x_to_proto_dict(gate: ops.PhasedXPowGate, q: ops.Qid) -> Dict:
     return {'exp_w': exp_w}
 
 
-def _z_to_proto_dict(gate: ops.ZPowGate, q: ops.Qid) -> Dict:
+def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
     exp_z = {
-        'target': cast(devices.GridQubit, q).to_proto_dict(),
+        'target': _qubit_to_proto_dict(q),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
     }
     return {'exp_z': exp_z}
 
 
-def _cz_to_proto_dict(gate: ops.CZPowGate, p: ops.Qid, q: ops.Qid) -> Dict:
+def _cz_to_proto_dict(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
+                      q: 'cirq.Qid') -> Dict:
     exp_11 = {
-        'target1': cast(devices.GridQubit, p).to_proto_dict(),
-        'target2': cast(devices.GridQubit, q).to_proto_dict(),
+        'target1': _qubit_to_proto_dict(p),
+        'target2': _qubit_to_proto_dict(q),
         'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
     }
     return {'exp_11': exp_11}
 
 
-def _measure_to_proto_dict(gate: ops.MeasurementGate,
-                           qubits: Sequence[ops.Qid]):
+def _qubit_to_proto_dict(qubit):
+    return {
+        'row': qubit.row,
+        'col': qubit.col,
+    }
+
+
+def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
+                           qubits: Sequence['cirq.Qid']):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
@@ -123,7 +135,7 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
         raise ValueError('Measurement gate had invert mask of length '
                          'different than number of qubits it acts on.')
     measurement = {
-        'targets': [cast(devices.GridQubit, q).to_proto_dict() for q in qubits],
+        'targets': [_qubit_to_proto_dict(q) for q in qubits],
         'key': protocols.measurement_key(gate),
     }
     if invert_mask:
@@ -131,50 +143,40 @@ def _measure_to_proto_dict(gate: ops.MeasurementGate,
     return {'measurement': measurement}
 
 
-def schedule_to_proto_dicts(schedule: Schedule) -> Iterable[Dict]:
-    """Convert a schedule into an iterable of proto dictionaries.
+def circuit_as_schedule_to_proto_dicts(circuit: 'cirq.Circuit'
+                                      ) -> Iterator[Dict]:
+    """Convert a circuit into an iterable of proto dictionaries.
 
     Args:
-        schedule: The schedule to convert to a proto dict. Must contain only
+        circuit: The circuit to convert to a proto dict. Must contain only
             gates that can be cast to xmon gates.
 
     Yields:
         A proto dictionary corresponding to an Operation proto.
     """
-    last_time_picos = None  # type: Optional[int]
-    for so in schedule.scheduled_operations:
-        op = gate_to_proto_dict(
-            cast(ops.GateOperation, so.operation).gate, so.operation.qubits)
-        time_picos = so.time.raw_picos()
-        if last_time_picos is None:
-            op['incremental_delay_picoseconds'] = time_picos
+    last_picos: Optional[int] = None
+    time_picos = 0
+    for op in circuit.all_operations():
+        proto = gate_to_proto_dict(cast(ops.Gate, op.gate), op.qubits)
+        if last_picos is None:
+            proto['incremental_delay_picoseconds'] = time_picos
         else:
-            op['incremental_delay_picoseconds'] = time_picos - last_time_picos
-        last_time_picos = time_picos
-        yield op
+            proto['incremental_delay_picoseconds'] = time_picos - last_picos
+        time_picos += 1
+        last_picos = time_picos
+        yield proto
 
 
-def schedule_from_proto_dicts(
-        device: 'xmon_device.XmonDevice',
+def circuit_from_schedule_from_proto_dicts(
+        device: 'cirq.google.XmonDevice',
         ops: Iterable[Dict],
-) -> Schedule:
-    """Convert proto dictionaries into a Schedule for the given device."""
-    scheduled_ops = []
-    last_time_picos = 0
+) -> 'cirq.Circuit':
+    """Convert proto dictionaries into a Circuit for the given device."""
+    result = []
     for op in ops:
-        delay_picos = 0
-        if 'incremental_delay_picoseconds' in op:
-            delay_picos = op['incremental_delay_picoseconds']
-        time_picos = last_time_picos + delay_picos
-        last_time_picos = time_picos
         xmon_op = xmon_op_from_proto_dict(op)
-        scheduled_ops.append(
-            ScheduledOperation.op_at_on(
-                operation=xmon_op,
-                time=Timestamp(picos=time_picos),
-                device=device,
-            ))
-    return Schedule(device, scheduled_ops)
+        result.append(xmon_op)
+    return circuits.Circuit(result, device=device)
 
 
 def pack_results(measurements: Sequence[Tuple[str, np.ndarray]]) -> bytes:
@@ -251,7 +253,7 @@ def unpack_results(data: bytes, repetitions: int,
     return results
 
 
-def is_native_xmon_op(op: ops.Operation) -> bool:
+def is_native_xmon_op(op: 'cirq.Operation') -> bool:
     """Check if the gate corresponding to an operation is a native xmon gate.
 
     Args:
@@ -263,7 +265,7 @@ def is_native_xmon_op(op: ops.Operation) -> bool:
     return (isinstance(op, ops.GateOperation) and is_native_xmon_gate(op.gate))
 
 
-def is_native_xmon_gate(gate: ops.Gate) -> bool:
+def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
     """Check if a gate is a native xmon gate.
 
     Args:
@@ -277,7 +279,7 @@ def is_native_xmon_gate(gate: ops.Gate) -> bool:
                        ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
-def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
+def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
     """Convert the proto dictionary to the corresponding operation.
 
     See protos in api/google/v1 for specification of the protos.
@@ -300,7 +302,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
             gate_name, proto_dict))
 
     param = _parameterized_value_from_proto_dict
-    qubit = devices.GridQubit.from_proto_dict
+    qubit = _qubit_from_proto_dict
     if 'exp_w' in proto_dict:
         exp_w = proto_dict['exp_w']
         if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w or
@@ -326,7 +328,7 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
         meas = proto_dict['measurement']
         invert_mask = cast(Tuple[Any, ...], ())
         if 'invert_mask' in meas:
-            invert_mask = tuple(json.loads(x) for x in meas['invert_mask'])
+            invert_mask = tuple(_load_json_bool(x) for x in meas['invert_mask'])
         if 'key' not in meas or 'targets' not in meas:
             raise_missing_fields('Measurement')
         return ops.MeasurementGate(
@@ -337,8 +339,15 @@ def xmon_op_from_proto_dict(proto_dict: Dict) -> ops.Operation:
     raise ValueError('invalid operation: {}'.format(proto_dict))
 
 
-def _parameterized_value_from_proto_dict(message: Dict
-                                        ) -> Union[sympy.Basic, float]:
+def _qubit_from_proto_dict(proto_dict):
+    """Proto dict must have 'row' and 'col' keys."""
+    if 'row' not in proto_dict or 'col' not in proto_dict:
+        raise ValueError(
+            'Proto dict does not contain row or col: {}'.format(proto_dict))
+    return devices.GridQubit(row=proto_dict['row'], col=proto_dict['col'])
+
+
+def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:
     parameter_key = message.get('parameter_key', None)
     if parameter_key:
         return sympy.Symbol(parameter_key)
@@ -349,8 +358,7 @@ def _parameterized_value_from_proto_dict(message: Dict
                      'message: {!r}'.format(message))
 
 
-def _parameterized_value_to_proto_dict(param: Union[sympy.Basic, float]
-                                      ) -> Dict:
+def _parameterized_value_to_proto_dict(param: value.TParamVal) -> Dict:
     out = {}  # type: Dict
     if isinstance(param, sympy.Symbol):
         out['parameter_key'] = str(param.free_symbols.pop())

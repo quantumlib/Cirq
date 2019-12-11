@@ -14,10 +14,12 @@
 
 import math
 import random
+import sys
 from typing import Sequence
 
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -29,6 +31,32 @@ def assert_gates_implement_unitary(gates: Sequence[cirq.SingleQubitGate],
     cirq.testing.assert_allclose_up_to_global_phase(actual_effect,
                                                     intended_effect,
                                                     atol=atol)
+
+
+def test_is_negligible_turn():
+    assert cirq.is_negligible_turn(0, 1e-5)
+    assert cirq.is_negligible_turn(1e-6, 1e-5)
+    assert cirq.is_negligible_turn(1, 1e-5)
+    assert cirq.is_negligible_turn(1 + 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(1 - 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(-1, 1e-5)
+    assert cirq.is_negligible_turn(-1 + 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(-1 - 1e-6, 1e-5)
+    assert cirq.is_negligible_turn(3, 1e-5)
+    assert cirq.is_negligible_turn(3 + 1e-6, 1e-5)
+    assert not cirq.is_negligible_turn(1e-4, 1e-5)
+    assert not cirq.is_negligible_turn(-1e-4, 1e-5)
+    assert not cirq.is_negligible_turn(0.5, 1e-5)
+    assert not cirq.is_negligible_turn(-0.5, 1e-5)
+    assert not cirq.is_negligible_turn(0.5, 1e-5)
+    assert not cirq.is_negligible_turn(4.5, 1e-5)
+    # Variable sympy expression
+    assert not cirq.is_negligible_turn(sympy.Symbol('a'), 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') + 1, 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') * 1e-10, 1e-5)
+    # Constant sympy expression
+    assert cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 3 + 1e-6, 1e-5)
+    assert not cirq.is_negligible_turn(sympy.Symbol('a') * 0 + 1.5 - 1e-6, 1e-5)
 
 
 def test_single_qubit_matrix_to_gates_known_x():
@@ -147,10 +175,14 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
     assert len(kept) == 3
 
 
+@pytest.mark.xfail(sys.platform == 'win32',
+                   reason='https://github.com/quantumlib/Cirq/issues/2468')
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(
         cirq.unitary(cirq.Y**0.25))
-    assert cirq.allclose_up_to_global_phase(u, cirq.unitary(cirq.X**0.5))
+    cirq.testing.assert_allclose_up_to_global_phase(u,
+                                                    cirq.unitary(cirq.X**0.5),
+                                                    atol=1e-7)
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
 
@@ -208,10 +240,9 @@ def test_single_qubit_matrix_to_native_gates_known():
     cirq.testing.random_unitary(2) for _ in range(10)
 ])
 def test_single_qubit_matrix_to_native_gates_cases(intended_effect):
-    gates = cirq.single_qubit_matrix_to_phased_x_z(
-        intended_effect, atol=0.0001)
+    gates = cirq.single_qubit_matrix_to_phased_x_z(intended_effect, atol=1e-6)
     assert len(gates) <= 2
-    assert_gates_implement_unitary(gates, intended_effect, atol=1e-8)
+    assert_gates_implement_unitary(gates, intended_effect, atol=1e-5)
 
 
 @pytest.mark.parametrize('pre_turns,post_turns',

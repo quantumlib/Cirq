@@ -26,7 +26,6 @@ from typing import (
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     from cirq.ops import qubit_order_or_list
 
 

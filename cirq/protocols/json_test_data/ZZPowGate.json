@@ -1,0 +1,12 @@
+[
+  {
+    "cirq_type": "ZZPowGate",
+    "exponent": 1,
+    "global_shift": 0.0
+  },
+  {
+    "cirq_type": "ZZPowGate",
+    "exponent": 0.789,
+    "global_shift": 0.0
+  }
+]

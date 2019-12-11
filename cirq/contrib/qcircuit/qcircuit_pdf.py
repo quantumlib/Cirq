@@ -50,6 +50,7 @@ def circuit_to_pdf_using_qcircuit_via_tex(circuit: circuits.Circuit,
     doc = Document(documentclass=documentclass, document_options='dvips')
     doc.packages.append(Package('amsmath'))
     doc.packages.append(Package('qcircuit'))
+    doc.preamble.append(Package('inputenc', options=['utf8']))
     doc.append(NoEscape(tex))
     doc.generate_pdf(filepath, **pdf_kwargs)
     for ext in clean_ext:

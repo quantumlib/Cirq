@@ -14,10 +14,11 @@
 
 """Defines trial results."""
 
-from typing import (Iterable, Callable, Tuple, TypeVar, Dict, Any,
-                    TYPE_CHECKING, Union, Optional)
+from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
+                    TYPE_CHECKING, Tuple, TypeVar, Union)
 
 import collections
+import io
 import numpy as np
 import pandas as pd
 
@@ -26,7 +27,6 @@ from cirq._compat import proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 T = TypeVar('T')
@@ -47,7 +47,9 @@ def _tuple_of_big_endian_int(bit_groups: Iterable[Any]) -> Tuple[int, ...]:
 
 
 def _bitstring(vals: Iterable[Any]) -> str:
-    return ''.join('1' if v else '0' for v in vals)
+    str_list = [str(int(v)) for v in vals]
+    separator = '' if all(len(s) == 1 for s in str_list) else ' '
+    return separator.join(str_list)
 
 
 def _keyed_repeated_bitstrings(vals: Dict[str, np.ndarray]) -> str:
@@ -71,17 +73,13 @@ def _key_to_str(key: TMeasurementKey) -> str:
 class TrialResult:
     """The results of multiple executions of a circuit with fixed parameters.
     Stored as a Pandas DataFrame that can be accessed through the "data"
-    attribute. The repitition number is the row index and measurement keys
-    are the columns of the DataFrame. Each element is a Pandas Series of
-    measurement outcomes per bit for the measurement key in that repitition.
+    attribute. The repetition number is the row index and measurement keys
+    are the columns of the DataFrame. Each element is a big endian integer
+    representation of measurement outcomes for the measurement key in that
+    repitition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
-        measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
-            and the second to the actual boolean measurement results (ordered
-            by the qubits being measured.)
     """
 
     def __init__(
@@ -112,7 +110,10 @@ class TrialResult:
                 converted_dict[key] = [
                     value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
-            self._data = pd.DataFrame(converted_dict)
+            # Note that when a numpy array is produced from this data frame,
+            # Pandas will try to use np.int64 as dtype, but will upgrade to
+            # object if any value is too large to fit.
+            self._data = pd.DataFrame(converted_dict, dtype=np.int64)
         return self._data
 
     @staticmethod
@@ -145,7 +146,7 @@ class TrialResult:
             self,
             *,  # Forces keyword args.
             keys: Iterable[TMeasurementKey],
-            fold_func: Callable[[pd.Series], T] = _tuple_of_big_endian_int
+            fold_func: Callable[[Tuple], T] = _tuple_of_big_endian_int
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -206,7 +207,7 @@ class TrialResult:
             self,
             *,  # Forces keyword args.
             key: TMeasurementKey,
-            fold_func: Callable[[pd.Series], T] = value.big_endian_bits_to_int
+            fold_func: Callable[[Tuple], T] = value.big_endian_bits_to_int
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
@@ -275,3 +276,83 @@ class TrialResult:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
+
+    def _measurement_shape(self):
+        return self.params, {
+            k: v.shape[1] for k, v in self.measurements.items()
+        }
+
+    def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        if self._measurement_shape() != other._measurement_shape():
+            raise ValueError(
+                'TrialResults do not have the same parameters or do '
+                'not have the same measurement keys.')
+        all_measurements: Dict[str, np.ndarray] = {}
+        for key in other.measurements:
+            all_measurements[key] = np.append(self.measurements[key],
+                                              other.measurements[key],
+                                              axis=0)
+        return TrialResult(params=self.params, measurements=all_measurements)
+
+    def _json_dict_(self):
+        packed_measurements = {}
+        for key, digits in self.measurements.items():
+            packed_digits, binary = _pack_digits(digits)
+            packed_measurements[key] = {
+                'packed_digits': packed_digits,
+                'binary': binary,
+                'dtype': digits.dtype.name,
+                'shape': digits.shape
+            }
+        return {
+            'cirq_type': self.__class__.__name__,
+            'params': self.params,
+            'measurements': packed_measurements
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, params, measurements, **kwargs):
+        return cls(
+            params=params,
+            measurements={
+                key: _unpack_digits(**val) for key, val in measurements.items()
+            })
+
+
+def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
+    """Returns a string of packed digits and a boolean indicating whether the
+    digits were packed as binary values."""
+    # If digits are binary, pack them better to save space
+    if np.array_equal(digits, digits.astype(np.bool)):
+        return _pack_bits(digits), True
+    buffer = io.BytesIO()
+    np.save(buffer, digits, allow_pickle=False)
+    buffer.seek(0)
+    packed_digits = buffer.read().hex()
+    buffer.close()
+    return packed_digits, False
+
+
+def _pack_bits(bits: np.ndarray) -> str:
+    return np.packbits(bits).tobytes().hex()
+
+
+def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
+                   shape: Sequence[int]) -> np.ndarray:
+    if binary:
+        return _unpack_bits(packed_digits, dtype, shape)
+    buffer = io.BytesIO()
+    buffer.write(bytes.fromhex(packed_digits))
+    buffer.seek(0)
+    digits = np.load(buffer, allow_pickle=False)
+    buffer.close()
+    return digits
+
+
+def _unpack_bits(packed_bits: str, dtype: str,
+                 shape: Sequence[int]) -> np.ndarray:
+    bits_bytes = bytes.fromhex(packed_bits)
+    bits = np.unpackbits(np.frombuffer(bits_bytes, dtype=np.uint8))
+    return bits[:np.prod(shape)].reshape(shape).astype(dtype)

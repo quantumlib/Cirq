@@ -28,7 +28,7 @@ def test_swap_permutation_gate():
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
     gate = cca.SwapPermutationGate()
     assert gate.num_qubits() == 2
-    circuit = cirq.Circuit.from_ops(gate(a, b))
+    circuit = cirq.Circuit(gate(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.SWAP(a, b),)
 
@@ -36,7 +36,7 @@ def test_swap_permutation_gate():
     no_decomp = lambda op: (isinstance(op, cirq.GateOperation) and
                             op.gate == cirq.CZ)
     expander = cirq.ExpandComposite(no_decomp=no_decomp)
-    circuit = cirq.Circuit.from_ops(cca.SwapPermutationGate(cirq.CZ)(a, b))
+    circuit = cirq.Circuit(cca.SwapPermutationGate(cirq.CZ)(a, b))
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.CZ(a, b),)
 
@@ -63,7 +63,7 @@ def test_validate_permutation_errors():
 def test_diagram():
     gate = cca.SwapPermutationGate()
     a, b = cirq.NamedQubit('a'), cirq.NamedQubit('b')
-    circuit = cirq.Circuit.from_ops([gate(a, b)])
+    circuit = cirq.Circuit([gate(a, b)])
     actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 a: ───0↦1───
@@ -270,7 +270,7 @@ def test_display_mapping():
 
 
 @pytest.mark.parametrize('circuit', [
-    cirq.Circuit.from_ops(
+    cirq.Circuit(
         cca.SwapPermutationGate()(*qubit_pair)
         for qubit_pair in
         [random.sample(cirq.LineQubit.range(10), 2)
@@ -288,18 +288,18 @@ def test_return_to_initial_mapping(circuit):
 
 def test_uses_consistent_swap_gate():
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         [cca.SwapPermutationGate()(a, b),
          cca.SwapPermutationGate()(a, b)])
     assert cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
     assert not cca.uses_consistent_swap_gate(circuit, cirq.CZ)
-    circuit = cirq.Circuit.from_ops([
+    circuit = cirq.Circuit([
         cca.SwapPermutationGate(cirq.CZ)(a, b),
         cca.SwapPermutationGate(cirq.CZ)(a, b)
     ])
     assert cca.uses_consistent_swap_gate(circuit, cirq.CZ)
     assert not cca.uses_consistent_swap_gate(circuit, cirq.SWAP)
-    circuit = cirq.Circuit.from_ops([
+    circuit = cirq.Circuit([
         cca.SwapPermutationGate()(a, b),
         cca.SwapPermutationGate(cirq.CZ)(a, b)
     ])

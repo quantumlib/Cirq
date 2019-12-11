@@ -14,10 +14,15 @@
 
 """Types and methods for running studies (repeated trials)."""
 
-from cirq.study.compute_displays_result import (
-    ComputeDisplaysResult,)
+from cirq.study.flatten_expressions import (
+    ExpressionMap,
+    flatten,
+    flatten_with_params,
+    flatten_with_sweep,
+)
 
 from cirq.study.resolver import (
+    ParamDictType,
     ParamResolver,
     ParamResolverOrSimilarType,
 )
@@ -25,12 +30,13 @@ from cirq.study.resolver import (
 from cirq.study.sweepable import (
     Sweepable,
     to_resolvers,
+    to_sweep,
     to_sweeps,
 )
 
 from cirq.study.sweeps import (
     Linspace,
-    Product,
+    ListSweep,
     Points,
     Product,
     Sweep,
