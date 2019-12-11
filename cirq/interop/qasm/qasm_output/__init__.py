@@ -12,21 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
-
-from cirq.circuits.text_diagram_drawer import (
-    TextDiagramDrawer,)
-
-from cirq.circuits.circuit import (
-    Circuit,)
-from cirq.circuits.circuit_dag import (
-    CircuitDag,
-    Unique,
-)
-from cirq.circuits.insert_strategy import (
-    InsertStrategy,)
-
-from cirq.circuits.optimization_pass import (
-    PointOptimizer,
-    PointOptimizationSummary,
-)
+from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput

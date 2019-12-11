@@ -12,21 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Types and methods related to building and optimizing sequenced circuits."""
+from cirq import circuits
+from cirq.interop.qasm.qasm_input._parser import QasmParser
 
-from cirq.circuits.text_diagram_drawer import (
-    TextDiagramDrawer,)
 
-from cirq.circuits.circuit import (
-    Circuit,)
-from cirq.circuits.circuit_dag import (
-    CircuitDag,
-    Unique,
-)
-from cirq.circuits.insert_strategy import (
-    InsertStrategy,)
+def circuit_from_qasm(qasm: str) -> circuits.Circuit:
+    """Parses an OpenQASM string to `cirq.Circuit`.
 
-from cirq.circuits.optimization_pass import (
-    PointOptimizer,
-    PointOptimizationSummary,
-)
+    Args:
+        qasm: The OpenQASM string
+
+    Returns:
+        The parsed circuit
+    """
+
+    return QasmParser().parse(qasm).circuit

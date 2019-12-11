@@ -1,0 +1,2544 @@
+============================= test session starts ==============================
+platform linux -- Python 3.6.8, pytest-3.8.2, py-1.8.0, pluggy-0.13.0
+benchmark: 3.2.2 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
+rootdir: /home/vtomole/Cirq, inifile:
+plugins: cov-2.5.1, benchmark-3.2.2
+collected 9452 items
+
+cirq/_compat_test.py .....                                               [  0%]
+cirq/aqt/aqt_sampler_test.py .......                                     [  0%]
+cirq/aqt/aqt_simulator_test.py ...                                       [  0%]
+cirq/circuits/_block_diagram_drawer_test.py ......                       [  0%]
+cirq/circuits/_box_drawing_character_data_test.py .                      [  0%]
+cirq/circuits/_bucket_priority_queue_test.py .........                   [  0%]
+cirq/circuits/circuit_dag_test.py ...................                    [  0%]
+cirq/circuits/circuit_test.py .......................................... [  0%]
+........................................................................ [  1%]
+................                                                         [  1%]
+cirq/circuits/insert_strategy_test.py .                                  [  1%]
+cirq/circuits/optimization_pass_test.py ....                             [  1%]
+cirq/circuits/qasm_output_deprecated_test.py ..................          [  2%]
+cirq/circuits/text_diagram_drawer_test.py ......                         [  2%]
+cirq/contrib/json_test.py ..                                             [  2%]
+cirq/contrib/acquaintance/bipartite_test.py ........................     [  2%]
+cirq/contrib/acquaintance/devices_test.py ..                             [  2%]
+cirq/contrib/acquaintance/executor_test.py ............................. [  2%]
+........                                                                 [  2%]
+cirq/contrib/acquaintance/gates_test.py ................................ [  3%]
+........................................................................ [  3%]
+.................                                                        [  4%]
+cirq/contrib/acquaintance/inspection_utils_test.py ...............       [  4%]
+cirq/contrib/acquaintance/mutation_utils_test.py ...                     [  4%]
+cirq/contrib/acquaintance/optimizers_test.py .                           [  4%]
+cirq/contrib/acquaintance/permutation_test.py .......................... [  4%]
+.....................                                                    [  4%]
+cirq/contrib/acquaintance/shift_swap_network_test.py ................... [  5%]
+                                                                         [  5%]
+cirq/contrib/acquaintance/shift_test.py ......                           [  5%]
+cirq/contrib/acquaintance/topological_sort_test.py ..................... [  5%]
+....                                                                     [  5%]
+cirq/contrib/acquaintance/strategies/cubic_test.py ........              [  5%]
+cirq/contrib/acquaintance/strategies/quartic_paired_test.py ...........  [  5%]
+cirq/contrib/graph_device/graph_device_test.py .......                   [  5%]
+cirq/contrib/graph_device/hypergraph_test.py ................            [  5%]
+cirq/contrib/graph_device/uniform_graph_device_test.py ......            [  5%]
+cirq/contrib/noise_models/noise_models_test.py ......                    [  5%]
+cirq/contrib/paulistring/clifford_optimize_test.py .....                 [  6%]
+cirq/contrib/paulistring/convert_gate_set_test.py ...................    [  6%]
+cirq/contrib/paulistring/convert_to_clifford_gates_test.py .......       [  6%]
+cirq/contrib/paulistring/convert_to_pauli_string_phasors_test.py .....   [  6%]
+cirq/contrib/paulistring/optimize_test.py ...                            [  6%]
+cirq/contrib/paulistring/pauli_string_dag_test.py ......                 [  6%]
+cirq/contrib/paulistring/pauli_string_optimize_test.py ...               [  6%]
+cirq/contrib/paulistring/recombine_test.py .                             [  6%]
+cirq/contrib/paulistring/separate_test.py .                              [  6%]
+cirq/contrib/qasm_import/_lexer_test.py ............................     [  6%]
+cirq/contrib/qasm_import/_parser_test.py ............................... [  7%]
+........................................................................ [  7%]
+............................                                             [  8%]
+cirq/contrib/qasm_import/qasm_test.py .                                  [  8%]
+cirq/contrib/qcircuit/qcircuit_diagram_info_test.py .                    [  8%]
+cirq/contrib/qcircuit/qcircuit_test.py ....                              [  8%]
+cirq/contrib/quantum_volume/quantum_volume_test.py ...............       [  8%]
+cirq/contrib/quirk/export_to_quirk_test.py ..............                [  8%]
+cirq/contrib/routing/device_test.py .......                              [  8%]
+cirq/contrib/routing/greedy_test.py .                                    [  8%]
+cirq/contrib/routing/initialization_test.py ............                 [  8%]
+cirq/contrib/routing/router_test.py .......................              [  9%]
+cirq/contrib/routing/swap_network_test.py ....                           [  9%]
+cirq/contrib/routing/utils_test.py ...                                   [  9%]
+cirq/contrib/svg/svg_test.py ..                                          [  9%]
+cirq/devices/grid_qubit_test.py .............                            [  9%]
+cirq/devices/line_qubit_test.py ................                         [  9%]
+cirq/devices/noise_model_test.py ......                                  [  9%]
+cirq/devices/unconstrained_device_test.py ..                             [  9%]
+cirq/experiments/cross_entropy_benchmarking_test.py .                    [  9%]
+cirq/experiments/fidelity_estimation_test.py ................            [  9%]
+cirq/experiments/google_v2_supremacy_circuit_test.py ...                 [  9%]
+cirq/experiments/n_qubit_tomography_test.py ...                          [  9%]
+cirq/experiments/qubit_characterizations_test.py ......                  [  9%]
+cirq/experiments/single_qubit_readout_calibration_test.py ...            [  9%]
+cirq/experiments/t1_decay_experiment_test.py ........                    [  9%]
+cirq/google/arg_func_langs_test.py ...........                           [ 10%]
+cirq/google/common_serializers_test.py ................................. [ 10%]
+.................                                                        [ 10%]
+cirq/google/gate_sets_test.py .......................................... [ 11%]
+.............                                                            [ 11%]
+cirq/google/op_deserializer_test.py ...............                      [ 11%]
+cirq/google/op_serializer_test.py ...................................... [ 11%]
+...                                                                      [ 11%]
+cirq/google/serializable_gate_set_test.py ....................           [ 11%]
+cirq/google/api/v1/params_test.py ........................               [ 12%]
+cirq/google/api/v1/programs_test.py ........................             [ 12%]
+cirq/google/api/v2/program_test.py .......                               [ 12%]
+cirq/google/api/v2/results_test.py ...........................           [ 12%]
+cirq/google/api/v2/sweeps_test.py ..............                         [ 12%]
+cirq/google/devices/known_devices_test.py .........                      [ 13%]
+cirq/google/devices/serializable_device_test.py ...............          [ 13%]
+cirq/google/devices/xmon_device_test.py ..............                   [ 13%]
+cirq/google/engine/calibration_test.py ....                              [ 13%]
+cirq/google/engine/engine_job_test.py .......                            [ 13%]
+cirq/google/engine/engine_program_test.py ...                            [ 13%]
+cirq/google/engine/engine_sampler_test.py ...                            [ 13%]
+cirq/google/engine/engine_test.py ...................................... [ 13%]
+                                                                         [ 13%]
+cirq/google/engine/env_config_test.py .                                  [ 13%]
+cirq/google/line/placement/anneal_test.py ................               [ 14%]
+cirq/google/line/placement/chip_test.py ........                         [ 14%]
+cirq/google/line/placement/greedy_test.py ..........................     [ 14%]
+cirq/google/line/placement/line_test.py ..                               [ 14%]
+cirq/google/line/placement/optimization_test.py ......                   [ 14%]
+cirq/google/line/placement/sequence_test.py ...                          [ 14%]
+cirq/google/ops/sycamore_gate_test.py .......                            [ 14%]
+cirq/google/optimizers/convert_to_sqrt_iswap_test.py ................... [ 14%]
+........................................................................ [ 15%]
+...........................                                              [ 15%]
+cirq/google/optimizers/convert_to_sycamore_gates_test.py ............... [ 16%]
+................................................................         [ 16%]
+cirq/google/optimizers/convert_to_xmon_gates_test.py ..                  [ 16%]
+cirq/google/optimizers/optimize_for_xmon_test.py ..........              [ 16%]
+cirq/google/optimizers/two_qubit_gates/example_test.py .                 [ 16%]
+cirq/google/optimizers/two_qubit_gates/gate_compilation_test.py ........ [ 16%]
+........................................................................ [ 17%]
+........................................................................ [ 18%]
+....................................................                     [ 19%]
+cirq/google/optimizers/two_qubit_gates/math_utils_test.py ....           [ 19%]
+cirq/interop/qasm/qasm_input/_lexer_test.py ............................ [ 19%]
+                                                                         [ 19%]
+cirq/interop/qasm/qasm_input/_parser_test.py ........................... [ 19%]
+........................................................................ [ 20%]
+................................                                         [ 20%]
+cirq/interop/qasm/qasm_input/qasm_test.py .                              [ 20%]
+cirq/interop/qasm/qasm_output/qasm_output_test.py ..................     [ 20%]
+cirq/interop/quirk/url_to_circuit_test.py ..................             [ 21%]
+cirq/interop/quirk/cells/arithmetic_cells_test.py ..............         [ 21%]
+cirq/interop/quirk/cells/cell_test.py ....                               [ 21%]
+cirq/interop/quirk/cells/composite_cell_test.py ..                       [ 21%]
+cirq/interop/quirk/cells/control_cells_test.py .....                     [ 21%]
+cirq/interop/quirk/cells/frequency_space_cells_test.py .                 [ 21%]
+cirq/interop/quirk/cells/ignored_cells_test.py .                         [ 21%]
+cirq/interop/quirk/cells/input_cells_test.py .....                       [ 21%]
+cirq/interop/quirk/cells/input_rotation_cells_test.py .......            [ 21%]
+cirq/interop/quirk/cells/measurement_cells_test.py .                     [ 21%]
+cirq/interop/quirk/cells/parse_test.py ........                          [ 21%]
+cirq/interop/quirk/cells/qubit_permutation_cells_test.py .......         [ 21%]
+cirq/interop/quirk/cells/scalar_cells_test.py .                          [ 21%]
+cirq/interop/quirk/cells/single_qubit_rotation_cells_test.py ...         [ 21%]
+cirq/interop/quirk/cells/swap_cell_test.py ....                          [ 21%]
+cirq/interop/quirk/cells/testing_test.py ......                          [ 21%]
+cirq/interop/quirk/cells/unsupported_cells_test.py ..                    [ 21%]
+cirq/ion/convert_to_ion_gates_test.py ..                                 [ 21%]
+cirq/ion/ion_decomposition_test.py ..................................... [ 22%]
+.......                                                                  [ 22%]
+cirq/ion/ion_device_test.py ............                                 [ 22%]
+cirq/ion/ion_gates_test.py .........                                     [ 22%]
+cirq/linalg/combinators_test.py .......                                  [ 22%]
+cirq/linalg/decompositions_perf_test.py ................                 [ 22%]
+cirq/linalg/decompositions_test.py ..................................... [ 23%]
+........................................................................ [ 24%]
+..............                                                           [ 24%]
+cirq/linalg/diagonalize_test.py ........................................ [ 24%]
+........................................................................ [ 25%]
+........................................................................ [ 26%]
+........................................................................ [ 26%]
+.................................................................        [ 27%]
+cirq/linalg/operator_spaces_test.py .................................... [ 27%]
+........................................................................ [ 28%]
+........................................................................ [ 29%]
+........................................................................ [ 30%]
+........................................................................ [ 31%]
+........................................................................ [ 31%]
+..................                                                       [ 31%]
+cirq/linalg/predicates_test.py ..................                        [ 32%]
+cirq/linalg/states_test.py ..                                            [ 32%]
+cirq/linalg/tolerance_test.py ....                                       [ 32%]
+cirq/linalg/transformations_test.py .........................            [ 32%]
+cirq/neutral_atoms/convert_to_neutral_atom_gates_test.py ...             [ 32%]
+cirq/neutral_atoms/neutral_atom_devices_test.py ...........              [ 32%]
+cirq/ops/arithmetic_operation_test.py ....                               [ 32%]
+cirq/ops/clifford_gate_test.py ......................................... [ 33%]
+........................................................................ [ 33%]
+........................................................................ [ 34%]
+........................................................................ [ 35%]
+........................................................................ [ 36%]
+........................................................................ [ 36%]
+........................................................................ [ 37%]
+........................................................................ [ 38%]
+........................................................................ [ 39%]
+........................................................................ [ 39%]
+........................................................................ [ 40%]
+........................................................................ [ 41%]
+........................................................................ [ 42%]
+........................................................................ [ 43%]
+........................................................................ [ 43%]
+........................................................................ [ 44%]
+........................................................................ [ 45%]
+........................................................................ [ 46%]
+........................................................................ [ 46%]
+........................................................................ [ 47%]
+........................................................................ [ 48%]
+........................................................................ [ 49%]
+........................................................................ [ 49%]
+........................................................................ [ 50%]
+........................................................................ [ 51%]
+................................................                         [ 51%]
+cirq/ops/common_channels_test.py ....................................... [ 52%]
+...........................                                              [ 52%]
+cirq/ops/common_gates_test.py .......................................... [ 53%]
+..                                                                       [ 53%]
+cirq/ops/controlled_gate_test.py ..............................          [ 53%]
+cirq/ops/controlled_operation_test.py ......................             [ 53%]
+cirq/ops/dense_pauli_string_test.py ..........................           [ 53%]
+cirq/ops/eigen_gate_test.py ..........................                   [ 54%]
+cirq/ops/fourier_transform_test.py .........                             [ 54%]
+cirq/ops/fsim_gate_test.py ......................                        [ 54%]
+cirq/ops/gate_features_test.py ...........                               [ 54%]
+cirq/ops/gate_operation_test.py ............................             [ 54%]
+cirq/ops/global_phase_op_test.py ......                                  [ 54%]
+cirq/ops/identity_test.py ......................                         [ 55%]
+cirq/ops/linear_combinations_test.py ................................... [ 55%]
+........................................................................ [ 56%]
+..............................................                           [ 56%]
+cirq/ops/matrix_gates_test.py ......................                     [ 57%]
+cirq/ops/measure_util_test.py ..                                         [ 57%]
+cirq/ops/measurement_gate_test.py ..........                             [ 57%]
+cirq/ops/moment_test.py ..............                                   [ 57%]
+cirq/ops/named_qubit_test.py .....                                       [ 57%]
+cirq/ops/op_tree_test.py ......                                          [ 57%]
+cirq/ops/parallel_gate_operation_test.py .................               [ 57%]
+cirq/ops/parity_gates_test.py .........................                  [ 57%]
+cirq/ops/pauli_gates_test.py ....................                        [ 58%]
+cirq/ops/pauli_interaction_gate_test.py ................................ [ 58%]
+........................................................................ [ 59%]
+........................................................................ [ 59%]
+.........                                                                [ 60%]
+cirq/ops/pauli_string_phasor_test.py ................................... [ 60%]
+........................................................................ [ 61%]
+........................................................................ [ 61%]
+........................................................................ [ 62%]
+........................................................................ [ 63%]
+........................................................................ [ 64%]
+........................................................................ [ 64%]
+........................................................................ [ 65%]
+........................................................................ [ 66%]
+.................................................                        [ 67%]
+cirq/ops/pauli_string_raw_types_test.py ...                              [ 67%]
+cirq/ops/pauli_string_test.py .......................................... [ 67%]
+........................................................................ [ 68%]
+........................................................................ [ 69%]
+........................................................................ [ 69%]
+........................................................................ [ 70%]
+........................................................................ [ 71%]
+........................................................................ [ 72%]
+........................................................................ [ 72%]
+........................................................................ [ 73%]
+..............................................................           [ 74%]
+cirq/ops/phased_iswap_gate_test.py ..................................... [ 74%]
+........................                                                 [ 74%]
+cirq/ops/phased_x_gate_test.py ......................................... [ 75%]
+........................................................................ [ 76%]
+........................................................................ [ 76%]
+........................................................................ [ 77%]
+........................................................................ [ 78%]
+........................................................................ [ 79%]
+..........................................................               [ 79%]
+cirq/ops/phased_x_z_gate_test.py ........                                [ 79%]
+cirq/ops/qubit_order_test.py ........                                    [ 79%]
+cirq/ops/raw_types_test.py .....................                         [ 80%]
+cirq/ops/swap_gates_test.py ...........................                  [ 80%]
+cirq/ops/three_qubit_gates_test.py ..........................            [ 80%]
+cirq/ops/wait_gate_test.py ....                                          [ 80%]
+cirq/optimizers/convert_to_cz_and_single_gates_test.py ........          [ 80%]
+cirq/optimizers/decompositions_test.py ................................. [ 81%]
+..........................................                               [ 81%]
+cirq/optimizers/drop_empty_moments_test.py .                             [ 81%]
+cirq/optimizers/drop_negligible_test.py ...                              [ 81%]
+cirq/optimizers/eject_phased_paulis_test.py .......                      [ 81%]
+cirq/optimizers/eject_z_test.py ............................             [ 82%]
+cirq/optimizers/expand_composite_test.py ..........                      [ 82%]
+cirq/optimizers/merge_interactions_test.py ...........                   [ 82%]
+cirq/optimizers/merge_single_qubit_gates_test.py .........               [ 82%]
+cirq/optimizers/synchronize_terminal_measurements_test.py ........       [ 82%]
+cirq/optimizers/two_qubit_decompositions_test.py ....................... [ 82%]
+..................................................                       [ 83%]
+cirq/optimizers/two_qubit_to_fsim_test.py .............................. [ 83%]
+........................................................................ [ 84%]
+........................................................................ [ 85%]
+.................                                                        [ 85%]
+cirq/protocols/apply_channel_protocol_test.py .............              [ 85%]
+cirq/protocols/apply_mixture_protocol_test.py .............              [ 85%]
+cirq/protocols/apply_unitary_protocol_test.py ........                   [ 85%]
+cirq/protocols/approximate_equality_protocol_test.py ...............     [ 85%]
+cirq/protocols/channel_test.py ........                                  [ 85%]
+cirq/protocols/circuit_diagram_info_protocol_test.py .........           [ 85%]
+cirq/protocols/decompose_protocol_test.py ......                         [ 86%]
+cirq/protocols/equal_up_to_global_phase_protocol_test.py .....           [ 86%]
+cirq/protocols/has_unitary_protocol_test.py ......                       [ 86%]
+cirq/protocols/inverse_protocol_test.py ..................               [ 86%]
+cirq/protocols/json_test.py ............xxx.xx.x.x...x.x..x.x..x.x..x..x [ 86%]
+.xx..xx....x..x...x....x....x..x.xx...x.x.x.xxx.xxxx....x.x.x..x..x..x.. [ 87%]
+..x...xx.x.x.....xxx...x..xxx.xx.x..........xx..xx.....x.x.xx........... [ 88%]
+........................................................................ [ 89%]
+...................                                                      [ 89%]
+cirq/protocols/measurement_key_protocol_test.py ....                     [ 89%]
+cirq/protocols/mixture_protocol_test.py .................                [ 89%]
+cirq/protocols/mul_protocol_test.py ..                                   [ 89%]
+cirq/protocols/pauli_expansion_protocol_test.py ..............           [ 89%]
+cirq/protocols/phase_protocol_test.py .                                  [ 89%]
+cirq/protocols/pow_protocol_test.py ........                             [ 89%]
+cirq/protocols/qasm_test.py .                                            [ 89%]
+cirq/protocols/qid_shape_protocol_test.py .                              [ 89%]
+cirq/protocols/resolve_parameters_test.py ..                             [ 89%]
+cirq/protocols/trace_distance_bound_test.py .                            [ 89%]
+cirq/protocols/unitary_test.py ......                                    [ 89%]
+cirq/sim/density_matrix_simulator_test.py .............................. [ 90%]
+........................................................................ [ 90%]
+.................................                                        [ 91%]
+cirq/sim/density_matrix_utils_test.py .................................. [ 91%]
+................                                                         [ 91%]
+cirq/sim/mux_test.py ..............                                      [ 91%]
+cirq/sim/simulator_test.py ..............F...                            [ 92%]
+cirq/sim/sparse_simulator_test.py ...................................... [ 92%]
+..................................................                       [ 93%]
+cirq/sim/wave_function_simulator_test.py .......                         [ 93%]
+cirq/sim/wave_function_test.py ......................................... [ 93%]
+............                                                             [ 93%]
+cirq/sim/clifford/clifford_simulator_test.py ........................... [ 94%]
+                                                                         [ 94%]
+cirq/study/flatten_expressions_test.py ...........                       [ 94%]
+cirq/study/resolver_test.py ......                                       [ 94%]
+cirq/study/sweepable_test.py ..........................                  [ 94%]
+cirq/study/sweeps_test.py ....................                           [ 94%]
+cirq/study/trial_result_test.py ...........                              [ 94%]
+cirq/study/visualize_test.py .                                           [ 94%]
+cirq/testing/asynchronous_test.py FF                                     [ 94%]
+cirq/testing/circuit_compare_test.py ................                    [ 94%]
+cirq/testing/consistent_decomposition_test.py .                          [ 95%]
+cirq/testing/consistent_pauli_expansion_test.py .                        [ 95%]
+cirq/testing/consistent_phase_by_test.py .                               [ 95%]
+cirq/testing/consistent_protocols_test.py ..                             [ 95%]
+cirq/testing/consistent_qasm_test.py .                                   [ 95%]
+cirq/testing/equals_tester_test.py ..............                        [ 95%]
+cirq/testing/equivalent_repr_eval_test.py ...                            [ 95%]
+cirq/testing/lin_alg_utils_test.py ..................                    [ 95%]
+cirq/testing/order_tester_test.py ......                                 [ 95%]
+cirq/testing/random_circuit_test.py ......................               [ 95%]
+cirq/testing/sample_circuits_test.py .                                   [ 95%]
+cirq/value/abc_alt_test.py ........                                      [ 95%]
+cirq/value/angle_test.py ...                                             [ 95%]
+cirq/value/digits_test.py ....                                           [ 95%]
+cirq/value/duration_test.py ...............                              [ 96%]
+cirq/value/linear_dict_test.py ......................................... [ 96%]
+........................................................................ [ 97%]
+......................................                                   [ 97%]
+cirq/value/periodic_value_test.py .............                          [ 97%]
+cirq/value/probability_test.py ......                                    [ 97%]
+cirq/value/random_state_test.py .                                        [ 97%]
+cirq/value/timestamp_test.py .......                                     [ 97%]
+cirq/value/value_equality_test.py ...........                            [ 98%]
+cirq/vis/heatmap_test.py ......................                          [ 98%]
+cirq/work/collector_test.py ..F...                                       [ 98%]
+cirq/work/pauli_sum_collector_test.py FF...                              [ 98%]
+cirq/work/sampler_test.py F....F                                         [ 98%]
+cirq/work/work_pool_test.py FFFFFFFFFFF                                  [ 98%]
+dev_tools/bash_scripts_test.py FFFF                                      [ 98%]
+dev_tools/import_test.py F                                               [ 98%]
+dev_tools/incremental_coverage_test.py .                                 [ 98%]
+dev_tools/shell_tools_test.py FFFFFF                                     [ 98%]
+dev_tools/profiling/benchmark_simulators_test.py .....                   [ 98%]
+docs/docs_coverage_test.py ..                                            [ 98%]
+docs/snippets_test.py .............................                      [ 99%]
+examples/direct_fidelity_estimation_test.py ..                           [ 99%]
+examples/examples_perf_test.py ..........                                [ 99%]
+examples/examples_test.py .............................................. [ 99%]
+..........................                                               [ 99%]
+examples/advanced/quantum_volume_test.py ..                              [100%]
+
+=================================== FAILURES ===================================
+______________________________ test_async_sample _______________________________
+
+pyfuncitem = <Function 'test_async_sample'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_sample is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+_____________________________ test_asyncio_pending _____________________________
+
+pyfuncitem = <Function 'test_asyncio_pending'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_asyncio_pending is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+__________________ test_asyncio_pending_common_mistake_caught __________________
+
+pyfuncitem = <Function 'test_asyncio_pending_common_mistake_caught'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_asyncio_pending_common_mistake_caught is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+______________________________ test_async_collect ______________________________
+
+pyfuncitem = <Function 'test_async_collect'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_collect is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+______________________ test_pauli_string_sample_collector ______________________
+
+pyfuncitem = <Function 'test_pauli_string_sample_collector'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_pauli_string_sample_collector is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+_______________________ test_pauli_string_sample_single ________________________
+
+pyfuncitem = <Function 'test_pauli_string_sample_single'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_pauli_string_sample_single is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+___________________________ test_sampler_async_fail ____________________________
+
+pyfuncitem = <Function 'test_sampler_async_fail'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_sampler_async_fail is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+______________________ test_sampler_async_not_run_inline _______________________
+
+pyfuncitem = <Function 'test_sampler_async_not_run_inline'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_sampler_async_not_run_inline is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+__________________________ test_enqueue_then_dequeue ___________________________
+
+pyfuncitem = <Function 'test_enqueue_then_dequeue'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_enqueue_then_dequeue is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+_________________________ test_async_all_done_pre_flag _________________________
+
+pyfuncitem = <Function 'test_async_all_done_pre_flag'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_all_done_pre_flag is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+________________________ test_async_all_done_post_flag _________________________
+
+pyfuncitem = <Function 'test_async_all_done_post_flag'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_all_done_post_flag is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+__________________ test_async_all_done_finish_work_then_flag ___________________
+
+pyfuncitem = <Function 'test_async_all_done_finish_work_then_flag'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_all_done_finish_work_then_flag is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+__________________ test_async_all_done_flag_then_finish_work ___________________
+
+pyfuncitem = <Function 'test_async_all_done_flag_then_finish_work'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_all_done_flag_then_finish_work is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+____________________ test_enqueue_then_dequeue_with_failure ____________________
+
+pyfuncitem = <Function 'test_enqueue_then_dequeue_with_failure'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_enqueue_then_dequeue_with_failure is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+__________________________ test_dequeue_then_enqueue ___________________________
+
+pyfuncitem = <Function 'test_dequeue_then_enqueue'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_dequeue_then_enqueue is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+____________________________ test_dequeue_then_done ____________________________
+
+pyfuncitem = <Function 'test_dequeue_then_done'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_dequeue_then_done is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+____________________________ test_done_then_dequeue ____________________________
+
+pyfuncitem = <Function 'test_done_then_dequeue'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_done_then_dequeue is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+________________________________ test_ordering _________________________________
+
+pyfuncitem = <Function 'test_ordering'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_ordering is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+________________________________ test_async_for ________________________________
+
+pyfuncitem = <Function 'test_async_for'>
+
+    def pytest_pyfunc_call(pyfuncitem):
+        if inspect.iscoroutinefunction(pyfuncitem._obj):
+            # coverage: ignore
+>           raise ValueError(f'{pyfuncitem._obj.__name__} is async but not '
+                             f'decorated with "@pytest.mark.asyncio".')
+E           ValueError: test_async_for is async but not decorated with "@pytest.mark.asyncio".
+
+cirq/conftest.py:14: ValueError
+___________________ test_pytest_changed_files_file_selection ___________________
+
+tmpdir_factory = <_pytest.tmpdir.TempdirFactory object at 0x7fb291af0be0>
+
+    @only_on_posix
+    def test_pytest_changed_files_file_selection(tmpdir_factory):
+    
+        result = run(script_file='check/pytest-changed-files',
+                     tmpdir_factory=tmpdir_factory,
+                     arg='HEAD~1',
+>                    setup='touch file.py\n'
+                     'git add -A\n'
+                     'git commit -m test --quiet --no-gpg-sign\n')
+
+dev_tools/bash_scripts_test.py:85: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/bash_scripts_test.py:76: in run
+    err=shell_tools.TeeCapture())
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb241f05fd0>
+args = ['/bin/sh', '-c', '\ndir=$(git rev-parse --show-toplevel)\ncd /tmp/pytest-of-vtomole/pytest-24/tmp0\ngit init --quiet\...file.py\ngit add -A\ngit commit -m test --quiet --no-gpg-sign\n\nchmod +x ./test-script.sh\n./test-script.sh HEAD~1\n']
+executable = b'/bin/sh', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = True
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+__________________ test_pytest_changed_files_branch_selection __________________
+
+tmpdir_factory = <_pytest.tmpdir.TempdirFactory object at 0x7fb291af0be0>
+
+    @only_on_posix
+    def test_pytest_changed_files_branch_selection(tmpdir_factory):
+    
+        result = run(script_file='check/pytest-changed-files',
+                     tmpdir_factory=tmpdir_factory,
+>                    arg='HEAD')
+
+dev_tools/bash_scripts_test.py:164: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/bash_scripts_test.py:76: in run
+    err=shell_tools.TeeCapture())
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242fd5550>
+args = ['/bin/sh', '-c', '\ndir=$(git rev-parse --show-toplevel)\ncd /tmp/pytest-of-vtomole/pytest-24/tmp1\ngit init --quiet\ngit commit -m init --allow-empty --quiet --no-gpg-sign\n\nchmod +x ./test-script.sh\n./test-script.sh HEAD\n']
+executable = b'/bin/sh', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = True
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+____________ test_pytest_and_incremental_coverage_branch_selection _____________
+
+tmpdir_factory = <_pytest.tmpdir.TempdirFactory object at 0x7fb291af0be0>
+
+    @only_on_posix
+    def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
+        result = run(script_file='check/pytest-and-incremental-coverage',
+                     tmpdir_factory=tmpdir_factory,
+                     arg='HEAD',
+>                    additional_intercepts=['check/pytest'])
+
+dev_tools/bash_scripts_test.py:279: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/bash_scripts_test.py:76: in run
+    err=shell_tools.TeeCapture())
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242a08940>
+args = ['/bin/sh', '-c', '\ndir=$(git rev-parse --show-toplevel)\ncd /tmp/pytest-of-vtomole/pytest-24/tmp2\ngit init --quiet\ngit commit -m init --allow-empty --quiet --no-gpg-sign\n\nchmod +x ./test-script.sh\n./test-script.sh HEAD\n']
+executable = b'/bin/sh', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = True
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+___________________ test_incremental_format_branch_selection ___________________
+
+tmpdir_factory = <_pytest.tmpdir.TempdirFactory object at 0x7fb291af0be0>
+
+    @only_on_posix
+    def test_incremental_format_branch_selection(tmpdir_factory):
+        result = run(script_file='check/format-incremental',
+                     tmpdir_factory=tmpdir_factory,
+>                    arg='HEAD')
+
+dev_tools/bash_scripts_test.py:414: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/bash_scripts_test.py:76: in run
+    err=shell_tools.TeeCapture())
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb2429fe048>
+args = ['/bin/sh', '-c', '\ndir=$(git rev-parse --show-toplevel)\ncd /tmp/pytest-of-vtomole/pytest-24/tmp3\ngit init --quiet\ngit commit -m init --allow-empty --quiet --no-gpg-sign\n\nchmod +x ./test-script.sh\n./test-script.sh HEAD\n']
+executable = b'/bin/sh', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = True
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+___________________________ test_no_circular_imports ___________________________
+
+    def test_no_circular_imports():
+        """Runs the test in a subprocess because cirq has already been imported
+        before in an earlier test but this test needs to control the import process.
+        """
+>       status = subprocess.call([sys.executable, __file__])
+
+dev_tools/import_test.py:218: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.6/subprocess.py:287: in call
+    with Popen(*popenargs, **kwargs) as p:
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb241f19d30>
+args = ['/home/vtomole/venv3.6/bin/python3', '/home/vtomole/Cirq/dev_tools/import_test.py']
+executable = b'/home/vtomole/venv3.6/bin/python3', preexec_fn = None
+close_fds = True, pass_fds = (), cwd = None, env = None, startupinfo = None
+creationflags = 0, shell = False, p2cread = -1, p2cwrite = -1, c2pread = -1
+c2pwrite = -1, errread = -1, errwrite = -1, restore_signals = True
+start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+__________________________ test_run_cmd_raise_on_fail __________________________
+
+    @only_on_posix
+    def test_run_cmd_raise_on_fail():
+>       assert run_cmd('true') == (None, None, 0)
+
+dev_tools/shell_tools_test.py:39: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools_test.py:30: in run_cmd
+    return shell_tools.run_cmd(*args, log_run_to_stderr=False, **kwargs)
+dev_tools/shell_tools.py:196: in run_cmd
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:225: in create_subprocess_exec
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1211: in subprocess_exec
+    bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242318470>, args = ['true']
+executable = b'true', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = False
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+_________________________ test_run_shell_raise_on_fail _________________________
+
+    @only_on_posix
+    def test_run_shell_raise_on_fail():
+>       assert run_shell('true') == (None, None, 0)
+
+dev_tools/shell_tools_test.py:49: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools_test.py:34: in run_shell
+    return shell_tools.run_shell(*args, log_run_to_stderr=False, **kwargs)
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242304438>
+args = ['/bin/sh', '-c', 'true'], executable = b'/bin/sh', preexec_fn = None
+close_fds = True, pass_fds = (), cwd = None, env = None, startupinfo = None
+creationflags = 0, shell = True, p2cread = -1, p2cwrite = -1, c2pread = 18
+c2pwrite = 19, errread = 20, errwrite = 21, restore_signals = True
+start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+_____________________________ test_run_cmd_capture _____________________________
+
+    @only_on_posix
+    def test_run_cmd_capture():
+>       assert run_cmd(
+            'echo', 'test',
+            out=None) == (None, None, 0)
+
+dev_tools/shell_tools_test.py:59: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools_test.py:30: in run_cmd
+    return shell_tools.run_cmd(*args, log_run_to_stderr=False, **kwargs)
+dev_tools/shell_tools.py:196: in run_cmd
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:225: in create_subprocess_exec
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1211: in subprocess_exec
+    bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242ffb550>, args = ['echo', 'test']
+executable = b'echo', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = False
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+____________________________ test_run_shell_capture ____________________________
+
+    @only_on_posix
+    def test_run_shell_capture():
+>       assert run_shell(
+            'echo test 1>&2',
+            err=None) == (None, None, 0)
+
+dev_tools/shell_tools_test.py:73: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools_test.py:34: in run_shell
+    return shell_tools.run_shell(*args, log_run_to_stderr=False, **kwargs)
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb24907bb38>
+args = ['/bin/sh', '-c', 'echo test 1>&2'], executable = b'/bin/sh'
+preexec_fn = None, close_fds = True, pass_fds = (), cwd = None, env = None
+startupinfo = None, creationflags = 0, shell = True, p2cread = -1, p2cwrite = -1
+c2pread = 18, c2pwrite = 19, errread = 20, errwrite = 21, restore_signals = True
+start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+______________ test_run_shell_does_not_deadlock_on_large_outputs _______________
+
+    @only_on_posix
+    def test_run_shell_does_not_deadlock_on_large_outputs():
+>       assert run_shell(
+            r"""python3 -c "import sys;"""
+            r"""print((('o' * 99) + '\n') * 10000);"""
+            r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
+            '"',
+            out=None,
+            err=None) == (None, None, 0)
+
+dev_tools/shell_tools_test.py:87: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools_test.py:34: in run_shell
+    return shell_tools.run_shell(*args, log_run_to_stderr=False, **kwargs)
+dev_tools/shell_tools.py:251: in run_shell
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:210: in create_subprocess_shell
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1180: in subprocess_shell
+    protocol, cmd, True, stdin, stdout, stderr, bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb24230f6a0>
+args = ['/bin/sh', '-c', 'python3 -c "import sys;print(((\'o\' * 99) + \'\\n\') * 10000);print(((\'e\' * 99) + \'\\n\') * 10000, file=sys.stderr)"']
+executable = b'/bin/sh', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = True
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+________________________________ test_output_of ________________________________
+
+    @only_on_posix
+    def test_output_of():
+>       assert shell_tools.output_of('true') == ''
+
+dev_tools/shell_tools_test.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+dev_tools/shell_tools.py:277: in output_of
+    **kwargs).out)
+dev_tools/shell_tools.py:196: in run_cmd
+    err))
+../venv3.6/lib/python3.6/site-packages/nest_asyncio.py:63: in run_until_complete
+    return self._run_until_complete_orig(future)
+/usr/lib/python3.6/asyncio/base_events.py:484: in run_until_complete
+    return future.result()
+/usr/lib/python3.6/asyncio/tasks.py:180: in _step
+    result = coro.send(None)
+dev_tools/shell_tools.py:118: in _async_wait_for_process
+    process = await future_process
+/usr/lib/python3.6/asyncio/subprocess.py:225: in create_subprocess_exec
+    stderr=stderr, **kwds)
+/usr/lib/python3.6/asyncio/base_events.py:1211: in subprocess_exec
+    bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:200: in _make_subprocess_transport
+    **kwargs)
+/usr/lib/python3.6/asyncio/base_subprocess.py:39: in __init__
+    stderr=stderr, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/asyncio/unix_events.py:706: in _start
+    universal_newlines=False, bufsize=bufsize, **kwargs)
+/usr/lib/python3.6/subprocess.py:729: in __init__
+    restore_signals, start_new_session)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <subprocess.Popen object at 0x7fb242d0b710>, args = ['true']
+executable = b'true', preexec_fn = None, close_fds = True, pass_fds = ()
+cwd = None, env = None, startupinfo = None, creationflags = 0, shell = False
+p2cread = -1, p2cwrite = -1, c2pread = 18, c2pwrite = 19, errread = 20
+errwrite = 21, restore_signals = True, start_new_session = False
+
+    def _execute_child(self, args, executable, preexec_fn, close_fds,
+                       pass_fds, cwd, env,
+                       startupinfo, creationflags, shell,
+                       p2cread, p2cwrite,
+                       c2pread, c2pwrite,
+                       errread, errwrite,
+                       restore_signals, start_new_session):
+        """Execute program (POSIX version)"""
+    
+        if isinstance(args, (str, bytes)):
+            args = [args]
+        else:
+            args = list(args)
+    
+        if shell:
+            args = ["/bin/sh", "-c"] + args
+            if executable:
+                args[0] = executable
+    
+        if executable is None:
+            executable = args[0]
+        orig_executable = executable
+    
+        # For transferring possible exec failure from child to parent.
+        # Data format: "exception name:hex errno:description"
+        # Pickle is not used; it is complex and involves memory allocation.
+        errpipe_read, errpipe_write = os.pipe()
+        # errpipe_write must not be in the standard io 0, 1, or 2 fd range.
+        low_fds_to_close = []
+        while errpipe_write < 3:
+            low_fds_to_close.append(errpipe_write)
+            errpipe_write = os.dup(errpipe_write)
+        for low_fd in low_fds_to_close:
+            os.close(low_fd)
+        try:
+            try:
+                # We must avoid complex work that could involve
+                # malloc or free in the child process to avoid
+                # potential deadlocks, thus we do all this here.
+                # and pass it to fork_exec()
+    
+                if env is not None:
+                    env_list = []
+                    for k, v in env.items():
+                        k = os.fsencode(k)
+                        if b'=' in k:
+                            raise ValueError("illegal environment variable name")
+                        env_list.append(k + b'=' + os.fsencode(v))
+                else:
+                    env_list = None  # Use execv instead of execve.
+                executable = os.fsencode(executable)
+                if os.path.dirname(executable):
+                    executable_list = (executable,)
+                else:
+                    # This matches the behavior of os._execvpe().
+                    executable_list = tuple(
+                        os.path.join(os.fsencode(dir), executable)
+                        for dir in os.get_exec_path(env))
+                fds_to_keep = set(pass_fds)
+                fds_to_keep.add(errpipe_write)
+                self.pid = _posixsubprocess.fork_exec(
+                        args, executable_list,
+                        close_fds, tuple(sorted(map(int, fds_to_keep))),
+                        cwd, env_list,
+                        p2cread, p2cwrite, c2pread, c2pwrite,
+                        errread, errwrite,
+                        errpipe_read, errpipe_write,
+>                       restore_signals, start_new_session, preexec_fn)
+E                       OSError: [Errno 12] Cannot allocate memory
+
+/usr/lib/python3.6/subprocess.py:1295: OSError
+
+Computing stats ...Computing stats ... group 1/1Computing stats ... group 1/1: minComputing stats ... group 1/1: min (1/26)Computing stats ... group 1/1: min (2/26)Computing stats ... group 1/1: min (3/26)Computing stats ... group 1/1: min (4/26)Computing stats ... group 1/1: min (5/26)Computing stats ... group 1/1: min (6/26)Computing stats ... group 1/1: min (7/26)Computing stats ... group 1/1: min (8/26)Computing stats ... group 1/1: min (9/26)Computing stats ... group 1/1: min (10/26)Computing stats ... group 1/1: min (11/26)Computing stats ... group 1/1: min (12/26)Computing stats ... group 1/1: min (13/26)Computing stats ... group 1/1: min (14/26)Computing stats ... group 1/1: min (15/26)Computing stats ... group 1/1: min (16/26)Computing stats ... group 1/1: min (17/26)Computing stats ... group 1/1: min (18/26)Computing stats ... group 1/1: min (19/26)Computing stats ... group 1/1: min (20/26)Computing stats ... group 1/1: min (21/26)Computing stats ... group 1/1: min (22/26)Computing stats ... group 1/1: min (23/26)Computing stats ... group 1/1: min (24/26)Computing stats ... group 1/1: min (25/26)Computing stats ... group 1/1: min (26/26)Computing stats ... group 1/1: min (1/26)Computing stats ... group 1/1: min (2/26)Computing stats ... group 1/1: min (3/26)Computing stats ... group 1/1: min (4/26)Computing stats ... group 1/1: min (5/26)Computing stats ... group 1/1: min (6/26)Computing stats ... group 1/1: min (7/26)Computing stats ... group 1/1: min (8/26)Computing stats ... group 1/1: min (9/26)Computing stats ... group 1/1: min (10/26)Computing stats ... group 1/1: min (11/26)Computing stats ... group 1/1: min (12/26)Computing stats ... group 1/1: min (13/26)Computing stats ... group 1/1: min (14/26)Computing stats ... group 1/1: min (15/26)Computing stats ... group 1/1: min (16/26)Computing stats ... group 1/1: min (17/26)Computing stats ... group 1/1: min (18/26)Computing stats ... group 1/1: min (19/26)Computing stats ... group 1/1: min (20/26)Computing stats ... group 1/1: min (21/26)Computing stats ... group 1/1: min (22/26)Computing stats ... group 1/1: min (23/26)Computing stats ... group 1/1: min (24/26)Computing stats ... group 1/1: min (25/26)Computing stats ... group 1/1: min (26/26)Computing stats ... group 1/1: maxComputing stats ... group 1/1: max (1/26)Computing stats ... group 1/1: max (2/26)Computing stats ... group 1/1: max (3/26)Computing stats ... group 1/1: max (4/26)Computing stats ... group 1/1: max (5/26)Computing stats ... group 1/1: max (6/26)Computing stats ... group 1/1: max (7/26)Computing stats ... group 1/1: max (8/26)Computing stats ... group 1/1: max (9/26)Computing stats ... group 1/1: max (10/26)Computing stats ... group 1/1: max (11/26)Computing stats ... group 1/1: max (12/26)Computing stats ... group 1/1: max (13/26)Computing stats ... group 1/1: max (14/26)Computing stats ... group 1/1: max (15/26)Computing stats ... group 1/1: max (16/26)Computing stats ... group 1/1: max (17/26)Computing stats ... group 1/1: max (18/26)Computing stats ... group 1/1: max (19/26)Computing stats ... group 1/1: max (20/26)Computing stats ... group 1/1: max (21/26)Computing stats ... group 1/1: max (22/26)Computing stats ... group 1/1: max (23/26)Computing stats ... group 1/1: max (24/26)Computing stats ... group 1/1: max (25/26)Computing stats ... group 1/1: max (26/26)Computing stats ... group 1/1: max (1/26)Computing stats ... group 1/1: max (2/26)Computing stats ... group 1/1: max (3/26)Computing stats ... group 1/1: max (4/26)Computing stats ... group 1/1: max (5/26)Computing stats ... group 1/1: max (6/26)Computing stats ... group 1/1: max (7/26)Computing stats ... group 1/1: max (8/26)Computing stats ... group 1/1: max (9/26)Computing stats ... group 1/1: max (10/26)Computing stats ... group 1/1: max (11/26)Computing stats ... group 1/1: max (12/26)Computing stats ... group 1/1: max (13/26)Computing stats ... group 1/1: max (14/26)Computing stats ... group 1/1: max (15/26)Computing stats ... group 1/1: max (16/26)Computing stats ... group 1/1: max (17/26)Computing stats ... group 1/1: max (18/26)Computing stats ... group 1/1: max (19/26)Computing stats ... group 1/1: max (20/26)Computing stats ... group 1/1: max (21/26)Computing stats ... group 1/1: max (22/26)Computing stats ... group 1/1: max (23/26)Computing stats ... group 1/1: max (24/26)Computing stats ... group 1/1: max (25/26)Computing stats ... group 1/1: max (26/26)Computing stats ... group 1/1: meanComputing stats ... group 1/1: mean (1/26)Computing stats ... group 1/1: mean (2/26)Computing stats ... group 1/1: mean (3/26)Computing stats ... group 1/1: mean (4/26)Computing stats ... group 1/1: mean (5/26)Computing stats ... group 1/1: mean (6/26)Computing stats ... group 1/1: mean (7/26)Computing stats ... group 1/1: mean (8/26)Computing stats ... group 1/1: mean (9/26)Computing stats ... group 1/1: mean (10/26)Computing stats ... group 1/1: mean (11/26)Computing stats ... group 1/1: mean (12/26)Computing stats ... group 1/1: mean (13/26)Computing stats ... group 1/1: mean (14/26)Computing stats ... group 1/1: mean (15/26)Computing stats ... group 1/1: mean (16/26)Computing stats ... group 1/1: mean (17/26)Computing stats ... group 1/1: mean (18/26)Computing stats ... group 1/1: mean (19/26)Computing stats ... group 1/1: mean (20/26)Computing stats ... group 1/1: mean (21/26)Computing stats ... group 1/1: mean (22/26)Computing stats ... group 1/1: mean (23/26)Computing stats ... group 1/1: mean (24/26)Computing stats ... group 1/1: mean (25/26)Computing stats ... group 1/1: mean (26/26)Computing stats ... group 1/1: mean (1/26)Computing stats ... group 1/1: mean (2/26)Computing stats ... group 1/1: mean (3/26)Computing stats ... group 1/1: mean (4/26)Computing stats ... group 1/1: mean (5/26)Computing stats ... group 1/1: mean (6/26)Computing stats ... group 1/1: mean (7/26)Computing stats ... group 1/1: mean (8/26)Computing stats ... group 1/1: mean (9/26)Computing stats ... group 1/1: mean (10/26)Computing stats ... group 1/1: mean (11/26)Computing stats ... group 1/1: mean (12/26)Computing stats ... group 1/1: mean (13/26)Computing stats ... group 1/1: mean (14/26)Computing stats ... group 1/1: mean (15/26)Computing stats ... group 1/1: mean (16/26)Computing stats ... group 1/1: mean (17/26)Computing stats ... group 1/1: mean (18/26)Computing stats ... group 1/1: mean (19/26)Computing stats ... group 1/1: mean (20/26)Computing stats ... group 1/1: mean (21/26)Computing stats ... group 1/1: mean (22/26)Computing stats ... group 1/1: mean (23/26)Computing stats ... group 1/1: mean (24/26)Computing stats ... group 1/1: mean (25/26)Computing stats ... group 1/1: mean (26/26)Computing stats ... group 1/1: medianComputing stats ... group 1/1: median (1/26)Computing stats ... group 1/1: median (2/26)Computing stats ... group 1/1: median (3/26)Computing stats ... group 1/1: median (4/26)Computing stats ... group 1/1: median (5/26)Computing stats ... group 1/1: median (6/26)Computing stats ... group 1/1: median (7/26)Computing stats ... group 1/1: median (8/26)Computing stats ... group 1/1: median (9/26)Computing stats ... group 1/1: median (10/26)Computing stats ... group 1/1: median (11/26)Computing stats ... group 1/1: median (12/26)Computing stats ... group 1/1: median (13/26)Computing stats ... group 1/1: median (14/26)Computing stats ... group 1/1: median (15/26)Computing stats ... group 1/1: median (16/26)Computing stats ... group 1/1: median (17/26)Computing stats ... group 1/1: median (18/26)Computing stats ... group 1/1: median (19/26)Computing stats ... group 1/1: median (20/26)Computing stats ... group 1/1: median (21/26)Computing stats ... group 1/1: median (22/26)Computing stats ... group 1/1: median (23/26)Computing stats ... group 1/1: median (24/26)Computing stats ... group 1/1: median (25/26)Computing stats ... group 1/1: median (26/26)Computing stats ... group 1/1: median (1/26)Computing stats ... group 1/1: median (2/26)Computing stats ... group 1/1: median (3/26)Computing stats ... group 1/1: median (4/26)Computing stats ... group 1/1: median (5/26)Computing stats ... group 1/1: median (6/26)Computing stats ... group 1/1: median (7/26)Computing stats ... group 1/1: median (8/26)Computing stats ... group 1/1: median (9/26)Computing stats ... group 1/1: median (10/26)Computing stats ... group 1/1: median (11/26)Computing stats ... group 1/1: median (12/26)Computing stats ... group 1/1: median (13/26)Computing stats ... group 1/1: median (14/26)Computing stats ... group 1/1: median (15/26)Computing stats ... group 1/1: median (16/26)Computing stats ... group 1/1: median (17/26)Computing stats ... group 1/1: median (18/26)Computing stats ... group 1/1: median (19/26)Computing stats ... group 1/1: median (20/26)Computing stats ... group 1/1: median (21/26)Computing stats ... group 1/1: median (22/26)Computing stats ... group 1/1: median (23/26)Computing stats ... group 1/1: median (24/26)Computing stats ... group 1/1: median (25/26)Computing stats ... group 1/1: median (26/26)Computing stats ... group 1/1: iqrComputing stats ... group 1/1: iqr (1/26)Computing stats ... group 1/1: iqr (2/26)Computing stats ... group 1/1: iqr (3/26)Computing stats ... group 1/1: iqr (4/26)Computing stats ... group 1/1: iqr (5/26)Computing stats ... group 1/1: iqr (6/26)Computing stats ... group 1/1: iqr (7/26)Computing stats ... group 1/1: iqr (8/26)Computing stats ... group 1/1: iqr (9/26)Computing stats ... group 1/1: iqr (10/26)Computing stats ... group 1/1: iqr (11/26)Computing stats ... group 1/1: iqr (12/26)Computing stats ... group 1/1: iqr (13/26)Computing stats ... group 1/1: iqr (14/26)Computing stats ... group 1/1: iqr (15/26)Computing stats ... group 1/1: iqr (16/26)Computing stats ... group 1/1: iqr (17/26)Computing stats ... group 1/1: iqr (18/26)Computing stats ... group 1/1: iqr (19/26)Computing stats ... group 1/1: iqr (20/26)Computing stats ... group 1/1: iqr (21/26)Computing stats ... group 1/1: iqr (22/26)Computing stats ... group 1/1: iqr (23/26)Computing stats ... group 1/1: iqr (24/26)Computing stats ... group 1/1: iqr (25/26)Computing stats ... group 1/1: iqr (26/26)Computing stats ... group 1/1: iqr (1/26)Computing stats ... group 1/1: iqr (2/26)Computing stats ... group 1/1: iqr (3/26)Computing stats ... group 1/1: iqr (4/26)Computing stats ... group 1/1: iqr (5/26)Computing stats ... group 1/1: iqr (6/26)Computing stats ... group 1/1: iqr (7/26)Computing stats ... group 1/1: iqr (8/26)Computing stats ... group 1/1: iqr (9/26)Computing stats ... group 1/1: iqr (10/26)Computing stats ... group 1/1: iqr (11/26)Computing stats ... group 1/1: iqr (12/26)Computing stats ... group 1/1: iqr (13/26)Computing stats ... group 1/1: iqr (14/26)Computing stats ... group 1/1: iqr (15/26)Computing stats ... group 1/1: iqr (16/26)Computing stats ... group 1/1: iqr (17/26)Computing stats ... group 1/1: iqr (18/26)Computing stats ... group 1/1: iqr (19/26)Computing stats ... group 1/1: iqr (20/26)Computing stats ... group 1/1: iqr (21/26)Computing stats ... group 1/1: iqr (22/26)Computing stats ... group 1/1: iqr (23/26)Computing stats ... group 1/1: iqr (24/26)Computing stats ... group 1/1: iqr (25/26)Computing stats ... group 1/1: iqr (26/26)Computing stats ... group 1/1: stddevComputing stats ... group 1/1: stddev (1/26)Computing stats ... group 1/1: stddev (2/26)Computing stats ... group 1/1: stddev (3/26)Computing stats ... group 1/1: stddev (4/26)Computing stats ... group 1/1: stddev (5/26)Computing stats ... group 1/1: stddev (6/26)Computing stats ... group 1/1: stddev (7/26)Computing stats ... group 1/1: stddev (8/26)Computing stats ... group 1/1: stddev (9/26)Computing stats ... group 1/1: stddev (10/26)Computing stats ... group 1/1: stddev (11/26)Computing stats ... group 1/1: stddev (12/26)Computing stats ... group 1/1: stddev (13/26)Computing stats ... group 1/1: stddev (14/26)Computing stats ... group 1/1: stddev (15/26)Computing stats ... group 1/1: stddev (16/26)Computing stats ... group 1/1: stddev (17/26)Computing stats ... group 1/1: stddev (18/26)Computing stats ... group 1/1: stddev (19/26)Computing stats ... group 1/1: stddev (20/26)Computing stats ... group 1/1: stddev (21/26)Computing stats ... group 1/1: stddev (22/26)Computing stats ... group 1/1: stddev (23/26)Computing stats ... group 1/1: stddev (24/26)Computing stats ... group 1/1: stddev (25/26)Computing stats ... group 1/1: stddev (26/26)Computing stats ... group 1/1: stddev (1/26)Computing stats ... group 1/1: stddev (2/26)Computing stats ... group 1/1: stddev (3/26)Computing stats ... group 1/1: stddev (4/26)Computing stats ... group 1/1: stddev (5/26)Computing stats ... group 1/1: stddev (6/26)Computing stats ... group 1/1: stddev (7/26)Computing stats ... group 1/1: stddev (8/26)Computing stats ... group 1/1: stddev (9/26)Computing stats ... group 1/1: stddev (10/26)Computing stats ... group 1/1: stddev (11/26)Computing stats ... group 1/1: stddev (12/26)Computing stats ... group 1/1: stddev (13/26)Computing stats ... group 1/1: stddev (14/26)Computing stats ... group 1/1: stddev (15/26)Computing stats ... group 1/1: stddev (16/26)Computing stats ... group 1/1: stddev (17/26)Computing stats ... group 1/1: stddev (18/26)Computing stats ... group 1/1: stddev (19/26)Computing stats ... group 1/1: stddev (20/26)Computing stats ... group 1/1: stddev (21/26)Computing stats ... group 1/1: stddev (22/26)Computing stats ... group 1/1: stddev (23/26)Computing stats ... group 1/1: stddev (24/26)Computing stats ... group 1/1: stddev (25/26)Computing stats ... group 1/1: stddev (26/26)Computing stats ... group 1/1: opsComputing stats ... group 1/1: ops (1/26)Computing stats ... group 1/1: ops (2/26)Computing stats ... group 1/1: ops (3/26)Computing stats ... group 1/1: ops (4/26)Computing stats ... group 1/1: ops (5/26)Computing stats ... group 1/1: ops (6/26)Computing stats ... group 1/1: ops (7/26)Computing stats ... group 1/1: ops (8/26)Computing stats ... group 1/1: ops (9/26)Computing stats ... group 1/1: ops (10/26)Computing stats ... group 1/1: ops (11/26)Computing stats ... group 1/1: ops (12/26)Computing stats ... group 1/1: ops (13/26)Computing stats ... group 1/1: ops (14/26)Computing stats ... group 1/1: ops (15/26)Computing stats ... group 1/1: ops (16/26)Computing stats ... group 1/1: ops (17/26)Computing stats ... group 1/1: ops (18/26)Computing stats ... group 1/1: ops (19/26)Computing stats ... group 1/1: ops (20/26)Computing stats ... group 1/1: ops (21/26)Computing stats ... group 1/1: ops (22/26)Computing stats ... group 1/1: ops (23/26)Computing stats ... group 1/1: ops (24/26)Computing stats ... group 1/1: ops (25/26)Computing stats ... group 1/1: ops (26/26)Computing stats ... group 1/1: ops (1/26)Computing stats ... group 1/1: ops (2/26)Computing stats ... group 1/1: ops (3/26)Computing stats ... group 1/1: ops (4/26)Computing stats ... group 1/1: ops (5/26)Computing stats ... group 1/1: ops (6/26)Computing stats ... group 1/1: ops (7/26)Computing stats ... group 1/1: ops (8/26)Computing stats ... group 1/1: ops (9/26)Computing stats ... group 1/1: ops (10/26)Computing stats ... group 1/1: ops (11/26)Computing stats ... group 1/1: ops (12/26)Computing stats ... group 1/1: ops (13/26)Computing stats ... group 1/1: ops (14/26)Computing stats ... group 1/1: ops (15/26)Computing stats ... group 1/1: ops (16/26)Computing stats ... group 1/1: ops (17/26)Computing stats ... group 1/1: ops (18/26)Computing stats ... group 1/1: ops (19/26)Computing stats ... group 1/1: ops (20/26)Computing stats ... group 1/1: ops (21/26)Computing stats ... group 1/1: ops (22/26)Computing stats ... group 1/1: ops (23/26)Computing stats ... group 1/1: ops (24/26)Computing stats ... group 1/1: ops (25/26)Computing stats ... group 1/1: ops (26/26)Computing stats ... group 1/1: ops: outliersComputing stats ... group 1/1: ops: outliers (1/26)Computing stats ... group 1/1: ops: outliers (2/26)Computing stats ... group 1/1: ops: outliers (3/26)Computing stats ... group 1/1: ops: outliers (4/26)Computing stats ... group 1/1: ops: outliers (5/26)Computing stats ... group 1/1: ops: outliers (6/26)Computing stats ... group 1/1: ops: outliers (7/26)Computing stats ... group 1/1: ops: outliers (8/26)Computing stats ... group 1/1: ops: outliers (9/26)Computing stats ... group 1/1: ops: outliers (10/26)Computing stats ... group 1/1: ops: outliers (11/26)Computing stats ... group 1/1: ops: outliers (12/26)Computing stats ... group 1/1: ops: outliers (13/26)Computing stats ... group 1/1: ops: outliers (14/26)Computing stats ... group 1/1: ops: outliers (15/26)Computing stats ... group 1/1: ops: outliers (16/26)Computing stats ... group 1/1: ops: outliers (17/26)Computing stats ... group 1/1: ops: outliers (18/26)Computing stats ... group 1/1: ops: outliers (19/26)Computing stats ... group 1/1: ops: outliers (20/26)Computing stats ... group 1/1: ops: outliers (21/26)Computing stats ... group 1/1: ops: outliers (22/26)Computing stats ... group 1/1: ops: outliers (23/26)Computing stats ... group 1/1: ops: outliers (24/26)Computing stats ... group 1/1: ops: outliers (25/26)Computing stats ... group 1/1: ops: outliers (26/26)Computing stats ... group 1/1: ops: roundsComputing stats ... group 1/1: ops: rounds (1/26)Computing stats ... group 1/1: ops: rounds (2/26)Computing stats ... group 1/1: ops: rounds (3/26)Computing stats ... group 1/1: ops: rounds (4/26)Computing stats ... group 1/1: ops: rounds (5/26)Computing stats ... group 1/1: ops: rounds (6/26)Computing stats ... group 1/1: ops: rounds (7/26)Computing stats ... group 1/1: ops: rounds (8/26)Computing stats ... group 1/1: ops: rounds (9/26)Computing stats ... group 1/1: ops: rounds (10/26)Computing stats ... group 1/1: ops: rounds (11/26)Computing stats ... group 1/1: ops: rounds (12/26)Computing stats ... group 1/1: ops: rounds (13/26)Computing stats ... group 1/1: ops: rounds (14/26)Computing stats ... group 1/1: ops: rounds (15/26)Computing stats ... group 1/1: ops: rounds (16/26)Computing stats ... group 1/1: ops: rounds (17/26)Computing stats ... group 1/1: ops: rounds (18/26)Computing stats ... group 1/1: ops: rounds (19/26)Computing stats ... group 1/1: ops: rounds (20/26)Computing stats ... group 1/1: ops: rounds (21/26)Computing stats ... group 1/1: ops: rounds (22/26)Computing stats ... group 1/1: ops: rounds (23/26)Computing stats ... group 1/1: ops: rounds (24/26)Computing stats ... group 1/1: ops: rounds (25/26)Computing stats ... group 1/1: ops: rounds (26/26)Computing stats ... group 1/1: ops: iterationsComputing stats ... group 1/1: ops: iterations (1/26)Computing stats ... group 1/1: ops: iterations (2/26)Computing stats ... group 1/1: ops: iterations (3/26)Computing stats ... group 1/1: ops: iterations (4/26)Computing stats ... group 1/1: ops: iterations (5/26)Computing stats ... group 1/1: ops: iterations (6/26)Computing stats ... group 1/1: ops: iterations (7/26)Computing stats ... group 1/1: ops: iterations (8/26)Computing stats ... group 1/1: ops: iterations (9/26)Computing stats ... group 1/1: ops: iterations (10/26)Computing stats ... group 1/1: ops: iterations (11/26)Computing stats ... group 1/1: ops: iterations (12/26)Computing stats ... group 1/1: ops: iterations (13/26)Computing stats ... group 1/1: ops: iterations (14/26)Computing stats ... group 1/1: ops: iterations (15/26)Computing stats ... group 1/1: ops: iterations (16/26)Computing stats ... group 1/1: ops: iterations (17/26)Computing stats ... group 1/1: ops: iterations (18/26)Computing stats ... group 1/1: ops: iterations (19/26)Computing stats ... group 1/1: ops: iterations (20/26)Computing stats ... group 1/1: ops: iterations (21/26)Computing stats ... group 1/1: ops: iterations (22/26)Computing stats ... group 1/1: ops: iterations (23/26)Computing stats ... group 1/1: ops: iterations (24/26)Computing stats ... group 1/1: ops: iterations (25/26)Computing stats ... group 1/1: ops: iterations (26/26)---------------------------------------------------------------------------------------------------------------- benchmark: 26 tests ----------------------------------------------------------------------------------------------------------------
+Name (time in us)                                             Min                     Max                    Mean                 StdDev                  Median                    IQR            Outliers         OPS            Rounds  Iterations
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+test_kak_decomposition_perf[target2]                     708.8930 (1.0)        9,059.4030 (4.28)         904.9400 (1.0)         433.7875 (3.56)         847.2840 (1.0)         128.7255 (1.13)        12;40  1,105.0457 (1.0)         915           1
+test_kak_decomposition_perf[target3]                     767.6290 (1.08)      14,939.8200 (7.07)         998.0968 (1.10)        548.6560 (4.50)         948.8595 (1.12)        119.9995 (1.05)         9;50  1,001.9069 (0.91)        964           1
+test_kak_decomposition_perf[target5]                     806.7200 (1.14)       5,220.6670 (2.47)       1,002.6523 (1.11)        194.0637 (1.59)         967.1390 (1.14)        117.1390 (1.02)        59;50    997.3547 (0.90)        882           1
+test_kak_decomposition_perf[target0]                     810.6550 (1.14)       2,939.8870 (1.39)       1,025.2322 (1.13)        182.2040 (1.50)         976.2085 (1.15)        144.8790 (1.27)        83;45    975.3888 (0.88)        778           1
+test_kak_decomposition_perf[target4]                     839.7820 (1.18)       9,150.7600 (4.33)       1,034.5212 (1.14)        315.2145 (2.59)       1,007.7475 (1.19)        114.4000 (1.0)         10;32    966.6308 (0.87)        790           1
+test_kak_decomposition_perf[target1]                     852.0640 (1.20)       7,366.8080 (3.48)       1,099.2150 (1.21)        296.3432 (2.43)       1,031.8375 (1.22)        173.9040 (1.52)        53;51    909.7401 (0.82)        710           1
+test_kak_decomposition_perf[target14]                    926.3570 (1.31)       5,066.2350 (2.40)       1,128.2146 (1.25)        209.2794 (1.72)       1,092.0090 (1.29)        145.8940 (1.28)        48;29    886.3562 (0.80)        761           1
+test_kak_decomposition_perf[target13]                    974.6660 (1.37)       8,612.1400 (4.07)       1,168.7909 (1.29)        282.1019 (2.32)       1,135.1265 (1.34)        139.7030 (1.22)        18;28    855.5850 (0.77)        830           1
+test_kak_decomposition_perf[target10]                    981.0950 (1.38)       6,193.8910 (2.93)       1,157.2615 (1.28)        222.8657 (1.83)       1,117.8080 (1.32)        142.6590 (1.25)        34;24    864.1089 (0.78)        710           1
+test_kak_decomposition_perf[target9]                     988.5740 (1.39)       4,227.7760 (2.00)       1,163.9656 (1.29)        175.9249 (1.44)       1,126.6790 (1.33)        132.7052 (1.16)        76;42    859.1320 (0.78)        809           1
+test_kak_decomposition_perf[target8]                     989.6190 (1.40)      15,298.5360 (7.24)       1,193.8003 (1.32)        595.4508 (4.89)       1,127.9970 (1.33)        141.4255 (1.24)         7;33    837.6611 (0.76)        843           1
+test_kak_decomposition_perf[target6]                   1,002.5990 (1.41)       2,114.2780 (1.0)        1,169.4342 (1.29)        121.8388 (1.0)        1,136.0920 (1.34)        144.9718 (1.27)       199;26    855.1144 (0.77)        809           1
+test_kak_decomposition_perf[target7]                   1,002.7990 (1.41)      14,971.2330 (7.08)       1,255.1391 (1.39)        782.4193 (6.42)       1,144.0765 (1.35)        139.8700 (1.22)        11;42    796.7244 (0.72)        742           1
+test_kak_decomposition_perf[target11]                  1,019.1630 (1.44)      13,297.2660 (6.29)       1,241.5415 (1.37)        674.0225 (5.53)       1,171.9765 (1.38)        130.1420 (1.14)         5;39    805.4503 (0.73)        740           1
+test_kak_decomposition_perf[target15]                  1,021.7770 (1.44)       5,502.1320 (2.60)       1,224.6419 (1.35)        215.4939 (1.77)       1,188.1660 (1.40)        147.3885 (1.29)        46;26    816.5653 (0.74)        655           1
+test_kak_decomposition_perf[target12]                  1,034.4500 (1.46)       7,711.1110 (3.65)       1,223.3833 (1.35)        296.0446 (2.43)       1,182.3020 (1.40)        142.0660 (1.24)        23;33    817.4053 (0.74)        850           1
+test_example_runs_hello_qubit_perf                     1,562.5950 (2.20)       6,001.3500 (2.84)       2,149.1227 (2.37)        476.8286 (3.91)       2,001.9560 (2.36)        489.6842 (4.28)        79;22    465.3061 (0.42)        491           1
+test_example_runs_bernstein_vazirani_perf              5,518.1720 (7.78)      12,126.5760 (5.74)       8,249.7458 (9.12)      1,122.0441 (9.21)       8,129.1860 (9.59)      1,275.5940 (11.15)        36;6    121.2159 (0.11)        134           1
+test_example_runs_quantum_teleportation                7,443.8860 (10.50)     26,355.6410 (12.47)      9,124.9217 (10.08)     2,156.7335 (17.70)      8,591.3210 (10.14)       929.8810 (8.13)         9;14    109.5900 (0.10)        122           1
+test_example_runs_bell_inequality_perf                 7,487.8070 (10.56)     11,655.5690 (5.51)       8,273.8862 (9.14)        650.7829 (5.34)       8,125.0670 (9.59)        569.9480 (4.98)         15;6    120.8622 (0.11)        122           1
+test_example_runs_grover_perf                         10,021.0660 (14.14)     14,683.1630 (6.94)      11,701.7645 (12.93)       824.8138 (6.77)      11,725.8130 (13.84)     1,040.2760 (9.09)         21;1     85.4572 (0.08)         79           1
+test_example_runs_quantum_fourier_transform_perf      10,886.1180 (15.36)     21,767.5560 (10.30)     12,366.2414 (13.67)     1,730.6881 (14.20)     11,835.2670 (13.97)       888.1025 (7.76)        10;11     80.8653 (0.07)         87           1
+test_example_runs_superdense_coding                   58,270.4520 (82.20)     74,799.2450 (35.38)     63,303.2192 (69.95)     4,636.1008 (38.05)     61,819.9810 (72.96)     5,382.1867 (47.05)         4;1     15.7970 (0.01)         17           1
+test_example_runs_phase_estimator_perf                74,551.6820 (105.17)   104,562.2750 (49.46)     82,323.8609 (90.97)     8,988.1283 (73.77)     79,090.3630 (93.35)     6,112.9355 (53.43)         2;2     12.1471 (0.01)         13           1
+test_example_runs_bcs_mean_field_perf                331,357.5720 (467.43)   377,705.5050 (178.65)   351,492.1902 (388.41)   23,261.9746 (190.92)   336,688.5290 (397.37)   41,861.8410 (365.93)        2;0      2.8450 (0.00)          5           1
+test_example_runs_hello_line_perf                    344,750.3670 (486.32)   377,038.9770 (178.33)   360,413.7356 (398.27)   11,831.4508 (97.11)    360,468.6750 (425.44)   14,582.3228 (127.47)        2;0      2.7746 (0.00)          5           1
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Legend:
+  Outliers: 1 Standard Deviation from Mean; 1.5 IQR (InterQuartile Range) from 1st Quartile and 3rd Quartile.
+  OPS: Operations Per Second, computed as 1 / Mean
+=============================== warnings summary ===============================
+/home/vtomole/Cirq/cirq/circuits/qasm_output_deprecated_test.py:29: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  gate = QasmUGate(0.1, 0.2, 0.3)
+
+/home/vtomole/Cirq/cirq/circuits/qasm_output_deprecated_test.py:35: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  gate = QasmUGate(0.1, 0.2, 0.3)
+/home/vtomole/Cirq/cirq/circuits/qasm_output_deprecated_test.py:36: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  gate2 = QasmUGate(0.1, 0.2, 0.3)
+/home/vtomole/Cirq/cirq/circuits/qasm_output_deprecated_test.py:38: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  gate3 = QasmUGate(0.1, 0.2, 0.4)
+/home/vtomole/Cirq/cirq/circuits/qasm_output_deprecated_test.py:39: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  gate4 = QasmUGate(0.1, 0.2, 2.4)
+
+/home/vtomole/Cirq/cirq/circuits/qasm_output.py:118: DeprecationWarning: cirq.circuits.qasm_output.QasmTwoQubitGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.
+
+  return QasmTwoQubitGate(kak)
+<string>:11: DeprecationWarning: cirq.circuits.qasm_output.QasmTwoQubitGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.
+<string>:11: DeprecationWarning: cirq.circuits.qasm_output.QasmTwoQubitGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.
+<string>:11: DeprecationWarning: cirq.circuits.qasm_output.QasmTwoQubitGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.
+
+/home/vtomole/Cirq/cirq/circuits/qasm_output.py:58: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  pre_phase / np.pi,
+/usr/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: numpy.ufunc size changed, may indicate binary incompatibility. Expected 192 from C header, got 216 from PyObject
+  return f(*args, **kwds)
+/usr/lib/python3.6/importlib/_bootstrap.py:219: RuntimeWarning: numpy.ufunc size changed, may indicate binary incompatibility. Expected 192 from C header, got 216 from PyObject
+  return f(*args, **kwds)
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+<string>:1: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+/home/vtomole/Cirq/cirq/circuits/qasm_output.py:118: DeprecationWarning: cirq.circuits.qasm_output.QasmTwoQubitGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.
+
+  return QasmTwoQubitGate(kak)
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:268: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:269: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1)
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:273: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq.Moment([QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0)]))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:358: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(float(sympy.sympify(expr)) / np.pi, 2.0, 1 / 2.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:170: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:651: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  expected_circuit.append(QasmUGate(0, 0, 1.0 / 3.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:197: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:674: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  expected_circuit.append(QasmUGate(0.5, 2.0, 1.0 / 3.0)(q0))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:203: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  0.5, params[0] / np.pi, params[1] / np.pi)),
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:726: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(1.0, 2.3 / np.pi, 3 / np.pi)(q0),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:727: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q1),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser_test.py:731: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq.Moment([QasmUGate(3.14 / np.pi, -1.0, 8 / np.pi)(q0)]))
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+
+/home/vtomole/Cirq/cirq/contrib/qasm_import/qasm_test.py:46: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq.circuits.qasm_output.QasmUGate(1.0, 2.0, 3.0).on(d),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/qasm_test.py:51: DeprecationWarning: cirq.contrib.qasm_import.circuit_from_qasm was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm.circuit_from_qasm` instead.
+
+  circuit2 = circuit_from_qasm(qasm)
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+/home/vtomole/Cirq/cirq/contrib/qasm_import/_parser.py:211: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params]))),
+
+/home/vtomole/Cirq/cirq/experiments/qubit_characterizations_test.py:156: MatplotlibDeprecationWarning: Adding an axes using the same arguments as a previous axes currently reuses the earlier instance.  In a future version, a new instance will always be created and returned.  Meanwhile, this warning can be suppressed, and the future behavior ensured, by passing a unique label to each axes instance.
+  ax = plt.subplot()
+
+/home/vtomole/Cirq/cirq/experiments/t1_decay_experiment.py:132: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+/home/vtomole/Cirq/cirq/google/optimizers/two_qubit_gates/example.py:107: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+
+/home/vtomole/Cirq/cirq/ion/ion_gates_test.py:67: DeprecationWarning: MS was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ms, instead.
+
+  assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
+
+/home/vtomole/Cirq/cirq/ion/ion_gates_test.py:67: DeprecationWarning: MS was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ms, instead.
+
+  assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
+
+/home/vtomole/Cirq/cirq/ion/ion_gates_test.py:67: DeprecationWarning: MS was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ms, instead.
+
+  assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
+
+/home/vtomole/Cirq/cirq/ion/ion_gates_test.py:67: DeprecationWarning: MS was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ms, instead.
+
+  assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
+
+/home/vtomole/Cirq/cirq/linalg/decompositions.py:655: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+/home/vtomole/Cirq/cirq/linalg/decompositions.py:655: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:527: DeprecationWarning: Rx was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rx, instead.
+
+  assert np.all(cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:528: DeprecationWarning: Ry was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ry, instead.
+
+  assert np.all(cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:529: DeprecationWarning: Rz was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rz, instead.
+
+  assert np.all(cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
+
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:527: DeprecationWarning: Rx was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rx, instead.
+
+  assert np.all(cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:528: DeprecationWarning: Ry was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ry, instead.
+
+  assert np.all(cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:529: DeprecationWarning: Rz was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rz, instead.
+
+  assert np.all(cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
+
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:527: DeprecationWarning: Rx was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rx, instead.
+
+  assert np.all(cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:528: DeprecationWarning: Ry was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ry, instead.
+
+  assert np.all(cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:529: DeprecationWarning: Rz was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rz, instead.
+
+  assert np.all(cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
+
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:527: DeprecationWarning: Rx was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rx, instead.
+
+  assert np.all(cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:528: DeprecationWarning: Ry was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.ry, instead.
+
+  assert np.all(cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
+/home/vtomole/Cirq/cirq/ops/common_gates_test.py:529: DeprecationWarning: Rz was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.rz, instead.
+
+  assert np.all(cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
+
+/home/vtomole/Cirq/cirq/ops/phased_x_z_gate.py:122: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  self._axis_phase_exponent - 0.5)
+/home/vtomole/Cirq/cirq/ops/phased_x_z_gate.py:122: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  self._axis_phase_exponent - 0.5)
+/home/vtomole/Cirq/cirq/ops/phased_x_z_gate.py:122: DeprecationWarning: cirq.circuits.qasm_output.QasmUGate was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm_output.QasmUGate` instead.
+
+  self._axis_phase_exponent - 0.5)
+
+/home/vtomole/Cirq/cirq/ops/swap_gates_test.py:180: DeprecationWarning: ISwapRotation was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.riswap, instead.
+
+  assert np.all(
+
+/home/vtomole/Cirq/cirq/ops/swap_gates_test.py:180: DeprecationWarning: ISwapRotation was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.riswap, instead.
+
+  assert np.all(
+
+/home/vtomole/Cirq/cirq/ops/swap_gates_test.py:180: DeprecationWarning: ISwapRotation was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.riswap, instead.
+
+  assert np.all(
+
+/home/vtomole/Cirq/cirq/ops/swap_gates_test.py:180: DeprecationWarning: ISwapRotation was used but is deprecated.
+It will be removed in cirq v0.8.0.
+Use cirq.riswap, instead.
+
+  assert np.all(
+
+/home/vtomole/Cirq/cirq/study/visualize.py:64: UserWarning: Matplotlib is currently using pdf, which is a non-GUI backend, so cannot show the figure.
+  plt.show()
+
+<string>:10: DeprecationWarning: cirq.contrib.qasm_import.circuit_from_qasm was used but is deprecated.
+It will be removed in cirq v0.8.
+Use `cirq.interop.qasm.circuit_from_qasm` instead.
+
+/home/vtomole/Cirq/cirq/vis/heatmap.py:260: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+/home/vtomole/Cirq/cirq/experiments/qubit_characterizations.py:78: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+/home/vtomole/Cirq/cirq/experiments/qubit_characterizations.py:126: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+/home/vtomole/Cirq/cirq/experiments/qubit_characterizations.py:194: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+/home/vtomole/Cirq/cirq/experiments/cross_entropy_benchmarking.py:68: UserWarning: Matplotlib is currently using agg, which is a non-GUI backend, so cannot show the figure.
+  fig.show()
+
+-- Docs: https://docs.pytest.org/en/latest/warnings.html
+====== 30 failed, 9356 passed, 66 xfailed, 133 warnings in 319.33 seconds ======

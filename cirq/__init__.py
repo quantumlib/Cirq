@@ -69,7 +69,6 @@ from cirq.circuits import (
     InsertStrategy,
     PointOptimizationSummary,
     PointOptimizer,
-    QasmOutput,
     TextDiagramDrawer,
     Unique,
 )
@@ -100,6 +99,7 @@ from cirq.experiments import (
 )
 
 from cirq.interop import (
+    QasmOutput,
     quirk_json_to_circuit,
     quirk_url_to_circuit,
 )

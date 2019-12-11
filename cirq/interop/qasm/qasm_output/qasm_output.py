@@ -21,7 +21,6 @@ import re
 import numpy as np
 
 from cirq import ops, linalg, protocols, value
-from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -30,9 +29,6 @@ if TYPE_CHECKING:
 @value.value_equality(approximate=True)
 class QasmUGate(ops.SingleQubitGate):
 
-    @deprecated(deadline='v0.8',
-                fix='Use `cirq.interop.qasm_output.QasmUGate` instead.',
-                name='cirq.circuits.qasm_output.QasmUGate')
     def __init__(self, theta, phi, lmda) -> None:
         """A QASM gate representing any single qubit unitary with a series of
         three rotations, Z, Y, and Z.
@@ -66,7 +62,7 @@ class QasmUGate(ops.SingleQubitGate):
             self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
-        return (f'cirq.circuits.qasm_output.QasmUGate('
+        return (f'cirq.interop.qasm.qasm_output.qasm_output.QasmUGate('
                 f'theta={self.theta!r}, '
                 f'phi={self.phi!r}, '
                 f'lmda={self.lmda})')
@@ -85,10 +81,6 @@ class QasmUGate(ops.SingleQubitGate):
 
 @value.value_equality
 class QasmTwoQubitGate(ops.TwoQubitGate):
-
-    @deprecated(deadline='v0.8',
-                fix='Use `cirq.interop.qasm_output.QasmTwoQubitGate` instead.',
-                name='cirq.circuits.qasm_output.QasmTwoQubitGate')
     def __init__(self, kak: linalg.KakDecomposition) -> None:
         """A two qubit gate represented in QASM by the KAK decomposition.
 
@@ -145,16 +137,13 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.circuits.qasm_output.QasmTwoQubitGate({!r})'.format(
+        return 'cirq.interop.qasm.qasm_output.qasm_output.QasmTwoQubitGate({!r})'.format(
             self.kak)
 
 
 class QasmOutput:
     valid_id_re = re.compile(r'[a-z][a-zA-Z0-9_]*\Z')
 
-    @deprecated(deadline='v0.8',
-                fix='Use `cirq.interop.qasm_output.QasmOutput` instead.',
-                name='cirq.circuits.qasm_output.QasmOutput')
     def __init__(self,
                  operations: 'cirq.OP_TREE',
                  qubits: Tuple['cirq.Qid', ...],

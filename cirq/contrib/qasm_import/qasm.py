@@ -13,9 +13,13 @@
 # limitations under the License.
 
 from cirq import circuits
+from cirq._compat import deprecated
 from cirq.contrib.qasm_import._parser import QasmParser
 
 
+@deprecated(deadline='v0.8',
+            fix='Use `cirq.interop.qasm.circuit_from_qasm` instead.',
+            name='cirq.contrib.qasm_import.circuit_from_qasm')
 def circuit_from_qasm(qasm: str) -> circuits.Circuit:
     """Parses an OpenQASM string to `cirq.Circuit`.
 
