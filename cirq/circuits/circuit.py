@@ -796,6 +796,52 @@ class Circuit:
             the start frontier and a blocking operation. The first item of
             each tuple is the index of the moment containing the operation,
             and the second item is the operation itself.
+
+        Below are some examples, where on the left the opening parentheses show
+        `start_frontier` and on the right are the operations included (with
+        their moment indices) in the output. `F` and `T` indicate that
+        `is_blocker` return `False` or `True`, respectively, when applied to
+        the gates; `M` indicates that it doesn't matter.
+
+
+        ─(─F───F───────    ┄(─F───F─)┄┄┄┄┄
+           │   │              │   │
+        ─(─F───F───T─── => ┄(─F───F─)┄┄┄┄┄
+                   │                  ┊
+        ───────────T───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+
+
+        ───M─────(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
+           │       │          ┊       │   
+        ───M───M─(─F───    ┄┄┄┄┄┄┄┄┄(─F─)┄┄
+               │        =>        ┊       
+        ───────M───M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+                   │                  ┊   
+        ───────────M───    ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+
+
+        ───M─(─────M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
+           │       │           ┊       ┊
+        ───M─(─T───M───     ┄┄┄┄┄()┄┄┄┄┄┄┄┄
+               │        =>         ┊
+        ───────T───M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+                   │                   ┊   
+        ───────────M───     ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+
+
+        ─(─F───F───    ┄(─F───F─)┄
+           │   │    =>    │   │    
+        ───F─(─F───    ┄(─F───F─)┄
+
+
+        ─(─F───────────    ┄(─F─)┄┄┄┄┄┄┄┄┄
+           │                  │           
+        ───F───F───────    ┄(─F─)┄┄┄┄┄┄┄┄┄
+               │        =>        ┊        
+        ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+                   │                  │    
+        ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]
         if not start_frontier:
