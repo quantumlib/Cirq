@@ -63,8 +63,7 @@ async def estimate_characteristic_function(
                                observable=pauli_string,
                                samples_per_term=samples_per_term)
 
-    completion = p.collect_async(sampler=simulator)
-    assert await completion is None
+    await p.collect_async(sampler=simulator)
 
     sigma_i = p.estimated_energy()
     assert np.isclose(sigma_i.imag, 0.0, atol=1e-6)
@@ -76,6 +75,25 @@ async def estimate_characteristic_function(
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                noise: cirq.NoiseModel, n_trials: int,
                                samples_per_term: int):
+    """
+    Implementation of direct fidelity estimation, as per 'Direct Fidelity
+    Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
+    'Practical characterization of quantum devices without tomography'
+    https://arxiv.org/abs/1104.3835.
+
+    Args:
+        circuit: The circuit to run the simulation on.
+        qubits: The list of qubits.
+        noise: The noise model when doing a simulation.
+        n_trial: The total number of Pauli measurements.
+        samples_per_term: is set to 0, we use the 'noise' parameter above and
+            simulate noise in the circuit. If greater than 0, we ignore the
+            'noise' parameter above and instead run an estimation of the
+            characteristic function.
+
+    Returns:
+        The estimated fidelity.
+    """
     # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
@@ -93,8 +111,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         cirq.DensityMatrixTrialResult,
         simulator.simulate(circuit)).final_density_matrix
 
-    # TODO(tonybruguier): Sample the Pauli states more efficenitly when the
-    # circuit consists of Clifford gates only, as described on page 4 of:
+    # TODO(#2639): Sample the Pauli states more efficiently when thevcircuit
+    # consists of Clifford gates only, as described on page 4 of:
     # https://arxiv.org/pdf/1104.4695.pdf
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                  repeat=n_qubits):
