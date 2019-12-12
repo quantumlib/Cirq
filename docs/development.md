@@ -137,34 +137,90 @@ mypy --config-file=dev_tools/conf/mypy.ini .
 This can be a bit tedious, because you have to specify the configuration files each time.
 A more convenient way to run checks is to via the scripts in the [check/](https://github.com/quantumlib/Cirq/tree/master/check) directory, which specify configuration arguments for you and cover more use cases:
 
-```bash
-# Run all tests in the repository.
-./check/pytest [files-and-flags-for-pytest]
+- **Fast checks (complete in seconds or tens of seconds)**
 
-# Check all relevant files in the repository for lint.
-./check/pylint [files-and-flags-for-pylint]
+    - Check or apply code formatting to changed lines:
 
-# Typecheck all python files in the repository.
-./check/mypy [files-and-flags-for-mypy]
+         ```bash
+         ./check/format-incremental [--apply] [BASE_REVISION]
+         ```
 
-# Compute incremental coverage vs master (or a custom revision of your choice).
-./check/pytest-and-incremental-coverage [BASE_REVISION]
+    - Run tests associated with changed files:
 
-# Only run tests associated with files that have changed when diffed vs master (or a custom revision of your choice).
-./check/pytest-changed-files [BASE_REVISION]
+        ```bash
+        ./check/pytest-changed-files [BASE_REVISION]
+        ```
 
-# Run the documentation tests.
-./check/doctest
+    - Run tests embedded in docstrings:
 
-# Check the format of the filess.  Use --apply to apply the suggested format changes.
-./check/format-incremental [--apply]
+        ```bash
+        ./check/doctest
+        ```
 
-# Run all of the above tests. Which pytest is run is set by the --only-changed-files.
-./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
-```
+    - Compute incremental coverage using only tests associated with changed files:
 
-The above scripts are convenient and reasonably fast, but they often won't exactly match the results computed by the continuous integration builds run on T ravis.
-For example, you may be running an older version of `pylint` or `numpy`. If you need to test against the actual continuous integration check, open up a pull request.
+        ```bash
+        ./check/pytest-changed-files-and-incremental-coverage [BASE_REVISION]
+        ```
+
+        Note: this check is stricter than the incremental coverage check we
+        actually enforce, where lines may be covered by tests in
+        unassociated files.
+
+    - Type checking:
+
+        ```bash
+        ./check/mypy [files-and-flags-for-mypy]
+        ```
+
+    - Miscellaneous checks:
+
+        ```bash
+        ./check/misc
+        ```
+
+        (Currently just checks that nothing outside `cirq.contrib` references
+        anything inside `cirq.contrib`.)
+
+- **Slow checks (each takes a few minutes)**
+
+    - Run all tests:
+
+        ```bash
+        ./check/pytest [files-and-flags-for-pytest]
+        ```
+
+    - Check for lint:
+
+        ```bash
+        ./check/pylint [files-and-flags-for-pylint]
+        ```
+
+    - Compute incremental coverage:
+
+        ```bash
+        ./check/pytest-and-incremental-coverage [BASE_REVISION]
+        ```
+
+    - Run all continuous integration checks:
+
+        ```bash
+        ./check/all [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
+        ```
+
+        If `--only-changed-files` is set, checks that can will focus down to
+        just files that were changed (trading accuracy for speed).
+
+In the above, `[BASE_REVISION]` controls what commit is being compared
+against for an incremental check (e.g. in order to determine which files changed.)
+If not specified, it defaults to the `upstream/master` branch if it exists, or
+else the `origin/master` branch if it exists, or else the `master` branch.
+The actual commit used for comparison is the `git merge-base` of the base
+revision and the working directory.
+
+The above scripts may not exactly match the results computed by the continuous integration builds run on Travis.
+For example, you may be running an older version of `pylint` or `numpy`.
+If you need to test against the actual continuous integration check, open up a pull request.
 For this pull request you may want to mark it as `[Testing]` so that it is not reviewed.
 
 ### Writing docstrings and generating documentation

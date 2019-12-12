@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, TYPE_CHECKING, Optional, Union, Tuple, TypeVar, Dict,
+from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable)
 
+import sympy
 from typing_extensions import Protocol
 
 from cirq import value
@@ -28,10 +29,11 @@ class CircuitDiagramInfo:
     """Describes how to draw an operation in a circuit diagram."""
 
     def __init__(self,
-                 wire_symbols: Tuple[str, ...],
+                 wire_symbols: Iterable[str],
                  exponent: Any = 1,
                  connected: bool = True,
-                 exponent_qubit_index: Optional[int] = None) -> None:
+                 exponent_qubit_index: Optional[int] = None,
+                 auto_exponent_parens: bool = True) -> None:
         """
         Args:
             wire_symbols: The symbols that should be shown on the qubits
@@ -46,14 +48,19 @@ class CircuitDiagramInfo:
             exponent_qubit_index: The qubit to put the exponent on. (The k'th
                 qubit is the k'th target of the gate.) Defaults to the bottom
                 qubit in the diagram.
+            auto_exponent_parens: When this is True, diagram making code will
+                add parentheses around exponents whose contents could look
+                ambiguous (e.g. if the exponent contains a dash character that
+                could be mistaken for an identity wire). Defaults to True.
         """
         if isinstance(wire_symbols, str):
             raise ValueError(
-                'Expected a Tuple[str] for wire_symbols but got a str.')
-        self.wire_symbols = wire_symbols
+                'Expected an Iterable[str] for wire_symbols but got a str.')
+        self.wire_symbols = tuple(wire_symbols)
         self.exponent = exponent
         self.connected = connected
         self.exponent_qubit_index = exponent_qubit_index
+        self.auto_exponent_parens = auto_exponent_parens
 
     def _value_equality_values_(self):
         return (
@@ -61,6 +68,7 @@ class CircuitDiagramInfo:
             self.exponent,
             self.connected,
             self.exponent_qubit_index,
+            self.auto_exponent_parens,
         )
 
     def __repr__(self):
@@ -68,10 +76,12 @@ class CircuitDiagramInfo:
                 'wire_symbols={!r}, '
                 'exponent={!r}, '
                 'connected={!r}, '
-                'exponent_qubit_index={!r})'.format(self.wire_symbols,
+                'exponent_qubit_index={!r}, '
+                'auto_exponent_parens={!r})'.format(self.wire_symbols,
                                                     self.exponent,
                                                     self.connected,
-                                                    self.exponent_qubit_index))
+                                                    self.exponent_qubit_index,
+                                                    self.auto_exponent_parens))
 
 
 @value.value_equality
@@ -123,6 +133,15 @@ class CircuitDiagramInfoArgs:
                                          self.known_qubit_count,
                                          self.use_unicode_characters,
                                          self.precision, self.qubit_map))
+
+    def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
+        if isinstance(val, sympy.Basic):
+            return str(val)
+        if val == int(val):
+            return str(int(val))
+        if self.precision is None:
+            return str(val)
+        return f'{float(val):.{self.precision}}'
 
     def copy(self):
         return self.__class__(

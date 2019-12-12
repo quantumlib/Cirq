@@ -1,4 +1,4 @@
-# Recommended interface and behavior of a `plot` method
+# Plotting Guidelines
 
 Here we recommend the input arguments, return value, and behavior of the
 `plot` method of a class.

@@ -23,16 +23,14 @@ from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
 def test_moment_is_measurements():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops(
-        [cirq.X(q[0]), cirq.X(q[1]),
-         cirq.measure(*q, key='z')])
+    circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(*q, key='z')])
     assert not _homogeneous_moment_is_measurements(circ[0])
     assert _homogeneous_moment_is_measurements(circ[1])
 
 
 def test_moment_is_measurements_mixed1():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops([
+    circ = cirq.Circuit([
         cirq.X(q[0]),
         cirq.X(q[1]),
         cirq.measure(q[0], key='z'),
@@ -46,7 +44,7 @@ def test_moment_is_measurements_mixed1():
 
 def test_moment_is_measurements_mixed2():
     q = cirq.LineQubit.range(2)
-    circ = cirq.Circuit.from_ops([
+    circ = cirq.Circuit([
         cirq.X(q[0]),
         cirq.X(q[1]),
         cirq.Z(q[0]),
@@ -69,7 +67,7 @@ def test_depol_noise():
     assert len(noisy_mom) == 2
     assert noisy_mom[0] == moment
     for g in noisy_mom[1]:
-        assert cirq.op_gate_of_type(g, cirq.DepolarizingChannel)
+        assert isinstance(g.gate, cirq.DepolarizingChannel)
 
 
 def test_readout_noise_after_moment():

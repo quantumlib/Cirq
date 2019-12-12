@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
+import sympy
 
 import cirq
 
@@ -69,6 +70,10 @@ def test_circuit_diagram_info_value_wrapping():
             cirq.circuit_diagram_info(ReturnDoubleTuple()) == double_info)
 
 
+def test_circuit_diagram_info_init():
+    assert cirq.CircuitDiagramInfo(['a', 'b']).wire_symbols == ('a', 'b')
+
+
 def test_circuit_diagram_info_validate():
     with pytest.raises(ValueError):
         _ = cirq.CircuitDiagramInfo('X')
@@ -86,6 +91,8 @@ def test_circuit_diagram_info_eq():
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z', 'Z'), 2))
     eq.add_equality_group(cirq.CircuitDiagramInfo(('Z',), 3))
+    eq.add_equality_group(
+        cirq.CircuitDiagramInfo(('Z',), 3, auto_exponent_parens=False))
 
 
 def test_circuit_diagram_info_pass_fail():
@@ -164,3 +171,21 @@ def test_circuit_diagram_info_args_repr():
                                         cirq.LineQubit(0): 5,
                                         cirq.LineQubit(1): 7
                                     }))
+
+
+def test_formal_real():
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    assert args.format_real(1) == '1'
+    assert args.format_real(1.1) == '1.1'
+    assert args.format_real(1.234567) == '1.23'
+    assert args.format_real(1 / 7) == '0.143'
+    assert args.format_real(sympy.Symbol('t')) == 't'
+    assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
+
+    args.precision = None
+    assert args.format_real(1) == '1'
+    assert args.format_real(1.1) == '1.1'
+    assert args.format_real(1.234567) == '1.234567'
+    assert args.format_real(1 / 7) == repr(1 / 7)
+    assert args.format_real(sympy.Symbol('t')) == 't'
+    assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'

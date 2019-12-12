@@ -15,9 +15,11 @@ import abc
 import inspect
 
 import io
+import json
 import os
+import pathlib
 import textwrap
-from typing import Tuple, Iterator, Type
+from typing import Tuple, Iterator, Type, List, Set, Any
 
 import pytest
 
@@ -26,34 +28,17 @@ import pandas as pd
 import sympy
 
 import cirq
-import cirq.protocols
+from cirq._compat import proper_repr, proper_eq
+from cirq.testing import assert_json_roundtrip_works
 
-
-def assert_roundtrip(obj, text_should_be=None):
-    buffer = io.StringIO()
-    cirq.protocols.to_json(obj, buffer)
-
-    if text_should_be is not None:
-        buffer.seek(0)
-        text = buffer.read()
-        assert text == text_should_be
-
-    buffer.seek(0)
-    restored_obj = cirq.protocols.read_json(buffer)
-    if isinstance(obj, np.ndarray):
-        np.testing.assert_equal(restored_obj, obj)
-    elif isinstance(obj, pd.DataFrame):
-        pd.testing.assert_frame_equal(restored_obj, obj)
-    elif isinstance(obj, pd.Index):
-        pd.testing.assert_index_equal(restored_obj, obj)
-    else:
-        assert restored_obj == obj
+TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
+TEST_DATA_REL = 'cirq/protocols/json_test_data'
 
 
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
-    assert_roundtrip(q1,
-                     text_should_be="""{
+    assert_json_roundtrip_works(q1,
+                                text_should_be="""{
   "cirq_type": "LineQubit",
   "x": 12
 }""")
@@ -61,8 +46,8 @@ def test_line_qubit_roundtrip():
 
 def test_gridqubit_roundtrip():
     q = cirq.GridQubit(15, 18)
-    assert_roundtrip(q,
-                     text_should_be="""{
+    assert_json_roundtrip_works(q,
+                                text_should_be="""{
   "cirq_type": "GridQubit",
   "row": 15,
   "col": 18
@@ -71,9 +56,9 @@ def test_gridqubit_roundtrip():
 
 def test_op_roundtrip():
     q = cirq.LineQubit(5)
-    op1 = cirq.Rx(.123).on(q)
-    assert_roundtrip(op1,
-                     text_should_be="""{
+    op1 = cirq.rx(.123).on(q)
+    assert_json_roundtrip_works(op1,
+                                text_should_be="""{
   "cirq_type": "GateOperation",
   "gate": {
     "cirq_type": "XPowGate",
@@ -92,7 +77,7 @@ def test_op_roundtrip():
 def test_op_roundtrip_filename(tmpdir):
     filename = f'{tmpdir}/op.json'
     q = cirq.LineQubit(5)
-    op1 = cirq.Rx(.123).on(q)
+    op1 = cirq.rx(.123).on(q)
     cirq.to_json(op1, filename)
     assert os.path.exists(filename)
     op2 = cirq.read_json(filename)
@@ -118,184 +103,11 @@ def test_fail_to_resolve():
 QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
-TEST_OBJECTS = {
-    'AmplitudeDampingChannel':
-    cirq.AmplitudeDampingChannel(0.5),
-    'AsymmetricDepolarizingChannel':
-    cirq.AsymmetricDepolarizingChannel(0.1, 0.2, 0.3),
-    'BitFlipChannel':
-    cirq.BitFlipChannel(0.5),
-    'Bristlecone':
-    cirq.google.Bristlecone,
-    'CCNOT':
-    cirq.CCNOT,
-    'CCX':
-    cirq.CCX,
-    'CCXPowGate':
-    cirq.CCXPowGate(exponent=0.123, global_shift=0.456),
-    'CCZ':
-    cirq.CCZ,
-    'CCZPowGate':
-    cirq.CCZPowGate(exponent=0.123, global_shift=0.456),
-    'CNOT':
-    cirq.CNOT,
-    'CNotPowGate':
-    cirq.CNotPowGate(exponent=0.123, global_shift=0.456),
-    'CX':
-    cirq.CX,
-    'CSWAP':
-    cirq.CSWAP,
-    'CSwapGate':
-    cirq.CSwapGate(),
-    'CZ':
-    cirq.CZ,
-    'CZPowGate':
-    cirq.CZPowGate(exponent=0.123, global_shift=0.456),
-    'Circuit': [
-        cirq.Circuit(cirq.H.on_each(QUBITS), cirq.measure(*QUBITS)),
-        cirq.Circuit(cirq.CCNOT(Q0, Q1, Q2),
-                     cirq.X(Q0)**0.123),
-        cirq.Circuit(
-            cirq.XPowGate(exponent=sympy.Symbol('theta'),
-                          global_shift=0).on(Q0)),
-        # TODO: even the following doesn't work because theta gets
-        #       multiplied by 1/pi.
-        #       https://github.com/quantumlib/Cirq/issues/2014
-        # cirq.Circuit(cirq.Rx(sympy.Symbol('theta')).on(Q0)),
-    ],
-    'ConstantQubitNoiseModel':
-    cirq.ConstantQubitNoiseModel(cirq.X),
-    'Duration':
-    cirq.Duration(picos=6),
-    'DensePauliString':
-    cirq.DensePauliString('XYZI', coefficient=1j),
-    'DepolarizingChannel':
-    cirq.DepolarizingChannel(0.5),
-    'MutableDensePauliString':
-    cirq.MutableDensePauliString('XXZZ', coefficient=-2),
-    'FREDKIN':
-    cirq.FREDKIN,
-    'FSimGate':
-    cirq.FSimGate(theta=0.123, phi=.456),
-    'Foxtail':
-    cirq.google.Foxtail,
-    'GateOperation': [
-        cirq.CCNOT(*cirq.LineQubit.range(3)),
-        cirq.CCZ(*cirq.LineQubit.range(3)),
-        cirq.CNOT(*cirq.LineQubit.range(2)),
-        cirq.CSWAP(*cirq.LineQubit.range(3)),
-        cirq.CZ(*cirq.LineQubit.range(2))
-    ],
-    'GeneralizedAmplitudeDampingChannel':
-    cirq.GeneralizedAmplitudeDampingChannel(0.1, 0.2),
-    'GlobalPhaseOperation':
-    cirq.GlobalPhaseOperation(-1j),
-    'GridQubit':
-    cirq.GridQubit(10, 11),
-    'H':
-    cirq.H,
-    'HPowGate': [cirq.HPowGate(exponent=-8), cirq.H**0.123],
-    'I':
-    cirq.I,
-    'ISWAP':
-    cirq.ISWAP,
-    'ISwapPowGate': [cirq.ISwapPowGate(exponent=-8), cirq.ISWAP**0.123],
-    'IdentityGate': [
-        cirq.I,
-        cirq.IdentityGate(num_qubits=5),
-        cirq.IdentityGate(num_qubits=5, qid_shape=(3,) * 5)
-    ],
-    'LineQubit': [cirq.LineQubit(0), cirq.LineQubit(123)],
-    'LineQid': [cirq.LineQid(0, 1),
-                cirq.LineQid(123, 2),
-                cirq.LineQid(-4, 5)],
-    'MeasurementGate': [
-        cirq.MeasurementGate(num_qubits=3, key='z'),
-        cirq.MeasurementGate(num_qubits=3,
-                             key='z',
-                             invert_mask=(True, False, True)),
-        cirq.MeasurementGate(num_qubits=3,
-                             key='z',
-                             invert_mask=(True, False),
-                             qid_shape=(1, 2, 3)),
-    ],
-    'Moment': [
-        cirq.Moment(operations=[cirq.X(Q0), cirq.Y(Q1),
-                                cirq.Z(Q2)]),
-    ],
-    'NO_NOISE':
-    cirq.NO_NOISE,
-    'NamedQubit':
-    cirq.NamedQubit('hi mom'),
-    'PauliString': [
-        cirq.PauliString({
-            Q0: cirq.X,
-            Q1: cirq.Y,
-            Q2: cirq.Z
-        }),
-        cirq.X(Q0) * cirq.Y(Q1) * 123
-    ],
-    'PhaseDampingChannel':
-    cirq.PhaseDampingChannel(0.5),
-    'PhaseFlipChannel':
-    cirq.PhaseFlipChannel(0.5),
-    'PhaseGradientGate':
-    cirq.PhaseGradientGate(num_qubits=3, exponent=0.235),
-    'PhasedISwapPowGate':
-    cirq.PhasedISwapPowGate(phase_exponent=0.1, exponent=0.2),
-    'PhasedXPowGate':
-    cirq.PhasedXPowGate(phase_exponent=0.123,
-                        exponent=0.456,
-                        global_shift=0.789),
-    'QuantumFourierTransformGate':
-    cirq.QuantumFourierTransformGate(num_qubits=2, without_reverse=True),
-    'ResetChannel':
-    cirq.ResetChannel(),
-    'X':
-    cirq.X,
-    'Y':
-    cirq.Y,
-    'Z':
-    cirq.Z,
-    'S':
-    cirq.S,
-    'SerializableDevice':
-    cirq.google.SerializableDevice.from_proto(
-        proto=cirq.google.known_devices.FOXTAIL_PROTO,
-        gate_set=cirq.google.XMON),
-    'SWAP':
-    cirq.SWAP,
-    'SingleQubitPauliStringGateOperation':
-    cirq.X(Q0),
-    'SwapPowGate': [cirq.SwapPowGate(), cirq.SWAP**0.5],
-    'T':
-    cirq.T,
-    'TOFFOLI':
-    cirq.TOFFOLI,
-    'UNCONSTRAINED_DEVICE':
-    cirq.UNCONSTRAINED_DEVICE,
-    'WaitGate':
-    cirq.WaitGate(cirq.Duration(nanos=10)),
-    '_QubitAsQid': [
-        cirq.NamedQubit('a').with_dimension(5),
-        cirq.GridQubit(1, 2).with_dimension(1)
-    ],
-    'XPowGate':
-    cirq.X**0.123,
-    'XX':
-    cirq.XX,
-    'XXPowGate': [cirq.XXPowGate(), cirq.XX**0.123],
-    'YPowGate':
-    cirq.Y**0.456,
-    'YY':
-    cirq.YY,
-    'YYPowGate': [cirq.YYPowGate(), cirq.YY**0.456],
-    'ZPowGate':
-    cirq.Z**0.789,
-    'ZZ':
-    cirq.ZZ,
-    'ZZPowGate': [cirq.ZZPowGate(), cirq.ZZ**0.789],
-}
+# TODO: Include cirq.rx in the Circuit test case file.
+# Note that even the following doesn't work because theta gets
+#       multiplied by 1/pi.
+#       https://github.com/quantumlib/Cirq/issues/2014
+# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
 
@@ -304,6 +116,8 @@ SHOULDNT_BE_SERIALIZED = [
     'ConvertToCzAndSingleGates',
     'ConvertToIonGates',
     'ConvertToNeutralAtomGates',
+    'ConvertToSqrtIswapGates',
+    'ConvertToSycamoreGates',
     'ConvertToXmonGates',
     'DropEmptyMoments',
     'DropNegligible',
@@ -328,15 +142,19 @@ SHOULDNT_BE_SERIALIZED = [
 
     # protocols:
     'SupportsApplyChannel',
+    'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
+    'SupportsEqualUpToGlobalPhase',
     'SupportsExplicitHasUnitary',
     'SupportsExplicitNumQubits',
     'SupportsExplicitQidShape',
+    'SupportsJSON',
+    'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
     'SupportsPhase',
@@ -350,10 +168,12 @@ SHOULDNT_BE_SERIALIZED = [
     'DURATION_LIKE',
     'NOISE_MODEL_LIKE',
     'OP_TREE',
+    'PAULI_GATE_LIKE',
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
     'ParamDictType',
@@ -431,17 +251,21 @@ def test_mutually_exclusive_blacklist():
 
 NOT_YET_SERIALIZABLE = [
     'ApplyChannelArgs',
+    'ApplyMixtureArgs',
     'ApplyUnitaryArgs',
-    'ApproxPauliStringExpectation',
+    'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
-    'ComputeDisplaysResult',
-    'ControlledGate',
-    'ControlledOperation',
+    'CliffordSimulator',
+    'CliffordSimulatorStepResult',
+    'CliffordState',
+    'CliffordTableau',
+    'CliffordTrialResult',
+    'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
     'DensityMatrixSimulatorState',
     'DensityMatrixStepResult',
@@ -459,7 +283,6 @@ NOT_YET_SERIALIZABLE = [
     'ListSweep',
     'NeutralAtomDevice',
     'ParallelGateOperation',
-    'ParamResolver',
     'PauliInteractionGate',
     'PauliStringPhasor',
     'PauliSum',
@@ -472,21 +295,21 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
-    'Schedule',
-    'ScheduledOperation',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
     'Simulator',
     'SingleQubitCliffordGate',
-    'SingleQubitMatrixGate',
     'SparseSimulatorStep',
+    'SQRT_ISWAP_GATESET',
+    'StabilizerStateChForm',
     'StateVectorMixin',
+    'SYC_GATESET',
+    'Sycamore',
+    'Sycamore23',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
-    'TrialResult',
-    'TwoQubitMatrixGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
@@ -496,41 +319,66 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-def _roundtrip_test_classes() -> Iterator[Tuple[str, Type]]:
-    yield from _get_all_public_classes(cirq)
-    yield from _get_all_public_classes(cirq.google)
+def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
+    result: Set[Tuple[str, Type]] = set()
+    result.update(_get_all_public_classes(cirq))
+    result.update(_get_all_public_classes(cirq.google))
 
-    # Objects not listed at top level.
-    yield '_QubitAsQid', type(cirq.NamedQubit('a').with_dimension(5))
+    from cirq.protocols.json import RESOLVER_CACHE
+    for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
+        t = v if isinstance(v, type) else None
+        result.add((k, t))
+    return result
 
 
 def test_builtins():
-    assert_roundtrip(1 + 2j)
-    assert_roundtrip({
+    assert_json_roundtrip_works(True)
+    assert_json_roundtrip_works(1)
+    assert_json_roundtrip_works(1 + 2j)
+    assert_json_roundtrip_works({
         'test': [123, 5.5],
         'key2': 'asdf',
         '3': None,
         '0.0': [],
     })
-    assert_roundtrip(np.ones((11, 5)))
-    assert_roundtrip(np.arange(3))
+
+
+def test_numpy():
+    x = np.ones(1)[0]
+
+    assert_json_roundtrip_works(x.astype(np.bool))
+    assert_json_roundtrip_works(x.astype(np.int8))
+    assert_json_roundtrip_works(x.astype(np.int16))
+    assert_json_roundtrip_works(x.astype(np.int32))
+    assert_json_roundtrip_works(x.astype(np.int64))
+    assert_json_roundtrip_works(x.astype(np.uint8))
+    assert_json_roundtrip_works(x.astype(np.uint16))
+    assert_json_roundtrip_works(x.astype(np.uint32))
+    assert_json_roundtrip_works(x.astype(np.uint64))
+    assert_json_roundtrip_works(x.astype(np.float32))
+    assert_json_roundtrip_works(x.astype(np.float64))
+    assert_json_roundtrip_works(x.astype(np.complex64))
+    assert_json_roundtrip_works(x.astype(np.complex128))
+
+    assert_json_roundtrip_works(np.ones((11, 5)))
+    assert_json_roundtrip_works(np.arange(3))
 
 
 def test_pandas():
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(data=[[1, 2, 3], [4, 5, 6]],
                      columns=['x', 'y', 'z'],
                      index=[2, 5]))
-    assert_roundtrip(pd.Index([1, 2, 3], name='test'))
-    assert_roundtrip(
+    assert_json_roundtrip_works(pd.Index([1, 2, 3], name='test'))
+    assert_json_roundtrip_works(
         pd.MultiIndex.from_tuples([(1, 2), (3, 4), (5, 6)],
                                   names=['alice', 'bob']))
 
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(index=pd.Index([1, 2, 3], name='test'),
                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
                      columns=['a', 'b']))
-    assert_roundtrip(
+    assert_json_roundtrip_works(
         pd.DataFrame(index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)],
                                                      names=['x', 'y']),
                      data=[[11, 21.0], [12, 22.0], [13, 23.0]],
@@ -539,62 +387,200 @@ def test_pandas():
 
 def test_sympy():
     # Raw values.
-    assert_roundtrip(sympy.Symbol('theta'))
-    assert_roundtrip(sympy.Integer(5))
-    assert_roundtrip(sympy.Rational(2, 3))
-    assert_roundtrip(sympy.Float(1.1))
+    assert_json_roundtrip_works(sympy.Symbol('theta'))
+    assert_json_roundtrip_works(sympy.Integer(5))
+    assert_json_roundtrip_works(sympy.Rational(2, 3))
+    assert_json_roundtrip_works(sympy.Float(1.1))
 
     # Basic operations.
     s = sympy.Symbol('s')
     t = sympy.Symbol('t')
-    assert_roundtrip(t + s)
-    assert_roundtrip(t * s)
-    assert_roundtrip(t / s)
-    assert_roundtrip(t - s)
-    assert_roundtrip(t**s)
+    assert_json_roundtrip_works(t + s)
+    assert_json_roundtrip_works(t * s)
+    assert_json_roundtrip_works(t / s)
+    assert_json_roundtrip_works(t - s)
+    assert_json_roundtrip_works(t**s)
 
     # Linear combinations.
-    assert_roundtrip(t * 2)
-    assert_roundtrip(4 * t + 3 * s + 2)
+    assert_json_roundtrip_works(t * 2)
+    assert_json_roundtrip_works(4 * t + 3 * s + 2)
 
 
-def test_no_missed_test_objects():
-    seen = {name for name, _ in _roundtrip_test_classes()}
-    missed = TEST_OBJECTS.keys() - seen
-    assert not missed, (
-        "An entry in cirq.protocols.json_test.TEST_OBJECTS was not used when "
-        "checking the serializability of all objects yielded by "
-        "cirq.protocols.json_test._roundtrip_test_classes."
-        f"\n\nMissed keys: {repr(missed)}")
+def _write_test_data(key: str, *test_instances: Any):
+    """Helper method for creating initial test data."""
+    # coverage: ignore
+    cirq.to_json(test_instances, TEST_DATA_PATH / f'{key}.json')
+    with open(TEST_DATA_PATH / f'{key}.repr', 'w') as f:
+        f.write('[\n')
+        for e in test_instances:
+            f.write(proper_repr(e))
+            f.write(',\n')
+        f.write(']')
 
 
-@pytest.mark.parametrize('cirq_obj_name,cls', _roundtrip_test_classes())
-def test_all_roundtrip(cirq_obj_name: str, cls):
+@pytest.mark.parametrize('cirq_obj_name,cls',
+                         _find_classes_that_should_serialize())
+def test_json_test_data_coverage(cirq_obj_name: str, cls):
     if cirq_obj_name in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
-    try:
-        objs = TEST_OBJECTS[cirq_obj_name]
-    except KeyError:  # coverage: ignore
+    json_path = TEST_DATA_PATH / f'{cirq_obj_name}.json'
+    json_path2 = TEST_DATA_PATH / f'{cirq_obj_name}.json_inward'
+
+    if not json_path.exists() and not json_path2.exists():
         # coverage: ignore
         raise NotImplementedError(
             textwrap.fill(
-                f"Hello intrepid developer. There is a public object or class "
-                f"named '{cirq_obj_name}' that does not have a test case for "
-                f"JSON roundtripability. Add an entry to TEST_OBJECTS that "
-                f"constructs the object or an instance of the class which will "
-                f"be tested for serialization and deserialization. For more "
-                f"information on JSON serialization, please read the "
+                f"Hello intrepid developer. There is a new public or "
+                f"serializable object named '{cirq_obj_name}' that does not "
+                f"have associated test data.\n"
+                f"\n"
+                f"You must create the file\n"
+                f"    cirq/protocols/json_test_data/{cirq_obj_name}.json\n"
+                f"and the file\n"
+                f"    cirq/protocols/json_test_data/{cirq_obj_name}.repr\n"
+                f"in order to guarantee this public object is, and will "
+                f"remain, serializable.\n"
+                f"\n"
+                f"The content of the .repr file should be the string returned "
+                f"by `repr(obj)` where `obj` is a test {cirq_obj_name} value "
+                f"or list of such values. To get this to work you may need to "
+                f"implement a __repr__ method for {cirq_obj_name}. The repr "
+                f"must be a parsable python expression that evaluates to "
+                f"something equal to `obj`."
+                f"\n"
+                f"The content of the .json file should be the string returned "
+                f"by `cirq.to_json(obj)` where `obj` is the same object or "
+                f"list of test objects.\n"
+                f"To get this to work you likely need "
+                f"to add {cirq_obj_name} to the "
+                f"`cirq_class_resolver_dictionary` method in "
+                f"the cirq/protocols/json.py source file. "
+                f"You may also need to add a _json_dict_ method to "
+                f"{cirq_obj_name}. In some cases you will also need to add a "
+                f"_from_json_dict_ method to {cirq_obj_name}."
+                f"\n"
+                f"For more information on JSON serialization, please read the "
                 f"docstring for protocols.SupportsJSON. If this object or "
                 f"class is not appropriate for serialization, add its name to "
-                f"SHOULDNT_BE_SERIALIZED."))
+                f"the SHOULDNT_BE_SERIALIZED list in the "
+                f"cirq/protocols/json_test.py source file."))
 
-    if not isinstance(objs, list):
-        objs = [objs]
+    repr_file = TEST_DATA_PATH / f'{cirq_obj_name}.repr'
+    if repr_file.exists() and cls is not None:
+        objs = _eval_repr_data_file(repr_file)
+        if not isinstance(objs, list):
+            objs = [objs]
 
-    for obj in objs:
-        assert isinstance(obj, cls)
+        for obj in objs:
+            assert type(obj) == cls, (
+                f"Value in {TEST_DATA_REL}/{cirq_obj_name}.repr must be of "
+                f"exact type {cls}, or a list of instances of that type. But "
+                f"the value (or one of the list entries) had type "
+                f"{type(obj)}.\n"
+                f"\n"
+                f"If using a value of the wrong type is intended, move the "
+                f"value to {TEST_DATA_REL}/{cirq_obj_name}.repr_inward\n"
+                f"\n"
+                f"Value with wrong type:\n{obj!r}.")
 
-        # more strict: must be exact (no subclasses)
-        assert type(obj) == cls
-        assert_roundtrip(obj)
+
+def test_to_from_strings():
+    x_json_text = """{
+  "cirq_type": "_PauliX",
+  "exponent": 1.0,
+  "global_shift": 0.0
+}"""
+    assert cirq.to_json(cirq.X) == x_json_text
+    assert cirq.read_json(json_text=x_json_text) == cirq.X
+
+    with pytest.raises(ValueError, match='specify ONE'):
+        cirq.read_json(io.StringIO(), json_text=x_json_text)
+
+
+def _eval_repr_data_file(path: pathlib.Path):
+    return eval(path.read_text(), {
+        'cirq': cirq,
+        'pd': pd,
+        'sympy': sympy,
+        'np': np,
+    }, {})
+
+
+def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
+                                         json_path: pathlib.Path,
+                                         inward_only: bool):
+    if not repr_path.exists() and not json_path.exists():
+        return
+
+    rel_repr_path = f'{TEST_DATA_REL}/{repr_path.name}'
+    rel_json_path = f'{TEST_DATA_REL}/{json_path.name}'
+
+    try:
+        json_from_file = json_path.read_text()
+        json_obj = cirq.read_json(json_text=json_from_file)
+    except Exception as ex:  # coverage: ignore
+        # coverage: ignore
+        raise IOError(
+            f'Failed to parse test json data from {rel_json_path}.') from ex
+
+    try:
+        repr_obj = _eval_repr_data_file(repr_path)
+    except Exception as ex:  # coverage: ignore
+        # coverage: ignore
+        raise IOError(
+            f'Failed to parse test repr data from {rel_repr_path}.') from ex
+
+    assert proper_eq(json_obj, repr_obj), (
+        f'The json data from {rel_json_path} did not parse '
+        f'into an object equivalent to the repr data from {rel_repr_path}.\n'
+        f'\n'
+        f'json object: {json_obj!r}\n'
+        f'repr object: {repr_obj!r}\n')
+
+    if not inward_only:
+        json_from_cirq = cirq.to_json(repr_obj)
+        json_from_cirq_obj = json.loads(json_from_cirq)
+        json_from_file_obj = json.loads(json_from_file)
+        assert json_from_cirq_obj == json_from_file_obj, (
+            f'The json produced by cirq no longer agrees with the json in the '
+            f'{rel_json_path} test data file.\n'
+            f'\n'
+            f'You must either fix the cirq code to continue to produce the '
+            f'same output, or you must move the old test data to '
+            f'{rel_json_path}_inward and create a fresh {rel_json_path} file.\n'
+            f'\n'
+            f'test data json:\n'
+            f'{json_from_file}\n'
+            f'\n'
+            f'cirq produced json:\n'
+            f'{json_from_cirq}\n')
+
+
+def all_test_data_keys() -> List[str]:
+    seen = set()
+    for file in TEST_DATA_PATH.iterdir():
+        name = file.name
+        if name.endswith('.json') or name.endswith('.repr'):
+            seen.add(file.name[:-len('.json')])
+        elif name.endswith('.json_inward') or name.endswith('.repr_inward'):
+            seen.add(file.name[:-len('.json_inward')])
+    return sorted(seen)
+
+
+@pytest.mark.parametrize('key', all_test_data_keys())
+def test_json_and_repr_data(key: str):
+    assert_repr_and_json_test_data_agree(
+        repr_path=TEST_DATA_PATH / f'{key}.repr',
+        json_path=TEST_DATA_PATH / f'{key}.json',
+        inward_only=False)
+    assert_repr_and_json_test_data_agree(
+        repr_path=TEST_DATA_PATH / f'{key}.repr_inward',
+        json_path=TEST_DATA_PATH / f'{key}.json_inward',
+        inward_only=True)
+
+
+def test_pathlib_paths(tmpdir):
+    path = pathlib.Path(tmpdir) / 'op.json'
+    cirq.to_json(cirq.X, path)
+    assert cirq.read_json(path) == cirq.X

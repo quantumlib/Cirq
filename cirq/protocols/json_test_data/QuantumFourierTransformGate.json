@@ -1,0 +1,5 @@
+{
+  "cirq_type": "QuantumFourierTransformGate",
+  "num_qubits": 2,
+  "without_reverse": true
+}

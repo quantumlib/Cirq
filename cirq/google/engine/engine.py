@@ -16,7 +16,7 @@
 
 As an example, to run a circuit against the xmon simulator on the cloud,
     engine = cirq.google.Engine(project_id='my-project-id')
-    program = engine.create_program(ciruit)
+    program = engine.create_program(circuit)
     result0 = program.run(params=params0, repetitions=10)
     result1 = program.run(params=params1, repetitions=10)
 
@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 """
 
 import base64
+import datetime
 import enum
 import json
 import random
@@ -32,7 +33,7 @@ import re
 import string
 import sys
 import time
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
 import warnings
 
 from apiclient import discovery, http as apiclient_http
@@ -41,13 +42,14 @@ from apiclient.http import HttpRequest
 import google.protobuf as gp
 from google.protobuf import any_pb2
 
-from cirq import circuits, optimizers, schedules, study, value
-from cirq.api.google import v1, v2
+from cirq import circuits, study, value
 from cirq.google import gate_sets, serializable_gate_set
-from cirq.google.api import v1 as api_v1
-from cirq.google.api import v2 as api_v2
+from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,
                                 engine_sampler)
+
+if TYPE_CHECKING:
+    import cirq
 
 gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
@@ -65,10 +67,6 @@ class EngineException(Exception):
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
-
-
-# Quantum programs to run can be specified as circuits or schedules.
-TProgram = Union[circuits.Circuit, schedules.Schedule]
 
 
 def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
@@ -90,12 +88,13 @@ def _user_project_header_request_builder(project_id: str):
     return request_builder
 
 
-def _make_random_id(prefix: str, length: int = 6):
+def _make_random_id(prefix: str, length: int = 16):
     random_digits = [
         random.choice(string.ascii_uppercase + string.digits)
         for _ in range(length)
     ]
     suffix = ''.join(random_digits)
+    suffix += datetime.date.today().strftime('%y%m%d')
     return '%s%s' % (prefix, suffix)
 
 
@@ -227,24 +226,25 @@ class Engine:
     def run(
             self,
             *,  # Force keyword args.
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             param_resolver: study.ParamResolver = study.ParamResolver({}),
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
+            program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             job_config: Configures the names and properties of jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
@@ -258,6 +258,7 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
+        gate_set = gate_set or gate_sets.XMON
         return list(
             self.run_sweep(program=program,
                            program_id=program_id,
@@ -268,43 +269,31 @@ class Engine:
                            processor_ids=processor_ids,
                            gate_set=gate_set))[0]
 
-    def program_as_schedule(self, program: TProgram) -> schedules.Schedule:
-        if isinstance(program, circuits.Circuit):
-            device = program.device
-            circuit_copy = program.copy()
-            optimizers.DropEmptyMoments().optimize_circuit(circuit_copy)
-            device.validate_circuit(circuit_copy)
-            return schedules.moment_by_moment_schedule(device, circuit_copy)
-
-        if isinstance(program, schedules.Schedule):
-            return program
-
-        raise TypeError('Unexpected program type.')
-
     def run_sweep(
             self,
             *,  # Force keyword args.
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
             job_config: Optional[JobConfig] = None,
             params: study.Sweepable = None,
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.
 
         In contrast to run, this runs across multiple parameter sweeps, and
         does not block until a result is returned.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
+            program: The Circuit to execute. If a circuit is
                 provided, a moment by moment schedule will be used.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             job_config: Configures the names and properties of jobs.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
@@ -317,6 +306,7 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
+        gate_set = gate_set or gate_sets.XMON
         engine_program = self.create_program(program, program_id, gate_set)
         return engine_program.run_sweep(job_config=job_config,
                                         params=params,
@@ -334,8 +324,9 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_job.EngineJob:
+        gate_set = gate_set or gate_sets.XMON
 
         # Check program to run and program parameters.
         if not 0 <= priority < 1000:
@@ -447,8 +438,7 @@ class Engine:
             context_dict = {}  # type: Dict[str, Any]
             context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
             context_dict['parameter_sweeps'] = [
-                api_v1.sweep_to_proto_dict(sweep, repetitions)
-                for sweep in sweeps
+                v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
             ]
             return context_dict
         elif proto_version == ProtoVersion.V2:
@@ -456,7 +446,7 @@ class Engine:
             for sweep in sweeps:
                 sweep_proto = run_context.parameter_sweeps.add()
                 sweep_proto.repetitions = repetitions
-                api_v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
             return _any_dict_from_msg(run_context)
         else:
@@ -465,22 +455,24 @@ class Engine:
 
     def create_program(
             self,
-            program: TProgram,
+            program: 'cirq.Circuit',
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuit or Scheduler for use with the Quantum Engine.
+        """Wraps a Circuitr for use with the Quantum Engine.
 
         Args:
-            program: The Circuit or Schedule to execute. If a circuit is
-                provided, a moment by moment schedule will be used.
+            program: The Circuit to execute.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-######' will be generated.
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
         """
+        gate_set = gate_set or gate_sets.XMON
+
         if not program_id:
             program_id = _make_random_id('prog-')
 
@@ -498,23 +490,24 @@ class Engine:
 
     def _serialize_program(
             self,
-            program: TProgram,
-            gate_set: serializable_gate_set.SerializableGateSet = gate_sets.XMON
+            program: 'cirq.Circuit',
+            gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> Dict[str, Any]:
-        if self.proto_version == ProtoVersion.V1:
-            schedule = self.program_as_schedule(program)
-            schedule.device.validate_schedule(schedule)
+        gate_set = gate_set or gate_sets.XMON
 
+        if self.proto_version == ProtoVersion.V1:
+            if isinstance(program, circuits.Circuit):
+                program.device.validate_circuit(program)
+            else:
+                raise TypeError(f'Unrecognized program type: {type(program)}')
             program_descriptor = v1.program_pb2.Program.DESCRIPTOR
             program_dict = {}  # type: Dict[str, Any]
             program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
             program_dict['operations'] = [
-                op for op in api_v1.schedule_to_proto_dicts(schedule)
+                op for op in v1.circuit_as_schedule_to_proto_dicts(program)
             ]
             return program_dict
         elif self.proto_version == ProtoVersion.V2:
-            if isinstance(program, schedules.Schedule):
-                program.device.validate_schedule(program)
             program = gate_set.serialize(program)
             return _any_dict_from_msg(program)
         else:
@@ -568,15 +561,15 @@ class Engine:
                 parent=job_resource_name))
         result = response['result']
         result_type = result['@type'][len(TYPE_PREFIX):]
-        if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(result)
-        if result_type == 'cirq.api.google.v2.Result':
-            return self._get_job_results_v2(result)
         if result_type == 'cirq.google.api.v1.Result':
             return self._get_job_results_v1(result)
         if result_type == 'cirq.google.api.v2.Result':
-            # Pretend the path is the other one until we switch over
-            result['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
+            return self._get_job_results_v2(result)
+        if result_type == 'cirq.api.google.v1.Result':
+            return self._get_job_results_v1(result)
+        if result_type == 'cirq.api.google.v2.Result':
+            # Change path to the new path
+            result['@type'] = 'type.googleapis.com/cirq.google.api.v2.Result'
             return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
@@ -590,8 +583,8 @@ class Engine:
                          for m in sweep_result['measurementKeys']]
             for result in sweep_result['parameterizedResults']:
                 data = base64.standard_b64decode(result['measurementResults'])
-                measurements = api_v1.unpack_results(data, sweep_repetitions,
-                                                     key_sizes)
+                measurements = v1.unpack_results(data, sweep_repetitions,
+                                                 key_sizes)
 
                 trial_results.append(
                     study.TrialResult.from_single_parameter_set(
@@ -606,7 +599,7 @@ class Engine:
         gp.json_format.ParseDict(result_dict, result_any)
         result = v2.result_pb2.Result()
         result_any.Unpack(result)
-        sweep_results = api_v2.results_from_proto(result)
+        sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
             trial_result for sweep_result in sweep_results
@@ -744,7 +737,8 @@ class Engine:
 
         Params:
             calibration_name: A string of the form
-                `<processor name>/calibrations/<ms since epoch>`
+                `projects/<project_id>/processors/<processor id>`
+                `/calibrations/<timestamp in seconds since epoch>`
 
         Returns:
             A dictionary containing the metadata.
@@ -752,7 +746,7 @@ class Engine:
         response = self._make_request(
             self.service.projects().processors().calibrations().get(
                 name=calibration_name))
-        return calibration.Calibration(response['data']['data'])
+        return calibration.Calibration(response['data'])
 
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet

@@ -1,0 +1,43 @@
+[
+  {
+    "cirq_type": "Moment",
+    "operations": [
+      {
+        "cirq_type": "SingleQubitPauliStringGateOperation",
+        "pauli": {
+          "cirq_type": "_PauliX",
+          "exponent": 1,
+          "global_shift": 0.0
+        },
+        "qubit": {
+          "cirq_type": "LineQubit",
+          "x": 0
+        }
+      },
+      {
+        "cirq_type": "SingleQubitPauliStringGateOperation",
+        "pauli": {
+          "cirq_type": "_PauliY",
+          "exponent": 1,
+          "global_shift": 0.0
+        },
+        "qubit": {
+          "cirq_type": "LineQubit",
+          "x": 1
+        }
+      },
+      {
+        "cirq_type": "SingleQubitPauliStringGateOperation",
+        "pauli": {
+          "cirq_type": "_PauliZ",
+          "exponent": 1,
+          "global_shift": 0.0
+        },
+        "qubit": {
+          "cirq_type": "LineQubit",
+          "x": 2
+        }
+      }
+    ]
+  }
+]

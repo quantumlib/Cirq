@@ -57,4 +57,7 @@ def _optimized_ops(ops: Sequence[ops.Operation],
 
 
 def _cz_count(circuit):
-    return sum(bool(ops.op_gate_of_type(op, ops.CZPowGate)) for op in circuit)
+    return sum(
+        isinstance(op.gate, ops.CZPowGate)
+        for moment in circuit
+        for op in moment)

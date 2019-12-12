@@ -29,6 +29,7 @@ def test_run_simulator_run():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolver = mock.Mock(cirq.ParamResolver)
     expected_result = cirq.TrialResult.from_single_parameter_set(
         measurements=expected_measurements, params=param_resolver)
@@ -48,6 +49,7 @@ def test_run_simulator_sweeps():
     expected_measurements = {'a': np.array([[1]])}
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
+    circuit.__iter__ = mock.Mock(return_value=iter([]))
     param_resolvers = [mock.Mock(cirq.ParamResolver),
                        mock.Mock(cirq.ParamResolver)]
     expected_results = [
@@ -224,23 +226,24 @@ def test_simulation_trial_result_equality():
                                    final_simulator_state=()))
     eq.add_equality_group(
         cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                   measurements={'m': np.array([[1]])},
+                                   measurements={'m': np.array([1])},
                                    final_simulator_state=()))
     eq.add_equality_group(
         cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                   measurements={'m': np.array([[1]])},
+                                   measurements={'m': np.array([1])},
                                    final_simulator_state=(0, 1)))
 
 
 
 def test_simulation_trial_result_repr():
-    assert repr(cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
-                                           measurements={'m': np.array([[1]])},
-                                           final_simulator_state=(0, 1))) == (
-               "cirq.SimulationTrialResult("
-               "params=cirq.ParamResolver({'s': 1}), "
-               "measurements={'m': array([[1]])}, "
-               "final_simulator_state=(0, 1))")
+    assert repr(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1])},
+                                   final_simulator_state=(0, 1))) == (
+                                       "cirq.SimulationTrialResult("
+                                       "params=cirq.ParamResolver({'s': 1}), "
+                                       "measurements={'m': array([1])}, "
+                                       "final_simulator_state=(0, 1))")
 
 
 def test_simulation_trial_result_str():
@@ -250,10 +253,20 @@ def test_simulation_trial_result_str():
             measurements={},
             final_simulator_state=(0, 1))) == '(no measurements)'
 
-    assert str(cirq.SimulationTrialResult(
-        params=cirq.ParamResolver({'s': 1}),
-        measurements={'m': np.array([[1]])},
-        final_simulator_state=(0, 1))) == 'm=1'
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1])},
+                                   final_simulator_state=(0, 1))) == 'm=1'
+
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([1, 2, 3])},
+                                   final_simulator_state=(0, 1))) == 'm=123'
+
+    assert str(
+        cirq.SimulationTrialResult(params=cirq.ParamResolver({'s': 1}),
+                                   measurements={'m': np.array([9, 10, 11])},
+                                   final_simulator_state=(0, 1))) == 'm=9 10 11'
 
 
 def test_pretty_print():
@@ -278,7 +291,8 @@ def test_pretty_print():
     assert p.text_pretty == 'SimulationTrialResult(...)'
 
 
-def test_async_sample():
+@pytest.mark.asyncio
+async def test_async_sample():
     m = {'mock': np.array([[0], [1]])}
 
     class MockSimulator(cirq.SimulatesSamples):
@@ -288,7 +302,7 @@ def test_async_sample():
 
     q = cirq.LineQubit(0)
     f = MockSimulator().run_async(cirq.Circuit(cirq.measure(q)), repetitions=10)
-    result = cirq.testing.assert_asyncio_will_have_result(f)
+    result = await f
     np.testing.assert_equal(result.measurements, m)
 
 
@@ -300,6 +314,19 @@ def test_simulation_trial_result_qubit_map():
     result = cirq.DensityMatrixSimulator().simulate(
         cirq.Circuit([cirq.CZ(q[0], q[1])]))
     assert result.qubit_map == {q[0]: 0, q[1]: 1}
+
+
+def test_verify_unique_measurement_keys():
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append([
+        cirq.measure(q[0], key='a'),
+        cirq.measure(q[1], key='a'),
+        cirq.measure(q[0], key='b'),
+        cirq.measure(q[1], key='b')
+    ])
+    with pytest.raises(ValueError, match='Measurement key a,b repeated'):
+        _ = cirq.sample(circuit)
 
 
 def test_simulate_with_invert_mask():
