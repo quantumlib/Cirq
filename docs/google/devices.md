@@ -44,7 +44,7 @@ my_circuit = cirq.Circuit()
 # Specifying a device will verify that the circuit satisifies constraints of the device
 # Specifying an optimizer type (e.g. 'sqrt_iswap' or 'sycamore') will convert to the appropriate
 # gate set and also do basic optimization, such as combining successive one-qubit gates. 
-sycamore_circuit = cg.optimized_for_sycamore(my_circuit, device=cg.Sycamore, optimizer_type='sqrt_iswap')
+sycamore_circuit = cg.optimized_for_sycamore(my_circuit, new_device=cg.Sycamore, optimizer_type='sqrt_iswap')
 ```
 
 ### Good moment structure
