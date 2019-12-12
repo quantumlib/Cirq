@@ -17,7 +17,7 @@ from typing import Optional
 import numpy as np
 import ply.lex as lex
 
-from cirq.interop.qasm.qasm_input.exception import QasmException
+from cirq.interop.qasm.exception import QasmException
 
 
 class QasmLexer(object):

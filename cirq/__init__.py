@@ -48,12 +48,15 @@ from cirq import (
     neutral_atoms,
     api,
     google,
-    interop,
+
     # Applications
     experiments,
     # Extra (nothing should depend on these)
     testing,
     contrib,
+
+    # For interoperation
+    interop,
 )
 # End dependency order list of sub-modules
 

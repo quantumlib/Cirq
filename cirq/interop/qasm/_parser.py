@@ -19,11 +19,11 @@ from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
 import numpy as np
 from ply import yacc
 
-import cirq
+
 from cirq import ops, Circuit, NamedQubit, CX
-from cirq.interop.qasm.qasm_output.qasm_output import QasmUGate
-from cirq.interop.qasm.qasm_input._lexer import QasmLexer
-from cirq.interop.qasm.qasm_input.exception import QasmException
+from cirq.interop.qasm.qasm_output import QasmUGate
+from cirq.interop.qasm._lexer import QasmLexer
+from cirq.interop.qasm.exception import QasmException
 
 
 class Qasm:

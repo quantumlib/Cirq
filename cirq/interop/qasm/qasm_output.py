@@ -61,7 +61,7 @@ class QasmUGate(ops.SingleQubitGate):
             self.theta, self.phi, self.lmda, qubits[0])
 
     def __repr__(self) -> str:
-        return (f'cirq.interop.qasm.qasm_output.qasm_output.QasmUGate('
+        return (f'cirq.interop.qasm.qasm_output.QasmUGate('
                 f'theta={self.theta!r}, '
                 f'phi={self.phi!r}, '
                 f'lmda={self.lmda})')
@@ -137,7 +137,7 @@ class QasmTwoQubitGate(ops.TwoQubitGate):
         yield QasmUGate.from_matrix(a1).on(q1)
 
     def __repr__(self) -> str:
-        return 'cirq.interop.qasm.qasm_output.qasm_output.QasmTwoQubitGate({!r})'.format(
+        return 'cirq.interop.qasm.qasm_output.QasmTwoQubitGate({!r})'.format(
             self.kak)
 
 

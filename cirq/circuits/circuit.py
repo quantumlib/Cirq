@@ -41,7 +41,6 @@ import cirq._version
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
@@ -1625,7 +1624,7 @@ class Circuit:
             header: Optional[str] = None,
             precision: int = 10,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> 'QasmOutput':
+    ) -> 'cirq.QasmOutput':
         """Returns a QASM object equivalent to the circuit.
 
         Args:
@@ -1641,7 +1640,7 @@ class Circuit:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         # HACK: avoid circular import
-        from cirq.interop.qasm.qasm_output.qasm_output import QasmOutput
+        from cirq.interop.qasm.qasm_output import QasmOutput
         return QasmOutput(operations=self.all_operations(),
                           qubits=qubits,
                           header=header,

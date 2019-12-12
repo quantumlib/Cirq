@@ -13,9 +13,9 @@ import sympy
 import cirq
 import cirq.testing as ct
 from cirq import Circuit
-from cirq.interop.qasm.qasm_output.qasm_output import QasmUGate
-from cirq.interop.qasm.qasm_input.exception import QasmException
-from cirq.interop.qasm.qasm_input._parser import QasmParser
+from cirq.interop.qasm.qasm_output import QasmUGate
+from cirq.interop.qasm.exception import QasmException
+from cirq.interop.qasm._parser import QasmParser
 
 
 def test_format_header_circuit():

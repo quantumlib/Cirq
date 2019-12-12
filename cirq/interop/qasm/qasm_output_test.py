@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.interop.qasm.qasm_output.qasm_output import QasmTwoQubitGate, QasmUGate
+from cirq.interop.qasm.qasm_output import QasmTwoQubitGate, QasmUGate
 from cirq.testing import consistent_qasm as cq
 
 
@@ -27,7 +27,7 @@ def _make_qubits(n):
 
 def test_u_gate_repr():
     gate = QasmUGate(0.1, 0.2, 0.3)
-    assert repr(gate) == ('cirq.interop.qasm.qasm_output.qasm_output.QasmUGate('
+    assert repr(gate) == ('cirq.interop.qasm.qasm_output.QasmUGate('
                           'theta=0.1, phi=0.2, lmda=0.3)')
 
 

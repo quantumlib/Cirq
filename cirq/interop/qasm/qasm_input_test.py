@@ -16,7 +16,7 @@ import numpy as np
 import cirq
 import cirq.testing as ct
 from cirq.testing import consistent_qasm as cq
-from cirq.interop.qasm.qasm_input.qasm import circuit_from_qasm
+from cirq.interop.qasm.qasm_input import circuit_from_qasm
 
 
 def test_consistency_with_qasm_output_and_qiskit():
@@ -43,7 +43,7 @@ def test_consistency_with_qasm_output_and_qiskit():
         cirq.CZ.on(a, b),
         cirq.ControlledGate(cirq.H).on(b, c),
         cirq.IdentityGate(1).on(c),
-        cirq.interop.qasm.qasm_output.qasm_output.QasmUGate(1.0, 2.0,
+        cirq.interop.qasm.qasm_output.QasmUGate(1.0, 2.0,
                                                             3.0).on(d),
     )
 

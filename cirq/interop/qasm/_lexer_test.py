@@ -8,8 +8,8 @@
 
 import pytest
 import numpy as np
-from cirq.interop.qasm.qasm_input.exception import QasmException
-from cirq.interop.qasm.qasm_input._lexer import QasmLexer
+from cirq.interop.qasm.exception import QasmException
+from cirq.interop.qasm._lexer import QasmLexer
 
 
 def test_empty_circuit():
