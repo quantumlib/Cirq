@@ -1348,6 +1348,7 @@ def test_findall_operations_until_blocked():
         expected_ops=[])
 
 
+@pytest.mark.parametrize('seed', [randint2**31])
 def test_findall_operations_until_blocked_docstring_examples(seed):
     prng = np.random.RandomState(seed)
 
