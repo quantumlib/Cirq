@@ -1181,20 +1181,11 @@ def test_findall_operations_until_blocked():
 
     assert_findall_operations_until_blocked_as_expected()
 
-    circuit = cirq.Circuit.from_ops(
-        cirq.H(a),
-        cirq.CZ(a, b),
-        cirq.H(b),
-        cirq.CZ(b, c),
-        cirq.H(c),
-        cirq.CZ(c, d),
-        cirq.H(d),
-        cirq.CZ(c, d),
-        cirq.H(c),
-        cirq.CZ(b, c),
-        cirq.H(b),
-        cirq.CZ(a, b),
-        cirq.H(a))
+    circuit = cirq.Circuit.from_ops(cirq.H(a), cirq.CZ(a, b), cirq.H(b),
+                                    cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
+                                    cirq.H(d), cirq.CZ(c, d), cirq.H(c),
+                                    cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                                    cirq.H(a))
     expected_diagram = """
 0: ───H───@───────────────────────────────────────@───H───
           │                                       │
@@ -1361,6 +1352,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed):
     prng = np.random.RandomState(seed)
 
     class ExampleGate(cirq.Gate):
+
         def __init__(self, n_qubits, label):
             self.n_qubits = n_qubits
             self.label = label
@@ -1369,8 +1361,8 @@ def test_findall_operations_until_blocked_docstring_examples(seed):
             return self.n_qubits
 
         def _circuit_diagram_info_(self, args):
-            return cirq.CircuitDiagramInfo(
-                    wire_symbols = [self.label] * self.n_qubits)
+            return cirq.CircuitDiagramInfo(wire_symbols=[self.label] *
+                                           self.n_qubits)
 
     def is_blocker(op):
         if op.gate.label == 'F':
@@ -1402,8 +1394,8 @@ def test_findall_operations_until_blocked_docstring_examples(seed):
 1: ───F───F───
     """
     cirq.testing.assert_has_diagram(new_circuit, expected_diagram)
-    assert (circuit.findall_operations_until_blocked(start, is_blocker) ==
-            expected_ops)
+    assert (circuit.findall_operations_until_blocked(
+        start, is_blocker) == expected_ops)
 
     circuit = cirq.Circuit([M2(a, b), M2(b, c), F2(a, b), M2(c, d)])
     start = {a: 2, b: 2}
@@ -1425,8 +1417,8 @@ def test_findall_operations_until_blocked_docstring_examples(seed):
 1: ───F───
     """
     cirq.testing.assert_has_diagram(new_circuit, expected_diagram)
-    assert (circuit.findall_operations_until_blocked(start, is_blocker) ==
-            expected_ops)
+    assert (circuit.findall_operations_until_blocked(
+        start, is_blocker) == expected_ops)
 
     circuit = cirq.Circuit([M2(a, b), T2(b, c), M2(a, b), M2(c, d)])
     start = {a: 1, b: 1}
@@ -1466,8 +1458,9 @@ def test_findall_operations_until_blocked_docstring_examples(seed):
 3: ───────────F───
     """
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
-    assert (circuit.findall_operations_until_blocked(start, is_blocker) ==
-            [(0, F2(a, b)), (2, F2(c, d))])
+    assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
+        (0, F2(a, b)), (2, F2(c, d))
+    ])
 
 
 def test_has_measurements():
