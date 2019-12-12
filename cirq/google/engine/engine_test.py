@@ -25,6 +25,7 @@ from apiclient.errors import HttpError
 
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
 
 _CIRCUIT = cirq.Circuit()
 
@@ -183,6 +184,29 @@ _CALIBRATION = {
             }]
         }]
     }
+}
+
+_DEVICE_SPEC = {
+    '@type':
+    'type.googleapis.com/cirq.api.google.v2.DeviceSpecification',
+    'validGateSets': [{
+        'name':
+        'test_set',
+        'validGates': [{
+            'id': 'x',
+            'numberOfQubits': 1,
+            'gateDurationPicos': '1000',
+            'validTargets': ['1q_targets']
+        }]
+    }],
+    'validQubits': ['0_0', '1_1'],
+    'validTargets': [{
+        'name': '1q_targets',
+        'targetOrdering': 'SYMMETRIC',
+        'targets': [{
+            'ids': ['0_0']
+        }]
+    }],
 }
 
 
@@ -1048,6 +1072,50 @@ def test_calibration_from_job(build):
     assert calibration.timestamp == 1562544000021
     assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
+
+
+@mock.patch.object(discovery, 'build')
+def test_device_specification(build):
+    service = mock.Mock()
+    build.return_value = service
+    processors = service.projects().processors()
+    processors.get().execute.return_value = ({'deviceSpec': _DEVICE_SPEC})
+    device_spec = cg.Engine(
+        project_id='myproject').get_device_specification('x')
+    assert processors.get.call_args[1][
+        'name'] == 'projects/myproject/processors/x'
+
+    # Construct expected device proto based on JSON example
+    expected = v2.device_pb2.DeviceSpecification()
+    gs = expected.valid_gate_sets.add()
+    gs.name = 'test_set'
+    gates = gs.valid_gates.add()
+    gates.id = 'x'
+    gates.number_of_qubits = 1
+    gates.gate_duration_picos = 1000
+    gates.valid_targets.extend(['1q_targets'])
+    expected.valid_qubits.extend(['0_0', '1_1'])
+    target = expected.valid_targets.add()
+    target.name = '1q_targets'
+    target.target_ordering = v2.device_pb2.TargetSet.SYMMETRIC
+    new_target = target.targets.add()
+    new_target.ids.extend(['0_0'])
+
+    assert device_spec == expected
+
+
+@mock.patch.object(discovery, 'build')
+def test_missing_device_specification(build):
+    service = mock.Mock()
+    build.return_value = service
+    processors = service.projects().processors()
+    processors.get().execute.return_value = ({})
+    device_spec = cg.Engine(
+        project_id='myproject').get_device_specification('x')
+    assert processors.get.call_args[1][
+        'name'] == 'projects/myproject/processors/x'
+
+    assert device_spec == None
 
 
 @mock.patch.object(discovery, 'build')
