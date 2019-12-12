@@ -1,6 +1,6 @@
 ## Gates
 
-A ``Gate`` is an operation that can be applied to a collection of 
+A ``Gate`` is an operation that can be applied to a collection of
 qubits (objects with a ``Qid``).  ``Gates`` can be applied
 to qubits by calling their ``on`` method, or, alternatively
 calling the gate on the qubits.  The object created by such calls
@@ -16,17 +16,17 @@ print(CNOT(q0, q1))
 # CNOT((0, 0), (0, 1))
 ```
 
-``Gate``s operate on a specific number of qubit and classes that
-implement ``Gate`` must supply the ``num_qubits`` method.  For
+``Gate``s operate on a specific number of qubits and classes that
+implement ``Gate`` must supply either the ``_num_qubits_`` or ``_qid_shape_`` magic method.  For
 convenience one can use the ``SingleQubitGate``, ``TwoQubitGate``,
-and ``ThreeQubitGate`` classes for these common gate sizes. 
+and ``ThreeQubitGate`` classes for these common gate sizes.
 
 The most common type of ``Gate`` is one that corresponds to applying
 a unitary evolution on the qubits that the gate acts on.
 ``Gate``s can also correspond to noisy evolution on the qubits. This
 version of a gate is not used when sending the circuit to a
 quantum computer for execution, but it can be used with
-various simulators. See [noise documentation](noise.md) .
+various simulators. See [noise documentation](noise.md).
 
 
 ### Magic Methods
@@ -41,7 +41,20 @@ Or, if a gate specifies a `__pow__` method that works for an exponent of -1, the
 
 We describe some magic methods below.
 
-#### `cirq.unitary` and `def _unitary_` 
+#### `cirq.num_qubits` and `def _num_qubits_`
+
+A `Gate` must implement the `_num_qubits_` (or `_qid_shape_`) method.
+This method returns an integer and is used by `cirq.num_qubits` to determine how many qubits this gate operates on.
+
+#### `cirq.qid_shape` and `def _qid_shape_`
+
+A qudit gate or operation must implement the `_qid_shape_` method that returns a tuple of integers.
+This method is used to determine how many qudits the gate or operation operates on and what dimension each qudit must be.
+If only the `_num_qubits_` method is implemented, the object is assumed to operate only on qubits.
+Callers can query the qid shape of the object by calling `cirq.qid_shape` on it.
+See [qudit documentation](qudits.md) for more information.
+
+#### `cirq.unitary` and `def _unitary_`
 
 When an object can be described by a unitary matrix, it can expose that unitary
 matrix by implementing a `_unitary_(self) -> np.ndarray` method.
@@ -144,8 +157,8 @@ This gate is a rotation about an axis in the XY plane of the Bloch sphere.
 The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
 The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
 
-**cirq.Z / cirq.Rz** Rotations about the Pauli ``Z`` axis.
-The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.Rz(θ)` is `exp(-i Z θ/2)`.
+**cirq.Z / cirq.rz** Rotations about the Pauli ``Z`` axis.
+The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.rz(θ)` is `exp(-i Z θ/2)`.
 Note that in quantum computing hardware, this gate is often implemented in the
 classical control hardware as a phase change on later operations, instead of as
 a physical modification applied to the qubits.

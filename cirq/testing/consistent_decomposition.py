@@ -16,7 +16,7 @@ from typing import Any
 
 import numpy as np
 
-from cirq import protocols, ops, line, circuits
+from cirq import devices, protocols, ops, circuits
 from cirq.testing import lin_alg_utils
 
 
@@ -29,18 +29,17 @@ def assert_decompose_is_consistent_with_unitary(
     if expected is None:
         # If there's no unitary, it's vacuously consistent.
         return
-    qubit_count = len(expected).bit_length() - 1
     if isinstance(val, ops.Operation):
         qubits = val.qubits
         dec = protocols.decompose_once(val, default=None)
     else:
-        qubits = tuple(line.LineQubit.range(qubit_count))
+        qubits = tuple(devices.LineQid.for_gate(val))
         dec = protocols.decompose_once_with_qubits(val, qubits, default=None)
     if dec is None:
         # If there's no decomposition, it's vacuously consistent.
         return
 
-    actual = circuits.Circuit.from_ops(dec).unitary(qubit_order=qubits)
+    actual = circuits.Circuit(dec).unitary(qubit_order=qubits)
 
     if ignoring_global_phase:
         lin_alg_utils.assert_allclose_up_to_global_phase(actual,

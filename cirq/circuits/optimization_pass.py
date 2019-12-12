@@ -23,6 +23,7 @@ from cirq import ops
 from cirq.circuits.circuit import Circuit
 
 if TYPE_CHECKING:
+    import cirq
     from cirq.ops import Qid
 
 
@@ -31,8 +32,9 @@ class PointOptimizationSummary:
 
     def __init__(self,
                  clear_span: int,
-                 clear_qubits: Iterable[ops.Qid],
-                 new_operations: ops.OP_TREE) -> None:
+                 clear_qubits: Iterable['cirq.Qid'],
+                 new_operations: 'cirq.OP_TREE',
+                 preserve_moments: bool = False) -> None:
         """
         Args:
             clear_span: Defines the range of moments to affect. Specifically,
@@ -42,8 +44,17 @@ class PointOptimizationSummary:
                 with each affected moment.
             new_operations: The operations to replace the cleared out
                 operations with.
+            preserve_moments: If set, `cirq.Moment` instances within
+                `new_operations` will be preserved exactly. Normally the
+                operations would be repacked to fit better into the
+                target space, which may move them between moments.
+                Please be advised that a PointOptimizer consuming this
+                summary will flatten operations no matter what,
+                see https://github.com/quantumlib/Cirq/issues/2406.
         """
-        self.new_operations = tuple(ops.flatten_op_tree(new_operations))
+        self.new_operations = tuple(
+            ops.flatten_op_tree(new_operations,
+                                preserve_moments=preserve_moments))
         self.clear_span = clear_span
         self.clear_qubits = tuple(clear_qubits)
 
@@ -74,9 +85,9 @@ class PointOptimizer:
     """Makes circuit improvements focused on a specific location."""
 
     def __init__(self,
-                 post_clean_up: Callable[[Sequence[ops.Operation]], ops.OP_TREE
-                                ] = lambda op_list: op_list
-                 ) -> None:
+                 post_clean_up: Callable[[Sequence['cirq.Operation']], ops.
+                                         OP_TREE] = lambda op_list: op_list
+                ) -> None:
         """
         Args:
             post_clean_up: This function is called on each set of optimized
@@ -89,11 +100,8 @@ class PointOptimizer:
         return self.optimize_circuit(circuit)
 
     @abc.abstractmethod
-    def optimization_at(self,
-                        circuit: Circuit,
-                        index: int,
-                        op: ops.Operation
-                        ) -> Optional[PointOptimizationSummary]:
+    def optimization_at(self, circuit: Circuit, index: int, op: 'cirq.Operation'
+                       ) -> Optional[PointOptimizationSummary]:
         """Describes how to change operations near the given location.
 
         For example, this method could realize that the given operation is an

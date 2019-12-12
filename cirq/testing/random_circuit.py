@@ -12,10 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from random import choice, sample, random
 from typing import List, Union, Sequence, Dict, Optional
 
-from cirq import ops
+from cirq import ops, value
 from cirq.circuits import Circuit
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
@@ -36,18 +35,21 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
                    n_moments: int,
                    op_density: float,
-                   gate_domain: Optional[Dict[ops.Gate, int]] = None
-                   ) -> Circuit:
+                   gate_domain: Optional[Dict[ops.Gate, int]] = None,
+                   random_state: value.RANDOM_STATE_LIKE = None) -> Circuit:
     """Generates a random circuit.
 
     Args:
-        qubits: the qubits that the circuit acts on. Because the qubits on
-            which an operation acts are chosen randomly, not all given qubits
-            may be acted upon.
+        qubits: If a sequence of qubits, then these are the qubits that
+            the circuit should act on. Because the qubits on which an
+            operation acts are chosen randomly, not all given qubits
+            may be acted upon. If an int, then this number of qubits will
+            be automatically generated.
         n_moments: the number of moments in the generated circuit.
         op_density: the expected proportion of qubits that are acted on in any
             moment.
         gate_domain: The set of gates to choose from, with a specified arity.
+        random_state: Random state or random state seed.
 
     Raises:
         ValueError:
@@ -72,15 +74,21 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
 
+    prng = value.parse_random_state(random_state)
+
     moments: List[ops.Moment] = []
+    gate_arity_pairs = sorted(gate_domain.items(), key=repr)
+    num_gates = len(gate_domain)
     for _ in range(n_moments):
         operations = []
-        free_qubits = set(q for q in qubits)
+        free_qubits = set(qubits)
         while len(free_qubits) >= max_arity:
-            gate, arity = choice(tuple(gate_domain.items()))
-            op_qubits = sample(free_qubits, arity)
+            gate, arity = gate_arity_pairs[prng.randint(num_gates)]
+            op_qubits = prng.choice(sorted(free_qubits),
+                                    size=arity,
+                                    replace=False)
             free_qubits.difference_update(op_qubits)
-            if random() <= op_density:
+            if prng.rand() <= op_density:
                 operations.append(gate(*op_qubits))
         moments.append(ops.Moment(operations))
 

@@ -1,0 +1,5 @@
+[
+sympy.Mul(sympy.Integer(-1), sympy.Symbol('s')),
+sympy.Mul(sympy.Integer(2), sympy.Symbol('s')),
+sympy.Mul(sympy.Symbol('s'), sympy.Pow(sympy.Symbol('t'), sympy.Integer(-1))),
+]

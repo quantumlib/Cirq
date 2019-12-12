@@ -35,6 +35,7 @@ from cirq.sim.mux import (
 )
 
 from cirq.sim.simulator import (
+    SimulatesAmplitudes,
     SimulatesFinalState,
     SimulatesIntermediateState,
     SimulatesSamples,
@@ -60,7 +61,17 @@ from cirq.sim.wave_function import (
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
+    STATE_VECTOR_LIKE,
     StateVectorMixin,
     to_valid_state_vector,
     validate_normalized_state,
+)
+
+from cirq.sim.clifford import (
+    StabilizerStateChForm,
+    CliffordSimulator,
+    CliffordState,
+    CliffordTableau,
+    CliffordTrialResult,
+    CliffordSimulatorStepResult,
 )

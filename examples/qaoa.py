@@ -57,7 +57,7 @@ import scipy.optimize
 import cirq
 
 
-def main():
+def main(repetitions=1000, maxiter=50):
     # Set problem parameters
     n = 6
     p = 2
@@ -83,7 +83,6 @@ def main():
     simulator = cirq.Simulator()
 
     # Define objective function (we'll use the negative expected cut value)
-    num_samples = 1000
 
     def f(x):
         # Create circuit
@@ -91,19 +90,18 @@ def main():
         gammas = x[p:]
         circuit = qaoa_max_cut_circuit(qubits, betas, gammas, graph)
         # Sample bitstrings from circuit
-        result = simulator.run(circuit, repetitions=num_samples)
+        result = simulator.run(circuit, repetitions=repetitions)
         bitstrings = result.measurements['m']
         # Process bitstrings
-        sum_of_cut_values = 0
         nonlocal largest_cut_found
         nonlocal largest_cut_value_found
-        for bitstring in bitstrings:
-            value = cut_value(bitstring, graph)
-            sum_of_cut_values += value
-            if value > largest_cut_value_found:
-                largest_cut_value_found = value
-                largest_cut_found = bitstring
-        mean = sum_of_cut_values / num_samples
+        values = cut_values(bitstrings, graph)
+        max_value_index = np.argmax(values)
+        max_value = values[max_value_index]
+        if max_value > largest_cut_value_found:
+            largest_cut_value_found = max_value
+            largest_cut_found = bitstrings[max_value_index]
+        mean = np.mean(values)
         return -mean
 
     # Pick an initial guess
@@ -114,12 +112,12 @@ def main():
     scipy.optimize.minimize(f,
                             x0,
                             method='Nelder-Mead',
-                            options={'maxiter': 50})
+                            options={'maxiter': maxiter})
 
     # Compute best possible cut value via brute force search
-    max_cut_value = max(
-        cut_value(bitstring, graph)
-        for bitstring in itertools.product(range(2), repeat=n))
+    all_bitstrings = np.array(list(itertools.product(range(2), repeat=n)))
+    all_values = cut_values(all_bitstrings, graph)
+    max_cut_value = np.max(all_values)
 
     # Print the results
     print('The largest cut value found was {}.'.format(largest_cut_value_found))
@@ -128,7 +126,7 @@ def main():
         largest_cut_value_found / max_cut_value))
 
 
-def Rzz(rads):
+def rzz(rads):
     """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
@@ -137,13 +135,13 @@ def qaoa_max_cut_unitary(qubits, betas, gammas,
                          graph):  # Nodes should be integers
     for beta, gamma in zip(betas, gammas):
         yield (
-            Rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield cirq.Rx(2 * beta).on_each(*qubits)
+            rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+        yield cirq.rx(2 * beta).on_each(*qubits)
 
 
 def qaoa_max_cut_circuit(qubits, betas, gammas,
                          graph):  # Nodes should be integers
-    return cirq.Circuit.from_ops(
+    return cirq.Circuit(
         # Prepare uniform superposition
         cirq.H.on_each(*qubits),
         # Apply QAOA unitary
@@ -152,8 +150,12 @@ def qaoa_max_cut_circuit(qubits, betas, gammas,
         cirq.measure(*qubits, key='m'))
 
 
-def cut_value(bitstring, graph):
-    return sum(bitstring[i] != bitstring[j] for i, j in graph.edges)
+def cut_values(bitstrings, graph):
+    mat = networkx.adjacency_matrix(graph, nodelist=sorted(graph.nodes))
+    vecs = (-1)**bitstrings
+    vals = 0.5 * np.sum(vecs * (mat @ vecs.T).T, axis=-1)
+    vals = 0.5 * (graph.size() - vals)
+    return vals
 
 
 if __name__ == '__main__':

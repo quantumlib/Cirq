@@ -17,6 +17,11 @@ GITHUB_REPO_NAME = 'cirq'
 GITHUB_REPO_ORGANIZATION = 'quantumlib'
 ACCESS_TOKEN_ENV_VARIABLE = 'CIRQ_BOT_GITHUB_ACCESS_TOKEN'
 
+# This is needed for updating forks before merging them, because currently the
+# github API has no equivalent to the 'Update Branch' button on the website.
+# This env variable should be the 'user_session' cookie set by github.
+UPDATE_BRANCH_COOKIE_ENV_VARIABLE = 'CIRQ_BOT_UPDATE_BRANCH_COOKIE'
+
 POLLING_PERIOD = datetime.timedelta(seconds=10)
 USER_AUTO_MERGE_LABEL = 'automerge'
 HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
@@ -324,16 +329,14 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
     return classification.get(state, None)
 
 
-def get_pr_review_status(pr: PullRequestDetails) -> Any:
+def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     """
     References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
     """
-    url = ("https://api.github.com/repos/{}/{}/pulls/{}/reviews"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.pull_id,
-                                     pr.repo.access_token))
+    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+           f"/pulls/{pr.pull_id}/reviews"
+           f"?per_page={per_page};access_token={pr.repo.access_token}")
     response = requests.get(url)
 
     if response.status_code != 200:
@@ -463,7 +466,7 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
 
 def attempt_update_branch_button(pr: PullRequestDetails
                                  ) -> Union[bool, CannotAutomergeError]:
-    session_cookie = os.getenv('CIRQ_BOT_UPDATE_BRANCH_COOKIE')
+    session_cookie = os.getenv(UPDATE_BRANCH_COOKIE_ENV_VARIABLE)
     if session_cookie is None:
         return attempt_sync_with_master(pr)
 
@@ -489,6 +492,8 @@ def attempt_update_branch_button(pr: PullRequestDetails
         '.*<input type="hidden" name="expected_head_oid" value="([^"]+)"'
         '.*</form>.*', html, re.DOTALL)
     if form_guts is None:
+        if '(Logged out)' in html:
+            return CannotAutomergeError('Need a fresh :cookie:.')
         raise RuntimeError(
             'Failed to find update branch button. Html: {}.'.format(
                 html))

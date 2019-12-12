@@ -17,18 +17,6 @@
 from dev_tools.profiling import benchmark_simulators
 
 
-def test_xmon_simulator():
-    for num_qubits in (4, 10):
-        for num_gates in (10, 20):
-            for num_prefix_qubits in (0, 2):
-                for use_processes in (True, False):
-                    benchmark_simulators.simulate('xmon',
-                                                  num_qubits,
-                                                  num_gates,
-                                                  num_prefix_qubits,
-                                                  use_processes)
-
-
 def test_unitary_simulator():
     for num_qubits in (4, 10):
         for num_gates in (10, 20):
@@ -57,13 +45,13 @@ def test_main_loop():
 
 
 def test_parse_args():
-    args = (
-        '--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
-        '--num_gates 5 --num_repetitions 2 --num_prefix_qubits 2 '
-        '--use_processes'
-    ).split()
+    args = ('--sim_type unitary --min_num_qubits 5 --max_num_qubits 10 '
+            '--num_gates 5 --num_repetitions 2').split()
     kwargs = benchmark_simulators.parse_arguments(args)
-    assert kwargs == {'sim_type': 'unitary', 'min_num_qubits': 5,
-                      'max_num_qubits': 10, 'num_gates': 5,
-                      'num_repetitions': 2, 'num_prefix_qubits': 2,
-                      'use_processes': True}
+    assert kwargs == {
+        'sim_type': 'unitary',
+        'min_num_qubits': 5,
+        'max_num_qubits': 10,
+        'num_gates': 5,
+        'num_repetitions': 2
+    }

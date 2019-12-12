@@ -1,0 +1,1 @@
+cirq.ControlledGate(sub_gate=cirq.Y, control_values=((0,), (1,)),control_qid_shape=(3, 2))

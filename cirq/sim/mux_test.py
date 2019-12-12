@@ -26,22 +26,23 @@ def test_sample():
     q = cirq.NamedQubit('q')
 
     with pytest.raises(ValueError, match="no measurements"):
-        cirq.sample(cirq.Circuit.from_ops(cirq.X(q)))
+        cirq.sample(cirq.Circuit(cirq.X(q)))
     # Unitary.
-    results = cirq.sample(cirq.Circuit.from_ops(cirq.X(q), cirq.measure(q)))
+    results = cirq.sample(cirq.Circuit(cirq.X(q), cirq.measure(q)))
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Intermediate measurements.
-    results = cirq.sample(cirq.Circuit.from_ops(
-        cirq.measure(q, key='drop'),
-        cirq.X(q),
-        cirq.measure(q),
-    ))
+    results = cirq.sample(
+        cirq.Circuit(
+            cirq.measure(q, key='drop'),
+            cirq.X(q),
+            cirq.measure(q),
+        ))
     assert results.histogram(key='drop') == collections.Counter({0: 1})
     assert results.histogram(key=q) == collections.Counter({1: 1})
 
     # Overdamped everywhere.
-    results = cirq.sample(cirq.Circuit.from_ops(
+    results = cirq.sample(cirq.Circuit(
         cirq.measure(q, key='drop'),
         cirq.X(q),
         cirq.measure(q),
@@ -52,12 +53,28 @@ def test_sample():
     assert results.histogram(key=q) == collections.Counter({0: 1})
 
 
+def test_sample_seed_unitary():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.X(q)**0.5, cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    assert np.all(
+        result.measurements['q'] == [[False], [True], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
+def test_sample_seed_non_unitary():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.depolarize(0.5).on(q), cirq.measure(q))
+    result = cirq.sample(circuit, repetitions=10, seed=1234)
+    print(result.measurements)
+    assert np.all(
+        result.measurements['q'] == [[False], [False], [False], [True], [True],
+                                     [False], [False], [True], [True], [True]])
+
+
 def test_sample_sweep():
     q = cirq.NamedQubit('q')
-    c = cirq.Circuit.from_ops(
-        cirq.X(q),
-        cirq.Y(q)**sympy.Symbol('t'),
-        cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
 
     # Unitary.
     results = cirq.sample_sweep(c, cirq.Linspace('t', 0, 1, 2), repetitions=3)
@@ -66,11 +83,9 @@ def test_sample_sweep():
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
 
     # Overdamped.
-    c = cirq.Circuit.from_ops(
-        cirq.X(q),
-        cirq.amplitude_damp(1).on(q),
-        cirq.Y(q)**sympy.Symbol('t'),
-        cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q),
+                     cirq.amplitude_damp(1).on(q),
+                     cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
     results = cirq.sample_sweep(
         c,
         cirq.Linspace('t', 0, 1, 2),
@@ -80,8 +95,7 @@ def test_sample_sweep():
     assert results[1].histogram(key=q) == collections.Counter({1: 3})
 
     # Overdamped everywhere.
-    c = cirq.Circuit.from_ops(cirq.X(q),
-                              cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q)**sympy.Symbol('t'), cirq.measure(q))
     results = cirq.sample_sweep(c,
                                 cirq.Linspace('t', 0, 1, 2),
                                 noise=cirq.ConstantQubitNoiseModel(
@@ -90,6 +104,25 @@ def test_sample_sweep():
     assert len(results) == 2
     assert results[0].histogram(key=q) == collections.Counter({0: 3})
     assert results[1].histogram(key=q) == collections.Counter({0: 3})
+
+
+def test_sample_sweep_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.X(q)**sympy.Symbol('t'), cirq.measure(q))
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
+                                repetitions=2,
+                                seed=1234)
+    assert np.all(results[0].measurements['q'] == [[False], [True]])
+    assert np.all(results[1].measurements['q'] == [[False], [True]])
+    assert np.all(results[2].measurements['q'] == [[True], [False]])
+
+    results = cirq.sample_sweep(circuit, [cirq.ParamResolver({'t': 0.5})] * 3,
+                                repetitions=2,
+                                seed=np.random.RandomState(1234))
+    assert np.all(results[0].measurements['q'] == [[False], [True]])
+    assert np.all(results[1].measurements['q'] == [[False], [True]])
+    assert np.all(results[2].measurements['q'] == [[True], [False]])
 
 
 def test_final_wavefunction_different_program_types():
@@ -106,14 +139,7 @@ def test_final_wavefunction_different_program_types():
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.Circuit.from_ops(ops)),
-        [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
-        atol=1e-8)
-
-    np.testing.assert_allclose(
-        cirq.final_wavefunction(
-            cirq.moment_by_moment_schedule(cirq.UnconstrainedDevice,
-                                           cirq.Circuit.from_ops(ops))),
+        cirq.final_wavefunction(cirq.Circuit(ops)),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)
 
@@ -185,3 +211,23 @@ def test_final_wavefunction_qubit_order():
         cirq.final_wavefunction([cirq.X(a), cirq.X(b)**0.5], qubit_order=[b,
                                                                           a]),
         [0, 0.5 + 0.5j, 0, 0.5 - 0.5j])
+
+
+def test_final_wavefunction_seed():
+    a = cirq.LineQubit(0)
+    np.testing.assert_allclose(cirq.final_wavefunction(
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [0, 0.707107 - 0.707107j],
+                               atol=1e-4)
+    np.testing.assert_allclose(cirq.final_wavefunction(
+        [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
+                               atol=1e-4)
+
+
+@pytest.mark.parametrize('repetitions', (0, 1, 100))
+def test_repetitions(repetitions):
+    a = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.H(a), cirq.measure(a, key='m'))
+    r = cirq.sample(c, repetitions=repetitions)
+    samples = r.data['m'].to_numpy()
+    assert samples.shape == (repetitions,)
+    assert np.issubdtype(samples.dtype, np.integer)

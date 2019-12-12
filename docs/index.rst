@@ -1,5 +1,8 @@
-Cirq: A python library for NISQ circuits
-========================================
+.. image:: _static/Cirq_logo_color.png
+    :alt: Cirq
+
+Cirq
+====
 
 Cirq is a software library for writing, manipulating, and optimizing quantum
 circuits and then running them against quantum computers and simulators.
@@ -8,16 +11,15 @@ away, because, in the Noisy Intermediate-Scale Quantum (NISQ) regime, these
 details determine whether or not it is possible to execute a circuit at all.
 
 Alpha Disclaimer
-================
+----------------
 
 **Cirq is currently in alpha.**
-We are still making breaking changes.
-We *will* break your code when we make new releases.
-We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
-That way you have control over when a breaking change affects you.
+We may change or remove parts of Cirq's API when making new releases.
+To be informed of deprecations and breaking changes, subscribe to the
+`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce>`__.
 
 User Documentation
-==================
+------------------
 
 .. toctree::
     :maxdepth: 2
@@ -28,13 +30,22 @@ User Documentation
     gates
     noise
     simulation
-    schedules
+    devices
+    qudits
     development
     examples
 
+Developer Documentation
+-----------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    dev/index.rst
+
 
 API Reference
-=============
+-------------
 
 .. toctree::
     :maxdepth: 2

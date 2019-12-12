@@ -32,6 +32,31 @@ class GoodPhaser:
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return GoodPhaser(self.e + phase_turns*4)
 
+    def _resolve_parameters_(self, param_resolver):
+        return GoodPhaser(param_resolver.value_of(self.e))
+
+
+class GoodQuditPhaser:
+
+    def __init__(self, e):
+        self.e = e
+
+    def _qid_shape_(self):
+        return (3,)
+
+    def _unitary_(self):
+        return np.array([
+            [0, 1j**-self.e, 0],
+            [0, 0, 1j**self.e],
+            [1, 0, 0],
+        ])
+
+    def _phase_by_(self, phase_turns: float, qubit_index: int):
+        return GoodQuditPhaser(self.e + phase_turns * 4)
+
+    def _resolve_parameters_(self, param_resolver):
+        return GoodQuditPhaser(param_resolver.value_of(self.e))
+
 
 class BadPhaser:
     def __init__(self, e):
@@ -44,7 +69,10 @@ class BadPhaser:
         ])
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
-        return GoodPhaser(self.e + phase_turns*4)
+        return BadPhaser(self.e + phase_turns * 4)
+
+    def _resolve_parameters_(self, param_resolver):
+        return BadPhaser(param_resolver.value_of(self.e))
 
 
 class NotPhaser:
@@ -72,10 +100,16 @@ class SemiBadPhaser:
         r[qubit_index] += phase_turns*4
         return SemiBadPhaser(r)
 
+    def _resolve_parameters_(self, param_resolver):
+        return SemiBadPhaser([param_resolver.value_of(val) for val in self.e])
+
 
 def test_assert_phase_by_is_consistent_with_unitary():
     cirq.testing.assert_phase_by_is_consistent_with_unitary(
         GoodPhaser(0.5))
+
+    cirq.testing.assert_phase_by_is_consistent_with_unitary(
+        GoodQuditPhaser(0.5))
 
     with pytest.raises(AssertionError,
                        match='Phased unitary was incorrect for index #0'):

@@ -44,7 +44,12 @@ rm -rf "${docs_conf_dir}/generated"
 rm -rf "${out_dir}"
 
 # Regenerate docs.
-sphinx-build -M html "${docs_conf_dir}" "${out_dir}"
+sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W
 
 # Cleanup newly generated temporary files.
 rm -rf "${docs_conf_dir}/generated"
+
+echo
+echo Index Page:
+echo "file://$(pwd)/${out_dir}/html/index.html"
+echo

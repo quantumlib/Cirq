@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import warnings
-from typing import Any, List
+from typing import Any, List, Sequence
 
 import numpy as np
 
-from cirq import protocols, ops, line, linalg
+from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils
 
 
@@ -37,17 +37,18 @@ def assert_qasm_is_consistent_with_unitary(val: Any):
         # Vacuous consistency.
         return
 
-    controls = getattr(val, 'control_qubits', None)
-    if controls is None:
-        qubit_count = len(unitary).bit_length() - 1
-    else:
-        qubit_count = len(unitary).bit_length() - 1 - (len(controls) -
-                                                       controls.count(None))
     if isinstance(val, ops.Operation):
-        qubits = val.qubits
+        qubits: Sequence[ops.Qid] = val.qubits
         op = val
     elif isinstance(val, ops.Gate):
-        qubits = tuple(line.LineQubit.range(qubit_count))
+        qid_shape = protocols.qid_shape(val)
+        remaining_shape = list(qid_shape)
+        controls = getattr(val, 'control_qubits', None)
+        if controls is not None:
+            for i, q in zip(reversed(range(len(controls))), reversed(controls)):
+                if q is not None:
+                    remaining_shape.pop(i)
+        qubits = devices.LineQid.for_qid_shape(remaining_shape)
         op = val.on(*qubits)
     else:
         raise NotImplementedError("Don't know how to test {!r}".format(val))
@@ -69,7 +70,7 @@ qreg q[{}];
     qasm_unitary = None
     try:
         result = qiskit.execute(
-            qiskit.load_qasm_string(qasm),
+            qiskit.QuantumCircuit.from_qasm_str(qasm),
             backend=qiskit.Aer.get_backend('unitary_simulator'))
         qasm_unitary = result.result().get_unitary()
         qasm_unitary = _reorder_indices_of_matrix(
@@ -88,21 +89,20 @@ qreg q[{}];
             p_unitary = None
             p_qasm_unitary = None
         raise AssertionError(
-            'QASM be consistent with cirq.unitary(op) up to global phase.\n\n'
+            'QASM not consistent with cirq.unitary(op) up to global phase.\n\n'
             'op:\n{}\n\n'
             'cirq.unitary(op):\n{}\n\n'
             'Generated QASM:\n\n{}\n\n'
             'Unitary of generated QASM:\n{}\n\n'
             'Phased matched cirq.unitary(op):\n{}\n\n'
             'Phased matched unitary of generated QASM:\n{}\n\n'
-            'Underlying error:\n{}'.format(
-                _indent(repr(op)),
-                _indent(repr(unitary)),
-                _indent(qasm),
-                _indent(repr(qasm_unitary)),
-                _indent(repr(p_unitary)),
-                _indent(repr(p_qasm_unitary)),
-                _indent(str(ex))))
+            'Underlying error:\n{}'.format(_indent(repr(op)),
+                                           _indent(repr(unitary)),
+                                           _indent(qasm),
+                                           _indent(repr(qasm_unitary)),
+                                           _indent(repr(p_unitary)),
+                                           _indent(repr(p_qasm_unitary)),
+                                           _indent(str(ex))))
 
 
 def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
@@ -115,7 +115,7 @@ def assert_qiskit_parsed_qasm_consistent_with_unitary(qasm, unitary):
         return
 
     num_qubits = int(np.log2(len(unitary)))
-    result = qiskit.execute(qiskit.load_qasm_string(qasm),
+    result = qiskit.execute(qiskit.QuantumCircuit.from_qasm_str(qasm),
                             backend=qiskit.Aer.get_backend('unitary_simulator'))
     qiskit_unitary = result.result().get_unitary()
     qiskit_unitary = _reorder_indices_of_matrix(

@@ -36,6 +36,14 @@ def test_str():
         })
     assert str(result) == 'ab=00010, 11101\nc=00101'
 
+    result = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'ab': np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
+            'c': np.array([[0], [1], [2], [3], [4]])
+        })
+    assert str(result) == 'ab=13579, 2 4 6 8 10\nc=01234'
+
 
 def test_df():
     result = cirq.TrialResult.from_single_parameter_set(
@@ -159,9 +167,70 @@ def test_trial_result_equality():
             measurements={'a': np.array([[1]] * 5)}))
 
 
+def test_trial_result_addition_valid():
+    a = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    b = cirq.TrialResult.from_single_parameter_set(params=cirq.ParamResolver(
+        {'ax': 1}),
+                                                   measurements={
+                                                       'q0':
+                                                       np.array([[0, 1]],
+                                                                dtype=np.bool),
+                                                       'q1':
+                                                       np.array([[0]],
+                                                                dtype=np.bool)
+                                                   })
+
+    c = a + b
+    np.testing.assert_array_equal(c.measurements['q0'],
+                                  np.array([[0, 1], [1, 0], [0, 1], [0, 1]]))
+    np.testing.assert_array_equal(c.measurements['q1'],
+                                  np.array([[0], [0], [1], [0]]))
+
+
+def test_trial_result_addition_invalid():
+    a = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    b = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'bad': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    c = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'bad': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0], [0], [1]], dtype=np.bool)
+        })
+    d = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({'ax': 1}),
+        measurements={
+            'q0': np.array([[0, 1], [1, 0], [0, 1]], dtype=np.bool),
+            'q1': np.array([[0, 1], [0, 1], [1, 1]], dtype=np.bool)
+        })
+
+    with pytest.raises(ValueError, match='same parameters'):
+        _ = a + b
+    with pytest.raises(ValueError, match='same measurement keys'):
+        _ = a + c
+    with pytest.raises(ValueError):
+        _ = a + d
+    with pytest.raises(TypeError):
+        _ = a + 'junk'
+
+
 def test_qubit_keys_for_histogram():
     a, b, c = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.measure(a, b),
         cirq.X(c),
         cirq.measure(c),
@@ -198,3 +267,24 @@ def test_text_diagram_jupyter():
     p = FakePrinter()
     result._repr_pretty_(p, True)
     assert p.text_pretty == 'TrialResult(...)'
+
+
+def test_json_bit_packing_and_dtype():
+    prng = np.random.RandomState(1234)
+    bits = prng.randint(2, size=(256, 256)).astype(np.uint8)
+    digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
+
+    bits_result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                                   measurements={'m': bits})
+    digits_result = cirq.TrialResult(params=cirq.ParamResolver({}),
+                                     measurements={'m': digits})
+
+    bits_json = cirq.to_json(bits_result)
+    digits_json = cirq.to_json(digits_result)
+
+    loaded_bits_result = cirq.read_json(json_text=bits_json)
+    loaded_digits_result = cirq.read_json(json_text=digits_json)
+
+    assert loaded_bits_result.measurements['m'].dtype == np.uint8
+    assert loaded_digits_result.measurements['m'].dtype == np.uint8
+    np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)

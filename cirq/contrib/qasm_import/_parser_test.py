@@ -381,9 +381,9 @@ def test_unknown_function():
 
 
 rotation_gates = [
-    ('rx', cirq.Rx),
-    ('ry', cirq.Ry),
-    ('rz', cirq.Rz),
+    ('rx', cirq.rx),
+    ('ry', cirq.ry),
+    ('rz', cirq.rz),
 ]
 
 
@@ -634,6 +634,29 @@ def test_measurement_bounds():
     with pytest.raises(QasmException,
                        match=r"Out of bounds bit.*4.*c1.*size 3.*line 4"):
         parser.parse(qasm)
+
+
+def test_u1_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     u1(pi / 3.0) q[0];    
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(0, 0, 1.0 / 3.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
 
 
 def test_u2_gate():
@@ -940,7 +963,7 @@ def test_single_qubit_gates(qasm_gate: str, cirq_gate: cirq.SingleQubitGate):
     q0 = cirq.NamedQubit('q_0')
     q1 = cirq.NamedQubit('q_1')
 
-    expected_circuit = Circuit.from_ops([
+    expected_circuit = Circuit([
         cirq_gate.on(q0),
         cirq_gate.on(q0),
         cirq_gate.on(q1),
