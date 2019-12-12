@@ -19,7 +19,6 @@ from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
 import numpy as np
 from ply import yacc
 
-
 from cirq import ops, Circuit, NamedQubit, CX
 from cirq.interop.qasm.qasm_output import QasmUGate
 from cirq.interop.qasm._lexer import QasmLexer
