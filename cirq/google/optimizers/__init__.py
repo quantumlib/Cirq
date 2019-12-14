@@ -24,5 +24,8 @@ from cirq.google.optimizers.convert_to_sqrt_iswap import (
 from cirq.google.optimizers.convert_to_xmon_gates import (
     ConvertToXmonGates,)
 
+from cirq.google.optimizers.optimize_for_sycamore import (
+    optimized_for_sycamore,)
+
 from cirq.google.optimizers.optimize_for_xmon import (
     optimized_for_xmon,)
