@@ -53,14 +53,6 @@ circuit_CS = cirq.Circuit([
 
 print(circuit_CS)
 
-##
-## What we need is ..
-## a + b + c + d = t0
-## a - b + c - d = t1
-## a + b - c - d = t2
-## a - b - c + d  = t3
-##
-##
 # print (circuit_CS._unitary_())
 # print(CS)
 assert_almost_equal(circuit_CS._unitary_(), CS, decimals)
@@ -71,7 +63,7 @@ assert_almost_equal(circuit_CS._unitary_(), CS, decimals)
 # for th in theta:
 #     print(cirq.ry(th*2)._unitary_())
 
-def multiplexor_to_circuit(u1, u2):
+def two_by_two_qubit_multiplexor_to_circuit(u1, u2):
     u1u2 = u1 @ u2.conj().T
     eigvals, V = np.linalg.eig(u1u2)
 
@@ -150,10 +142,10 @@ def multiplexor_to_circuit(u1, u2):
         [circuit_u1u2_right, circuit_u1u2_mid, circuit_u1u2_left])
 
 
-c_UD = multiplexor_to_circuit(u1, u2)
+c_UD = two_by_two_qubit_multiplexor_to_circuit(u1, u2)
 cirq.testing.assert_allclose_up_to_global_phase(UD, c_UD._unitary_(), atol=1e-8)
 
-c_VDH = multiplexor_to_circuit(v1h, v2h)
+c_VDH = two_by_two_qubit_multiplexor_to_circuit(v1h, v2h)
 cirq.testing.assert_allclose_up_to_global_phase(VDH, c_VDH._unitary_(),
                                                 atol=1e-8)
 

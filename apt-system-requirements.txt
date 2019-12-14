@@ -1,3 +1,0 @@
-texlive-latex-base
-latexmk
-python3-tk

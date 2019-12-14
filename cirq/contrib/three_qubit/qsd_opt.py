@@ -24,8 +24,8 @@ def extract_right_diag(a, b, U):
     return c_d._unitary_()
 
 
-def multiplexor_to_circuit(u1, u2, shiftLeft=True, diagonal=np.eye(4)):
-    u1u2 = u1 @ u2.conj().T
+def multiplexor_to_circuit(a,b,c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
+    u1u2 = np.round(u1 @ u2.conj().T,decimals=15)
     eigvals, V = np.linalg.eig(u1u2)
 
     d = np.diag(np.sqrt(eigvals))
@@ -123,6 +123,8 @@ def three_qubit_unitary_to_operations(U):
 
     z = np.zeros((P, P))
 
+    a, b, c = cirq.LineQubit.range(3)
+
     UD = np.vstack(
         (
             np.hstack((u1, z)),
@@ -176,13 +178,13 @@ def three_qubit_unitary_to_operations(U):
     UD = UD @ cirq.Circuit(cirq.CZ(c, a),
                            cirq.IdentityGate(1).on(b))._unitary_()
 
-    dUD, c_UD = multiplexor_to_circuit(u1, u2, shiftLeft=True)
+    dUD, c_UD = multiplexor_to_circuit(a,b,c, u1, u2, shiftLeft=True)
     cirq.testing.assert_allclose_up_to_global_phase(UD,
                                                     c_UD._unitary_() @ np.kron(
                                                         np.eye(2), dUD),
                                                     atol=1e-8)
 
-    dVDH, c_VDH = multiplexor_to_circuit(v1h, v2h, shiftLeft=False,
+    dVDH, c_VDH = multiplexor_to_circuit(a,b,c, v1h, v2h, shiftLeft=False,
                                          diagonal=dUD)
 
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -196,14 +198,18 @@ def three_qubit_unitary_to_operations(U):
     return final_circuit
 
 
-# n_qubits = 3
-# M = 2 ** n_qubits  # size of unitary matrix
-#
-# H = np.random.rand(M, M) + 1.9j * np.random.rand(M, M)
-# H = H + H.conj().T
-# D, U = eigh(H)
+def random_unitary(n_qubits = 3):
+    M = 2 ** n_qubits  # size of unitary matrix
+    H = np.random.rand(M, M) + 1.9j * np.random.rand(M, M)
+    H = H + H.conj().T
+    D, U = eigh(H)
+    return U
+
+
 np.set_printoptions(precision=2, suppress=False, linewidth=300,
-                    floatmode='maxprec_equal')
+                        floatmode='maxprec_equal')
+
+# U = random_unitary()
 
 a, b, c = cirq.LineQubit.range(3)
 circuit = cirq.Circuit(
@@ -211,15 +217,16 @@ circuit = cirq.Circuit(
      cirq.PhasedXPowGate(exponent=random(), phase_exponent=random())(b),
      cirq.CNOT(a, b),
      cirq.PhasedXPowGate(exponent=random(), phase_exponent=random())(c),
-     cirq.CNOT(a, c), ])
+      ])
 U = circuit._unitary_()
-print(special(U))
-print(circuit)
+print(U)
+# print(circuit)
 final_circuit = three_qubit_unitary_to_operations(U)
 
 print(final_circuit)
-print(sum(
+print("CNOT/CZs: {}, All gates: {}".format(
+      sum(
     [1 for op in final_circuit.all_operations() if op.gate.num_qubits() == 2]),
-    len(final_circuit))
+    len(list(final_circuit.all_operations()))))
 # for op in final_circuit.all_operations():
 #     if op.gate.num_qubits() == 2:  print(op)
