@@ -1,10 +1,10 @@
 import random
+# Used for classical post-processing:
+from collections import Counter
+import numpy as np
+import scipy as sp
 import cirq
 
-# Needed for classical post-processing:
-import scipy as sp
-import numpy as np
-from collections import Counter
 """Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem: 
 
