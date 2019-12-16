@@ -99,7 +99,7 @@ def main(qubit_count=6):
                 minval = abs(min(solution[np.nonzero(solution)], key=abs))
                 solution = (solution / minval % 2).astype(
                     int)  # renormalize vector mod 2
-                data.append(str(solution))     
+                data.append(str(solution))
     freqs = Counter(data)
     print('Circuit:')
     print(circuit)
