@@ -42,6 +42,10 @@ if 'CIRQ_UNSTABLE_VERSION' in os.environ:
 # Read in requirements
 requirements = open('requirements.txt').readlines()
 requirements = [r.strip() for r in requirements]
+# install_requires should not be overly specific.
+# Change any == pinned deps to >=.
+# https://packaging.python.org/discussions/install-requires-vs-requirements/
+requirements = [r.replace('==', '>=') for r in requirements]
 contrib_requirements = open('cirq/contrib/contrib-requirements.txt').readlines()
 contrib_requirements = [r.strip() for r in contrib_requirements]
 dev_requirements = open('dev_tools/conf/pip-list-dev-tools.txt').readlines()
