@@ -925,7 +925,7 @@ def test_implied_job_config(build):
     # Infer all from project id.
     implied = eng.implied_job_config(cg.JobConfig())
     assert implied.job_id.startswith('job-')
-    assert len(implied.job_id) == 10
+    assert len(implied.job_id) == 26
     assert implied.gcs_prefix == 'gs://gqe-project_id/'
     assert re.match(r'gs://gqe-project_id/jobs/job-', implied.gcs_results)
 
@@ -1037,7 +1037,7 @@ def test_calibration_from_job(build):
         },
     }
     calibrations = service.projects().processors().calibrations()
-    calibrations.get().execute.return_value = {'data': _CALIBRATION}
+    calibrations.get().execute.return_value = _CALIBRATION
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
