@@ -1,12 +1,12 @@
 import random
 import cirq
 
-#needed for classical post-processing;
+# Needed for classical post-processing;
 import scipy as sp
 import numpy as np
 from collections import Counter
 
-"""Demonstrates the Simon algorithm.
+"""Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem: 
 
 Given a function  f:{0,1}^n -> {0,1}^n, such that for some s ∈ {0,1}^n,  
@@ -58,7 +58,7 @@ In this case the output is:
 
 def main(qubit_count=6):
 
-    data = []  #we'll store here the results
+    data = []  # we'll store here the results
 
     #define a secret string:
     secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
@@ -68,7 +68,7 @@ def main(qubit_count=6):
     n_samples = 100
     for _ in range(n_samples):
         flag = False  #check if we have a linearly independent set of measures
-        while flag == False:
+        while not flag:
             # Choose qubits to use.
             input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)
                            ]  #input x
@@ -122,7 +122,7 @@ def make_oracle(input_qubits, output_qubits, secret_string):
         yield cirq.CNOT(control_qubit, target_qubit)
 
     #create mapping:
-    if sum(secret_string) != 0:  #check if the secret string is non-zero
+    if sum(secret_string):  #check if the secret string is non-zero
         #Find significant bit of secret string (first non-zero bit)
         significant = secret_string.index(1)
 
