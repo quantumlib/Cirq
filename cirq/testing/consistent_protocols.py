@@ -76,6 +76,8 @@ def assert_eigengate_implements_consistent_protocols(
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
+    __tracebackhide__ = True
+
     for exponent in exponents:
         for shift in global_shifts:
             _assert_meets_standards_helper(
@@ -88,11 +90,14 @@ def assert_eigengate_implements_consistent_protocols(
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
+    __tracebackhide__ = True
     if not protocols.is_parameterized(val):
-        assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
+        assert val._eigen_shifts() == [e[0] for e in val._eigen_components()], (
+            "_eigen_shifts not consistent with _eigen_components")
 
 
 def assert_has_consistent_trace_distance_bound(val: Any) -> None:
+    __tracebackhide__ = True
     u = protocols.unitary(val, default=None)
     val_from_trace = protocols.trace_distance_bound(val)
     assert 0.0 <= val_from_trace <= 1.0
@@ -114,6 +119,7 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                                    global_vals: Optional[Dict[str, Any]],
                                    local_vals: Optional[Dict[str, Any]]
                                   ) -> None:
+    __tracebackhide__ = True
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)

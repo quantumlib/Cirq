@@ -158,6 +158,8 @@ def assert_allclose_up_to_global_phase(
     Raises:
         AssertionError: The matrices aren't nearly equal up to global phase.
     """
+    __tracebackhide__ = True
+
     actual, desired = linalg.match_global_phase(actual, desired)
     np.testing.assert_allclose(
         actual=actual,

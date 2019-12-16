@@ -35,6 +35,8 @@ def assert_equivalent_repr(value: Any,
         local_vals: Pre-defined values that should be in the local scope when
             evaluating the repr.
     """
+    __tracebackhide__ = True
+
     global_vals = global_vals or {}
     local_vals = local_vals or {}
 
