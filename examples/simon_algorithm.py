@@ -112,7 +112,7 @@ def main(qubit_count=6):
         )
     else:
         print(
-            f'Most common Simon{chr(39}s Algorithm answer is: {freqs.most_common(1)[0]}')
+            f'Most common Simon{chr(39)}s Algorithm answer is: {freqs.most_common(1)[0]}')
 
 def make_oracle(input_qubits, output_qubits, secret_string):
     """Gates implementing the function f(a) = f(b) iff a+b=s""" 
