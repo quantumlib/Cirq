@@ -30,10 +30,10 @@ if TYPE_CHECKING:
 
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
-    return all(
-        op.gate in clifford_simulator.CliffordSimulator.get_supported_gates()
-        for _, op in
-        program.findall_operations(lambda op: not protocols.is_measurement(op)))
+    supported_ops = clifford_simulator.CliffordSimulator.get_supported_gates()
+    # TODO: Have this method check the decomposition of the circuit into
+    #  clifford operations.
+    return all(op.gate in supported_ops for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',
