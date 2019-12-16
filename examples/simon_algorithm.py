@@ -1,7 +1,7 @@
 import random
 import cirq
 
-# Needed for classical post-processing;
+# Needed for classical post-processing:
 import scipy as sp
 import numpy as np
 from collections import Counter
@@ -55,7 +55,6 @@ In this case the output is:
 "No significant answers obtained. Secret Sequence is probably [0,0,0,0,0,0]"
 """
 
-
 def main(qubit_count=6):
 
     data = []  # we'll store here the results
@@ -92,12 +91,12 @@ def main(qubit_count=6):
             # Classical Post-Processing:
             sing_values = sp.linalg.svdvals(results)
             tolerance = 1e-5
-            if sum(sing_values < tolerance 
+            if sum(sing_values < tolerance
                   ) == 0:  # check if measurements are linearly dependent
                 flag = True
-                null_space = sp.linalg.null_space(results).T[0]       
+                null_space = sp.linalg.null_space(results).T[0]
                 solution = np.around(null_space, 3)  # chop very small values
-                minval = abs(min(solution[np.nonzero(solution)], key=abs)) 
+                minval = abs(min(solution[np.nonzero(solution)], key=abs))
                 solution = (solution / minval % 2).astype(
                     int)  # renormalize vector mod 2
                 data.append(str(solution))
@@ -112,7 +111,8 @@ def main(qubit_count=6):
         )
     else:
         print(
-            f'Most common Simon{chr(39)}s Algorithm answer is: {freqs.most_common(1)[0]}')
+            f'Most common Simon{chr(39)}s Algorithm answer is: {freqs.most_common(1)[0]}'
+        )
 
 def make_oracle(input_qubits, output_qubits, secret_string):
     """Gates implementing the function f(a) = f(b) iff a+b=s""" 
@@ -128,7 +128,7 @@ def make_oracle(input_qubits, output_qubits, secret_string):
         # Add secret string to input according to the significant bit:
         for j in range(len(secret_string)):
             if secret_string[j] > 0:
-                yield cirq.CNOT(input_qubits[significant],output_qubits[j])
+                yield cirq.CNOT(input_qubits[significant], output_qubits[j])
     # Apply a random permutation:
     pos = [
         0, 3
