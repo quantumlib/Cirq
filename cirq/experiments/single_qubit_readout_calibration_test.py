@@ -83,6 +83,36 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     assert isinstance(result.timestamp, float)
 
 
+def test_single_qubit_readout_calibration_result_with_qubits_mapped():
+    a, b = cirq.LineQubit.range(2)
+    c, d = cirq.GridQubit.rect(1, 2)
+    qubit_map = {a: c, b: d}
+    result = cirq.experiments.SingleQubitReadoutCalibrationResult(
+        zero_state_errors={
+            a: 0.1,
+            b: 0.2
+        },
+        one_state_errors={
+            a: 0.3,
+            b: 0.4
+        },
+        repetitions=1000,
+        timestamp=0.3)
+    mapped_result = result.with_qubits_mapped(qubit_map)
+    assert (
+        mapped_result == cirq.experiments.SingleQubitReadoutCalibrationResult(
+            zero_state_errors={
+                c: 0.1,
+                d: 0.2
+            },
+            one_state_errors={
+                c: 0.3,
+                d: 0.4
+            },
+            repetitions=1000,
+            timestamp=0.3))
+
+
 def test_single_qubit_readout_calibration_result_repr():
     result = cirq.experiments.SingleQubitReadoutCalibrationResult(
         zero_state_errors={cirq.LineQubit(0): 0.1},

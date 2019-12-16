@@ -43,6 +43,29 @@ class SingleQubitReadoutCalibrationResult:
     repetitions: int
     timestamp: float
 
+    def with_qubits_mapped(self, qubit_map: Dict['cirq.Qid', 'cirq.Qid']
+                          ) -> 'SingleQubitReadoutCalibrationResult':
+        """Remap the qubits of this calibration result.
+
+        Args:
+            qubit_map: A dictionary from qubits in the existing result to new
+                qubits.
+
+        Returns: A new calibration result with qubits mapped according to the
+            given qubit map.
+        """
+        mapped_zero_state_errors = {
+            qubit_map[q]: e for q, e in self.zero_state_errors.items()
+        }
+        mapped_one_state_errors = {
+            qubit_map[q]: e for q, e in self.one_state_errors.items()
+        }
+        return SingleQubitReadoutCalibrationResult(
+            zero_state_errors=mapped_zero_state_errors,
+            one_state_errors=mapped_one_state_errors,
+            repetitions=self.repetitions,
+            timestamp=self.timestamp)
+
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
