@@ -73,7 +73,7 @@ def main(qubit_count=6):
             input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)
                            ]  #input x
             output_qubits = [
-                cirq.GridQubit(i+qubit_count, 0) for i in range(qubit_count)
+                cirq.GridQubit(i + qubit_count, 0) for i in range(qubit_count)
             ]  #output f(x)
 
             # Pick coefficients for the oracle and create a circuit to query it.
@@ -106,7 +106,7 @@ def main(qubit_count=6):
     print('Circuit:')
     print(circuit)
     if freqs.most_common(1)[0][
-        1] < 0.15 * n_samples:  #forcing at least 15% of samples to coincide
+          1] < 0.15 * n_samples:  #forcing at least 15% of samples to coincide
         print(
             f'No significant answers obtained. Secret Sequence is probably {np.zeros(qubit_count)}'
         )
@@ -116,7 +116,6 @@ def main(qubit_count=6):
 
 def make_oracle(input_qubits, output_qubits, secret_string):
     """Gates implementing the function f(a) = f(b) iff a+b=s""" 
-    
     #copy contents to output qubits:
     for control_qubit, target_qubit in zip(input_qubits, output_qubits):
         yield cirq.CNOT(control_qubit, target_qubit)
@@ -130,9 +129,8 @@ def make_oracle(input_qubits, output_qubits, secret_string):
         for j in range(len(secret_string)):
             if secret_string[j] > 0:
                 yield cirq.CNOT(input_qubits[significant],output_qubits[j])
-    
     #apply a random permutation:
-    pos=[
+    pos = [
         0, 3
     ]  #choose any combination of qubits to swap to define the oracle. Here we choose 0 and 3:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
