@@ -1,5 +1,3 @@
-!pip3 install cirq
-
 import random
 import cirq
 
