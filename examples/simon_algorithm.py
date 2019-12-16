@@ -4,7 +4,6 @@ from collections import Counter
 import numpy as np
 import scipy as sp
 import cirq
-
 """Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem: 
 
