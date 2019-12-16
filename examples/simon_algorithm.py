@@ -115,7 +115,7 @@ def main(qubit_count=6):
         )
 
 def make_oracle(input_qubits, output_qubits, secret_string):
-    """Gates implementing the function f(a) = f(b) iff a+b=s""" 
+    """Gates implementing the function f(a) = f(b) iff a+b=s"""
     # Copy contents to output qubits:
     for control_qubit, target_qubit in zip(input_qubits, output_qubits):
         yield cirq.CNOT(control_qubit, target_qubit)
