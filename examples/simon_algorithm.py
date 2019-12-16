@@ -5,7 +5,6 @@ import cirq
 import scipy as sp
 import numpy as np
 from collections import Counter
-
 """Demonstrates Simon's algorithm.
 Simon's Algorithm solves the following problem: 
 
@@ -54,6 +53,7 @@ null-space of the system of equations provided by the measurements gives a rando
 In this case the output is: 
 "No significant answers obtained. Secret Sequence is probably [0,0,0,0,0,0]"
 """
+
 
 def main(qubit_count=6):
 
@@ -113,6 +113,7 @@ def main(qubit_count=6):
             f'Most common Simon{chr(39)}s Algorithm answer is: {freqs.most_common(1)[0]}'
         )
 
+
 def make_oracle(input_qubits, output_qubits, secret_string):
     """Gates implementing the function f(a) = f(b) iff a+b=s"""
     # Copy contents to output qubits:
@@ -134,6 +135,7 @@ def make_oracle(input_qubits, output_qubits, secret_string):
     ]  # Choose any combination of qubits to swap to define the oracle. Here we choose 0 and 3:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
+
 def make_simon_circuit(input_qubits, output_qubits, oracle):
     """Solves for secret period s of a 2-to-1 function such that f(x)=f(y) iff x+y=s"""
 
@@ -154,6 +156,7 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
     ])
 
     return c
+
 
 if __name__ == '__main__':
     main()
