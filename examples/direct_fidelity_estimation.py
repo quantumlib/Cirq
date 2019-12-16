@@ -148,7 +148,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         rho_i = pauli_traces[i]['rho_i']
 
         if samples_per_term > 0:
-            sigma_i = asyncio.run(
+            sigma_i = asyncio.get_event_loop().run_until_complete(
                 estimate_characteristic_function(circuit, P_i, qubits,
                                                  simulator, samples_per_term))
         else:
@@ -194,3 +194,5 @@ def main(*, n_trials: int, samples_per_term: int):
 
 if __name__ == '__main__':
     main(**parse_arguments(sys.argv[1:]))
+    asyncio.get_event_loop().close()
+
