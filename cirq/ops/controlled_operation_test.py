@@ -279,17 +279,17 @@ def test_non_diagrammable_subop():
 
 @pytest.mark.parametrize('gate', [
     cirq.X(cirq.NamedQubit('q1')),
-    cirq.X(cirq.NamedQubit('q1')) ** 0.5,
-    cirq.Rx(np.pi)(cirq.NamedQubit('q1')),
-    cirq.Rx(np.pi / 2)(cirq.NamedQubit('q1')),
+    cirq.X(cirq.NamedQubit('q1'))**0.5,
+    cirq.rx(np.pi)(cirq.NamedQubit('q1')),
+    cirq.rx(np.pi / 2)(cirq.NamedQubit('q1')),
     cirq.Z(cirq.NamedQubit('q1')),
     cirq.H(cirq.NamedQubit('q1')),
     cirq.CNOT(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
-        *cirq.LineQubit.range(5)),
+    cirq.ControlledGate(cirq.ControlledGate(
+        cirq.CCZ))(*cirq.LineQubit.range(5)),
     GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
     GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])
