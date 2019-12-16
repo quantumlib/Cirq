@@ -195,4 +195,3 @@ def main(*, n_trials: int, samples_per_term: int):
 if __name__ == '__main__':
     main(**parse_arguments(sys.argv[1:]))
     asyncio.get_event_loop().close()
-
