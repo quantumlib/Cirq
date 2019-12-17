@@ -33,7 +33,8 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
 from cirq._doc import document
-from cirq.ops import controlled_gate, gate_features, eigen_gate, raw_types
+from cirq.ops import (controlled_gate, eigen_gate, gate_features,
+                      gate_operation, raw_types)
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -502,6 +503,18 @@ class ZPowGate(eigen_gate.EigenGate,
             'cirq.ZPowGate(exponent={}, '
             'global_shift={!r})'
         ).format(proper_repr(self._exponent), self._global_shift)
+
+    def _commutes_on_qids_(self,
+                           qids: 'Sequence[cirq.Qid]',
+                           other: Any,
+                           *,
+                           atol: Union[int, float] = 1e-8
+                          ) -> Union[bool, NotImplementedType, None]:
+        if not isinstance(other, gate_operation.GateOperation):
+            return None
+        if isinstance(other.gate, (ZPowGate, CZPowGate)):
+            return True
+        return super()._commutes_on_qids_(qids, other, atol=atol)
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
