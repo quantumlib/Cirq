@@ -697,8 +697,7 @@ def remove_label_from_pr(repo: GithubRepository,
 
 def list_open_pull_requests(repo: GithubRepository,
                             base_branch: Optional[str] = None,
-                            per_page: int = 100
-                            ) -> List[PullRequestDetails]:
+                            per_page: int = 100) -> List[PullRequestDetails]:
     url = (f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
            f"?per_page={per_page};access_token={repo.access_token}")
     data = {
