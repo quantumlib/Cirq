@@ -474,9 +474,11 @@ def calculate_quantum_volume(
                                 depth=depth,
                                 num_circuits=num_circuits,
                                 random_state=random_state)
-    device_graph = ccr.gridqubits_to_graph_device(device_or_qubits) if type(
-        device_or_qubits) is list else ccr.xmon_device_to_graph(
-            device_or_qubits)
+    device_graph = None
+    if isinstance(device_or_qubits, list):
+        device_graph = ccr.gridqubits_to_graph_device(device_or_qubits)
+    else:
+        device_graph = ccr.xmon_device_to_graph(device_or_qubits)
     return execute_circuits(
         circuits=circuits,
         device_graph=device_graph,
