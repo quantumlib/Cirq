@@ -54,8 +54,6 @@ async def estimate_characteristic_function(
         circuit: cirq.Circuit, P_i: Tuple[cirq.Gate, ...],
         qubits: List[cirq.Qid], simulator: cirq.DensityMatrixSimulator,
         samples_per_term: int):
-    n_qubits = len(P_i)
-
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
 
     p = cirq.PauliSumCollector(circuit=circuit,
