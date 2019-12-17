@@ -475,6 +475,7 @@ def calculate_quantum_volume(
                                 depth=depth,
                                 num_circuits=num_circuits,
                                 random_state=random_state)
+    # Get the device graph from the given qubits or device.
     device_graph = None
     if isinstance(device_or_qubits, list):
         device_graph = ccr.gridqubits_to_graph_device(device_or_qubits)
