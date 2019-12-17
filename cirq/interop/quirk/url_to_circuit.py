@@ -334,13 +334,13 @@ def _init_ops(data: Dict[str, Any]) -> 'cirq.OP_TREE':
         elif state == 1:
             init_ops.append(ops.X(q))
         elif state == '+':
-            init_ops.append(ops.Ry(np.pi / 2).on(q))
+            init_ops.append(ops.ry(np.pi / 2).on(q))
         elif state == '-':
-            init_ops.append(ops.Ry(-np.pi / 2).on(q))
+            init_ops.append(ops.ry(-np.pi / 2).on(q))
         elif state == 'i':
-            init_ops.append(ops.Rx(-np.pi / 2).on(q))
+            init_ops.append(ops.rx(-np.pi / 2).on(q))
         elif state == '-i':
-            init_ops.append(ops.Rx(np.pi / 2).on(q))
+            init_ops.append(ops.rx(np.pi / 2).on(q))
         else:
             raise ValueError(f'Unrecognized init state: {state!r}')
     return ops.Moment(init_ops)

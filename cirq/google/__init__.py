@@ -24,8 +24,8 @@ from cirq.google.api.v1.programs import (
     is_native_xmon_gate,
     is_native_xmon_op,
     pack_results,
-    schedule_from_proto_dicts,
-    schedule_to_proto_dicts,
+    circuit_as_schedule_to_proto_dicts,
+    circuit_from_schedule_from_proto_dicts,
     unpack_results,
     xmon_op_from_proto_dict,
 )
@@ -35,6 +35,7 @@ from cirq.google.devices import (
     Foxtail,
     SerializableDevice,
     Sycamore,
+    Sycamore23,
     XmonDevice,
 )
 
@@ -69,6 +70,9 @@ from cirq.google.ops.sycamore_gate import (
 
 from cirq.google.optimizers import (
     ConvertToXmonGates,
+    ConvertToSqrtIswapGates,
+    ConvertToSycamoreGates,
+    optimized_for_sycamore,
     optimized_for_xmon,
 )
 

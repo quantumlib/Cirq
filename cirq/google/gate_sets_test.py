@@ -26,8 +26,8 @@ import cirq.google as cg
     (cirq.Y, 0.5, 1.0),
     (cirq.Y**0.25, 0.5, 0.25),
     (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
-    (cirq.Rx(0.125 * np.pi), 0.0, 0.125),
-    (cirq.Ry(0.25 * np.pi), 0.5, 0.25),
+    (cirq.rx(0.125 * np.pi), 0.0, 0.125),
+    (cirq.ry(0.25 * np.pi), 0.5, 0.25),
 ])
 def test_serialize_exp_w(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
@@ -114,7 +114,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
 @pytest.mark.parametrize(('gate', 'half_turns'), [
     (cirq.Z, 1.0),
     (cirq.Z**0.125, 0.125),
-    (cirq.Rz(0.125 * np.pi), 0.125),
+    (cirq.rz(0.125 * np.pi), 0.125),
 ])
 def test_serialize_exp_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
@@ -270,57 +270,6 @@ def test_serialize_circuit():
         },
     }
     assert cg.XMON.serialize_dict(circuit) == expected
-
-
-def test_serialize_schedule():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    scheduled_ops = [
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q0, q1),
-                                         cirq.Timestamp(nanos=0),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.Z(q1),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0, key='a'),
-                                         cirq.Timestamp(nanos=400),
-                                         device=cg.Bristlecone)
-    ]
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=scheduled_ops)
-    expected = {
-        'language': {
-            'arg_function_language': '',
-            'gate_set': 'xmon'
-        },
-        'schedule': {
-            'scheduled_operations': [{
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.CZ(q0, q1)),
-                'start_time_picos':
-                '0'
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.X(q0)),
-                'start_time_picos':
-                '200000',
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.Z(q1)),
-                'start_time_picos':
-                '200000',
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.measure(q0, key='a')),
-                'start_time_picos':
-                '400000',
-            }]
-        },
-    }
-    assert cg.XMON.serialize_dict(schedule) == expected
 
 
 @pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [
@@ -538,24 +487,13 @@ def test_deserialize_circuit():
 
 
 def test_deserialize_schedule():
-    q0 = cirq.GridQubit(1, 1)
-    q1 = cirq.GridQubit(1, 2)
-    scheduled_ops = [
-        cirq.ScheduledOperation.op_at_on(cirq.CZ(q0, q1),
-                                         cirq.Timestamp(nanos=0),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.X(q0),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.Z(q1),
-                                         cirq.Timestamp(nanos=200),
-                                         device=cg.Bristlecone),
-        cirq.ScheduledOperation.op_at_on(cirq.measure(q0, key='a'),
-                                         cirq.Timestamp(nanos=400),
-                                         device=cg.Bristlecone)
-    ]
-    schedule = cirq.Schedule(device=cirq.google.Bristlecone,
-                             scheduled_operations=scheduled_ops)
+    q0 = cirq.GridQubit(4, 4)
+    q1 = cirq.GridQubit(4, 5)
+    circuit = cirq.Circuit(cirq.CZ(q0, q1),
+                           cirq.X(q0),
+                           cirq.Z(q1),
+                           cirq.measure(q0, key='a'),
+                           device=cg.Bristlecone)
     serialized = {
         'language': {
             'gate_set': 'xmon'
@@ -584,7 +522,7 @@ def test_deserialize_schedule():
             }]
         },
     }
-    assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == schedule
+    assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == circuit
 
 
 def test_serialize_deserialize_syc():
@@ -681,8 +619,8 @@ def test_serialize_deserialize_inv_sqrt_iswap():
     (cirq.XPowGate(exponent=0.125), 0.0, 0.125),
     (cirq.YPowGate(exponent=0.125), 0.5, 0.125),
     (cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25), 0.25, 0.125),
-    (cirq.Rx(0.125 * np.pi), 0.0, 0.125),
-    (cirq.Ry(0.25 * np.pi), 0.5, 0.25),
+    (cirq.rx(0.125 * np.pi), 0.0, 0.125),
+    (cirq.ry(0.25 * np.pi), 0.5, 0.25),
 ])
 def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     op = gate.on(cirq.GridQubit(1, 2))
@@ -752,6 +690,29 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     }
     for qubit_id in qubit_ids:
         proto_dict['qubits'].append({'id': qubit_id})
+    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+
+
+def test_serialize_deserialize_wait_gate():
+    op = cirq.WaitGate(duration=cirq.Duration(nanos=50.0))(cirq.GridQubit(1, 2))
+    proto_dict = {
+        'gate': {
+            'id': 'wait'
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'args': {
+            'nanos': {
+                'arg_value': {
+                    'float_value': 50.0
+                }
+            },
+        },
+    }
     assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
     assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
     assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict

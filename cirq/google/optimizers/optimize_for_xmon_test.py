@@ -36,7 +36,6 @@ def test_swap_field(n: int, d: int):
     before.append(cirq.measure(*before.all_qubits()))
 
     after = cg.optimized_for_xmon(before)
-
     assert len(after) == d * 4 + 2
     if n <= 5:
         assert_circuits_with_terminal_measurements_are_equivalent(before,
