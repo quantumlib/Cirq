@@ -524,7 +524,7 @@ def test_rz_unitary():
 
 @pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))
 def test_deprecated_rxyz_rotations(rads):
-    with capture_logging() as log:
+    with capture_logging():
         assert np.all(
             cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
         assert np.all(
