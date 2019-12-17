@@ -116,10 +116,11 @@ def test_sample_heavy_set_with_parity():
 def test_compile_circuit_router():
     """Tests that the given router is used."""
     router_mock = MagicMock()
-    cirq.contrib.quantum_volume.compile_circuit(cirq.Circuit(),
-                                                device=cirq.google.Bristlecone,
-                                                router=router_mock,
-                                                routing_attempts=1)
+    cirq.contrib.quantum_volume.compile_circuit(
+        cirq.Circuit(),
+        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+        router=router_mock,
+        routing_attempts=1)
     router_mock.assert_called()
 
 
@@ -132,7 +133,7 @@ def test_compile_circuit():
     ])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device=cirq.google.Bristlecone,
+        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
         compiler=compiler_mock,
         routing_attempts=1)
 
@@ -156,7 +157,7 @@ def test_compile_circuit_replaces_swaps():
     ])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device=cirq.google.Bristlecone,
+        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
         compiler=compiler_mock,
         routing_attempts=1)
 
@@ -186,7 +187,7 @@ def test_compile_circuit_with_readout_correction():
     ])
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device=cirq.google.Bristlecone,
+        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=1,
@@ -226,7 +227,7 @@ def test_compile_circuit_multiple_routing_attempts():
 
     compilation_result = cirq.contrib.quantum_volume.compile_circuit(
         model_circuit,
-        device=cirq.google.Bristlecone,
+        device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
         compiler=compiler_mock,
         router=router_mock,
         routing_attempts=3)
@@ -245,7 +246,9 @@ def test_compile_circuit_no_routing_attempts():
 
     with pytest.raises(AssertionError) as e:
         cirq.contrib.quantum_volume.compile_circuit(
-            model_circuit, device=cirq.google.Bristlecone, routing_attempts=0)
+            model_circuit,
+            device_graph=ccr.xmon_device_to_graph(cirq.google.Bristlecone),
+            routing_attempts=0)
     assert e.match('Unable to get routing for circuit')
 
 
@@ -255,7 +258,7 @@ def test_calculate_quantum_volume_result():
         num_qubits=3,
         depth=3,
         num_circuits=1,
-        device=cirq.google.Bristlecone,
+        device_or_qubits=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()],
         routing_attempts=2,
         random_state=1,
@@ -273,6 +276,26 @@ def test_calculate_quantum_volume_result():
     cirq.to_json(results, buffer)
 
 
+def test_calculate_quantum_volume_result_with_device_graph():
+    """Test that running the main loop routes the circuit onto the given device
+       graph"""
+    device_qubits = [cirq.GridQubit(i, j) for i in range(2) for j in range(3)]
+    results = cirq.contrib.quantum_volume.calculate_quantum_volume(
+        num_qubits=3,
+        depth=3,
+        num_circuits=1,
+        device_or_qubits=device_qubits,
+        samplers=[cirq.Simulator()],
+        routing_attempts=2,
+        random_state=1,
+    )
+
+    assert len(results) == 1
+    assert ccr.ops_are_consistent_with_device_graph(
+        results[0].compiled_circuit.all_operations(),
+        ccr.get_grid_device_graph(2, 3))
+
+
 def test_calculate_quantum_volume_loop():
     """Test that calculate_quantum_volume is able to run without erring."""
     # Keep test from taking a long time by lowering circuits and routing
@@ -283,7 +306,7 @@ def test_calculate_quantum_volume_loop():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device=cirq.google.Bristlecone,
+        device_or_qubits=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()])
 
 
@@ -298,6 +321,6 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
         num_circuits=1,
         routing_attempts=2,
         random_state=1,
-        device=cirq.google.Bristlecone,
+        device_or_qubits=cirq.google.Bristlecone,
         samplers=[cirq.Simulator()],
         add_readout_error_correction=True)
