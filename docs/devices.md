@@ -14,7 +14,7 @@ from cirq.devices import GridQubit
 class Xmon10Device(cirq.Device):
 
   def __init__(self):
-      self._qubits = [GridQubit(i, 0) for i in range(10)]
+      self.qubits = [GridQubit(i, 0) for i in range(10)]
 
   def validate_operation(self, operation):
       if not isinstance(operation, cirq.GateOperation):
