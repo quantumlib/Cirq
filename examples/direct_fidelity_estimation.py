@@ -57,7 +57,6 @@ async def estimate_characteristic_function(
     n_qubits = len(P_i)
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
-    qubit_map = dict(zip(qubits, range(n_qubits)))
 
     p = cirq.PauliSumCollector(circuit=circuit,
                                observable=pauli_string,
@@ -98,7 +97,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
     n_qubits = len(qubits)
-    d = 2**n_qubits
 
     # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
