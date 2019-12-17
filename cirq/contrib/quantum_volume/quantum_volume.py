@@ -362,6 +362,7 @@ def prepare_circuits(
         circuits.append((model_circuit, heavy_set))
     return circuits
 
+
 def execute_circuits(
         *,
         device: cirq.google.XmonDevice,

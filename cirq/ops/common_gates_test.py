@@ -652,3 +652,10 @@ def test_trace_distance():
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ**(1 / 9)),
                           np.sin(np.pi / 18))
+
+
+def test_commutes():
+    assert cirq.commutes(cirq.ZPowGate(exponent=sympy.Symbol('t')), cirq.Z)
+    assert cirq.commutes(cirq.Z, cirq.Z(cirq.LineQubit(0)),
+                         default=None) is None
+    assert cirq.commutes(cirq.Z**0.1, cirq.XPowGate(exponent=0))
