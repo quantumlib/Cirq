@@ -10,5 +10,5 @@ protobuf==3.8.0
 requests~=2.18
 sortedcontainers~=2.0
 scipy
-sympy
+sympy==1.4  # Can't use 1.5 until https://github.com/sympy/sympy/issues/18056 is fixed
 typing_extensions
