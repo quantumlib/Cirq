@@ -57,7 +57,7 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
 )
 from cirq.protocols.inverse_protocol import (
     inverse,)
-from cirq.protocols.json import (
+from cirq.protocols.json_serialization import (
     to_json,
     read_json,
     obj_to_dict_helper,
