@@ -13,18 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Optional,
-    List,
-    Set,
-    Tuple,
-    Type,
-    TYPE_CHECKING,
-)
+from typing import (Callable, cast, Dict, Iterable, Optional, List, Set, Tuple,
+                    Type, TYPE_CHECKING, FrozenSet)
 
 from cirq import circuits, devices
 from cirq.google import serializable_gate_set
@@ -107,18 +97,14 @@ class SerializableDevice(devices.Device):
 
         Args:
             qubits: A list of valid Qid for the device.
-            durations: A dictionary with keys as Gate Types to the duration
-                of operations with that Gate type.
-            target_sets: The valid targets that a gate can act on.  This is
-                passed as a dictionary with keys as the Gate Type. The values
-                are a set of valid targets (arguments) to that gate.  These
-                are tuples of Qids.  For instance, for 2-qubit gates, they
-                will be pairs of Qubits.
-            permutation_gates: A list of types that act on all permutations
-                of the qubit targets.  (e.g. measurement gates)
+            gate_definitions: Maps cirq gates to device properties for that
+                gate.
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+
+    def qubit_set(self) -> FrozenSet['cirq.Qid']:
+        return frozenset(self.qubits)
 
     @classmethod
     def from_proto(
