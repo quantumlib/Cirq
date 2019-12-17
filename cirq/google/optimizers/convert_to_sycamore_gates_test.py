@@ -64,6 +64,18 @@ def test_unsupported_gate():
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
+def test_unsupported_phased_iswap():
+    """Tests that a Phased ISwap with a provided phase_exponent and exponent is
+    not supported."""
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit(
+        cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=.33)(q0, q1))
+    with pytest.raises(ValueError,
+                       match='phase_exponent of .25 OR an exponent of 1'):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+
+
 def test_non_gate_operation():
 
     class UnknownOperation(cirq.Operation):
@@ -211,8 +223,12 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.MatrixGate(cirq.unitary(cirq.CX), qid_shape=(2, 2)), cirq.ISWAP,
-    cirq.SWAP, cirq.CNOT, cirq.CZ, *[
+    cirq.MatrixGate(cirq.unitary(
+        cirq.CX), qid_shape=(2, 2)), cirq.ISWAP, cirq.SWAP, cirq.CNOT, cirq.CZ,
+    cirq.PhasedISwapPowGate(exponent=1.0),
+    cirq.PhasedISwapPowGate(exponent=1.0, phase_exponent=.33),
+    cirq.PhasedISwapPowGate(exponent=.66, phase_exponent=.25),
+    *[cirq.givens(theta) for theta in np.linspace(0, 2 * np.pi, 30)], *[
         cirq.ZZPowGate(exponent=2 * phi / np.pi)
         for phi in np.linspace(0, 2 * np.pi, 30)
     ], *[
