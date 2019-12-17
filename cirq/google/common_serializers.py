@@ -173,7 +173,6 @@ PHASED_X_Z_DESERIALIZER = op_deserializer.GateOpDeserializer(
     ],
 )
 
-
 #
 # Measurement Serializer and Deserializer
 #
@@ -336,7 +335,6 @@ SYC_SERIALIZER = op_serializer.GateOpSerializer(
     can_serialize_predicate=(
         lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 2) and
         _near_mod_2pi(cast(ops.FSimGate, e).phi, np.pi / 6)))
-
 
 SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='syc',

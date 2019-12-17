@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import math
 from typing import (
     List,
     Union,
@@ -180,7 +180,10 @@ def _arg_from_proto(
         arg_value = arg_proto.arg_value
         which_val = arg_value.WhichOneof('arg_value')
         if which_val == 'float_value':
-            return float(arg_value.float_value)
+            result = float(arg_value.float_value)
+            if math.ceil(result) == math.floor(result):
+                result = int(result)
+            return result
         if which_val == 'bool_values':
             return list(arg_value.bool_values.values)
         if which_val == 'string_value':
