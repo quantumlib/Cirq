@@ -20,7 +20,8 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 import abc
 import functools
 
-from cirq import value, protocols
+from cirq import linalg, protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -326,6 +327,37 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+
+    def _commutes_on_qids_(self,
+                           qids: Sequence[Qid],
+                           other: Any,
+                           *,
+                           atol: Union[int, float] = 1e-8
+                          ) -> Union[bool, NotImplementedType, None]:
+        # Avoids circular import.
+        from cirq.ops import gate_operation
+        if not isinstance(other, gate_operation.GateOperation):
+            return None
+        if set(qids).isdisjoint(other.qubits):
+            return True
+        elif qids != other.qubits:
+            return NotImplemented
+        self_unitary = protocols.unitary(self, None)
+        other_unitary = protocols.unitary(other, None)
+        if self_unitary is None or other_unitary is None:
+            return NotImplemented
+        return linalg.commutes(self_unitary, other_unitary, atol=atol)
+
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType, None]:
+        if not isinstance(other, Gate):
+            return NotImplemented
+        if protocols.qid_shape(self) != protocols.qid_shape(other):
+            return None
+        # HACK: break cycle
+        from cirq.devices import line_qubit
+        qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
+        return protocols.commutes(self(*qs), other(*qs))
 
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""

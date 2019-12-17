@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Sequence, Type
+import itertools
+from typing import Any, Dict, Optional, Sequence, Type, Union
 
 import numpy as np
 import sympy
@@ -143,3 +144,22 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                            local_vals=local_vals)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
+
+
+def assert_commutes_magic_method_consistent_with_unitaries(
+        *vals: Sequence[Any], atol: Union[int, float] = 1e-8) -> None:
+    if any(isinstance(val, ops.Operation) for val in vals):
+        raise TypeError('`_commutes_` need not be consistent with unitaries '
+                        'for `Operation`.')
+    unitaries = [protocols.unitary(val, None) for val in vals]
+    pairs = itertools.permutations(zip(vals, unitaries), 2)
+    for (left_val, left_unitary), (right_val, right_unitary) in pairs:
+        if left_unitary is None or right_unitary is None:
+            continue
+        commutes = protocols.commutes(left_val,
+                                      right_val,
+                                      atol=atol,
+                                      default=None)
+        if commutes is None:
+            continue
+        assert commutes == protocols.commutes(left_unitary, right_unitary)

@@ -40,6 +40,7 @@ from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
     assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols,
+    assert_commutes_magic_method_consistent_with_unitaries,
 )
 
 from cirq.testing.consistent_qasm import (
