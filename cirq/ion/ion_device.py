@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, Optional, Set, TYPE_CHECKING
+from typing import cast, Iterable, Optional, Set, TYPE_CHECKING, FrozenSet
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
@@ -45,6 +45,9 @@ class IonDevice(devices.Device):
         self._twoq_gates_duration = value.Duration(twoq_gates_duration)
         self._oneq_gates_duration = value.Duration(oneq_gates_duration)
         self.qubits = frozenset(qubits)
+
+    def qubit_set(self) -> FrozenSet['cirq.LineQubit']:
+        return self.qubits
 
     def decompose_operation(self, operation: ops.Operation) -> ops.OP_TREE:
         return convert_to_ion_gates.ConvertToIonGates().convert_one(operation)
