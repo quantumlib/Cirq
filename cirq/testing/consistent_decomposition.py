@@ -24,6 +24,9 @@ def assert_decompose_is_consistent_with_unitary(
         val: Any,
         ignoring_global_phase: bool=False):
     """Uses `val._unitary_` to check `val._phase_by_`'s behavior."""
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
 
     expected = protocols.unitary(val, None)
     if expected is None:
