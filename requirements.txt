@@ -9,6 +9,6 @@ pandas~=0.25.1
 protobuf==3.8.0
 requests~=2.18
 sortedcontainers~=2.0
-scipy~=1.3
-sympy==1.4
-typing_extensions~=3.7
+scipy~=1.0
+sympy==1.4 # Can't use 1.5 until https://github.com/sympy/sympy/issues/18056 is fixed
+typing_extensions~=3.0
