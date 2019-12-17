@@ -215,7 +215,8 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
             continue
 
         if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta))):
+            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
+             issubclass(type(obj), abc.ABCMeta))):
             continue
 
         yield name, obj
