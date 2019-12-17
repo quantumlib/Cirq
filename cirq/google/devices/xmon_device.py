@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, List, Optional, Set, TYPE_CHECKING
+from typing import cast, Iterable, List, Optional, Set, TYPE_CHECKING, FrozenSet
 
 from cirq import circuits, devices, ops, protocols, value
 from cirq.google.optimizers import convert_to_xmon_gates
@@ -43,6 +43,9 @@ class XmonDevice(devices.Device):
         self._exp_w_duration = value.Duration(exp_w_duration)
         self._exp_z_duration = value.Duration(exp_11_duration)
         self.qubits = frozenset(qubits)
+
+    def qubit_set(self) -> FrozenSet['cirq.GridQubit']:
+        return self.qubits
 
     def decompose_operation(self,
                             operation: 'cirq.Operation') -> 'cirq.OP_TREE':
