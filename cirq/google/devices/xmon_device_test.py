@@ -253,3 +253,7 @@ def test_row_and_col():
         cirq.GridQubit(5, 1),
         cirq.GridQubit(6, 1)
     ]
+
+
+def test_qubit_set():
+    assert cg.Foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
