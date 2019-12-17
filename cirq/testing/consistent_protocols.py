@@ -92,8 +92,9 @@ def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
     __tracebackhide__ = True
     if not protocols.is_parameterized(val):
-        assert val._eigen_shifts() == [e[0] for e in val._eigen_components()], (
-            "_eigen_shifts not consistent with _eigen_components")
+        assert val._eigen_shifts() == [
+            e[0] for e in val._eigen_components()
+        ], ("_eigen_shifts not consistent with _eigen_components")
 
 
 def assert_has_consistent_trace_distance_bound(val: Any) -> None:
