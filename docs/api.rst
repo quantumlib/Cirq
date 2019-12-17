@@ -471,6 +471,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
+    cirq.google.optimized_for_sycamore
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
     cirq.google.sweep_from_proto_dict
@@ -519,7 +520,6 @@ contrib may change without notice.
     cirq.contrib.paulistring
     cirq.contrib.qcircuit
     cirq.contrib.quirk
-    cirq.contrib.tpu
 
 
 Coding and Testing Tools
