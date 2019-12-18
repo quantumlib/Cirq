@@ -1,12 +1,13 @@
-import cirq
 import cmath
+from typing import Sequence, Tuple
+
+import numpy as np
+
+import cirq
 from cirq import value, protocols
 # noinspection PyProtectedMember
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types
-from typing import Sequence, Tuple
-
-import numpy as np
 
 
 class TwoQubitNoiseModel(cirq.NoiseModel):

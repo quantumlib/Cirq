@@ -14,11 +14,11 @@
 # limitations under the License.
 
 from typing import Sequence
-from cirq.devices.two_qubit_noise_model import TwoQubitNoiseModel, two_qubit_depolarize
 
 import pytest
 
 import cirq
+from cirq.devices.two_qubit_noise_model import TwoQubitNoiseModel, two_qubit_depolarize
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
