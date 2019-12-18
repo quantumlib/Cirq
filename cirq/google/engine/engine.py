@@ -721,7 +721,7 @@ class Engine:
                 `projects/<project_id>/processors/<processor_id>`.
 
         Returns:
-            Device specitfication proto or None if it doesn't exist.
+            Device specification proto or None if it doesn't exist.
         """
         processor_name = 'projects/{}/processors/{}'.format(
             self.project_id, processor_id)
