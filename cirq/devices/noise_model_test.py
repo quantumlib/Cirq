@@ -136,10 +136,14 @@ def test_two_qubit_noise():
     depol_single = cirq.depolarize(0.5)
     depol_two = two_qubit_depolarize(0.5)
     depol_all = TwoQubitNoiseModel(depol_single, depol_two)
-    assert depol_all.noisy_moments(
-        [cirq.Moment([cirq.X(a)]), cirq.Moment([cirq.CNOT(a,b)]), cirq.Moment()],
-        [a, b, c]) == [[(cirq.X(a), depol_single(a))], [(cirq.CNOT(a, b), depol_two(a, b))], []]
-    
+    assert depol_all.noisy_moments([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment()
+    ], [a, b, c]) == [[(cirq.X(a), depol_single(a))],
+                      [(cirq.CNOT(a, b), depol_two(a, b))], []]
+
+
 def test_wrap():
 
     class Forget(cirq.NoiseModel):
