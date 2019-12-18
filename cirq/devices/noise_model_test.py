@@ -17,7 +17,8 @@ from typing import Sequence
 import pytest
 
 import cirq
-from cirq.devices.two_qubit_noise_model import TwoQubitNoiseModel, two_qubit_depolarize
+from cirq.devices.two_qubit_noise_model import TwoQubitNoiseModel
+from cirq.ops.two_qubit_noise_channels import two_qubit_depolarize
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
