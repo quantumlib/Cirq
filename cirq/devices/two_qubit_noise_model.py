@@ -11,7 +11,8 @@ import numpy as np
 
 class TwoQubitNoiseModel(cirq.NoiseModel):
 
-    def __init__(self, single_qubit_noise_gate: cirq.Gate, two_qubit_noise_gate: cirq.Gate):
+    def __init__(self, single_qubit_noise_gate: cirq.Gate,
+                 two_qubit_noise_gate: cirq.Gate):
         if single_qubit_noise_gate.num_qubits() != 1:
             raise ValueError('noise.single_qubits() != 1')
         if two_qubit_noise_gate.num_qubits() != 2:
@@ -24,20 +25,21 @@ class TwoQubitNoiseModel(cirq.NoiseModel):
         if n_qubits == 1:
             return operation, self.single_qubit_noise_gate(operation.qubits[0])
         elif n_qubits == 2:
-            return operation, self.two_qubit_noise_gate(operation.qubits[0], operation.qubits[1])
+            return operation, self.two_qubit_noise_gate(operation.qubits[0],
+                                                        operation.qubits[1])
         else:
-            return operation, [self.single_qubit_noise_gate(q) for q in operation.qubits]
+            return operation, [
+                self.single_qubit_noise_gate(q) for q in operation.qubits
+            ]
 
 
 @cirq.value.value_equality
 class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
     """A channel to apply when a two qubit gate is applied"""
 
-    def __init__(self,
-                 p_xi: float, p_yi: float, p_zi: float,
-                 p_xx: float, p_yx: float, p_zx: float,
-                 p_xy: float, p_yy: float, p_zy: float,
-                 p_xz: float, p_yz: float, p_zz: float,
+    def __init__(self, p_xi: float, p_yi: float, p_zi: float, p_xx: float,
+                 p_yx: float, p_zx: float, p_xy: float, p_yy: float,
+                 p_zy: float, p_xz: float, p_yz: float, p_zz: float,
                  p_ix: float, p_iy: float, p_iz: float) -> None:
         """
         An asymmetric two qubit depolarizing channel
@@ -57,29 +59,34 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
         self._p_ix = value.validate_probability(p_ix, 'p_ix')
         self._p_iy = value.validate_probability(p_iy, 'p_iy')
         self._p_iz = value.validate_probability(p_iz, 'p_iz')
-        self._p_ii = 1 - value.validate_probability(p_xi + p_yi + p_zi +
-                                                    p_xx + p_yx + p_zx +
-                                                    p_xy + p_yy + p_zy +
-                                                    p_xz + p_yz + p_zz +
-                                                    p_ix + p_iy + p_iz, 'p_ii')
+        self._p_ii = 1 - value.validate_probability(
+            p_xi + p_yi + p_zi + p_xx + p_yx + p_zx + p_xy + p_yy + p_zy +
+            p_xz + p_yz + p_zz + p_ix + p_iy + p_iz, 'p_ii')
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return ((self._p_ii, protocols.unitary(cirq.IdentityGate(2))),
                 (self._p_xi, protocols.unitary(XIGate())),
-                (self._p_xx, protocols.unitary(XXGate())),
-                (self._p_xy, protocols.unitary(XYGate())),
-                (self._p_xz, protocols.unitary(XZGate())),
-                (self._p_yi, protocols.unitary(YIGate())),
-                (self._p_yx, protocols.unitary(YXGate())),
-                (self._p_yy, protocols.unitary(YYGate())),
-                (self._p_yz, protocols.unitary(YZGate())),
-                (self._p_zi, protocols.unitary(ZIGate())),
-                (self._p_zx, protocols.unitary(ZXGate())),
-                (self._p_zy, protocols.unitary(ZYGate())),
-                (self._p_zz, protocols.unitary(ZZGate())),
-                (self._p_ix, protocols.unitary(IXGate())),
-                (self._p_iy, protocols.unitary(IYGate())),
-                (self._p_iz, protocols.unitary(IZGate())))
+                (self._p_xx,
+                 protocols.unitary(XXGate())), (self._p_xy,
+                                                protocols.unitary(XYGate())),
+                (self._p_xz,
+                 protocols.unitary(XZGate())), (self._p_yi,
+                                                protocols.unitary(YIGate())),
+                (self._p_yx,
+                 protocols.unitary(YXGate())), (self._p_yy,
+                                                protocols.unitary(YYGate())),
+                (self._p_yz,
+                 protocols.unitary(YZGate())), (self._p_zi,
+                                                protocols.unitary(ZIGate())),
+                (self._p_zx,
+                 protocols.unitary(ZXGate())), (self._p_zy,
+                                                protocols.unitary(ZYGate())),
+                (self._p_zz,
+                 protocols.unitary(ZZGate())), (self._p_ix,
+                                                protocols.unitary(IXGate())),
+                (self._p_iy,
+                 protocols.unitary(IYGate())), (self._p_iz,
+                                                protocols.unitary(IZGate())))
 
     def _has_mixture_(self) -> bool:
         return True
@@ -112,9 +119,8 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
             self._p_zi, self._p_zx, self._p_zy, self._p_zz,
             self._p_iz, self._p_ix, self._p_iy)
 
-    def _circuit_diagram_info_(
-            self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs) -> str:
         if args.precision is not None:
             f = '{:.' + str(args.precision) + 'g}'
             return 'A({},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{})' \
@@ -124,22 +130,19 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
                         self._p_zi, self._p_zx, self._p_zy, self._p_zz,
                         self._p_iz, self._p_ix, self._p_iy)
         return 'A({!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r},{!r})'.format(
-            self._p_xi, self._p_xx, self._p_xy, self._p_xz,
-            self._p_yi, self._p_yx, self._p_yy, self._p_yz,
-            self._p_zi, self._p_zx, self._p_zy, self._p_zz,
-            self._p_iz, self._p_ix, self._p_iy)
+            self._p_xi, self._p_xx, self._p_xy, self._p_xz, self._p_yi,
+            self._p_yx, self._p_yy, self._p_yz, self._p_zi, self._p_zx,
+            self._p_zy, self._p_zz, self._p_iz, self._p_ix, self._p_iy)
 
 
-def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
-                                    p_xx: float, p_yx: float, p_zx: float,
-                                    p_xy: float, p_yy: float, p_zy: float,
-                                    p_xz: float, p_yz: float, p_zz: float,
-                                    p_ix: float, p_iy: float, p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
-    return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi,
-                                                 p_xx, p_yx, p_zx,
-                                                 p_xy, p_yy, p_zy,
-                                                 p_xz, p_yz, p_zz,
-                                                 p_ix, p_iy, p_iz)
+def two_qubit_asymmetric_depolarize(
+        p_xi: float, p_yi: float, p_zi: float, p_xx: float, p_yx: float,
+        p_zx: float, p_xy: float, p_yy: float, p_zy: float, p_xz: float,
+        p_yz: float, p_zz: float, p_ix: float, p_iy: float,
+        p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
+    return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi, p_xx, p_yx,
+                                                 p_zx, p_xy, p_yy, p_zy, p_xz,
+                                                 p_yz, p_zz, p_ix, p_iy, p_iz)
 
 
 # noinspection PyProtectedMember
@@ -149,11 +152,9 @@ class TwoQubitDepolarizingChannel(gate_features.TwoQubitGate):
     def __init__(self, p) -> None:
         r"""The symmetric depolarizing channel."""
         self._p = p
-        self._delegate = TwoQubitAsymmetricDepolarizingChannel(p / 15, p / 15, p / 15,
-                                                               p / 15, p / 15, p / 15,
-                                                               p / 15, p / 15, p / 15,
-                                                               p / 15, p / 15, p / 15,
-                                                               p / 15, p / 15, p / 15)
+        self._delegate = TwoQubitAsymmetricDepolarizingChannel(
+            p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15,
+            p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15)
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         return self._delegate._mixture_()
@@ -170,9 +171,8 @@ class TwoQubitDepolarizingChannel(gate_features.TwoQubitGate):
     def __str__(self) -> str:
         return 'two_qubit_depolarize(p={!r})'.format(self._p)
 
-    def _circuit_diagram_info_(
-            self, args: protocols.CircuitDiagramInfoArgs
-    ) -> str:
+    def _circuit_diagram_info_(self,
+                               args: protocols.CircuitDiagramInfoArgs) -> str:
         return 'D2({!r})'.format(self._p)
 
 
@@ -183,14 +183,12 @@ def two_qubit_depolarize(p: float) -> TwoQubitDepolarizingChannel:
 class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1, np.array([[0.5, 0., -0.5, 0.],
-                              [0., 0.5, 0., -0.5],
-                              [-0.5, 0., 0.5, 0.],
-                              [0., -0.5, 0., 0.5]])),
-                (0, np.array([[0.5, 0., 0.5, 0.],
-                              [0., 0.5, 0., 0.5],
-                              [0.5, 0., 0.5, 0.],
-                              [0., 0.5, 0., 0.5]]))]
+        return [(1,
+                 np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., -0.5],
+                           [-0.5, 0., 0.5, 0.], [0., -0.5, 0., 0.5]])),
+                (0,
+                 np.array([[0.5, 0., 0.5, 0.], [0., 0.5, 0., 0.5],
+                           [0.5, 0., 0.5, 0.], [0., 0.5, 0., 0.5]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -207,10 +205,9 @@ class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.XI'
             return '(cirq.XI**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.XIPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.XIPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -227,14 +224,12 @@ class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1, np.array([[0.5, 0., 0., -0.5],
-                              [0., 0.5, -0.5, 0.],
-                              [0., -0.5, 0.5, 0.],
-                              [-0.5, 0., 0., 0.5]])),
-                (0, np.array([[0.5, 0., 0., 0.5],
-                              [0., 0.5, 0.5, 0.],
-                              [0., 0.5, 0.5, 0.],
-                              [0.5, 0., 0., 0.5]]))]
+        return [(1,
+                 np.array([[0.5, 0., 0., -0.5], [0., 0.5, -0.5, 0.],
+                           [0., -0.5, 0.5, 0.], [-0.5, 0., 0., 0.5]])),
+                (0,
+                 np.array([[0.5, 0., 0., 0.5], [0., 0.5, 0.5, 0.],
+                           [0., 0.5, 0.5, 0.], [0.5, 0., 0., 0.5]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -251,10 +246,9 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.XX'
             return '(cirq.XX**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.XXPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.XXPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -271,14 +265,16 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
-                              [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
-                              [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
-                              [0. - 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
-                (0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. - 0.5j],
-                              [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
-                              [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
-                              [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
+        return [(1,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
+                           [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
+                           [0. - 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
+                (0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. - 0.5j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -295,10 +291,9 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.XY'
             return '(cirq.XY**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.XYPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.XYPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -315,14 +310,12 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5, 0., -0.5, 0.],
-                                [0., 0.5, 0., 0.5],
-                                [-0.5, 0., 0.5, 0.],
-                                [0., 0.5, 0., 0.5]])),
-                (0.0, np.array([[0.5, 0., 0.5, 0.],
-                                [0., 0.5, 0., -0.5],
-                                [0.5, 0., 0.5, 0.],
-                                [0., -0.5, 0., 0.5]]))]
+        return [(1.0,
+                 np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., 0.5],
+                           [-0.5, 0., 0.5, 0.], [0., 0.5, 0., 0.5]])),
+                (0.0,
+                 np.array([[0.5, 0., 0.5, 0.], [0., 0.5, 0., -0.5],
+                           [0.5, 0., 0.5, 0.], [0., -0.5, 0., 0.5]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -339,10 +332,9 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.XZ'
             return '(cirq.XZ**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.XZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.XZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -359,14 +351,16 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. + 0.5j],
-                                [0. - 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. - 0.5j, 0. + 0.j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. - 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
-                                [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. + 0.5j],
+                           [0. - 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. - 0.5j, 0. + 0.j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. - 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
+                           [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -383,10 +377,9 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.YI'
             return '(cirq.YI**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.YIPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.YIPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -403,14 +396,16 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
-                                [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
-                                [0. - 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. - 0.5j],
-                                [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
+                           [0. - 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. - 0.5j],
+                           [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -427,10 +422,9 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.YX'
             return '(cirq.YX**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.YXPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.YXPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -447,14 +441,16 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, -0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, -0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, -0.5 + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [-0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, -0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, -0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, -0.5 + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [-0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -471,10 +467,9 @@ class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.YY'
             return '(cirq.YY**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.YYPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.YYPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -491,14 +486,16 @@ class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
-                                [0. - 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. + 0.j, 0. - 0.5j, 0. + 0.j],
-                                [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. + 0.5j],
-                                [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. - 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
+                           [0. - 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. + 0.j, 0. - 0.5j, 0. + 0.j],
+                           [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. + 0.5j],
+                           [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. - 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -515,10 +512,9 @@ class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.YZ'
             return '(cirq.YZ**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.YZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.YZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -535,13 +531,12 @@ class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0., 0., 0., 0.],
-                                [0., 0., 0., 0.],
-                                [0., 0., 1., 0.],
-                                [0., 0., 0., 1.]])), (0.0, np.array([[1., 0., 0., 0.],
-                                                                     [0., 1., 0., 0.],
-                                                                     [0., 0., 0., 0.],
-                                                                     [0., 0., 0., 0.]]))]
+        return [(1.0,
+                 np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 1., 0.],
+                           [0., 0., 0., 1.]])),
+                (0.0,
+                 np.array([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
+                           [0., 0., 0., 0.]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -558,10 +553,9 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.ZI'
             return '(cirq.ZI**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.ZIPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.ZIPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -578,14 +572,12 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5, -0.5, 0., 0.],
-                                [-0.5, 0.5, 0., 0.],
-                                [0., 0., 0.5, 0.5],
-                                [0., 0., 0.5, 0.5]])),
-                (0.0, np.array([[0.5, 0.5, 0., 0.],
-                                [0.5, 0.5, 0., 0.],
-                                [0., 0., 0.5, -0.5],
-                                [0., 0., -0.5, 0.5]]))]
+        return [(1.0,
+                 np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
+                           [0., 0., 0.5, 0.5], [0., 0., 0.5, 0.5]])),
+                (0.0,
+                 np.array([[0.5, 0.5, 0., 0.], [0.5, 0.5, 0., 0.],
+                           [0., 0., 0.5, -0.5], [0., 0., -0.5, 0.5]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -602,10 +594,9 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.ZX'
             return '(cirq.ZX**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.ZXPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.ZXPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -622,14 +613,16 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
-                                [0. - 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. - 0.5j],
-                                [0. + 0.j, 0. + 0.j, 0. + 0.5j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. - 0.5j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
-                                [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
+                           [0. - 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. - 0.5j],
+                           [0. + 0.j, 0. + 0.j, 0. + 0.5j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. - 0.5j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
+                           [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -646,10 +639,9 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.ZY'
             return '(cirq.ZY**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.ZYPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.ZYPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -666,14 +658,12 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0., 0., 0., 0.],
-                                [0., 1., 0., 0.],
-                                [0., 0., 1., 0.],
-                                [0., 0., 0., 0.]])),
-                (0.0, np.array([[1., 0., 0., 0.],
-                                [0., 0., 0., 0.],
-                                [0., 0., 0., 0.],
-                                [0., 0., 0., 1.]]))]
+        return [(1.0,
+                 np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.],
+                           [0., 0., 0., 0.]])),
+                (0.0,
+                 np.array([[1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 0., 0.],
+                           [0., 0., 0., 1.]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -690,10 +680,9 @@ class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.ZZ'
             return '(cirq.ZZ**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.ZZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.ZZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -710,14 +699,12 @@ class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5, -0.5, 0., 0.],
-                                [-0.5, 0.5, 0., 0.],
-                                [0., 0., 0.5, -0.5],
-                                [0., 0., -0.5, 0.5]])),
-                (0.0, np.array([[0.5, 0.5, 0., 0.],
-                                [0.5, 0.5, 0., 0.],
-                                [0., 0., 0.5, 0.5],
-                                [0., 0., 0.5, 0.5]]))]
+        return [(1.0,
+                 np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
+                           [0., 0., 0.5, -0.5], [0., 0., -0.5, 0.5]])),
+                (0.0,
+                 np.array([[0.5, 0.5, 0., 0.], [0.5, 0.5, 0., 0.],
+                           [0., 0., 0.5, 0.5], [0., 0., 0.5, 0.5]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -734,10 +721,9 @@ class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.IX'
             return '(cirq.IX**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.IXPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.IXPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -754,14 +740,16 @@ class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
-                                [0. - 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
-                                [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]])),
-                (0.0, np.array([[0.5 + 0.j, 0. - 0.5j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
-                                [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. - 0.5j],
-                                [0. + 0.j, 0. + 0.j, 0. + 0.5j, 0.5 + 0.j]]))]
+        return [(1.0,
+                 np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
+                           [0. - 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
+                           [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]])),
+                (0.0,
+                 np.array([[0.5 + 0.j, 0. - 0.5j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
+                           [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. - 0.5j],
+                           [0. + 0.j, 0. + 0.j, 0. + 0.5j, 0.5 + 0.j]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -778,10 +766,9 @@ class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.IY'
             return '(cirq.IY**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.IYPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.IYPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -798,14 +785,12 @@ class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 class IZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
-        return [(1.0, np.array([[0., 0., 0., 0.],
-                                [0., 1., 0., 0.],
-                                [0., 0., 0., 0.],
-                                [0., 0., 0., 1.]])),
-                (0.0, np.array([[1., 0., 0., 0.],
-                                [0., 0., 0., 0.],
-                                [0., 0., 1., 0.],
-                                [0., 0., 0., 0.]]))]
+        return [(1.0,
+                 np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
+                           [0., 0., 0., 1.]])),
+                (0.0,
+                 np.array([[1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 1., 0.],
+                           [0., 0., 0., 0.]]))]
 
     def _decompose_(self, qubits):
         a, b = qubits
@@ -822,10 +807,9 @@ class IZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.IZ'
             return '(cirq.IZ**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.IZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.IZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def on(self, *args: raw_types.Qid,
            **kwargs: raw_types.Qid) -> raw_types.Operation:
@@ -847,7 +831,9 @@ def construct_eigen_space(mat):
         index = np.where(eig_vals == val)[0]
         proj = np.zeros_like(mat)
         for i in index:
-            proj = np.add(proj, np.einsum('i,j->ij', eig_vecs[:, i], np.conj(eig_vecs[:, i])))
+            proj = np.add(
+                proj,
+                np.einsum('i,j->ij', eig_vecs[:, i], np.conj(eig_vecs[:, i])))
         phase = cmath.phase(complex(val)) / np.pi
         tuples.append((phase, proj))
     return tuples
