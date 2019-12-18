@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Sequence, Type
+import itertools
+from typing import Any, Dict, Optional, Sequence, Type, Union
 
 import numpy as np
 import sympy
@@ -76,6 +77,10 @@ def assert_eigengate_implements_consistent_protocols(
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a
     good __repr__."""
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
     for exponent in exponents:
         for shift in global_shifts:
             _assert_meets_standards_helper(
@@ -88,11 +93,19 @@ def assert_eigengate_implements_consistent_protocols(
 
 def assert_eigen_shifts_is_consistent_with_eigen_components(
         val: ops.EigenGate) -> None:
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     if not protocols.is_parameterized(val):
-        assert val._eigen_shifts() == [e[0] for e in val._eigen_components()]
+        assert val._eigen_shifts() == [
+            e[0] for e in val._eigen_components()
+        ], ("_eigen_shifts not consistent with _eigen_components")
 
 
 def assert_has_consistent_trace_distance_bound(val: Any) -> None:
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     u = protocols.unitary(val, default=None)
     val_from_trace = protocols.trace_distance_bound(val)
     assert 0.0 <= val_from_trace <= 1.0
@@ -114,6 +127,9 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                                    global_vals: Optional[Dict[str, Any]],
                                    local_vals: Optional[Dict[str, Any]]
                                   ) -> None:
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)
@@ -128,3 +144,22 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                            local_vals=local_vals)
     if isinstance(val, ops.EigenGate):
         assert_eigen_shifts_is_consistent_with_eigen_components(val)
+
+
+def assert_commutes_magic_method_consistent_with_unitaries(
+        *vals: Sequence[Any], atol: Union[int, float] = 1e-8) -> None:
+    if any(isinstance(val, ops.Operation) for val in vals):
+        raise TypeError('`_commutes_` need not be consistent with unitaries '
+                        'for `Operation`.')
+    unitaries = [protocols.unitary(val, None) for val in vals]
+    pairs = itertools.permutations(zip(vals, unitaries), 2)
+    for (left_val, left_unitary), (right_val, right_unitary) in pairs:
+        if left_unitary is None or right_unitary is None:
+            continue
+        commutes = protocols.commutes(left_val,
+                                      right_val,
+                                      atol=atol,
+                                      default=None)
+        if commutes is None:
+            continue
+        assert commutes == protocols.commutes(left_unitary, right_unitary)

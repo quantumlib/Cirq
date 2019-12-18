@@ -51,3 +51,11 @@ API Reference
     :maxdepth: 2
 
     api
+
+Google Documentation
+-----------------------
+
+.. toctree::
+    :maxdepth: 1
+
+    google/index.rst
