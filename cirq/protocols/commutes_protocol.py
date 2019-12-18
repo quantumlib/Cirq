@@ -214,7 +214,7 @@ def _strat_commutes_from_operation(
 
     # Don't create gigantic matrices.
     if np.product(qid_shape_protocol.qid_shape(circuit12)) > 2**10:
-        return NotImplemented
+        return NotImplemented  # coverage: ignore
 
     m12 = unitary_protocol.unitary(circuit12, default=None)
     m21 = unitary_protocol.unitary(circuit21, default=None)
