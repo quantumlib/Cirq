@@ -154,12 +154,11 @@ def is_special_unitary(
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
-def commutes(
-        m1: np.ndarray,
-        m2: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def matrix_commutes(m1: np.ndarray,
+                    m2: np.ndarray,
+                    *,
+                    rtol: float = 1e-5,
+                    atol: float = 1e-8) -> bool:
     """Determines if two matrices approximately commute.
 
     Two matrices A and B commute if they are square and have the same size and

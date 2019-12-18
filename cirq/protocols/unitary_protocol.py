@@ -86,9 +86,8 @@ class SupportsUnitary(Protocol):
         """
 
 
-def unitary(val: Any,
-            default: TDefault = RaiseTypeErrorIfNotProvided
-            ) -> Union[np.ndarray, TDefault]:
+def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
+           ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
     The matrix is determined by any one of the following techniques:

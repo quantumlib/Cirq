@@ -17,8 +17,7 @@ from typing import Any, TypeVar, Union
 
 from cirq import value
 from cirq.linalg import operator_spaces
-from cirq.protocols import qid_shape_protocol
-from cirq.protocols.unitary import unitary
+from cirq.protocols import qid_shape_protocol, unitary_protocol
 
 TDefault = TypeVar('TDefault')
 
@@ -66,7 +65,7 @@ def pauli_expansion(
                     val, type(val)))
         return default
 
-    matrix = unitary(val, default=None)
+    matrix = unitary_protocol.unitary(val, default=None)
     if matrix is None:
         if default is RaiseTypeErrorIfNotProvided:
             raise TypeError(

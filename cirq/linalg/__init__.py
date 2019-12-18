@@ -63,7 +63,7 @@ from cirq.linalg.operator_spaces import (
 
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    commutes,
+    matrix_commutes,
     is_diagonal,
     is_hermitian,
     is_orthogonal,
