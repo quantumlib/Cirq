@@ -135,11 +135,11 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
             self._p_zy, self._p_zz, self._p_iz, self._p_ix, self._p_iy)
 
 
-def two_qubit_asymmetric_depolarize(
-        p_xi: float, p_yi: float, p_zi: float, p_xx: float, p_yx: float,
-        p_zx: float, p_xy: float, p_yy: float, p_zy: float, p_xz: float,
-        p_yz: float, p_zz: float, p_ix: float, p_iy: float,
-        p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
+def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
+                                    p_xx: float, p_yx: float, p_zx: float,
+                                    p_xy: float, p_yy: float, p_zy: float,
+                                    p_xz: float, p_yz: float, p_zz: float,
+                                    p_ix: float, p_iy: float, p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
     return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi, p_xx, p_yx,
                                                  p_zx, p_xy, p_yy, p_zy, p_xz,
                                                  p_yz, p_zz, p_ix, p_iy, p_iz)
