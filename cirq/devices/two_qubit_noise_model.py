@@ -1,27 +1,40 @@
 import cmath
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Union, List
 
 import numpy as np
 
 import cirq
 from cirq import value, protocols
-# noinspection PyProtectedMember
+
 from cirq._compat import proper_repr
 from cirq.ops import gate_features, eigen_gate, raw_types
 
 
 class TwoQubitNoiseModel(cirq.NoiseModel):
-
+    """
+    The two qubit noise channel applies a different noise channel to the circuit
+    dependent on whether the gate applied is applied to one or two qubits.
+    Can be used to apply the same symmetric depolarising channel with different depolarising probabilities,
+    or a different type of channel altogether, dependent on the gate applied.
+    """
     def __init__(self, single_qubit_noise_gate: cirq.Gate,
                  two_qubit_noise_gate: cirq.Gate):
         if single_qubit_noise_gate.num_qubits() != 1:
-            raise ValueError('noise.single_qubits() != 1')
+            raise ValueError('The noise gate provided to single_qubit_noise_gate has number of qubits != 1.')
         if two_qubit_noise_gate.num_qubits() != 2:
-            raise ValueError('noise.two_qubits() != 2')
+            raise ValueError('The noise gate provided to two_qubit_noise_gate has number of qubits != 2.')
         self.single_qubit_noise_gate = single_qubit_noise_gate
         self.two_qubit_noise_gate = two_qubit_noise_gate
 
-    def noisy_operation(self, operation: cirq.Operation):
+    def noisy_operation(self, operation: cirq.Operation
+                       ) -> Tuple[cirq.Operation, Union[List[cirq.GateOperation], cirq.GateOperation]]:
+        """
+        Checks if the gate in the operation is a one- or two- qubit gate,
+        and applies self.single_qubit_noise_gate or self.two_qubit_noise_gate appropriately.
+        If the operation has > 2 qubits, applies the single qubit noise gate to all.
+        :param operation: The operation to apply noise to
+        :return: The supplied operation and the noise gate(s) to apply.
+        """
         n_qubits = len(operation.qubits)
         if n_qubits == 1:
             return operation, self.single_qubit_noise_gate(operation.qubits[0])
@@ -36,14 +49,46 @@ class TwoQubitNoiseModel(cirq.NoiseModel):
 
 @cirq.value.value_equality
 class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
-    """A channel to apply when a two qubit gate is applied"""
+    """A channel to apply when a two qubit gate is applied.
+    """
 
     def __init__(self, p_xi: float, p_yi: float, p_zi: float, p_xx: float,
                  p_yx: float, p_zx: float, p_xy: float, p_yy: float,
                  p_zy: float, p_xz: float, p_yz: float, p_zz: float,
                  p_ix: float, p_iy: float, p_iz: float) -> None:
-        """
-        An asymmetric two qubit depolarizing channel
+        r"""The asymmetric depolarizing channel.
+
+            This channel applies one of 16 disjoint possibilities: nothing (the
+            identity channel) or a combination of the three pauli gates and the identity on each  of two qubits.
+            The disjoint probabilities of the 15 gates are p_xi, p_xx, and p_xy, p_xz, and so on.
+            The identity is done with probability 1 - sum(p_jk), where j is the operation on the first qubit and k is the operation on the second.
+            The supplied probabilities must be valid probabilities and the sum p_jk
+            must be a valid probability or else this constructor will raise a
+            ValueError.
+
+            This channel evolves a density matrix via
+
+                $$
+                \rho \rightarrow (1 - \Sum_{jk} p_jk) \rho
+                        + \Sum_{jk} p_jk j \otimes k
+                $$
+
+            Args:
+                p_xi: The probability that a Pauli X on qubit 1 and no other gate occurs.
+                p_yi: The probability that a Pauli Y on qubit 1 and no other gate occurs.
+                p_zi: The probability that a Pauli Z on qubit 1 and no other gate occurs.
+                p_xx: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+                p_yx: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+                p_zx: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+                p_xy: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+                p_yy: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+                p_zy: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+                p_xz: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+                p_yz: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+                p_zz: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+
+            Raises:
+                ValueError: if the args or the sum of args are not probabilities.
         """
         self._p_xi = value.validate_probability(p_xi, 'p_xi')
         self._p_yi = value.validate_probability(p_yi, 'p_yi')
@@ -145,41 +190,6 @@ def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
     return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi, p_xx, p_yx,
                                                  p_zx, p_xy, p_yy, p_zy, p_xz,
                                                  p_yz, p_zz, p_ix, p_iy, p_iz)
-
-
-# noinspection PyProtectedMember
-@cirq.value.value_equality
-class TwoQubitDepolarizingChannel(gate_features.TwoQubitGate):
-
-    def __init__(self, p) -> None:
-        r"""The symmetric depolarizing channel."""
-        self._p = p
-        self._delegate = TwoQubitAsymmetricDepolarizingChannel(
-            p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15,
-            p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15)
-
-    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return self._delegate._mixture_()
-
-    def _has_mixture_(self) -> bool:
-        return True
-
-    def _value_equality_values_(self):
-        return self._p
-
-    def __repr__(self) -> str:
-        return 'two_qubit_depolarize(p={!r})'.format(self._p)
-
-    def __str__(self) -> str:
-        return 'two_qubit_depolarize(p={!r})'.format(self._p)
-
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs) -> str:
-        return 'D2({!r})'.format(self._p)
-
-
-def two_qubit_depolarize(p: float) -> TwoQubitDepolarizingChannel:
-    return TwoQubitDepolarizingChannel(p)
 
 
 class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
