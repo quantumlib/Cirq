@@ -140,7 +140,7 @@ def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
                                     p_xy: float, p_yy: float, p_zy: float,
                                     p_xz: float, p_yz: float, p_zz: float,
                                     p_ix: float, p_iy: float, p_iz: float
-                                    ) -> TwoQubitAsymmetricDepolarizingChannel:
+                                   ) -> TwoQubitAsymmetricDepolarizingChannel:
     return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi, p_xx, p_yx,
                                                  p_zx, p_xy, p_yy, p_zy, p_xz,
                                                  p_yz, p_zz, p_ix, p_iy, p_iz)
