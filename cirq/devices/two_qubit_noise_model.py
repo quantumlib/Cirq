@@ -6,7 +6,6 @@ import numpy as np
 import cirq
 
 
-
 class TwoQubitNoiseModel(cirq.NoiseModel):
     """
     The two qubit noise channel applies a different noise channel to the circuit
@@ -17,14 +16,19 @@ class TwoQubitNoiseModel(cirq.NoiseModel):
     def __init__(self, single_qubit_noise_gate: cirq.Gate,
                  two_qubit_noise_gate: cirq.Gate):
         if single_qubit_noise_gate.num_qubits() != 1:
-            raise ValueError('The noise gate provided to single_qubit_noise_gate has number of qubits != 1.')
+            raise ValueError(
+                'The noise gate provided to single_qubit_noise_gate has number of qubits != 1.'
+            )
         if two_qubit_noise_gate.num_qubits() != 2:
-            raise ValueError('The noise gate provided to two_qubit_noise_gate has number of qubits != 2.')
+            raise ValueError(
+                'The noise gate provided to two_qubit_noise_gate has number of qubits != 2.'
+            )
         self.single_qubit_noise_gate = single_qubit_noise_gate
         self.two_qubit_noise_gate = two_qubit_noise_gate
 
-    def noisy_operation(self, operation: cirq.Operation
-                       ) -> Tuple[cirq.Operation, Union[List[cirq.GateOperation], cirq.GateOperation]]:
+    def noisy_operation(
+            self, operation: cirq.Operation
+    ) -> Tuple[cirq.Operation, Union[List[cirq.GateOperation], cirq.GateOperation]]:
         """
         Checks if the gate in the operation is a one- or two- qubit gate,
         and applies self.single_qubit_noise_gate or self.two_qubit_noise_gate appropriately.
