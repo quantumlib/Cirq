@@ -77,7 +77,7 @@ changed_python_tests=$(git diff --name-only "${rev}" -- \
 if git diff --name-only "${rev}" -- | grep "__init__\.py$" > /dev/null; then
   # Include global API tests when an __init__ file is touched.
   changed_python_tests+=('docs/docs_coverage_test.py')
-  changed_python_tests+=('cirq/protocols/json_test.py')
+  changed_python_tests+=('cirq/protocols/json_serialization_test.py')
 fi
 if [ "${#changed_python_tests[@]}" -eq 0 ]; then
     echo -e "\033[33mNo changed files with associated python tests.\033[0m" >&2

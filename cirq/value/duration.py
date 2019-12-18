@@ -25,7 +25,6 @@ from cirq._doc import document
 if TYPE_CHECKING:
     import cirq
 
-
 DURATION_LIKE = Union[None, datetime.timedelta, 'cirq.Duration']
 document(
     DURATION_LIKE,  # type: ignore
