@@ -38,6 +38,10 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
+from cirq.protocols.commutes import (
+    commutes,
+    definitely_commutes,
+)
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
@@ -57,7 +61,7 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
 )
 from cirq.protocols.inverse_protocol import (
     inverse,)
-from cirq.protocols.json import (
+from cirq.protocols.json_serialization import (
     to_json,
     read_json,
     obj_to_dict_helper,

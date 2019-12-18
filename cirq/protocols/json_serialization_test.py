@@ -30,6 +30,7 @@ import sympy
 import cirq
 from cirq._compat import proper_repr, proper_eq
 from cirq.testing import assert_json_roundtrip_works
+from cirq.protocols.json_serialization import RESOLVER_CACHE
 
 TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
@@ -214,7 +215,8 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
             continue
 
         if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta))):
+            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
+             issubclass(type(obj), abc.ABCMeta))):
             continue
 
         yield name, obj
@@ -324,7 +326,6 @@ def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
     result.update(_get_all_public_classes(cirq))
     result.update(_get_all_public_classes(cirq.google))
 
-    from cirq.protocols.json import RESOLVER_CACHE
     for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
         t = v if isinstance(v, type) else None
         result.add((k, t))
@@ -464,7 +465,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
                 f"docstring for protocols.SupportsJSON. If this object or "
                 f"class is not appropriate for serialization, add its name to "
                 f"the SHOULDNT_BE_SERIALIZED list in the "
-                f"cirq/protocols/json_test.py source file."))
+                f"cirq/protocols/json_serialization_test.py source file."))
 
     repr_file = TEST_DATA_PATH / f'{cirq_obj_name}.repr'
     if repr_file.exists() and cls is not None:
