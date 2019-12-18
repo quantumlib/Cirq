@@ -275,7 +275,9 @@ class QasmOutput:
                 return NotImplemented
 
             if len(op.qubits) == 1:
+                print("HEREEEE")
                 return QasmUGate.from_matrix(mat).on(*op.qubits)
+            print("HERE 2 QUBIT ", op)
             return QasmTwoQubitGate.from_matrix(mat).on(*op.qubits)
 
         def on_stuck(bad_op):

@@ -19,7 +19,8 @@ from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
 import numpy as np
 from ply import yacc
 
-from cirq import ops, Circuit, NamedQubit, CX
+from cirq import ops
+from cirq.circuits import Circuit
 from cirq.interop.qasm.qasm_output import QasmUGate
 from cirq.interop.qasm._lexer import QasmLexer
 from cirq.interop.qasm.exception import QasmException
@@ -158,7 +159,7 @@ class QasmParser:
     basic_gates: Dict[str, QasmGateStatement] = {
         'CX':
         QasmGateStatement(qasm_gate='CX',
-                          cirq_gate=CX,
+                          cirq_gate=ops.CX,
                           num_params=0,
                           num_args=2),
         'U':
@@ -241,7 +242,7 @@ class QasmParser:
                           cirq_gate=ops.T),
         'cx':
         QasmGateStatement(qasm_gate='cx',
-                          cirq_gate=CX,
+                          cirq_gate=ops.CX,
                           num_params=0,
                           num_args=2),
         'cy':
@@ -472,7 +473,7 @@ class QasmParser:
         for idx in range(self.qregs[reg]):
             arg_name = self.make_name(idx, reg)
             if arg_name not in self.qubits.keys():
-                self.qubits[arg_name] = NamedQubit(arg_name)
+                self.qubits[arg_name] = ops.NamedQubit(arg_name)
             qubits.append(self.qubits[arg_name])
         p[0] = qubits
 
@@ -506,7 +507,7 @@ class QasmParser:
                                 'at line {}'.format(idx, reg, size,
                                                     p.lineno(1)))
         if arg_name not in self.qubits.keys():
-            self.qubits[arg_name] = NamedQubit(arg_name)
+            self.qubits[arg_name] = ops.NamedQubit(arg_name)
         p[0] = [self.qubits[arg_name]]
 
     def p_classical_arg_bit(self, p):

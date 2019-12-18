@@ -12,4 +12,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.interop.qasm.qasm_input import circuit_from_qasm
 from cirq.interop.qasm.qasm_output import QasmOutput

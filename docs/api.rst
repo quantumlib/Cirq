@@ -197,7 +197,7 @@ Utilities for interoperating with other quantum software libraries and products.
 
 .. autosummary::
     :toctree: generated/
-
+    cirq.circuit_from_qasm
     cirq.quirk_json_to_circuit
     cirq.quirk_url_to_circuit
 

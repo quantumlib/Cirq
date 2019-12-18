@@ -5,4 +5,7 @@ from cirq.interop.quirk import (
     quirk_url_to_circuit,
 )
 
-from cirq.interop.qasm.qasm_output import QasmOutput
+from cirq.interop.qasm import (
+    circuit_from_qasm,
+    QasmOutput,
+)

@@ -102,6 +102,7 @@ from cirq.experiments import (
 )
 
 from cirq.interop import (
+    circuit_from_qasm,
     QasmOutput,
     quirk_json_to_circuit,
     quirk_url_to_circuit,
