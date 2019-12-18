@@ -166,6 +166,19 @@ def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
                                    ) -> TwoQubitAsymmetricDepolarizingChannel:
     """
     Returns a TwoQubitAsymmetricDepolarisingChannel with the given probabilities.
+    :param p_xi: The probability that a Pauli X on qubit 1 and no other gate occurs.
+    :param p_yi: The probability that a Pauli Y on qubit 1 and no other gate occurs.
+    :param p_zi: The probability that a Pauli Z on qubit 1 and no other gate occurs.
+    :param p_xx: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+    :param p_yx: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+    :param p_zx: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+    :param p_xy: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+    :param p_yy: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+    :param p_zy: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+    :param p_xz: The probability that a Pauli X on qubit 1 and a Pauli X on qubit 2 occurs.
+    :param p_yz: The probability that a Pauli Y on qubit 1 and a Pauli Y on qubit 2 occurs.
+    :param p_zz: The probability that a Pauli Z on qubit 1 and a Pauli Z on qubit 2 occurs.
+    :return: A two qubit asymmetric depolarising channel with the given probabilities.
     """
     return TwoQubitAsymmetricDepolarizingChannel(p_xi, p_yi, p_zi, p_xx, p_yx,
                                                  p_zx, p_xy, p_yy, p_zy, p_xz,
@@ -176,7 +189,9 @@ def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
 class TwoQubitDepolarizingChannel(gate_features.TwoQubitGate):
 
     def __init__(self, p) -> None:
-        r"""The symmetric depolarizing channel."""
+        r"""The symmetric depolarizing channel.
+        Applies the two qubit asymmetric depolarising channel with equal probability for each Kraus operator.
+        """
         self._p = p
         self._delegate = TwoQubitAsymmetricDepolarizingChannel(
             p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15, p / 15,
@@ -203,6 +218,11 @@ class TwoQubitDepolarizingChannel(gate_features.TwoQubitGate):
 
 
 def two_qubit_depolarize(p: float) -> TwoQubitDepolarizingChannel:
+    r"""The symmetric depolarizing channel.
+    Applies the two qubit asymmetric depolarising channel with equal probability for each Kraus operator.
+    :param p: The probability of applying a noisy gate.
+    :return: The two qubit symmetric depolarising channel.
+    """
     return TwoQubitDepolarizingChannel(p)
 
 
