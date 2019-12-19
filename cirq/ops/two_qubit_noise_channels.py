@@ -158,12 +158,11 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
             self._p_zy, self._p_zz, self._p_iz, self._p_ix, self._p_iy)
 
 
-def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
-                                    p_xx: float, p_yx: float, p_zx: float,
-                                    p_xy: float, p_yy: float, p_zy: float,
-                                    p_xz: float, p_yz: float, p_zz: float,
-                                    p_ix: float, p_iy: float, p_iz: float
-                                   ) -> TwoQubitAsymmetricDepolarizingChannel:
+def two_qubit_asymmetric_depolarize(
+        p_xi: float, p_yi: float, p_zi: float, p_xx: float, p_yx: float,
+        p_zx: float, p_xy: float, p_yy: float, p_zy: float, p_xz: float,
+        p_yz: float, p_zz: float, p_ix: float, p_iy: float,
+        p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
     """
     Returns a TwoQubitAsymmetricDepolarisingChannel with the given probabilities.
     :param p_xi: The probability that a Pauli X on qubit 1 and no other gate occurs.
@@ -244,6 +243,7 @@ class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         g = exp(i·π·t/2).
 
     """
+
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., -0.5],
@@ -299,6 +299,7 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
        """
+
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5, 0., 0., -0.5], [0., 0.5, -0.5, 0.],
@@ -370,6 +371,7 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
@@ -381,6 +383,7 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
                            [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -429,6 +432,7 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., 0.5],
@@ -436,6 +440,7 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[0.5, 0., 0.5, 0.], [0., 0.5, 0., -0.5],
                            [0.5, 0., 0.5, 0.], [0., -0.5, 0., 0.5]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -487,6 +492,7 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             g = exp(i·π·t/2).
 
         """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
@@ -498,6 +504,7 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
                            [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -546,6 +553,7 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
@@ -557,6 +565,7 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -605,6 +614,7 @@ class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j],
@@ -680,6 +690,7 @@ class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
@@ -738,6 +749,7 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
        g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 1., 0.],
@@ -745,6 +757,7 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
                            [0., 0., 0., 0.]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -793,6 +806,7 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
@@ -800,6 +814,7 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[0.5, 0.5, 0., 0.], [0.5, 0.5, 0., 0.],
                            [0., 0., 0.5, -0.5], [0., 0., -0.5, 0.5]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -848,6 +863,7 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
            s = sin(π·t/2)
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
@@ -859,6 +875,7 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
                            [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]]))]
+
     #
     # def _decompose_(self, qubits):
     #     a, b = qubits
@@ -906,6 +923,7 @@ class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.],
@@ -964,6 +982,7 @@ class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         s = sin(π·t/2)
         g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
@@ -1020,6 +1039,7 @@ class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             s = sin(π·t/2)
             g = exp(i·π·t/2).
         """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
@@ -1078,6 +1098,7 @@ class IZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
            g = exp(i·π·t/2).
     """
+
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
