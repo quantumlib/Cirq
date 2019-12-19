@@ -309,8 +309,12 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _decompose_(self, qubits):
         a, b = qubits
-        yield cirq.X().on(a)
-        yield cirq.X().on(b)
+        yield cirq.H.on(a)
+        yield cirq.H.on(b)
+        yield cirq.CNOT.on(b, a)
+        yield cirq.CNOT.on(b, a)
+        yield cirq.H.on(a)
+        yield cirq.H.on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -322,7 +326,7 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             if self._exponent == 1:
                 return 'cirq.XX'
             return '(cirq.XX**{})'.format(proper_repr(self._exponent))
-        return ('cirq.XXPowGate(exponent={}, '
+        return ('cirq.XXGate(exponent={}, '
                 'global_shift={!r})').format(proper_repr(self._exponent),
                                              self._global_shift)
 
