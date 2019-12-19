@@ -1,7 +1,4 @@
-import cmath
-from typing import Sequence, Tuple, Union, List
-
-import numpy as np
+from typing import Tuple, Union, List
 
 import cirq
 
