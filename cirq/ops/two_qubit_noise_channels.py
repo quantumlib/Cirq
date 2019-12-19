@@ -227,7 +227,23 @@ def two_qubit_depolarize(p: float) -> TwoQubitDepolarizingChannel:
 
 
 class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """
+    A two qubit gate which rotates the first qubit about the X axis of its Bloch sphere,
+    and does nothing to the second qubit.
 
+    The unitary  matrix of XIGate(exponent=t) is:
+
+        [   c·g,       0, -i·g·s,      0],
+        [     0,     c·g,      0, -i·g·s],
+        [-i·g·s,       0,    c·g,      0],
+        [      0, -i·g·s,      0,    c·g]]
+
+    where:
+        c = cos(π·t/2)
+        s = sin(π·t/2)
+        g = exp(i·π·t/2).
+
+    """
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., -0.5],
@@ -268,7 +284,21 @@ class XIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the X axis of its Bloch sphere,
+       and rotates the second qubit about the X axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of XXGate(exponent=t) is:
+
+            [[  c^2·g^2, -i·c·g^2·s, -i·c·g^2·s,   -g^2·s^2],
+            [-i·c·g^2·s,    c^2·g^2,   -g^2·s^2, -i·c·g^2·s],
+            [-i·c·g^2·s,   -g^2·s^2,    c^2·g^2, -i·c·g^2·s],
+            [  -g^2·s^2, -i·c·g^2·s, -i·c·g^2·s,    c^2·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+       """
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5, 0., 0., -0.5], [0., 0.5, -0.5, 0.],
@@ -309,7 +339,21 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the X axis of its Bloch sphere,
+       and rotates the second qubit about the Y axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of XYGate(exponent=t) is:
+
+        [[  c^2·g^2,   -c·g^2·s, -i·c·g^2·s,  i·g^2·s^2],
+        [   c·g^2·s,    c^2·g^2, -i·g^2·s^2, -i·c·g^2·s],
+        [-i·c·g^2·s,  i·g^2·s^2,    c^2·g^2,   -c·g^2·s],
+        [-i·g^2·s^2, -i·c·g^2·s,    c·g^2·s,    c^2·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
@@ -354,7 +398,21 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the X axis of its Bloch sphere,
+       and rotates the second qubit about the Z axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of XZGate(exponent=t) is:
+
+       [[   c·g,        0, -i·g·s,        0],
+        [     0,    c·g^2,      0, -i·g^2·s],
+        [-i·g·s,        0,    c·g,        0],
+        [     0, -i·g^2·s,      0,    c·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, 0., -0.5, 0.], [0., 0.5, 0., 0.5],
@@ -395,7 +453,24 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """
+        A two qubit gate which rotates the first qubit about the Y axis of its Bloch sphere,
+        and does nothing to the second qubit.
 
+        The unitary  matrix of YIGate(exponent=t) is:
+
+            [c·g,   0, -g·s,    0],
+            [  0, c·g,    0, -g·s],
+            [g·s,   0,  c·g,    0],
+            [  0, g·s,    0,  c·g]]
+
+        where:
+
+            c = cos(π·t/2)
+            s = sin(π·t/2)
+            g = exp(i·π·t/2).
+
+        """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
@@ -440,7 +515,21 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Y axis of its Bloch sphere,
+       and rotates the second qubit about the X axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of YXGate(exponent=t) is:
+
+       [[   c^2·g^2, -i·c·g^2·s,   -c·g^2·s,  i·g^2·s^2],
+        [-i·c·g^2·s,    c^2·g^2,  i·g^2·s^2,   -c·g^2·s],
+        [   c·g^2·s, -i·g^2·s^2,    c^2·g^2, -i·c·g^2·s],
+        [-i·g^2·s^2,    c·g^2·s, -i·c·g^2·s,    c^2·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.5j],
@@ -485,7 +574,21 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Y axis of its Bloch sphere,
+       and rotates the second qubit about the Y axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of YYGate(exponent=t) is:
+
+       [[c^2·g^2,  -c·g^2·s,  -c·g^2·s, g^2·s^2],
+        [ c·g^2·s,  c^2·g^2, -g^2·s^2, -c·g^2·s],
+        [ c·g^2·s, -g^2·s^2,  c^2·g^2, -c·g^2·s],
+        [g^2·s^2,   c·g^2·s,   c·g^2·s, c^2·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j],
@@ -530,7 +633,21 @@ class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Y axis of its Bloch sphere,
+       and rotates the second qubit about the Z axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of YZGate(exponent=t) is:
+
+       [[c·g,     0, -g·s,      0],
+        [  0, c·g^2,    0, -g^2·s],
+        [g·s,     0,  c·g,      0],
+        [  0, g^2·s,    0,  c·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.j, 0. + 0.5j, 0. + 0.j],
@@ -575,7 +692,20 @@ class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Z axis of its Bloch sphere,
+   and does nothing to the second qubit.
 
+   The unitary  matrix of ZIGate(exponent=t) is:
+
+        [1, 0, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, g, 0],
+        [0, 0, 0, g]]
+
+   where:
+
+       g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 1., 0.],
@@ -616,7 +746,21 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Z axis of its Bloch sphere,
+       and rotates the second qubit about the X axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of ZXGate(exponent=t) is:
+
+        [[   c·g, -i·g·s,        0,        0],
+         [-i·g·s,    c·g,        0,        0],
+         [     0,      0,    c·g^2, -i·g^2·s],
+         [     0,      0, -i·g^2·s,    c·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
@@ -657,7 +801,21 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Z axis of its Bloch sphere,
+       and rotates the second qubit about the Y axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of ZYGate(exponent=t) is:
+
+        [[c·g, -g·s,     0,      0],
+         [g·s,  c·g,     0,      0],
+         [  0,    0, c·g^2, -g^2·s],
+         [  0,    0, g^2·s,  c·g^2]]
+
+       where:
+           c = cos(π·t/2)
+           s = sin(π·t/2)
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
@@ -702,7 +860,20 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which rotates the first qubit about the Z axis of its Bloch sphere,
+       and rotates the second qubit about the Z axis of its Bloch sphere by the same amount.
 
+       The unitary  matrix of ZZGate(exponent=t) is:
+
+            [[1, 0, 0,   0],
+             [0, g, 0,   0],
+             [0, 0, g,   0],
+             [0, 0, 0, g^2]]
+
+       where:
+
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 1., 0.],
@@ -743,7 +914,22 @@ class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which does nothing to the first qubit and
+    rotates the second qubit about the X axis of its Bloch sphere,
 
+   The unitary  matrix of IXGate(exponent=t) is:
+
+        [   c·g,      0, -i·g·s,      0],
+        [     0,    c·g,      0, -i·g·s],
+        [-i·g·s,      0,    c·g,      0],
+        [     0, -i·g·s,      0,    c·g]]
+
+   where:
+
+        c = cos(π·t/2)
+        s = sin(π·t/2)
+        g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5, -0.5, 0., 0.], [-0.5, 0.5, 0., 0.],
@@ -784,7 +970,22 @@ class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which does nothing to the first qubit and
+        rotates the second qubit about the Y axis of its Bloch sphere,
 
+       The unitary  matrix of IYGate(exponent=t) is:
+
+            [c·g,   0, -g·s,    0],
+            [  0, c·g,    0, -g·s],
+            [g·s,   0,  c·g,    0],
+            [  0, g·s,    0,  c·g]]
+
+       where:
+
+            c = cos(π·t/2)
+            s = sin(π·t/2)
+            g = exp(i·π·t/2).
+        """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0.5 + 0.j, 0. + 0.5j, 0. + 0.j, 0. + 0.j],
@@ -829,7 +1030,20 @@ class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
 
 class IZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+    """A two qubit gate which does nothing to the first qubit and
+       rotates the second qubit about the Z axis of its Bloch sphere,
 
+        The unitary  matrix of IZGate(exponent=t) is:
+
+           [1, 0, 0, 0],
+           [0, 1, 0, 0],
+           [0, 0, g, 0],
+           [0, 0, 0, g]]
+
+        where:
+
+           g = exp(i·π·t/2).
+    """
     def _eigen_components(self):
         return [(1.0,
                  np.array([[0., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
