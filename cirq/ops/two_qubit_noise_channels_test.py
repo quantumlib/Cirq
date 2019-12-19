@@ -158,8 +158,8 @@ for tup in permutations:
                           (0.01, -0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08,
                            0.09, 0.10, 0.001, 0.002, 0.003, 0.004, 0.005)))
 def test_two_qubit_asymmetric_depolarizing_channel_negative_probability(
-    p_xi, p_xx, p_xy, p_xz, p_yi, p_yx, p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,
-    p_ix, p_iy, p_iz):
+        p_xi, p_xx, p_xy, p_xz, p_yi, p_yx, p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,
+        p_ix, p_iy, p_iz):
     with pytest.raises(ValueError, match='was less than 0'):
         two_qubit_asymmetric_depolarize(p_xi, p_xx, p_xy, p_xz, p_yi, p_yx,
                                         p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,
@@ -179,8 +179,8 @@ for tup in permutations:
                           (0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09,
                            0.10, 0.10, 0.20, 0.30, 0.40, 0.50)))
 def test_two_qubit_asymmetric_depolarizing_channel_bigly_probability(
-    p_xi, p_xx, p_xy, p_xz, p_yi, p_yx, p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,
-    p_ix, p_iy, p_iz):
+        p_xi, p_xx, p_xy, p_xz, p_yi, p_yx, p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,
+        p_ix, p_iy, p_iz):
     with pytest.raises(ValueError, match='was greater than 1'):
         two_qubit_asymmetric_depolarize(p_xi, p_xx, p_xy, p_xz, p_yi, p_yx,
                                         p_yy, p_yz, p_zi, p_zx, p_zy, p_zz,

@@ -158,11 +158,12 @@ class TwoQubitAsymmetricDepolarizingChannel(gate_features.TwoQubitGate):
             self._p_zy, self._p_zz, self._p_iz, self._p_ix, self._p_iy)
 
 
-def two_qubit_asymmetric_depolarize(
-        p_xi: float, p_yi: float, p_zi: float, p_xx: float, p_yx: float,
-        p_zx: float, p_xy: float, p_yy: float, p_zy: float, p_xz: float,
-        p_yz: float, p_zz: float, p_ix: float, p_iy: float,
-        p_iz: float) -> TwoQubitAsymmetricDepolarizingChannel:
+def two_qubit_asymmetric_depolarize(p_xi: float, p_yi: float, p_zi: float,
+                                    p_xx: float, p_yx: float, p_zx: float,
+                                    p_xy: float, p_yy: float, p_zy: float,
+                                    p_xz: float, p_yz: float, p_zz: float,
+                                    p_ix: float, p_iy: float, p_iz: float
+                                   ) -> TwoQubitAsymmetricDepolarizingChannel:
     """
     Returns a TwoQubitAsymmetricDepolarisingChannel with the given probabilities.
     :param p_xi: The probability that a Pauli X on qubit 1 and no other gate occurs.
