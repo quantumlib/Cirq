@@ -569,7 +569,7 @@ class Engine:
             return self._get_job_results_v1(result)
         if result_type == 'cirq.api.google.v2.Result':
             # Change path to the new path
-            result['@type'] = 'type.googleapis.com/cirq.google.api.v2.Result'
+            result['@type'] = TYPE_PREFIX + 'cirq.google.api.v2.Result'
             return self._get_job_results_v2(result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
@@ -708,6 +708,36 @@ class Engine:
         response = self._make_request(
             self.service.projects().processors().list(parent=parent))
         return response['processors']
+
+    def get_device_specification(
+            self,
+            processor_id: str) -> Optional[v2.device_pb2.DeviceSpecification]:
+        """Returns a device specification proto for use in determining
+        information about the device.
+
+        Params:
+            processor_id: The processor identifier within the resource name,
+                where name has the format:
+                `projects/<project_id>/processors/<processor_id>`.
+
+        Returns:
+            Device specification proto or None if it doesn't exist.
+        """
+        processor_name = 'projects/{}/processors/{}'.format(
+            self.project_id, processor_id)
+        response = self._make_request(
+            self.service.projects().processors().get(name=processor_name))
+
+        if 'deviceSpec' not in response:
+            return None
+
+        if '@type' in response['deviceSpec']:
+            del response['deviceSpec']['@type']
+
+        device_spec = v2.device_pb2.DeviceSpecification()
+        gp.json_format.ParseDict(response['deviceSpec'], device_spec)
+
+        return device_spec
 
     def get_latest_calibration(self, processor_id: str
                               ) -> Optional[calibration.Calibration]:
