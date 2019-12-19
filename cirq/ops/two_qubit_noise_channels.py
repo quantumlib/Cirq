@@ -21,7 +21,7 @@ import cirq
 from cirq import value, protocols
 
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, raw_types
+from cirq.ops import gate_features, eigen_gate, raw_types, pauli_gates, common_gates
 
 
 @cirq.value.value_equality
@@ -307,14 +307,26 @@ class XXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                  np.array([[0.5, 0., 0., 0.5], [0., 0.5, 0.5, 0.],
                            [0., 0.5, 0.5, 0.], [0.5, 0., 0., 0.5]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.H.on(a)
-        yield cirq.H.on(b)
-        yield cirq.CNOT.on(b, a)
-        yield cirq.CNOT.on(b, a)
-        yield cirq.H.on(a)
-        yield cirq.H.on(b)
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.X.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -369,11 +381,11 @@ class XYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. + 0.5j, 0. + 0.j],
                            [0. + 0.j, 0. - 0.5j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.X().on(a)
-        yield cirq.Y().on(b)
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.X().on(a)
+    #     yield cirq.Y().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -424,11 +436,11 @@ class XZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[0.5, 0., 0.5, 0.], [0., 0.5, 0., -0.5],
                            [0.5, 0., 0.5, 0.], [0., -0.5, 0., 0.5]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Y().on(a)
-        yield cirq.X().on(b)
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Y().on(a)
+    #     yield cirq.X().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -486,12 +498,12 @@ class YIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. + 0.j, 0. - 0.5j],
                            [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Y().on(a)
-        yield cirq.IdentityGate(1).on(b)
-
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Y().on(a)
+    #     yield cirq.IdentityGate(1).on(b)
+    #
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'YI'
@@ -545,11 +557,11 @@ class YXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0. - 0.5j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.5j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.5j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Y().on(a)
-        yield cirq.X().on(b)
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Y().on(a)
+    #     yield cirq.X().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -605,10 +617,26 @@ class YYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0.5 + 0.j, 0.5 + 0.j, 0. + 0.j],
                            [-0.5 + 0.j, 0. + 0.j, 0. + 0.j, 0.5 + 0.j]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Y().on(a)
-        yield cirq.Y().on(b)
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.Y.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -664,10 +692,10 @@ class YZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.5j, 0. + 0.j, 0.5 + 0.j, 0. + 0.j],
                            [0. + 0.j, 0. - 0.5j, 0. + 0.j, 0.5 + 0.j]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Y().on(a)
-        yield cirq.Z().on(b)
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Y().on(a)
+    #     yield cirq.Z().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -717,12 +745,12 @@ class ZIGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[1., 0., 0., 0.], [0., 1., 0., 0.], [0., 0., 0., 0.],
                            [0., 0., 0., 0.]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Z().on(a)
-        yield cirq.IdentityGate(1).on(b)
-
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Z().on(a)
+    #     yield cirq.IdentityGate(1).on(b)
+    #
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ZI'
@@ -772,11 +800,11 @@ class ZXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 (0.0,
                  np.array([[0.5, 0.5, 0., 0.], [0.5, 0.5, 0., 0.],
                            [0., 0., 0.5, -0.5], [0., 0., -0.5, 0.5]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Z().on(a)
-        yield cirq.X().on(b)
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Z().on(a)
+    #     yield cirq.X().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -831,12 +859,12 @@ class ZYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.5j, 0.5 + 0.j, 0. + 0.j, 0. + 0.j],
                            [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. + 0.5j],
                            [0. + 0.j, 0. + 0.j, 0. - 0.5j, 0.5 + 0.j]]))]
-
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Z().on(a)
-        yield cirq.Y().on(b)
-
+    #
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.Z().on(a)
+    #     yield cirq.Y().on(b)
+    #
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ZY'
@@ -887,9 +915,11 @@ class ZZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0., 0., 0., 1.]]))]
 
     def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.Z().on(a)
-        yield cirq.Z().on(b)
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[0])
+        yield common_gates.ZPowGate(exponent=self.exponent)(qubits[1])
+        yield common_gates.CZPowGate(exponent=-2 * self.exponent,
+                                     global_shift=-self.global_shift / 2)(
+                                         qubits[0], qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -942,10 +972,10 @@ class IXGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                  np.array([[0.5, 0.5, 0., 0.], [0.5, 0.5, 0., 0.],
                            [0., 0., 0.5, 0.5], [0., 0., 0.5, 0.5]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.IdentityGate(1).on(a)
-        yield cirq.X().on(b)
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.IdentityGate(1).on(a)
+    #     yield cirq.X().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -1002,10 +1032,10 @@ class IYGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                            [0. + 0.j, 0. + 0.j, 0.5 + 0.j, 0. - 0.5j],
                            [0. + 0.j, 0. + 0.j, 0. + 0.5j, 0.5 + 0.j]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.IdentityGate(1).on(a)
-        yield cirq.Y().on(b)
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.IdentityGate(1).on(a)
+    #     yield cirq.Y().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -1056,10 +1086,10 @@ class IZGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                  np.array([[1., 0., 0., 0.], [0., 0., 0., 0.], [0., 0., 1., 0.],
                            [0., 0., 0., 0.]]))]
 
-    def _decompose_(self, qubits):
-        a, b = qubits
-        yield cirq.IdentityGate(1).on(a)
-        yield cirq.Z().on(b)
+    # def _decompose_(self, qubits):
+    #     a, b = qubits
+    #     yield cirq.IdentityGate(1).on(a)
+    #     yield cirq.Z().on(b)
 
     def __str__(self) -> str:
         if self._exponent == 1:
