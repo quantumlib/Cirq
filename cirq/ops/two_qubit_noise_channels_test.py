@@ -20,6 +20,372 @@ import cirq
 
 from cirq.ops.two_qubit_noise_channels import *
 
+X = np.array([[0, 1], [1, 0]])
+Y = np.array( [[0, -1j], [1j, 0]])
+Z = np.array( [[1, 0], [0, -1]])
+I = np.eye(2)
+XI = np.kron(X, I)
+XX = np.kron(X, X)
+XY = np.kron(X, Y)
+XZ = np.kron(X, Z)
+YI = np.kron(Y, I)
+YX = np.kron(Y, X)
+YY = np.kron(Y, Y)
+YZ = np.kron(Y, Z)
+ZI = np.kron(Z, I)
+ZX = np.kron(Z, X)
+ZY = np.kron(Z, Y)
+ZZ = np.kron(Z, Z)
+IX = np.kron(I, X)
+IY = np.kron(I, Y)
+IZ = np.kron(I, Z)
+
+round_to_6_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
+                                              known_qubit_count=None,
+                                              use_unicode_characters=True,
+                                              precision=6,
+                                              qubit_map=None)
+
+round_to_3_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
+                                              known_qubit_count=None,
+                                              use_unicode_characters=True,
+                                              precision=3,
+                                              qubit_map=None)
+
+
+def assert_mixtures_equal(actual, expected):
+    """Assert equal for tuple of mixed scalar and array types."""
+    for a, e in zip(actual, expected):
+        np.testing.assert_almost_equal(a[0], e[0])
+        np.testing.assert_almost_equal(a[1], e[1])
+
+
+def test_two_qubit_asymmetric_depolarizing_channel():
+    d = two_qubit_asymmetric_depolarize(0.01, 0.02, 0.03,
+                                        0.04, 0.05, 0.06,
+                                        0.07, 0.08, 0.09,
+                                        0.10, 0.001, 0.002,
+                                        0.003, 0.004, 0.005)
+    np.testing.assert_almost_equal(cirq.channel(d),
+                                   (np.sqrt(0.435) * np.eye(4),
+                                    np.sqrt(0.01) * XI,
+                                    np.sqrt(0.02) * XX,
+                                    np.sqrt(0.03) * XY,
+                                    np.sqrt(0.04) * XZ,
+                                    np.sqrt(0.05) * YI,
+                                    np.sqrt(0.06) * YX,
+                                    np.sqrt(0.07) * YY,
+                                    np.sqrt(0.08) * YZ,
+                                    np.sqrt(0.09) * ZI,
+                                    np.sqrt(0.10) * ZX,
+                                    np.sqrt(0.001) * ZY,
+                                    np.sqrt(0.002) * ZZ,
+                                    np.sqrt(0.003) * IX,
+                                    np.sqrt(0.004) * IY,
+                                    np.sqrt(0.005) * IZ))
+    assert cirq.has_channel(d)
+
+
+def test_two_qubit_asymmetric_depolarizing_mixture():
+    d = two_qubit_asymmetric_depolarize(0.01, 0.02, 0.03,
+                                        0.04, 0.05, 0.06,
+                                        0.07, 0.08, 0.09,
+                                        0.10, 0.001, 0.002,
+                                        0.003, 0.004, 0.005)
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.435 * np.eye(4),
+                            0.01 * XI,
+                            0.02 * XX,
+                            0.03 * XY,
+                            0.04 * XZ,
+                            0.05 * YI,
+                            0.06 * YX,
+                            0.07 * YY,
+                            0.08 * YZ,
+                            0.09 * ZI,
+                            0.10 * ZX,
+                            0.001 * ZY,
+                            0.002 * ZZ,
+                            0.003 * IX,
+                            0.004 * IY,
+                            0.005 * IZ)))
+    assert cirq.has_mixture_channel(d)
+
+
+def test_two_qubit_asymmetric_depolarizing_channel_repr():
+    cirq.testing.assert_equivalent_repr(
+        TwoQubitAsymmetricDepolarizingChannel(0.01, 0.02, 0.03,
+                                        0.04, 0.05, 0.06,
+                                        0.07, 0.08, 0.09,
+                                        0.10, 0.001, 0.002,
+                                        0.003, 0.004, 0.005))
+
+
+def test_two_qubit_asymmetric_depolarizing_channel_str():
+    assert (str(two_qubit_asymmetric_depolarize(0.01, 0.02, 0.03,
+                                                0.04, 0.05, 0.06,
+                                                0.07, 0.08, 0.09,
+                                                0.10, 0.001, 0.002,
+                                                0.003, 0.004, 0.005))
+            == 'two_qubit_asymmetric_depolarize(p_xi=0.01,p_xx=0.02,p_xy=0.03, p_xz=0.04'
+                                               'p_yi=0.05,p_yx=0.06,p_yy=0.07, p_yz=0.08'
+                                               'p_zi=0.09,p_xx=0.10,p_zy=0.001, p_zz=0.002'
+                                               'p_ix=0.003,p_iy=0.004,p_iz=0.005)')
+
+
+permutations = [
+(0.1, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.1, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.1,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.1, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.1, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.1,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.1, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.1, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.1,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.1, 0.0, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.1, 0.0,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.1,
+0.0, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.1, 0.0, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.1, 0.0),
+(0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.0,
+0.0, 0.0, 0.1)
+]
+
+
+def test_two_qubit_asymmetric_depolarizing_channel_eq():
+    et = cirq.testing.EqualsTester()
+    c = two_qubit_asymmetric_depolarize(0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0,
+                                        0.0, 0.0, 0.0)
+    et.make_equality_group(lambda: c)
+    [et.add_equality_group(two_qubit_asymmetric_depolarize(*p) for p in permutations)]
+    et.add_equality_group(two_qubit_asymmetric_depolarize(0.01, 0.02, 0.03,
+                                                          0.04, 0.05, 0.06,
+                                                          0.07, 0.08, 0.09,
+                                                          0.10, 0.001, 0.002,
+                                                          0.003, 0.004, 0.005))
+    et.add_equality_group(two_qubit_asymmetric_depolarize(0.005, 0.004, 0.003,
+                                                          0.002, 0.001, 0.1,
+                                                          0.09, 0.08, 0.07,
+                                                          0.06, 0.05, 0.04,
+                                                          0.03, 0.02, 0.01))
+
+
+neg_perm = []
+for tup in permutations:
+    neg_perm.append(tuple(-x for x in tup))
+
+
+@pytest.mark.parametrize('p_xi,p_xx,p_xy,p_xz,'
+                         'p_yi,p_yx,p_yy,p_yz,'
+                         'p_zi,p_zx,p_zy,p_zz,'
+                         'p_ix,p_iy,p_iz', (
+    *neg_perm,
+    (0.01, -0.02, 0.03,
+     0.04, 0.05, 0.06,
+     0.07, 0.08, 0.09,
+     0.10, 0.001, 0.002,
+     0.003, 0.004, 0.005)
+))
+def test_two_qubit_asymmetric_depolarizing_channel_negative_probability(p_xi, p_xx, p_xy, p_xz,
+                                                                        p_yi, p_yx, p_yy, p_yz,
+                                                                        p_zi, p_zx, p_zy, p_zz,
+                                                                        p_ix, p_iy, p_iz):
+    with pytest.raises(ValueError, match='was less than 0'):
+        two_qubit_asymmetric_depolarize(p_xi, p_xx, p_xy, p_xz,
+                                        p_yi, p_yx, p_yy, p_yz,
+                                        p_zi, p_zx, p_zy, p_zz,
+                                        p_ix, p_iy, p_iz)
+
+
+gr_1_perm = []
+for tup in permutations:
+    gr_1_perm.append(tuple(x+1 if x > 0 else x for x in tup))
+
+
+@pytest.mark.parametrize('p_xi,p_xx,p_xy,p_xz,'
+                         'p_yi,p_yx,p_yy,p_yz,'
+                         'p_zi,p_zx,p_zy,p_zz,'
+                         'p_ix,p_iy,p_iz', (
+   *gr_1_perm,
+    (0.01, 0.02, 0.03,
+     0.04, 0.05, 0.06,
+     0.07, 0.08, 0.09,
+     0.10, 0.10, 0.20,
+     0.30, 0.40, 0.50)
+   ))
+def test_two_qubit_asymmetric_depolarizing_channel_bigly_probability(p_xi, p_xx, p_xy, p_xz,
+                                                                     p_yi, p_yx, p_yy, p_yz,
+                                                                     p_zi, p_zx, p_zy, p_zz,
+                                                                     p_ix, p_iy, p_iz):
+    with pytest.raises(ValueError, match='was greater than 1'):
+        two_qubit_asymmetric_depolarize(p_xi, p_xx, p_xy, p_xz,
+                                        p_yi, p_yx, p_yy, p_yz,
+                                        p_zi, p_zx, p_zy, p_zz,
+                                        p_ix, p_iy, p_iz)
+
+
+def test_two_qubit_asymmetric_depolarizing_channel_text_diagram():
+    a = two_qubit_asymmetric_depolarize(0.01, 0.02, 0.03,
+                                   0.04, 0.05, 0.06,
+                                   0.07, 0.08, 0.09,
+                                   0.10, 0.001, 0.002,
+                                   0.003, 0.0, 0.005)
+    assert (cirq.circuit_diagram_info(
+        a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('A(0.00111111,0.00222222,0.00333333'
+                            '0.00444444,0.00555555,0.00666666'
+                            '0.00777777,0.00888888,0.00999999'
+                            '0.01111111,0.00011111,0.00022222'
+                            '0.00033333,0.00044444,0.00055555)',)))
+    assert (cirq.circuit_diagram_info(
+        a, args=round_to_3_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('A(0.001,0.002,0.003'
+                            '0.004,0.005,0.006'
+                            '0.007,0.008,0.009'
+                            '0.011,0.000,0.000'
+                            '0.000,0.000,0.000)',)))
+
+
+def test_two_qubit_depolarizing_channel():
+    d = cirq.depolarize(0.015)
+    np.testing.assert_almost_equal(cirq.channel(d),
+                                   (np.sqrt(0.85) * np.eye(4),
+                                    np.sqrt(0.01) * XI,
+                                    np.sqrt(0.01) * XX,
+                                    np.sqrt(0.01) * XY,
+                                    np.sqrt(0.01) * XZ,
+                                    np.sqrt(0.01) * YI,
+                                    np.sqrt(0.01) * YX,
+                                    np.sqrt(0.01) * YY,
+                                    np.sqrt(0.01) * YZ,
+                                    np.sqrt(0.01) * ZI,
+                                    np.sqrt(0.01) * ZX,
+                                    np.sqrt(0.01) * ZY,
+                                    np.sqrt(0.01) * ZZ,
+                                    np.sqrt(0.01) * IX,
+                                    np.sqrt(0.01) * IY,
+                                    np.sqrt(0.01) * IZ))
+    assert cirq.has_channel(d)
+
+
+def test_two_qubit_depolarizing_mixture():
+    d = cirq.depolarize(0.3)
+    assert_mixtures_equal(cirq.mixture(d),
+                          (0.85 * np.eye(4),
+                           0.01 * XI,
+                           0.01 * XX,
+                           0.01 * XY,
+                           0.01 * XZ,
+                           0.01 * YI,
+                           0.01 * YX,
+                           0.01 * YY,
+                           0.01 * YZ,
+                           0.01 * ZI,
+                           0.01 * ZX,
+                           0.01 * ZY,
+                           0.01 * ZZ,
+                           0.01 * IX,
+                           0.01 * IY,
+                           0.01 * IZ))
+    assert cirq.has_mixture_channel(d)
+
+
+def test_two_qubit_depolarizing_channel_repr():
+    cirq.testing.assert_equivalent_repr(TwoQubitDepolarizingChannel(0.3))
+
+
+def test_two_qubit_depolarizing_channel_str():
+    assert str(cirq.depolarize(0.3)) == 'depolarize(p=0.3)'
+
+
+def test_two_qubit_depolarizing_channel_eq():
+    et = cirq.testing.EqualsTester()
+    c = cirq.depolarize(0.0)
+    et.make_equality_group(lambda: c)
+    et.add_equality_group(two_qubit_depolarize(0.1))
+    et.add_equality_group(two_qubit_depolarize(0.9))
+    et.add_equality_group(two_qubit_depolarize(1.0))
+
+
+def test_two_qubit_depolarizing_channel_invalid_probability():
+    with pytest.raises(ValueError, match='was less than 0'):
+        two_qubit_depolarize(-0.1)
+    with pytest.raises(ValueError, match='was greater than 1'):
+        two_qubit_depolarize(1.1)
+
+
+def test_two_qubit_depolarizing_channel_text_diagram():
+    d = two_qubit_depolarize(0.1234567)
+    assert (cirq.circuit_diagram_info(
+        d, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('D(0.123457)',)))
+    assert (cirq.circuit_diagram_info(
+        d, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('D(0.12)',)))
+
 
 @pytest.mark.parametrize('eigen_gate_type', [
     XXGate,
