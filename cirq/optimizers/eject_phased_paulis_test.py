@@ -141,7 +141,7 @@ def test_absorbs_z():
             [cirq.T(q)**-x],
         ),
         expected=quick_circuit(
-            [cirq.PhasedXPowGate(phase_exponent=0.125 + x / 8).on(q)],
+            [cirq.PhasedXPowGate(phase_exponent=0.125 + x * 0.125).on(q)],
             [],
             [],
         ),
