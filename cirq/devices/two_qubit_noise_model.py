@@ -25,7 +25,7 @@ class TwoQubitNoiseModel(cirq.NoiseModel):
         self.two_qubit_noise_gate = two_qubit_noise_gate
 
     def noisy_operation(
-        self, operation: cirq.Operation
+            self, operation: cirq.Operation
     ) -> Tuple[cirq.Operation, Union[List[cirq.GateOperation], cirq.
                                      GateOperation]]:
         """
