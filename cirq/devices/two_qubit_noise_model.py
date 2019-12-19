@@ -48,19 +48,3 @@ class TwoQubitNoiseModel(cirq.NoiseModel):
             return operation, [
                 self.single_qubit_noise_gate(q) for q in operation.qubits
             ]
-
-
-def construct_eigen_space(mat):
-    eig_vals, eig_vecs = np.linalg.eig(mat)
-    degenerative = np.unique(eig_vals)
-    tuples = []
-    for val in degenerative:
-        index = np.where(eig_vals == val)[0]
-        proj = np.zeros_like(mat)
-        for i in index:
-            proj = np.add(
-                proj,
-                np.einsum('i,j->ij', eig_vecs[:, i], np.conj(eig_vecs[:, i])))
-        phase = cmath.phase(complex(val)) / np.pi
-        tuples.append((phase, proj))
-    return tuples
