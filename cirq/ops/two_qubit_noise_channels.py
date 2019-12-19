@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import cmath
-from typing import Sequence, Tuple, Union, List
+from typing import Sequence, Tuple
 
 import numpy as np
 
