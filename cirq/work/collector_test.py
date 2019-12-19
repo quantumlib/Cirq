@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pytest
 
 import cirq
 
@@ -34,7 +35,8 @@ def test_circuit_sample_job_repr():
                               tag='guess'))
 
 
-def test_async_collect():
+@pytest.mark.asyncio
+async def test_async_collect():
     received = []
 
     class TestCollector(cirq.Collector):
@@ -52,7 +54,7 @@ def test_async_collect():
     completion = TestCollector().collect_async(sampler=cirq.Simulator(),
                                                max_total_samples=100,
                                                concurrency=5)
-    cirq.testing.assert_asyncio_will_have_result(completion, None)
+    assert await completion is None
     assert received == ['test'] * 10
 
 

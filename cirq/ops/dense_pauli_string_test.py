@@ -47,7 +47,7 @@ def test_init():
     # Mixed types.
     assert cirq.DensePauliString([1, 'X',
                                   cirq.X]) == cirq.DensePauliString('XXX')
-    with pytest.raises(TypeError, match='Expected a Pauli'):
+    with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = cirq.DensePauliString([object()])
 
 
@@ -79,7 +79,9 @@ def test_from_text():
     assert d('XYZI') == d([1, 2, 3, 0])
     assert d('III', coefficient=-1) == d([0, 0, 0], coefficient=-1)
     assert d('XXY', coefficient=1j) == d([1, 1, 2], coefficient=1j)
-    with pytest.raises(ValueError, match='Not a Pauli character'):
+    assert d('ixyz') == d([0, 1, 2, 3])
+    assert d(['i', 'x', 'y', 'z']) == d([0, 1, 2, 3])
+    with pytest.raises(TypeError, match='Expected a cirq.PAULI_GATE_LIKE'):
         _ = d('2')
 
 
@@ -503,21 +505,18 @@ def test_tensor_product():
 def test_commutes():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
-    # TODO(craiggidney,bryano): use commutes protocol instead
-    commutes = lambda a, b, default=None: cirq.BaseDensePauliString._commutes_(
-        a, b)
-    assert cirq.commutes is cirq.linalg.commutes
 
-    assert commutes(f('XX'), m('ZZ'))
-    assert commutes(2 * f('XX'), m('ZZ', coefficient=3))
-    assert commutes(2 * f('IX'), 3 * f('IX'))
-    assert not commutes(f('IX'), f('IZ'))
-    assert commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)))
-    assert commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
-    assert not commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
-    assert commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
+    assert cirq.commutes(f('XX'), m('ZZ'))
+    assert cirq.commutes(2 * f('XX'), m('ZZ', coefficient=3))
+    assert cirq.commutes(2 * f('IX'), 3 * f('IX'))
+    assert not cirq.commutes(f('IX'), f('IZ'))
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)))
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
+    assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
+    assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
 
-    assert commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
+    assert cirq.commutes(f('XX'), "test",
+                         default=NotImplemented) is NotImplemented
 
 
 def test_copy():

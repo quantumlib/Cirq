@@ -430,10 +430,12 @@ class KakDecomposition:
 
     def __init__(self,
                  *,
-                 global_phase: complex,
-                 single_qubit_operations_before: Tuple[np.ndarray, np.ndarray],
+                 global_phase: complex = complex(1),
+                 single_qubit_operations_before: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None,
                  interaction_coefficients: Tuple[float, float, float],
-                 single_qubit_operations_after: Tuple[np.ndarray, np.ndarray]):
+                 single_qubit_operations_after: Optional[
+                     Tuple[np.ndarray, np.ndarray]] = None):
         """Initializes a decomposition for a two-qubit operation U.
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
@@ -444,10 +446,18 @@ class KakDecomposition:
             interaction_coefficients: x, y, z from the above equation.
             single_qubit_operations_after: a0, a1 from the above equation.
         """
-        self.global_phase = global_phase
-        self.single_qubit_operations_before = single_qubit_operations_before
+        self.global_phase: complex = global_phase
+        self.single_qubit_operations_before: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_before or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
         self.interaction_coefficients = interaction_coefficients
-        self.single_qubit_operations_after = single_qubit_operations_after
+        self.single_qubit_operations_after: Tuple[np.ndarray, np.ndarray] = (
+            single_qubit_operations_after or (
+                np.eye(2, dtype=np.complex64),
+                np.eye(2, dtype=np.complex64),
+            ))
 
     def _value_equality_values_(self):
         def flatten(x):
@@ -523,7 +533,6 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         *,
         include_frame: bool = True,
         ax: Optional[plt.Axes] = None,
-        show: bool = False,
         **kwargs):
     r"""Plots the interaction coefficients of many two-qubit operations.
 
@@ -563,9 +572,7 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         include_frame: Determines whether or not to draw the kak space
             wireframe. Defaults to `True`.
         ax: A matplotlib 3d axes object to plot into. If not specified, a new
-            figure is created.
-        show: Whether or not to call `matplotlib.pyplot.show()`. Defaults to
-            `False`.
+            figure is created, plotted, and shown.
         kwargs: Arguments forwarded into the call to `scatter` that plots the
             points. Working arguments include color `c='blue'`, scale `s=2`,
             labelling `label="theta=pi/4"`, etc. For reference see the
@@ -591,15 +598,16 @@ def scatter_plot_normalized_kak_interaction_coefficients(
         ...     ]
         ...     ax = cirq.scatter_plot_normalized_kak_interaction_coefficients(
         ...         circuits,
-        ...         s=1,
-        ...         ax=ax,
         ...         include_frame=ax is None,
+        ...         ax=ax,
+        ...         s=1,
         ...         label=f'y={y:0.2f}')
         >>> _ = ax.legend()
         >>> import matplotlib.pyplot as plt
         >>> plt.show()
     """
-    if ax is None:
+    show_plot = not ax
+    if not ax:
         fig = plt.figure()
         ax = fig.add_subplot(1, 1, 1, projection='3d')
 
@@ -643,8 +651,8 @@ def scatter_plot_normalized_kak_interaction_coefficients(
     ax.set_ylim(-1, +1)
     ax.set_zlim(0, +1)
 
-    if show:
-        plt.show()
+    if show_plot:
+        fig.show()
 
     return ax
 

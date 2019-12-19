@@ -1,0 +1,6 @@
+[
+sympy.Add(sympy.Symbol('s'), sympy.Symbol('t')),
+sympy.Add(sympy.Symbol('s'), sympy.Integer(1)),
+sympy.Add(sympy.Symbol('s'), sympy.Integer(-1)),
+sympy.Add(sympy.Symbol('s'), sympy.Mul(sympy.Integer(-1), sympy.Symbol('t'))),
+]
