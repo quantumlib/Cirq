@@ -194,3 +194,7 @@ def test_at():
     assert d.at(-1) is None
     assert d.at(0) == cirq.LineQubit(0)
     assert d.at(2) == cirq.LineQubit(2)
+
+
+def test_qubit_set():
+    assert ion_device(3).qubit_set() == frozenset(cirq.LineQubit.range(3))

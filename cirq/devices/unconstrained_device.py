@@ -21,11 +21,11 @@ from cirq.devices import device
 class _UnconstrainedDevice(device.Device):
     """A device that allows everything, infinitely fast."""
 
+    def qubit_set(self) -> None:
+        return None
+
     def duration_of(self, operation):
         return value.Duration(picos=0)
-
-    def validate_operation(self, operation):
-        pass
 
     def validate_moment(self, moment):
         pass

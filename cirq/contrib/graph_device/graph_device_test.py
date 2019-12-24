@@ -185,3 +185,13 @@ def test_graph_device_copy_and_add():
     device_copy += device_addend
     assert device != device_copy
     assert device_copy == device_sum
+
+
+def test_qubit_set():
+    a, b, c, d = cirq.LineQubit.range(4)
+    device_graph = ccgd.UndirectedHypergraph(labelled_edges={
+        (a, b): None,
+        (c, d): None
+    })
+    device = ccgd.UndirectedGraphDevice(device_graph=device_graph)
+    assert device.qubit_set() == {a, b, c, d}
