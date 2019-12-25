@@ -194,11 +194,12 @@ class Moment:
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['operations'])
 
-    def __add(self, other):
+    def __add__(self, other):
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
         else:
             return NotImplemented
+
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
     block = '\n'.join([repr(op) + ',' for op in items])
