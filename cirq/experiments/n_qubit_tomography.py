@@ -33,7 +33,7 @@ class StateTomographyExperiment:
     Does the fitting of generated data to determine the density matrix.
 
     Attributes:
-        rot_circuit: Circuit with parametrized rotation gates to do before the
+        rot_circuit: Circuit with parameterized rotation gates to do before the
             final measurements.
         rot_sweep: The list of rotations on the qubits to perform before
             measurement.
@@ -180,7 +180,7 @@ def get_state_tomography_data(sampler: cirq.Sampler,
         sampler: Sampler to collect the data from.
         qubits: Qubits to do the tomography on.
         circuit: Circuit to do the tomography on.
-        rot_circuit: Circuit with parametrized rotation gates to do before the
+        rot_circuit: Circuit with parameterized rotation gates to do before the
             final measurements.
         rot_sweep: The list of rotations on the qubits to perform before
             measurement.

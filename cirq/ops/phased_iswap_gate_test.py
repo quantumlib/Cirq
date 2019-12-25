@@ -20,6 +20,7 @@ import scipy
 import sympy
 
 import cirq
+from cirq._compat_test import capture_logging
 
 np.set_printoptions(linewidth=300)
 
@@ -174,6 +175,9 @@ def test_givens_rotation_has_consistent_protocols(angle_rads):
 
 @pytest.mark.parametrize('angle_rads', (-1, -0.3, 0.1, 1))
 def test_deprecated_givens_rotation(angle_rads):
-    assert np.all(
-        cirq.unitary(cirq.GivensRotation(angle_rads)) == cirq.unitary(
-            cirq.givens(angle_rads)))
+    with capture_logging() as log:
+        u = cirq.unitary(cirq.GivensRotation(angle_rads))
+    assert len(log) == 1
+    assert 'deprecated' in log[0].getMessage()
+    assert 'GivensRotation' in log[0].getMessage()
+    np.testing.assert_allclose(u, cirq.unitary(cirq.givens(angle_rads)))

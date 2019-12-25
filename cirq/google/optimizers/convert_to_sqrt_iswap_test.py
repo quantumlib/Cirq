@@ -1,4 +1,4 @@
-from typing import cast, List, Tuple
+from typing import cast
 import numpy as np
 import pytest
 import sympy
@@ -87,7 +87,7 @@ def test_cphase():
     for theta in thetas:
         expected = cirq.CZPowGate(exponent=theta)
         decomposition = cgoc.cphase_to_sqrt_iswap(qubits[0], qubits[1], theta)
-        actual = cirq.Circuit.from_ops(decomposition)
+        actual = cirq.Circuit(decomposition)
         expected_unitary = cirq.unitary(expected)
         actual_unitary = cirq.unitary(actual)
         np.testing.assert_allclose(expected_unitary, actual_unitary, atol=1e-07)
@@ -98,8 +98,7 @@ def test_givens_rotation():
     thetas = np.linspace(0, 2 * np.pi, 100)
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:
-        program = cirq.Circuit.from_ops(
-            cirq.GivensRotation(theta).on(qubits[0], qubits[1]))
+        program = cirq.Circuit(cirq.givens(theta).on(qubits[0], qubits[1]))
         unitary = cirq.unitary(program)
         test_program = program.copy()
         cgoc.ConvertToSqrtIswapGates().optimize_circuit(test_program)

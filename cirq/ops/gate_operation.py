@@ -118,6 +118,10 @@ class GateOperation(raw_types.Operation):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self.gate, default=None)
 
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType, None]:
+        return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
+
     def _has_mixture_(self) -> bool:
         return protocols.has_mixture(self.gate)
 
@@ -220,16 +224,9 @@ class GateOperation(raw_types.Operation):
 TV = TypeVar('TV', bound=raw_types.Gate)
 
 
-@deprecated(deadline='v0.7.0',
+@deprecated(deadline='v0.8.0',
             fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
 def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
     """Returns gate of given type, if op has that gate otherwise None."""
     gate = getattr(op, 'gate', None)
     return gate if isinstance(gate, gate_type) else None
-
-
-@deprecated(deadline='v0.7.0', fix='use: `isinstance(op.gate, gate_type)`')
-def op_gate_isinstance(op: Any, gate_type: Type[TV]) -> bool:
-    """Determines if op is a GateOperation with a gate of the given type."""
-    gate = getattr(op, 'gate', None)
-    return isinstance(gate, gate_type)

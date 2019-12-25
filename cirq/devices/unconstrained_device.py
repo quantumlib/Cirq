@@ -21,22 +21,16 @@ from cirq.devices import device
 class _UnconstrainedDevice(device.Device):
     """A device that allows everything, infinitely fast."""
 
+    def qubit_set(self) -> None:
+        return None
+
     def duration_of(self, operation):
         return value.Duration(picos=0)
-
-    def validate_operation(self, operation):
-        pass
-
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        pass
 
     def validate_moment(self, moment):
         pass
 
     def validate_circuit(self, circuit):
-        pass
-
-    def validate_schedule(self, schedule):
         pass
 
     def __repr__(self):

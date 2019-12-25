@@ -16,6 +16,7 @@ from cirq.google.devices.known_devices import (
     Bristlecone,
     Foxtail,
     Sycamore,
+    Sycamore23,
 )
 
 from cirq.google.devices.serializable_device import (
