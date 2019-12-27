@@ -196,6 +196,7 @@ class Moment:
     def __add__(self, other):
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
+        return NotImplemented
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
