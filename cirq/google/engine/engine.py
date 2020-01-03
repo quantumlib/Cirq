@@ -104,8 +104,7 @@ class JobConfig:
     called a Job. This object contains the configuration for a job.
     """
 
-    def __init__(self,
-                 job_id: Optional[str] = None) -> None:
+    def __init__(self, job_id: Optional[str] = None) -> None:
         """Configuration for a job that is run on Quantum Engine.
 
         Args:

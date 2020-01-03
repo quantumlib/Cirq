@@ -539,8 +539,7 @@ def test_run_sweep_v1(build):
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(program=_CIRCUIT,
-                           job_config=cg.JobConfig(
-                               'project-id'),
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
@@ -651,8 +650,7 @@ def test_run_sweep_v2(build):
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
     job = engine.run_sweep(program=_CIRCUIT,
-                           job_config=cg.JobConfig(
-                               'project-id'),
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
@@ -708,8 +706,7 @@ def test_run_sweep_v2_old_proto(build):
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
     job = engine.run_sweep(program=_CIRCUIT,
-                           job_config=cg.JobConfig(
-                               'project-id'),
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
@@ -772,8 +769,7 @@ def test_bad_result_proto(build):
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
     job = engine.run_sweep(program=_CIRCUIT,
-                           job_config=cg.JobConfig(
-                               'project-id'),
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
