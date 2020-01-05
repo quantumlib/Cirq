@@ -19,6 +19,7 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 
 import abc
 import functools
+import warnings
 
 from cirq import linalg, protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -407,6 +408,14 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
+    def with_tags(self, *new_tags: 'cirq.Tag') -> 'cirq.TaggedOperation':
+        """Wraps the current operation in a TaggedOperation, with the specified tags.
+
+        Args:
+            new_tags: The tags to wrap this operation in.
+        """
+        return TaggedOperation(self, *new_tags)
+
     def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
                         ) -> 'Operation':
         """Returns the same operation, but with different qubits.
@@ -458,6 +467,104 @@ class Operation(metaclass=abc.ABCMeta):
             ValueError: The operation had qids that don't match it's qid shape.
         """
         _validate_qid_shape(self, qubits)
+
+
+class Tag:
+    """A wrapper around string that can be used to differentiate operations.
+
+    This can be instantiated using a string value or sub-classed to
+    differentiate or tag specific instances of gates.
+
+    Tags can then be attached to an operation using Operation.with_tags(),
+    which will return a TaggedOperation or by instantiating a TaggedOperation
+    directly.
+
+    This can be used for special processing of certain operations.  For
+    instance, to prevent optimization or decomposing special gates.
+    """
+
+    def __init__(self, value: Optional[str] = None):
+        if value:
+            self.value = value
+        else:
+            self.value = ''
+
+    def __hash__(self):
+        return hash((
+            self.__class__,
+            self.value,
+        ))
+
+    def __eq__(self, other):
+        return (isinstance(other, self.__class__) and
+                isinstance(self, other.__class__) and self.value == other.value)
+
+    def __str__(self):
+        class_name = self.__class__.__name__
+        if class_name == 'Tag':
+            class_name = 'cirq.Tag'
+        return f"{class_name}('{self.value}')"
+
+    def __repr__(self):
+        return str(self)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['value'])
+
+
+@value.value_equality
+class TaggedOperation(Operation):
+    """A specific operation instance that has been identified with a set
+    of Tags for special processing.  This can be initialized with
+    Using Operation.with_tags(tag) or by TaggedOperation(op, tag).
+    """
+
+    def __init__(self, sub_operation: 'cirq.Operation', *tags: 'cirq.Tag'):
+        self.sub_operation = sub_operation
+        self._tags = list(tags)
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self.sub_operation.qubits
+
+    @property
+    def gate(self) -> Optional['cirq.Gate']:
+        return self.sub_operation.gate
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid'):
+        return TaggedOperation(self.sub_operation.with_qubits(*new_qubits),
+                               *self._tags)
+
+    def controlled_by(self,
+                      *control_qubits: 'cirq.Qid',
+                      control_values: Optional[Sequence[
+                          Union[int, Collection[int]]]] = None
+                     ) -> 'cirq.Operation':
+        return TaggedOperation(
+            self.sub_operation.controlled_by(*control_qubits,
+                                             control_values=control_values),
+            *self._tags)
+
+    @property
+    def tags(self):
+        return self._tags
+
+    def __str__(self):
+        tag_repr = ','.join(repr(t) for t in self._tags)
+        return f"cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})"
+
+    def __repr__(self):
+        return str(self)
+
+    def _value_equality_values_(self):
+        return (self.sub_operation, *self._tags)
+
+    @classmethod
+    def _from_json_dict_(cls, sub_operation, tags, **kwargs):
+        return cls(sub_operation, *tags)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
 
 @value.value_equality

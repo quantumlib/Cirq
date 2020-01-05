@@ -423,3 +423,64 @@ def test_inverse_composite_diagram_info():
     c = cirq.inverse(Gate2())
     assert cirq.circuit_diagram_info(c) == cirq.CircuitDiagramInfo(
         wire_symbols=('s!',), exponent=-1)
+
+
+def test_tag_equality():
+
+    class SuperDuperTag(cirq.Tag):
+        pass
+
+    eq = cirq.testing.EqualsTester()
+
+    eq.add_equality_group(SuperDuperTag(), SuperDuperTag())
+    eq.add_equality_group(cirq.Tag(), cirq.Tag())
+    eq.add_equality_group(cirq.Tag('foo'), cirq.Tag('foo'))
+    eq.add_equality_group(cirq.Tag('bar'), cirq.Tag('bar'))
+
+
+def test_tag_repr():
+
+    class GoodTag(cirq.Tag):
+        pass
+
+    assert repr(cirq.Tag('tag1')) == "cirq.Tag('tag1')"
+    assert repr(GoodTag()) == "GoodTag('')"
+
+
+def test_tagged_operation_equality():
+    eq = cirq.testing.EqualsTester()
+    q1 = cirq.GridQubit(1, 1)
+    op = cirq.X(q1)
+    op2 = cirq.Y(q1)
+
+    eq.add_equality_group(op)
+    eq.add_equality_group(op.with_tags(cirq.Tag('tag1')),
+                          cirq.TaggedOperation(op, cirq.Tag('tag1')))
+    eq.add_equality_group(op2.with_tags(cirq.Tag('tag1')),
+                          cirq.TaggedOperation(op2, cirq.Tag('tag1')))
+    eq.add_equality_group(op.with_tags(cirq.Tag('tag2')),
+                          cirq.TaggedOperation(op, cirq.Tag('tag2')))
+    eq.add_equality_group(
+        op.with_tags(cirq.Tag('tag1'), cirq.Tag('tag2')),
+        cirq.TaggedOperation(op, cirq.Tag('tag1'), cirq.Tag('tag2')))
+
+
+def test_tagged_operation():
+    q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(2, 2)
+    op = cirq.X(q1).with_tags(cirq.Tag('tag1'))
+    op_repr = "cirq.X.on(cirq.GridQubit(1, 1))"
+    assert repr(op) == f"cirq.TaggedOperation({op_repr}, cirq.Tag('tag1'))"
+
+    assert op.qubits == (q1,)
+    assert op.tags == [cirq.Tag('tag1')]
+    assert op.gate == cirq.X
+    assert op.with_qubits(q2) == cirq.X(q2).with_tags(cirq.Tag('tag1'))
+    assert op.with_qubits(q2).qubits == (q2,)
+
+    controlled_op = op.controlled_by(q2)
+    assert controlled_op.qubits == (
+        q2,
+        q1,
+    )
+    assert controlled_op.tags == [cirq.Tag('tag1')]
