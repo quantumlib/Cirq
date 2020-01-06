@@ -19,7 +19,6 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 
 import abc
 import functools
-import warnings
 
 from cirq import linalg, protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -409,7 +408,7 @@ class Operation(metaclass=abc.ABCMeta):
         """
 
     def with_tags(self, *new_tags: 'cirq.Tag') -> 'cirq.TaggedOperation':
-        """Wraps the current operation in a TaggedOperation, with the specified tags.
+        """Creates a new TaggedOperation, with this op and the specified tags.
 
         Args:
             new_tags: The tags to wrap this operation in.
