@@ -4,7 +4,7 @@ import uuid
 import requests
 import numpy as np
 
-from cirq import Circuit, devices, Sampler, study, resolve_parameters
+from cirq import Circuit, devices, Sampler, study, resolve_parameters, protocols
 from cirq import DensityMatrixSimulator
 from cirq.pasqal import PasqalDevice, PasqalNoiseModel
 
@@ -28,6 +28,12 @@ class PasqalCircuit(Circuit):
             for op in moment:
                 # This should call decompose on the gates
                 self.append(op)
+
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+
+
 
 
 class PasqalSampler(Sampler):

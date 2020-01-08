@@ -2,7 +2,7 @@ from typing import Iterable, cast, FrozenSet
 from numpy import sqrt
 
 import cirq
-from cirq import ops, Duration, NeutralAtomDevice
+from cirq import ops, protocols, Duration, NeutralAtomDevice
 from cirq.pasqal import ThreeDGridQubit
 
 class PasqalDevice(NeutralAtomDevice):
@@ -22,7 +22,7 @@ class PasqalDevice(NeutralAtomDevice):
         for q in qubits:
             if not isinstance(q, ThreeDGridQubit):
                 raise ValueError('Unsupported qubit type: {!r}'.format(q))
-        self.qubits = frozenset(qubits)
+        self.qubits = qubits
 
     def qubit_set(self) -> FrozenSet['ThreeDGridQubit']:
         return self.qubits
@@ -138,3 +138,13 @@ class PasqalDevice(NeutralAtomDevice):
         return ('pasqal.PasqalDevice(control_radius={!r}, '
                 'qubits={!r})').format(self._control_radius,
                                        sorted(self.qubits))
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['_measurement_duration',
+                                                   '_gate_duration',
+                                                   '_control_radius',
+                                                   '_max_parallel_z',
+                                                   '_max_parallel_xy',
+                                                   '_max_parallel_c',
+                                                   'qubits'
+                                                   ])
