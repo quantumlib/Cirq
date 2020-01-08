@@ -156,8 +156,10 @@ def test_pasqal_qubit_is_adjacent():
 
     assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(2, 0, 0))
 
-    assert ThreeDGridQubit(500, 999, 1500).is_adjacent(ThreeDGridQubit(501, 999, 1500))
-    assert not ThreeDGridQubit(500, 999, 1500).is_adjacent(ThreeDGridQubit(5034, 999, 1500))
+    assert (ThreeDGridQubit(500, 999, 1500)
+            .is_adjacent(ThreeDGridQubit(501, 999, 1500)))
+    assert not (ThreeDGridQubit(500, 999, 1500)
+            .is_adjacent(ThreeDGridQubit(5034, 999, 1500)))
 
 
 def test_pasqal_qubit_neighbors():

@@ -1,4 +1,4 @@
-from typing import Tuple, List, Dict, cast
+from typing import List, Dict, cast
 import uuid
 
 import requests
@@ -69,7 +69,7 @@ class PasqalSampler(Sampler):
             Measurement results as an array of boolean.
         """
         # header = {"Ocp-Apim-Subscription-Key": access_token, "SDK": "cirq"}
-        print(remote_host)
+        #print(remote_host)
         response = requests.post(remote_host,
                                 data={
                            'cirq_circuit_repr': serialization_str,
@@ -78,7 +78,7 @@ class PasqalSampler(Sampler):
                        }
                         # , headers = header
                     )
-        print(response)
+        #print(response)
         response = response.json()
 
         data = cast(Dict, response)
@@ -96,7 +96,8 @@ class PasqalSampler(Sampler):
         # # ID of the job on the remote cloud
         # if 'id' not in data.keys():
         #     raise RuntimeError(
-        #         'Got unexpected return data from Pasqal server: \n' + str(data))
+        #         'Got unexpected return data
+        #           from Pasqal server: \n' + str(data))
         # id_str = data['id']
 
         """

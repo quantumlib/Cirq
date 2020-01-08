@@ -52,36 +52,47 @@ class PasqalNoiseModel(devices.NoiseModel):
 def get_op_string(op_obj):
     """Find the string representation for a given gate
     Args:
-        op_obj: Gate object, one of: CNotPowGate,CZPowGate,CCXPowGate,CCZPowGate,YPowGate,ZPowGate,
-                                XPowGate,PhasedXPowGate,MeasurementGate,ops.IdentityGate
+        op_obj: Gate object, one of: CNotPowGate,CZPowGate,CCXPowGate,
+                                     CCZPowGate,YPowGate,ZPowGate,
+                                     XPowGate,PhasedXPowGate,MeasurementGate,
+                                     ops.IdentityGate
                                 Returns:
                                 String representing the gate operations
     """
-    if isinstance(op_obj, ops.CNotPowGate) or isinstance(op_obj.gate,ops.CNotPowGate):
+    if (isinstance(op_obj, ops.CNotPowGate)
+        or isinstance(op_obj.gate,ops.CNotPowGate)):
         op_str = 'CX'
 
-    elif isinstance(op_obj, ops.CZPowGate) or isinstance(op_obj.gate,ops.CZPowGate):
+    elif (isinstance(op_obj, ops.CZPowGate)
+          or isinstance(op_obj.gate,ops.CZPowGate)):
         op_str = 'CZ'
 
-    elif isinstance(op_obj, ops.CCXPowGate) or isinstance(op_obj.gate,ops.CCXPowGate):
+    elif (isinstance(op_obj, ops.CCXPowGate)
+          or isinstance(op_obj.gate,ops.CCXPowGate)):
         op_str = 'CCX'
 
-    elif isinstance(op_obj, ops.CCZPowGate) or isinstance(op_obj.gate,ops.CCZPowGate):
+    elif (isinstance(op_obj, ops.CCZPowGate)
+          or isinstance(op_obj.gate,ops.CCZPowGate)):
         op_str = 'CCZ'
 
-    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,ops.YPowGate):
+    elif (isinstance(op_obj, ops.YPowGate)
+          or isinstance(op_obj.gate,ops.YPowGate)):
         op_str = 'Y'
 
-    elif isinstance(op_obj, ops.ZPowGate) or isinstance(op_obj.gate,ops.ZPowGate):
+    elif (isinstance(op_obj, ops.ZPowGate)
+          or isinstance(op_obj.gate,ops.ZPowGate)):
         op_str = 'Z'
 
-    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate,ops.XPowGate):
+    elif (isinstance(op_obj, ops.XPowGate)
+          or isinstance(op_obj.gate,ops.XPowGate)):
         op_str = 'X'
 
-    elif isinstance(op_obj, ops.IdentityGate) or isinstance(op_obj.gate,ops.IdentityGate):
+    elif (isinstance(op_obj, ops.IdentityGate)
+          or isinstance(op_obj.gate,ops.IdentityGate)):
         op_str = 'I'
 
-    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(op_obj.gate, ops.MeasurementGate):
+    elif (isinstance(op_obj, ops.MeasurementGate)
+          or isinstance(op_obj.gate, ops.MeasurementGate)):
         op_str = 'Meas'
 
     else:

@@ -3,9 +3,10 @@
 import pytest
 import cirq
 
-from cirq import devices, ops, Circuit
+from cirq import ops, Circuit
 from cirq import CZ, Z
-from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalCircuit, PasqalDevice
+from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalCircuit, \
+    PasqalDevice
 
 def test_NoiseModel_init():
     noise_model = PasqalNoiseModel()

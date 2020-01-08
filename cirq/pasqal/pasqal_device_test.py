@@ -1,4 +1,3 @@
-from datetime import timedelta
 import pytest
 
 from cirq import CCZ, CNotPowGate, GateOperation, IdentityGate, SingleQubitGate
@@ -13,10 +12,6 @@ def cubic_device(width: int,
                   max_controls=2,
                   use_timedelta=False) -> PasqalDevice:
 
-    us = (Duration(nanos=10**3) if not use_timedelta else timedelta(
-        microseconds=1))
-    ms = (Duration(nanos=10**6) if not use_timedelta else timedelta(
-        microseconds=1000))
     return PasqalDevice(  # type: ignore
         control_radius=1.5,
         qubits=[

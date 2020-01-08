@@ -1,4 +1,4 @@
-from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Iterable, List, Optional, Set, Tuple
 from numpy import sqrt
 from cirq import ops, protocols
 

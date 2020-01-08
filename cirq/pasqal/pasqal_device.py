@@ -1,4 +1,4 @@
-from typing import Iterable, cast, FrozenSet, TYPE_CHECKING
+from typing import Iterable, cast, FrozenSet
 from numpy import sqrt
 
 import cirq
