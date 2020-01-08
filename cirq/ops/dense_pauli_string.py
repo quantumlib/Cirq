@@ -310,7 +310,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return (f'cirq.{type(self).__name__}({repr(paulis)}, '
                 f'coefficient={proper_repr(self.coefficient)})')
 
-    def _commutes_(self, other):
+    def _commutes_(self, other, *, atol: Union[int, float] = 1e-8):
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n],
