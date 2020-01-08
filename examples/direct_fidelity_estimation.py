@@ -39,13 +39,13 @@ def compute_characteristic_function(circuit: cirq.Circuit,
 
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
-    # rho_i or sigma_i in https://arxiv.org/pdf/1104.3835.pdf
+    # rho_i or sigma_i in https://arxiv.org/abs/1104.3835
     trace = pauli_string.expectation_from_density_matrix(
         density_matrix, qubit_map)
     assert np.isclose(trace.imag, 0.0, atol=1e-6)
     trace = trace.real
 
-    prob = trace * trace / d  # Pr(i) in https://arxiv.org/pdf/1104.3835.pdf
+    prob = trace * trace / d  # Pr(i) in https://arxiv.org/abs/1104.3835
 
     return trace, prob
 
@@ -91,25 +91,25 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     Returns:
         The estimated fidelity.
     """
-    # n_trials is upper-case N in https://arxiv.org/pdf/1104.3835.pdf
+    # n_trials is upper-case N in https://arxiv.org/abs/1104.3835
 
-    # Number of qubits, lower-case n in https://arxiv.org/pdf/1104.3835.pdf
+    # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835
     n_qubits = len(qubits)
 
-    # Computes for every \hat{P_i} of https://arxiv.org/pdf/1104.3835.pdf,
+    # Computes for every \hat{P_i} of https://arxiv.org/abs/1104.3835
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     pauli_traces = []
 
     simulator = cirq.DensityMatrixSimulator()
-    # rho in https://arxiv.org/pdf/1104.3835.pdf
+    # rho in https://arxiv.org/abs/1104.3835
     clean_density_matrix = cast(
         cirq.DensityMatrixTrialResult,
         simulator.simulate(circuit)).final_density_matrix
 
     # TODO(#2639): Sample the Pauli states more efficiently when thevcircuit
     # consists of Clifford gates only, as described on page 4 of:
-    # https://arxiv.org/pdf/1104.4695.pdf
+    # https://arxiv.org/abs/1104.4695
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                  repeat=n_qubits):
         rho_i, Pr_i = compute_characteristic_function(circuit, P_i, qubits,
@@ -130,7 +130,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     fidelity = 0.0
 
     if samples_per_term == 0:
-        # sigma in https://arxiv.org/pdf/1104.3835.pdf
+        # sigma in https://arxiv.org/abs/1104.3835
         noisy_density_matrix = cast(
             cirq.DensityMatrixTrialResult,
             simulator.simulate(circuit)).final_density_matrix
