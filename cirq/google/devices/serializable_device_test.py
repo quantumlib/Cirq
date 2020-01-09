@@ -405,3 +405,26 @@ def test_serializable_device_str_named_qubits():
                 cirq.NamedQubit('b')],
         gate_definitions={})
     assert device.__class__.__name__ in str(device)
+
+
+def test_sycamore23_str():
+    assert str(cg.Sycamore23) == """\
+                  (3, 2)
+                  │
+                  │
+         (4, 1)───(4, 2)───(4, 3)
+         │        │        │
+         │        │        │
+(5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)
+         │        │        │        │
+         │        │        │        │
+         (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)
+                  │        │        │        │
+                  │        │        │        │
+                  (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
+                           │        │        │
+                           │        │        │
+                           (8, 3)───(8, 4)───(8, 5)
+                                    │
+                                    │
+                                    (9, 4)"""
