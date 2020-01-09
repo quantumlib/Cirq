@@ -47,7 +47,7 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int):
                              depth=depth,
                              num_circuits=num_circuits,
                              random_state=seed,
-                             device=device,
+                             device_or_qubits=device,
                              samplers=[cirq.Simulator(), noisy],
                              compiler=compiler)
 

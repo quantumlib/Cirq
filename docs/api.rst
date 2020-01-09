@@ -471,6 +471,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
+    cirq.google.optimized_for_sycamore
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
     cirq.google.sweep_from_proto_dict
@@ -542,6 +543,7 @@ operation.
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
+    cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
     cirq.testing.assert_equivalent_repr
@@ -589,6 +591,7 @@ Algebra and Representation
     cirq.chosen_angle_to_canonical_half_turns
     cirq.chosen_angle_to_half_turns
     cirq.commutes
+    cirq.definitely_commutes
     cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
     cirq.diagonalize_real_symmetric_matrix
     cirq.dot

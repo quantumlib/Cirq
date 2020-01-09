@@ -13,18 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (
-    Callable,
-    cast,
-    Dict,
-    Iterable,
-    Optional,
-    List,
-    Set,
-    Tuple,
-    Type,
-    TYPE_CHECKING,
-)
+from typing import (Callable, cast, Dict, Iterable, Optional, List, Set, Tuple,
+                    Type, TYPE_CHECKING, FrozenSet)
 
 from cirq import circuits, devices
 from cirq.google import serializable_gate_set
@@ -107,18 +97,14 @@ class SerializableDevice(devices.Device):
 
         Args:
             qubits: A list of valid Qid for the device.
-            durations: A dictionary with keys as Gate Types to the duration
-                of operations with that Gate type.
-            target_sets: The valid targets that a gate can act on.  This is
-                passed as a dictionary with keys as the Gate Type. The values
-                are a set of valid targets (arguments) to that gate.  These
-                are tuples of Qids.  For instance, for 2-qubit gates, they
-                will be pairs of Qubits.
-            permutation_gates: A list of types that act on all permutations
-                of the qubit targets.  (e.g. measurement gates)
+            gate_definitions: Maps cirq gates to device properties for that
+                gate.
         """
         self.qubits = qubits
         self.gate_definitions = gate_definitions
+
+    def qubit_set(self) -> FrozenSet['cirq.Qid']:
+        return frozenset(self.qubits)
 
     @classmethod
     def from_proto(
@@ -219,8 +205,13 @@ class SerializableDevice(devices.Device):
             diagram = circuits.TextDiagramDrawer()
 
             qubits = cast(List['cirq.GridQubit'], self.qubits)
+
+            # Don't print out extras newlines if the row/col doesn't start at 0
+            min_col = min(q.col for q in qubits)
+            min_row = min(q.row for q in qubits)
+
             for q in qubits:
-                diagram.write(q.col, q.row, str(q))
+                diagram.write(q.col - min_col, q.row - min_row, str(q))
 
             # Find pairs that are connected by two-qubit gates.
             Pair = Tuple['cirq.GridQubit', 'cirq.GridQubit']
@@ -234,8 +225,9 @@ class SerializableDevice(devices.Device):
             # Draw lines between connected pairs. Limit to horizontal/vertical
             # lines since that is all the diagram drawer can handle.
             for q1, q2 in sorted(pairs):
-                if q1.row == q2.row or q1.col == q2.row:
-                    diagram.grid_line(q1.col, q1.row, q2.col, q2.row)
+                if q1.row == q2.row or q1.col == q2.col:
+                    diagram.grid_line(q1.col - min_col, q1.row - min_row,
+                                      q2.col - min_col, q2.row - min_row)
 
             return diagram.render(horizontal_spacing=3,
                                   vertical_spacing=2,

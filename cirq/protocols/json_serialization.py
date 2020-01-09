@@ -250,23 +250,11 @@ class CirqEncoder(json.JSONEncoder):
     """
 
     def default(self, o):
+        # Object with custom method?
         if hasattr(o, '_json_dict_'):
             return o._json_dict_()
-        if isinstance(o, np.bool_):
-            return bool(o)
-        if isinstance(o, numbers.Integral):
-            return int(o)
-        if isinstance(o, numbers.Real):
-            return float(o)
-        if isinstance(o, numbers.Complex):
-            return {
-                'cirq_type': 'complex',
-                'real': o.real,
-                'imag': o.imag,
-            }
-        if isinstance(o, np.ndarray):
-            return o.tolist()
 
+        # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
         #       https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
@@ -288,20 +276,37 @@ class CirqEncoder(json.JSONEncoder):
                 'q': o.q,
             }
 
+        # A basic number object?
+        if isinstance(o, numbers.Integral):
+            return int(o)
+        if isinstance(o, numbers.Real):
+            return float(o)
+        if isinstance(o, numbers.Complex):
+            return {
+                'cirq_type': 'complex',
+                'real': o.real,
+                'imag': o.imag,
+            }
+
+        # Numpy object?
+        if isinstance(o, np.bool_):
+            return bool(o)
+        if isinstance(o, np.ndarray):
+            return o.tolist()
+
+        # Pandas object?
         if isinstance(o, pd.MultiIndex):
             return {
                 'cirq_type': 'pandas.MultiIndex',
                 'tuples': list(o),
                 'names': list(o.names),
             }
-
         if isinstance(o, pd.Index):
             return {
                 'cirq_type': 'pandas.Index',
                 'data': list(o),
                 'name': o.name,
             }
-
         if isinstance(o, pd.DataFrame):
             cols = [o[col].tolist() for col in o.columns]
             rows = list(zip(*cols))
