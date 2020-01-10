@@ -1,10 +1,20 @@
 """Implements direct fidelity estimation.
 
+Fidelity between the desired pure state \rho and the actual state \sigma is
+defined as:
+F(\rho, \sigma) = Tr [\rho \sigma]
+
+It is a unit-less measurement between 0.0 and 1.0. The following two papers
+independently described a faster way to estimate its value:
+
 Direct Fidelity Estimation from Few Pauli Measurements
 https://arxiv.org/abs/1104.4695
 
 Practical characterization of quantum devices without tomography
 https://arxiv.org/abs/1104.3835
+
+This code implements the algorithm proposed for an example circuit (defined in
+the function build_circuit()) and a noise (defines in the variable noise).
 """
 
 import argparse
@@ -27,6 +37,8 @@ def build_circuit():
         cirq.Z(qubits[0])**0.25,  # T-Gate, non Clifford.
         cirq.X(qubits[1])**0.123,
         cirq.X(qubits[2])**0.456)
+    print('Circuit used:')
+    print(circuit)
     return circuit, qubits
 
 
@@ -54,6 +66,20 @@ async def estimate_characteristic_function(
         circuit: cirq.Circuit, P_i: Tuple[cirq.Gate, ...],
         qubits: List[cirq.Qid], simulator: cirq.DensityMatrixSimulator,
         samples_per_term: int):
+    """
+    Estimates the characteristic function using a (noisy) circuit simulator by
+    sampling the results.
+
+    Args:
+        circuit: The circuit to run the simulation on.
+        P_i: The Pauli matrix.
+        qubits: The list of qubits.
+        simulator: The (noisy) simulator.
+        samples_per_term: An integer greater than 0, the number of samples.
+
+    Returns:
+        The estimated characteristic function.
+    """
     pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
 
     p = cirq.PauliSumCollector(circuit=circuit,
@@ -107,7 +133,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         cirq.DensityMatrixTrialResult,
         simulator.simulate(circuit)).final_density_matrix
 
-    # TODO(#2639): Sample the Pauli states more efficiently when thevcircuit
+    # TODO(#2639): Sample the Pauli states more efficiently when the circuit
     # consists of Clifford gates only, as described on page 4 of:
     # https://arxiv.org/abs/1104.4695
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
@@ -178,6 +204,7 @@ def main(*, n_trials: int, samples_per_term: int):
     circuit.append(cirq.measure(*qubits, key='y'))
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
+    print('Noise model: %s' % (noise))
 
     estimated_fidelity = direct_fidelity_estimation(
         circuit,
@@ -185,7 +212,7 @@ def main(*, n_trials: int, samples_per_term: int):
         noise,
         n_trials=n_trials,
         samples_per_term=samples_per_term)
-    print(estimated_fidelity)
+    print('Estimated fidelity: %f' % (estimated_fidelity))
 
 
 if __name__ == '__main__':
