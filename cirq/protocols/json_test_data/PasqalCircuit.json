@@ -1,0 +1,36 @@
+{
+  "cirq_type": "PasqalCircuit",
+  "moments": [
+    {
+      "cirq_type": "Moment",
+      "operations": [
+        {
+          "cirq_type": "SingleQubitPauliStringGateOperation",
+          "pauli": {
+            "cirq_type": "_PauliX",
+            "exponent": 1.0,
+            "global_shift": 0.0
+          },
+          "qubit": {
+            "cirq_type": "ThreeDGridQubit",
+            "row": 1,
+            "col": 1,
+            "lay": 1
+          }
+        }
+      ]
+    }
+  ],
+  "device": {
+    "cirq_type": "PasqalDevice",
+    "control_radius": 5,
+    "qubits": [
+      {
+        "cirq_type": "ThreeDGridQubit",
+        "row": 1,
+        "col": 1,
+        "lay": 1
+      }
+    ]
+  }
+}

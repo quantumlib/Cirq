@@ -14,7 +14,6 @@ class PasqalDevice(NeutralAtomDevice):
 
         self._measurement_duration = 5000*us
         self._gate_duration = 2*us
-        self._control_radius = control_radius
         self._max_parallel_z = 2
         self._max_parallel_xy = 2
         self._max_parallel_c = 2
@@ -22,10 +21,11 @@ class PasqalDevice(NeutralAtomDevice):
         for q in qubits:
             if not isinstance(q, ThreeDGridQubit):
                 raise ValueError('Unsupported qubit type: {!r}'.format(q))
+        self.control_radius = control_radius
         self.qubits = qubits
 
-    def qubit_set(self) -> FrozenSet['ThreeDGridQubit']:
-        return self.qubits
+    def qubit_set(self) -> Iterable[ThreeDGridQubit]:
+        return set(self.qubits)
 
     def decompose_operation(self, operation: ops.Operation) -> 'cirq.OP_TREE':
 
@@ -107,7 +107,7 @@ class PasqalDevice(NeutralAtomDevice):
             if len(operation.qubits) > 1:
                 for p in operation.qubits:
                     for q in operation.qubits:
-                        if self.distance(p, q) > self._control_radius:
+                        if self.distance(p, q) > self.control_radius:
                             raise ValueError("Qubits {!r}, {!r} are too "
                                              "far away".format(p, q))
 
@@ -136,15 +136,19 @@ class PasqalDevice(NeutralAtomDevice):
 
     def __repr__(self):
         return ('pasqal.PasqalDevice(control_radius={!r}, '
-                'qubits={!r})').format(self._control_radius,
+                'qubits={!r})').format(self.control_radius,
                                        sorted(self.qubits))
 
+    def _value_equality_values_(self):
+        return (self._measurement_duration,
+                self._gate_duration,
+                self._max_parallel_z,
+                self._max_parallel_xy,
+                self._max_parallel_c,
+                self.control_radius,
+                self.qubits)
+
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['_measurement_duration',
-                                                   '_gate_duration',
-                                                   '_control_radius',
-                                                   '_max_parallel_z',
-                                                   '_max_parallel_xy',
-                                                   '_max_parallel_c',
+        return protocols.obj_to_dict_helper(self, ['control_radius',
                                                    'qubits'
                                                    ])

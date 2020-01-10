@@ -16,8 +16,8 @@ def cubic_device(width: int,
         control_radius=1.5,
         qubits=[
             ThreeDGridQubit(row, col, lay)
-            for col in range(width)
-            for row in range(height)
+            for row in range(width)
+            for col in range(height)
             for lay in range(depth)
             if ThreeDGridQubit(row, col, lay) not in holes
         ])
@@ -36,7 +36,7 @@ def test_init():
     q110 = ThreeDGridQubit(1, 1, 0)
 
 
-    assert d.qubits == {q000, q001, q010, q011, q100, q101, q110}
+    assert set(d.qubits) == {q000, q001, q010, q011, q100, q101, q110}
     assert d.duration_of(GateOperation(IdentityGate(1),
                                             [q000])) == 2 * us
     assert d.duration_of(measure(q000)) == 5 * ms
@@ -84,8 +84,7 @@ def test_validate_gate_errors():
 
 
 def test_qubit_set():
-    assert cubic_device(2, 2, 2).qubit_set() == frozenset(
-        ThreeDGridQubit.cube(2, 0, 0, 0))
+    assert cubic_device(2, 2, 2).qubit_set() == set(ThreeDGridQubit.cube(2, 0, 0, 0))
 
 """def test_validate_operation_errors():
     d = square_device(3, 3)
