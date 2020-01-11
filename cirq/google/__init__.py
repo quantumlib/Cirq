@@ -15,19 +15,19 @@
 from cirq.google import api
 
 from cirq.google.api.v1.params import (
-    sweep_to_proto_dict,
-    sweep_from_proto_dict,
+    sweep_to_proto,
+    sweep_from_proto,
 )
 
 from cirq.google.api.v1.programs import (
-    gate_to_proto_dict,
+    gate_to_proto,
     is_native_xmon_gate,
     is_native_xmon_op,
     pack_results,
-    circuit_as_schedule_to_proto_dicts,
-    circuit_from_schedule_from_proto_dicts,
+    circuit_as_schedule_to_protos,
+    circuit_from_schedule_from_protos,
     unpack_results,
-    xmon_op_from_proto_dict,
+    xmon_op_from_proto,
 )
 
 from cirq.google.devices import (
