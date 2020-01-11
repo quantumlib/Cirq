@@ -466,13 +466,13 @@ class Engine:
             job_resource_name))
         result = response.result
         result_type = result.type_url[len(TYPE_PREFIX):]
-        if (result_type == 'cirq.google.api.v1.Result'
-                or result_type == 'cirq.api.google.v1.Result'):
+        if (result_type == 'cirq.google.api.v1.Result' or
+                result_type == 'cirq.api.google.v1.Result'):
             v1_parsed_result = v1.program_pb2.Result()
             v1_parsed_result.ParseFromString(result.value)
             return self._get_job_results_v1(v1_parsed_result)
-        if (result_type == 'cirq.google.api.v2.Result'
-                or result_type == 'cirq.api.google.v2.Result'):
+        if (result_type == 'cirq.google.api.v2.Result' or
+                result_type == 'cirq.api.google.v2.Result'):
             v2_parsed_result = v2.result_pb2.Result()
             v2_parsed_result.ParseFromString(result.value)
             return self._get_job_results_v2(v2_parsed_result)
