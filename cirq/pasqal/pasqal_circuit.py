@@ -1,4 +1,4 @@
-from typing import List, Dict, cast
+from typing import List, Dict, cast, Union
 import uuid
 
 import time
