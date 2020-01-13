@@ -28,7 +28,7 @@ def test_noisy_moments():
     circuit = Circuit()
     circuit.append(CZ(p_qubits[0], p_qubits[1]))
     circuit.append(Z(p_qubits[1]))
-    p_circuit = PasqalCircuit(circuit,p_device)
+    p_circuit = PasqalCircuit(circuit,device=p_device)
     n_mts=[]
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))

@@ -207,3 +207,15 @@ def test_pasqal_qubit_unsupported_add():
 
     with pytest.raises(TypeError, match='1'):
         _ = ThreeDGridQubit(1, 1, 1) - 1
+
+
+
+def test_to_json():
+    q = ThreeDGridQubit(1, 1, 1)
+    d = q._json_dict_()
+    assert d == {
+        'cirq_type': 'ThreeDGridQubit',
+        'row': 1,
+        'col': 1,
+        'lay': 1,
+    }

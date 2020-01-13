@@ -15,9 +15,9 @@ from cirq.pasqal import PasqalDevice, PasqalNoiseModel
 class PasqalCircuit(Circuit):
 
     def __init__(self,
-                 cirq_circuit,
-                 device
-                 ):
+                 cirq_circuit: Circuit,
+                 device: devices.Device
+                 ) -> None:
 
         if (device is None) \
                 or (not isinstance(device, PasqalDevice)):
@@ -41,7 +41,7 @@ class PasqalCircuit(Circuit):
 
 class PasqalSampler(Sampler):
 
-    def __init__(self, remote_host: str, access_token: str = ''):
+    def __init__(self, remote_host: str, access_token: str = '') -> None:
         """
         Args:
             remote_host: Address of the remote device.
@@ -50,7 +50,10 @@ class PasqalSampler(Sampler):
         self.remote_host = remote_host
         self.access_token = access_token
 
-    def _serialize_circuit(self, circuit, param_resolver):
+    def _serialize_circuit(self,
+                           circuit: Circuit,
+                           param_resolver: study.ParamResolverOrSimilarType
+                           ) -> str:
 
         # Serialize the resolved circuit
         circuit = resolve_parameters(circuit, param_resolver)
@@ -61,10 +64,10 @@ class PasqalSampler(Sampler):
 
     def _send_serialized_circuit(self,
                                  *,
-                                 serialization_str,
-                                 id_str,
-                                 repetitions= 1
-                                 ):
+                                 serialization_str: str,
+                                 id_str: Union[str, uuid.UUID],
+                                 repetitions: int = 1
+                                 ) -> study.TrialResult:
 
         simulate_url = f'{self.remote_host}/simulate/no-noise'
         result_url = f'{self.remote_host}/get-result'
@@ -111,10 +114,9 @@ class PasqalSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        meas_name = 'm'  # TODO: Get measurement name from circuit.
-
+        meas_name = 'm'
         # Complain if this is not using the PasqalDevice
-        #assert isinstance(program.device, PasqalDevice)
+        assert isinstance(program.device, PasqalDevice)
 
         trial_results = []
         for param_resolver in study.to_resolvers(params):
@@ -129,21 +131,16 @@ class PasqalSampler(Sampler):
                 repetitions=repetitions
                 )
             trial_results.append(results)
-            #results = results.astype(bool)
-            #res_dict = {meas_name: results}
-            #trial_results.append(
-            #    study.TrialResult(params=param_resolver,
-#                                       measurements=res_dict))
 
         return trial_results
 
 
     def run(self,
-                  program: 'Circuit',
-                  param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
-                  simulate_ideal : bool=True,
-                  repetitions: int = 1
-                  ) -> List[study.TrialResult]:
+            program: 'Circuit',
+            param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+            simulate_ideal : bool=True,
+            repetitions: int = 1
+            ) -> List[study.TrialResult]:
 
         trial_results=self.run_sweep(program,
                               study.ParamResolver(param_resolver),

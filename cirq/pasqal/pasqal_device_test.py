@@ -1,16 +1,17 @@
 import pytest
 
+import cirq
 from cirq import CCZ, CNotPowGate, GateOperation, IdentityGate, SingleQubitGate
 from cirq import Duration, measure, LineQubit
 from cirq.pasqal import PasqalDevice, ThreeDGridQubit
 
 
 def cubic_device(width: int,
-                  height: int,
-                  depth: int,
-                  holes=(),
-                  max_controls=2,
-                  use_timedelta=False) -> PasqalDevice:
+                 height: int,
+                 depth: int,
+                 holes=(),
+                 max_controls=2,
+                 use_timedelta=False) -> PasqalDevice:
 
     return PasqalDevice(  # type: ignore
         control_radius=1.5,
@@ -85,6 +86,21 @@ def test_validate_gate_errors():
 
 def test_qubit_set():
     assert cubic_device(2, 2, 2).qubit_set() == set(ThreeDGridQubit.cube(2, 0, 0, 0))
+
+
+def test_to_json():
+    dev=cirq.pasqal.PasqalDevice(
+        control_radius=5,
+        qubits=[cirq.pasqal.ThreeDGridQubit(1, 1, 1)]
+    )
+    d = dev._json_dict_()
+    assert d == {
+        "cirq_type": "PasqalDevice",
+        "control_radius": 5,
+        "qubits": [cirq.pasqal.ThreeDGridQubit(1, 1, 1)]
+    }
+
+
 
 """def test_validate_operation_errors():
     d = square_device(3, 3)
