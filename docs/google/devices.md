@@ -92,8 +92,9 @@ properly batch circuits can improve the throughput of your calculations.  One wa
 is to use parameter sweeps to send multiple variations of a circuit at once.
 
 One example is to turn single-qubit gates on or off by using parameter sweeps.  
-For instance, the following code demonstrates combining mesauring the |0> and the |1> state
-into one circuit.  This code uses a simulator rather than the engine to demonstrate the concept.
+For instance, the following code creates a single circuit that parameterizes
+the decision of measuring the |0> or the |1> state.  This code uses a simulator
+rather than the engine to demonstrate the concept.
 
 ```python
 import cirq
@@ -112,10 +113,10 @@ sim.run(m0)
 sim.run(m1)
 
 # Parameterized circuit
-m_parameterized=cirq.Circuit(cirq.X(q) ** sympy.Symbol('e'), cirq.measure(q))
+m_parameterized=cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q))
 
 # Executing both circuits in one sweep
-sim.run_sweep(m_parameterized, params=cirq.Points('e',[0.0, 1.0]))
+sim.run_sweep(m_parameterized, params=cirq.Points('t',[0.0, 1.0]))
 ```
 
 One word of caution is there is a limit to the total number of repetitions.  Take some care
