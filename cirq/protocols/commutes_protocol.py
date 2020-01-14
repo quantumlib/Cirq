@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -85,17 +85,20 @@ def commutes(v1: Any,
 
     This is determined by any one of the following techniques:
 
-    - Either value has a `_commutes_` method that returns something besides
-        `NotImplemented`. If the object's `_commutes_` method returns `False` or
-        `True` then that is considered to be a definitive answer. If the
-        object's method returns `None` then the commutativity is considered to
-        be indeterminate. `v1._commutes_` is attempted before `v2._commutes_`.
-    - Both values are matrices. The return value indicates whether these two
-        matrices commute.
+    - Either value has a `_commutes_` method that returns 'True', 'False', or
+        'None' (meaning indeterminate). If both methods either don't exist or
+        return `NotImplemented` then another strategy is tried. `v1._commutes_`
+        is tried before `v2._commutes_`.
+    - Both values are matrices. The return value is determined by checking if
+        v1 @ v2 - v2 @ v1 is sufficiently close to zero.
+    - Both values are `cirq.Operation` instances. If the operations apply to
+        disjoint qubit sets then they commute. Otherwise, if they have unitary
+        matrices, those matrices are checked for commutativity (while accounting
+        for the fact that the operations may have different qubit orders or only
+        partially overlap).
 
-    If none of these techniques succeeds, it is assumed that the values do not
-    commute. The order in which techniques are attempted is
-    unspecified.
+    If none of these techniques succeeds, the commutativity is assumed to be
+    indeterminate.
 
     Args:
         v1: One of the values to check for commutativity. Can be a cirq object
