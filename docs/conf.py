@@ -67,25 +67,21 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
     return result
 
 
-def autodoc_skip_member(app,
-                        what: str,
-                        name: str,
-                        obj: Any,
-                        skip: bool,
-                        options,
-                        ) -> bool:
+def autodoc_skip_member(
+        app,
+        what: str,
+        name: str,
+        obj: Any,
+        skip: bool,
+        options,
+) -> bool:
     """Public members already kept. Also include members marked as documented.
     """
     return id(obj) not in _doc.RECORDED_CONST_DOCS
 
 
-def autodoc_process(app,
-                    what: str,
-                    name: str,
-                    obj: Any,
-                    options,
-                    lines: List[str]
-                    ) -> None:
+def autodoc_process(app, what: str, name: str, obj: Any, options,
+                    lines: List[str]) -> None:
     # Try to lookup in documented dictionary.
     found = _doc.RECORDED_CONST_DOCS.get(id(obj))
     if name.startswith('cirq') and found is not None:
@@ -265,4 +261,6 @@ texinfo_documents = [
 # http://www.sphinx-doc.org/en/master/ext/autosummary.html#generating-stub-pages-automatically
 autosummary_generate = True
 
-autodoc_default_flags = ['members', 'private-members', 'special-members', 'show-inheritance']
+autodoc_default_flags = [
+    'members', 'private-members', 'special-members', 'show-inheritance'
+]
