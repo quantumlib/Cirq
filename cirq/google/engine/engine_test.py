@@ -187,7 +187,7 @@ _CALIBRATION = {
 
 _DEVICE_SPEC = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.DeviceSpecification',
+    'type.googleapis.com/cirq.google.api.v2.DeviceSpecification',
     'validGateSets': [{
         'name':
         'test_set',
