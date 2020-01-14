@@ -260,7 +260,3 @@ texinfo_documents = [
 # Generate subpages for reference docs automatically.
 # http://www.sphinx-doc.org/en/master/ext/autosummary.html#generating-stub-pages-automatically
 autosummary_generate = True
-
-autodoc_default_flags = [
-    'members', 'private-members', 'special-members', 'show-inheritance'
-]
