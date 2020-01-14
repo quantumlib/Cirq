@@ -91,8 +91,8 @@ class PasqalSampler(Sampler):
             f'{result_url}/{task_id}',
             verify=False,
         )
-
         result = cirq.read_json(json_text=result_response.content)
+
         return result
 
 
@@ -116,7 +116,7 @@ class PasqalSampler(Sampler):
         """
         meas_name = 'm'
         # Complain if this is not using the PasqalDevice
-        assert isinstance(program.device, PasqalDevice)
+        #assert isinstance(program.device, PasqalDevice)
 
         trial_results = []
         for param_resolver in study.to_resolvers(params):
