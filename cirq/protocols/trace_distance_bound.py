@@ -15,6 +15,8 @@
 from typing import Any, TypeVar, Optional, Sequence
 import numpy as np
 from typing_extensions import Protocol
+
+from cirq._doc import document
 from cirq.protocols import unitary_protocol
 
 
@@ -30,6 +32,7 @@ class SupportsTraceDistanceBound(Protocol):
     negligible.
     """
 
+    @document
     def _trace_distance_bound_(self) -> float:
         """A maximum on the trace distance between `val`'s input and output.
 
