@@ -42,8 +42,6 @@ def document(value: Any, doc_string: Optional[str] = None):
     Returns:
         The given value.
     """
-    if doc_string is None:
-        doc_string = value.__doc__
     docs = DocProperties(doc_string=doc_string)
     RECORDED_CONST_DOCS[id(value)] = docs
     return value
