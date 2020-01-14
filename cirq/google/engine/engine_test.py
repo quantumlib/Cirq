@@ -579,6 +579,15 @@ def test_program_labels(client_constructor):
     program_name = 'projects/my-proj/programs/my-prog'
     engine = cg.Engine(project_id='project-id')
 
+    client.get_quantum_program.return_value = qtypes.QuantumProgram(labels={
+        'a': '1',
+        'b': '1'
+    })
+    engine.add_program_labels(program_name, {'b': '1'})
+    engine.remove_program_labels(program_name, ['c'])
+
+    assert client.update_quantum_program.call_count == 0
+
     def update():
         return client.update_quantum_program.call_args[0][1]
 
@@ -617,6 +626,15 @@ def test_job_labels(client_constructor):
 
     job_name = 'projects/my-proj/programs/my-prog/jobs/my-job'
     engine = cg.Engine(project_id='project-id')
+
+    client.get_quantum_job.return_value = qtypes.QuantumJob(labels={
+        'a': '1',
+        'b': '1'
+    })
+    engine.add_job_labels(job_name, {'b': '1'})
+    engine.remove_job_labels(job_name, ['c'])
+
+    assert client.update_quantum_job.call_count == 0
 
     def update():
         return client.update_quantum_job.call_args[0][1]
@@ -715,6 +733,17 @@ def test_latest_calibration(client_constructor):
         0] == 'projects/myproject/processors/x/calibrations/current'
     assert calibration.timestamp == 1562544000021
     assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_latest_calibration_error(client_constructor):
+    client = mock.Mock()
+    client_constructor.return_value = client
+    client.get_quantum_calibration.side_effect =\
+        exceptions.BadGateway('x-error')
+    with pytest.raises(cg.engine.engine.EngineException,
+                       match='x-error'):
+        cg.Engine(project_id='myproject').get_latest_calibration('x')
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)

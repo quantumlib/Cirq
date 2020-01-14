@@ -33,7 +33,6 @@ from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, \
     Union, TYPE_CHECKING
 import warnings
 
-import google.protobuf as gp
 from google.api_core.exceptions import GoogleAPICallError, NotFound
 
 from cirq import circuits, study, value
@@ -64,12 +63,6 @@ class EngineException(Exception):
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
-
-
-def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
-    any_message = qtypes.any_pb2.Any()
-    any_message.Pack(message)
-    return gp.json_format.MessageToDict(any_message)
 
 
 def _make_random_id(prefix: str, length: int = 16):

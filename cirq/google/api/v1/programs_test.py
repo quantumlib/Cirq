@@ -274,6 +274,8 @@ def test_w_to_proto():
 
 
 def test_unsupported_op():
+    with pytest.raises(ValueError, match='invalid operation'):
+        cg.xmon_op_from_proto(operations_pb2.Operation())
     with pytest.raises(ValueError, match='know how to serialize'):
         cg.gate_to_proto(
             cirq.CCZ,
