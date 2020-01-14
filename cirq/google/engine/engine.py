@@ -29,7 +29,6 @@ import datetime
 import enum
 import json
 import random
-import re
 import string
 import sys
 import time
@@ -51,7 +50,6 @@ from cirq.google.engine import (calibration, engine_job, engine_program,
 if TYPE_CHECKING:
     import cirq
 
-gcs_prefix_pattern = re.compile('gs://[a-z0-9._/-]+')
 TYPE_PREFIX = 'type.googleapis.com/'
 
 
@@ -106,36 +104,22 @@ class JobConfig:
     called a Job. This object contains the configuration for a job.
     """
 
-    def __init__(self,
-                 job_id: Optional[str] = None,
-                 gcs_prefix: Optional[str] = None,
-                 gcs_results: Optional[str] = None) -> None:
+    def __init__(self, job_id: Optional[str] = None) -> None:
         """Configuration for a job that is run on Quantum Engine.
 
         Args:
             job_id: Id of the job to create, defaults to 'job-0'.
-            gcs_prefix: Google Cloud Storage bucket and object prefix to use
-                for storing programs and results. The bucket will be created if
-                needed. Must be in the form "gs://bucket-name/object-prefix/".
-            gcs_results: Explicit override for the results storage location.
         """
         self.job_id = job_id
-        self.gcs_prefix = gcs_prefix
-        self.gcs_results = gcs_results
 
     def copy(self) -> 'JobConfig':
-        return JobConfig(job_id=self.job_id,
-                         gcs_prefix=self.gcs_prefix,
-                         gcs_results=self.gcs_results)
+        return JobConfig(job_id=self.job_id)
 
     def _value_equality_values_(self):
-        return (self.job_id, self.gcs_prefix, self.gcs_results)
+        return (self.job_id)
 
     def __repr__(self):
-        return ('cirq.google.JobConfig(job_id={!r}, '
-                'gcs_prefix={!r}, '
-                'gcs_results={!r})').format(self.job_id, self.gcs_prefix,
-                                            self.gcs_results)
+        return ('cirq.google.JobConfig(job_id={!r})').format(self.job_id)
 
 
 class Engine:
@@ -171,7 +155,6 @@ class Engine:
                  project_id: str,
                  version: Optional[str] = None,
                  discovery_url: Optional[str] = None,
-                 default_gcs_prefix: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
                  service_args: Optional[Dict] = None,
                  verbose: bool = True) -> None:
@@ -185,9 +168,6 @@ class Engine:
             version: API version.
             discovery_url: Discovery url for the API to select a non-default
                 backend for the Engine. Incompatible with `version` argument.
-            default_gcs_prefix: A fallback gcs_prefix to use when one isn't
-                specified in the JobConfig given to 'run' methods.
-                See JobConfig for more information on gcs_prefix.
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
@@ -203,7 +183,6 @@ class Engine:
 
         self.project_id = project_id
         self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
-        self.default_gcs_prefix = default_gcs_prefix
         self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
         self.verbose = verbose
@@ -339,11 +318,6 @@ class Engine:
         # Create job.
         request = {
             'name': '%s/jobs/%s' % (program_name, job_config.job_id),
-            'output_config': {
-                'gcs_results_location': {
-                    'uri': job_config.gcs_results
-                }
-            },
             'scheduling_config': {
                 'priority': priority,
                 'processor_selector': {
@@ -367,36 +341,13 @@ class Engine:
                               if job_config is None else job_config.copy())
 
         # Note: inference order is important. Later ones may need earlier ones.
-        self._infer_gcs_prefix(implied_job_config)
         self._infer_job_id(implied_job_config)
-        self._infer_gcs_results(implied_job_config)
 
         return implied_job_config
-
-    def _infer_gcs_prefix(self, job_config: JobConfig) -> None:
-        project_id = self.project_id
-        gcs_prefix = (job_config.gcs_prefix or self.default_gcs_prefix or
-                      'gs://gqe-' + project_id[project_id.rfind(':') + 1:])
-        if gcs_prefix and not gcs_prefix.endswith('/'):
-            gcs_prefix += '/'
-
-        if not gcs_prefix_pattern.match(gcs_prefix):
-            raise ValueError('gcs_prefix must be of the form "gs://'
-                             '<bucket name and optional object prefix>/"')
-
-        job_config.gcs_prefix = gcs_prefix
 
     def _infer_job_id(self, job_config: JobConfig) -> None:
         if job_config.job_id is None:
             job_config.job_id = _make_random_id('job-')
-
-    def _infer_gcs_results(self, job_config: JobConfig) -> None:
-        if job_config.gcs_prefix is None:
-            raise ValueError("Must infer gcs_prefix before gcs_results.")
-
-        if job_config.gcs_results is None:
-            job_config.gcs_results = '{}jobs/{}'.format(job_config.gcs_prefix,
-                                                        job_config.job_id)
 
     def _make_request(self, request: HttpRequest) -> Dict:
         retryable_error_codes = [500, 503]
