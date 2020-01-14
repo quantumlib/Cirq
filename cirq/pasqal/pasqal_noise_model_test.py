@@ -7,6 +7,7 @@ from cirq import ops, Circuit
 from cirq import CZ, Z
 from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalCircuit, \
     PasqalDevice
+from cirq.pasqal.pasqal_noise_model import get_op_string
 
 def test_NoiseModel_init():
     noise_model = PasqalNoiseModel()
@@ -41,5 +42,10 @@ def test_noisy_moments():
 
 
 def test_get_op_string():
+    noise_model = PasqalNoiseModel()
+    p_qubits= ThreeDGridQubit.cube(4)
+    circuit = Circuit()
+    circuit.append(ops.H(p_qubits[0]))
     with pytest.raises(ValueError, match='Got unknown gate:'):
-        _ = PasqalNoiseModel.get_op_string(ops.HPowGate)
+        for moment in circuit._moments:
+            _=noise_model.noisy_moment(moment, p_qubits)
