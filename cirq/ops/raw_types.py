@@ -19,9 +19,8 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 
 import abc
 import functools
-import numpy as np
 
-from cirq import linalg, protocols, value
+from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
