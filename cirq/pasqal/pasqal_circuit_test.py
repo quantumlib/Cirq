@@ -4,7 +4,6 @@ import pytest
 import numpy as np
 import sympy
 import cirq
-from cirq.circuits import InsertStrategy
 
 from . import pasqal_circuit, pasqal_qubits, pasqal_device
 
@@ -108,11 +107,13 @@ def test_run_sweep():
             ex_circuit.append(cirq.X(qs[-i-1]))
     ex_circuit.append([cirq.measure(q) for q in qs])
 
-    sampler = pasqal_circuit.PasqalSampler(remote_host= 'http://34.98.71.118/v0/pasqal')
+    sampler = pasqal_circuit.PasqalSampler(
+        remote_host= 'http://34.98.71.118/v0/pasqal'
+    )
     data_raw = sampler.run_sweep(program= ex_circuit,
                              params= sweep,
                              simulate_ideal= True,
-                             repetitions= 1)#.data.to_dict()
+                             repetitions= 1)
     data0 = data_raw[0].data.to_dict()
     data1 = data_raw[1].data.to_dict()
 

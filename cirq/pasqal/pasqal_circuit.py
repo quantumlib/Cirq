@@ -1,14 +1,13 @@
-from typing import List, Dict, cast, Union
+from typing import List, Union
 import uuid
 
 import time
 import requests
-import numpy as np
 
 import cirq
 from cirq import Circuit, devices, Sampler, study, resolve_parameters, protocols
-from cirq import DensityMatrixSimulator
-from cirq.pasqal import PasqalDevice, PasqalNoiseModel
+#from cirq import DensityMatrixSimulator
+from cirq.pasqal import PasqalDevice#, PasqalNoiseModel
 
 
 

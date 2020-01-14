@@ -85,7 +85,9 @@ def test_validate_gate_errors():
 
 
 def test_qubit_set():
-    assert cubic_device(2, 2, 2).qubit_set() == set(ThreeDGridQubit.cube(2, 0, 0, 0))
+    assert cubic_device(2, 2, 2).qubit_set() == set(
+        ThreeDGridQubit.cube(2, 0, 0, 0)
+    )
 
 
 def test_to_json():

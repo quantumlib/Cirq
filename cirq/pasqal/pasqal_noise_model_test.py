@@ -38,3 +38,8 @@ def test_noisy_moments():
                       cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 1))],
                      [Z.on(ThreeDGridQubit(0, 0, 1)),
                       cirq.depolarize(p=0.01).on(ThreeDGridQubit(0, 0, 1))]]
+
+
+def test_get_op_string():
+    with pytest.raises(ValueError, match='Got unknown gate:'):
+        _ = PasqalNoiseModel.get_op_string(ops.HPowGate)
