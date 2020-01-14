@@ -47,7 +47,7 @@ circuit = cirq.Circuit(
 
 # Create an Engine object to use.
 # Replace the project id with the id from your cloud project.
-engine = cirq.google.Engine(project_id='your_program_id',
+engine = cirq.google.Engine(project_id='your_project_id',
                             proto_version=cirq.google.ProtoVersion.V2)
 
 # Create a unique name for the program.
@@ -84,6 +84,9 @@ connectivity, and the supported gates.
 This proto can be queried directly to get information about the device or can be transformed
 into a `cirq.Device` by using `cirq.google.SerializableDevice.from_proto()` that will
 enforce constraints imposed by the hardware.
+
+See the [Device Specification](specification.md) page for more information on
+device specifications.
 
 
 ## Calibration Metrics
