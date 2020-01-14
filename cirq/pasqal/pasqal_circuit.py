@@ -114,7 +114,7 @@ class PasqalSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        meas_name = 'm'
+        #meas_name = 'm'
         # Complain if this is not using the PasqalDevice
         #assert isinstance(program.device, PasqalDevice)
 

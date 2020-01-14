@@ -2,6 +2,7 @@
 
 import pytest
 import numpy as np
+import sympy
 import cirq
 from cirq.circuits import InsertStrategy
 
@@ -18,10 +19,13 @@ def test_pasqal_circuit_init():
 
     test_circuit = pasqal_circuit.PasqalCircuit(ex_circuit, device = device)
 
-    with pytest.raises(ValueError, match = "PasqalDevice necessary for constructor!"):
-        pasqal_circuit.PasqalCircuit(ex_circuit, device = cirq.UNCONSTRAINED_DEVICE)
+    with pytest.raises(ValueError,
+                       match = "PasqalDevice necessary for constructor!"):
+        pasqal_circuit.PasqalCircuit(ex_circuit,
+                                     device = cirq.UNCONSTRAINED_DEVICE)
 
-    with pytest.raises(ValueError, match = "PasqalDevice necessary for constructor!"):
+    with pytest.raises(ValueError,
+                       match = "PasqalDevice necessary for constructor!"):
         pasqal_circuit.PasqalCircuit(ex_circuit, device = None)
 
     for moment1, moment2 in zip(test_circuit, ex_circuit):
@@ -29,8 +33,9 @@ def test_pasqal_circuit_init():
 
 # def test_simulate_samples():
 #     '''
-#     Encodes a random binary number in the qubits, samples once without noise and
-#     checks if the result matches the original number.
+#     Encodes a random binary number in the qubits,
+#     samples once without noise and checks if the result
+#     matches the original number.
 #     '''
 #
 #     qs = pasqal_qubits.ThreeDGridQubit.square(3)
@@ -44,11 +49,14 @@ def test_pasqal_circuit_init():
 #             ex_circuit.append(cirq.X(qs[-i-1]))
 #     ex_circuit.append([cirq.measure(q) for q in qs])
 #
-#     data = pasqal_circuit.PasqalSampler().simulate_samples(program=ex_circuit,
-#                                                            simulate_ideal=True,
-#                                                            repetitions = 1).data.to_dict()
+#     data = pasqal_circuit.PasqalSampler().simulate_samples(
+#         program=ex_circuit,
+#         simulate_ideal=True,
+#         repetitions = 1
+#     ).data.to_dict()
 #     for i, q in enumerate(qs):
-#         assert data['({}, {}, {})'.format(q.row, q.col, q.lay)][0] == int(binary[-i-1])
+#         assert data['({}, {}, {})'.format(q.row, q.col, q.lay)][0] ==
+#         int(binary[-i-1])
 
 def test_run():
     '''
@@ -67,9 +75,49 @@ def test_run():
             ex_circuit.append(cirq.X(qs[-i-1]))
     ex_circuit.append([cirq.measure(q) for q in qs])
 
-    sampler = pasqal_circuit.PasqalSampler(remote_host= 'http://34.98.71.118/v0/pasqal')
+    sampler = pasqal_circuit.PasqalSampler(
+        remote_host= 'http://34.98.71.118/v0/pasqal'
+    )
     data = sampler.run(program=ex_circuit,
                        simulate_ideal=True,
                        repetitions = 1).data.to_dict()
     for i, q in enumerate(qs):
         assert data['({}, {})'.format(q.row, q.col)][0] == int(binary[-i-1])
+
+
+def test_run_sweep():
+    '''
+    Encodes a random binary number in the qubits, sweeps between odd and even
+    without noise and checks if the results match.
+    '''
+
+    qs = [cirq.GridQubit(i,j) for i in range(3) for j in range(3)]
+
+    par = sympy.Symbol('par')
+    sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
+
+    num = np.random.randint(0,2**9)
+    binary = bin(num)[2:].zfill(9)
+
+    ex_circuit = cirq.Circuit()
+
+    xpow = cirq.XPowGate(exponent=par)
+    ex_circuit.append([xpow(qs[0])])
+    for i,b in enumerate(binary[:-1]):
+        if b == '1':
+            ex_circuit.append(cirq.X(qs[-i-1]))
+    ex_circuit.append([cirq.measure(q) for q in qs])
+
+    sampler = pasqal_circuit.PasqalSampler(remote_host= 'http://34.98.71.118/v0/pasqal')
+    data_raw = sampler.run_sweep(program= ex_circuit,
+                             params= sweep,
+                             simulate_ideal= True,
+                             repetitions= 1)#.data.to_dict()
+    data0 = data_raw[0].data.to_dict()
+    data1 = data_raw[1].data.to_dict()
+
+    assert data0['(0, 0)'][0] == 0
+    assert data1['(0, 0)'][0] == 1
+
+    for i, q in enumerate(qs[1:], 1):
+        assert data0['({}, {})'.format(q.row, q.col)][0] == int(binary[-i-1])
