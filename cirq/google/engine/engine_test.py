@@ -741,8 +741,7 @@ def test_latest_calibration_error(client_constructor):
     client_constructor.return_value = client
     client.get_quantum_calibration.side_effect =\
         exceptions.BadGateway('x-error')
-    with pytest.raises(cg.engine.engine.EngineException,
-                       match='x-error'):
+    with pytest.raises(cg.engine.engine.EngineException, match='x-error'):
         cg.Engine(project_id='myproject').get_latest_calibration('x')
 
 
