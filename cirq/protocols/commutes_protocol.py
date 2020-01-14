@@ -19,6 +19,7 @@ from typing_extensions import Protocol
 import numpy as np
 
 from cirq import linalg, ops
+from cirq._doc import document
 from cirq.protocols import qid_shape_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -34,36 +35,19 @@ TDefault = TypeVar('TDefault')
 class SupportsCommutes(Protocol):
     """An object that can determine commutation relationships vs others."""
 
+    @document
     def _commutes_(self, other: Any,
                    atol: float) -> Union[None, bool, NotImplementedType]:
         r"""Determines if this object commutes with the other object.
 
-        These matrices are the terms in the operator sum representation of
-        a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
-        then this describes the channel:
-            \rho \rightarrow \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
-        These matrices are required to satisfy the trace preserving condition
-            \sum_{k=0}^{r-1} A_i^\dagger A_i = I
-        where I is the identity matrix. The matrices A_i are sometimes called
-        Krauss or noise operators.
-
-        This method is used by the global `cirq.channel` method. If this method
-        or the _unitary_ method is not present, or returns NotImplement,
-        it is assumed that the receiving object doesn't have a channel
-        (resulting in a TypeError or default result when calling `cirq.channel`
-        on it). (The ability to return NotImplemented is useful when a class
-        cannot know if it is a channel until runtime.)
-
-        The order of cells in the matrices is always implicit with respect to
-        the object being called. For example, for GateOperations these matrices
-        must be ordered with respect to the list of qubits that the channel is
-        applied to. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
-        than the qubit B.
+        Can return None to indicate the commutation relationship is
+        indeterminate (e.g. incompatible matrix sizes). Can return
+        NotImplemented to indicate to the caller that they should try some other
+        way of determining the commutation relationship.
 
         Args:
-            other: The other object that may or may not commute with this
-                object.
+            other: The other object that may or may not commute with the
+                receiving object.
             atol: Absolute error tolerance. Some objects that commute may appear
                 to not quite commute, due to rounding error from floating point
                 computations. This parameter indicates an acceptable level of
@@ -72,16 +56,22 @@ class SupportsCommutes(Protocol):
                 maximum angle between rotation axes in the Bloch sphere, or the
                 maximum trace of the absolute value of the commutator, or
                 some other value convenient to the implementor of the method.
+
         Returns:
+            Whether or not the values commute.
+
             True: `self` commutes with `other` within absolute tolerance `atol`.
+
             False: `self` does not commute with `other`.
+
             None: There is not a well defined commutation result. For example,
-                whether or not parameterized operations will commute may depend
-                on the parameter values and so is indeterminate.
+            whether or not parameterized operations will commute may depend
+            on the parameter values and so is indeterminate.
+
             NotImplemented: Unable to determine anything about commutativity.
-                Consider falling back to other strategies, such as asking
-                `other` if it commutes with `self` or computing the unitary
-                matrices of both values.
+            Consider falling back to other strategies, such as asking
+            `other` if it commutes with `self` or computing the unitary
+            matrices of both values.
         """
 
 
@@ -101,7 +91,7 @@ def commutes(v1: Any,
         object's method returns `None` then the commutativity is considered to
         be indeterminate. `v1._commutes_` is attempted before `v2._commutes_`.
     - Both values are matrices. The return value indicates whether these two
-      matrices commute.
+        matrices commute.
 
     If none of these techniques succeeds, it is assumed that the values do not
     commute. The order in which techniques are attempted is
@@ -113,21 +103,20 @@ def commutes(v1: Any,
         v2: The other value to check for commutativity. Can be a cirq object
             such as an operation, or a numpy matrix.
         default: A fallback value to return, instead of raising a ValueError, if
-            there is no implemented rule for efficiently determining if the two
-            values commute or not.
-        atol: The minimum absolute tolerance. See np.isclose() documentation for
-              details. Defaults to 1e-8 which matches np.isclose() default
-              absolute tolerance.
+            it is indeterminate whether or not the two values commute.
+        atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1 have a
+            magnitude less than this tolerance, v1 and v2 can be reported as
+            commuting. Defaults to 1e-8.
 
     Returns:
-        True: `v1` and `v2` commute.
+        True: `v1` and `v2` commute (or approximately commute).
         False: `v1` and `v2` don't commute.
-        default: The `default` argument was specified. and there was no rule to
-            efficiently determine commutativity, and
+        default: The commutativity of `v1` and `v2` is indeterminate, or could
+        not be determined, and the `default` argument was specified.
 
     Raises:
-        TypeError: default was not set and there was no implemented rule for
-            efficiently determining if the two values commute.
+        TypeError: The commutativity of `v1` and `v2` is indeterminate, or could
+        not be determined, and the `default` argument was not specified.
     """
     atol = float(atol)
 
