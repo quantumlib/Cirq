@@ -276,6 +276,7 @@ def swap_to_sqrt_iswap(a, b, turns):
         yield ops.X(a)**0.5
         yield ops.X(b)**0.5
         return
+
     yield ops.Z(a)**1.25
     yield ops.Z(b)**-0.25
     yield ops.ISWAP(a, b)**-0.5
