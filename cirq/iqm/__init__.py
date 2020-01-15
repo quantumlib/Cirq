@@ -12,4 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.iqm.iqm_device import IxionDevice
+from cirq.iqm.iqm_device import Adonis

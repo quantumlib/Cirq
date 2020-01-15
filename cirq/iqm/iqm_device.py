@@ -17,14 +17,14 @@ import cirq
 from cirq import devices
 
 
-class IxionDevice(devices.Device):
+class Adonis(devices.Device):
     """IQM's five-qubit superconducting device with pairwise connectivity.
     Details: https://iqm.fi/devices
     """
     # TODO: PQC-5
 
     def __init__(self):
-        """Instantiate the description of an Ixion device"""
+        """Instantiate the description of an Adonis device"""
         qubit_diagram = "-Q-\n" \
                         "QQQ\n" \
                         "-Q-\n"
