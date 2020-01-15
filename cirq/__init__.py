@@ -47,6 +47,7 @@ from cirq import (
     ion,
     neutral_atoms,
     google,
+    iqm,
     interop,
     # Applications
     experiments,
