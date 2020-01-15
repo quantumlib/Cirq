@@ -154,6 +154,10 @@ def test_grid_qubit_add_subtract():
     assert (2, 5) + cirq.GridQubit(1, 2) == cirq.GridQubit(3, 7)
     assert (2, 5) - cirq.GridQubit(1, 2) == cirq.GridQubit(1, 3)
 
+    assert cirq.GridQubit(1, 2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 7)
+    assert cirq.GridQubit(3, 5) - cirq.GridQubit(2, 1) == cirq.GridQubit(1, 4)
+    assert cirq.GridQubit(1, -2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 3)
+
 
 def test_grid_qubit_neg():
     assert -cirq.GridQubit(1, 2) == cirq.GridQubit(-1, -2)
