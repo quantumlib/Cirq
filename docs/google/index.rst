@@ -11,3 +11,4 @@ of devices that have become public information.
 
     devices
     engine
+    specification
