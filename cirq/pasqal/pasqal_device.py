@@ -57,6 +57,7 @@ class PasqalDevice(NeutralAtomDevice):
 
         keep = False
 
+        #Currently accepting all multi-qubit operations
         keep = keep or (len(op.qubits) > 1)
 
         keep = keep or (isinstance(op.gate, ops.YPowGate))
