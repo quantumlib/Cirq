@@ -14,10 +14,18 @@
 """IQM devices https://iqm.fi/devices"""  # TODO: PQC-5
 
 import cirq
+from cirq import devices
 
 
-class IxionDevice(cirq.Device):
+class IxionDevice(devices.Device):
     """IQM's five-qubit superconducting device with pairwise connectivity.
     Details: https://iqm.fi/devices
     """
     # TODO: PQC-5
+
+    def __init__(self):
+        """Instantiate the description of an Ixion device"""
+        qubit_diagram = "-Q-\n" \
+                        "QQQ\n" \
+                        "-Q-\n"
+        self.qubits = cirq.GridQubit.from_diagram(qubit_diagram)
