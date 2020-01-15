@@ -5,6 +5,7 @@ import cirq
 from cirq import ops, protocols, Duration, NeutralAtomDevice
 from cirq.pasqal import ThreeDGridQubit
 
+
 class PasqalDevice(NeutralAtomDevice):
 
     def __init__(self, control_radius: float,
@@ -12,11 +13,12 @@ class PasqalDevice(NeutralAtomDevice):
 
         us = 1000 * Duration(nanos=1)
 
-        self._measurement_duration = 5000*us
-        self._gate_duration = 2*us
+        self._measurement_duration = 5000 * us
+        self._gate_duration = 2 * us
         self._max_parallel_z = 2
         self._max_parallel_xy = 2
-        self._max_parallel_c = 2
+        self._max_parallel_c = 10
+        self._max_parallel_t = 1
 
         for q in qubits:
             if not isinstance(q, ThreeDGridQubit):
@@ -31,7 +33,6 @@ class PasqalDevice(NeutralAtomDevice):
 
         if not isinstance(operation, ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
-
 
         # default value
         decomposition = [operation]
@@ -55,17 +56,8 @@ class PasqalDevice(NeutralAtomDevice):
             return False
 
         keep = False
-        keep = keep or (isinstance(op.gate, ops.CNotPowGate) and
-                        (op.gate.exponent.is_integer()))
 
-        keep = keep or (isinstance(op.gate, ops.CZPowGate) and
-                        (op.gate.exponent.is_integer()))
-
-        keep = keep or (isinstance(op.gate, ops.CCXPowGate) and
-                        (op.gate.exponent.is_integer()))
-
-        keep = keep or (isinstance(op.gate, ops.CCZPowGate) and
-                        (op.gate.exponent.is_integer()))
+        keep = keep or (len(op.qubits) > 1)
 
         keep = keep or (isinstance(op.gate, ops.YPowGate))
 
@@ -80,7 +72,6 @@ class PasqalDevice(NeutralAtomDevice):
         keep = keep or (isinstance(op.gate, ops.IdentityGate))
 
         return keep
-
 
     def validate_operation(self, operation: ops.Operation):
         if not isinstance(operation, cirq.GateOperation):
@@ -101,7 +92,7 @@ class PasqalDevice(NeutralAtomDevice):
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, ops.GateOperation):
-            if len(operation.qubits) > self._max_parallel_c:
+            if len(operation.qubits) > self._max_parallel_c + self._max_parallel_t:
                 raise ValueError("Too many qubits acted on in parallel by a"
                                  "controlled gate operation")
             if len(operation.qubits) > 1:
@@ -132,7 +123,6 @@ class PasqalDevice(NeutralAtomDevice):
         q = cast(ThreeDGridQubit, q)
         return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2 +
                     (p.lay - q.lay) ** 2)
-
 
     def __repr__(self):
         return ('pasqal.PasqalDevice(control_radius={!r}, '
