@@ -18,14 +18,15 @@ import sympy
 
 import cirq
 import cirq.google as cg
+import cirq.google.api.v1.programs as programs
 from cirq.google.api.v1 import operations_pb2
 from cirq.google.api.v1.programs import (_parameterized_value_from_proto)
 
 
 def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation,
                               *qubits: cirq.Qid):
-    assert cg.gate_to_proto(gate, qubits, delay=0) == proto
-    assert cg.xmon_op_from_proto(proto) == gate(*qubits)
+    assert programs.gate_to_proto(gate, qubits, delay=0) == proto
+    assert programs.xmon_op_from_proto(proto) == gate(*qubits)
 
 
 def test_protobuf_round_trip():
@@ -37,8 +38,8 @@ def test_protobuf_round_trip():
     ],
                            device=device)
 
-    protos = list(cg.circuit_as_schedule_to_protos(circuit))
-    s2 = cg.circuit_from_schedule_from_protos(device, protos)
+    protos = list(programs.circuit_as_schedule_to_protos(circuit))
+    s2 = programs.circuit_from_schedule_from_protos(device, protos)
     assert s2 == circuit
 
 
@@ -186,8 +187,9 @@ def test_single_qubit_measurement_to_proto_pad_invert_mask():
         ],
                                                key='test',
                                                invert_mask=[True, False]))
-    assert cg.gate_to_proto(gate, (cirq.GridQubit(2, 3), cirq.GridQubit(2, 4)),
-                            delay=0) == proto
+    assert programs.gate_to_proto(gate,
+                                  (cirq.GridQubit(2, 3), cirq.GridQubit(2, 4)),
+                                  delay=0) == proto
 
 
 def test_multi_qubit_measurement_to_proto():
@@ -275,9 +277,9 @@ def test_w_to_proto():
 
 def test_unsupported_op():
     with pytest.raises(ValueError, match='invalid operation'):
-        cg.xmon_op_from_proto(operations_pb2.Operation())
+        programs.xmon_op_from_proto(operations_pb2.Operation())
     with pytest.raises(ValueError, match='know how to serialize'):
-        cg.gate_to_proto(
+        programs.gate_to_proto(
             cirq.CCZ,
             (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
             delay=0)
@@ -285,15 +287,17 @@ def test_unsupported_op():
 
 def test_invalid_to_proto_dict_qubit_number():
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        _ = cg.gate_to_proto(cirq.CZ**0.5, (cirq.GridQubit(2, 3),), delay=0)
+        _ = programs.gate_to_proto(cirq.CZ**0.5, (cirq.GridQubit(2, 3),),
+                                   delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.gate_to_proto(cirq.Z**0.5,
-                         (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
-                         delay=0)
+        programs.gate_to_proto(cirq.Z**0.5,
+                               (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                               delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.gate_to_proto(cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
-                         (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
-                         delay=0)
+        programs.gate_to_proto(cirq.PhasedXPowGate(exponent=0.5,
+                                                   phase_exponent=0),
+                               (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                               delay=0)
 
 
 def test_parameterized_value_from_proto():
@@ -311,13 +315,13 @@ def test_parameterized_value_from_proto():
 
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
-        _ = cg.gate_to_proto(cirq.MeasurementGate(3,
-                                                  'test',
-                                                  invert_mask=(True,)),
-                             (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
-                             delay=0)
+        _ = programs.gate_to_proto(cirq.MeasurementGate(3,
+                                                        'test',
+                                                        invert_mask=(True,)),
+                                   (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                                   delay=0)
     with pytest.raises(ValueError, match='no qubits'):
-        _ = cg.gate_to_proto(cirq.MeasurementGate(1, 'test'), (), delay=0)
+        _ = programs.gate_to_proto(cirq.MeasurementGate(1, 'test'), (), delay=0)
 
 
 def test_is_supported():

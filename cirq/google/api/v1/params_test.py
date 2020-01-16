@@ -14,7 +14,7 @@
 import pytest
 
 import cirq
-import cirq.google as cg
+import cirq.google.api.v1.params as params
 from cirq.google.api.v1 import params_pb2
 
 
@@ -22,7 +22,7 @@ def test_gen_sweep_points():
     points = [0.5, 1.0, 1.5, 2.0, 2.5]
     sweep = params_pb2.SingleSweep(
         parameter_key='foo', points=params_pb2.Points(points=list(points)))
-    out = cg.api.v1.params._sweep_from_single_param_sweep_proto(sweep)
+    out = params._sweep_from_single_param_sweep_proto(sweep)
     assert out == cirq.Points('foo', [0.5, 1.0, 1.5, 2.0, 2.5])
 
 
@@ -31,7 +31,7 @@ def test_gen_sweep_linspace():
                                    linspace=params_pb2.Linspace(first_point=0,
                                                                 last_point=10,
                                                                 num_points=11))
-    out = cg.api.v1.params._sweep_from_single_param_sweep_proto(sweep)
+    out = params._sweep_from_single_param_sweep_proto(sweep)
     assert out == cirq.Linspace('foo', 0, 10, 11)
 
 
@@ -42,12 +42,12 @@ def test_gen_param_sweep_zip():
         params_pb2.SingleSweep(parameter_key='bar',
                                points=params_pb2.Points(points=[4, 5]))
     ])
-    out = cg.api.v1.params._sweep_from_param_sweep_zip_proto(sweep)
+    out = params._sweep_from_param_sweep_zip_proto(sweep)
     assert out == cirq.Points('foo', [1, 2, 3]) + cirq.Points('bar', [4, 5])
 
 
 def test_gen_empty_param_sweep():
-    out = cg.sweep_from_proto(params_pb2.ParameterSweep())
+    out = params.sweep_from_proto(params_pb2.ParameterSweep())
     assert out == cirq.UnitSweep
 
 
@@ -62,13 +62,13 @@ def test_gen_param_sweep():
                                    points=params_pb2.Points(points=[4, 5]))
         ])
     ]))
-    out = cg.sweep_from_proto(ps)
+    out = params.sweep_from_proto(ps)
     assert out == cirq.Product(cirq.Zip(cirq.Points('foo', [1, 2, 3])),
                                cirq.Zip(cirq.Points('bar', [4, 5])))
 
 
 def test_empty_param_sweep_keys():
-    assert cg.sweep_from_proto(params_pb2.ParameterSweep()).keys == []
+    assert params.sweep_from_proto(params_pb2.ParameterSweep()).keys == []
 
 
 def test_sweep_from_proto_missing_type():
@@ -77,7 +77,7 @@ def test_sweep_from_proto_missing_type():
             sweeps=[params_pb2.SingleSweep(parameter_key='foo')])
     ]))
     with pytest.raises(ValueError):
-        cg.sweep_from_proto(ps)
+        params.sweep_from_proto(ps)
 
 
 def test_param_sweep_keys():
@@ -95,12 +95,12 @@ def test_param_sweep_keys():
                                    points=params_pb2.Points(points=range(13)))
         ])
     ]))
-    out = cg.sweep_from_proto(ps)
+    out = params.sweep_from_proto(ps)
     assert out.keys == ['foo', 'bar', 'baz', 'qux']
 
 
 def test_empty_param_sweep_size():
-    assert len(cg.sweep_from_proto(params_pb2.ParameterSweep())) == 1
+    assert len(params.sweep_from_proto(params_pb2.ParameterSweep())) == 1
 
 
 def test_param_sweep_size():
@@ -124,14 +124,14 @@ def test_param_sweep_size():
     ]))
     # Sweeps sx1 and sx2 are zipped, so should use num number of points.
     # These are then producted, so this should multiply number of points.
-    assert len(cg.sweep_from_proto(ps)) == 5 * 11
+    assert len(params.sweep_from_proto(ps)) == 5 * 11
 
 
 def test_param_sweep_size_no_sweeps():
     ps = params_pb2.ParameterSweep(sweep=params_pb2.ProductSweep(
         factors=[params_pb2.ZipSweep(),
                  params_pb2.ZipSweep()]))
-    assert len(cg.sweep_from_proto(ps)) == 1
+    assert len(params.sweep_from_proto(ps)) == 1
 
 
 def example_sweeps():
@@ -166,7 +166,7 @@ def example_sweeps():
 
 @pytest.mark.parametrize('param_sweep', example_sweeps())
 def test_param_sweep_size_versus_gen(param_sweep):
-    sweep = cg.sweep_from_proto(param_sweep)
+    sweep = params.sweep_from_proto(param_sweep)
     print(sweep)
     predicted_size = len(sweep)
     out = list(sweep)
@@ -213,8 +213,8 @@ def test_param_sweep_size_versus_gen(param_sweep):
     ),
 ])
 def test_sweep_to_proto(sweep, expected):
-    proto = cg.sweep_to_proto(sweep)
-    out = cg.sweep_from_proto(proto)
+    proto = params.sweep_to_proto(sweep)
+    out = params.sweep_from_proto(proto)
     assert out == expected
 
 
@@ -239,4 +239,4 @@ class MySweep(cirq.study.sweeps.SingleSweep):
 ])
 def test_sweep_to_proto_fail(bad_sweep):
     with pytest.raises(ValueError):
-        cg.sweep_to_proto(bad_sweep)
+        params.sweep_to_proto(bad_sweep)
