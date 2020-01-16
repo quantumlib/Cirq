@@ -3,7 +3,6 @@
 dataclasses; python_version < '3.7'
 enum34; python_version < "3.4"
 google-api-core[grpc] >= 1.14.0, < 2.0.0dev
-google-api-python-client~=1.6
 matplotlib~=3.0
 networkx==2.3
 numpy~=1.16
