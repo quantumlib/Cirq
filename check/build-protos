@@ -12,35 +12,35 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
 # V1 protos below.
-bazel build //cirq/api/google/v1:operations_proto
-bazel build //cirq/api/google/v1:operations_py_proto
-bazel build //cirq/api/google/v1:operations_cc_proto
+bazel build //cirq/google/api/v1:operations_proto
+bazel build //cirq/google/api/v1:operations_py_proto
+bazel build //cirq/google/api/v1:operations_cc_proto
 
-bazel build //cirq/api/google/v1:params_proto
-bazel build //cirq/api/google/v1:params_py_proto
-bazel build //cirq/api/google/v1:params_cc_proto
+bazel build //cirq/google/api/v1:params_proto
+bazel build //cirq/google/api/v1:params_py_proto
+bazel build //cirq/google/api/v1:params_cc_proto
 
-bazel build //cirq/api/google/v1:program_proto
-bazel build //cirq/api/google/v1:program_py_proto
-bazel build //cirq/api/google/v1:program_cc_proto
+bazel build //cirq/google/api/v1:program_proto
+bazel build //cirq/google/api/v1:program_py_proto
+bazel build //cirq/google/api/v1:program_cc_proto
 
 # V2 protos below.
-bazel build //cirq/api/google/v2:device_proto
-bazel build //cirq/api/google/v2:device_py_proto
-bazel build //cirq/api/google/v2:device_cc_proto
+bazel build //cirq/google/api/v2:device_proto
+bazel build //cirq/google/api/v2:device_py_proto
+bazel build //cirq/google/api/v2:device_cc_proto
 
-bazel build //cirq/api/google/v2:metrics_proto
-bazel build //cirq/api/google/v2:metrics_py_proto
-bazel build //cirq/api/google/v2:metrics_cc_proto
+bazel build //cirq/google/api/v2:metrics_proto
+bazel build //cirq/google/api/v2:metrics_py_proto
+bazel build //cirq/google/api/v2:metrics_cc_proto
 
-bazel build //cirq/api/google/v2:program_proto
-bazel build //cirq/api/google/v2:program_py_proto
-bazel build //cirq/api/google/v2:program_cc_proto
+bazel build //cirq/google/api/v2:program_proto
+bazel build //cirq/google/api/v2:program_py_proto
+bazel build //cirq/google/api/v2:program_cc_proto
 
-bazel build //cirq/api/google/v2:result_proto
-bazel build //cirq/api/google/v2:result_py_proto
-bazel build //cirq/api/google/v2:result_cc_proto
+bazel build //cirq/google/api/v2:result_proto
+bazel build //cirq/google/api/v2:result_py_proto
+bazel build //cirq/google/api/v2:result_cc_proto
 
-bazel build //cirq/api/google/v2:run_context_proto
-bazel build //cirq/api/google/v2:run_context_py_proto
-bazel build //cirq/api/google/v2:run_context_cc_proto
+bazel build //cirq/google/api/v2:run_context_proto
+bazel build //cirq/google/api/v2:run_context_py_proto
+bazel build //cirq/google/api/v2:run_context_cc_proto
