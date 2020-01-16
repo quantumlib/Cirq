@@ -17,8 +17,11 @@ import pytest
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq.contrib.noise_models.noise_models import (
-    _homogeneous_moment_is_measurements)
+    _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
+
+from apiclient import discovery
+from unittest import mock
 
 
 def test_moment_is_measurements():
@@ -151,6 +154,112 @@ def test_decay_noise_after_moment():
     true_noisy_program.append(
         [cirq.AmplitudeDampingChannel(0.02).on(q) for q in qubits])
     true_noisy_program.append([cirq.BitFlipChannel(0.05).on(q) for q in qubits])
+    true_noisy_program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ])
+    _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+# Fake calibration data for mock object.
+_CALIBRATION = {
+    'name': 'projects/foo/processors/fake_processor_name/calibrations/1579214873',
+    'timestamp': '2020-01-16T14:47:51Z',
+    'data': {
+        '@type':
+        'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
+        'timestampMs':
+        '1579214873',
+        'metrics': [{
+            'name': 'xeb',
+            'targets': ['0_0', '0_1'],
+            'values': [{
+                'doubleVal': .9999
+            }]
+        }, {
+            'name': 'xeb',
+            'targets': ['0_0', '1_0'],
+            'values': [{
+                'doubleVal': .9998
+            }]
+        }, {
+            'name': 'single_qubit_rb_total_error',
+            'targets': ['q0_0'],
+            'values': [{
+                'doubleVal': .001
+            }]
+        }, {
+            'name': 'single_qubit_rb_total_error',
+            'targets': ['q0_1'],
+            'values': [{
+                'doubleVal': .002
+            }]
+        }, {
+            'name': 'single_qubit_rb_total_error',
+            'targets': ['q1_0'],
+            'values': [{
+                'doubleVal': .003
+            }]
+        }]
+    }
+}
+
+
+@mock.patch.object(discovery, 'build')
+def test_per_qubit_noise_from_data(build):
+    service = mock.Mock()
+    build.return_value = service
+    calibrations = service.projects().processors().calibrations()
+    calibrations.list().execute.return_value = ({
+        'calibrations': [_CALIBRATION]
+    })
+    eng = cirq.google.Engine(project_id='myproject')
+    noise_model = simple_noise_from_calibration_metrics(eng,
+                                                        'fake_processor_name')
+    # Confirm that the data was polled from the mock engine.
+    assert calibrations.list.call_args[1][
+        'parent'] == 'projects/myproject/processors/fake_processor_name'
+
+    # Create the circuit and apply the noise model.
+    program = cirq.Circuit()
+    qubits = [cirq.GridQubit(0,0), cirq.GridQubit(0,1), cirq.GridQubit(1,0)]
+    program.append([
+        cirq.H(qubits[0]),
+        cirq.CNOT(qubits[0], qubits[1]),
+        cirq.CNOT(qubits[0], qubits[2])
+    ])
+    program.append([
+        cirq.measure(qubits[0], key='q0'),
+        cirq.measure(qubits[1], key='q1'),
+        cirq.measure(qubits[2], key='q2')
+    ],
+                   strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
+
+    # Insert channels explicitly to construct expected output.
+    true_noisy_program = cirq.Circuit()
+    true_noisy_program.append([cirq.H(qubits[0])])
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.001).on(qubits[0]),
+         cirq.DepolarizingChannel(0.002).on(qubits[1]),
+         cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+    true_noisy_program.append([cirq.CNOT(qubits[0], qubits[1])])
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.001).on(qubits[0]),
+         cirq.DepolarizingChannel(0.002).on(qubits[1]),
+         cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
+    true_noisy_program.append([cirq.CNOT(qubits[0], qubits[2])])
+    true_noisy_program.append(
+        [cirq.DepolarizingChannel(0.001).on(qubits[0]),
+         cirq.DepolarizingChannel(0.002).on(qubits[1]),
+         cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ],
+        strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),

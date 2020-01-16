@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, TYPE_CHECKING
+from typing import Dict, Sequence, TYPE_CHECKING
 
 from cirq import devices, value, ops, protocols
+
+from cirq.google import engine
 
 if TYPE_CHECKING:
     import cirq
@@ -142,3 +144,49 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
                 moment,
                 ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
             ]
+
+class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
+    """DepolarizingNoiseModel which allows depolarization probabilities to be
+    specified separately for each qubit.
+    
+    Similar to depol_prob in DepolarizingNoiseModel, depol_prob_map should map
+    Qids in the device to their depolarization probability.
+    """
+
+    def __init__(
+            self,
+            depol_prob_map: Dict['cirq.Qid', float],
+    ):
+        """A depolarizing noise model with variable per-qubit noise.
+        
+        Args:
+            depol_prob_map: Map of depolarizing probabilities for each qubit.
+        """
+        for qubit, depol_prob in depol_prob_map.items():
+            value.validate_probability(depol_prob, f'depol prob of {qubit}')
+        self.depol_prob_map = depol_prob_map
+
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
+        if _homogeneous_moment_is_measurements(moment):
+            return moment
+        else:
+            return [
+                moment,
+                ops.Moment(ops.DepolarizingChannel(self.depol_prob_map[q])(q)
+                           for q in system_qubits)
+            ]
+
+
+def simple_noise_from_calibration_metrics(eng: engine.Engine, processor_id: str
+                                         ) -> devices.NoiseModel:
+    """Creates a reasonable PerQubitDepolarizingNoiseModel using the latest
+    calibration data from the given processor.
+    """
+    calibration = eng.get_latest_calibration(processor_id)
+    rb_data = {
+        qubit[0]: depol_prob[0]
+        for qubit, depol_prob
+        in calibration['single_qubit_rb_total_error'].items()
+    }
+    return PerQubitDepolarizingNoiseModel(rb_data)
