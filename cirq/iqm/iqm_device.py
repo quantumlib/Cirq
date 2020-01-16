@@ -23,9 +23,10 @@ class Adonis(devices.Device):
     """
     # TODO: PQC-5
 
+    QUBIT_DIAGRAM = "-Q-\n" \
+                    "QQQ\n" \
+                    "-Q-\n"
+
     def __init__(self):
         """Instantiate the description of an Adonis device"""
-        qubit_diagram = "-Q-\n" \
-                        "QQQ\n" \
-                        "-Q-\n"
-        self.qubits = cirq.GridQubit.from_diagram(qubit_diagram)
+        self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
