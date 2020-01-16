@@ -25,6 +25,9 @@ from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 from cirq.google.api import v2
 from cirq import ops
 
+from apiclient import discovery
+from unittest import mock
+
 
 def test_moment_is_measurements():
     q = cirq.LineQubit.range(2)
