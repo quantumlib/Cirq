@@ -186,6 +186,7 @@ def simple_noise_from_calibration_metrics(eng: engine.Engine, processor_id: str
     calibration data from the given processor.
     """
     calibration = eng.get_latest_calibration(processor_id)
+    assert calibration is not None
     rb_data = {
         qubit[0]: depol_prob[0] for qubit, depol_prob in
         calibration['single_qubit_rb_total_error'].items()
