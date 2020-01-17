@@ -58,6 +58,22 @@ valid_gate_sets {
     }
   }
   valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+  }
+  valid_gates {
     id: "cz"
     number_of_qubits: 2
     valid_args {
@@ -284,6 +300,22 @@ valid_gate_sets {
     valid_args {
       name: "type"
       type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
     }
   }
   valid_gates {
