@@ -149,7 +149,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
     """DepolarizingNoiseModel which allows depolarization probabilities to be
     specified separately for each qubit.
-    
+
     Similar to depol_prob in DepolarizingNoiseModel, depol_prob_map should map
     Qids in the device to their depolarization probability.
     """
@@ -159,7 +159,7 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
             depol_prob_map: Dict['cirq.Qid', float],
     ):
         """A depolarizing noise model with variable per-qubit noise.
-        
+
         Args:
             depol_prob_map: Map of depolarizing probabilities for each qubit.
         """

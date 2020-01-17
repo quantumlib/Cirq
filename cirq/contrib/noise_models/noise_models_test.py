@@ -12,16 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from unittest import mock
 import pytest
 
+from apiclient import discovery
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq.contrib.noise_models.noise_models import (
     _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 
-from apiclient import discovery
-from unittest import mock
 
 
 def test_moment_is_measurements():
