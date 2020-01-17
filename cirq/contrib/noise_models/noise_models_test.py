@@ -165,14 +165,13 @@ def test_decay_noise_after_moment():
 # Fake calibration data for mock object.
 _CALIBRATION = {
     'name':
-        'projects/foo/processors/fake_processor_name/calibrations/1579214873',
-    'timestamp':
-        '2020-01-16T14:47:51Z',
+    'projects/foo/processors/fake_processor_name/calibrations/1579214873',
+    'timestamp': '2020-01-16T14:47:51Z',
     'data': {
         '@type':
-            'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
+        'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
         'timestampMs':
-            '1579214873',
+        '1579214873',
         'metrics': [{
             'name': 'xeb',
             'targets': ['0_0', '0_1'],
