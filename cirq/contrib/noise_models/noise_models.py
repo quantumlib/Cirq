@@ -145,6 +145,7 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
                 ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
             ]
 
+
 class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
     """DepolarizingNoiseModel which allows depolarization probabilities to be
     specified separately for each qubit.
@@ -173,8 +174,9 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
         else:
             return [
                 moment,
-                ops.Moment(ops.DepolarizingChannel(self.depol_prob_map[q])(q)
-                           for q in system_qubits)
+                ops.Moment(
+                    ops.DepolarizingChannel(self.depol_prob_map[q])(q)
+                    for q in system_qubits)
             ]
 
 
@@ -185,8 +187,7 @@ def simple_noise_from_calibration_metrics(eng: engine.Engine, processor_id: str
     """
     calibration = eng.get_latest_calibration(processor_id)
     rb_data = {
-        qubit[0]: depol_prob[0]
-        for qubit, depol_prob
-        in calibration['single_qubit_rb_total_error'].items()
+        qubit[0]: depol_prob[0] for qubit, depol_prob in
+        calibration['single_qubit_rb_total_error'].items()
     }
     return PerQubitDepolarizingNoiseModel(rb_data)
