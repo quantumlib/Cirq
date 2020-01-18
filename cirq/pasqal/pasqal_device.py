@@ -2,7 +2,9 @@ from typing import Iterable, cast
 from numpy import sqrt
 
 import cirq
-from cirq import ops, protocols, Duration, NeutralAtomDevice
+from cirq import ops, protocols
+from cirq.value import Duration
+from cirq.neutral_atoms import NeutralAtomDevice
 from cirq.pasqal import ThreeDGridQubit
 
 

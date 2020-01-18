@@ -5,9 +5,11 @@ import time
 import requests
 
 import cirq
-from cirq import Circuit, devices, Sampler, study, resolve_parameters, protocols
-#from cirq import DensityMatrixSimulator
-from cirq.pasqal import PasqalDevice#, PasqalNoiseModel
+from cirq import devices, study, protocols
+from cirq.protocols import resolve_parameters
+from cirq.circuits import Circuit
+from cirq.work import Sampler
+from cirq.pasqal import PasqalDevice
 
 
 
