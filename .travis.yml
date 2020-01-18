@@ -5,7 +5,7 @@ cache:
   - ".benchmarks"
 branches:
   only:
-  - master
+  - /^v\d+\.\d+\.\d+-dev$/
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
