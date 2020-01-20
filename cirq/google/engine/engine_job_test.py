@@ -121,9 +121,7 @@ def test_calibration_from_job_with_no_calibration(build):
 
     calibrations = service.projects().processors().calibrations()
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(
-        program=cirq.Circuit(),
-        job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
+    job = engine.run_sweep(program=cirq.Circuit())
 
     calibration = job.get_calibration()
     assert not calibration
