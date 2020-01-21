@@ -25,7 +25,7 @@ from cirq.google.arg_func_langs import (
     ARG_LIKE,
     LANGUAGE_ORDER,
 )
-from cirq.api.google import v2
+from cirq.google.api import v2
 
 
 @pytest.mark.parametrize('min_lang,value,proto', [
