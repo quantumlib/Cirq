@@ -47,10 +47,10 @@ matrix:
     os: windows
     env: NAME=pytest (Windows)
     language: sh
-    python: '3.7.3'
+    python: '3.6.3'
     before_install:
-      - choco install python --version 3.7.3
-      - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
+      - choco install python --version 3.6.3
+      - export PATH="/c/Python36:/c/Python36/Scripts:$PATH"
       - python -m pip install --upgrade pip wheel
     install:
       - python -m pip install -r requirements.txt
