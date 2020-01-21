@@ -11,13 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, cast
+from typing import List, cast, Optional
 
 import math
 import numpy as np
 import scipy.linalg
 from cirq import circuits, google, linalg, ops, optimizers, protocols
 from cirq.google.ops import SycamoreGate
+from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
+    GateTabulation)
 
 UNITARY_ZZ = np.kron(protocols.unitary(ops.Z), protocols.unitary(ops.Z))
 PAULI_OPS = [
@@ -43,14 +45,26 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         Otherwise raises a TypeError.
     """
 
-    def __init__(self, ignore_failures=False) -> None:
+    def __init__(self,
+                 tabulation: Optional[GateTabulation] = None,
+                 ignore_failures=False) -> None:
         """
         Args:
+            tabulation: If set, a tabulation for the Sycamore gate to use for
+                decomposing Matrix gates. If unset, an analytic calculation is
+                used for Matrix gates. To get a GateTabulation, call the
+                gate_product_tabulation method with a base gate (in this case,
+                usually cirq.google.SYC) and a maximum infidelity.
             ignore_failures: If set, gates that fail to convert are forwarded
                 unchanged. If not set, conversion failures raise a TypeError.
         """
         super().__init__()
         self.ignore_failures = ignore_failures
+        if tabulation is not None and not isinstance(tabulation,
+                                                     GateTabulation):
+            raise ValueError(
+                "provided tabulation must be of type GateTabulation")
+        self.tabulation = tabulation
 
     def _is_native_sycamore_op(self, op: ops.Operation) -> bool:
         """Check if the given operation is native to a Sycamore device.
@@ -78,8 +92,8 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             gates = optimizers.single_qubit_matrix_to_phased_x_z(mat)
             return [g.on(op.qubits[0]) for g in gates]
         elif len(op.qubits) == 2 and isinstance(op, ops.GateOperation):
-            return self.known_two_q_operations_to_sycamore_operations(
-                op.qubits[0], op.qubits[1], op)
+            return known_two_q_operations_to_sycamore_operations(
+                op.qubits[0], op.qubits[1], op, self.tabulation)
         return NotImplemented
 
     def convert(self, op: ops.Operation) -> List[ops.Operation]:
@@ -134,68 +148,215 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
                                                  new_operations=converted,
                                                  clear_qubits=op.qubits)
 
-    def known_two_q_operations_to_sycamore_operations(self, qubit_a: ops.Qid,
-                                                      qubit_b: ops.Qid,
-                                                      op: ops.GateOperation
-                                                     ) -> ops.OP_TREE:
-        """
-        Synthesize a known gate operation to a sycamore operation
 
-        This function dispatches based on gate type
+def known_two_q_operations_to_sycamore_operations(
+        qubit_a: ops.Qid,
+        qubit_b: ops.Qid,
+        op: ops.GateOperation,
+        tabulation: Optional[GateTabulation] = None) -> ops.OP_TREE:
+    """
+    Synthesize a known gate operation to a sycamore operation
 
-        Args:
-            qubit_a: first qubit of GateOperation
-            qubit_b: second qubit of GateOperation
+    This function dispatches based on gate type
+
+    Args:
+        qubit_a: first qubit of GateOperation
+        qubit_b: second qubit of GateOperation
+        op: operation to decompose
+        tabulation: A tabulation for the Sycamore gate to use for
+            decomposing gates.
+    Returns:
+        New operations iterable object
+    """
+    gate = op.gate
+    if isinstance(gate, ops.PhasedISwapPowGate):
+        if math.isclose(gate.exponent, 1):
+            return decompose_phased_iswap_into_syc(gate.phase_exponent, qubit_a,
+                                                   qubit_b)
+        elif math.isclose(gate.phase_exponent, .25):
+            return decompose_phased_iswap_into_syc_precomputed(
+                gate.exponent * np.pi / 2, qubit_a, qubit_b)
+        else:
+            raise ValueError(
+                "To decompose PhasedISwapPowGate, it must have a phase_exponent"
+                " of .25 OR an exponent of 1.0, but got: {!r}".format(op))
+    if isinstance(gate, ops.CNotPowGate):
+        return [
+            ops.Y(qubit_b)**-0.5,
+            cphase(
+                cast(ops.CNotPowGate, gate).exponent * np.pi, qubit_a, qubit_b),
+            ops.Y(qubit_b)**0.5,
+        ]
+    elif isinstance(gate, ops.CZPowGate):
+        gate = cast(ops.CZPowGate, gate)
+        if math.isclose(gate.exponent, 1.0):  # check if CZ or CPHASE
+            return decompose_cz_into_syc(qubit_a, qubit_b)
+        else:
+            # because CZPowGate == diag([1, 1, 1, e^{i pi phi}])
+            return cphase(gate.exponent * np.pi, qubit_a, qubit_b)
+    elif isinstance(gate, ops.SwapPowGate) and math.isclose(
+            cast(ops.SwapPowGate, gate).exponent, 1.0):
+        return decompose_swap_into_syc(qubit_a, qubit_b)
+    elif isinstance(gate, ops.ISwapPowGate) and math.isclose(
+            cast(ops.ISwapPowGate, gate).exponent, 1.0):
+        return decompose_iswap_into_syc(qubit_a, qubit_b)
+    elif isinstance(gate, ops.ZZPowGate):
+        return rzz(cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
+    elif isinstance(gate, ops.MatrixGate) and len(op.qubits) == 2:
+        if tabulation:
+            return decompose_arbitrary_into_syc_tabulation(
+                qubit_a, qubit_b, op, tabulation)
+        else:
+            return decompose_arbitrary_into_syc_analytic(qubit_a, qubit_b, op)
+    else:
+        raise ValueError("Unrecognized gate: {!r}".format(op))
+
+
+def decompose_phased_iswap_into_syc(phase_exponent: float, a: ops.Qid,
+                                    b: ops.Qid):
+    """Decompose PhasedISwap with an exponent of 1.
+
+    This should only be called if the Gate has an exponent of 1 - otherwise,
+    decompose_phased_iswap_into_syc_precomputed should be used instead. The
+    advantage of using this function is that the resulting circuit will be
+    smaller.
+
+    Args:
+        phase_exponent: The exponent on the Z gates.
+        a: First qubit id to operate on
+        b: Second qubit id to operate on
+    Returns:
+        a Cirq program implementing the Phased ISWAP gate
+
+    """
+
+    yield ops.Z(a)**phase_exponent,
+    yield ops.Z(b)**-phase_exponent,
+    yield decompose_iswap_into_syc(a, b),
+    yield ops.Z(a)**-phase_exponent,
+    yield ops.Z(b)**phase_exponent,
+
+
+def decompose_phased_iswap_into_syc_precomputed(theta: float, a: ops.Qid,
+                                                b: ops.Qid):
+    """Decompose PhasedISwap into sycamore gates using precomputed coefficients.
+
+    This should only be called if the Gate has a phase_exponent of .25. If the
+    gate has an exponent of 1, decompose_phased_iswap_into_syc should be used
+    instead. Converting PhasedISwap gates to Sycamore is not supported if
+    neither of these constraints are satsified.
+
+    This synthesize a PhasedISwap in terms of four sycamore gates.  This
+    compilation converts the gate into a circuit involving two CZ gates, which
+    themselves are each represented as two Sycamore gates and single-qubit
+    rotations
+
+    Args:
+        theta: rotation parameter
+        a: First qubit id to operate on
+        b: Second qubit id to operate on
+    Returns:
+        a Cirq program implementing the Phased ISWAP gate
+
+    """
+
+    yield ops.PhasedXPowGate(phase_exponent=0.41175161497166024,
+                             exponent=0.5653807577895922).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=1.0, exponent=0.5).on(b),
+    yield (ops.Z**0.7099892314883478).on(b),
+    yield (ops.Z**0.6746023442550453).on(a),
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.5154334589432878,
+                             exponent=0.5228733015013345).on(b)
+    yield ops.PhasedXPowGate(phase_exponent=0.06774925307475355).on(a)
+    yield SycamoreGate().on(a, b),
+    yield ops.PhasedXPowGate(phase_exponent=-0.5987667922766213,
+                             exponent=0.4136540654256824).on(a)
+    yield (ops.Z**-0.9255092746611595).on(b)
+    yield (ops.Z**-1.333333333333333).on(a)
+    yield ops.rx(-theta).on(a)
+    yield ops.rx(-theta).on(b)
+
+    yield ops.PhasedXPowGate(phase_exponent=0.5678998743900456,
+                             exponent=0.5863459345743176).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=0.3549946157441739).on(b)
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.5154334589432878,
+                             exponent=0.5228733015013345).on(b)
+    yield ops.PhasedXPowGate(phase_exponent=0.06774925307475355).on(a)
+    yield SycamoreGate().on(a, b)
+    yield ops.PhasedXPowGate(phase_exponent=-0.8151665352515929,
+                             exponent=0.8906746535691492).on(a)
+    yield ops.PhasedXPowGate(phase_exponent=-0.07449072533884049,
+                             exponent=0.5).on(b)
+    yield (ops.Z**-0.9255092746611595).on(b)
+    yield (ops.Z**-0.9777346353961884).on(a)
+
+
+def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
+                                            op: ops.GateOperation,
+                                            tabulation: GateTabulation):
+    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
+    the given Tabulation.
+
+    Args:
+        qubit_a: first qubit of the operation
+        qubit_b: second qubit of the operation
+        op: operation to decompose
+        tabulation: A tabulation for the Sycamore gate.
+    Returns:
+        New operations iterable object
+    """
+    new_ops = []
+    result = tabulation.compile_two_qubit_gate(protocols.unitary(op))
+    local_gates = result.local_unitaries
+    for i, gate_pairs in enumerate(local_gates):
+        new_ops.extend([
+            term.on(qubit_a)
+            for term in optimizers.single_qubit_matrix_to_gates(gate_pairs[0])
+        ])
+        new_ops.extend([
+            term.on(qubit_b)
+            for term in optimizers.single_qubit_matrix_to_gates(gate_pairs[1])
+        ])
+        if i != len(local_gates) - 1:
+            new_ops.append(google.SYC.on(qubit_a, qubit_b))
+    return new_ops
+
+
+def decompose_arbitrary_into_syc_analytic(qubit_a: ops.Qid, qubit_b: ops.Qid,
+                                          op: ops.GateOperation):
+    """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
+    the given Tabulation.
+
+     Args:
+            qubit_a: first qubit of the operation
+            qubit_b: second qubit of the operation
             op: operation to decompose
+            tabulation: A tabulation for the Sycamore gate.
         Returns:
             New operations iterable object
-        """
-        gate = op.gate
-        if isinstance(gate, ops.CNotPowGate):
-            return [
-                ops.Y(qubit_b)**-0.5,
-                cphase(
-                    cast(ops.CNotPowGate, gate).exponent * np.pi, qubit_a,
-                    qubit_b),
-                ops.Y(qubit_b)**0.5,
-            ]
-        elif isinstance(gate, ops.CZPowGate):
-            gate = cast(ops.CZPowGate, gate)
-            if math.isclose(gate.exponent, 1.0):  # check if CZ or CPHASE
-                return decompose_cz_into_syc(qubit_a, qubit_b)
-            else:
-                # because CZPowGate == diag([1, 1, 1, e^{i pi phi}])
-                return cphase(gate.exponent * np.pi, qubit_a, qubit_b)
-        elif isinstance(gate, ops.SwapPowGate) and math.isclose(
-                cast(ops.SwapPowGate, gate).exponent, 1.0):
-            return decompose_swap_into_syc(qubit_a, qubit_b)
-        elif isinstance(gate, ops.ISwapPowGate) and math.isclose(
-                cast(ops.ISwapPowGate, gate).exponent, 1.0):
-            return decompose_iswap_into_syc(qubit_a, qubit_b)
-        elif isinstance(gate, ops.ZZPowGate):
-            return rzz(
-                cast(ops.ZZPowGate, gate).exponent * np.pi / 2, *op.qubits)
-        elif isinstance(gate, ops.MatrixGate) and len(op.qubits) == 2:
-            new_ops = optimizers.two_qubit_matrix_to_operations(
-                op.qubits[0], op.qubits[1], op, allow_partial_czs=True)
-            gate_ops = []
-            for new_op in new_ops:
-                num_qubits = len(new_op.qubits)
-                if num_qubits == 1:
-                    gate_ops.extend([
-                        term.on(new_op.qubits[0])
-                        for term in optimizers.single_qubit_matrix_to_gates(
-                            protocols.unitary(new_op))
-                    ])
-                elif num_qubits == 2:
-                    gate_ops.extend(
-                        ops.flatten_to_ops(
-                            self.known_two_q_operations_to_sycamore_operations(
-                                new_op.qubits[0], new_op.qubits[1],
-                                cast(ops.GateOperation, new_op))))
-            return gate_ops
-        else:
-            raise ValueError("Unrecognized gate: {!r}".format(op))
+     """
+    new_ops = optimizers.two_qubit_matrix_to_operations(op.qubits[0],
+                                                        op.qubits[1],
+                                                        op,
+                                                        allow_partial_czs=True)
+    gate_ops = []
+    for new_op in new_ops:
+        num_qubits = len(new_op.qubits)
+        if num_qubits == 1:
+            gate_ops.extend([
+                term.on(new_op.qubits[0])
+                for term in optimizers.single_qubit_matrix_to_gates(
+                    protocols.unitary(new_op))
+            ])
+        elif num_qubits == 2:
+            gate_ops.extend(
+                ops.flatten_to_ops(
+                    known_two_q_operations_to_sycamore_operations(
+                        new_op.qubits[0], new_op.qubits[1],
+                        cast(ops.GateOperation, new_op))))
+    return gate_ops
 
 
 def decompose_cz_into_syc(a: ops.Qid, b: ops.Qid):
