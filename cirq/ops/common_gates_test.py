@@ -137,6 +137,9 @@ def test_specialized_control(input_gate, specialized_output):
     assert input_gate.controlled(num_controls=1) == specialized_output
     assert input_gate.controlled(control_values=((1,),)) == specialized_output
     assert input_gate.controlled(control_qid_shape=(2,)) == specialized_output
+    assert np.allclose(
+        cirq.unitary(specialized_output),
+        cirq.unitary(cirq.ControlledGate(input_gate, num_controls=1)))
 
     # For multi-qudit controls, if the last control is a qubit with control
     # value 1, construct the specialized output leaving the rest of the

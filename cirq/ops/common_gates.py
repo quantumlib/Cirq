@@ -123,9 +123,10 @@ class XPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for XPow to return corresponding controlled
-        CNotPow when the last control (which acts first semantically) is a
-        default-type control qubit.
+        Specialize controlled method for XPowGate to construct a corresponding
+        controlled CNotPowGate, if applicable.
+        Specialization only happens when the last specified control (which acts
+        first semantically) is a default-type control qubit.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -411,9 +412,10 @@ class ZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for ZPow to return corresponding controlled CZPow
-        when the last control (which acts first semantically) is a default-type
-        control qubit.
+        Specialize controlled method for ZPowGate to construct a corresponding
+        controlled CZPowGate, if applicable.
+        Specialization only happens when the last specified control (which acts
+        first semantically) is a default-type control qubit.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -732,9 +734,10 @@ class CZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for CZPow to return corresponding controlled
-        CCZPow when the last control (which acts first semantically) is a
-        default-type control qubit.
+        Specialize controlled method for CZPowGate to construct a corresponding
+        controlled CCZPowGate, if applicable.
+        Specialization only happens when the last specified control (which acts
+        first semantically) is a default-type control qubit.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -886,9 +889,10 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for CNotPow to return corresponding controlled
-        CCXPow when the last control (which acts first semantically) is a
-        default-type control qubit.
+        Specialize controlled method for CNotPowGate to construct a
+        corresponding controlled CCXPowGate, if applicable.
+        Specialization only happens when the last specified control (which acts
+        first semantically) is a default-type control qubit.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
