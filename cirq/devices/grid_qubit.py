@@ -163,6 +163,8 @@ class GridQubit(ops.Qid):
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row + other.row, col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
@@ -171,6 +173,8 @@ class GridQubit(ops.Qid):
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row - other.row, col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(

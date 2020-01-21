@@ -22,7 +22,7 @@ def _unitaries_allclose(circuit1, circuit2):
     [
         (cast(cirq.Gate, cirq.ISWAP), 7),  # cast is for fixing mypy confusion
         (cirq.CZ, 8),
-        (cirq.SWAP, 13),
+        (cirq.SWAP, 7),
         (cirq.CNOT, 9),
         (cirq.ISWAP**0.5, 1),
         (cirq.ISWAP**-0.5, 1),
