@@ -2,7 +2,7 @@
 
 Fidelity between the desired pure state rho and the actual state sigma is
 defined as:
-F(rho, sigma) = Tr [rho sigma]
+F(rho, sigma) = Tr (rho sigma)
 
 It is a unit-less measurement between 0.0 and 1.0. The following two papers
 independently described a faster way to estimate its value:
