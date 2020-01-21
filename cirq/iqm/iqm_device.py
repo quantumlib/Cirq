@@ -13,6 +13,7 @@
 # limitations under the License.
 """IQM devices https://iqm.fi/devices"""  # TODO: PQC-5
 
+from typing import cast
 import cirq
 from cirq import devices, ops
 
@@ -48,4 +49,9 @@ class Adonis(devices.Device):
         if not isinstance(operation.gate, Adonis.SUPPORTED_GATES):
             raise ValueError('Unsupported gate type: {!r}'.format(operation.gate))
 
-        # TODO check qubit connectivity
+        # TODO check that operation qubits are on device
+
+        if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
+            first_qubit, second_qubit = operation.qubits
+            if not cast(cirq.GridQubit, first_qubit).is_adjacent(second_qubit):
+                raise ValueError('Unsupported qubit connectivity required for {!r}'.format(operation))
