@@ -216,8 +216,8 @@ def test_per_qubit_noise_from_data(build):
         'calibrations': [_CALIBRATION]
     })
     eng = cirq.google.Engine(project_id='myproject')
-    noise_model = simple_noise_from_calibration_metrics(eng,
-                                                        'fake_processor_name')
+    calibration = eng.get_latest_calibration('fake_processor_name')
+    noise_model = simple_noise_from_calibration_metrics(calibration)
     # Confirm that the data was polled from the mock engine.
     assert calibrations.list.call_args[1][
         'parent'] == 'projects/myproject/processors/fake_processor_name'
@@ -241,23 +241,17 @@ def test_per_qubit_noise_from_data(build):
     # Insert channels explicitly to construct expected output.
     true_noisy_program = cirq.Circuit()
     true_noisy_program.append([cirq.H(qubits[0])])
-    true_noisy_program.append([
-        cirq.DepolarizingChannel(0.001).on(qubits[0]),
-        cirq.DepolarizingChannel(0.002).on(qubits[1]),
-        cirq.DepolarizingChannel(0.003).on(qubits[2])
-    ],
+    true_noisy_program.append([cirq.DepolarizingChannel(0.001).on(qubits[0])],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[0], qubits[1])])
     true_noisy_program.append([
         cirq.DepolarizingChannel(0.001).on(qubits[0]),
-        cirq.DepolarizingChannel(0.002).on(qubits[1]),
-        cirq.DepolarizingChannel(0.003).on(qubits[2])
+        cirq.DepolarizingChannel(0.002).on(qubits[1])
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[0], qubits[2])])
     true_noisy_program.append([
         cirq.DepolarizingChannel(0.001).on(qubits[0]),
-        cirq.DepolarizingChannel(0.002).on(qubits[1]),
         cirq.DepolarizingChannel(0.003).on(qubits[2])
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
@@ -265,5 +259,6 @@ def test_per_qubit_noise_from_data(build):
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),
         cirq.measure(qubits[2], key='q2')
-    ])
+    ],
+                              strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)

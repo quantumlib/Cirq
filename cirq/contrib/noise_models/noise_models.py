@@ -172,20 +172,25 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
         if _homogeneous_moment_is_measurements(moment):
             return moment
         else:
+            gated_qubits = [
+                q for q in system_qubits if moment.operates_on_single_qubit(q)
+            ]
+            print(gated_qubits)
             return [
                 moment,
                 ops.Moment(
                     ops.DepolarizingChannel(self.depol_prob_map[q])(q)
-                    for q in system_qubits)
+                    for q in gated_qubits)
             ]
 
 
-def simple_noise_from_calibration_metrics(eng: engine.Engine, processor_id: str
+def simple_noise_from_calibration_metrics(calibration: engine.Calibration
                                          ) -> devices.NoiseModel:
-    """Creates a reasonable PerQubitDepolarizingNoiseModel using the latest
-    calibration data from the given processor.
+    """Creates a reasonable PerQubitDepolarizingNoiseModel using the provided
+    calibration data. This object can be retrived from the engine by calling
+    'get_latest_calibration()' or 'get_calibration()' using the ID of the
+    target processor.
     """
-    calibration = eng.get_latest_calibration(processor_id)
     assert calibration is not None
     rb_data: Dict['cirq.Qid', float] = {
         qubit[0]: depol_prob[0] for qubit, depol_prob in
