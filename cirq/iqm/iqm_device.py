@@ -14,7 +14,7 @@
 """IQM devices https://iqm.fi/devices"""  # TODO: PQC-5
 
 import cirq
-from cirq import devices
+from cirq import devices, ops
 
 
 class Adonis(devices.Device):
@@ -27,6 +27,25 @@ class Adonis(devices.Device):
                     "QQQ\n" \
                     "-Q-\n"
 
+    SUPPORTED_GATES = (
+        ops.CZPowGate,
+        ops.ISwapPowGate,
+        ops.XPowGate,
+        ops.YPowGate,
+        ops.MeasurementGate
+    )
+
     def __init__(self):
         """Instantiate the description of an Adonis device"""
         self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
+
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
+        super().validate_operation(operation)
+
+        if not isinstance(operation, cirq.GateOperation):
+            raise ValueError('Unsupported operation: {!r}'.format(operation))
+
+        if not isinstance(operation.gate, Adonis.SUPPORTED_GATES):
+            raise ValueError('Unsupported gate type: {!r}'.format(operation.gate))
+
+        # TODO check qubit connectivity
