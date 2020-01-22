@@ -63,13 +63,13 @@ from cirq.linalg.operator_spaces import (
 
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    commutes,
     is_diagonal,
     is_hermitian,
     is_orthogonal,
     is_special_orthogonal,
     is_special_unitary,
     is_unitary,
+    matrix_commutes,
     slice_for_qubits_equal_to,
 )
 
