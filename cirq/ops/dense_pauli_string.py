@@ -23,6 +23,7 @@ from cirq import protocols, linalg, value
 from cirq._compat import proper_repr
 from cirq.ops import (raw_types, identity, pauli_gates, global_phase_op,
                       pauli_string)
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -310,7 +311,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return (f'cirq.{type(self).__name__}({repr(paulis)}, '
                 f'coefficient={proper_repr(self.coefficient)})')
 
-    def _commutes_(self, other, *, atol: Union[int, float] = 1e-8):
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n],

@@ -46,7 +46,6 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    api,
     google,
     interop,
     # Applications
@@ -427,6 +426,7 @@ from cirq.protocols import (
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsCommutes,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,
