@@ -14,9 +14,10 @@
 """Protocol for determining commutativity."""
 
 from typing import Any, TypeVar, Union
-from typing_extensions import Protocol
 
 import numpy as np
+
+from typing_extensions import Protocol
 
 from cirq import linalg, ops
 from cirq._doc import document
