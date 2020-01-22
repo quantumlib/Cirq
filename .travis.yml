@@ -51,7 +51,7 @@ matrix:
     before_install:
       - choco install python --version 3.7.3
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-      - python -m pip install --upgrade pip wheel
+      - python -m pip install --upgrade wheel
     install:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
