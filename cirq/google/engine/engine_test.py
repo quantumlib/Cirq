@@ -15,7 +15,6 @@
 """Tests for engine."""
 import base64
 import copy
-import re
 from unittest import mock
 import numpy as np
 import pytest
@@ -25,13 +24,13 @@ from apiclient.errors import HttpError
 
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
 
 _CIRCUIT = cirq.Circuit()
-_SCHEDULE = cirq.moment_by_moment_schedule(cirq.UNCONSTRAINED_DEVICE, _CIRCUIT)
 
 _A_RESULT = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -55,7 +54,7 @@ _A_RESULT = {
 
 _RESULTS = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v1.Result',
+    'type.googleapis.com/cirq.google.api.v1.Result',
     'sweepResults': [{
         'repetitions':
         1,
@@ -86,7 +85,7 @@ _RESULTS = {
 
 _RESULTS_V2 = {
     '@type':
-    'type.googleapis.com/cirq.api.google.v2.Result',
+    'type.googleapis.com/cirq.google.api.v2.Result',
     'sweepResults': [
         {
             'repetitions':
@@ -186,11 +185,32 @@ _CALIBRATION = {
     }
 }
 
+_DEVICE_SPEC = {
+    '@type':
+    'type.googleapis.com/cirq.google.api.v2.DeviceSpecification',
+    'validGateSets': [{
+        'name':
+        'test_set',
+        'validGates': [{
+            'id': 'x',
+            'numberOfQubits': 1,
+            'gateDurationPicos': '1000',
+            'validTargets': ['1q_targets']
+        }]
+    }],
+    'validQubits': ['0_0', '1_1'],
+    'validTargets': [{
+        'name': '1q_targets',
+        'targetOrdering': 'SYMMETRIC',
+        'targets': [{
+            'ids': ['0_0']
+        }]
+    }],
+}
+
 
 def test_job_config_repr():
-    v = cirq.google.JobConfig(job_id='my-job-id',
-                              gcs_prefix='pre',
-                              gcs_results='gc')
+    v = cirq.google.JobConfig(job_id='my-job-id')
     cirq.testing.assert_equivalent_repr(v)
 
 
@@ -213,8 +233,7 @@ def test_run_circuit(build):
 
     engine = cg.Engine(project_id='project-id')
     result = engine.run(program=_CIRCUIT,
-                        job_config=cg.JobConfig(
-                            'job-id', gcs_prefix='gs://bucket/folder'),
+                        job_config=cg.JobConfig('job-id'),
                         processor_ids=['mysim'])
     assert result.repetitions == 1
     assert result.params.param_dict == {'a': 1}
@@ -230,11 +249,6 @@ def test_run_circuit(build):
         'parent': 'projects/project-id/programs/test',
         'body': {
             'name': 'projects/project-id/programs/test/jobs/job-id',
-            'output_config': {
-                'gcs_results_location': {
-                    'uri': 'gs://bucket/folder/jobs/job-id'
-                }
-            },
             'scheduling_config': {
                 'priority': 50,
                 'processor_selector': {
@@ -242,7 +256,7 @@ def test_run_circuit(build):
                 }
             },
             'run_context': {
-                '@type': 'type.googleapis.com/cirq.api.google.v1.RunContext',
+                '@type': 'type.googleapis.com/cirq.google.api.v1.RunContext',
                 'parameter_sweeps': [{
                     'repetitions': 1
                 }]
@@ -266,22 +280,6 @@ def test_circuit_device_validation_fails(build):
         engine.run_sweep(program=circuit)
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         engine.create_program(circuit)
-
-
-@mock.patch.object(discovery, 'build')
-def test_schedule_device_validation_fails(build):
-    scheduled_op = cirq.ScheduledOperation(time=None,
-                                           duration=cirq.Duration(),
-                                           operation=cirq.H.on(
-                                               cirq.NamedQubit("dorothy")))
-    schedule = cirq.Schedule(device=cg.Foxtail,
-                             scheduled_operations=[scheduled_op])
-
-    engine = cg.Engine(project_id='project-id')
-    with pytest.raises(ValueError):
-        engine.run_sweep(program=schedule)
-    with pytest.raises(ValueError):
-        engine.create_program(schedule)
 
 
 @mock.patch.object(discovery, 'build')
@@ -437,8 +435,8 @@ def test_run_sweep_params(build):
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
-        program=_SCHEDULE,
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        program=_CIRCUIT,
+        job_config=cg.JobConfig('project-id'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
     results = job.results()
@@ -467,13 +465,13 @@ def test_run_sweep_params(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_params_new_proto(build):
+def test_run_sweep_params_old_proto(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
     jobs = programs.jobs()
-    results_new_proto = copy.deepcopy(_RESULTS)
-    results_new_proto['@type'] = 'type.googleapis.com/cirq.google.api.v1.Result'
+    results_old_proto = copy.deepcopy(_RESULTS)
+    results_old_proto['@type'] = 'type.googleapis.com/cirq.api.google.v1.Result'
     programs.create().execute.return_value = {
         'name': 'projects/project-id/programs/test'
     }
@@ -489,12 +487,12 @@ def test_run_sweep_params_new_proto(build):
             'state': 'SUCCESS'
         }
     }
-    jobs.getResult().execute.return_value = {'result': results_new_proto}
+    jobs.getResult().execute.return_value = {'result': results_old_proto}
 
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(
-        program=_SCHEDULE,
-        job_config=cg.JobConfig('project-id', gcs_prefix='gs://bucket/folder'),
+        program=_CIRCUIT,
+        job_config=cg.JobConfig('project-id'),
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
     results = job.results()
@@ -540,9 +538,8 @@ def test_run_sweep_v1(build):
         'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(program=_SCHEDULE,
-                           job_config=cg.JobConfig(
-                               'project-id', gcs_prefix='gs://bucket/folder'),
+    job = engine.run_sweep(program=_CIRCUIT,
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V1
@@ -593,7 +590,7 @@ def test_run_multiple_times(build):
     jobs.getResult().execute.return_value = {'result': _RESULTS}
 
     engine = cg.Engine(project_id='project-id')
-    program = engine.create_program(program=_SCHEDULE)
+    program = engine.create_program(program=_CIRCUIT)
     program.run(param_resolver=cirq.ParamResolver({'a': 1}))
     sweeps1 = jobs.create.call_args[1]['body']['run_context'][
         'parameter_sweeps']
@@ -652,9 +649,8 @@ def test_run_sweep_v2(build):
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(program=_SCHEDULE,
-                           job_config=cg.JobConfig(
-                               'project-id', gcs_prefix='gs://bucket/folder'),
+    job = engine.run_sweep(program=_CIRCUIT,
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
@@ -681,7 +677,7 @@ def test_run_sweep_v2(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_run_sweep_v2_new_proto(build):
+def test_run_sweep_v2_old_proto(build):
     service = mock.Mock()
     build.return_value = service
     programs = service.projects().programs()
@@ -701,17 +697,16 @@ def test_run_sweep_v2_new_proto(build):
             'state': 'SUCCESS'
         }
     }
-    results_new_proto = copy.deepcopy(_RESULTS_V2)
-    results_new_proto['@type'] = 'type.googleapis.com/cirq.google.api.v2.Result'
-    jobs.getResult().execute.return_value = {'result': results_new_proto}
+    results_old_proto = copy.deepcopy(_RESULTS_V2)
+    results_old_proto['@type'] = 'type.googleapis.com/cirq.api.google.v2.Result'
+    jobs.getResult().execute.return_value = {'result': results_old_proto}
 
     engine = cg.Engine(
         project_id='project-id',
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
-    job = engine.run_sweep(program=_SCHEDULE,
-                           job_config=cg.JobConfig(
-                               'project-id', gcs_prefix='gs://bucket/folder'),
+    job = engine.run_sweep(program=_CIRCUIT,
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     results = job.results()
     assert engine.proto_version == cg.engine.engine.ProtoVersion.V2
@@ -773,9 +768,8 @@ def test_bad_result_proto(build):
 
     engine = cg.Engine(project_id='project-id',
                        proto_version=cg.engine.engine.ProtoVersion.V2)
-    job = engine.run_sweep(program=_SCHEDULE,
-                           job_config=cg.JobConfig(
-                               'project-id', gcs_prefix='gs://bucket/folder'),
+    job = engine.run_sweep(program=_CIRCUIT,
+                           job_config=cg.JobConfig('project-id'),
                            params=cirq.Points('a', [1, 2]))
     with pytest.raises(ValueError, match='invalid result proto version'):
         job.results()
@@ -821,9 +815,8 @@ def test_cancel(build):
         'executionStatus': {'state': 'CANCELLED'}}
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(program=_SCHEDULE,
-                           job_config=cg.JobConfig(
-                               'project-id', gcs_prefix='gs://bucket/folder'))
+    job = engine.run_sweep(program=_CIRCUIT,
+                           job_config=cg.JobConfig('project-id'))
     job.cancel()
     assert job.job_resource_name == ('projects/project-id/programs/test/'
                                      'jobs/test')
@@ -893,77 +886,17 @@ def test_job_labels(build):
 
 
 @mock.patch.object(discovery, 'build')
-def test_implied_job_config_gcs_prefix(build):
-    eng = cg.Engine(project_id='project_id')
-    config = cg.JobConfig()
-
-    # Implied by project id.
-    assert eng.implied_job_config(config).gcs_prefix == 'gs://gqe-project_id/'
-
-    # Bad default.
-    eng_with_bad = cg.Engine(project_id='project-id',
-                             default_gcs_prefix='bad_prefix')
-    with pytest.raises(ValueError, match='gcs_prefix must be of the form'):
-        _ = eng_with_bad.implied_job_config(config)
-
-    # Good default without slash.
-    eng_with = cg.Engine(project_id='project-id',
-                         default_gcs_prefix='gs://good')
-    assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
-
-    # Good default with slash.
-    eng_with = cg.Engine(project_id='project-id',
-                         default_gcs_prefix='gs://good/')
-    assert eng_with.implied_job_config(config).gcs_prefix == 'gs://good/'
-
-    # Bad override.
-    config.gcs_prefix = 'bad_prefix'
-    with pytest.raises(ValueError, match='gcs_prefix must be of the form'):
-        _ = eng.implied_job_config(config)
-    with pytest.raises(ValueError, match='gcs_prefix must be of the form'):
-        _ = eng_with_bad.implied_job_config(config)
-
-    # Good override without slash.
-    config.gcs_prefix = 'gs://better'
-    assert eng.implied_job_config(config).gcs_prefix == 'gs://better/'
-    assert eng_with.implied_job_config(config).gcs_prefix == 'gs://better/'
-
-    # Good override with slash.
-    config.gcs_prefix = 'gs://better/'
-    assert eng.implied_job_config(config).gcs_prefix == 'gs://better/'
-    assert eng_with.implied_job_config(config).gcs_prefix == 'gs://better/'
-
-
-# uses re.fullmatch
-@mock.patch.object(discovery, 'build')
 def test_implied_job_config(build):
     eng = cg.Engine(project_id='project_id')
 
     # Infer all from project id.
     implied = eng.implied_job_config(cg.JobConfig())
     assert implied.job_id.startswith('job-')
-    assert len(implied.job_id) == 10
-    assert implied.gcs_prefix == 'gs://gqe-project_id/'
-    assert re.match(r'gs://gqe-project_id/jobs/job-', implied.gcs_results)
+    assert len(implied.job_id) == 26
 
     # Force all.
-    implied = eng.implied_job_config(
-        cg.JobConfig(job_id='c', gcs_prefix='gs://d', gcs_results='f'))
+    implied = eng.implied_job_config(cg.JobConfig(job_id='c'))
     assert implied.job_id == 'c'
-    assert implied.gcs_prefix == 'gs://d/'
-    assert implied.gcs_results == 'f'
-
-
-@mock.patch.object(discovery, 'build')
-def test_bad_job_config_inference_order(build):
-    eng = cg.Engine(project_id='project-id')
-    config = cg.JobConfig()
-
-    with pytest.raises(ValueError):
-        eng._infer_gcs_results(config)
-    eng._infer_gcs_prefix(config)
-
-    eng._infer_gcs_results(config)
 
 
 @mock.patch.object(discovery, 'build')
@@ -1054,17 +987,59 @@ def test_calibration_from_job(build):
         },
     }
     calibrations = service.projects().processors().calibrations()
-    calibrations.get().execute.return_value = {'data': _CALIBRATION}
+    calibrations.get().execute.return_value = _CALIBRATION
 
     engine = cg.Engine(project_id='project-id')
-    job = engine.run_sweep(
-        program=_SCHEDULE,
-        job_config=cg.JobConfig(gcs_prefix='gs://bucket/folder'))
+    job = engine.run_sweep(program=_CIRCUIT)
 
     calibration = job.get_calibration()
     assert calibration.timestamp == 1562544000021
     assert set(calibration.keys()) == set(['xeb', 't1', 'globalMetric'])
     assert calibrations.get.call_args[1]['name'] == calibrationName
+
+
+@mock.patch.object(discovery, 'build')
+def test_device_specification(build):
+    service = mock.Mock()
+    build.return_value = service
+    processors = service.projects().processors()
+    processors.get().execute.return_value = ({'deviceSpec': _DEVICE_SPEC})
+    device_spec = cg.Engine(
+        project_id='myproject').get_device_specification('x')
+    assert processors.get.call_args[1][
+        'name'] == 'projects/myproject/processors/x'
+
+    # Construct expected device proto based on JSON example
+    expected = v2.device_pb2.DeviceSpecification()
+    gs = expected.valid_gate_sets.add()
+    gs.name = 'test_set'
+    gates = gs.valid_gates.add()
+    gates.id = 'x'
+    gates.number_of_qubits = 1
+    gates.gate_duration_picos = 1000
+    gates.valid_targets.extend(['1q_targets'])
+    expected.valid_qubits.extend(['0_0', '1_1'])
+    target = expected.valid_targets.add()
+    target.name = '1q_targets'
+    target.target_ordering = v2.device_pb2.TargetSet.SYMMETRIC
+    new_target = target.targets.add()
+    new_target.ids.extend(['0_0'])
+
+    assert device_spec == expected
+
+
+@mock.patch.object(discovery, 'build')
+def test_missing_device_specification(build):
+    service = mock.Mock()
+    build.return_value = service
+    processors = service.projects().processors()
+    processors.get().execute.return_value = ({})
+    device_spec = cg.Engine(
+        project_id='myproject').get_device_specification('x')
+    assert processors.get.call_args[1][
+        'name'] == 'projects/myproject/processors/x'
+
+    assert device_spec == None
 
 
 @mock.patch.object(discovery, 'build')
@@ -1126,7 +1101,7 @@ def test_sampler(build):
     engine = cg.Engine(project_id='project-id')
     sampler = engine.sampler(processor_id='tmp', gate_set=cg.XMON)
     results = sampler.run_sweep(
-        program=_SCHEDULE,
+        program=_CIRCUIT,
         params=[cirq.ParamResolver({'a': 1}),
                 cirq.ParamResolver({'a': 2})])
     assert len(results) == 2

@@ -13,9 +13,12 @@
 # limitations under the License.
 
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from cirq import ops, protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class GridQubit(ops.Qid):
@@ -45,7 +48,7 @@ class GridQubit(ops.Qid):
     def dimension(self) -> int:
         return 2
 
-    def is_adjacent(self, other: ops.Qid) -> bool:
+    def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent qubits."""
         return (isinstance(other, GridQubit) and
                 abs(self.row - other.row) + abs(self.col - other.col) == 1)
@@ -160,6 +163,8 @@ class GridQubit(ops.Qid):
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row + other.row, col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
@@ -168,6 +173,8 @@ class GridQubit(ops.Qid):
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row - other.row, col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(

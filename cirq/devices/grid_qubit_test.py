@@ -78,8 +78,17 @@ ABCDEFGHIJKL
 ----IJKL----
 -----KL-----
 """
-    assert (cirq.GridQubit.from_diagram(s) ==
-            cirq.google.known_devices._parse_device(s)[0])
+    assert len(cirq.GridQubit.from_diagram(s)) == 72
+    s2 = """
+AB
+BA"""
+    assert cirq.GridQubit.from_diagram(s2) == [
+        cirq.GridQubit(0, 0),
+        cirq.GridQubit(0, 1),
+        cirq.GridQubit(1, 0),
+        cirq.GridQubit(1, 1)
+    ]
+
     with pytest.raises(ValueError, match="Input string has invalid character"):
         cirq.GridQubit.from_diagram('@')
 
@@ -144,6 +153,10 @@ def test_grid_qubit_add_subtract():
 
     assert (2, 5) + cirq.GridQubit(1, 2) == cirq.GridQubit(3, 7)
     assert (2, 5) - cirq.GridQubit(1, 2) == cirq.GridQubit(1, 3)
+
+    assert cirq.GridQubit(1, 2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 7)
+    assert cirq.GridQubit(3, 5) - cirq.GridQubit(2, 1) == cirq.GridQubit(1, 4)
+    assert cirq.GridQubit(1, -2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 3)
 
 
 def test_grid_qubit_neg():

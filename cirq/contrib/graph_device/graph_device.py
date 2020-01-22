@@ -15,11 +15,14 @@
 import abc
 import itertools
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, FrozenSet, TYPE_CHECKING, Tuple, cast
 
-from cirq import devices, ops, value, schedules
+from cirq import devices, ops, value
 
 from cirq.contrib.graph_device.hypergraph import UndirectedHypergraph
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class UndirectedGraphDeviceEdge(metaclass=abc.ABCMeta):
@@ -147,8 +150,12 @@ class UndirectedGraphDevice(devices.Device):
         self.crosstalk_graph = crosstalk_graph
 
     @property
-    def qubits(self):
-        return tuple(sorted(self.device_graph.vertices))
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return cast(Tuple['cirq.Qid', ...],
+                    tuple(sorted(self.device_graph.vertices)))
+
+    def qubit_set(self) -> FrozenSet['cirq.Qid']:
+        return frozenset(self.qubits)
 
     @property
     def edges(self):
@@ -195,21 +202,6 @@ class UndirectedGraphDevice(devices.Device):
         for i, op in enumerate(ops):
             other_ops = ops[:i] + ops[i + 1:]
             self.validate_crosstalk(op, other_ops)
-
-    def validate_scheduled_operation(
-            self, schedule: schedules.Schedule,
-            scheduled_operation: schedules.ScheduledOperation) -> None:
-        operation = scheduled_operation.operation
-        self.validate_operation(operation)
-
-        other_operations = (
-            scheduled_operation.operation for scheduled_operation in
-            schedule.operations_happening_at_same_time_as(scheduled_operation))
-        self.validate_crosstalk(operation, other_operations)
-
-    def validate_schedule(self, schedule: schedules.Schedule) -> None:
-        for scheduled_operation in schedule.scheduled_operations:
-            self.validate_scheduled_operation(schedule, scheduled_operation)
 
     def __eq__(self, other):
         return ((self.device_graph == other.device_graph) and

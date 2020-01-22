@@ -54,10 +54,10 @@ def test_kak_decomposes_unknown_two_qubit_gate():
     assert sum(1 for op in circuit.all_operations()
                  if len(op.qubits) > 1) == 2
     assert sum(1 for op in circuit.all_operations()
-               if cirq.op_gate_of_type(op, cirq.CZPowGate)) == 2
+               if isinstance(op.gate, cirq.CZPowGate)) == 2
     assert all(op.gate.exponent == 1
                for op in circuit.all_operations()
-               if cirq.op_gate_of_type(op, cirq.CZPowGate))
+               if isinstance(op.gate, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
                                                     c_orig.unitary(),
                                                     atol=1e-7)
@@ -142,7 +142,7 @@ def test_allow_partial_czs():
 
     # yapf: disable
     circuit2 = cirq.Circuit(
-        cirq.TwoQubitMatrixGate((np.array([[1, 0, 0, 0],
+        cirq.MatrixGate((np.array([[1, 0, 0, 0],
                                            [0, 1, 0, 0],
                                            [0, 0, 1, 0],
                                            [0, 0, 0, 1j]]))).on(q0, q1))
@@ -166,10 +166,10 @@ def test_dont_allow_partial_czs():
     assert sum(1 for op in circuit.all_operations()
                  if len(op.qubits) > 1) == 2
     assert sum(1 for op in circuit.all_operations()
-               if cirq.op_gate_of_type(op, cirq.CZPowGate)) == 2
+               if isinstance(op.gate, cirq.CZPowGate)) == 2
     assert all(op.gate.exponent % 2 == 1
                for op in circuit.all_operations()
-               if cirq.op_gate_of_type(op, cirq.CZPowGate))
+               if isinstance(op.gate, cirq.CZPowGate))
     cirq.testing.assert_allclose_up_to_global_phase(circuit.unitary(),
                                                     c_orig.unitary(),
                                                     atol=1e-7)

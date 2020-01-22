@@ -16,8 +16,7 @@
 
 import collections
 
-from typing import (Any, Dict, Iterator, List, Optional, Type, Union,
-                    TYPE_CHECKING)
+from typing import Dict, Iterator, List, Type, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -121,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: Optional[Union[int, np.random.RandomState]] = None):
+                 seed: value.RANDOM_STATE_LIKE = None):
         """Density matrix simulator.
 
          Args:
@@ -135,14 +134,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 'dtype must be complex64 or complex128, was {}'.format(dtype))
 
         self._dtype = dtype
+        self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
-
-        if seed is None:
-            self.prng = None
-        elif isinstance(seed, np.random.RandomState):
-            self.prng = seed
-        else:
-            self.prng = np.random.RandomState(seed)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -171,7 +164,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                ops.MeasurementGate)]
         return step_result.sample_measurement_ops(measurement_ops,
                                                   repetitions,
-                                                  seed=self.prng)
+                                                  seed=self._prng)
 
     def _run_sweep_repeat(self,
                           circuit: circuits.Circuit,
@@ -260,8 +253,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or (ops.op_gate_of_type(
-                potential_op, ops.MeasurementGate) is not None))
+            return (protocols.has_channel(potential_op) or
+                    isinstance(potential_op.gate, ops.MeasurementGate))
 
         noisy_moments = self.noise.noisy_moments(circuit,
                                                  sorted(circuit.all_qubits()))
@@ -276,8 +269,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
-                meas = ops.op_gate_of_type(op, ops.MeasurementGate)
-                if meas:
+                if isinstance(op.gate, ops.MeasurementGate):
+                    meas = op.gate
                     if perform_measurements:
                         invert_mask = meas.full_invert_mask()
                         # Measure updates inline.
@@ -286,7 +279,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                             indices,
                             qid_shape=qid_shape,
                             out=state.tensor,
-                            seed=self.prng)
+                            seed=self._prng)
                         corrected = [
                             bit ^ (bit < 2 and mask)
                             for bit, mask in zip(bits, invert_mask)
@@ -419,8 +412,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: Optional[Union[int, np.random.RandomState]] = None
-              ) -> np.ndarray:
+               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,

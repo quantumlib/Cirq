@@ -24,6 +24,11 @@ from cirq.protocols.apply_channel_protocol import (
     ApplyChannelArgs,
     SupportsApplyChannel,
 )
+from cirq.protocols.apply_mixture_protocol import (
+    apply_mixture,
+    ApplyMixtureArgs,
+    SupportsApplyMixture,
+)
 from cirq.protocols.approximate_equality_protocol import (
     approx_eq,
     SupportsApproximateEquality,
@@ -32,6 +37,10 @@ from cirq.protocols.channel import (
     channel,
     has_channel,
     SupportsChannel,
+)
+from cirq.protocols.commutes import (
+    commutes,
+    definitely_commutes,
 )
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
@@ -47,17 +56,21 @@ from cirq.protocols.decompose_protocol import (
     SupportsDecomposeWithQubits,
 )
 from cirq.protocols.equal_up_to_global_phase_protocol import (
-    equal_up_to_global_phase,)
+    equal_up_to_global_phase,
+    SupportsEqualUpToGlobalPhase,
+)
 from cirq.protocols.inverse_protocol import (
     inverse,)
-from cirq.protocols.json import (
+from cirq.protocols.json_serialization import (
     to_json,
     read_json,
     obj_to_dict_helper,
+    SupportsJSON,
 )
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (
     has_mixture,

@@ -32,27 +32,53 @@ class GateWithAttribute(cirq.SingleQubitGate):
         return (self.val,)
 
 
-TEST_CASES = ((float, 1.0, {
-    'arg_value': {
-        'float_value': 1.0
-    }
-}), (str, 'abc', {
-    'arg_value': {
-        'string_value': 'abc'
-    }
-}), (float, 1, {
-    'arg_value': {
-        'float_value': 1.0
-    }
-}), (List[bool], [True, False], {
-    'arg_value': {
-        'bool_values': {
-            'values': [True, False]
+TEST_CASES = [
+    (float, 1.0, {
+        'arg_value': {
+            'float_value': 1.0
         }
-    }
-}), (sympy.Symbol, sympy.Symbol('x'), {
-    'symbol': 'x'
-}))
+    }),
+    (str, 'abc', {
+        'arg_value': {
+            'string_value': 'abc'
+        }
+    }),
+    (float, 1, {
+        'arg_value': {
+            'float_value': 1.0
+        }
+    }),
+    (List[bool], [True, False], {
+        'arg_value': {
+            'bool_values': {
+                'values': [True, False]
+            }
+        }
+    }),
+    (sympy.Symbol, sympy.Symbol('x'), {
+        'symbol': 'x'
+    }),
+    (float, sympy.Symbol('x') - sympy.Symbol('y'), {
+        'func': {
+            'type':
+            'add',
+            'args': [{
+                'symbol': 'x'
+            }, {
+                'func': {
+                    'type': 'mul',
+                    'args': [{
+                        'arg_value': {
+                            'float_value': -1.0
+                        }
+                    }, {
+                        'symbol': 'y'
+                    }]
+                }
+            }]
+        }
+    }),
+]
 
 
 @pytest.mark.parametrize(('val_type', 'val', 'arg_value'), TEST_CASES)
@@ -77,7 +103,8 @@ def test_from_proto(val_type, val, arg_value):
         }]
     }
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto_dict(serialized)
+    result = deserializer.from_proto_dict(serialized,
+                                          arg_function_language='linear')
     assert result == GateWithAttribute(val)(q)
 
 
@@ -107,6 +134,106 @@ def test_from_proto_required_missing():
     }
     with pytest.raises(Exception, match='my_val'):
         deserializer.from_proto_dict(serialized)
+
+
+def test_from_proto_unknown_function():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val',
+                                             )
+                                         ])
+    serialized = {
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'func': {
+                    'type': 'UNKNOWN_OPERATION',
+                    'args': [
+                        {
+                            'symbol': 'x'
+                        },
+                        {
+                            'arg_value': {
+                                'float_value': -1.0
+                            }
+                        },
+                    ]
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    with pytest.raises(ValueError, match='Unrecognized function type'):
+        _ = deserializer.from_proto_dict(serialized)
+
+
+def test_from_proto_value_type_not_recognized():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val',
+                                             )
+                                         ])
+    serialized = {
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {},
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    with pytest.raises(ValueError, match='Unrecognized value type'):
+        _ = deserializer.from_proto_dict(serialized)
+
+
+def test_from_proto_function_argument_not_set():
+    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
+                                         gate_constructor=GateWithAttribute,
+                                         args=[
+                                             cg.DeserializingArg(
+                                                 serialized_name='my_val',
+                                                 constructor_arg_name='val',
+                                             )
+                                         ])
+    serialized = {
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'func': {
+                    'type': 'mul',
+                    'args': [
+                        {
+                            'symbol': 'x'
+                        },
+                        {},
+                    ]
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    }
+    with pytest.raises(ValueError,
+                       match='A multiplication argument is missing'):
+        _ = deserializer.from_proto_dict(serialized,
+                                         arg_function_language='linear')
 
 
 def test_from_proto_unknown_arg_type():

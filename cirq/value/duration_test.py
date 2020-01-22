@@ -17,7 +17,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 from cirq.value import Duration
 
 
@@ -91,16 +90,6 @@ def test_eq():
     # Can't hash match 0, but no-duration is equal to 0.
     assert Duration() == 0
     assert Duration(picos=1) != 0
-
-
-def test_create_deprecated():
-    with capture_logging() as log:
-        actual = cirq.Duration.create(timedelta(0))
-    assert len(log) == 1
-    assert 'cirq.Duration.create was used' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.Duration()
 
 
 def test_parameterized():

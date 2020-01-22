@@ -204,8 +204,8 @@ def test_to_valid_density_matrix_from_state():
 
 
 def test_to_valid_density_matrix_from_state_invalid_state():
-    with pytest.raises(ValueError, match="2 qubits"):
-        cirq.to_valid_density_matrix(np.array([1, 0]), num_qubits=2)
+    with pytest.raises(ValueError, match="shape was neither"):
+        cirq.to_valid_density_matrix(np.array([1, 0, 0]), num_qubits=2)
 
 
 def test_to_valid_density_matrix_from_computational_basis():
@@ -224,7 +224,7 @@ def test_to_valid_density_matrix_from_computational_basis():
 
 
 def test_to_valid_density_matrix_from_state_invalid_computational_basis():
-    with pytest.raises(ValueError, match="positive"):
+    with pytest.raises(ValueError, match="out of range"):
         cirq.to_valid_density_matrix(-1, num_qubits=2)
 
 

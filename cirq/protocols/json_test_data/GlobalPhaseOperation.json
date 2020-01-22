@@ -1,0 +1,8 @@
+{
+  "cirq_type": "GlobalPhaseOperation",
+  "coefficient": {
+    "cirq_type": "complex",
+    "real": -0.0,
+    "imag": -1.0
+  }
+}

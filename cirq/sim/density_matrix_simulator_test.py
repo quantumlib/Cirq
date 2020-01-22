@@ -922,8 +922,8 @@ def test_random_seed_does_not_modify_global_state_terminal_measurements():
 def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(
-        cirq.X(a)**0.5, cirq.measure(a),
-        cirq.X(a)**0.5, cirq.measure(a))
+        cirq.X(a)**0.5, cirq.measure(a, key='a0'),
+        cirq.X(a)**0.5, cirq.measure(a, key='a1'))
 
     sim = cirq.DensityMatrixSimulator(seed=1234)
     result1 = sim.run(circuit, repetitions=50)
@@ -934,6 +934,39 @@ def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     result2 = sim.run(circuit, repetitions=50)
 
     assert result1 == result2
+
+
+def test_random_seed_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a, key='a'))
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=30)
+    result2 = sim.run(circuit, repetitions=30)
+    assert np.all(result1.measurements['a'] ==
+                  [[0], [1], [0], [1], [1], [0], [0], [1], [1], [1], [0], [1],
+                   [1], [1], [0], [1], [1], [0], [1], [1], [0], [1], [0], [0],
+                   [1], [1], [0], [1], [0], [1]])
+    assert np.all(result2.measurements['a'] ==
+                  [[1], [0], [1], [0], [1], [1], [0], [1], [0], [1], [0], [0],
+                   [0], [1], [1], [1], [0], [1], [0], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [1], [1], [1]])
+
+
+def test_random_seed_non_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a'),
+        cirq.X(a)**0.5, cirq.measure(a, key='b'))
+    sim = cirq.DensityMatrixSimulator(seed=1234)
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[0], [0], [1], [0], [1], [0], [1], [0], [1], [1], [0], [0],
+                   [1], [0], [0], [1], [1], [1], [0], [0], [0], [0], [1], [0],
+                   [0], [0], [1], [1], [1], [1]])
+    assert np.all(result.measurements['b'] ==
+                  [[1], [1], [0], [1], [1], [1], [1], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [0], [0], [1], [1], [1], [0], [1], [1], [1],
+                   [1], [1], [0], [1], [1], [1]])
 
 
 def test_simulate_with_invert_mask():
