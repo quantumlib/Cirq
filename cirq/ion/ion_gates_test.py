@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq._compat_test import capture_logging
 
 
 def test_ms_arguments():
@@ -64,4 +65,6 @@ b: ───×───────────MS(π)───
 
 @pytest.mark.parametrize('rads', (-1, -0.1, 0.2, 1))
 def test_deprecated_ms(rads):
-    assert np.all(cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
+    with capture_logging():
+        assert np.all(
+            cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))
