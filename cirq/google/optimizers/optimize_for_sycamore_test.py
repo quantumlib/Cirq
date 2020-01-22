@@ -17,6 +17,8 @@ import pytest
 import cirq
 import cirq.google as cg
 
+import numpy as np
+
 
 @pytest.mark.parametrize('optimizer_type, gateset', [
     ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
@@ -41,3 +43,27 @@ def test_invalid_input():
                                cirq.X(q0)**0.2,
                                cirq.Z(q1)**0.2, cirq.measure(q0, q1, key='m'))
         _ = cg.optimized_for_sycamore(circuit, optimizer_type='for_tis_100')
+
+
+def test_tabulation():
+    q0, q1 = cirq.LineQubit.range(2)
+    u = cirq.testing.random_special_unitary(
+        4, random_state=np.random.RandomState(52))
+    circuit = cirq.Circuit(cirq.MatrixGate(u).on(q0, q1))
+    np.testing.assert_allclose(u, cirq.unitary(circuit))
+
+    circuit2 = cg.optimized_for_sycamore(circuit, optimizer_type='sycamore')
+    cirq.testing.assert_allclose_up_to_global_phase(u,
+                                                    cirq.unitary(circuit2),
+                                                    atol=1e-5)
+    assert len(circuit2) == 14
+
+    # sorry for the weak tolerances...
+    circuit3 = cg.optimized_for_sycamore(circuit,
+                                         optimizer_type='sycamore',
+                                         tabulation_resolution=0.01)
+    cirq.testing.assert_allclose_up_to_global_phase(u,
+                                                    cirq.unitary(circuit3),
+                                                    rtol=1e-1,
+                                                    atol=1e-1)
+    assert len(circuit3) == 8
