@@ -175,7 +175,6 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
             gated_qubits = [
                 q for q in system_qubits if moment.operates_on_single_qubit(q)
             ]
-            print(gated_qubits)
             return [
                 moment,
                 ops.Moment(
