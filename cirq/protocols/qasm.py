@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Union, Any, Tuple, TypeVar, Optional, Dict, \
 from typing_extensions import Protocol
 
 from cirq import ops
+from cirq._doc import document
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -81,6 +82,7 @@ class SupportsQasm(Protocol):
     will be used instead.
     """
 
+    @document
     def _qasm_(self) -> Union[None, NotImplementedType, str]:
         pass
 
@@ -93,6 +95,7 @@ class SupportsQasmWithArgs(Protocol):
     will be used instead.
     """
 
+    @document
     def _qasm_(self,
                args: QasmArgs) -> Union[None, NotImplementedType, str]:
         pass
@@ -106,6 +109,7 @@ class SupportsQasmWithArgsAndQubits(Protocol):
     will be used instead.
     """
 
+    @document
     def _qasm_(self,
                qubits: Tuple['cirq.Qid'],
                args: QasmArgs) -> Union[None, NotImplementedType, str]:
