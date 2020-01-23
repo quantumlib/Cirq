@@ -17,13 +17,16 @@ different pre-measurement rotations.
 The code is designed to be modular with regards to data collection
 so that occurs outside of the StateTomographyExperiment class.
 """
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, protocols, study, work
+from cirq import circuits, ops, protocols, study
 from cirq.experiments.qubit_characterizations import TomographyResult
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class StateTomographyExperiment:
@@ -45,7 +48,7 @@ class StateTomographyExperiment:
     """
 
     def __init__(self,
-                 qubits: Sequence[ops.Qid],
+                 qubits: Sequence['cirq.Qid'],
                  prerotations: Optional[Sequence[Tuple[float, float]]] = None):
         """Initializes the rotation protocol and matrix for system.
 
@@ -64,8 +67,8 @@ class StateTomographyExperiment:
 
         phase_exp_vals, exp_vals = zip(*prerotations)
 
-        operations: List[ops.Operation] = []
-        sweeps: List[study.Sweep] = []
+        operations: List['cirq.Operation'] = []
+        sweeps: List['cirq.Sweep'] = []
         for i, qubit in enumerate(qubits):
             phase_exp = sympy.Symbol(f'phase_exp_{i}')
             exp = sympy.Symbol(f'exp_{i}')
@@ -100,7 +103,7 @@ class StateTomographyExperiment:
         mat = np.einsum('jkm,jkn->jkmn', unitaries, unitaries.conj())
         return mat.reshape((num_rots * num_states, num_states * num_states))
 
-    def fit_density_matrix(self, counts: np.ndarray) -> 'TomographyResult':
+    def fit_density_matrix(self, counts: np.ndarray) -> TomographyResult:
         """Solves equation mat * rho = probs.
 
         Args:
@@ -123,12 +126,12 @@ class StateTomographyExperiment:
 
 
 def state_tomography(
-        sampler: work.Sampler,
-        qubits: Sequence[ops.Qid],
-        circuit: circuits.Circuit,
+        sampler: 'cirq.Sampler',
+        qubits: Sequence['cirq.Qid'],
+        circuit: 'cirq.Circuit',
         repetitions: int = 1000,
         prerotations: Sequence[Tuple[float, float]] = None,
-) -> 'TomographyResult':
+) -> TomographyResult:
     """This performs n qubit tomography on a cirq circuit
 
     Follows https://web.physics.ucsb.edu/~martinisgroup/theses/Neeley2010b.pdf
@@ -162,11 +165,11 @@ def state_tomography(
     return exp.fit_density_matrix(probs)
 
 
-def get_state_tomography_data(sampler: work.Sampler,
-                              qubits: Sequence[ops.Qid],
-                              circuit: circuits.Circuit,
-                              rot_circuit: circuits.Circuit,
-                              rot_sweep: study.Sweep,
+def get_state_tomography_data(sampler: 'cirq.Sampler',
+                              qubits: Sequence['cirq.Qid'],
+                              circuit: 'cirq.Circuit',
+                              rot_circuit: 'cirq.Circuit',
+                              rot_sweep: 'cirq.Sweep',
                               repetitions: int = 1000) -> np.ndarray:
     """Gets the data for each rotation string added to the circuit.
 
