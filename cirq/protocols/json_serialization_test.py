@@ -187,6 +187,7 @@ SHOULDNT_BE_SERIALIZED = [
     'GreedySequenceSearchStrategy',
     'SerializingArg',
     'Unique',
+    'DEFAULT_RESOLVERS',
 
     # Quantum Engine
     'Engine',
