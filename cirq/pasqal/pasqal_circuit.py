@@ -6,7 +6,7 @@ import requests
 
 import cirq
 from cirq import devices, study, protocols
-from cirq.protocols import resolve_parameters
+from cirq.protocols.resolve_parameters import resolve_parameters
 from cirq.circuits import Circuit
 from cirq.work import Sampler
 from cirq.pasqal import PasqalDevice
