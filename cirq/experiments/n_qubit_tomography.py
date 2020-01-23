@@ -22,7 +22,7 @@ from typing import List, Optional, Sequence, Tuple
 import numpy as np
 import sympy
 
-import cirq
+from cirq import circuits, ops, protocols, study, work
 from cirq.experiments.qubit_characterizations import TomographyResult
 
 
@@ -45,7 +45,7 @@ class StateTomographyExperiment:
     """
 
     def __init__(self,
-                 qubits: Sequence[cirq.Qid],
+                 qubits: Sequence[ops.Qid],
                  prerotations: Optional[Sequence[Tuple[float, float]]] = None):
         """Initializes the rotation protocol and matrix for system.
 
@@ -65,19 +65,19 @@ class StateTomographyExperiment:
 
         phase_exp_vals, exp_vals = zip(*prerotations)
 
-        ops: List[cirq.Operation] = []
-        sweeps: List[cirq.Sweep] = []
+        operations: List[ops.Operation] = []
+        sweeps: List[study.Sweep] = []
         for i, qubit in enumerate(qubits):
             phase_exp = sympy.Symbol(f'phase_exp_{i}')
             exp = sympy.Symbol(f'exp_{i}')
-            gate = cirq.PhasedXPowGate(phase_exponent=phase_exp, exponent=exp)
-            ops.append(gate.on(qubit))
+            gate = ops.PhasedXPowGate(phase_exponent=phase_exp, exponent=exp)
+            operations.append(gate.on(qubit))
             sweeps.append(
-                cirq.Points(phase_exp, phase_exp_vals) +
-                cirq.Points(exp, exp_vals))
+                study.Points(phase_exp, phase_exp_vals) +
+                study.Points(exp, exp_vals))
 
-        self.rot_circuit = cirq.Circuit(ops)
-        self.rot_sweep = cirq.Product(*sweeps)
+        self.rot_circuit = circuits.Circuit(operations)
+        self.rot_sweep = study.Product(*sweeps)
         self.mat = self._make_state_tomography_matrix()
 
     def _make_state_tomography_matrix(self) -> np.ndarray:
@@ -94,7 +94,8 @@ class StateTomographyExperiment:
 
         # Unitary matrices of each rotation circuit.
         unitaries = np.array([
-            cirq.unitary(cirq.resolve_parameters(self.rot_circuit, rots))
+            protocols.unitary(
+                protocols.resolve_parameters(self.rot_circuit, rots))
             for rots in self.rot_sweep
         ])
         mat = np.einsum('jkm,jkn->jkmn', unitaries, unitaries.conj())
@@ -123,9 +124,9 @@ class StateTomographyExperiment:
 
 
 def state_tomography(
-        sampler: cirq.Sampler,
-        qubits: Sequence[cirq.Qid],
-        circuit: cirq.Circuit,
+        sampler: work.Sampler,
+        qubits: Sequence[ops.Qid],
+        circuit: circuits.Circuit,
         repetitions: int = 1000,
         prerotations: Sequence[Tuple[float, float]] = None,
 ) -> 'TomographyResult':
@@ -162,11 +163,11 @@ def state_tomography(
     return exp.fit_density_matrix(probs)
 
 
-def get_state_tomography_data(sampler: cirq.Sampler,
-                              qubits: Sequence[cirq.Qid],
-                              circuit: cirq.Circuit,
-                              rot_circuit: cirq.Circuit,
-                              rot_sweep: cirq.Sweep,
+def get_state_tomography_data(sampler: work.Sampler,
+                              qubits: Sequence[ops.Qid],
+                              circuit: circuits.Circuit,
+                              rot_circuit: circuits.Circuit,
+                              rot_sweep: study.Sweep,
                               repetitions: int = 1000) -> np.ndarray:
     """Gets the data for each rotation string added to the circuit.
 
@@ -191,7 +192,7 @@ def get_state_tomography_data(sampler: cirq.Sampler,
         applied and second index is the qubit state.
     """
     results = sampler.run_sweep(circuit + rot_circuit +
-                                [cirq.measure(*qubits, key='z')],
+                                [ops.measure(*qubits, key='z')],
                                 params=rot_sweep,
                                 repetitions=repetitions)
 
