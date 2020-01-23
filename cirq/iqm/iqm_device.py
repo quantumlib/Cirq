@@ -49,7 +49,9 @@ class Adonis(devices.Device):
         if not isinstance(operation.gate, Adonis.SUPPORTED_GATES):
             raise ValueError('Unsupported gate type: {!r}'.format(operation.gate))
 
-        # TODO check that operation qubits are on device
+        for qubit in operation.qubits:
+            if qubit not in self.qubits:
+                raise ValueError('Qubit not on device: {!r}'.format(qubit))
 
         if len(operation.qubits) == 2 and not isinstance(operation.gate, ops.MeasurementGate):
             first_qubit, second_qubit = operation.qubits
