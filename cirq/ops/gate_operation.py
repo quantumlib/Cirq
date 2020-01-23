@@ -118,8 +118,8 @@ class GateOperation(raw_types.Operation):
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         return protocols.unitary(self.gate, default=None)
 
-    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
         return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
 
     def _has_mixture_(self) -> bool:
