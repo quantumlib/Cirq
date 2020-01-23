@@ -46,9 +46,10 @@ def test_qubits_not_connected():
     adonis = cirq.iqm.Adonis()
 
     with pytest.raises(ValueError):
-        adonis.validate_operation(cirq.GateOperation(cirq.CZ,
-                                                     [cirq.GridQubit(0, 1),
-                                                      cirq.GridQubit(1, 2)]))
+        adonis.validate_operation(
+            cirq.GateOperation(cirq.CZ,
+                               [cirq.GridQubit(0, 1),
+                                cirq.GridQubit(1, 2)]))
 
     with pytest.raises(ValueError):
         adonis.validate_operation(
