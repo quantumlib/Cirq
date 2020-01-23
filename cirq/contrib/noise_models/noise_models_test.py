@@ -231,8 +231,7 @@ def test_per_qubit_noise_from_data():
         cirq.Moment([
             cirq.DepolarizingChannel(0.001).on(qubits[0]),
             cirq.DepolarizingChannel(0.002).on(qubits[1])
-        ]),
-        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        ]), cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
         cirq.Moment([
             cirq.DepolarizingChannel(0.001).on(qubits[0]),
             cirq.DepolarizingChannel(0.003).on(qubits[2])
