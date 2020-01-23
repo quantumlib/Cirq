@@ -87,9 +87,7 @@ def _get_sqrt_iswap_optimizers(tolerance: float, tabulation: Optional[GateTabula
         ConvertToSqrtIswapGates().optimize_circuit,
         lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
             c, tolerance),
-        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
-        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
