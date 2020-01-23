@@ -1,4 +1,5 @@
-import cirq, pytest
+import cirq
+import pytest
 
 
 def test_valid_operations():
