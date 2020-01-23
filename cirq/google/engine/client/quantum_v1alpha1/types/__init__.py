@@ -1,4 +1,6 @@
-# Copyright 2019 The Cirq Developers
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,23 +13,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Data format v1 for google api."""
 
-from cirq.google.api.v1 import (
-    operations_pb2,
-    params_pb2,
-    program_pb2,
-)
+from google.protobuf import any_pb2
+from google.protobuf import empty_pb2
+from google.protobuf import field_mask_pb2
+from google.protobuf import timestamp_pb2
 
-from cirq.google.api.v1.params import (sweep_from_proto, sweep_to_proto)
-
-from cirq.google.api.v1.programs import (
-    gate_to_proto,
-    is_native_xmon_gate,
-    is_native_xmon_op,
-    pack_results,
-    circuit_as_schedule_to_protos,
-    circuit_from_schedule_from_protos,
-    unpack_results,
-    xmon_op_from_proto,
-)
+from cirq.google.engine.client.quantum_v1alpha1.proto.engine_pb2 import *
