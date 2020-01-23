@@ -145,11 +145,10 @@ def state_tomography(
         repetitions: Number of times to sample each rotation.
         prerotations: Tuples of (phase_exponent, exponent) parameters for gates
             to apply to the qubits before measurement. The actual rotation
-            applied will be
-                `cirq.PhasedXPowGate(
-                    phase_exponent=phase_exponent, exponent=exponent)`
-            If none, we use [(0, 0), (0, 0.5), (0.5, 0.5)], which corresponds to
-            rotation gates [I, X**0.5, Y**0.5].
+            applied will be `cirq.PhasedXPowGate` with the specified values
+            of phase_exponent and exponent. If None, we use [(0, 0), (0, 0.5),
+            (0.5, 0.5)], which corresponds to rotation gates
+            [I, X**0.5, Y**0.5].
 
     Returns:
         `TomographyResult` which contains the density matrix of the qubits
