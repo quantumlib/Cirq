@@ -114,6 +114,7 @@ def _gate_product_tabulation_cached(optimizer_type, tabulation_resolution):
 
 def optimized_for_sycamore(
         circuit: 'cirq.Circuit',
+        *,
         new_device: Optional['cirq.google.XmonDevice'] = None,
         qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
             devices.GridQubit, e),
