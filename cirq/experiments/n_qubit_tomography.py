@@ -17,13 +17,16 @@ different pre-measurement rotations.
 The code is designed to be modular with regards to data collection
 so that occurs outside of the StateTomographyExperiment class.
 """
-from typing import List, Optional, Sequence, Tuple
+from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
-import cirq
+from cirq import circuits, ops, protocols, study
 from cirq.experiments.qubit_characterizations import TomographyResult
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class StateTomographyExperiment:
@@ -45,7 +48,7 @@ class StateTomographyExperiment:
     """
 
     def __init__(self,
-                 qubits: Sequence[cirq.Qid],
+                 qubits: Sequence['cirq.Qid'],
                  prerotations: Optional[Sequence[Tuple[float, float]]] = None):
         """Initializes the rotation protocol and matrix for system.
 
@@ -53,11 +56,10 @@ class StateTomographyExperiment:
             qubits: Qubits to do the tomography on.
             prerotations: Tuples of (phase_exponent, exponent) parameters for
                 gates to apply to the qubits before measurement. The actual
-                rotation applied will be
-                    `cirq.PhasedXPowGate(
-                        phase_exponent=phase_exponent, exponent=exponent)`
-                If none, we use [(0, 0), (0, 0.5), (0.5, 0.5)], which
-                corresponds to rotation gates [I, X**0.5, Y**0.5].
+                rotation applied will be `cirq.PhasedXPowGate` with the
+                specified values of phase_exponent and exponent. If None,
+                we use [(0, 0), (0, 0.5), (0.5, 0.5)], which corresponds
+                to rotation gates [I, X**0.5, Y**0.5].
         """
         if prerotations is None:
             prerotations = [(0, 0), (0, 0.5), (0.5, 0.5)]
@@ -65,19 +67,19 @@ class StateTomographyExperiment:
 
         phase_exp_vals, exp_vals = zip(*prerotations)
 
-        ops: List[cirq.Operation] = []
-        sweeps: List[cirq.Sweep] = []
+        operations: List['cirq.Operation'] = []
+        sweeps: List['cirq.Sweep'] = []
         for i, qubit in enumerate(qubits):
             phase_exp = sympy.Symbol(f'phase_exp_{i}')
             exp = sympy.Symbol(f'exp_{i}')
-            gate = cirq.PhasedXPowGate(phase_exponent=phase_exp, exponent=exp)
-            ops.append(gate.on(qubit))
+            gate = ops.PhasedXPowGate(phase_exponent=phase_exp, exponent=exp)
+            operations.append(gate.on(qubit))
             sweeps.append(
-                cirq.Points(phase_exp, phase_exp_vals) +
-                cirq.Points(exp, exp_vals))
+                study.Points(phase_exp, phase_exp_vals) +
+                study.Points(exp, exp_vals))
 
-        self.rot_circuit = cirq.Circuit(ops)
-        self.rot_sweep = cirq.Product(*sweeps)
+        self.rot_circuit = circuits.Circuit(operations)
+        self.rot_sweep = study.Product(*sweeps)
         self.mat = self._make_state_tomography_matrix()
 
     def _make_state_tomography_matrix(self) -> np.ndarray:
@@ -94,13 +96,14 @@ class StateTomographyExperiment:
 
         # Unitary matrices of each rotation circuit.
         unitaries = np.array([
-            cirq.unitary(cirq.resolve_parameters(self.rot_circuit, rots))
+            protocols.unitary(
+                protocols.resolve_parameters(self.rot_circuit, rots))
             for rots in self.rot_sweep
         ])
         mat = np.einsum('jkm,jkn->jkmn', unitaries, unitaries.conj())
         return mat.reshape((num_rots * num_states, num_states * num_states))
 
-    def fit_density_matrix(self, counts: np.ndarray) -> 'TomographyResult':
+    def fit_density_matrix(self, counts: np.ndarray) -> TomographyResult:
         """Solves equation mat * rho = probs.
 
         Args:
@@ -123,12 +126,12 @@ class StateTomographyExperiment:
 
 
 def state_tomography(
-        sampler: cirq.Sampler,
-        qubits: Sequence[cirq.Qid],
-        circuit: cirq.Circuit,
+        sampler: 'cirq.Sampler',
+        qubits: Sequence['cirq.Qid'],
+        circuit: 'cirq.Circuit',
         repetitions: int = 1000,
         prerotations: Sequence[Tuple[float, float]] = None,
-) -> 'TomographyResult':
+) -> TomographyResult:
     """This performs n qubit tomography on a cirq circuit
 
     Follows https://web.physics.ucsb.edu/~martinisgroup/theses/Neeley2010b.pdf
@@ -142,11 +145,10 @@ def state_tomography(
         repetitions: Number of times to sample each rotation.
         prerotations: Tuples of (phase_exponent, exponent) parameters for gates
             to apply to the qubits before measurement. The actual rotation
-            applied will be
-                `cirq.PhasedXPowGate(
-                    phase_exponent=phase_exponent, exponent=exponent)`
-            If none, we use [(0, 0), (0, 0.5), (0.5, 0.5)], which corresponds to
-            rotation gates [I, X**0.5, Y**0.5].
+            applied will be `cirq.PhasedXPowGate` with the specified values
+            of phase_exponent and exponent. If None, we use [(0, 0), (0, 0.5),
+            (0.5, 0.5)], which corresponds to rotation gates
+            [I, X**0.5, Y**0.5].
 
     Returns:
         `TomographyResult` which contains the density matrix of the qubits
@@ -162,11 +164,11 @@ def state_tomography(
     return exp.fit_density_matrix(probs)
 
 
-def get_state_tomography_data(sampler: cirq.Sampler,
-                              qubits: Sequence[cirq.Qid],
-                              circuit: cirq.Circuit,
-                              rot_circuit: cirq.Circuit,
-                              rot_sweep: cirq.Sweep,
+def get_state_tomography_data(sampler: 'cirq.Sampler',
+                              qubits: Sequence['cirq.Qid'],
+                              circuit: 'cirq.Circuit',
+                              rot_circuit: 'cirq.Circuit',
+                              rot_sweep: 'cirq.Sweep',
                               repetitions: int = 1000) -> np.ndarray:
     """Gets the data for each rotation string added to the circuit.
 
@@ -191,7 +193,7 @@ def get_state_tomography_data(sampler: cirq.Sampler,
         applied and second index is the qubit state.
     """
     results = sampler.run_sweep(circuit + rot_circuit +
-                                [cirq.measure(*qubits, key='z')],
+                                [ops.measure(*qubits, key='z')],
                                 params=rot_sweep,
                                 repetitions=repetitions)
 
