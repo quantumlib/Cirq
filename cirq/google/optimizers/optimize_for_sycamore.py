@@ -31,6 +31,14 @@ if TYPE_CHECKING:
     import cirq
 
 
+def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[['cirq.Circuit'], None]]:
+    return [
+        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
+        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
+        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+    ]
+
+
 def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation]) \
         -> List[Callable[['cirq.Circuit'], None]]:
     if tabulation is not None:
@@ -42,9 +50,7 @@ def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation])
                                      allow_partial_czs=False).optimize_circuit,
         lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
             c, tolerance),
-        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
-        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -58,9 +64,7 @@ def _get_xmon_optimizers_part_cz(tolerance: float, tabulation: Optional[GateTabu
                                      allow_partial_czs=True).optimize_circuit,
         lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
             c, tolerance),
-        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
-        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
@@ -70,9 +74,7 @@ def _get_sycamore_optimizers(tolerance: float, tabulation: Optional[GateTabulati
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
         lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
             c, tolerance),
-        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
-        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
-        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
 
