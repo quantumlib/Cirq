@@ -353,6 +353,7 @@ the magic methods that can be implemented.
     cirq.SupportsApproximateEquality
     cirq.SupportsChannel
     cirq.SupportsCircuitDiagramInfo
+    cirq.SupportsCommutes
     cirq.SupportsConsistentApplyUnitary
     cirq.SupportsDecompose
     cirq.SupportsDecomposeWithQubits
