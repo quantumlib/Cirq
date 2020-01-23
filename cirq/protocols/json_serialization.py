@@ -233,6 +233,8 @@ def obj_to_dict_helper(obj: Any,
     return d
 
 
+# Copying the Python API, whose usage of `repr` annoys pylint.
+# pylint: disable=redefined-builtin
 def json_serializable_dataclass(_cls: Optional[Type] = None,
                                 *,
                                 namespace: Optional[str] = None,
@@ -279,6 +281,9 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
 
     # We're called as @dataclass without parens.
     return wrap(_cls)
+
+
+# pylint: enable=redefined-builtin
 
 
 class CirqEncoder(json.JSONEncoder):
