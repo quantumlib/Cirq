@@ -1,4 +1,5 @@
 """Tests for pasqal_circuit."""
+from os import getenv
 
 import pytest
 import numpy as np
@@ -6,6 +7,16 @@ import sympy
 import cirq
 
 from . import pasqal_circuit, pasqal_qubits, pasqal_device
+
+
+def _make_sampler() -> pasqal_circuit.PasqalSampler:
+    # Retrieve API access token from environment variable to avoid storing it in the source
+    sampler = pasqal_circuit.PasqalSampler(
+        remote_host= 'http://34.98.71.118/v0/pasqal',
+        access_token=getenv("PASQAL_API_ACCESS_TOKEN")
+    )
+    return sampler
+
 
 def test_pasqal_circuit_init():
     qs = pasqal_qubits.ThreeDGridQubit.square(3)
@@ -74,9 +85,7 @@ def test_run():
             ex_circuit.append(cirq.X(qs[-i-1]))
     ex_circuit.append([cirq.measure(q) for q in qs])
 
-    sampler = pasqal_circuit.PasqalSampler(
-        remote_host= 'http://34.98.71.118/v0/pasqal'
-    )
+    sampler = _make_sampler()
     data = sampler.run(program=ex_circuit,
                        simulate_ideal=True,
                        repetitions = 1).data.to_dict()
@@ -107,9 +116,7 @@ def test_run_sweep():
             ex_circuit.append(cirq.X(qs[-i-1]))
     ex_circuit.append([cirq.measure(q) for q in qs])
 
-    sampler = pasqal_circuit.PasqalSampler(
-        remote_host= 'http://34.98.71.118/v0/pasqal'
-    )
+    sampler = _make_sampler()
     data_raw = sampler.run_sweep(program= ex_circuit,
                              params= sweep,
                              simulate_ideal= True,

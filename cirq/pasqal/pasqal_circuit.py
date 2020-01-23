@@ -49,7 +49,10 @@ class PasqalSampler(Sampler):
             access_token: Access token for the remote api.
         """
         self.remote_host = remote_host
-        self.access_token = access_token
+
+        self._authorization_header = {
+            "Authorization": access_token
+        }
 
     def _serialize_circuit(self,
                            circuit: Circuit,
@@ -62,6 +65,22 @@ class PasqalSampler(Sampler):
 
         return serialized_circuit
 
+    def _retrieve_serialized_result(self, task_id: str) -> str:
+        url = f'{self.remote_host}/get-result/{task_id}'
+
+        while True:
+            response = requests.get(
+                url,
+                headers=self._authorization_header,
+                verify=False,
+            )
+            response.raise_for_status()
+
+            result = response.text
+            if result:
+                return result
+
+            time.sleep(1.0)
 
     def _send_serialized_circuit(self,
                                  *,
@@ -71,28 +90,22 @@ class PasqalSampler(Sampler):
                                  ) -> study.TrialResult:
 
         simulate_url = f'{self.remote_host}/simulate/no-noise/submit'
-        result_url = f'{self.remote_host}/get-result'
 
         submit_response = requests.post(
             simulate_url,
             verify=False,
             headers={
                 "Repetitions": str(repetitions),
+                **self._authorization_header,
             },
             data=serialization_str,
         )
+        submit_response.raise_for_status()
 
-        # Get task ID
         task_id = submit_response.text
 
-        # Retrieve results
-        time.sleep(1)
-
-        result_response = requests.get(
-            f'{result_url}/{task_id}',
-            verify=False,
-        )
-        result = cirq.read_json(json_text=result_response.content)
+        result_serialized = self._retrieve_serialized_result(task_id)
+        result = cirq.read_json(json_text=result_serialized)
 
         return result
 
