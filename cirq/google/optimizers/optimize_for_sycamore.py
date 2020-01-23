@@ -101,7 +101,8 @@ _OPTIMIZER_TYPES = {
 
 
 @lru_cache()
-def _gate_product_tabulation_cached(optimizer_type, tabulation_resolution):
+def _gate_product_tabulation_cached(optimizer_type: str,
+                                    tabulation_resolution: float) -> GateTabulation:
     random_state = np.random.RandomState(51)
     if optimizer_type == 'sycamore':
         return gate_product_tabulation(protocols.unitary(cg_ops.SYC),
