@@ -19,8 +19,10 @@ import pytest
 import cirq
 
 m0 = np.array([])
+# yapf: disable
 # X on one qubit
-m1 = np.array([[0, 1], [1, 0]])
+m1 = np.array([[0, 1],
+               [1, 0]])
 # X on two qubits
 m2 = np.array([[0, 0, 0, 1],
                [0, 0, 1, 0],
@@ -35,6 +37,7 @@ m3 = np.array([[0, 0, 0, 0, 0, 1, 0, 0],
                [1, 0, 0, 0, 0, 0, 0, 0],
                [0, 0, 0, 1, 0, 0, 0, 0],
                [0, 0, 1, 0, 0, 0, 0, 0]])
+# yapf: enable
 a = cirq.NamedQubit('a')
 b = cirq.NamedQubit('b')
 c = cirq.NamedQubit('c')
@@ -45,6 +48,7 @@ class NoMethod:
 
 
 class ReturnsNotImplemented(cirq.Gate):
+
     def _has_unitary_(self):
         return NotImplemented
 
@@ -56,6 +60,7 @@ class ReturnsNotImplemented(cirq.Gate):
 
 
 class ReturnsMatrix(cirq.Gate):
+
     def _unitary_(self) -> np.ndarray:
         return m1
 
@@ -64,6 +69,7 @@ class ReturnsMatrix(cirq.Gate):
 
 
 class FullyImplemented(cirq.Gate):
+
     def __init__(self, unitary_value):
         self.unitary_value = unitary_value
 
@@ -80,6 +86,7 @@ class FullyImplemented(cirq.Gate):
 
 
 class DecomposableGate(cirq.Gate):
+
     def __init__(self, unitary_value):
         self.unitary_value = unitary_value
 
@@ -189,7 +196,7 @@ def test_has_unitary():
 
 
 def test_decompose_and_get_unitary():
-    from cirq.protocols.unitary import _strat_unitary_from_decompose
+    from cirq.protocols.unitary_protocol import _strat_unitary_from_decompose
     np.testing.assert_allclose(
         _strat_unitary_from_decompose(DecomposableOperation((a,), True)), m1)
     np.testing.assert_allclose(
@@ -233,10 +240,10 @@ def test_decomposed_unitary():
     np.testing.assert_allclose(cirq.unitary(DecomposableGate(True).on(a)), m1)
 
     # Operations
-    np.testing.assert_allclose(cirq.unitary(
-        DecomposableOperation((a,), True)), m1)
-    np.testing.assert_allclose(cirq.unitary(
-        DecomposableOperation((a, b), True)), m2)
+    np.testing.assert_allclose(cirq.unitary(DecomposableOperation((a,), True)),
+                               m1)
+    np.testing.assert_allclose(
+        cirq.unitary(DecomposableOperation((a, b), True)), m2)
     np.testing.assert_allclose(cirq.unitary(DecomposableOrder((a, b, c))), m3)
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a,))), np.eye(2))
     np.testing.assert_allclose(cirq.unitary(DummyOperation((a, b))), np.eye(4))
