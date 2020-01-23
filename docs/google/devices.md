@@ -92,31 +92,63 @@ properly batch circuits can improve the throughput of your calculations.  One wa
 is to use parameter sweeps to send multiple variations of a circuit at once.
 
 One example is to turn single-qubit gates on or off by using parameter sweeps.  
-For instance, the following code creates a single circuit that parameterizes
-the decision of measuring the |0> or the |1> state.  This code uses a simulator
-rather than the engine to demonstrate the concept.
+For instance, the following code illustrates how to combine measuring in the
+Z basis or the X basis in one circuit.
 
 ```python
 import cirq
 import sympy
+q = cirq.GridQubit(1, 1)
+sampler = cirq.Simulator()
 
-q = cirq.GridQubit(1,1)
-sim = cirq.Simulator()
+# STRATEGY #1: Have a separate circuit and sample call for each basis.
+circuit_z = cirq.Circuit(
+    cirq.measure(q, key='out'))
+circuit_x = cirq.Circuit(
+    cirq.H(q),
+    cirq.measure(q, key='out'))
+samples_z = sampler.sample(circuit_z, repetitions=5)
+samples_x = sampler.sample(circuit_x, repetitions=5)
 
-# Measure |0>
-m0 = cirq.Circuit(cirq.measure(q))
-# Measure |1>
-m1 = cirq.Circuit(cirq.X(q), cirq.measure(q))
+print(samples_z)
+# prints something like:
+#    out
+# 0    0
+# 1    0
+# 2    0
+# 3    0
+# 4    0
 
-# Executing the circuits requires two calls to the simulator (or engine)
-sim.run(m0)
-sim.run(m1)
+print(samples_x)
+# prints something like:
+#    out
+# 0    0
+# 1    1
+# 2    1
+# 3    0
+# 4    0
 
-# Parameterized circuit
-m_parameterized=cirq.Circuit(cirq.X(q) ** sympy.Symbol('t'), cirq.measure(q))
+# STRATEGY #2: Have a parameterized circuit.
+circuit_sweep = cirq.Circuit(
+    cirq.H(q)**sympy.Symbol('t'),
+    cirq.measure(q, key='out'))
 
-# Executing both circuits in one sweep
-sim.run_sweep(m_parameterized, params=cirq.Points('t',[0.0, 1.0]))
+samples_sweep = sampler.sample(circuit_sweep,
+                               repetitions=5,
+                               params=[{'t': 0}, {'t': 1}])
+print(samples_sweep)
+# prints something like:
+#    t  out
+# 0  0    0
+# 1  0    0
+# 2  0    0
+# 3  0    0
+# 4  0    0
+# 0  1    0
+# 1  1    1
+# 2  1    1
+# 3  1    0
+# 4  1    1
 ```
 
 One word of caution is there is a limit to the total number of repetitions.  Take some care
@@ -148,8 +180,8 @@ if possible.
 
 Symbols are extremely useful for constructing parameterized circuits (see above).  However,
 only some sympy formulas can be serialized for network transport to the engine.
-Currently, only linear combinations of symbols are supported.  See `cirq.google.arg_func_langs`
-for details.
+Currently, sums and products of symbols, including linear combinations, are supported.
+See `cirq.google.arg_func_langs` for details.
 
 The sympy library is also infamous for being slow, so avoid using complicated formulas if you
 care about performance.  Avoid using parameter resolvers that have formulas in them. 

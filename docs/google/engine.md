@@ -35,8 +35,10 @@ It can be initialized using your project id (found within your
 You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
-```
+```python
 import cirq
+import random
+import string
 
 # A simple sample circuit
 qubit = cirq.GridQubit(5, 2)
@@ -47,28 +49,27 @@ circuit = cirq.Circuit(
 
 # Create an Engine object to use.
 # Replace the project id with the id from your cloud project.
-engine = cirq.google.Engine(project_id='your_project_id',
+engine = cirq.google.Engine(project_id=YOUR_PROJECT_ID,
                             proto_version=cirq.google.ProtoVersion.V2)
 
 # Create a unique name for the program.
 name = 'example-%s' % ''.join(random.choice(
     string.ascii_uppercase + string.digits) for _ in range(10))
 
-# Upload the program and submit jobs to run in one call.
-# Replace PROCESSOR_ID with the processor that you are allowed to run on.
-job = engine.run_sweep(
-    program=circuit,
-    program_id=name,
-    repetitions=10000,
-    processor_ids=['PROCESSOR_ID'],
-    gate_set=cirq.google.SYC_GATESET)
+# Create a sampler from the engine
+sampler = engine.sampler(processor_id='PROCESSOR_ID',
+                         gate_set=cirq.google.SYC_GATESET)
 
-# At this time, the job will be scheduled and pending execution.
+# This will run the circuit and return the results in a 'TrialResult'
+results = sampler.run(circuit, repetitions=1000)
 
-# Print out the results. This blocks until the results are returned.
-results = [str(int(b)) for b in job.results()[0].measurements['result'][:, 0]]
-print("Measurement results:\n")
-print(''.join(results))
+# Sampler results can be accessed several ways
+
+# For instance, to see the histogram of results
+print(results.histogram(key='result'))
+
+# Or the data itself
+print(results.data)
 ```
 
 ## Device Specification
