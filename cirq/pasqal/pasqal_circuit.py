@@ -70,10 +70,10 @@ class PasqalSampler(Sampler):
                                  repetitions: int = 1
                                  ) -> study.TrialResult:
 
-        simulate_url = f'{self.remote_host}/simulate/no-noise'
+        simulate_url = f'{self.remote_host}/simulate/no-noise/submit'
         result_url = f'{self.remote_host}/get-result'
 
-        submit_response = requests.put(
+        submit_response = requests.post(
             simulate_url,
             verify=False,
             headers={
