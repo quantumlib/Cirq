@@ -111,7 +111,7 @@ samples_z = sampler.sample(circuit_z, repetitions=5)
 samples_x = sampler.sample(circuit_x, repetitions=5)
 
 print(samples_z)
-# prints something like:
+# prints
 #    out
 # 0    0
 # 1    0

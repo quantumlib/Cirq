@@ -35,8 +35,17 @@ It can be initialized using your project id (found within your
 You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
+<!---test_substitution
+cg.Engine(.*)
+cirq.Simulator()
+--->
+<!---test_substitution
+sampler = .*
+sampler = engine
+--->
 ```python
 import cirq
+import cirq.google as cg
 import random
 import string
 
@@ -48,17 +57,15 @@ circuit = cirq.Circuit(
 )
 
 # Create an Engine object to use.
-# Replace the project id with the id from your cloud project.
-engine = cirq.google.Engine(project_id=YOUR_PROJECT_ID,
-                            proto_version=cirq.google.ProtoVersion.V2)
+# Replace YOUR_PROJECT_ID with the id from your cloud project.
+engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
 
 # Create a unique name for the program.
 name = 'example-%s' % ''.join(random.choice(
     string.ascii_uppercase + string.digits) for _ in range(10))
 
 # Create a sampler from the engine
-sampler = engine.sampler(processor_id='PROCESSOR_ID',
-                         gate_set=cirq.google.SYC_GATESET)
+sampler = engine.sampler(processor_id='PROCESSOR_ID', gate_set=cg.SYC_GATESET)
 
 # This will run the circuit and return the results in a 'TrialResult'
 results = sampler.run(circuit, repetitions=1000)
