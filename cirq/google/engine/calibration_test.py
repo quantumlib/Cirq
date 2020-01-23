@@ -16,52 +16,52 @@ import datetime
 import pytest
 
 import matplotlib as mpl
+from google.protobuf.text_format import Merge
 
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
 
-_CALIBRATION_DATA = {
-    '@type':
-    'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
-    'timestampMs':
-    '1562544000021',
-    'metrics': [{
-        'name': 'xeb',
-        'targets': ['0_0', '0_1'],
-        'values': [{
-            'doubleVal': .9999
+_CALIBRATION_DATA = Merge(
+    """
+    timestamp_ms: 1562544000021,
+    metrics: [{
+        name: 'xeb',
+        targets: ['0_0', '0_1'],
+        values: [{
+            double_val: .9999
         }]
     }, {
-        'name': 'xeb',
-        'targets': ['0_0', '1_0'],
-        'values': [{
-            'doubleVal': .9998
+        name: 'xeb',
+        targets: ['0_0', '1_0'],
+        values: [{
+            double_val: .9998
         }]
     }, {
-        'name': 't1',
-        'targets': ['q0_0'],
-        'values': [{
-            'doubleVal': 321
+        name: 't1',
+        targets: ['q0_0'],
+        values: [{
+            double_val: 321
         }]
     }, {
-        'name': 't1',
-        'targets': ['q0_1'],
-        'values': [{
-            'doubleVal': 911
+        name: 't1',
+        targets: ['q0_1'],
+        values: [{
+            double_val: 911
         }]
     }, {
-        'name': 't1',
-        'targets': ['q1_0'],
-        'values': [{
-            'doubleVal': 505
+        name: 't1',
+        targets: ['q1_0'],
+        values: [{
+            double_val: 505
         }]
     }, {
-        'name': 'globalMetric',
-        'values': [{
-            'floatVal': 12300
+        name: 'globalMetric',
+        values: [{
+            int32_val: 12300
         }]
     }]
-}
+""", v2.metrics_pb2.MetricsSnapshot())
 
 
 def test_calibration_metrics_dictionary():
