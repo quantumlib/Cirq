@@ -23,6 +23,8 @@ import numpy as np
 @pytest.mark.parametrize('optimizer_type, gateset', [
     ('sqrt_iswap', cg.SQRT_ISWAP_GATESET),
     ('sycamore', cg.SYC_GATESET),
+    ('xmon', cg.XMON),
+    ('xmon_partial_cz', cg.XMON),
 ])
 def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
     q0, q1 = cirq.LineQubit.range(2)
@@ -67,3 +69,21 @@ def test_tabulation():
                                                     rtol=1e-1,
                                                     atol=1e-1)
     assert len(circuit3) == 8
+
+
+def test_no_tabulation():
+    circuit = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
+    with pytest.raises(NotImplementedError):
+        cg.optimized_for_sycamore(circuit,
+                                  optimizer_type='sqrt_iswap',
+                                  tabulation_resolution=0.01)
+
+    with pytest.raises(NotImplementedError):
+        cg.optimized_for_sycamore(circuit,
+                                  optimizer_type='xmon',
+                                  tabulation_resolution=0.01)
+
+    with pytest.raises(NotImplementedError):
+        cg.optimized_for_sycamore(circuit,
+                                  optimizer_type='xmon_partial_cz',
+                                  tabulation_resolution=0.01)

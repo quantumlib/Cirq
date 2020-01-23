@@ -43,6 +43,7 @@ def _get_common_cleanup_optimizers(tolerance: float
 def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation]) \
         -> List[Callable[['cirq.Circuit'], None]]:
     if tabulation is not None:
+        # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
 
     return [
@@ -58,6 +59,7 @@ def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation])
 def _get_xmon_optimizers_part_cz(tolerance: float, tabulation: Optional[GateTabulation]) \
         -> List[Callable[['cirq.Circuit'], None]]:
     if tabulation is not None:
+        # coverage: ignore
         raise ValueError("Gate tabulation not supported for xmon")
     return [
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
@@ -82,6 +84,7 @@ def _get_sycamore_optimizers(tolerance: float, tabulation: Optional[GateTabulati
 def _get_sqrt_iswap_optimizers(tolerance: float, tabulation: Optional[GateTabulation]) \
         -> List[Callable[['cirq.Circuit'], None]]:
     if tabulation is not None:
+        # coverage: ignore
         raise ValueError("Gate tabulation not supported for sqrt_iswap")
     return [
         ConvertToSqrtIswapGates().optimize_circuit,
