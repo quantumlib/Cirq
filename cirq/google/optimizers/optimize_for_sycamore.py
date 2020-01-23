@@ -154,11 +154,10 @@ def optimized_for_sycamore(
         raise ValueError(f'{optimizer_type} is not an allowed type.  Allowed '
                          f'types are: {_OPTIMIZER_TYPES.keys()}')
 
+    tabulation: Optional[GateTabulation] = None
     if tabulation_resolution is not None:
         tabulation = _gate_product_tabulation_cached(optimizer_type,
                                                      tabulation_resolution)
-    else:
-        tabulation = None
 
     opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance,
                                             tabulation=tabulation)
