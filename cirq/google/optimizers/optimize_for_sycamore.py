@@ -31,7 +31,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-def _get_common_cleanup_optimizers(tolerance: float) -> List[Callable[['cirq.Circuit'], None]]:
+def _get_common_cleanup_optimizers(tolerance: float
+                                  ) -> List[Callable[['cirq.Circuit'], None]]:
     return [
         optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
         optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
@@ -102,7 +103,8 @@ _OPTIMIZER_TYPES = {
 
 @lru_cache()
 def _gate_product_tabulation_cached(optimizer_type: str,
-                                    tabulation_resolution: float) -> GateTabulation:
+                                    tabulation_resolution: float
+                                   ) -> GateTabulation:
     random_state = np.random.RandomState(51)
     if optimizer_type == 'sycamore':
         return gate_product_tabulation(protocols.unitary(cg_ops.SYC),
