@@ -115,7 +115,7 @@ def test_diagram():
         cirq.PhasedISwapPowGate(phase_exponent=sympy.Symbol('p'),
                                 exponent=sympy.Symbol('t')).on(q0, q1),
         cirq.PhasedISwapPowGate(phase_exponent=2 * sympy.Symbol('p'),
-                                exponent=1 - sympy.Symbol('t')).on(q0, q1),
+                                exponent=1 + sympy.Symbol('t')).on(q0, q1),
         cirq.PhasedISwapPowGate(phase_exponent=0.2, exponent=1).on(q0, q1),
         cirq.PhasedISwapPowGate(phase_exponent=0.3, exponent=0.4).on(q0, q1),
     )
@@ -123,7 +123,7 @@ def test_diagram():
         c, """
 0: ───PhISwap(p)─────PhISwap(2*p)───────────PhISwap(0.2)───PhISwap(0.3)───────
       │              │                      │              │
-1: ───PhISwap(p)^t───PhISwap(2*p)^(1 - t)───PhISwap(0.2)───PhISwap(0.3)^0.4───
+1: ───PhISwap(p)^t───PhISwap(2*p)^(t + 1)───PhISwap(0.2)───PhISwap(0.3)^0.4───
 """)
 
 

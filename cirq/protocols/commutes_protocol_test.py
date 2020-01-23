@@ -38,13 +38,13 @@ def test_commutes_on_matrices():
 
 def test_commutes_on_gates_and_gate_operations():
     X, Y, Z = tuple(cirq.unitary(A) for A in (cirq.X, cirq.Y, cirq.Z))
-    XGate, YGate, ZGate = (cirq.SingleQubitMatrixGate(A) for A in (X, Y, Z))
+    XGate, YGate, ZGate = (cirq.MatrixGate(A) for A in (X, Y, Z))
     XXGate, YYGate, ZZGate = (
-        cirq.TwoQubitMatrixGate(cirq.kron(A, A)) for A in (X, Y, Z))
+        cirq.MatrixGate(cirq.kron(A, A)) for A in (X, Y, Z))
     a, b = cirq.LineQubit.range(2)
     for A in (XGate, YGate, ZGate):
         assert cirq.commutes(A, A)
-        assert A._commutes_on_qids_(a, A) == None
+        assert A._commutes_on_qids_(a, A, atol=1e-8) is NotImplemented
         with pytest.raises(TypeError):
             cirq.commutes(A(a), A)
         with pytest.raises(TypeError):
@@ -68,9 +68,6 @@ def test_commutes_on_gates_and_gate_operations():
             cirq.commutes(A, B(a, b))
         assert cirq.commutes(A(a, b), B(a, b))
         assert cirq.definitely_commutes(A(a, b), B(a, b))
-        assert (cirq.commutes(A(a, b), B(b, a),
-                              default=NotImplemented) == NotImplemented)
-        assert not cirq.definitely_commutes(A(a, b), B(b, a))
         cirq.testing.assert_commutes_magic_method_consistent_with_unitaries(
             A, B)
     for A, B in [(XGate, XXGate), (XGate, YYGate)]:
@@ -88,3 +85,67 @@ def test_commutes_on_gates_and_gate_operations():
     with pytest.raises(TypeError):
         assert cirq.commutes(XGate(a), 'Gate')
     assert cirq.commutes(XGate(a), 'Gate', default='default') == 'default'
+
+
+def test_operation_commutes_using_overlap_and_unitary():
+
+    class CustomCnotGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 2
+
+        def _unitary_(self):
+            return cirq.unitary(cirq.CNOT)
+
+    custom_cnot_gate = CustomCnotGate()
+
+    class CustomCnotOp(cirq.Operation):
+
+        def __init__(self, *qs: cirq.Qid):
+            self.qs = qs
+
+        def _unitary_(self):
+            return cirq.unitary(cirq.CNOT)
+
+        @property
+        def qubits(self):
+            return self.qs
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+    class NoDetails(cirq.Operation):
+
+        def __init__(self, *qs: cirq.Qid):
+            self.qs = qs
+
+        @property
+        def qubits(self):
+            return self.qs
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+    a, b, c = cirq.LineQubit.range(3)
+
+    # If ops overlap with known unitaries, fallback to matrix commutation.
+    assert not cirq.commutes(CustomCnotOp(a, b), CustomCnotOp(b, a))
+    assert not cirq.commutes(CustomCnotOp(a, b), CustomCnotOp(b, c))
+    assert cirq.commutes(CustomCnotOp(a, b), CustomCnotOp(c, b))
+    assert cirq.commutes(CustomCnotOp(a, b), CustomCnotOp(a, b))
+
+    # If ops don't overlap, they commute. Even when no specified unitary.
+    assert cirq.commutes(CustomCnotOp(a, b), NoDetails(c))
+
+    # If ops overlap and there's no unitary, result is indeterminate.
+    assert cirq.commutes(CustomCnotOp(a, b), NoDetails(a), default=None) is None
+
+    # Same stuff works with custom gate, or mix of custom gate and custom op.
+    assert cirq.commutes(custom_cnot_gate(a, b), CustomCnotOp(a, b))
+    assert cirq.commutes(custom_cnot_gate(a, b), custom_cnot_gate(a, b))
+    assert cirq.commutes(custom_cnot_gate(a, b), CustomCnotOp(c, b))
+    assert cirq.commutes(custom_cnot_gate(a, b), custom_cnot_gate(c, b))
+    assert not cirq.commutes(custom_cnot_gate(a, b), CustomCnotOp(b, a))
+    assert not cirq.commutes(custom_cnot_gate(a, b), custom_cnot_gate(b, a))
+    assert not cirq.commutes(custom_cnot_gate(a, b), CustomCnotOp(b, c))
+    assert not cirq.commutes(custom_cnot_gate(a, b), custom_cnot_gate(b, c))
