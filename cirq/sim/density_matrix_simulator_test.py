@@ -215,6 +215,26 @@ def test_run_qudit_channel(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measure_at_end_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 4
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -250,6 +270,27 @@ def test_run_qudits_repetitions_measure_at_end(dtype):
                 })
                 assert result.repetitions == 3
         assert mock_sim.call_count == 6
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measurement_not_terminal_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1),
+                                       cirq.H(q0), cirq.H(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
