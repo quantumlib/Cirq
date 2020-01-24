@@ -26,7 +26,7 @@ def _convert_one(op: ops.Operation) -> ops.OP_TREE:
             matrix,
             allow_partial_czs=False)
 
-    raise ValueError('Don\'t know how to convert operation: {!r}'.format(op))
+    return NotImplemented
 
 
 def convert(op: ops.Operation) -> ops.OP_TREE:
