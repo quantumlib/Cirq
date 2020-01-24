@@ -38,6 +38,7 @@ class Adonis(devices.Device):
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         super().validate_operation(operation)
 
+        # coverage: ignore
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError('Unsupported operation: {!r}'.format(operation))
 
