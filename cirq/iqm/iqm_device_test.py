@@ -8,8 +8,9 @@ def test_valid_operations():
     adonis.validate_operation(cirq.GateOperation(cirq.X,
                                                  [cirq.GridQubit(0, 1)]))
 
-    adonis.validate_operation(cirq.GateOperation(cirq.YPowGate(exponent=0.25),
-                                                 [cirq.GridQubit(0, 1)]))
+    adonis.validate_operation(
+        cirq.GateOperation(cirq.YPowGate(exponent=0.25),
+                           [cirq.GridQubit(0, 1)]))
 
     adonis.validate_operation(
         cirq.GateOperation(
