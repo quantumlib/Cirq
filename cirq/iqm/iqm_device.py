@@ -16,6 +16,7 @@
 from typing import cast
 import cirq
 from cirq import devices, ops
+from cirq.iqm import convert_to_adonis_gates
 
 
 class Adonis(devices.Device):
@@ -34,6 +35,11 @@ class Adonis(devices.Device):
     def __init__(self):
         """Instantiate the description of an Adonis device"""
         self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
+
+    def decompose_operation(self, operation: 'cirq.Operation'
+                            ) -> 'cirq.OP_TREE':
+        super().decompose_operation(operation)
+        convert_to_adonis_gates.convert(operation)
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         super().validate_operation(operation)
