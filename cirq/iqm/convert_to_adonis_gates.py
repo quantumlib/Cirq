@@ -33,16 +33,16 @@ def convert(op: ops.Operation) -> ops.OP_TREE:
     """Attempts to convert a single (one- or two-qubit) operation into gates
     supported on IQM's Adonis device.
     """
-    if is_native_adonis_op(op):
+    if _is_native_adonis_op(op):
         return op
 
     return protocols.decompose(
         op,
-        keep=is_native_adonis_op,
+        keep=_is_native_adonis_op,
         intercepting_decomposer=_convert_one,
         on_stuck_raise=None)
 
 
-def is_native_adonis_op(operation: ops.Operation):
+def _is_native_adonis_op(operation: ops.Operation):
     return isinstance(operation, ops.GateOperation) and isinstance(
         operation.gate, iqm.Adonis.SUPPORTED_GATES)
