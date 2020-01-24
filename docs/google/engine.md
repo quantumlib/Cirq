@@ -60,10 +60,6 @@ circuit = cirq.Circuit(
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
 engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
 
-# Create a unique name for the program.
-name = 'example-%s' % ''.join(random.choice(
-    string.ascii_uppercase + string.digits) for _ in range(10))
-
 # Create a sampler from the engine
 sampler = engine.sampler(processor_id='PROCESSOR_ID', gate_set=cg.SYC_GATESET)
 
