@@ -232,9 +232,6 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             return self.commutes_with_pauli(other)
         return NotImplemented
 
-    commutes_with = deprecated(deadline='v0.7.0',
-                               fix='Use `cirq.commutes()` instead.')(_commutes_)
-
     def commutes_with_single_qubit_gate(self,
                                         gate: 'SingleQubitCliffordGate') \
                                         -> bool:

@@ -560,9 +560,6 @@ class PauliString(raw_types.Operation):
         return sum(not protocols.commutes(p0, p1)
                    for p0, p1 in self.zip_paulis(other)) % 2 == 0
 
-    commutes_with = deprecated(deadline='v0.7.0',
-                               fix='Use `cirq.commutes()` instead.')(_commutes_)
-
     def __neg__(self) -> 'PauliString':
         return PauliString(qubit_pauli_map=self._qubit_pauli_map,
                            coefficient=-self._coefficient)
