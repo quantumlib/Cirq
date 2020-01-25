@@ -123,10 +123,21 @@ class XPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled method for XPowGate to construct a corresponding
-        controlled CNotPowGate, if applicable.
-        Specialization only happens when the last specified control (which acts
-        first semantically) is a default-type control qubit.
+        Constructs CNotPowGate from controlled XPowGate when applicable.
+
+        This method is a specialized controlled method for XPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CNotGatePow and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CNotPowGate is, by definition, a controlled-XPow gate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -412,10 +423,21 @@ class ZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled method for ZPowGate to construct a corresponding
-        controlled CZPowGate, if applicable.
-        Specialization only happens when the last specified control (which acts
-        first semantically) is a default-type control qubit.
+        Constructs CZPowGate from controlled ZPowGate when applicable.
+
+        This method is a specialized controlled method for ZPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CZGatePow and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CZPowGate is, by definition, a controlled-ZPow gate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -734,10 +756,21 @@ class CZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled method for CZPowGate to construct a corresponding
-        controlled CCZPowGate, if applicable.
-        Specialization only happens when the last specified control (which acts
-        first semantically) is a default-type control qubit.
+        Constructs CCZPowGate from controlled CZPowGate when applicable.
+
+        This method is a specialized controlled method for CZPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CCZGatePow and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CCZPowGate is, by definition, a controlled-CZPow gate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -889,10 +922,21 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled method for CNotPowGate to construct a
-        corresponding controlled CCXPowGate, if applicable.
-        Specialization only happens when the last specified control (which acts
-        first semantically) is a default-type control qubit.
+        Constructs CCXPowGate from controlled CNotPowGate when applicable.
+
+        This method is a specialized controlled method for CNotPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CCXGatePow and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CCXPowGate is, by definition, a controlled-CNotPow gate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
