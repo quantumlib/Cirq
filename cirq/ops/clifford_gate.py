@@ -18,7 +18,6 @@ from typing import (Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple,
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates,
                       raw_types)
@@ -231,9 +230,6 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         if isinstance(other, Pauli):
             return self.commutes_with_pauli(other)
         return NotImplemented
-
-    commutes_with = deprecated(deadline='v0.7.0',
-                               fix='Use `cirq.commutes()` instead.')(_commutes_)
 
     def commutes_with_single_qubit_gate(self,
                                         gate: 'SingleQubitCliffordGate') \
