@@ -24,7 +24,6 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,

@@ -15,7 +15,6 @@ import abc
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType

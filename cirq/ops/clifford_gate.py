@@ -18,7 +18,6 @@ from typing import (Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple,
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates,
                       raw_types)
