@@ -1,7 +1,7 @@
 # Runtime requirements for the python 3 version of cirq.
 
 dataclasses; python_version < '3.7'
-google-api-python-client~=1.6
+google-api-core[grpc] >= 1.14.0, < 2.0.0dev
 matplotlib~=3.0
 networkx==2.3
 numpy~=1.16
