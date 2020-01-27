@@ -70,3 +70,12 @@ class TestGateDecomposition:
     # def test_unsupported_single_qubit_gates(self):
     #     self.adonis.decompose_operation(
     #         cirq.HPowGate(exponent=0.55).on(self.q0))
+
+    def test_native_two_qubit_gate(self):
+        self.adonis.decompose_operation(
+            cirq.CZPowGate(exponent=0.15).on(self.q2, self.q4))
+
+    # TODO enable when this call halts
+    # def test_unsupported_two_qubit_gates(self):
+    #     self.adonis.decompose_operation(
+    #         cirq.CNOT.on(self.q2, self.q4))
