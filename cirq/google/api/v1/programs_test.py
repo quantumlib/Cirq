@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict
 
 import numpy as np
 import pytest
@@ -19,13 +18,15 @@ import sympy
 
 import cirq
 import cirq.google as cg
-from cirq.google.api.v1.programs import (_parameterized_value_from_proto_dict)
+import cirq.google.api.v1.programs as programs
+from cirq.google.api.v1 import operations_pb2
+from cirq.google.api.v1.programs import (_parameterized_value_from_proto)
 
 
-def assert_proto_dict_convert(gate: cirq.Gate, proto_dict: Dict,
+def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation,
                               *qubits: cirq.Qid):
-    assert cg.gate_to_proto_dict(gate, qubits) == proto_dict
-    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(*qubits)
+    assert programs.gate_to_proto(gate, qubits, delay=0) == proto
+    assert programs.xmon_op_from_proto(proto) == gate(*qubits)
 
 
 def test_protobuf_round_trip():
@@ -37,8 +38,8 @@ def test_protobuf_round_trip():
     ],
                            device=device)
 
-    protos = list(cg.circuit_as_schedule_to_proto_dicts(circuit))
-    s2 = cg.circuit_from_schedule_from_proto_dicts(device, protos)
+    protos = list(programs.circuit_as_schedule_to_protos(circuit))
+    s2 = programs.circuit_from_schedule_from_protos(device, protos)
     assert s2 == circuit
 
 
@@ -161,438 +162,166 @@ def test_unpack_results():
     ])
 
 
-def test_single_qubit_measurement_proto_dict_convert():
+def test_single_qubit_measurement_proto_convert():
     gate = cirq.MeasurementGate(1, 'test')
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }],
-            'key': 'test'
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(measurement=operations_pb2.Measurement(
+        targets=[operations_pb2.Qubit(row=2, col=3)], key='test'))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
 
-def test_single_qubit_measurement_to_proto_dict_convert_invert_mask():
+def test_single_qubit_measurement_to_proto_convert_invert_mask():
     gate = cirq.MeasurementGate(1, 'test', invert_mask=(True,))
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }],
-            'key': 'test',
-            'invert_mask': ['true']
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(measurement=operations_pb2.Measurement(
+        targets=[operations_pb2.Qubit(row=2, col=3)],
+        key='test',
+        invert_mask=[True]))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
 
-def test_proto_dict_convert_invert_mask_bools():
-    gate = cirq.MeasurementGate(1, 'test', invert_mask=(True,))
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }],
-            'key': 'test',
-            'invert_mask': [True]
-        }
-    }
-    # Conversion only works one way, since the reverse converts True to string
-    assert cg.xmon_op_from_proto_dict(proto_dict) == gate(cirq.GridQubit(2, 3))
-
-
-def test_single_qubit_measurement_to_proto_dict_pad_invert_mask():
+def test_single_qubit_measurement_to_proto_pad_invert_mask():
     gate = cirq.MeasurementGate(2, 'test', invert_mask=(True,))
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }, {
-                'row': 2,
-                'col': 4
-            }],
-            'key': 'test',
-            'invert_mask': ['true', 'false']
-        }
-    }
-    assert cg.gate_to_proto_dict(
-        gate, (cirq.GridQubit(2, 3), cirq.GridQubit(2, 4))) == proto_dict
+    proto = operations_pb2.Operation(
+        measurement=operations_pb2.Measurement(targets=[
+            operations_pb2.Qubit(row=2, col=3),
+            operations_pb2.Qubit(row=2, col=4)
+        ],
+                                               key='test',
+                                               invert_mask=[True, False]))
+    assert programs.gate_to_proto(gate,
+                                  (cirq.GridQubit(2, 3), cirq.GridQubit(2, 4)),
+                                  delay=0) == proto
 
 
-def test_multi_qubit_measurement_to_proto_dict():
+def test_multi_qubit_measurement_to_proto():
     gate = cirq.MeasurementGate(2, 'test')
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }, {
-                'row': 3,
-                'col': 4
-            }],
-            'key': 'test'
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3),
+    proto = operations_pb2.Operation(
+        measurement=operations_pb2.Measurement(targets=[
+            operations_pb2.Qubit(row=2, col=3),
+            operations_pb2.Qubit(row=3, col=4)
+        ],
+                                               key='test'))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3),
                               cirq.GridQubit(3, 4))
 
 
-def test_z_proto_dict_convert():
+def test_z_proto_convert():
     gate = cirq.Z**sympy.Symbol('k')
-    proto_dict = {
-        'exp_z': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
+    proto = operations_pb2.Operation(
+        exp_z=operations_pb2.ExpZ(target=operations_pb2.Qubit(row=2, col=3),
+                                  half_turns=operations_pb2.ParameterizedFloat(
+                                      parameter_key='k')))
 
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
     gate = cirq.Z**0.5
-    proto_dict = {
-        'exp_z': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'half_turns': {
-                'raw': 0.5
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(
+        exp_z=operations_pb2.ExpZ(target=operations_pb2.Qubit(row=2, col=3),
+                                  half_turns=operations_pb2.ParameterizedFloat(
+                                      raw=0.5)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
 
-def test_cz_proto_dict_convert():
+def test_cz_proto_convert():
     gate = cirq.CZ**sympy.Symbol('k')
-    proto_dict = {
-        'exp_11': {
-            'target1': {
-                'row': 2,
-                'col': 3
-            },
-            'target2': {
-                'row': 3,
-                'col': 4
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3),
+    proto = operations_pb2.Operation(exp_11=operations_pb2.Exp11(
+        target1=operations_pb2.Qubit(row=2, col=3),
+        target2=operations_pb2.Qubit(row=3, col=4),
+        half_turns=operations_pb2.ParameterizedFloat(parameter_key='k')))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3),
                               cirq.GridQubit(3, 4))
 
     gate = cirq.CZ**0.5
-    proto_dict = {
-        'exp_11': {
-            'target1': {
-                'row': 2,
-                'col': 3
-            },
-            'target2': {
-                'row': 3,
-                'col': 4
-            },
-            'half_turns': {
-                'raw': 0.5
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3),
+    proto = operations_pb2.Operation(exp_11=operations_pb2.Exp11(
+        target1=operations_pb2.Qubit(row=2, col=3),
+        target2=operations_pb2.Qubit(row=3, col=4),
+        half_turns=operations_pb2.ParameterizedFloat(raw=0.5)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3),
                               cirq.GridQubit(3, 4))
 
 
-def test_cz_invalid_dict():
-    proto_dict = {
-        'exp_11': {
-            'target2': {
-                'row': 3,
-                'col': 4
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    with pytest.raises(ValueError, match='missing required fields'):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {
-        'exp_11': {
-            'target1': {
-                'row': 2,
-                'col': 3
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    with pytest.raises(ValueError, match='missing required fields'):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {
-        'exp_11': {
-            'target1': {
-                'row': 2,
-                'col': 3
-            },
-            'target2': {
-                'row': 3,
-                'col': 4
-            },
-        }
-    }
-    with pytest.raises(ValueError, match='missing required fields'):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-
-def test_w_to_proto_dict():
+def test_w_to_proto():
     gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('k'), phase_exponent=1)
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'raw': 1
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(exp_w=operations_pb2.ExpW(
+        target=operations_pb2.Qubit(row=2, col=3),
+        axis_half_turns=operations_pb2.ParameterizedFloat(raw=1),
+        half_turns=operations_pb2.ParameterizedFloat(parameter_key='k')))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
     gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'parameter_key': 'j'
-            },
-            'half_turns': {
-                'raw': 0.5
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(exp_w=operations_pb2.ExpW(
+        target=operations_pb2.Qubit(row=2, col=3),
+        axis_half_turns=operations_pb2.ParameterizedFloat(parameter_key='j'),
+        half_turns=operations_pb2.ParameterizedFloat(raw=0.5)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
     gate = cirq.X**0.25
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'raw': 0.0
-            },
-            'half_turns': {
-                'raw': 0.25
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(exp_w=operations_pb2.ExpW(
+        target=operations_pb2.Qubit(row=2, col=3),
+        axis_half_turns=operations_pb2.ParameterizedFloat(raw=0.0),
+        half_turns=operations_pb2.ParameterizedFloat(raw=0.25)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
     gate = cirq.Y**0.25
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'raw': 0.5
-            },
-            'half_turns': {
-                'raw': 0.25
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
+    proto = operations_pb2.Operation(exp_w=operations_pb2.ExpW(
+        target=operations_pb2.Qubit(row=2, col=3),
+        axis_half_turns=operations_pb2.ParameterizedFloat(raw=0.5),
+        half_turns=operations_pb2.ParameterizedFloat(raw=0.25)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
     gate = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=sympy.Symbol('j'))
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'parameter_key': 'j'
-            },
-            'half_turns': {
-                'raw': 0.5
-            }
-        }
-    }
-    assert_proto_dict_convert(gate, proto_dict, cirq.GridQubit(2, 3))
-
-
-def test_w_invalid_dict():
-    proto_dict = {
-        'exp_w': {
-            'axis_half_turns': {
-                'raw': 1
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'half_turns': {
-                'parameter_key': 'k'
-            }
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {
-        'exp_w': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-            'axis_half_turns': {
-                'raw': 1
-            },
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
+    proto = operations_pb2.Operation(exp_w=operations_pb2.ExpW(
+        target=operations_pb2.Qubit(row=2, col=3),
+        axis_half_turns=operations_pb2.ParameterizedFloat(parameter_key='j'),
+        half_turns=operations_pb2.ParameterizedFloat(raw=0.5)))
+    assert_proto_dict_convert(gate, proto, cirq.GridQubit(2, 3))
 
 
 def test_unsupported_op():
-    proto_dict = {
-        'not_a_gate': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-        }
-    }
     with pytest.raises(ValueError, match='invalid operation'):
-        cg.xmon_op_from_proto_dict(proto_dict)
+        programs.xmon_op_from_proto(operations_pb2.Operation())
     with pytest.raises(ValueError, match='know how to serialize'):
-        cg.gate_to_proto_dict(
+        programs.gate_to_proto(
             cirq.CCZ,
-            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)))
+            (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(0, 2)),
+            delay=0)
 
 
 def test_invalid_to_proto_dict_qubit_number():
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        _ = cg.gate_to_proto_dict(cirq.CZ**0.5, (cirq.GridQubit(2, 3),))
+        _ = programs.gate_to_proto(cirq.CZ**0.5, (cirq.GridQubit(2, 3),),
+                                   delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.gate_to_proto_dict(cirq.Z**0.5,
-                              (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
+        programs.gate_to_proto(cirq.Z**0.5,
+                               (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                               delay=0)
     with pytest.raises(ValueError, match='Wrong number of qubits'):
-        cg.gate_to_proto_dict(
-            cirq.PhasedXPowGate(exponent=0.5, phase_exponent=0),
-            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
-
-
-def test_invalid_qubit_from_proto():
-    with pytest.raises(ValueError, match='does not contain row or col'):
-        proto_dict = {
-            'exp_z': {
-                'target': {
-                    'row': 2,
-                },
-                'half_turns': {
-                    'raw': 1
-                },
-            }
-        }
-        _ = cg.xmon_op_from_proto_dict(proto_dict)
+        programs.gate_to_proto(cirq.PhasedXPowGate(exponent=0.5,
+                                                   phase_exponent=0),
+                               (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                               delay=0)
 
 
 def test_parameterized_value_from_proto():
-    from_proto = _parameterized_value_from_proto_dict
+    from_proto = _parameterized_value_from_proto
 
-    m1 = {'raw': 5}
+    m1 = operations_pb2.ParameterizedFloat(raw=5)
     assert from_proto(m1) == 5
 
     with pytest.raises(ValueError):
-        from_proto({})
+        from_proto(operations_pb2.ParameterizedFloat())
 
-    m3 = {'parameter_key': 'rr'}
+    m3 = operations_pb2.ParameterizedFloat(parameter_key='rr')
     assert from_proto(m3) == sympy.Symbol('rr')
-
-
-def test_single_qubit_measurement_invalid_dict():
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }],
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {
-        'measurement': {
-            'targets': [{
-                'row': 2,
-                'col': 3
-            }],
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
 
 
 def test_invalid_measurement_gate():
     with pytest.raises(ValueError, match='length'):
-        _ = cg.gate_to_proto_dict(
-            cirq.MeasurementGate(3, 'test', invert_mask=(True,)),
-            (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)))
+        _ = programs.gate_to_proto(cirq.MeasurementGate(3,
+                                                        'test',
+                                                        invert_mask=(True,)),
+                                   (cirq.GridQubit(2, 3), cirq.GridQubit(3, 4)),
+                                   delay=0)
     with pytest.raises(ValueError, match='no qubits'):
-        _ = cg.gate_to_proto_dict(cirq.MeasurementGate(1, 'test'), ())
-
-
-def test_z_invalid_dict():
-    proto_dict = {
-        'exp_z': {
-            'target': {
-                'row': 2,
-                'col': 3
-            },
-        }
-    }
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
-
-    proto_dict = {'exp_z': {'half_turns': {'parameter_key': 'k'}}}
-    with pytest.raises(ValueError):
-        cg.xmon_op_from_proto_dict(proto_dict)
+        _ = programs.gate_to_proto(cirq.MeasurementGate(1, 'test'), (), delay=0)
 
 
 def test_is_supported():

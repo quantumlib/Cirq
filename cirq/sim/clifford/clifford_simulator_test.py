@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -12,6 +13,14 @@ def test_simulate_no_circuit():
     np.testing.assert_almost_equal(result.final_state.to_numpy(),
                                    np.array([1, 0, 0, 0]))
     assert len(result.measurements) == 0
+
+
+def test_run_no_repetitions():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    result = simulator.run(circuit, repetitions=0)
+    assert sum(result.measurements['0']) == 0
 
 
 def test_run_hadamard():
@@ -40,6 +49,24 @@ def test_run_correlations():
         result = simulator.run(circuit)
         bits = result.measurements['0,1'][0]
         assert bits[0] == bits[1]
+
+
+def test_run_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_simulate_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.simulate_sweep(circuit, cirq.ParamResolver({}))
 
 
 def test_simulate():

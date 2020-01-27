@@ -23,9 +23,18 @@ import numpy as np
 
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq.sim import sparse_simulator, density_matrix_simulator
+from cirq.sim.clifford import clifford_simulator
 
 if TYPE_CHECKING:
     import cirq
+
+
+def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
+    supported_ops = clifford_simulator.CliffordSimulator.get_supported_gates()
+    # TODO: Have this method check the decomposition of the circuit into
+    #  clifford operations.
+    return all(op.gate in supported_ops or protocols.is_measurement(op)
+               for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',
@@ -50,11 +59,17 @@ def sample(program: 'cirq.Circuit',
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
 
     # State vector simulation is much faster, but only works if no randomness.
-    if noise_model == devices.NO_NOISE and protocols.has_unitary(program):
-        return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
-            program=program,
-            param_resolver=param_resolver,
-            repetitions=repetitions)
+    if noise_model == devices.NO_NOISE:
+        if _is_clifford_circuit(program):
+            # If all non-measurement operations are clifford, use the Clifford
+            # simulator.
+            return clifford_simulator.CliffordSimulator().run(
+                program, param_resolver=param_resolver, repetitions=repetitions)
+        if protocols.has_unitary(program):
+            return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
+                program=program,
+                param_resolver=param_resolver,
+                repetitions=repetitions)
 
     return density_matrix_simulator.DensityMatrixSimulator(
         dtype=dtype, noise=noise_model,

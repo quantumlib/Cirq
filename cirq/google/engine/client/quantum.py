@@ -1,4 +1,6 @@
-# Copyright 2018 The Cirq Developers
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Apis for running quantum programs remotely."""
+from __future__ import absolute_import
 
-from cirq.api import google
+from cirq.google.engine.client.quantum_v1alpha1 import \
+    QuantumEngineServiceClient
+from cirq.google.engine.client.quantum_v1alpha1 import enums
+from cirq.google.engine.client.quantum_v1alpha1 import types
+
+__all__ = (
+    'enums',
+    'types',
+    'QuantumEngineServiceClient',
+)
