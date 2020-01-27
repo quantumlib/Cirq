@@ -21,10 +21,7 @@ def _convert_one(op: ops.Operation) -> ops.OP_TREE:
         return op  # TODO
     if matrix is not None and len(op.qubits) == 2:
         return optimizers.two_qubit_matrix_to_operations(
-            op.qubits[0],
-            op.qubits[1],
-            matrix,
-            allow_partial_czs=False)
+            op.qubits[0], op.qubits[1], matrix, allow_partial_czs=False)
 
     return NotImplemented
 
@@ -36,11 +33,10 @@ def convert(op: ops.Operation) -> ops.OP_TREE:
     if _is_native_adonis_op(op):
         return op
 
-    return protocols.decompose(
-        op,
-        keep=_is_native_adonis_op,
-        intercepting_decomposer=_convert_one,
-        on_stuck_raise=None)
+    return protocols.decompose(op,
+                               keep=_is_native_adonis_op,
+                               intercepting_decomposer=_convert_one,
+                               on_stuck_raise=None)
 
 
 def _is_native_adonis_op(operation: ops.Operation):

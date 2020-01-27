@@ -36,10 +36,10 @@ class Adonis(devices.Device):
         """Instantiate the description of an Adonis device"""
         self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
 
-    def decompose_operation(self, operation: 'cirq.Operation'
-                            ) -> 'cirq.OP_TREE':
+    def decompose_operation(self,
+                            operation: 'cirq.Operation') -> 'cirq.OP_TREE':
         super().decompose_operation(operation)
-        convert_to_adonis_gates.convert(operation)
+        return convert_to_adonis_gates.convert(operation)
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         super().validate_operation(operation)

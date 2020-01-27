@@ -6,22 +6,22 @@ class TestOperationValidation:
     def test_valid_operations(self):
         adonis = cirq.iqm.Adonis()
 
-        adonis.validate_operation(cirq.GateOperation(cirq.X,
-                                                     [cirq.GridQubit(0, 1)]))
+        adonis.validate_operation(
+            cirq.GateOperation(cirq.X, [cirq.GridQubit(0, 1)]))
 
         adonis.validate_operation(
             cirq.GateOperation(cirq.YPowGate(exponent=0.25),
                                [cirq.GridQubit(0, 1)]))
 
         adonis.validate_operation(
-            cirq.GateOperation(
-                cirq.CZ,
-                [cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)]))
+            cirq.GateOperation(cirq.CZ,
+                               [cirq.GridQubit(1, 0),
+                                cirq.GridQubit(1, 1)]))
 
         adonis.validate_operation(
-            cirq.GateOperation(
-                cirq.ISwapPowGate(exponent=0.5),
-                [cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)]))
+            cirq.GateOperation(cirq.ISwapPowGate(exponent=0.5),
+                               [cirq.GridQubit(1, 0),
+                                cirq.GridQubit(1, 1)]))
 
     def test_invalid_operations(self):
         adonis = cirq.iqm.Adonis()
@@ -74,7 +74,8 @@ class TestGateDecomposition:
     q4 = cirq.GridQubit(2, 1)
 
     def test_native_single_qubit_gates(self):
-        self.adonis.decompose_operation(cirq.XPowGate(exponent=0.75).on(self.q0))
+        self.adonis.decompose_operation(
+            cirq.XPowGate(exponent=0.75).on(self.q0))
 
     # TODO enable when this call halts
     # def test_unsupported_single_qubit_gates(self):
