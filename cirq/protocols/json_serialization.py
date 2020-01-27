@@ -255,8 +255,8 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
         namespace: An optional prefix to the value associated with the
             key "cirq_type". The namespace name will be joined with the
             class name via a dot (.)
-        init, repr, eq, order, unsafe_hash: Forwarded to the ``dataclass``
-            constructor.
+        init, repr, eq, order, unsafe_hash, frozen: Forwarded to the
+            ``dataclass`` constructor.
     """
 
     def wrap(cls):
