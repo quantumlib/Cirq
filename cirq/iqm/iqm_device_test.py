@@ -3,6 +3,7 @@ import cirq
 
 
 class TestOperationValidation:
+
     def test_valid_operations(self):
         adonis = cirq.iqm.Adonis()
 
