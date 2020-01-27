@@ -1,0 +1,1 @@
+cirq.NumpyArray(np.linspace(0, 1, 50).reshape((10,5)))

@@ -35,6 +35,11 @@ from cirq.value.duration import (
     DURATION_LIKE,
 )
 
+from cirq.value.json_wrappers import (
+    NumpyArray,
+    BitArray,
+)
+
 from cirq.value.linear_dict import (
     LinearDict,
     Scalar,

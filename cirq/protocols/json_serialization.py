@@ -73,6 +73,7 @@ class _ResolverCache:
                 'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
+                'BitArray': cirq.BitArray,
                 'BitFlipChannel': cirq.BitFlipChannel,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
@@ -105,6 +106,7 @@ class _ResolverCache:
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
+                'NumpyArray': cirq.NumpyArray,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
