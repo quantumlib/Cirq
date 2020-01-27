@@ -80,4 +80,5 @@ class TestGateDecomposition:
 
     # TODO enable when this call halts
     # def test_unsupported_single_qubit_gates(self):
-    #     self.adonis.decompose_operation(cirq.HPowGate(exponent=0.55).on(self.q0))
+    #     self.adonis.decompose_operation(
+    #         cirq.HPowGate(exponent=0.55).on(self.q0))
