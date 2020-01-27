@@ -29,8 +29,8 @@ class Adonis(devices.Device):
                     "QQQ\n" \
                     "-Q-\n"
 
-    SUPPORTED_GATES = (ops.CZPowGate, ops.ISwapPowGate, ops.XPowGate,
-                       ops.YPowGate, ops.MeasurementGate)
+    SUPPORTED_GATES = (ops.CZPowGate, ops.XPowGate, ops.YPowGate, ops.ZPowGate,
+                       ops.MeasurementGate)
 
     def __init__(self):
         """Instantiate the description of an Adonis device"""

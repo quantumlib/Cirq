@@ -21,7 +21,7 @@ class TestOperationValidation:
             cirq.GateOperation(cirq.CZ, [self.q1, self.q2]))
 
         self.adonis.validate_operation(
-            cirq.GateOperation(cirq.ISwapPowGate(exponent=0.5),
+            cirq.GateOperation(cirq.CZPowGate(exponent=0.5),
                                [self.q1, self.q2]))
 
     def test_invalid_operations(self):
@@ -51,7 +51,8 @@ class TestOperationValidation:
 
         with pytest.raises(ValueError):
             self.adonis.validate_operation(
-                cirq.GateOperation(cirq.ISWAP, [self.q1, self.q3]))
+                cirq.GateOperation(cirq.CZPowGate(exponent=0.11),
+                                   [self.q1, self.q3]))
 
 
 class TestGateDecomposition:
