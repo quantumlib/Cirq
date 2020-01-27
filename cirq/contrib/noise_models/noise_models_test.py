@@ -14,12 +14,14 @@
 
 import pytest
 
+from google.protobuf.text_format import Merge
+
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq.contrib.noise_models.noise_models import (
     _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
-
+from cirq.google.api import v2
 
 
 def test_moment_is_measurements():
@@ -161,53 +163,46 @@ def test_decay_noise_after_moment():
 
 
 # Fake calibration data object.
-_CALIBRATION = {
-    'name':
-    'projects/foo/processors/fake_processor_name/calibrations/1579214873',
-    'timestamp': '2020-01-16T14:47:51Z',
-    'data': {
-        '@type':
-        'type.googleapis.com/cirq.google.api.v2.MetricsSnapshot',
-        'timestampMs':
-        '1579214873',
-        'metrics': [{
-            'name': 'xeb',
-            'targets': ['0_0', '0_1'],
-            'values': [{
-                'doubleVal': .9999
-            }]
-        }, {
-            'name': 'xeb',
-            'targets': ['0_0', '1_0'],
-            'values': [{
-                'doubleVal': .9998
-            }]
-        }, {
-            'name': 'single_qubit_rb_total_error',
-            'targets': ['q0_0'],
-            'values': [{
-                'doubleVal': .001
-            }]
-        }, {
-            'name': 'single_qubit_rb_total_error',
-            'targets': ['q0_1'],
-            'values': [{
-                'doubleVal': .002
-            }]
-        }, {
-            'name': 'single_qubit_rb_total_error',
-            'targets': ['q1_0'],
-            'values': [{
-                'doubleVal': .003
-            }]
+_CALIBRATION_DATA = Merge(
+    """
+    timestamp_ms: 1579214873,
+    metrics: [{
+        name: 'xeb',
+        targets: ['0_0', '0_1'],
+        values: [{
+            double_val: .9999
         }]
-    }
-}
+    }, {
+        name: 'xeb',
+        targets: ['0_0', '1_0'],
+        values: [{
+            double_val: .9998
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q0_0'],
+        values: [{
+            double_val: .001
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q0_1'],
+        values: [{
+            double_val: .002
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q1_0'],
+        values: [{
+            double_val: .003
+        }]
+    }]
+""", v2.metrics_pb2.MetricsSnapshot())
 
 
 def test_per_qubit_noise_from_data():
     # Generate the noise model from calibration data.
-    calibration = cirq.google.Calibration(_CALIBRATION['data'])
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(calibration)
 
     # Create the circuit and apply the noise model.
