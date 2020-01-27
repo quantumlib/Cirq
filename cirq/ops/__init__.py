@@ -202,7 +202,6 @@ from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
-    Tag,
     TaggedOperation,
 )
 

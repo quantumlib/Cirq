@@ -19,6 +19,7 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 
 import abc
 import functools
+import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -392,8 +393,18 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
-    def with_tags(self, *new_tags: 'cirq.Tag') -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Any) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation, with this op and the specified tags.
+
+        This method can be used to attach meta-data to specific operations
+        without affecting their functionality.  The intended usage is to
+        attach classes intended for this purpose or strings to mark operations
+        for specific usage that will be recognized by consumers.  Specific
+        examples include ignoring this operation in optimization passes,
+        hardware-specific functionality, or circuit diagram customizability.
+
+        However, tags can be a list of any type of object that is useful to
+        identify this operation.
 
         Args:
             new_tags: The tags to wrap this operation in.
@@ -453,57 +464,16 @@ class Operation(metaclass=abc.ABCMeta):
         _validate_qid_shape(self, qubits)
 
 
-class Tag:
-    """A wrapper around string that can be used to differentiate operations.
-
-    This can be instantiated using a string value or sub-classed to
-    differentiate or tag specific instances of gates.
-
-    Tags can then be attached to an operation using Operation.with_tags(),
-    which will return a TaggedOperation or by instantiating a TaggedOperation
-    directly.
-
-    This can be used for special processing of certain operations.  For
-    instance, to prevent optimization or decomposing special gates.
-    """
-
-    def __init__(self, value: Optional[str] = None):
-        if value:
-            self.value = value
-        else:
-            self.value = ''
-
-    def __hash__(self):
-        return hash((
-            self.__class__,
-            self.value,
-        ))
-
-    def __eq__(self, other):
-        return (isinstance(other, self.__class__) and
-                isinstance(self, other.__class__) and self.value == other.value)
-
-    def __str__(self):
-        class_name = self.__class__.__name__
-        if class_name == 'Tag':
-            class_name = 'cirq.Tag'
-        return f"{class_name}('{self.value}')"
-
-    def __repr__(self):
-        return str(self)
-
-    def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['value'])
-
-
 @value.value_equality
 class TaggedOperation(Operation):
     """A specific operation instance that has been identified with a set
     of Tags for special processing.  This can be initialized with
     Using Operation.with_tags(tag) or by TaggedOperation(op, tag).
+
+    See Operation.with_tags() for more information on intended usage.
     """
 
-    def __init__(self, sub_operation: 'cirq.Operation', *tags: 'cirq.Tag'):
+    def __init__(self, sub_operation: 'cirq.Operation', *tags: Any):
         self.sub_operation = sub_operation
         self._tags = list(tags)
 
@@ -549,6 +519,79 @@ class TaggedOperation(Operation):
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
+
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        return protocols.decompose(self.sub_operation)
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self.sub_operation)
+
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
+        return protocols.apply_unitary(self.sub_operation, args, default=None)
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_operation)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        return protocols.unitary(self.sub_operation, default=None)
+
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType, None]:
+        return protocols.commutes(self.sub_operation, other, atol=atol)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self.sub_operation)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self.sub_operation, NotImplemented)
+
+    def _has_channel_(self) -> bool:
+        return protocols.has_channel(self.sub_operation)
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.channel(self.sub_operation, NotImplemented)
+
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self.sub_operation, NotImplemented)
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self.sub_operation)
+
+    def _resolve_parameters_(self, resolver):
+        return protocols.resolve_parameters(self.sub_operation, resolver)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.circuit_diagram_info(self.sub_operation, args,
+                                              NotImplemented)
+
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self.sub_operation)
+
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'TaggedOperation':
+        return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
+
+    def __pow__(self, exponent: Any) -> 'cirq.Operation':
+        return self.sub_operation**exponent
+
+    def __mul__(self, other: Any) -> Any:
+        return self.sub_operation * other
+
+    def __rmul__(self, other: Any) -> Any:
+        return other * self.sub_operation
+
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+        return protocols.qasm(self.sub_operation, args=args, default=None)
+
+    def _equal_up_to_global_phase_(self,
+                                   other: Any,
+                                   atol: Union[int, float] = 1e-8
+                                  ) -> Union[NotImplementedType, bool]:
+        return protocols.equal_up_to_global_phase(self.sub_operation,
+                                                  other,
+                                                  atol=atol)
 
 
 @value.value_equality
