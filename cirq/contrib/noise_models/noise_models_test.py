@@ -237,6 +237,23 @@ _CALIBRATION_DATA = Merge(
 """, v2.metrics_pb2.MetricsSnapshot())
 
 
+def test_noise_from_metrics_requires_type():
+    # Attempt to generate a noise model without specifying a noise type.
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    with pytest.raises(ValueError) as e:
+        simple_noise_from_calibration_metrics(calibration=calibration)
+    assert e.match("At least one error type must be specified.")
+
+
+def test_noise_from_metrics_unsupported():
+    # Attempt to generate a damping noise model (not yet supported).
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    with pytest.raises(NotImplementedError) as e:
+        simple_noise_from_calibration_metrics(calibration=calibration,
+                                              dampingNoise=True)
+    assert e.match("Gate damping is not yet supported.")
+
+
 def test_per_qubit_depol_noise_from_data():
     # Generate the depolarization noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
