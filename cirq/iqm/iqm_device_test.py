@@ -69,7 +69,7 @@ class TestGateDecomposition:
             return True
         for op in op_or_op_list:
             if not iqm.Adonis.is_native_operation(op):
-                return False
+                return False  # coverage: ignore
         return True
 
     def test_native_single_qubit_gates(self):
