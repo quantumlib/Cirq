@@ -5,8 +5,7 @@ import cirq
 
 from cirq import ops, Circuit
 from cirq import CZ, Z
-from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalCircuit, \
-    PasqalDevice
+from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalDevice
 from cirq.pasqal.pasqal_noise_model import get_op_string
 
 def test_NoiseModel_init():
@@ -29,7 +28,10 @@ def test_noisy_moments():
     circuit = Circuit()
     circuit.append(CZ(p_qubits[0], p_qubits[1]))
     circuit.append(Z(p_qubits[1]))
-    p_circuit = PasqalCircuit(circuit,device=p_device)
+
+    # p_circuit = PasqalCircuit(circuit,device=p_device)
+    p_circuit = Circuit(circuit, device=p_device)
+
     n_mts=[]
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
