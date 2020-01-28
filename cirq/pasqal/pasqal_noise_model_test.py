@@ -6,18 +6,18 @@ import cirq
 from cirq import ops, Circuit
 from cirq import CZ, Z
 from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalDevice
-from cirq.pasqal.pasqal_noise_model import get_op_string
+# from cirq.pasqal.pasqal_noise_model import get_op_string
 
 def test_NoiseModel_init():
     noise_model = PasqalNoiseModel()
     assert noise_model.noise_op_dict=={
-                                       'X': ops.depolarize(1e-2),
-                                       'Y': ops.depolarize(1e-2),
-                                       'Z': ops.depolarize(1e-2),
-                                       'CX': ops.depolarize(3e-2),
-                                       'CZ': ops.depolarize(3e-2),
-                                       'CCX': ops.depolarize(8e-2),
-                                       'CCZ': ops.depolarize(8e-2),
+            str(cirq.ops.X): ops.depolarize(1e-2),
+            str(cirq.ops.Y): ops.depolarize(1e-2),
+            str(cirq.ops.Z): ops.depolarize(1e-2),
+            str(cirq.ops.CNotPowGate(exponent=1)): ops.depolarize(3e-2),
+            str(cirq.ops.CZPowGate(exponent=1)): ops.depolarize(3e-2),
+            str(cirq.ops.CCXPowGate(exponent=1)): ops.depolarize(8e-2),
+            str(cirq.ops.CCZPowGate(exponent=1)): ops.depolarize(8e-2)
                                        }
 
 
@@ -35,6 +35,7 @@ def test_noisy_moments():
     n_mts=[]
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
+
     assert n_mts == [[CZ.on(ThreeDGridQubit(0, 0, 0),
                                  ThreeDGridQubit(0, 0, 1)),
                       cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 0)),
@@ -45,9 +46,10 @@ def test_noisy_moments():
 
 def test_get_op_string():
     noise_model = PasqalNoiseModel()
-    p_qubits= ThreeDGridQubit.cube(4)
+    p_qubits = ThreeDGridQubit.cube(4)
     circuit = Circuit()
     circuit.append(ops.H(p_qubits[0]))
-    with pytest.raises(ValueError, match='Got unknown gate:'):
+
+    with pytest.raises(ValueError, match='Got unknown operation:'):
         for moment in circuit._moments:
             _=noise_model.noisy_moment(moment, p_qubits)

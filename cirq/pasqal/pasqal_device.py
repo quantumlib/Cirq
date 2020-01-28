@@ -42,18 +42,19 @@ class PasqalDevice(NeutralAtomDevice):
             Try to decompose the operation into elementary device operations
             TODO: Test how this works for different circuits
         """
-        if not self.is_pasqal_device_op(operation):
+        if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.decompose(operation,
-                                           keep=self.is_pasqal_device_op)
+                                           keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
-            if not self.is_pasqal_device_op(dec):
+            if not PasqalDevice.is_pasqal_device_op(dec):
                 raise TypeError("Don't know how to work with {!r}.".format(
                     operation.gate))
 
         return decomposition
 
-    def is_pasqal_device_op(self, op: ops.Operation) -> bool:
+    @staticmethod
+    def is_pasqal_device_op(op: ops.Operation) -> bool:
         if not isinstance(op, ops.GateOperation):
             return False
 
@@ -81,7 +82,7 @@ class PasqalDevice(NeutralAtomDevice):
             raise ValueError('{!r} is not a supported '
                              'operation'.format(operation))
 
-        if not self.is_pasqal_device_op(operation):
+        if not PasqalDevice.is_pasqal_device_op(operation):
             raise ValueError('{!r} is not a supported '
                              'gate'.format(operation.gate))
 
