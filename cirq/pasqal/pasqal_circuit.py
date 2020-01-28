@@ -9,36 +9,32 @@ from cirq import devices, study, protocols
 from cirq.protocols.resolve_parameters import resolve_parameters
 from cirq.circuits import Circuit
 from cirq.work import Sampler
-from cirq.pasqal import PasqalDevice
 
+# from cirq.pasqal import PasqalDevice
 
-
-class PasqalCircuit(Circuit):
-
-    def __init__(self,
-                 cirq_circuit: Circuit,
-                 device: devices.Device
-                 ) -> None:
-
-        if (device is None) \
-                or (not isinstance(device, PasqalDevice)):
-            raise ValueError("PasqalDevice necessary for constructor!")
-
-
-
-        super().__init__([], device)
-        for moment in cirq_circuit:
-            for op in moment:
-                # This should call decompose on the gates
-                self.append(op)
-
-
-    def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
-
-
-
-
+# class PasqalCircuit(Circuit):
+#
+#     def __init__(self,
+#                  cirq_circuit: Circuit,
+#                  device: devices.Device
+#                  ) -> None:
+#
+#         if (device is None) \
+#                 or (not isinstance(device, PasqalDevice)):
+#             raise ValueError("PasqalDevice necessary for constructor!")
+#
+#
+#
+#         super().__init__([], device)
+#         for moment in cirq_circuit:
+#             for op in moment:
+#                 # This should call decompose on the gates
+#                 self.append(op)
+#
+#
+#     def _json_dict_(self):
+#         return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+#
 
 class PasqalSampler(Sampler):
 
