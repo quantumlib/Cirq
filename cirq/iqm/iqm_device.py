@@ -15,8 +15,7 @@
 
 from typing import cast
 import cirq
-from cirq import devices, ops
-from cirq.iqm import convert_to_adonis_gates
+from cirq import devices, ops, protocols
 
 
 class Adonis(devices.Device):
@@ -32,14 +31,25 @@ class Adonis(devices.Device):
     SUPPORTED_GATES = (ops.CZPowGate, ops.XPowGate, ops.YPowGate, ops.ZPowGate,
                        ops.MeasurementGate)
 
+    @staticmethod
+    def is_native_operation(op: ops.Operation):
+        return isinstance(op, ops.GateOperation) and isinstance(
+            op.gate, Adonis.SUPPORTED_GATES)
+
     def __init__(self):
         """Instantiate the description of an Adonis device"""
         self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
 
     def decompose_operation(self,
-                            operation: 'cirq.Operation') -> 'cirq.OP_TREE':
-        super().decompose_operation(operation)
-        return convert_to_adonis_gates.convert(operation)
+                            op: 'cirq.Operation') -> 'cirq.OP_TREE':
+        super().decompose_operation(op)
+
+        if Adonis.is_native_operation(op):
+            return op
+
+        return protocols.decompose(op,
+                                   keep=Adonis.is_native_operation,
+                                   on_stuck_raise=None)
 
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         super().validate_operation(operation)
@@ -48,7 +58,7 @@ class Adonis(devices.Device):
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError('Unsupported operation: {!r}'.format(operation))
 
-        if not isinstance(operation.gate, Adonis.SUPPORTED_GATES):
+        if not Adonis.is_native_operation(operation):
             raise ValueError('Unsupported gate type: {!r}'.format(
                 operation.gate))
 
