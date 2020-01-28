@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from math import exp
 import pytest
 
 from google.protobuf.text_format import Merge
@@ -196,14 +197,51 @@ _CALIBRATION_DATA = Merge(
         values: [{
             double_val: .003
         }]
+    }, {
+        name: 'single_qubit_readout_p0_error',
+        targets: ['q0_0'],
+        values: [{
+            double_val: .004
+        }]
+    }, {
+        name: 'single_qubit_readout_p0_error',
+        targets: ['q0_1'],
+        values: [{
+            double_val: .005
+        }]
+    }, {
+        name: 'single_qubit_readout_p0_error',
+        targets: ['q1_0'],
+        values: [{
+            double_val: .006
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['q0_0'],
+        values: [{
+            double_val: .007
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['q0_1'],
+        values: [{
+            double_val: .008
+        }]
+    }, {
+        name: 'single_qubit_idle_t1_micros',
+        targets: ['q1_0'],
+        values: [{
+            double_val: .009
+        }]
     }]
 """, v2.metrics_pb2.MetricsSnapshot())
 
 
-def test_per_qubit_noise_from_data():
-    # Generate the noise model from calibration data.
+def test_per_qubit_depol_noise_from_data():
+    # Generate the depolarization noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(calibration)
+    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
+                                                        depolNoise=True)
 
     # Create the circuit and apply the noise model.
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
@@ -230,6 +268,132 @@ def test_per_qubit_noise_from_data():
         cirq.Moment([
             cirq.DepolarizingChannel(0.001).on(qubits[0]),
             cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+
+
+def test_per_qubit_readout_error_from_data():
+    # Generate the readout error noise model from calibration data.
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
+                                                        readoutErrorNoise=True)
+
+    # Create the circuit and apply the noise model.
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
+    program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
+
+    # Insert channels explicitly to construct expected output.
+    expected_program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.BitFlipChannel(0.004).on(qubits[0]),
+            cirq.BitFlipChannel(0.005).on(qubits[1]),
+            cirq.BitFlipChannel(0.006).on(qubits[2])
+        ]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+
+
+def test_per_qubit_readout_decay_from_data():
+    # Generate the readout decay noise model from calibration data.
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
+                                                        readoutDecayNoise=True)
+
+    # Create the circuit and apply the noise model.
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
+    program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
+
+    # Insert channels explicitly to construct expected output.
+    decay_prob = [exp(1 - 1 / 0.007), exp(1 - 1 / 0.008), exp(1 - 1 / 0.009)]
+    expected_program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i])
+            for i in range(3)
+        ]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    _assert_equivalent_op_tree(expected_program, noisy_circuit)
+
+
+def test_per_qubit_combined_noise_from_data():
+    # Generate the combined noise model from calibration data.
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
+                                                        depolNoise=True,
+                                                        readoutErrorNoise=True,
+                                                        readoutDecayNoise=True)
+
+    # Create the circuit and apply the noise model.
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
+    program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
+
+    # Insert channels explicitly to construct expected output.
+    decay_prob = [exp(1 - 1 / 0.007), exp(1 - 1 / 0.008), exp(1 - 1 / 0.009)]
+    expected_program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.DepolarizingChannel(0.001).on(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([
+            cirq.DepolarizingChannel(0.001).on(qubits[0]),
+            cirq.DepolarizingChannel(0.002).on(qubits[1])
+        ]), cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.DepolarizingChannel(0.001).on(qubits[0]),
+            cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ]),
+        cirq.Moment([
+            cirq.BitFlipChannel(0.004).on(qubits[0]),
+            cirq.BitFlipChannel(0.005).on(qubits[1]),
+            cirq.BitFlipChannel(0.006).on(qubits[2])
+        ]),
+        cirq.Moment([
+            cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i])
+            for i in range(3)
         ]),
         cirq.Moment([
             cirq.measure(qubits[0], key='q0'),
