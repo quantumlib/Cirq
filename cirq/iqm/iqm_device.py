@@ -40,8 +40,7 @@ class Adonis(devices.Device):
         """Instantiate the description of an Adonis device"""
         self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
 
-    def decompose_operation(self,
-                            op: 'cirq.Operation') -> 'cirq.OP_TREE':
+    def decompose_operation(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
         super().decompose_operation(op)
 
         if Adonis.is_native_operation(op):

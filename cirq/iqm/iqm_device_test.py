@@ -12,8 +12,7 @@ class TestOperationValidation:
     q4 = cirq.GridQubit(2, 1)
 
     def test_valid_operations(self):
-        self.adonis.validate_operation(
-            cirq.GateOperation(cirq.X, [self.q0]))
+        self.adonis.validate_operation(cirq.GateOperation(cirq.X, [self.q0]))
 
         self.adonis.validate_operation(
             cirq.GateOperation(cirq.YPowGate(exponent=0.25), [self.q0]))
@@ -27,8 +26,8 @@ class TestOperationValidation:
 
     def test_invalid_operations(self):
         with pytest.raises(ValueError):
-            self.adonis.validate_operation(
-                cirq.GateOperation(cirq.H, [self.q0]))
+            self.adonis.validate_operation(cirq.GateOperation(
+                cirq.H, [self.q0]))
 
         with pytest.raises(ValueError):
             self.adonis.validate_operation(
@@ -72,8 +71,7 @@ class TestGateDecomposition:
         for gate in decomposition_xpow:
             assert iqm.Adonis.is_native_operation(gate)
 
-        decomposition_z = self.adonis.decompose_operation(
-            cirq.Z.on(self.q0))
+        decomposition_z = self.adonis.decompose_operation(cirq.Z.on(self.q0))
         if iqm.Adonis.is_native_operation(decomposition_z):
             return
         for gate in decomposition_z:
@@ -88,7 +86,9 @@ class TestGateDecomposition:
             assert iqm.Adonis.is_native_operation(gate)
 
         decomposition_phasedxz = self.adonis.decompose_operation(
-            cirq.PhasedXZGate(x_exponent=0.2, z_exponent=-0.5, axis_phase_exponent=0.75).on(self.q1))
+            cirq.PhasedXZGate(x_exponent=0.2,
+                              z_exponent=-0.5,
+                              axis_phase_exponent=0.75).on(self.q1))
         if iqm.Adonis.is_native_operation(decomposition_phasedxz):
             return
         for gate in decomposition_phasedxz:
