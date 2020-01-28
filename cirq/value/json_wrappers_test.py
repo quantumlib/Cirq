@@ -69,3 +69,13 @@ def test_numpy_roundtrip(tmpdir):
     ba2 = cirq.read_json(fn)
 
     assert ba == ba2
+
+
+def test_str_and_repr():
+    bits = np.array([0, 1, 0, 1])
+    assert str(cirq.BitArray(bits)) == 'cirq.BitArray([0 1 0 1])'
+    assert repr(cirq.BitArray(bits)) == 'cirq.BitArray(array([0, 1, 0, 1]))'
+
+    nums = np.array([1, 2, 3, 4])
+    assert str(cirq.NumpyArray(nums)) == 'cirq.NumpyArray([1 2 3 4])'
+    assert repr(cirq.NumpyArray(nums)) == 'cirq.NumpyArray(array([1, 2, 3, 4]))'

@@ -241,6 +241,7 @@ results.
     cirq.validate_normalized_state
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.BitArray
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
     cirq.CliffordSimulatorStepResult
@@ -253,6 +254,7 @@ results.
     cirq.ExpressionMap
     cirq.Linspace
     cirq.ListSweep
+    cirq.NumpyArray
     cirq.ParamDictType
     cirq.ParamResolver
     cirq.ParamResolverOrSimilarType
