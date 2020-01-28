@@ -97,11 +97,23 @@ def test_decompose_invalid_qubits():
         cirq.protocols.decompose_once_with_qubits(cirq.PhasedISwapPowGate(), qs)
 
 
-@pytest.mark.parametrize('phase_exponent, exponent',
-                         itertools.product(
-                             (-0.3, 0, 0.1, 0.5, 1, 2, sympy.Symbol('p')),
-                             (-0.1, 0, 0.1, 1, sympy.Symbol('t')),
-                         ))
+@pytest.mark.parametrize('phase_exponent, exponent', [
+    (0, 0),
+    (0, 0.1),
+    (0, 0.5),
+    (0, -1),
+    (-0.3, 0),
+    (0.1, 0.1),
+    (0.1, 0.5),
+    (0.5, 0.5),
+    (-0.1, 0.1),
+    (-0.5, 1),
+    (0.3, 2),
+    (0.4, -2),
+    (0.1, sympy.Symbol('p')),
+    (sympy.Symbol('t'), 0.5),
+    (sympy.Symbol('t'), sympy.Symbol('p')),
+])
 def test_phased_iswap_has_consistent_protocols(phase_exponent, exponent):
     cirq.testing.assert_implements_consistent_protocols(
         cirq.PhasedISwapPowGate(phase_exponent=phase_exponent,
