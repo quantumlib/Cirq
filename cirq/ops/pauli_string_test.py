@@ -47,7 +47,6 @@ def _small_sample_qubit_pauli_maps():
     Only tests 10 combinations of Paulis to speed up testing.
     """
     qubits = _make_qubits(3)
-    paulis_or_none = (None, cirq.X, cirq.Y, cirq.Z)
     yield {}
     yield {qubits[0]: cirq.X}
     yield {qubits[1]: cirq.X}
