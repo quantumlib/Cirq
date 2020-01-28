@@ -63,56 +63,44 @@ class TestGateDecomposition:
     q3 = cirq.GridQubit(1, 2)
     q4 = cirq.GridQubit(2, 1)
 
+    @staticmethod
+    def is_native(op_or_op_list) -> bool:
+        if iqm.Adonis.is_native_operation(op_or_op_list):
+            return True
+        for op in op_or_op_list:
+            if not iqm.Adonis.is_native_operation(op):
+                return False
+        return True
+
     def test_native_single_qubit_gates(self):
         decomposition_xpow = self.adonis.decompose_operation(
             cirq.XPowGate(exponent=0.75).on(self.q0))
-        if iqm.Adonis.is_native_operation(decomposition_xpow):
-            return
-        for gate in decomposition_xpow:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_xpow)
 
         decomposition_z = self.adonis.decompose_operation(cirq.Z.on(self.q0))
-        if iqm.Adonis.is_native_operation(decomposition_z):
-            return
-        for gate in decomposition_z:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_z)
 
     def test_unsupported_single_qubit_gates(self):
         decomposition_hpow = self.adonis.decompose_operation(
             cirq.HPowGate(exponent=-0.55).on(self.q1))
-        if iqm.Adonis.is_native_operation(decomposition_hpow):
-            return
-        for gate in decomposition_hpow:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_hpow)
 
         decomposition_phasedxz = self.adonis.decompose_operation(
             cirq.PhasedXZGate(x_exponent=0.2,
                               z_exponent=-0.5,
                               axis_phase_exponent=0.75).on(self.q1))
-        if iqm.Adonis.is_native_operation(decomposition_phasedxz):
-            return
-        for gate in decomposition_phasedxz:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_phasedxz)
 
     def test_native_two_qubit_gate(self):
         decomposition = self.adonis.decompose_operation(
             cirq.CZPowGate(exponent=0.15).on(self.q2, self.q4))
-        if iqm.Adonis.is_native_operation(decomposition):
-            return
-        for gate in decomposition:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition)
 
     def test_unsupported_two_qubit_gates(self):
         decomposition_cnot = self.adonis.decompose_operation(
             cirq.CNOT.on(self.q1, self.q2))
-        if iqm.Adonis.is_native_operation(decomposition_cnot):
-            return
-        for gate in decomposition_cnot:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_cnot)
 
         decomposition_cx = self.adonis.decompose_operation(
             cirq.SWAP.on(self.q3, self.q2))
-        if iqm.Adonis.is_native_operation(decomposition_cx):
-            return
-        for gate in decomposition_cx:
-            assert iqm.Adonis.is_native_operation(gate)
+        assert TestGateDecomposition.is_native(decomposition_cx)
