@@ -425,6 +425,7 @@ from cirq.protocols import (
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsCommutes,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,
