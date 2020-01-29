@@ -16,15 +16,14 @@
 
 import collections
 
-from typing import Dict, Iterator, List, Type, Union, TYPE_CHECKING
+from typing import Dict, Iterator, List, Type, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
-if TYPE_CHECKING:
-    import cirq
+import cirq
 
 
 class _StateAndBuffers:
@@ -120,7 +119,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: value.RANDOM_STATE_LIKE = None):
+                 seed: value.RANDOM_STATE_LIKE = None,
+                 ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
          Args:
@@ -128,6 +128,27 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 `numpy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
+            ignore_measurement_results: if True, then the simulation
+                will treat measurement as dephasing instead of collapsing
+                process.
+
+                Example:
+                >>> (q0,) = cirq.LineQubit.range(1)
+                >>> circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+
+                Default case (ignore_measurement_results = False):
+                >>> simulator = cirq.DensityMatrixSimulator()
+                >>> result = simulator.run(circuit)
+
+                The measurement result will be strictly one of 0 or 1.
+
+                In the other case:
+                >>> simulator = cirq.DensityMatrixSimulator(
+                ...     ignore_measurement_results = True)
+                >>> result = simulator.run(circuit)
+
+                The measurement result will be the maximally mixed state
+                with equal probability for 0 and 1.
         """
         if dtype not in {np.complex64, np.complex128}:
             raise ValueError(
@@ -136,6 +157,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         self._dtype = dtype
         self._prng = value.parse_random_state(seed)
         self.noise = devices.NoiseModel.from_noise_model_like(noise)
+        self._ignore_measurement_results = (ignore_measurement_results)
 
     def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
@@ -277,20 +299,27 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 if isinstance(op.gate, ops.MeasurementGate):
                     meas = op.gate
                     if perform_measurements:
-                        invert_mask = meas.full_invert_mask()
-                        # Measure updates inline.
-                        bits, _ = density_matrix_utils.measure_density_matrix(
-                            state.tensor,
-                            indices,
-                            qid_shape=qid_shape,
-                            out=state.tensor,
-                            seed=self._prng)
-                        corrected = [
-                            bit ^ (bit < 2 and mask)
-                            for bit, mask in zip(bits, invert_mask)
-                        ]
-                        key = protocols.measurement_key(meas)
-                        measurements[key].extend(corrected)
+                        if self._ignore_measurement_results:
+                            for i, q in enumerate(op.qubits):
+                                self._apply_op_channel(
+                                    cirq.phase_damp(1).on(q), state,
+                                    [indices[i]])
+                        else:
+                            invert_mask = meas.full_invert_mask()
+                            # Measure updates inline.
+                            bits, _ = (
+                                density_matrix_utils.measure_density_matrix(
+                                    state.tensor,
+                                    indices,
+                                    qid_shape=qid_shape,
+                                    out=state.tensor,
+                                    seed=self._prng))
+                            corrected = [
+                                bit ^ (bit < 2 and mask)
+                                for bit, mask in zip(bits, invert_mask)
+                            ]
+                            key = protocols.measurement_key(meas)
+                            measurements[key].extend(corrected)
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
