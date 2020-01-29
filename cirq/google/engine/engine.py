@@ -27,20 +27,15 @@ import datetime
 import enum
 import random
 import string
-import sys
-import time
-from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, \
+from typing import Dict, List, Optional, Sequence, TypeVar, \
     Union, TYPE_CHECKING
-import warnings
-
-from google.api_core.exceptions import GoogleAPICallError, NotFound
 
 from cirq import circuits, study, value
 from cirq.google import gate_sets, serializable_gate_set
-from cirq.google.api import v1, v2
-from cirq.google.engine import (calibration, engine_job, engine_program,
-                                engine_sampler)
-from cirq.google.engine.client import quantum
+from cirq.google.api import v1
+from cirq.google.engine import calibration
+from cirq.google.engine import (engine_client, engine_job, engine_processor,
+                                engine_program, engine_sampler)
 from cirq.google.engine.client.quantum import types as qtypes
 
 if TYPE_CHECKING:
@@ -58,13 +53,6 @@ class ProtoVersion(enum.Enum):
     V2 = 2
 
 
-class EngineException(Exception):
-
-    def __init__(self, message):
-        # Call the base class constructor with the parameters it needs
-        super().__init__(message)
-
-
 def _make_random_id(prefix: str, length: int = 16):
     random_digits = [
         random.choice(string.ascii_uppercase + string.digits)
@@ -73,6 +61,21 @@ def _make_random_id(prefix: str, length: int = 16):
     suffix = ''.join(random_digits)
     suffix += datetime.date.today().strftime('%y%m%d')
     return '%s%s' % (prefix, suffix)
+
+
+def _infer_job_id(job_config: 'JobConfig') -> None:
+    if job_config.job_id is None:
+        job_config.job_id = _make_random_id('job-')
+
+
+def implied_job_config(job_config: 'Optional[JobConfig]') -> 'JobConfig':
+    implied_job_config = (JobConfig()
+                          if job_config is None else job_config.copy())
+
+    # Note: inference order is important. Later ones may need earlier ones.
+    _infer_job_id(implied_job_config)
+
+    return implied_job_config
 
 
 @value.value_equality
@@ -130,11 +133,13 @@ class Engine:
         set_program_labels
     """
 
-    def __init__(self,
-                 project_id: str,
-                 proto_version: ProtoVersion = ProtoVersion.V1,
-                 service_args: Optional[Dict] = None,
-                 verbose: bool = True) -> None:
+    def __init__(
+            self,
+            project_id: str,
+            proto_version: ProtoVersion = ProtoVersion.V1,
+            service_args: Optional[Dict] = None,
+            verbose: bool = True,
+    ) -> None:
         """Engine service client.
 
         Args:
@@ -142,24 +147,18 @@ class Engine:
                 API interactions will be attributed to this project and any
                 resources created will be owned by the project. See
                 https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
+            proto_version: The version of cirq protos to use.
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
-            verbose: Supresses stderr messages when set to False. Default is
+            verbose: Suppresses stderr messages when set to False. Default is
                 true.
         """
         self.project_id = project_id
-        self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
-        self.verbose = verbose
 
-        if not service_args:
-            service_args = {}
-
-        # Suppress warnings about using Application Default Credentials.
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            self.client = quantum.QuantumEngineServiceClient(**service_args)
+        self.client = engine_client.EngineClient(service_args=service_args,
+                                                 verbose=verbose)
 
     def run(
             self,
@@ -171,7 +170,11 @@ class Engine:
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = None
+            gate_set: serializable_gate_set.SerializableGateSet = None,
+            program_description: Optional[str] = None,
+            program_labels: Optional[Dict[str, str]] = None,
+            job_description: Optional[str] = None,
+            job_labels: Optional[Dict[str, str]] = None,
     ) -> study.TrialResult:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -183,15 +186,19 @@ class Engine:
                 parameter is not provided, a random id of the format
                 'prog-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
-            job_config: Configures the names and properties of jobs.
+            job_config: Configures the ids and properties of jobs.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            priority: The priority to run at, 0-100.
+            priority: The priority to run at, 0-1000.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of label to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of label to set on the job.
 
         Returns:
             A single TrialResult for this run.
@@ -205,7 +212,11 @@ class Engine:
                            repetitions=repetitions,
                            priority=priority,
                            processor_ids=processor_ids,
-                           gate_set=gate_set))[0]
+                           gate_set=gate_set,
+                           program_description=program_description,
+                           program_labels=program_labels,
+                           job_description=job_description,
+                           job_labels=job_labels))[0]
 
     def run_sweep(
             self,
@@ -217,7 +228,11 @@ class Engine:
             repetitions: int = 1,
             priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = None
+            gate_set: serializable_gate_set.SerializableGateSet = None,
+            program_description: Optional[str] = None,
+            program_labels: Optional[Dict[str, str]] = None,
+            job_description: Optional[str] = None,
+            job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
         """Runs the supplied Circuit via Quantum Engine.
 
@@ -232,133 +247,43 @@ class Engine:
                 parameter is not provided, a random id of the format
                 'prog-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
-            job_config: Configures the names and properties of jobs.
+            job_config: Configures the ids and properties of jobs.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            priority: The priority to run at, 0-100.
+            priority: The priority to run at, 0-1000.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of label to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of label to set on the job.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
         gate_set = gate_set or gate_sets.XMON
-        engine_program = self.create_program(program, program_id, gate_set)
+        engine_program = self.create_program(program, program_id, gate_set,
+                                             program_description,
+                                             program_labels)
         return engine_program.run_sweep(job_config=job_config,
                                         params=params,
                                         repetitions=repetitions,
                                         priority=priority,
-                                        processor_ids=processor_ids)
-
-    def create_job(
-            self,
-            *,  # Force keyword args.
-            program_name: str,
-            job_config: Optional[JobConfig] = None,
-            params: study.Sweepable = None,
-            repetitions: int = 1,
-            priority: int = 500,
-            processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = None
-    ) -> engine_job.EngineJob:
-        gate_set = gate_set or gate_sets.XMON
-
-        # Check program to run and program parameters.
-        if not 0 <= priority < 1000:
-            raise ValueError('priority must be between 0 and 1000')
-
-        job_config = self.implied_job_config(job_config)
-        sweeps = study.to_sweeps(params or study.ParamResolver({}))
-        run_context = self._serialize_run_context(sweeps, repetitions)
-
-        # Create job.
-        request = qtypes.QuantumJob(
-            name='%s/jobs/%s' % (program_name, job_config.job_id),
-            scheduling_config=qtypes.SchedulingConfig(
-                priority=priority,
-                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
-                    processor_names=[
-                        'projects/%s/processors/%s' %
-                        (self.project_id, processor_id)
-                        for processor_id in processor_ids
-                    ])),
-            run_context=run_context)
-        response = self._make_request(lambda: self.client.create_quantum_job(
-            program_name, request, False))
-
-        return engine_job.EngineJob(job_config, response, self)
-
-    def implied_job_config(self, job_config: Optional[JobConfig]) -> JobConfig:
-        implied_job_config = (JobConfig()
-                              if job_config is None else job_config.copy())
-
-        # Note: inference order is important. Later ones may need earlier ones.
-        self._infer_job_id(implied_job_config)
-
-        return implied_job_config
-
-    def _infer_job_id(self, job_config: JobConfig) -> None:
-        if job_config.job_id is None:
-            job_config.job_id = _make_random_id('job-')
-
-    def _make_request(self, request: Callable[[], _R]) -> _R:
-        retryable_error_codes = [500, 503]
-        current_delay = 0.1  #100ms
-
-        while True:
-            try:
-                return request()
-            except GoogleAPICallError as err:
-                message = err.message
-                # Raise RuntimeError for exceptions that are not retryable.
-                # Otherwise, pass through to retry.
-                if not err.code.value in retryable_error_codes:
-                    raise EngineException(message) from err
-
-            current_delay *= 2
-            if current_delay > self.max_retry_delay:
-                raise TimeoutError(
-                    'Reached max retry attempts for error: {}'.format(message))
-            if (self.verbose):
-                print(message, file=sys.stderr)
-                print('Waiting ',
-                      current_delay,
-                      'seconds before retrying.',
-                      file=sys.stderr)
-            time.sleep(current_delay)
-
-    def _serialize_run_context(
-            self,
-            sweeps: List[study.Sweep],
-            repetitions: int,
-    ) -> qtypes.any_pb2.Any:
-        context = qtypes.any_pb2.Any()
-        proto_version = self.proto_version
-        if proto_version == ProtoVersion.V1:
-            context.Pack(
-                v1.program_pb2.RunContext(parameter_sweeps=[
-                    v1.sweep_to_proto(sweep, repetitions) for sweep in sweeps
-                ]))
-        elif proto_version == ProtoVersion.V2:
-            run_context = v2.run_context_pb2.RunContext()
-            for sweep in sweeps:
-                sweep_proto = run_context.parameter_sweeps.add()
-                sweep_proto.repetitions = repetitions
-                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
-
-            context.Pack(run_context)
-        else:
-            raise ValueError(
-                'invalid run context proto version: {}'.format(proto_version))
-        return context
+                                        processor_ids=processor_ids,
+                                        description=job_description,
+                                        labels=job_labels)
 
     def create_program(
             self,
             program: 'cirq.Circuit',
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = None
+            gate_set: serializable_gate_set.SerializableGateSet = None,
+            description: Optional[str] = None,
+            labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
         """Wraps a Circuit for use with the Quantum Engine.
 
@@ -371,28 +296,32 @@ class Engine:
                 alphanumeric and YYMMDD is the current year, month, and day.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
+            description: An optional description to set on the program.
+            labels: Optional set of label to set on the program.
+
+        Returns:
+            A EngineProgram for the newly created program.
         """
         gate_set = gate_set or gate_sets.XMON
 
         if not program_id:
             program_id = _make_random_id('prog-')
 
-        parent_name = 'projects/%s' % self.project_id
-        program_name = '%s/programs/%s' % (parent_name, program_id)
-        # Create program.
-        request = qtypes.QuantumProgram(name=program_name,
-                                        code=self._serialize_program(
-                                            program, gate_set))
-        result = self._make_request(lambda: self.client.create_quantum_program(
-            parent_name, request, False))
+        created_program_id, created_program = self.client.create_program(
+            self.project_id,
+            program_id,
+            code=self._serialize_program(program, gate_set),
+            description=description,
+            labels=labels)
 
-        return engine_program.EngineProgram(result.name, self)
+        return engine_program.EngineProgram(created_program_id, self,
+                                            created_program)
 
     def _serialize_program(
             self,
             program: 'cirq.Circuit',
             gate_set: serializable_gate_set.SerializableGateSet = None
-    ) -> Dict[str, Any]:
+    ) -> qtypes.any_pb2.Any:
         gate_set = gate_set or gate_sets.XMON
         code = qtypes.any_pb2.Any()
 
@@ -413,255 +342,102 @@ class Engine:
                 self.proto_version))
         return code
 
-    def get_program(self, program_id: str) -> qtypes.QuantumProgram:
-        """Returns a previously created quantum program.
+    def get_program(self, program_id: str, project_id: Optional[str] = None
+                   ) -> engine_program.EngineProgram:
+        """Creates an EngineProgram for an existing Quantum Engine program.
 
-        Params:
-            program_id: A string containing the unique ID of a program within
-              the project specified for the Engine.
-
-        Returns:
-            A quantum program.
-        """
-        program_resource_name = self._program_name_from_id(program_id)
-        return self._make_request(lambda: self.client.get_quantum_program(
-            program_resource_name, False))
-
-    def get_job(self, job_resource_name: str) -> qtypes.QuantumJob:
-        """Returns a previously created job.
-
-        See get_job_result if you want the results of the job and not just
-        metadata about the job.
-
-        Params:
-            job_resource_name: A string of the form
-                `projects/project_id/programs/program_id/jobs/job_id`.
+        Args:
+            program_id: Unique ID of the program within the parent project.
+            project_id: The project id for the project containing the program.
+                If provided will be checked against the project id of the
+                engine.
 
         Returns:
-            A quantum job.
+            A EngineProgram for the program.
         """
-        return self._make_request(lambda: self.client.get_quantum_job(
-            job_resource_name, False))
+        if project_id and project_id != self.project_id:
+            raise ValueError(
+                'Engine project id {} does not match given project_id {}'.
+                format(self.project_id, project_id))
 
-    def get_job_results(self,
-                        job_resource_name: str) -> List[study.TrialResult]:
-        """Returns the actual results (not metadata) of a completed job.
+        program = self.client.get_program(self.project_id, program_id, False)
+        return engine_program.EngineProgram(program_id, self, program)
 
-        Params:
-            job_resource_name: A string of the form
-                `projects/project_id/programs/program_id/jobs/job_id`.
+    def get_job(self,
+                program_id: str,
+                job_id: str,
+                project_id: Optional[str] = None) -> engine_job.EngineJob:
+        """Creates an EngineJob for an existing Quantum Engine job.
+
+        Args:
+            program_id: Unique ID of the program within the parent project.
+            job_id: Unique ID of the job within the parent program.
+            project_id: The project id for the project containing the program.
+                If provided will be checked against the project id of the
+                engine.
 
         Returns:
-            An iterable over the TrialResult, one per parameter in the
-            parameter sweep.
+            A EngineJob for the job.
         """
-        response = self._make_request(lambda: self.client.get_quantum_result(
-            job_resource_name))
-        result = response.result
-        result_type = result.type_url[len(TYPE_PREFIX):]
-        if (result_type == 'cirq.google.api.v1.Result' or
-                result_type == 'cirq.api.google.v1.Result'):
-            v1_parsed_result = v1.program_pb2.Result()
-            v1_parsed_result.ParseFromString(result.value)
-            return self._get_job_results_v1(v1_parsed_result)
-        if (result_type == 'cirq.google.api.v2.Result' or
-                result_type == 'cirq.api.google.v2.Result'):
-            v2_parsed_result = v2.result_pb2.Result()
-            v2_parsed_result.ParseFromString(result.value)
-            return self._get_job_results_v2(v2_parsed_result)
-        raise ValueError('invalid result proto version: {}'.format(
-            self.proto_version))
+        return self.get_program(program_id, project_id).get_job(job_id)
 
-    def _get_job_results_v1(self, result: v1.program_pb2.Result
-                           ) -> List[study.TrialResult]:
-        trial_results = []
-        for sweep_result in result.sweep_results:
-            sweep_repetitions = sweep_result.repetitions
-            key_sizes = [
-                (m.key, len(m.qubits)) for m in sweep_result.measurement_keys
-            ]
-            for result in sweep_result.parameterized_results:
-                data = result.measurement_results
-                measurements = v1.unpack_results(data, sweep_repetitions,
-                                                 key_sizes)
-
-                trial_results.append(
-                    study.TrialResult.from_single_parameter_set(
-                        params=study.ParamResolver(result.params.assignments),
-                        measurements=measurements))
-        return trial_results
-
-    def _get_job_results_v2(self, result: v2.result_pb2.Result
-                           ) -> List[study.TrialResult]:
-        sweep_results = v2.results_from_proto(result)
-        # Flatten to single list to match to sampler api.
-        return [
-            trial_result for sweep_result in sweep_results
-            for trial_result in sweep_result
-        ]
-
-    def cancel_job(self, job_resource_name: str):
-        """Cancels the given job.
-
-        See also the cancel method on EngineJob.
-
-        Params:
-            job_resource_name: A string of the form
-                `projects/project_id/programs/program_id/jobs/job_id`.
-        """
-        self._make_request(lambda: self.client.cancel_quantum_job(
-            job_resource_name))
-
-    def _program_name_from_id(self, program_id: str) -> str:
-        return 'projects/%s/programs/%s' % (self.project_id, program_id)
-
-    def _set_program_labels(self, program_id: str, labels: Dict[str, str],
-                            fingerprint: str):
-        program_resource_name = self._program_name_from_id(program_id)
-        return self._make_request(lambda: self.client.update_quantum_program(
-            program_resource_name,
-            qtypes.QuantumProgram(name=program_resource_name,
-                                  labels=labels,
-                                  label_fingerprint=fingerprint),
-            qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
-
-    def set_program_labels(self, program_id: str, labels: Dict[str, str]):
-        program = self.get_program(program_id)
-        return self._set_program_labels(program_id, labels,
-                                        program.label_fingerprint)
-
-    def add_program_labels(self, program_id: str, labels: Dict[str, str]):
-        program = self.get_program(program_id)
-        old_labels = program.labels
-        new_labels = dict(old_labels)
-        new_labels.update(labels)
-        if new_labels != old_labels:
-            fingerprint = program.label_fingerprint
-            return self._set_program_labels(program_id, new_labels, fingerprint)
-        return program
-
-    def remove_program_labels(self, program_id: str, label_keys: List[str]):
-        program = self.get_program(program_id)
-        old_labels = program.labels
-        new_labels = dict(old_labels)
-        for key in label_keys:
-            new_labels.pop(key, None)
-        if new_labels != old_labels:
-            fingerprint = program.label_fingerprint
-            return self._set_program_labels(program_id, new_labels, fingerprint)
-        return program
-
-    def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
-                        fingerprint: str):
-        return self._make_request(lambda: self.client.update_quantum_job(
-            job_resource_name,
-            qtypes.QuantumJob(name=job_resource_name,
-                              labels=labels,
-                              label_fingerprint=fingerprint),
-            qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
-
-    def set_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
-        job = self.get_job(job_resource_name)
-        return self._set_job_labels(job_resource_name, labels,
-                                    job.label_fingerprint)
-
-    def add_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
-        job = self.get_job(job_resource_name)
-        old_labels = job.labels
-        new_labels = dict(old_labels)
-        new_labels.update(labels)
-        if new_labels != old_labels:
-            fingerprint = job.label_fingerprint
-            return self._set_job_labels(job_resource_name, new_labels,
-                                        fingerprint)
-        return job
-
-    def remove_job_labels(self, job_resource_name: str, label_keys: List[str]):
-        job = self.get_job(job_resource_name)
-        old_labels = job.labels
-        new_labels = dict(old_labels)
-        for key in label_keys:
-            new_labels.pop(key, None)
-        if new_labels != old_labels:
-            fingerprint = job.label_fingerprint
-            return self._set_job_labels(job_resource_name, new_labels,
-                                        fingerprint)
-        return job
-
-    def list_processors(self) -> List[qtypes.QuantumProcessor]:
+    def list_processors(self) -> List[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
 
         Returns:
-            A list of dictionaries containing the metadata of each processor.
+            A list of metadata of each processor.
         """
-        response = self._make_request(lambda: self.client.
-                                      list_quantum_processors(
-                                          'projects/%s' % self.project_id, ''))
-        return list(response)
+        response = self.client.list_processors(self.project_id)
+        return [
+            engine_processor.EngineProcessor(
+                self.client._ids_from_processor_name(p.name)[1], self, p)
+            for p in list(response)
+        ]
 
-    def get_device_specification(
-            self,
-            processor_id: str) -> Optional[v2.device_pb2.DeviceSpecification]:
-        """Returns a device specification proto for use in determining
-        information about the device.
+    def get_processor(self, processor_id: str, project_id: Optional[str] = None
+                     ) -> engine_processor.EngineProcessor:
+        """Creates an EngineProcessor for a Quantum Engine processor.
 
-        Params:
-            processor_id: The processor identifier within the resource name,
-                where name has the format:
-                `projects/<project_id>/processors/<processor_id>`.
+        Args:
+            processor_id: The processor unique identifier.
+            project_id: The project id for the project containing the processor.
+                If provided will be checked against the project id of the
+                engine.
 
         Returns:
-            Device specification proto.
+            A EngineProcessor for the processor.
         """
-        processor_name = 'projects/%s/processors/%s' % (self.project_id,
-                                                        processor_id)
-        response = self._make_request(lambda: self.client.get_quantum_processor(
-            processor_name))
+        if project_id and project_id != self.project_id:
+            raise ValueError(
+                'Engine project id {} does not match given project_id {}'.
+                format(self.project_id, project_id))
 
-        device_spec = v2.device_pb2.DeviceSpecification()
-        device_spec.ParseFromString(response.device_spec.value)
+        processor = self.client.get_processor(self.project_id, processor_id)
+        return engine_processor.EngineProcessor(processor_id, self, processor)
 
-        return device_spec
-
-    def get_latest_calibration(self, processor_id: str
-                              ) -> Optional[calibration.Calibration]:
-        """Returns metadata about the latest known calibration for a processor.
-
-        Params:
-            processor_id: The processor identifier within the resource name,
-                where name has the format:
-                `projects/<project_id>/processors/<processor_id>`.
-
-        Returns:
-            The calibration data or None if there is no current calibration.
-        """
-        calibration_name = 'projects/%s/processors/%s/calibrations/%s' % (
-            self.project_id, processor_id, 'current')
-        try:
-            return self.get_calibration(calibration_name)
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
-
-    def get_calibration(self, calibration_name: str) -> calibration.Calibration:
+    def get_calibration(self,
+                        processor_id: str,
+                        calibration_timestamp_seconds: int,
+                        project_id: Optional[str] = None
+                       ) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
 
-        Params:
-            calibration_name: A string of the form
-                `projects/<project_id>/processors/<processor id>`
-                `/calibrations/<timestamp in seconds since epoch>`
+        Args:
+            processor_id: The processor unique identifier.
+            calibration_timestamp_seconds: The timestamp of the calibration in
+                seconds since epoch.
+            project_id: The project id for the project containing the program.
+                If provided will be checked against the project id of the
+                engine.
 
         Returns:
-            A dictionary containing the metadata.
+            The calibration data.
         """
-        response = self._make_request(lambda: self.client.
-                                      get_quantum_calibration(calibration_name))
-        metrics = v2.metrics_pb2.MetricsSnapshot()
-        metrics.ParseFromString(response.data.value)
-        return calibration.Calibration(metrics)
+        return self.get_processor(
+            processor_id,
+            project_id).get_calibration(calibration_timestamp_seconds)
 
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet
