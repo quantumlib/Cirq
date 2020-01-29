@@ -6,7 +6,6 @@ import cirq
 from cirq import ops, Circuit
 from cirq import CZ, Z
 from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalDevice
-# from cirq.pasqal.pasqal_noise_model import get_op_string
 
 def test_NoiseModel_init():
     noise_model = PasqalNoiseModel()
