@@ -24,6 +24,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._doc import document
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
@@ -49,6 +50,7 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
+    @document
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
@@ -73,6 +75,7 @@ class SupportsUnitary(Protocol):
             is no such matrix.
         """
 
+    @document
     def _has_unitary_(self) -> bool:
         """Whether this value has a unitary matrix representation.
 
@@ -86,9 +89,8 @@ class SupportsUnitary(Protocol):
         """
 
 
-def unitary(val: Any,
-            default: TDefault = RaiseTypeErrorIfNotProvided
-            ) -> Union[np.ndarray, TDefault]:
+def unitary(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
+           ) -> Union[np.ndarray, TDefault]:
     """Returns a unitary matrix describing the given value.
 
     The matrix is determined by any one of the following techniques:

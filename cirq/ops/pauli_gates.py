@@ -15,7 +15,6 @@ import abc
 from typing import Any, cast, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType
@@ -49,14 +48,11 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
         return self is other
-
-    commutes_with = deprecated(deadline='v0.7.0',
-                               fix='Use `cirq.commutes()` instead.')(_commutes_)
 
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
