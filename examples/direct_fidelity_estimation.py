@@ -21,6 +21,7 @@ import argparse
 import asyncio
 import itertools
 from typing import cast
+from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -29,27 +30,44 @@ import numpy as np
 import cirq
 
 
-def build_circuit():
-    # Builds an arbitrary circuit to test. The circuit is non Clifford to show
-    # the use of simulators.
-    qubits = cirq.LineQubit.range(3)
-    circuit = cirq.Circuit(
-        cirq.Z(qubits[0])**0.25,  # T-Gate, non Clifford.
-        cirq.X(qubits[1])**0.123,
-        cirq.X(qubits[2])**0.456)
+def build_circuit(
+) -> Tuple[cirq.Circuit, List[cirq.Qid], Optional[cirq.CliffordState]]:
+    # Builds an arbitrary circuit to test. If the circuit is Clifford, then it
+    # also returns a state from which we can get the stabilitzers. If the
+    # circuit is non Clifford, the state is None.
+    qubits: List[cirq.Qid] = [qubit for qubit in cirq.LineQubit.range(3)]
+    circuit: cirq.Circuit = cirq.Circuit()
+    clifford_state = cirq.CliffordState(
+        qubit_map={qubits[i]: i for i in range(len(qubits))})
+    is_clifford = True
+    gates = [
+        cirq.Z(qubits[0]),
+        cirq.X(qubits[1]),
+        cirq.X(qubits[2]),
+    ]
+    for gate in gates:
+        circuit.append(gate)
+        if is_clifford:
+            try:
+                clifford_state.apply_unitary(gate)
+            except ValueError:
+                print('Circuit is non Clifford.')
+                is_clifford = False
     print('Circuit used:')
     print(circuit)
-    return circuit, qubits
+    if is_clifford:
+        return circuit, qubits, clifford_state
+    else:
+        return circuit, qubits, None
 
 
 def compute_characteristic_function(circuit: cirq.Circuit,
-                                    P_i: Tuple[cirq.Gate, ...],
+                                    pauli_string: cirq.PauliString,
                                     qubits: List[cirq.Qid],
                                     density_matrix: np.ndarray):
-    n_qubits = len(P_i)
+    n_qubits = len(qubits)
     d = 2**n_qubits
 
-    pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
     qubit_map = dict(zip(qubits, range(n_qubits)))
     # rho_i or sigma_i in https://arxiv.org/abs/1104.3835
     trace = pauli_string.expectation_from_density_matrix(
@@ -63,7 +81,7 @@ def compute_characteristic_function(circuit: cirq.Circuit,
 
 
 async def estimate_characteristic_function(
-        circuit: cirq.Circuit, P_i: Tuple[cirq.Gate, ...],
+        circuit: cirq.Circuit, pauli_string: cirq.PauliString,
         qubits: List[cirq.Qid], simulator: cirq.DensityMatrixSimulator,
         samples_per_term: int):
     """
@@ -80,8 +98,6 @@ async def estimate_characteristic_function(
     Returns:
         The estimated characteristic function.
     """
-    pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
-
     p = cirq.PauliSumCollector(circuit=circuit,
                                observable=pauli_string,
                                samples_per_term=samples_per_term)
@@ -96,8 +112,9 @@ async def estimate_characteristic_function(
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, n_trials: int,
-                               samples_per_term: int):
+                               noise: cirq.NoiseModel,
+                               clifford_state: Optional[cirq.CliffordState],
+                               n_trials: int, samples_per_term: int):
     """
     Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
@@ -108,6 +125,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         circuit: The circuit to run the simulation on.
         qubits: The list of qubits.
         noise: The noise model when doing a simulation.
+        clifford_state: The Clifford state.
         n_trial: The total number of Pauli measurements.
         samples_per_term: is set to 0, we use the 'noise' parameter above and
             simulate noise in the circuit. If greater than 0, we ignore the
@@ -133,19 +151,24 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         cirq.DensityMatrixTrialResult,
         simulator.simulate(circuit)).final_density_matrix
 
-    # TODO(#2639): Sample the Pauli states more efficiently when the circuit
-    # consists of Clifford gates only, as described on page 4 of:
+    # When the circuit consists of Clifford gates only, we can sample the Pauli
+    # states more efficiently as described on page 4 of:
     # https://arxiv.org/abs/1104.4695
-    for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
-                                 repeat=n_qubits):
+    if clifford_state is not None:
+        all_P_i = [P_i.on(*qubits) for P_i in clifford_state.stabilizers()]
+    else:
+        all_P_i = [
+            cirq.PauliString(dict(zip(qubits, P_i)))
+            for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
+                                         repeat=n_qubits)
+        ]
+
+    for P_i in all_P_i:
         rho_i, Pr_i = compute_characteristic_function(circuit, P_i, qubits,
                                                       clean_density_matrix)
         pauli_traces.append({'P_i': P_i, 'rho_i': rho_i, 'Pr_i': Pr_i})
 
-    assert len(pauli_traces) == 4**n_qubits
-
     p = np.asarray([x['Pr_i'] for x in pauli_traces])
-    assert np.isclose(np.sum(p), 1.0, atol=1e-6)
 
     # The package np.random.choice() is quite sensitive to probabilities not
     # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
@@ -200,7 +223,7 @@ def parse_arguments(args):
 
 
 def main(*, n_trials: int, samples_per_term: int):
-    circuit, qubits = build_circuit()
+    circuit, qubits, clifford_state = build_circuit()
     circuit.append(cirq.measure(*qubits, key='y'))
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
@@ -210,6 +233,7 @@ def main(*, n_trials: int, samples_per_term: int):
         circuit,
         qubits,
         noise,
+        clifford_state,
         n_trials=n_trials,
         samples_per_term=samples_per_term)
     print('Estimated fidelity: %f' % (estimated_fidelity))
