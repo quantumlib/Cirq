@@ -47,13 +47,28 @@ def test_eq_ne_and_hash():
             _paulis, _bools,
             _paulis, _bools,
             (0.125, -0.25, 1)):
-        def gate_gen(offset):
-            return cirq.PauliInteractionGate(
-                pauli0, invert0,
-                pauli1, invert1,
-                exponent=e + offset)
-        eq.add_equality_group(gate_gen(0), gate_gen(0), gate_gen(2),
-                              gate_gen(-4), gate_gen(-2))
+        eq.add_equality_group(
+            cirq.PauliInteractionGate(pauli0,
+                                      invert0,
+                                      pauli1,
+                                      invert1,
+                                      exponent=e))
+
+
+def test_exponent_shifts_are_equal():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.X, False, cirq.X, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.X, True, cirq.X, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.Y, False, cirq.Z, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.Z, False, cirq.Y, True, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
 
 
 @pytest.mark.parametrize('gate',
