@@ -16,9 +16,7 @@
 """
 
 from cirq.ion.ion_gates import (
-    MS,
-    ms,
-)
+    ms,)
 
 from cirq.ion.ion_decomposition import (
     two_qubit_matrix_to_ion_operations,)

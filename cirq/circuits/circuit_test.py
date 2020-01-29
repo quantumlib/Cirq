@@ -23,7 +23,6 @@ import sympy
 
 import cirq
 import cirq.google as cg
-from cirq._compat_test import capture_logging
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -284,14 +283,14 @@ def test_repr():
     ])
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit([
-    cirq.Moment(operations=[
-        cirq.H.on(cirq.NamedQubit('a')),
-        cirq.H.on(cirq.NamedQubit('b')),
-    ]),
+    cirq.Moment(
+        cirq.H(cirq.NamedQubit('a')),
+        cirq.H(cirq.NamedQubit('b')),
+    ),
     cirq.Moment(),
-    cirq.Moment(operations=[
-        cirq.CZ.on(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
-    ]),
+    cirq.Moment(
+        cirq.CZ(cirq.NamedQubit('a'), cirq.NamedQubit('b')),
+    ),
 ])"""
 
     c = cirq.Circuit(device=cg.Foxtail)
@@ -301,9 +300,9 @@ def test_repr():
     c = cirq.Circuit(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
     assert repr(c) == """cirq.Circuit([
-    cirq.Moment(operations=[
-        cirq.Z.on(cirq.GridQubit(0, 0)),
-    ]),
+    cirq.Moment(
+        cirq.Z(cirq.GridQubit(0, 0)),
+    ),
 ], device=cirq.google.Foxtail)"""
 
 def test_empty_moments():
@@ -1537,56 +1536,6 @@ def test_qid_shape_qudit():
     assert circuit.qid_shape()
     with pytest.raises(ValueError, match='extra qubits'):
         _ = circuit.qid_shape(qubit_order=[b, c])
-
-
-def test_deprecated_circuit_init_parameter_positional_device():
-    with capture_logging() as log:
-        actual = cirq.Circuit([], cirq.UNCONSTRAINED_DEVICE)
-    assert len(log) == 1
-    assert 'positional device parameter' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.Circuit(device=cirq.UNCONSTRAINED_DEVICE)
-
-
-def test_deprecated_circuit_init_parameter_moments_keywords():
-    a = cirq.LineQubit(0)
-    with capture_logging() as log:
-        # pylint: disable=unexpected-keyword-arg
-        actual = cirq.Circuit(moments=[cirq.X(a)])
-        # pylint: enable=unexpected-keyword-arg
-    assert len(log) == 1
-    assert 'moments keyword parameter' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.Circuit(cirq.X(a))
-
-
-def test_deprecated_from_ops():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-
-    with capture_logging() as log:
-        _ = cirq.Circuit.from_ops()
-    assert len(log) == 1
-    assert 'Circuit.from_ops' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    with capture_logging():
-        actual = cirq.Circuit.from_ops(
-            cirq.X(a),
-            [cirq.Y(a), cirq.Z(b)],
-            cirq.CZ(a, b),
-            cirq.X(a),
-            [cirq.Z(b), cirq.Y(a)],
-        )
-        assert actual == cirq.Circuit([
-            cirq.Moment([cirq.X(a), cirq.Z(b)]),
-            cirq.Moment([cirq.Y(a)]),
-            cirq.Moment([cirq.CZ(a, b)]),
-            cirq.Moment([cirq.X(a), cirq.Z(b)]),
-            cirq.Moment([cirq.Y(a)]),
-        ])
 
 
 def test_to_text_diagram_teleportation_to_diagram():

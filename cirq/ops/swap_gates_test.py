@@ -18,7 +18,6 @@ import scipy
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 
 @pytest.mark.parametrize('eigen_gate_type', [
@@ -174,11 +173,3 @@ def test_riswap_hamiltonian(angle_rads):
 def test_riswap_has_consistent_protocols(angle_rads):
     cirq.testing.assert_implements_consistent_protocols(
         cirq.riswap(angle_rads), ignoring_global_phase=False)
-
-
-@pytest.mark.parametrize('angle_rads', (-1, -0.3, 0.2, 1))
-def test_deprecated_riswap(angle_rads):
-    with capture_logging():
-        assert np.all(
-            cirq.unitary(cirq.ISwapRotation(angle_rads)) == cirq.unitary(
-                cirq.riswap(angle_rads)))

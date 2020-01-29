@@ -14,9 +14,10 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
-                    FrozenSet, TYPE_CHECKING, Iterator)
+from typing import (Any, Callable, Iterable, TypeVar, Union, Tuple, FrozenSet,
+                    TYPE_CHECKING, Iterator)
 from cirq import protocols
+from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -35,18 +36,25 @@ class Moment:
     in a moment should be completed before beginning the next moment.
     """
 
-    def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
+    @deprecated_parameter(
+        deadline='v0.9',
+        fix="Don't specify a keyword.",
+        match=lambda _, kwargs: 'operations' in kwargs,
+        parameter_desc='operations',
+        rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}))
+    def __init__(self, *contents: 'cirq.OP_TREE') -> None:
         """Constructs a moment with the given operations.
 
         Args:
             operations: The operations applied within the moment.
-                Will be frozen into a tuple before storing.
+                Will be flattened and frozen into a tuple before storing.
 
         Raises:
             ValueError: A qubit appears more than once.
         """
+        from cirq.ops import op_tree
+        self._operations = tuple(op_tree.flatten_to_ops(contents))
 
-        self._operations = tuple(operations)
         # Check that operations don't overlap.
         affected_qubits = [q for op in self.operations for q in op.qubits]
         self._qubits = frozenset(affected_qubits)
@@ -55,11 +63,11 @@ class Moment:
                 'Overlapping operations: {}'.format(self.operations))
 
     @property
-    def operations(self) -> Tuple[raw_types.Operation, ...]:
+    def operations(self) -> Tuple['cirq.Operation', ...]:
         return self._operations
 
     @property
-    def qubits(self) -> FrozenSet[raw_types.Qid]:
+    def qubits(self) -> FrozenSet['cirq.Qid']:
         return self._qubits
 
     def operates_on_single_qubit(self, qubit: 'cirq.Qid') -> bool:
@@ -71,7 +79,7 @@ class Moment:
         """
         return qubit in self.qubits
 
-    def operates_on(self, qubits: Iterable[raw_types.Qid]) -> bool:
+    def operates_on(self, qubits: Iterable['cirq.Qid']) -> bool:
         """Determines if the moment has operations touching the given qubits.
 
         Args:
@@ -101,7 +109,7 @@ class Moment:
 
         return m
 
-    def without_operations_touching(self, qubits: Iterable[raw_types.Qid]):
+    def without_operations_touching(self, qubits: Iterable['cirq.Qid']):
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -168,15 +176,18 @@ class Moment:
     def __repr__(self):
         if not self.operations:
             return 'cirq.Moment()'
-        return 'cirq.Moment(operations={})'.format(
-            _list_repr_with_indented_item_lines(self.operations))
+
+        block = '\n'.join([repr(op) + ',' for op in self.operations])
+        indented = '    ' + '\n    '.join(block.split('\n'))
+
+        return f'cirq.Moment(\n{indented}\n)'
 
     def __str__(self):
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
-                         func: Callable[[raw_types.Qid], raw_types.Qid]
-                         ) -> TSelf_Moment:
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']
+                        ) -> TSelf_Moment:
         """Returns the same moment, but with different qubits.
 
         Args:
@@ -193,13 +204,11 @@ class Moment:
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['operations'])
 
+    @classmethod
+    def _from_json_dict_(cls, operations, **kwargs):
+        return Moment(operations)
+
     def __add__(self, other):
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
         return NotImplemented
-
-
-def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
-    block = '\n'.join([repr(op) + ',' for op in items])
-    indented = '    ' + '\n    '.join(block.split('\n'))
-    return '[\n{}\n]'.format(indented)

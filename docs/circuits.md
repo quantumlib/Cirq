@@ -286,9 +286,9 @@ for x in my_layer():
     print(x)
 # prints
 # CZ((0, 0), (1, 0))
-# [cirq.H.on(cirq.GridQubit(0, 0)), cirq.H.on(cirq.GridQubit(1, 0)), cirq.H.on(cirq.GridQubit(2, 0))]
-# [cirq.CZ.on(cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))]
-# [cirq.H.on(cirq.GridQubit(0, 0)), [cirq.CZ.on(cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))]]
+# [cirq.H(cirq.GridQubit(0, 0)), cirq.H(cirq.GridQubit(1, 0)), cirq.H(cirq.GridQubit(2, 0))]
+# [cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))]
+# [cirq.H(cirq.GridQubit(0, 0)), [cirq.CZ(cirq.GridQubit(1, 0), cirq.GridQubit(2, 0))]]
 
 print(circuit)
 # prints

@@ -17,13 +17,10 @@ This code implements the algorithm proposed for an example circuit (defined in
 the function build_circuit()) and a noise (defines in the variable noise).
 """
 
+from typing import cast, List, Tuple
 import argparse
 import asyncio
 import itertools
-from typing import cast
-from typing import List
-from typing import Optional
-from typing import Tuple
 import sys
 import numpy as np
 import cirq

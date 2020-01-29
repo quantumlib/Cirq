@@ -213,7 +213,7 @@ def test_decompose_on_stuck_raise():
         _ = cirq.decompose(no_method,
                            keep=lambda _: False,
                            on_stuck_raise=TypeError('test'))
-    with pytest.raises(NotImplementedError, match='op cirq.CZ.on'):
+    with pytest.raises(NotImplementedError, match='op cirq.CZ'):
         _ = cirq.decompose(
             cirq.CZ(a, b),
             keep=lambda _: False,
