@@ -29,12 +29,12 @@ def test_state_tomography_diagonal():
         res = cirq.experiments.state_tomography(cirq.Simulator(),
                                                 qubits,
                                                 circuit,
-                                                repetitions=10000,
+                                                repetitions=1000,
                                                 prerotations=[(0, 0), (0, 0.5),
                                                               (0.5, 0.5)])
         should_be = np.zeros((2**n, 2**n))
         should_be[state, state] = 1
-        assert np.allclose(res.data, should_be, atol=2e-2)
+        assert np.allclose(res.data, should_be, atol=0.05)
 
 
 def test_state_tomography_ghz_state():
@@ -48,13 +48,13 @@ def test_state_tomography_ghz_state():
          cirq.LineQubit(1),
          cirq.LineQubit(2)],
         circuit,
-        repetitions=10000)
+        repetitions=1000)
     should_be = np.zeros((8, 8))
     should_be[0, 0] = .5
     should_be[7, 7] = .5
     should_be[0, 7] = .5
     should_be[7, 0] = .5
-    assert np.allclose(res.data, should_be, atol=1e-2)
+    assert np.allclose(res.data, should_be, atol=0.05)
 
 
 def test_make_experiment_no_rots():
