@@ -383,6 +383,8 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_multi_controlled_unitary
+    cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
@@ -390,7 +392,6 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phased_x_z
     cirq.single_qubit_op_to_framed_phase_form
     cirq.two_qubit_matrix_to_operations
-    cirq.ControlledGateDecomposer
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
     cirq.DropNegligible
