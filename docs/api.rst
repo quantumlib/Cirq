@@ -387,6 +387,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phased_x_z
     cirq.single_qubit_op_to_framed_phase_form
     cirq.two_qubit_matrix_to_operations
+    cirq.ControlledGateDecomposer
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
     cirq.DropNegligible

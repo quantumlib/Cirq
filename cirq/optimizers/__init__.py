@@ -14,6 +14,9 @@
 
 """Circuit transformation utilities."""
 
+from cirq.optimizers.controlled_gate_decomposer import (
+    ControlledGateDecomposer,)
+
 from cirq.optimizers.drop_empty_moments import (
     DropEmptyMoments,)
 
