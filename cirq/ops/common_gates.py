@@ -156,6 +156,9 @@ class XPowGate(eigen_gate.EigenGate,
             exponent=self._exponent,
             phase_exponent=phase_turns * 2)
 
+    def _has_stabilizer_effect_(self) -> bool:
+        return True
+
     def __str__(self) -> str:
         if self._global_shift == -0.5:
             if self._exponent == 1:
