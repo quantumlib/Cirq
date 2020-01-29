@@ -212,6 +212,7 @@ results.
 .. autosummary::
     :toctree: generated/
 
+    cirq.CIRCUIT_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
@@ -220,6 +221,7 @@ results.
     cirq.bloch_vector_from_state_vector
     cirq.density_matrix_from_state_vector
     cirq.dirac_notation
+    cirq.final_density_matrix
     cirq.final_wavefunction
     cirq.flatten
     cirq.flatten_to_ops
