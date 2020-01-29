@@ -45,13 +45,13 @@ def test_cross_entropy_benchmarking():
                                            qubits,
                                            num_circuits=3,
                                            repetitions=1000,
-                                           cycles=range(4, 30, 5))
+                                           cycles=range(4, 20, 5))
     results_1 = cross_entropy_benchmarking(
         simulator,
         qubits,
         num_circuits=3,
         repetitions=1000,
-        cycles=range(4, 30, 5),
+        cycles=[4, 8, 12],
         scrambling_gates_per_cycle=single_qubit_rots)
     results_2 = cross_entropy_benchmarking(
         simulator,
@@ -59,7 +59,7 @@ def test_cross_entropy_benchmarking():
         benchmark_ops=interleaved_ops,
         num_circuits=3,
         repetitions=1000,
-        cycles=range(4, 30, 5),
+        cycles=[4, 8, 12],
         scrambling_gates_per_cycle=single_qubit_rots)
     results_3 = cross_entropy_benchmarking(
         simulator,
@@ -67,7 +67,7 @@ def test_cross_entropy_benchmarking():
         benchmark_ops=interleaved_ops,
         num_circuits=3,
         repetitions=1000,
-        cycles=20,
+        cycles=15,
         scrambling_gates_per_cycle=single_qubit_rots)
     fidelities_0 = [datum.xeb_fidelity for datum in results_0.data]
     fidelities_1 = [datum.xeb_fidelity for datum in results_1.data]
