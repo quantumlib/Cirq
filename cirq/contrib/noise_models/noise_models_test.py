@@ -404,13 +404,13 @@ def test_per_qubit_combined_noise_from_data():
             cirq.DepolarizingChannel(0.003).on(qubits[2])
         ]),
         cirq.Moment([
+            cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i])
+            for i in range(3)
+        ]),
+        cirq.Moment([
             cirq.BitFlipChannel(0.004).on(qubits[0]),
             cirq.BitFlipChannel(0.005).on(qubits[1]),
             cirq.BitFlipChannel(0.006).on(qubits[2])
-        ]),
-        cirq.Moment([
-            cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i])
-            for i in range(3)
         ]),
         cirq.Moment([
             cirq.measure(qubits[0], key='q0'),

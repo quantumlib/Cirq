@@ -155,6 +155,10 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     so the T1 decay is applied, then the readout bitflip, then measurement.
     Note that T1 decay is only applied to measurement, not other gates.
 
+    In moments without measurement, all qubits affected by an operation will
+    have a depolarizing channel applied after the original operation. Qubits
+    that remain idle will be unaffected by this model.
+
     As with the DepolarizingWithDampedReadoutNoiseModel, if a circuit contains
     measurements, they must be in moments that don't also contain gates.
     """
@@ -189,22 +193,22 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        moments = [moment]
+        moments = []
         if _homogeneous_moment_is_measurements(moment):
             if self.decay_prob_map:
-                moments.insert(
-                    0,
+                moments.append(
                     ops.Moment(
                         ops.AmplitudeDampingChannel(self.decay_prob_map[q])(q)
                         for q in system_qubits))
             if self.bitflip_prob_map:
-                moments.insert(
-                    0,
+                moments.append(
                     ops.Moment(
                         ops.BitFlipChannel(self.bitflip_prob_map[q])(q)
                         for q in system_qubits))
+            moments.append(moment)
             return moments
         else:
+            moments.append(moment)
             if self.depol_prob_map:
                 gated_qubits = [
                     q for q in system_qubits
@@ -223,10 +227,23 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
                                           readoutDecayNoise: bool = False,
                                           readoutErrorNoise: bool = False
                                          ) -> devices.NoiseModel:
-    """Creates a reasonable PerQubitDepolarizingNoiseModel using the provided
-    calibration data. This object can be retrived from the engine by calling
-    'get_latest_calibration()' or 'get_calibration()' using the ID of the
-    target processor.
+    """Creates a reasonable PerQubitDepolarizingWithDampedReadoutNoiseModel
+    using the provided calibration data.
+
+    Args:
+        calibration: a Calibration object (cirq/google/engine/calibration.py).
+            This object can be retrived from the engine by calling
+            'get_latest_calibration()' or 'get_calibration()' using the ID of
+            the target processor.
+        depolNoise: Enables per-gate depolarization if True.
+        dampingNoise: Enables per-gate amplitude damping if True.
+            Currently unimplemented.
+        readoutDecayNoise: Enables pre-readout amplitude damping if True.
+        readoutErrorNoise: Enables pre-readout bitflip errors if True.
+
+    Returns:
+        A PerQubitDepolarizingWithDampedReadoutNoiseModel with error
+            probabilities generated from the provided calibration data.
     """
     if not any([depolNoise, dampingNoise, readoutDecayNoise, readoutErrorNoise
                ]):
