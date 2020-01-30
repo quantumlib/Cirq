@@ -494,10 +494,8 @@ class TaggedOperation(Operation):
                       control_values: Optional[Sequence[
                           Union[int, Collection[int]]]] = None
                      ) -> 'cirq.Operation':
-        return TaggedOperation(
-            self.sub_operation.controlled_by(*control_qubits,
-                                             control_values=control_values),
-            *self._tags)
+        return self.sub_operation.controlled_by(*control_qubits,
+                                                control_values=control_values)
 
     @property
     def tags(self):
@@ -570,7 +568,7 @@ class TaggedOperation(Operation):
         return protocols.trace_distance_bound(self.sub_operation)
 
     def _phase_by_(self, phase_turns: float,
-                   qubit_index: int) -> 'TaggedOperation':
+                   qubit_index: int) -> 'cirq.Operation':
         return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
 
     def __pow__(self, exponent: Any) -> 'cirq.Operation':

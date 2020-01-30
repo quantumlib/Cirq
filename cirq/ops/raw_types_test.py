@@ -457,19 +457,13 @@ def test_tagged_operation():
     assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
     assert op.with_qubits(q2).qubits == (q2,)
 
-    controlled_op = op.controlled_by(q2)
-    assert controlled_op.qubits == (
-        q2,
-        q1,
-    )
-    assert controlled_op.tags == ['tag1']
-
 
 def test_tagged_operation_forwards_protocols():
     """The results of all protocols applied to an operation with a tag should
     be equivalent to the result without tags.
     """
     q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(1, 2)
     h = cirq.H(q1)
     tag = 'tag1'
     tagged_h = cirq.H(q1).with_tags(tag)
@@ -498,6 +492,13 @@ def test_tagged_operation_forwards_protocols():
     assert tagged_y * 2 == (y * 2)
     assert (3 * tagged_y == (3 * y))
     assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
+    controlled_y = y.controlled_by(q2)
+    assert controlled_y.qubits == (
+        q2,
+        q1,
+    )
+    assert isinstance(controlled_y, cirq.Operation)
+    assert not isinstance(controlled_y, cirq.TaggedOperation)
 
     clifford_x = cirq.SingleQubitCliffordGate.X(q1)
     tagged_x = cirq.SingleQubitCliffordGate.X(q1).with_tags(tag)
