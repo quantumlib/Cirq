@@ -20,11 +20,11 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 import abc
 import functools
 
-from cirq import value, protocols
+from cirq import protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
-    from cirq.ops import gate_operation, linear_combinations
 
 
 class Qid(metaclass=abc.ABCMeta):
@@ -170,7 +170,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     multiplying them by scalars.
     """
 
-    def validate_args(self, qubits: Sequence[Qid]) -> None:
+    def validate_args(self, qubits: Sequence['cirq.Qid']) -> None:
         """Checks if this gate can be applied to the given qubits.
 
         By default checks that:
@@ -199,44 +199,39 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         from cirq.ops import gate_operation
         return gate_operation.GateOperation(self, list(qubits))
 
-    def wrap_in_linear_combination(
-            self,
-            coefficient: Union[complex, float, int]=1
-            ) -> 'linear_combinations.LinearCombinationOfGates':
+    def wrap_in_linear_combination(self,
+                                   coefficient: Union[complex, float, int] = 1
+                                  ) -> 'cirq.LinearCombinationOfGates':
         from cirq.ops import linear_combinations
         return linear_combinations.LinearCombinationOfGates({self: coefficient})
 
-    def __add__(self,
-                other: Union['Gate',
-                             'linear_combinations.LinearCombinationOfGates']
-                ) -> 'linear_combinations.LinearCombinationOfGates':
+    def __add__(self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
+               ) -> 'cirq.LinearCombinationOfGates':
         if isinstance(other, Gate):
             return (self.wrap_in_linear_combination() +
                     other.wrap_in_linear_combination())
         return self.wrap_in_linear_combination() + other
 
-    def __sub__(self,
-                other: Union['Gate',
-                             'linear_combinations.LinearCombinationOfGates']
-                ) -> 'linear_combinations.LinearCombinationOfGates':
+    def __sub__(self, other: Union['Gate', 'cirq.LinearCombinationOfGates']
+               ) -> 'cirq.LinearCombinationOfGates':
         if isinstance(other, Gate):
             return (self.wrap_in_linear_combination() -
                     other.wrap_in_linear_combination())
         return self.wrap_in_linear_combination() - other
 
-    def __neg__(self) -> 'linear_combinations.LinearCombinationOfGates':
+    def __neg__(self) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=-1)
 
     def __mul__(self, other: Union[complex, float, int]
-                ) -> 'linear_combinations.LinearCombinationOfGates':
+               ) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
     def __rmul__(self, other: Union[complex, float, int]
-                 ) -> 'linear_combinations.LinearCombinationOfGates':
+                ) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=other)
 
     def __truediv__(self, other: Union[complex, float, int]
-                    ) -> 'linear_combinations.LinearCombinationOfGates':
+                   ) -> 'cirq.LinearCombinationOfGates':
         return self.wrap_in_linear_combination(coefficient=1 / other)
 
     def __pow__(self, power):
@@ -333,6 +328,30 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         (3, 3) for a 2-qutrit ternary gate.
         """
 
+    def _commutes_on_qids_(self, qids: 'Sequence[cirq.Qid]', other: Any,
+                           atol: float
+                          ) -> Union[bool, NotImplementedType, None]:
+        return NotImplemented
+
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[None, NotImplementedType, bool]:
+        if not isinstance(other, Gate):
+            return NotImplemented
+        if protocols.qid_shape(self) != protocols.qid_shape(other):
+            return None
+        # HACK: break cycle
+        from cirq.devices import line_qubit
+        qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
+        return protocols.commutes(self(*qs), other(*qs))
+
+    def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
+        """cirq.GateOperation.__mul__ delegates to this method."""
+        return NotImplemented
+
+    def _rmul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
+        """cirq.GateOperation.__rmul__ delegates to this method."""
+        return NotImplemented
+
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
@@ -345,12 +364,12 @@ class Operation(metaclass=abc.ABCMeta):
     """
 
     @property
-    def gate(self) -> Optional[Gate]:
+    def gate(self) -> Optional['cirq.Gate']:
         return None
 
     @property
     @abc.abstractmethod
-    def qubits(self) -> Tuple[Qid, ...]:
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         raise NotImplementedError()
 
     def _num_qubits_(self) -> int:
@@ -364,10 +383,17 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: Qid) -> 'Operation':
-        pass
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+        """Returns the same operation, but applied to different qubits.
 
-    def transform_qubits(self, func: Callable[[Qid], Qid]) -> 'Operation':
+        Args:
+            new_qubits: The new qubits to apply the operation to. The order must
+                exactly match the order of qubits returned from the operation's
+                `qubits` property.
+        """
+
+    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
+                        ) -> 'Operation':
         """Returns the same operation, but with different qubits.
 
         Args:
@@ -381,9 +407,10 @@ class Operation(metaclass=abc.ABCMeta):
         return self.with_qubits(*(func(q) for q in self.qubits))
 
     def controlled_by(self,
-                      *control_qubits: Qid,
+                      *control_qubits: 'cirq.Qid',
                       control_values: Optional[Sequence[
-                          Union[int, Collection[int]]]] = None) -> 'Operation':
+                          Union[int, Collection[int]]]] = None
+                     ) -> 'cirq.Operation':
         """Returns a controlled version of this operation. If no control_qubits
            are specified, returns self.
 
@@ -403,7 +430,7 @@ class Operation(metaclass=abc.ABCMeta):
             return self
         return ControlledOperation(control_qubits, self, control_values)
 
-    def validate_args(self, qubits: Sequence[Qid]):
+    def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
         shape.
 
@@ -455,7 +482,7 @@ class _InverseCompositeGate(Gate):
         return '({!r}**-1)'.format(self._original)
 
 
-def _validate_qid_shape(val: Any, qubits: Sequence[Qid]) -> None:
+def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:
     """Helper function to validate qubits for gates and operations.
 
     Raises:

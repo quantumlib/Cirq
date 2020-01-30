@@ -39,7 +39,7 @@ def test_syc_str_repr():
 
 def test_syc_circuit_diagram():
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cg.SYC(a, b))
+    circuit = cirq.Circuit(cg.SYC(a, b))
     cirq.testing.assert_has_diagram(circuit, """
 0: ───SYC───
       │

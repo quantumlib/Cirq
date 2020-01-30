@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import itertools
-from typing import cast, Dict, Hashable, List, Optional, Set
+from typing import cast, Dict, Hashable
 
 import networkx as nx
 from sortedcontainers import SortedDict, SortedSet

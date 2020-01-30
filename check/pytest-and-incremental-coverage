@@ -23,8 +23,8 @@
 ################################################################################
 
 # Get the working directory to the repo root.
-cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(git rev-parse --show-toplevel)"
+cd "$( dirname "${BASH_SOURCE[0]}" )" || exit 1
+cd "$(git rev-parse --show-toplevel)" || exit 1
 
 # Figure out which revision to compare against.
 if [ ! -z "$1" ] && [[ $1 != -* ]]; then
@@ -51,11 +51,24 @@ else
     rev="${base}"
 fi
 
-# Run it.
-PYTHONPATH="$(pwd)" python dev_tools/run_pytest_and_incremental_coverage.py "${rev}"
-result=$?
+# Run tests while producing coverage files.
+check/pytest . \
+    --actually-quiet \
+    --cov \
+    --cov-report=annotate \
+    --cov-config=dev_tools/conf/.coveragerc \
+    --benchmark-skip
+pytest_result=$?
+
+# Analyze coverage files.
+PYTHONPATH="$(pwd)" python dev_tools/check_incremental_coverage_annotations.py "${rev}"
+cover_result=$?
 
 # Clean up generated coverage files.
 find . | grep "\.py,cover$" | xargs rm -f
 
-exit ${result}
+# Report result.
+if [ "${pytest_result}" -ne "0" ] || [ "${cover_result}" -ne "0" ]; then
+  exit 1
+fi
+exit 0

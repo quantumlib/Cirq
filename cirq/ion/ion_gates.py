@@ -17,9 +17,10 @@
 import numpy as np
 
 from cirq import ops
+from cirq._compat import deprecated
 
 
-def MS(rads: float) -> ops.XXPowGate:
+def ms(rads: float) -> ops.XXPowGate:
     """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
 
     A rotation around the XX axis in the two-qubit bloch sphere.
@@ -38,3 +39,8 @@ def MS(rads: float) -> ops.XXPowGate:
         Mølmer–Sørensen gate rotating by the desired amount.
     """
     return ops.XXPowGate(exponent=rads*2/np.pi, global_shift=-0.5)
+
+
+@deprecated(deadline='v0.8.0', fix='Use cirq.ms, instead.')
+def MS(rads: float) -> ops.XXPowGate:
+    return ms(rads)

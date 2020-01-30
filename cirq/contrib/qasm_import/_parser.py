@@ -93,9 +93,9 @@ class QasmGateStatement:
                                 "at line {}".format(reg_sizes, lineno))
 
         # the actual gate we'll apply the arguments to might be a parameterized
-        # or non-parametrized gate
-        final_gate = (self.cirq_gate if isinstance(self.cirq_gate, ops.Gate)
-                      else self.cirq_gate(params))  # type: ops.Gate
+        # or non-parameterized gate
+        final_gate: ops.Gate = (self.cirq_gate if isinstance(
+            self.cirq_gate, ops.Gate) else self.cirq_gate(params))
         # OpenQASM gates can be applied on single qubits and qubit registers.
         # We represent single qubits as registers of size 1.
         # Based on the OpenQASM spec (https://arxiv.org/abs/1707.03429),
@@ -128,13 +128,13 @@ class QasmParser:
     def __init__(self):
         self.parser = yacc.yacc(module=self, debug=False, write_tables=False)
         self.circuit = Circuit()
-        self.qregs = {}  # type: Dict[str,int]
-        self.cregs = {}  # type: Dict[str,int]
+        self.qregs: Dict[str, int] = {}
+        self.cregs: Dict[str, int] = {}
         self.qelibinc = False
         self.lexer = QasmLexer()
         self.supported_format = False
-        self.parsedQasm = None  # type: Optional[Qasm]
-        self.qubits = {}  # type: Dict[str,ops.Qid]
+        self.parsedQasm: Optional[Qasm] = None
+        self.qubits: Dict[str, ops.Qid] = {}
         self.functions = {
             'sin': np.sin,
             'cos': np.cos,
@@ -155,7 +155,7 @@ class QasmParser:
             '^': operator.pow
         }
 
-    basic_gates = {
+    basic_gates: Dict[str, QasmGateStatement] = {
         'CX':
         QasmGateStatement(qasm_gate='CX',
                           cirq_gate=CX,
@@ -168,22 +168,22 @@ class QasmParser:
             num_args=1,
             # QasmUGate expects half turns
             cirq_gate=(lambda params: QasmUGate(*[p / np.pi for p in params])))
-    }  # type: Dict[str, QasmGateStatement]
+    }
 
     qelib_gates = {
         'rx':
         QasmGateStatement(qasm_gate='rx',
-                          cirq_gate=(lambda params: ops.Rx(params[0])),
+                          cirq_gate=(lambda params: ops.rx(params[0])),
                           num_params=1,
                           num_args=1),
         'ry':
         QasmGateStatement(qasm_gate='ry',
-                          cirq_gate=(lambda params: ops.Ry(params[0])),
+                          cirq_gate=(lambda params: ops.ry(params[0])),
                           num_params=1,
                           num_args=1),
         'rz':
         QasmGateStatement(qasm_gate='rz',
-                          cirq_gate=(lambda params: ops.Rz(params[0])),
+                          cirq_gate=(lambda params: ops.rz(params[0])),
                           num_params=1,
                           num_args=1),
         'id':
@@ -191,6 +191,12 @@ class QasmParser:
                           cirq_gate=ops.IdentityGate(1),
                           num_params=0,
                           num_args=1),
+        'u1':
+        QasmGateStatement(
+            qasm_gate='u1',
+            cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+            num_params=1,
+            num_args=1),
         'u2':
         QasmGateStatement(qasm_gate='u2',
                           cirq_gate=(lambda params: QasmUGate(

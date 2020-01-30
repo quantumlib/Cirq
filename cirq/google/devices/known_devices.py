@@ -14,12 +14,14 @@
 
 from typing import Dict, Optional, Iterable, List, Set, Tuple
 
+from cirq._doc import document
 from cirq.devices import GridQubit
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v2
 from cirq.google.api.v2 import device_pb2
+from cirq.google.devices.serializable_device import SerializableDevice
 from cirq.google.devices.xmon_device import XmonDevice
-from cirq.ops import MeasurementGate, SingleQubitGate
+from cirq.ops import MeasurementGate, SingleQubitGate, WaitGate
 from cirq.value import Duration
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
@@ -106,51 +108,53 @@ def create_device_proto_from_diagram(
 
     # Create gate sets
     arg_def = device_pb2.ArgDefinition
-    if gate_sets is not None:
-        for gate_set in gate_sets:
-            gs_proto = spec.valid_gate_sets.add()
-            gs_proto.name = gate_set.gate_set_name
-            gate_ids: Set[str] = set()
-            for gate_type in gate_set.serializers:
-                for serializer in gate_set.serializers[gate_type]:
-                    gate_id = serializer.serialized_gate_id
-                    if gate_id in gate_ids:
-                        # Only add each type once
-                        continue
+    for gate_set in gate_sets or []:
+        gs_proto = spec.valid_gate_sets.add()
+        gs_proto.name = gate_set.gate_set_name
+        gate_ids: Set[str] = set()
+        for gate_type in gate_set.serializers:
+            for serializer in gate_set.serializers[gate_type]:
+                gate_id = serializer.serialized_gate_id
+                if gate_id in gate_ids:
+                    # Only add each type once
+                    continue
 
-                    gate_ids.add(gate_id)
-                    gate = gs_proto.valid_gates.add()
-                    gate.id = gate_id
+                gate_ids.add(gate_id)
+                gate = gs_proto.valid_gates.add()
+                gate.id = gate_id
 
-                    # Choose target set and number of qubits based on gate type.
+                # Choose target set and number of qubits based on gate type.
 
-                    # Note: if it is not a measurement gate and doesn't inherit
-                    # from SingleQubitGate, it's assumed to be a two qubit gate.
-                    if gate_type == MeasurementGate:
-                        gate.valid_targets.extend([_MEAS_TARGET_SET])
-                    elif issubclass(gate_type, SingleQubitGate):
-                        gate.number_of_qubits = 1
-                    else:
-                        # This must be a two-qubit gate
-                        gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
-                        gate.number_of_qubits = 2
+                # Note: if it is not a measurement gate and doesn't inherit
+                # from SingleQubitGate, it's assumed to be a two qubit gate.
+                if gate_type == MeasurementGate:
+                    gate.valid_targets.extend([_MEAS_TARGET_SET])
+                elif gate_type == WaitGate:
+                    # TODO(#2537): Refactor gate-sets / device to eliminate
+                    # The need for checking type here.
+                    gate.number_of_qubits = 1
+                elif issubclass(gate_type, SingleQubitGate):
+                    gate.number_of_qubits = 1
+                else:
+                    # This must be a two-qubit gate
+                    gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                    gate.number_of_qubits = 2
 
-                    # Add gate duration
-                    if (durations_picos is not None and
-                            gate.id in durations_picos):
-                        gate.gate_duration_picos = durations_picos[gate.id]
+                # Add gate duration
+                if (durations_picos is not None and gate.id in durations_picos):
+                    gate.gate_duration_picos = durations_picos[gate.id]
 
-                    # Add argument names and types for each gate.
-                    for arg in serializer.args:
-                        new_arg = gate.valid_args.add()
-                        if arg.serialized_type == str:
-                            new_arg.type = arg_def.STRING
-                        if arg.serialized_type == float:
-                            new_arg.type = arg_def.FLOAT
-                        if arg.serialized_type == List[bool]:
-                            new_arg.type = arg_def.REPEATED_BOOLEAN
-                        new_arg.name = arg.serialized_name
-                        # Note: this does not yet support adding allowed_ranges
+                # Add argument names and types for each gate.
+                for arg in serializer.args:
+                    new_arg = gate.valid_args.add()
+                    if arg.serialized_type == str:
+                        new_arg.type = arg_def.STRING
+                    if arg.serialized_type == float:
+                        new_arg.type = arg_def.FLOAT
+                    if arg.serialized_type == List[bool]:
+                        new_arg.type = arg_def.REPEATED_BOOLEAN
+                    new_arg.name = arg.serialized_name
+                    # Note: this does not yet support adding allowed_ranges
 
     return spec
 
@@ -170,29 +174,40 @@ class _NamedConstantXmonDevice(XmonDevice):
     def __repr__(self):
         return self._repr
 
+    @classmethod
+    def _from_json_dict_(cls, constant: str, **kwargs):
+        if constant == Foxtail._repr:
+            return Foxtail
+        if constant == Bristlecone._repr:
+            return Bristlecone
+        raise ValueError(f'Unrecognized xmon device name: {constant!r}')
+
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
             'constant': self._repr,
-            'measurement_duration': self._measurement_duration,
-            'exp_w_duration': self._exp_w_duration,
-            'exp_11_duration': self._exp_z_duration,
-            'qubits': sorted(self.qubits)
         }
 
 
 Foxtail = _NamedConstantXmonDevice('cirq.google.Foxtail',
-                                   measurement_duration=Duration(nanos=1000),
+                                   measurement_duration=Duration(nanos=4000),
                                    exp_w_duration=Duration(nanos=20),
                                    exp_11_duration=Duration(nanos=50),
                                    qubits=_parse_device(_FOXTAIL_GRID)[0])
+document(Foxtail, f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Foxtail)}
+```
+""")
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
     'cz': 50_000,
     'xy': 20_000,
     'z': 0,
-    'meas': 1_000_000,
+    'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
 }
 
 FOXTAIL_PROTO = create_device_proto_from_diagram(_FOXTAIL_GRID,
@@ -215,11 +230,78 @@ ABCDEFGHIJKL
 
 Bristlecone = _NamedConstantXmonDevice(
     'cirq.google.Bristlecone',
-    measurement_duration=Duration(nanos=1000),
+    measurement_duration=Duration(nanos=4000),
     exp_w_duration=Duration(nanos=20),
     exp_11_duration=Duration(nanos=50),
     qubits=_parse_device(_BRISTLECONE_GRID)[0])
+document(
+    Bristlecone, f"""72 xmon qubit device.
+
+**Qubit grid**:
+```
+{str(Bristlecone)}
+```
+""")
 
 BRISTLECONE_PROTO = create_device_proto_from_diagram(_BRISTLECONE_GRID,
                                                      [gate_sets.XMON],
                                                      _DURATIONS_FOR_XMON)
+
+_SYCAMORE_GRID = """
+-----AB---
+----ABCD--
+---ABCDEF-
+--ABCDEFGH
+-ABCDEFGHI
+ABCDEFGHI-
+-CDEFGHI--
+--EFGHI---
+---GHI----
+----I-----
+"""
+
+_SYCAMORE_DURATIONS_PICOS = {
+    'xy': 25_000,
+    'xy_half_pi': 25_000,
+    'xy_pi': 25_000,
+    'xyz': 25_000,
+    'fsim_pi_4': 32_000,
+    'inv_fsim_pi_4': 32_000,
+    'syc': 12_000,
+    'z': 0,
+    'meas': 4_000_000,  # 1000 ns for readout, 3000ns for ring_down
+}
+
+SYCAMORE_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE_GRID,
+    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    _SYCAMORE_DURATIONS_PICOS,
+)
+
+Sycamore = SerializableDevice.from_proto(
+    proto=SYCAMORE_PROTO,
+    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
+
+# Subset of the Sycamore grid with a reduced layout.
+_SYCAMORE23_GRID = """
+----------
+----------
+----------
+--A-------
+-ABC------
+ABCDE-----
+-CDEFG----
+--EFGHI---
+---GHI----
+----I-----
+"""
+
+SYCAMORE23_PROTO = create_device_proto_from_diagram(
+    _SYCAMORE23_GRID,
+    [gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET],
+    _SYCAMORE_DURATIONS_PICOS,
+)
+
+Sycamore23 = SerializableDevice.from_proto(
+    proto=SYCAMORE23_PROTO,
+    gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])

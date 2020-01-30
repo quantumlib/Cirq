@@ -12,21 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING
-
 import abc
-
-from cirq.value import Duration
-
+from typing import TYPE_CHECKING, Optional, AbstractSet
 
 if TYPE_CHECKING:
     import cirq
 
-# Note: circuit/schedule types specified by name to avoid circular references.
-
 
 class Device(metaclass=abc.ABCMeta):
-    """Hardware constraints for validating circuits and schedules."""
+    """Hardware constraints for validating circuits."""
+
+    def qubit_set(self) -> Optional[AbstractSet['cirq.Qid']]:
+        """Returns a set or frozenset of qubits on the device, if possible.
+
+        Returns:
+            If the device has a finite set of qubits, then a set or frozen set
+            of all qubits on the device is returned.
+
+            If the device has no well defined finite set of qubits (e.g.
+            `cirq.UnconstrainedDevice` has this property), then `None` is
+            returned.
+        """
+
+        # Compatibility hack to work with devices that were written before this
+        # method was defined.
+        for name in ['qubits', '_qubits']:
+            if hasattr(self, name):
+                val = getattr(self, name)
+                if callable(val):
+                    val = val()
+                return frozenset(val)
+
+        # Default to the qubits being unknown.
+        return None
 
     def decompose_operation(self, operation: 'cirq.Operation'
                             ) -> 'cirq.OP_TREE':
@@ -38,11 +56,6 @@ class Device(metaclass=abc.ABCMeta):
         """
         return operation
 
-    @abc.abstractmethod
-    def duration_of(self, operation: 'cirq.Operation') -> Duration:
-        pass
-
-    @abc.abstractmethod
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         """Raises an exception if an operation is not valid.
 
@@ -51,23 +64,6 @@ class Device(metaclass=abc.ABCMeta):
 
         Raises:
             ValueError: The operation isn't valid for this device.
-        """
-
-    @abc.abstractmethod
-    def validate_scheduled_operation(
-            self,
-            schedule: 'cirq.Schedule',
-            scheduled_operation: 'cirq.ScheduledOperation'
-    ) -> None:
-        """Raises an exception if the scheduled operation is not valid.
-
-        Args:
-            schedule: The schedule to validate against.
-            scheduled_operation: The scheduled operation to validate.
-
-        Raises:
-            ValueError: If the scheduled operation is not valid for the
-                schedule.
         """
 
     def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
@@ -110,14 +106,3 @@ class Device(metaclass=abc.ABCMeta):
             Whether or not the moment will validate after adding the operation.
         """
         return not moment.operates_on(operation.qubits)
-
-    @abc.abstractmethod
-    def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
-        """Raises an exception if a schedule is not valid.
-
-        Args:
-            schedule: The schedule to validate.
-
-        Raises:
-            ValueError: The schedule isn't valid for this device.
-        """

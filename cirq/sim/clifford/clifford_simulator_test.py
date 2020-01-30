@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import sympy
 
 import cirq
 
@@ -14,10 +15,18 @@ def test_simulate_no_circuit():
     assert len(result.measurements) == 0
 
 
+def test_run_no_repetitions():
+    q0 = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
+    result = simulator.run(circuit, repetitions=0)
+    assert sum(result.measurements['0']) == 0
+
+
 def test_run_hadamard():
     q0 = cirq.LineQubit(0)
     simulator = cirq.CliffordSimulator()
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80
     assert sum(result.measurements['0'])[0] > 20
@@ -26,7 +35,7 @@ def test_run_hadamard():
 def test_run_GHZ():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     simulator = cirq.CliffordSimulator()
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), cirq.measure(q0))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.measure(q0))
     result = simulator.run(circuit, repetitions=100)
     assert sum(result.measurements['0'])[0] < 80
     assert sum(result.measurements['0'])[0] > 20
@@ -35,18 +44,35 @@ def test_run_GHZ():
 def test_run_correlations():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.CliffordSimulator()
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1),
-                                    cirq.measure(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1), cirq.measure(q0, q1))
     for _ in range(10):
         result = simulator.run(circuit)
         bits = result.measurements['0,1'][0]
         assert bits[0] == bits[1]
 
 
+def test_run_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.run_sweep(circuit, cirq.ParamResolver({}))
+
+
+def test_simulate_parameters_not_resolved():
+    a = cirq.LineQubit(0)
+    simulator = cirq.CliffordSimulator()
+    circuit = cirq.Circuit(
+        cirq.XPowGate(exponent=sympy.Symbol('a'))(a), cirq.measure(a))
+    with pytest.raises(ValueError, match='symbols were not specified'):
+        _ = simulator.simulate_sweep(circuit, cirq.ParamResolver({}))
+
+
 def test_simulate():
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.CliffordSimulator()
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1))
     result = simulator.simulate(circuit, qubit_order=[q0, q1])
     np.testing.assert_almost_equal(result.final_state.to_numpy(),
                                    np.array([0.5, 0.5, 0.5, 0.5]))
@@ -109,8 +135,7 @@ def test_run_measure_multiple_qubits():
 
 def test_simulate_moment_steps():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.H(q1), cirq.H(q0),
-                                    cirq.H(q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.H(q1), cirq.H(q0), cirq.H(q1))
     simulator = cirq.CliffordSimulator()
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
@@ -123,7 +148,7 @@ def test_simulate_moment_steps():
 
 def test_simulate_moment_steps_sample():
     q0, q1 = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.CNOT(q0, q1))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.CNOT(q0, q1))
     simulator = cirq.CliffordSimulator()
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 0:
@@ -140,7 +165,7 @@ def test_simulate_moment_steps_sample():
 
 def test_simulate_moment_steps_intermediate_measurement():
     q0 = cirq.LineQubit(0)
-    circuit = cirq.Circuit.from_ops(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
+    circuit = cirq.Circuit(cirq.H(q0), cirq.measure(q0), cirq.H(q0))
     simulator = cirq.CliffordSimulator()
     for i, step in enumerate(simulator.simulate_moment_steps(circuit)):
         if i == 1:
@@ -211,7 +236,9 @@ def test_clifford_state_stabilizers():
     state.apply_unitary(cirq.H(q1))
     state.apply_unitary(cirq.S(q1))
 
-    assert (state.stabilizers() == ['X0', 'Y1', 'Z2'])
+    f = cirq.DensePauliString
+    assert (state.stabilizers() == [f('XII'), f('IYI'), f('IIZ')])
+    assert (state.destabilizers() == [f('ZII'), f('IZI'), f('IIX')])
 
 
 def test_clifford_state_wave_function():
@@ -235,8 +262,9 @@ def test_clifford_tableau_str():
 def test_clifford_tableau_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-
-    assert (repr(state.tableau) == "stabilizers: [Z0, Z1]")
+    f = cirq.DensePauliString
+    assert (repr(state.tableau) == "stabilizers: [{!r}, {!r}]".format(
+        f("ZI"), f("IZ")))
 
 
 def test_clifford_tableau_str_full():
@@ -302,9 +330,9 @@ def test_clifford_circuit():
 def test_clifford_circuit_2(qubits):
     circuit = cirq.Circuit()
 
-    np.random.seed(1)
+    np.random.seed(2)
 
-    for _ in range(100):
+    for _ in range(50):
         x = np.random.randint(7)
 
         if x == 0:

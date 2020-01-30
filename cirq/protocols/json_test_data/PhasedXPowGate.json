@@ -1,0 +1,6 @@
+{
+  "cirq_type": "PhasedXPowGate",
+  "phase_exponent": 0.123,
+  "exponent": 0.456,
+  "global_shift": 0.789
+}

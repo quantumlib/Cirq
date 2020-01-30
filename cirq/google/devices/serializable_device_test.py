@@ -87,6 +87,7 @@ def test_foxtail():
     foxtail = cg.SerializableDevice.from_proto(
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
         gate_sets=[cg.gate_sets.XMON])
+    assert foxtail.qubit_set() == frozenset(cirq.GridQubit.rect(2, 11, 0, 0))
     foxtail.validate_operation(cirq.X(valid_qubit1))
     foxtail.validate_operation(cirq.X(valid_qubit2))
     foxtail.validate_operation(cirq.X(valid_qubit3))
@@ -324,38 +325,106 @@ def test_multiple_gatesets():
         dev.validate_operation(cirq.X(cirq.GridQubit(2, 2)))
 
 
-def test_multiple_gatesets_conflicting_definitions():
-    conflictingSet = cirq.google.serializable_gate_set.SerializableGateSet(
-        gate_set_name='conflicting_phased_xpow',
+def test_half_pi_takes_half_duration():
+    """This tests that gate sets with two different definitions for the same
+    gate perform correctly.  In this case, we set the XPowGate to be
+    half the duration of the full exponent and make sure it still works.
+    """
+    half_pi_gs = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='half_pi',
         serializers=[
-            cg.op_serializer.GateOpSerializer(
-                gate_type=cirq.PhasedXPowGate,
-                serialized_gate_id='not_xy',
-                args=[
-                    cg.op_serializer.SerializingArg(
-                        serialized_name='axis_half_turns',
-                        serialized_type=float,
-                        gate_getter='phase_exponent'),
-                    cg.op_serializer.SerializingArg(
-                        serialized_name='half_turns',
-                        serialized_type=float,
-                        gate_getter='exponent'),
-                ]),
+            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         ],
-        deserializers=[],
+        deserializers=[
+            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+        ],
     )
     durations_dict = {
         'xy_pi': 20_000,
         'xy_half_pi': 10_000,
-        'not_xy': 52_000,
-        'xy': 53_000,
-        'cz': 11_000,
-        'meas': 14_141
     }
     spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
-        "aa\naa", [cirq.google.XMON, conflictingSet], durations_dict)
+        "aa\naa", [half_pi_gs], durations_dict)
 
-    # The two gate sets define two different serializations for PhasedXPowGate
-    with pytest.raises(ValueError, match='conflicting definitions'):
-        _ = cg.SerializableDevice.from_proto(
-            proto=spec, gate_sets=[cirq.google.XMON, conflictingSet])
+    # The gate set defines two different serializations for PhasedXPowGate
+    device = cg.SerializableDevice.from_proto(proto=spec,
+                                              gate_sets=[half_pi_gs])
+    q = cirq.GridQubit(0, 0)
+    pi = cirq.XPowGate(exponent=1.0)
+    half_pi = cirq.XPowGate(exponent=0.5)
+    assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
+    assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
+
+
+def test_multiple_fsim_gatesets():
+    """This tests that gate sets with two different definitions for the same
+    gate perform correctly.  In this case, we set the XPowGate to be
+    half the duration of the full exponent and make sure it still works.
+    """
+    half_pi_gs = cirq.google.serializable_gate_set.SerializableGateSet(
+        gate_set_name='half_pi',
+        serializers=[
+            *cgc.SINGLE_QUBIT_HALF_PI_SERIALIZERS,
+        ],
+        deserializers=[
+            *cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
+        ],
+    )
+    durations_dict = {
+        'xy_pi': 20_000,
+        'xy_half_pi': 10_000,
+    }
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [half_pi_gs], durations_dict)
+
+    # The gate set defines two different serializations for PhasedXPowGate
+    device = cg.SerializableDevice.from_proto(proto=spec,
+                                              gate_sets=[half_pi_gs])
+    q = cirq.GridQubit(0, 0)
+    pi = cirq.XPowGate(exponent=1.0)
+    half_pi = cirq.XPowGate(exponent=0.5)
+    assert device.duration_of(pi(q)) == cirq.Duration(picos=20_000)
+    assert device.duration_of(half_pi(q)) == cirq.Duration(picos=10_000)
+
+
+def test_serializable_device_str_grid_qubits():
+    spec = cirq.google.devices.known_devices.create_device_proto_from_diagram(
+        "aa\naa", [cg.SYC_GATESET])
+    device = cg.SerializableDevice.from_proto(proto=spec,
+                                              gate_sets=[cg.SYC_GATESET])
+    assert str(device) == """\
+(0, 0)───(0, 1)
+│        │
+│        │
+(1, 0)───(1, 1)"""
+
+
+def test_serializable_device_str_named_qubits():
+    device = cg.SerializableDevice(
+        qubits=[cirq.NamedQubit('a'),
+                cirq.NamedQubit('b')],
+        gate_definitions={})
+    assert device.__class__.__name__ in str(device)
+
+
+def test_sycamore23_str():
+    assert str(cg.Sycamore23) == """\
+                  (3, 2)
+                  │
+                  │
+         (4, 1)───(4, 2)───(4, 3)
+         │        │        │
+         │        │        │
+(5, 0)───(5, 1)───(5, 2)───(5, 3)───(5, 4)
+         │        │        │        │
+         │        │        │        │
+         (6, 1)───(6, 2)───(6, 3)───(6, 4)───(6, 5)
+                  │        │        │        │
+                  │        │        │        │
+                  (7, 2)───(7, 3)───(7, 4)───(7, 5)───(7, 6)
+                           │        │        │
+                           │        │        │
+                           (8, 3)───(8, 4)───(8, 5)
+                                    │
+                                    │
+                                    (9, 4)"""

@@ -126,7 +126,7 @@ def main(repetitions=1000, maxiter=50):
         largest_cut_value_found / max_cut_value))
 
 
-def Rzz(rads):
+def rzz(rads):
     """Returns a gate with the matrix exp(-i Z⊗Z rads)."""
     return cirq.ZZPowGate(exponent=2 * rads / np.pi, global_shift=-0.5)
 
@@ -135,8 +135,8 @@ def qaoa_max_cut_unitary(qubits, betas, gammas,
                          graph):  # Nodes should be integers
     for beta, gamma in zip(betas, gammas):
         yield (
-            Rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
-        yield cirq.Rx(2 * beta).on_each(*qubits)
+            rzz(-0.5 * gamma).on(qubits[i], qubits[j]) for i, j in graph.edges)
+        yield cirq.rx(2 * beta).on_each(*qubits)
 
 
 def qaoa_max_cut_circuit(qubits, betas, gammas,
@@ -153,7 +153,7 @@ def qaoa_max_cut_circuit(qubits, betas, gammas,
 def cut_values(bitstrings, graph):
     mat = networkx.adjacency_matrix(graph, nodelist=sorted(graph.nodes))
     vecs = (-1)**bitstrings
-    vals = 0.5 * np.einsum('...i,...i', vecs, (mat * vecs.T).T)
+    vals = 0.5 * np.sum(vecs * (mat @ vecs.T).T, axis=-1)
     vals = 0.5 * (graph.size() - vals)
     return vals
 

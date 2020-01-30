@@ -29,14 +29,14 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Union, Optional, Sequence
+from typing import Dict, List, Iterator, Sequence
 import collections
 import numpy as np
 import cirq
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
-from cirq.ops import raw_types
-from cirq import circuits, study, ops, protocols
+from cirq.ops.dense_pauli_string import DensePauliString
+from cirq import circuits, study, ops, protocols, value
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -45,6 +45,10 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
     def __init__(self):
         self.init = True
+
+    @staticmethod
+    def get_supported_gates() -> List['cirq.Gate']:
+        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -80,7 +84,6 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     list)  # type: Dict[str, List[np.ndarray]]
 
                 for op in moment:
-                    print(type(op))
                     if protocols.has_unitary(op):
                         state.apply_unitary(op)
                     elif protocols.is_measurement(op):
@@ -106,6 +109,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
 
         return self._base_iterator(resolved_circuit, qubit_order,
@@ -124,11 +128,20 @@ class CliffordSimulator(simulator.SimulatesSamples,
              repetitions: int) -> Dict[str, List[np.ndarray]]:
 
         param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
+        if repetitions == 0:
+            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(
+                    ops.MeasurementGate):
+                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0)
+                resolved_circuit,
+                qubit_order=ops.QubitOrder.DEFAULT,
+                initial_state=0)
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -137,6 +150,17 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     measurements[k].append(np.array(v, dtype=bool))
 
         return {k: np.array(v) for k, v in measurements.items()}
+
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):
@@ -203,8 +227,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: Optional[Union[int, np.random.RandomState]] = None
-              ) -> np.ndarray:
+               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
 
         measurements = []
 
@@ -252,13 +275,21 @@ class CliffordState():
     def to_numpy(self):
         return self.ch_form.to_state_vector()
 
-    def stabilizers(self):
+    def stabilizers(self) -> List[DensePauliString]:
+        """Returns the stabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that S_i |psi> = |psi> """
         return self.tableau.stabilizers()
+
+    def destabilizers(self) -> List[DensePauliString]:
+        """Returns the destabilizer generators of the state. These
+        are n operators {S_1,S_2,...,S_n} such that along with the stabilizer
+        generators above generate the full Pauli group on n qubits."""
+        return self.tableau.destabilizers()
 
     def wave_function(self):
         return self.ch_form.wave_function()
 
-    def apply_unitary(self, op: raw_types.Operation):
+    def apply_unitary(self, op: 'cirq.Operation'):
         if op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])

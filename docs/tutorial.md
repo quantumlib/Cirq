@@ -104,10 +104,7 @@ lowest possible value of the objective function.
 
 To build the above variational quantum algorithm using Cirq,
 one begins by building the appropriate circuit.
-In Cirq circuits are represented either by a `Circuit` object
-or a `Schedule` object.  `Schedule`s offer more control over
-quantum gates and circuits at the timing level, which we do not
-need, so here we will work with `Circuit`s instead.
+In Cirq circuits are represented by a `Circuit` object.
 
 Conceptually: a `Circuit` is a collection of ``Moments``. A
 `Moment` is a collection of ``Operations`` that all act during

@@ -18,7 +18,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq.api.google.v2 import run_context_pb2
 from cirq.google.api import v2
 from cirq.study import sweeps
 
@@ -58,7 +57,7 @@ def test_sweep_to_proto_roundtrip(sweep):
 
 def test_sweep_to_proto_linspace():
     proto = v2.sweep_to_proto(cirq.Linspace('foo', 0, 1, 20))
-    assert isinstance(proto, run_context_pb2.Sweep)
+    assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert proto.HasField('single_sweep')
     assert proto.single_sweep.parameter_key == 'foo'
     assert proto.single_sweep.WhichOneof('sweep') == 'linspace'
@@ -69,7 +68,7 @@ def test_sweep_to_proto_linspace():
 
 def test_sweep_to_proto_points():
     proto = v2.sweep_to_proto(cirq.Points('foo', [-1, 0, 1, 1.5]))
-    assert isinstance(proto, run_context_pb2.Sweep)
+    assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert proto.HasField('single_sweep')
     assert proto.single_sweep.parameter_key == 'foo'
     assert proto.single_sweep.WhichOneof('sweep') == 'points'
@@ -78,7 +77,7 @@ def test_sweep_to_proto_points():
 
 def test_sweep_to_proto_unit():
     proto = v2.sweep_to_proto(cirq.UnitSweep)
-    assert isinstance(proto, run_context_pb2.Sweep)
+    assert isinstance(proto, v2.run_context_pb2.Sweep)
     assert not proto.HasField('single_sweep')
     assert not proto.HasField('sweep_function')
 
@@ -89,14 +88,14 @@ def test_sweep_from_proto_unknown_sweep_type():
 
 
 def test_sweep_from_proto_sweep_function_not_set():
-    proto = run_context_pb2.Sweep()
+    proto = v2.run_context_pb2.Sweep()
     proto.sweep_function.sweeps.add()
     with pytest.raises(ValueError, match='invalid sweep function type'):
         v2.sweep_from_proto(proto)
 
 
 def test_sweep_from_proto_single_sweep_type_not_set():
-    proto = run_context_pb2.Sweep()
+    proto = v2.run_context_pb2.Sweep()
     proto.single_sweep.parameter_key = 'foo'
     with pytest.raises(ValueError, match='single sweep type not set'):
         v2.sweep_from_proto(proto)
@@ -105,8 +104,8 @@ def test_sweep_from_proto_single_sweep_type_not_set():
 def test_sweep_with_list_sweep():
     ls = cirq.study.to_sweep([{'a': 1, 'b': 2}, {'a': 3, 'b': 4}])
     proto = v2.sweep_to_proto(ls)
-    expected = run_context_pb2.Sweep()
-    expected.sweep_function.function_type = run_context_pb2.SweepFunction.ZIP
+    expected = v2.run_context_pb2.Sweep()
+    expected.sweep_function.function_type = v2.run_context_pb2.SweepFunction.ZIP
     p1 = expected.sweep_function.sweeps.add()
     p1.single_sweep.parameter_key = 'a'
     p1.single_sweep.points.points.extend([1, 3])

@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Gate sets supported by Google's apis."""
+from cirq._doc import document
 from cirq.google import serializable_gate_set
 from cirq.google.common_serializers import (
     SINGLE_QUBIT_SERIALIZERS,
@@ -26,8 +27,9 @@ from cirq.google.common_serializers import (
     SYC_DESERIALIZER,
     SQRT_ISWAP_SERIALIZERS,
     SQRT_ISWAP_DESERIALIZERS,
+    WAIT_GATE_SERIALIZER,
+    WAIT_GATE_DESERIALIZER,
 )
-
 
 SYC_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sycamore',
@@ -36,14 +38,18 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
         *SINGLE_QUBIT_SERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
+        WAIT_GATE_SERIALIZER,
     ],
     deserializers=[
         SYC_DESERIALIZER,
         *SINGLE_QUBIT_DESERIALIZERS,
         *SINGLE_QUBIT_HALF_PI_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
+        WAIT_GATE_DESERIALIZER,
     ],
 )
+document(SYC_GATESET,
+         """Gate set with fsim(pi/4, pi/6) as the core 2 qubit interaction.""")
 
 SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sqrt_iswap',
@@ -51,12 +57,16 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
         *SQRT_ISWAP_SERIALIZERS,
         *SINGLE_QUBIT_SERIALIZERS,
         MEASUREMENT_SERIALIZER,
+        WAIT_GATE_SERIALIZER,
     ],
     deserializers=[
         *SQRT_ISWAP_DESERIALIZERS,
         *SINGLE_QUBIT_DESERIALIZERS,
         MEASUREMENT_DESERIALIZER,
+        WAIT_GATE_DESERIALIZER,
     ])
+document(SQRT_ISWAP_GATESET,
+         """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
 
 
 # The xmon gate set.
@@ -73,3 +83,5 @@ XMON = serializable_gate_set.SerializableGateSet(
         MEASUREMENT_DESERIALIZER,
     ],
 )
+
+document(XMON, """Gate set for XMON devices.""")

@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 import cirq
 
 
-def test_pauli_string_sample_collector():
+@pytest.mark.asyncio
+async def test_pauli_string_sample_collector():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b),
                                                     cirq.X(a), cirq.Z(b)),
@@ -24,18 +27,19 @@ def test_pauli_string_sample_collector():
                                4 * cirq.Z(a) * cirq.Z(b),
                                samples_per_term=100)
     completion = p.collect_async(sampler=cirq.Simulator())
-    cirq.testing.assert_asyncio_will_have_result(completion, None)
+    assert await completion is None
     assert p.estimated_energy() == 11
 
 
-def test_pauli_string_sample_single():
+@pytest.mark.asyncio
+async def test_pauli_string_sample_single():
     a, b = cirq.LineQubit.range(2)
     p = cirq.PauliSumCollector(circuit=cirq.Circuit(cirq.H(a), cirq.CNOT(a, b),
                                                     cirq.X(a), cirq.Z(b)),
                                observable=cirq.X(a) * cirq.X(b),
                                samples_per_term=100)
     completion = p.collect_async(sampler=cirq.Simulator())
-    cirq.testing.assert_asyncio_will_have_result(completion, None)
+    assert await completion is None
     assert p.estimated_energy() == -1
 
 

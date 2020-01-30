@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
@@ -110,8 +113,8 @@ class MeasurementGate(raw_types.Gate):
     def _has_channel_(self):
         return True
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         symbols = ['M'] * self.num_qubits()
 
         # Show which output bits are negated.
@@ -127,8 +130,8 @@ class MeasurementGate(raw_types.Gate):
 
         return protocols.CircuitDiagramInfo(tuple(symbols))
 
-    def _qasm_(self, args: 'protocols.QasmArgs',
-               qubits: Tuple[raw_types.Qid, ...]) -> Optional[str]:
+    def _qasm_(self, args: 'cirq.QasmArgs',
+               qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if not all(d == 2 for d in self._qid_shape):
             return NotImplemented
         args.validate_version('2.0')

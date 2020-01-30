@@ -18,6 +18,7 @@
 from typing import Callable, Iterable, Iterator, NoReturn, Union
 from typing_extensions import Protocol
 
+from cirq._doc import document
 from cirq.ops.moment import Moment
 from cirq.ops.raw_types import Operation
 
@@ -48,6 +49,21 @@ class OpTree(Protocol):
 
 
 OP_TREE = Union[Operation, OpTree]
+document(
+    OP_TREE,  # type: ignore
+    """An operation or nested collections of operations.
+
+    Here are some examples of things that can be given to a method that takes a
+    `cirq.OP_TREE` argument:
+
+    - A single operation (a `cirq.Operation`).
+    - A list of operations (a `List[cirq.Operation]`).
+    - A list of lists of operations (a `List[List[cirq.Operation]]`).
+    - A list mixing operations and generators of operations
+        (a `List[Union[cirq.Operation, Iterator[cirq.Operation]]]`).
+    - Generally anything that can be iterated, and its items iterated, and
+        so forth recursively until a bottom layer of operations is found.
+    """)
 
 
 def flatten_op_tree(root: OP_TREE, preserve_moments: bool = False
