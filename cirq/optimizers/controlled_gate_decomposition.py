@@ -37,8 +37,8 @@ def _flatten(x):
     return sum(x, [])
 
 
-def _decompose_abc(
-        matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
+def _decompose_abc(matrix: np.ndarray
+                  ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, float]:
     """Decomposes 2x2 unitary matrix.
 
     Returns 2x2 special unitary matrices A, B, C and phase delta, such that:
@@ -111,9 +111,9 @@ def _ccnot_congruent(c0: 'cirq.Qid', c1: 'cirq.Qid',
     ]
 
 
-def decompose_multi_controlled_x(
-        controls: List['cirq.Qid'], target: 'cirq.Qid',
-        free_qubits: List['cirq.Qid']) -> List['cirq.Operation']:
+def decompose_multi_controlled_x(controls: List['cirq.Qid'], target: 'cirq.Qid',
+                                 free_qubits: List['cirq.Qid']
+                                ) -> List['cirq.Operation']:
     """Implements action of multi-controlled Pauli X gate.
 
     Result is guaranteed to consist exclusively of 1-qubit, CNOT and CCNOT
@@ -186,10 +186,10 @@ def _decompose_su(matrix: np.ndarray, controls: List['cirq.Qid'],
     ]
 
 
-def _decompose_recursive(
-        matrix: np.ndarray, power: float, controls: List['cirq.Qid'],
-        target: 'cirq.Qid',
-        free_qubits: List['cirq.Qid']) -> List['cirq.Operation']:
+def _decompose_recursive(matrix: np.ndarray, power: float,
+                         controls: List['cirq.Qid'], target: 'cirq.Qid',
+                         free_qubits: List['cirq.Qid']
+                        ) -> List['cirq.Operation']:
     """Decomposes controlled unitary gate into elementary gates.
 
     Result has O(len(controls)^2) operations.
@@ -211,9 +211,10 @@ def _decompose_recursive(
     ]
 
 
-def decompose_multi_controlled_unitary(
-        matrix: np.ndarray, controls: List['cirq.Qid'],
-        target: 'cirq.Qid') -> List['cirq.Operation']:
+def decompose_multi_controlled_unitary(matrix: np.ndarray,
+                                       controls: List['cirq.Qid'],
+                                       target: 'cirq.Qid'
+                                      ) -> List['cirq.Operation']:
     """Implements action of multi-controlled unitary gate.
 
     Returns a sequence of operations, which is equivalent to applying
