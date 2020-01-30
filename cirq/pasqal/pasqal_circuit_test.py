@@ -98,7 +98,7 @@ def test_run():
                        simulate_ideal=True,
                        repetitions=1).data.to_dict()
     for i, q in enumerate(qs):
-        assert data['({}, {})'.format(q.row, q.col)][0] == int(binary[-i - 1])
+        assert data['({}, {}, {})'.format(q.row, q.col, q.lay)][0] == int(binary[-i - 1])
 
 
 def test_run_sweep():
@@ -134,8 +134,8 @@ def test_run_sweep():
     data0 = data_raw[0].data.to_dict()
     data1 = data_raw[1].data.to_dict()
 
-    assert data0['(0, 0)'][0] == 0
-    assert data1['(0, 0)'][0] == 1
+    assert data0['(0, 0, 0)'][0] == 0
+    assert data1['(0, 0, 0)'][0] == 1
 
     for i, q in enumerate(qs[1:], 1):
-        assert data0['({}, {})'.format(q.row, q.col)][0] == int(binary[-i - 1])
+        assert data0['({}, {}, {})'.format(q.row, q.col, q.lay)][0] == int(binary[-i - 1])
