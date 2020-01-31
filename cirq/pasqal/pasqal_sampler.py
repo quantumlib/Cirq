@@ -101,10 +101,10 @@ class PasqalSampler(Sampler):
 
 
     def run_sweep(self,
-                  program: cirq.Circuit,
-                  params: cirq.Sweepable,
+                  program: 'Circuit',
+                  params: study.Sweepable,
                   repetitions: int
-                  ) -> List[cirq.TrialResult]:
+                  ) -> List[study.TrialResult]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.
