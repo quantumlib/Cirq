@@ -12,4 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Types for representing and methods for manipulating operations on IQM's
+quantum computers.
+"""
+
 from cirq.iqm.iqm_device import Adonis
