@@ -26,6 +26,9 @@ class TestOperationValidation:
             cirq.GateOperation(cirq.CZPowGate(exponent=0.5),
                                [self.q1, self.q2]))
 
+        self.adonis.validate_operation(cirq.measure(self.q0))
+        self.adonis.validate_operation(cirq.measure(self.q1, key='test'))
+
     def test_invalid_operations(self):
         with pytest.raises(ValueError):
             self.adonis.validate_operation(cirq.GateOperation(
