@@ -48,7 +48,8 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
     @staticmethod
     def get_supported_gates() -> List['cirq.Gate']:
-        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+        return []
+        # return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int

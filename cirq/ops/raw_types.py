@@ -294,7 +294,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.num_qubits(self)
 
     def _has_stabilizer_effect_(self) -> bool:
-        return False
+        return NotImplemented
 
     @value.alternative(requires='_num_qubits_',
                        implementation=_backwards_compatibility_num_qubits)

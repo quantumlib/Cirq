@@ -157,7 +157,7 @@ class XPowGate(eigen_gate.EigenGate,
             phase_exponent=phase_turns * 2)
 
     def _has_stabilizer_effect_(self) -> bool:
-        return True
+        return self.exponent % 1 == 0
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -298,6 +298,9 @@ class YPowGate(eigen_gate.EigenGate,
             exponent=self._exponent,
             phase_exponent=0.5 + phase_turns * 2)
 
+    def _has_stabilizer_effect_(self) -> bool:
+        return self.exponent % 1 == 0
+
     def __str__(self) -> str:
         if self._global_shift == -0.5:
             if self._exponent == 1:
@@ -429,6 +432,9 @@ class ZPowGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
+
+    def _has_stabilizer_effect_(self) -> bool:
+        return self.exponent % 0.5 == 0
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
