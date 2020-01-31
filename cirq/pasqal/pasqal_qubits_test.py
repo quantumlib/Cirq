@@ -1,4 +1,4 @@
-"""Tests for """
+"""Tests for ThreeDGridQubit class """
 
 import pytest
 import cirq
@@ -12,6 +12,7 @@ def test_pasqal_qubit_init():
     assert q.row == 3
     assert q.col == 4
     assert q.lay == 5
+
 
 def test_comparison_key():
     assert ThreeDGridQubit(3, 4, 5)._comparison_key() == (3, 4, 5)
