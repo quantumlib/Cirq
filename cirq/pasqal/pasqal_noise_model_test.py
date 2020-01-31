@@ -10,10 +10,10 @@ from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalDevice
 def test_NoiseModel_init():
     noise_model = PasqalNoiseModel()
     assert noise_model.noise_op_dict=={
-        str(cirq.ops.YPowGate): cirq.ops.depolarize(1e-2),
-        str(cirq.ops.ZPowGate): cirq.ops.depolarize(1e-2),
-        str(cirq.ops.XPowGate): cirq.ops.depolarize(1e-2),
-        str(cirq.ops.PhasedXPowGate): cirq.ops.depolarize(1e-2),
+        str(cirq.ops.YPowGate()): cirq.ops.depolarize(1e-2),
+        str(cirq.ops.ZPowGate()): cirq.ops.depolarize(1e-2),
+        str(cirq.ops.XPowGate()): cirq.ops.depolarize(1e-2),
+        str(cirq.ops.PhasedXPowGate(phase_exponent=0)): cirq.ops.depolarize(1e-2),
         str(cirq.ops.CNotPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CZPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CCXPowGate(exponent=1)): cirq.ops.depolarize(8e-2),
