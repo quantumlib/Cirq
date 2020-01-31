@@ -2,6 +2,7 @@
 
 import pytest
 import cirq
+import numpy as np
 
 from cirq.pasqal import ThreeDGridQubit
 
@@ -11,6 +12,9 @@ def test_pasqal_qubit_init():
     assert q.row == 3
     assert q.col == 4
     assert q.lay == 5
+
+def test_comparison_key():
+    assert ThreeDGridQubit(3, 4, 5)._comparison_key() == (3, 4, 5)
 
 
 def test_grid_qubit_eq():
@@ -74,10 +78,10 @@ def test_cube():
 def test_parrallelep():
     assert ThreeDGridQubit.parallelep(
         1, 2, 2, top=5, left=6, upper=7) == [ThreeDGridQubit(5, 6, 7),
-                                ThreeDGridQubit(5, 6, 8),
-                                ThreeDGridQubit(5, 7, 7),
-                                ThreeDGridQubit(5, 7, 8),
-                                ]
+                                             ThreeDGridQubit(5, 6, 8),
+                                             ThreeDGridQubit(5, 7, 7),
+                                             ThreeDGridQubit(5, 7, 8),
+                                             ]
 
     assert ThreeDGridQubit.parallelep(2, 2, 2) == [
         ThreeDGridQubit(0, 0, 0),
@@ -89,14 +93,6 @@ def test_parrallelep():
         ThreeDGridQubit(1, 1, 0),
         ThreeDGridQubit(1, 1, 1)
     ]
-
-
-#def test_repr():
-#    a = ThreeDGridQubit(0, 1, 1)
-#    cirq.testing.assert_equivalent_repr(a)
-
-
-
 
 
 def test_pasqal_qubit_ordering():
@@ -133,6 +129,17 @@ def test_pasqal_qubit_ordering():
     assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(0, 0, 0)
 
 
+def test_distance():
+    with pytest.raises(TypeError):
+        _ = ThreeDGridQubit(0, 0, 0).distance(cirq.GridQubit(0, 0))
+
+    for x in np.arange(-2, 3):
+        for y in np.arange(-2, 3):
+            for z in np.arange(-2, 3):
+                assert ThreeDGridQubit(0, 0, 0).distance(
+                    ThreeDGridQubit(x, y, z)) == np.sqrt(x**2 + y**2 + z**2)
+
+
 def test_pasqal_qubit_is_adjacent():
     assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 0, 1))
     assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 0, -1))
@@ -159,7 +166,7 @@ def test_pasqal_qubit_is_adjacent():
     assert (ThreeDGridQubit(500, 999, 1500)
             .is_adjacent(ThreeDGridQubit(501, 999, 1500)))
     assert not (ThreeDGridQubit(500, 999, 1500)
-            .is_adjacent(ThreeDGridQubit(5034, 999, 1500)))
+                .is_adjacent(ThreeDGridQubit(5034, 999, 1500)))
 
 
 def test_pasqal_qubit_neighbors():
@@ -177,6 +184,15 @@ def test_pasqal_qubit_neighbors():
     restricted_qubits = [ThreeDGridQubit(2, 1, 1), ThreeDGridQubit(2, 2, 1)]
     expected2 = {ThreeDGridQubit(2, 1, 1)}
     assert ThreeDGridQubit(1, 1, 1).neighbors(restricted_qubits) == expected2
+
+
+def test_repr():
+    assert repr(ThreeDGridQubit(4, -25, 109)
+                ) == 'pasqal.ThreeDGridQubit(4, -25, 109)'
+
+
+def test_str():
+    assert str(ThreeDGridQubit(4, -25, 109)) == '(4, -25, 109)'
 
 
 def test_pasqal_qubit_add_subtract():
@@ -207,7 +223,6 @@ def test_pasqal_qubit_unsupported_add():
 
     with pytest.raises(TypeError, match='1'):
         _ = ThreeDGridQubit(1, 1, 1) - 1
-
 
 
 def test_to_json():

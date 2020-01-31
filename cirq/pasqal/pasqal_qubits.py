@@ -1,5 +1,5 @@
 from typing import Iterable, List, Optional, Set, Tuple
-from numpy import sqrt
+from numpy import sqrt, isclose
 from cirq import ops, protocols
 
 
@@ -37,9 +37,7 @@ class ThreeDGridQubit(ops.Qid):
 
     def is_adjacent(self, other: ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
-        return (isinstance(other, ThreeDGridQubit) and
-                abs(self.row - other.row) + abs(self.col - other.col)+
-                abs(self.lay - other.lay) == 1)
+        return isclose(self.distance(other), 1)
 
 
     def distance(self, other: ops.Qid) -> float:
