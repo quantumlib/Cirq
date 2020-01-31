@@ -11,7 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""IQM devices https://iqm.fi/devices"""  # TODO: PQC-5
+"""IQM builds quantum computers based on superconducting transmon technology.
+For more information, see https://meetiqm.com.
+"""
 
 from typing import cast, Iterable, Set
 import cirq
@@ -20,9 +22,21 @@ from cirq import devices, ops, protocols
 
 class Adonis(devices.Device):
     """IQM's five-qubit superconducting device with pairwise connectivity.
-    Details: https://iqm.fi/devices
+    The qubits are connected thus (recommend using fixed-width font for
+    viewing):
+         q0
+         |
+    q1 - q2 - q3
+         |
+         q4
+    where the lines denote which qubits can be subject to the two-qubit gate.
+
+    Each qubit can be rotated about any axis by an arbitrary angle. I.e. the
+    device supports XPowGate, YPowGate, and ZPowGate. Adonis' two qubit-gate
+    is CZPowGate (aka. CPHASE(𝛼)) again accepting an arbitrary exponent.
+
+    The qubits can be measured simultaneously or separately during any moment.
     """
-    # TODO: PQC-5
 
     QUBIT_DIAGRAM = "-Q-\n" \
                     "QQQ\n" \
