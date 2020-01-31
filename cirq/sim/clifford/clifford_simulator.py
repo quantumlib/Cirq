@@ -46,11 +46,6 @@ class CliffordSimulator(simulator.SimulatesSamples,
     def __init__(self):
         self.init = True
 
-    @staticmethod
-    def get_supported_gates() -> List['cirq.Gate']:
-        return []
-        # return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
-
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
                       ) -> Iterator['cirq.CliffordSimulatorStepResult']:
@@ -58,7 +53,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the canonical ordering of the qubits. This
+            qubit_order: Determines the cansonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation.

@@ -624,6 +624,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'rx({1:half_turns}) {3};\n'
             'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
+    def _has_stabilizer_effect_(self) -> bool:
+        return self.exponent % 1 == 0
+
     def __str__(self):
         if self._exponent == 1:
             return 'H'
@@ -720,6 +723,9 @@ class CZPowGate(eigen_gate.EigenGate,
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
+
+    def _has_stabilizer_effect_(self) -> bool:
+        return self.exponent % 1 == 0
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -845,6 +851,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
+
+    def _has_stabilizer_effect_(self) -> bool:
+        return self.exponent % 1 == 0
 
     def __str__(self) -> str:
         if self._exponent == 1:
