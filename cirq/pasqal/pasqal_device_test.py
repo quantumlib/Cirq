@@ -82,11 +82,21 @@ def test_qubit_set():
     assert cubic_device(2, 2, 2).qubit_set() == set(
         ThreeDGridQubit.cube(2, 0, 0, 0))
 
+def test_distance():
+    d = cubic_device(2, 2, 1)
+    assert d.distance(ThreeDGridQubit(0,0,0),ThreeDGridQubit(1,0,0)) == 1
+
+    with pytest.raises(ValueError):
+        _ = d.distance(ThreeDGridQubit(0,0,0), LineQubit(1))
+
+    with pytest.raises(ValueError):
+        _ = d.distance(LineQubit(1), ThreeDGridQubit(0,0,0))
+
 
 def test_repr():
     print(repr(cubic_device(1, 1, 1)))
     assert repr(cubic_device(1, 1, 1)) == ("pasqal.PasqalDevice("
-                                           "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
+            "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
 
 
 def test_to_json():
