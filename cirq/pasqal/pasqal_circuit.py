@@ -103,7 +103,7 @@ class PasqalSampler(Sampler):
         """
         #meas_name = 'm'
         # Complain if this is not using the PasqalDevice
-        #assert isinstance(program.device, PasqalDevice)
+        assert isinstance(program.device, PasqalDevice)
 
         trial_results = []
         for param_resolver in study.to_resolvers(params):
