@@ -24,8 +24,11 @@ class PasqalDevice(NeutralAtomDevice):
 
         for q in qubits:
             if not isinstance(q, ThreeDGridQubit):
-                raise ValueError('Unsupported qubit type: {!r}'.format(q))
-        self.control_radius = control_radius
+                raise TypeError('Unsupported qubit type: {!r}'.format(q))
+        if control_radius >= 0:
+            self.control_radius = control_radius
+        else:
+            raise ValueError("control_radius needs to be a non-negative float")
         self.qubits = qubits
 
     def qubit_set(self) -> Iterable[ThreeDGridQubit]:

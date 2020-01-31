@@ -8,7 +8,7 @@ import cirq
 from cirq import devices, study, protocols
 from cirq.protocols.resolve_parameters import resolve_parameters
 from cirq.circuits import Circuit
-from cirq.study import Sweepable, TrialResult
+#from cirq.study import Sweepable, TrialResult
 from cirq.work import Sampler
 
 from cirq.pasqal import PasqalDevice
@@ -101,10 +101,10 @@ class PasqalSampler(Sampler):
 
 
     def run_sweep(self,
-                  program: Circuit,
-                  params: Sweepable,
+                  program: cirq.Circuit,
+                  params: cirq.Sweepable,
                   repetitions: int
-                  ) -> List[TrialResult]:
+                  ) -> List[cirq.TrialResult]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.

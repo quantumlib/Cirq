@@ -36,8 +36,7 @@ def test_init():
     q101 = ThreeDGridQubit(1, 0, 1)
     q110 = ThreeDGridQubit(1, 1, 0)
 
-
-    #assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
+    assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
     assert d.duration_of(GateOperation(IdentityGate(1),
                                             [q000])) == 2 * us
     assert d.duration_of(measure(q000)) == 5 * ms
@@ -47,8 +46,11 @@ def test_init():
 
 def test_init_errors():
     line = LineQubit.range(3)
-    with pytest.raises(ValueError, match="Unsupported qubit type"):
+    with pytest.raises(TypeError, match="Unsupported qubit type"):
         _ = PasqalDevice(control_radius=1.5,qubits= line)
+        
+    with pytest.raises(ValueError):
+        _ = PasqalDevice(control_radius=-1, qubits=[ThreeDGridQubit(0,0,0)])
 
 
 def test_decompose_error():
