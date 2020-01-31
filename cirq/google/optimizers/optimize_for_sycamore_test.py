@@ -59,10 +59,11 @@ def test_tabulation():
                                                     atol=1e-5)
     assert len(circuit2) == 14
 
-    # sorry for the weak tolerances...
+    # Note this is run on every commit, so it needs to be relatively quick.
+    # This requires us to use relatively loose tolerances
     circuit3 = cg.optimized_for_sycamore(circuit,
                                          optimizer_type='sycamore',
-                                         tabulation_resolution=0.01)
+                                         tabulation_resolution=0.1)
     cirq.testing.assert_allclose_up_to_global_phase(u,
                                                     cirq.unitary(circuit3),
                                                     rtol=1e-1,
