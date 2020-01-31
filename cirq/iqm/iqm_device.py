@@ -13,7 +13,7 @@
 # limitations under the License.
 """IQM devices https://iqm.fi/devices"""  # TODO: PQC-5
 
-from typing import cast
+from typing import cast, Iterable, Set
 import cirq
 from cirq import devices, ops, protocols
 
@@ -50,6 +50,10 @@ class Adonis(devices.Device):
                                    keep=Adonis.is_native_operation,
                                    on_stuck_raise=None)
 
+    def validate_circuit(self, circuit: 'cirq.Circuit'):
+        super().validate_circuit(circuit)
+        _verify_unique_measurement_keys(circuit.all_operations())
+
     def validate_operation(self, operation: 'cirq.Operation') -> None:
         super().validate_operation(operation)
 
@@ -72,3 +76,13 @@ class Adonis(devices.Device):
                 raise ValueError(
                     'Unsupported qubit connectivity required for {!r}'.format(
                         operation))
+
+
+def _verify_unique_measurement_keys(operations: Iterable['cirq.Operation']):
+    seen_keys: Set[str] = set()
+    for op in operations:
+        if protocols.is_measurement(op):
+            key = protocols.measurement_key(op)
+            if key in seen_keys:
+                raise ValueError('Measurement key {} repeated'.format(key))
+            seen_keys.add(key)
