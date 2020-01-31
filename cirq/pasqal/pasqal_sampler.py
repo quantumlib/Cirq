@@ -103,7 +103,7 @@ class PasqalSampler(Sampler):
     def run_sweep(self,
                   program: 'Circuit',
                   params: study.Sweepable,
-                  repetitions: int
+                  repetitions: int = 1
                   ) -> List[study.TrialResult]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
@@ -117,7 +117,7 @@ class PasqalSampler(Sampler):
             resolver.
         """
         assert isinstance(program.device, PasqalDevice)
-        trial_results = []
+        trial_results = [] 
 
         for param_resolver in study.to_resolvers(params):
             json_str = self._serialize_circuit(circuit=program,
