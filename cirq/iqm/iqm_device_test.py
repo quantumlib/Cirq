@@ -104,3 +104,27 @@ class TestGateDecomposition:
         decomposition_cx = self.adonis.decompose_operation(
             cirq.SWAP.on(self.q3, self.q2))
         assert TestGateDecomposition.is_native(decomposition_cx)
+
+
+class TestCircuitValidation:
+    adonis = iqm.Adonis()
+    q0 = cirq.GridQubit(0, 1)
+    q1 = cirq.GridQubit(1, 0)
+    q2 = cirq.GridQubit(1, 1)
+
+    def test_valid_circuit(self):
+        valid_circuit = cirq.Circuit(device=self.adonis)
+        valid_circuit.append(cirq.Y(self.q0))
+        valid_circuit.append(cirq.measure(self.q0, key='a'))
+        valid_circuit.append(cirq.measure(self.q1, key='b'))
+
+        self.adonis.validate_circuit(valid_circuit)
+
+    def test_invalid_circuit(self):
+        invalid_circuit = cirq.Circuit(device=self.adonis)
+        invalid_circuit.append(cirq.Y(self.q0))
+        invalid_circuit.append(cirq.measure(self.q0, key='a'))
+        invalid_circuit.append(cirq.measure(self.q1, key='a'))
+
+        with pytest.raises(ValueError):
+            self.adonis.validate_circuit(invalid_circuit)
