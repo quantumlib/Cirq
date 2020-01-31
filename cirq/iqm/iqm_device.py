@@ -38,21 +38,19 @@ class Adonis(devices.Device):
     The qubits can be measured simultaneously or separately during any moment.
     """
 
-    QUBIT_DIAGRAM = "-Q-\n" \
-                    "QQQ\n" \
-                    "-Q-\n"
-
-    SUPPORTED_GATES = (ops.CZPowGate, ops.XPowGate, ops.YPowGate, ops.ZPowGate,
-                       ops.MeasurementGate)
-
     @staticmethod
     def is_native_operation(op: ops.Operation):
+        supported_gates = (ops.CZPowGate, ops.XPowGate, ops.YPowGate, ops.ZPowGate,
+                           ops.MeasurementGate)
         return isinstance(op, ops.GateOperation) and isinstance(
-            op.gate, Adonis.SUPPORTED_GATES)
+            op.gate, supported_gates)
 
     def __init__(self):
         """Instantiate the description of an Adonis device"""
-        self.qubits = cirq.GridQubit.from_diagram(self.QUBIT_DIAGRAM)
+        qubit_diagram = "-Q-\n" \
+                        "QQQ\n" \
+                        "-Q-\n"
+        self.qubits = cirq.GridQubit.from_diagram(qubit_diagram)
 
     def decompose_operation(self, op: 'cirq.Operation') -> 'cirq.OP_TREE':
         super().decompose_operation(op)
