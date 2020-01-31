@@ -126,7 +126,7 @@ class XPowGate(eigen_gate.EigenGate,
 
         This method is a specialized controlled method for XPowGate. It
         overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CNotGatePow and
+        transforming the underlying controlled gate to a CNotPowGate and
         removing the last specified control qubit (which acts first
         semantically).  If this is a gate with multiple control qubits, it will
         now be a ControlledGate with one less control.
@@ -136,7 +136,7 @@ class XPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CNotPowGate is, by definition, a controlled-XPow gate.)
+        (Note that a CNotPowGate is, by definition, a controlled-XPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -426,7 +426,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
         This method is a specialized controlled method for ZPowGate. It
         overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CZGatePow and
+        transforming the underlying controlled gate to a CZPowGate and
         removing the last specified control qubit (which acts first
         semantically).  If this is a gate with multiple control qubits, it will
         now be a ControlledGate with one less control.
@@ -436,7 +436,7 @@ class ZPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CZPowGate is, by definition, a controlled-ZPow gate.)
+        (Note that a CZPowGate is, by definition, a controlled-ZPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -757,7 +757,7 @@ class CZPowGate(eigen_gate.EigenGate,
 
         This method is a specialized controlled method for CZPowGate. It
         overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CCZGatePow and
+        transforming the underlying controlled gate to a CCZPowGate and
         removing the last specified control qubit (which acts first
         semantically).  If this is a gate with multiple control qubits, it will
         now be a ControlledGate with one less control.
@@ -767,7 +767,7 @@ class CZPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CCZPowGate is, by definition, a controlled-CZPow gate.)
+        (Note that a CCZPowGate is, by definition, a controlled-CZPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -923,7 +923,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
         This method is a specialized controlled method for CNotPowGate. It
         overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CCXGatePow and
+        transforming the underlying controlled gate to a CCXPowGate and
         removing the last specified control qubit (which acts first
         semantically).  If this is a gate with multiple control qubits, it will
         now be a ControlledGate with one less control.
@@ -933,7 +933,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CCXPowGate is, by definition, a controlled-CNotPow gate.)
+        (Note that a CCXPowGate is, by definition, a controlled-CNotPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
