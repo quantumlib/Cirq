@@ -58,11 +58,13 @@ def test_decompose_error():
     for op in d.decompose_operation((CCZ**1.5).on(*(d.qubit_list()))):
         d.validate_operation(op)
 
+
+    #MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
         d.decompose_operation(MeasurementGate(num_qubits=1))
-
-    assert PasqalDevice.is_pasqal_device_op(MeasurementGate.on(
-        *(d.qubit_list())))
+    #It has to be made into one
+    assert PasqalDevice.is_pasqal_device_op(
+        GateOperation(MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
 
 
 def test_validate_gate_errors():
