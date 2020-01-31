@@ -42,10 +42,8 @@ class PasqalDevice(NeutralAtomDevice):
         if not isinstance(operation, ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
-        """
-            Try to decompose the operation into elementary device operations
-            TODO: Test how this works for different circuits
-        """
+
+        #Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.decompose(operation,
                                            keep=PasqalDevice.is_pasqal_device_op)
