@@ -37,14 +37,15 @@ class PasqalDevice(NeutralAtomDevice):
 
     def decompose_operation(self, operation: ops.Operation) -> 'cirq.OP_TREE':
 
-        # default value
-        decomposition = [operation]
-
         if not isinstance(operation, ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
-
-        #Try to decompose the operation into elementary device operations
+        # default value
+        decomposition = [operation]
+        """
+            Try to decompose the operation into elementary device operations
+            TODO: Test how this works for different circuits
+        """
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.decompose(operation,
                                            keep=PasqalDevice.is_pasqal_device_op)
@@ -58,16 +59,12 @@ class PasqalDevice(NeutralAtomDevice):
 
     @staticmethod
     def is_pasqal_device_op(op: ops.Operation) -> bool:
-
-        if isinstance(op, ops.MeasurementGate):
-            return True
-
         if not isinstance(op, ops.GateOperation):
             return False
 
         keep = False
 
-        # Currently accepting all multi-qubit operations
+        #Currently accepting all multi-qubit operations
         keep = keep or (len(op.qubits) > 1)
 
         keep = keep or (isinstance(op.gate, ops.YPowGate))
@@ -78,19 +75,13 @@ class PasqalDevice(NeutralAtomDevice):
 
         keep = keep or (isinstance(op.gate, ops.PhasedXPowGate))
 
+        keep = keep or (isinstance(op.gate, ops.MeasurementGate))
+
         keep = keep or (isinstance(op.gate, ops.IdentityGate))
 
         return keep
 
     def validate_operation(self, operation: ops.Operation):
-
-        try:
-            if isinstance(operation.gate,
-                          (ops.MeasurementGate, ops.IdentityGate)):
-                return
-        except AttributeError:
-            pass
-
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError('{!r} is not a supported '
                              'operation'.format(operation))
@@ -103,6 +94,9 @@ class PasqalDevice(NeutralAtomDevice):
             if not isinstance(qub, ThreeDGridQubit):
                 raise ValueError('{} is not a 3D grid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
+
+        if isinstance(operation.gate, (ops.MeasurementGate, ops.IdentityGate)):
+            return
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, ops.GateOperation):

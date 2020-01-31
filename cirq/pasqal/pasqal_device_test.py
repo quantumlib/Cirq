@@ -61,7 +61,8 @@ def test_decompose_error():
     with pytest.raises(TypeError):
         d.decompose_operation(MeasurementGate(num_qubits=1))
 
-    assert PasqalDevice.is_pasqal_device_op(MeasurementGate(num_qubits=1))
+    assert PasqalDevice.is_pasqal_device_op(MeasurementGate.on(
+        *(d.qubit_list())))
 
 
 def test_validate_gate_errors():
@@ -83,8 +84,7 @@ def test_qubit_set():
 def test_repr():
     print(repr(cubic_device(1, 1, 1)))
     assert repr(cubic_device(1, 1, 1)) == ("pasqal.PasqalDevice("
-    "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
-
+                                           "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
 
 
 def test_to_json():
