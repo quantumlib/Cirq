@@ -13,6 +13,8 @@ class TestOperationValidation:
 
     def test_valid_operations(self):
         self.adonis.validate_operation(cirq.GateOperation(cirq.X, [self.q0]))
+        self.adonis.validate_operation(cirq.GateOperation(cirq.Y, [self.q2]))
+        self.adonis.validate_operation(cirq.GateOperation(cirq.Z, [self.q4]))
 
         self.adonis.validate_operation(
             cirq.GateOperation(cirq.YPowGate(exponent=0.25), [self.q0]))
