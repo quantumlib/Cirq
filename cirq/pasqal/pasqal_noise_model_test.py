@@ -28,8 +28,6 @@ def test_noisy_moments():
     circuit = Circuit()
     circuit.append(CZ(p_qubits[0], p_qubits[1]))
     circuit.append(Z(p_qubits[1]))
-
-    # p_circuit = PasqalCircuit(circuit,device=p_device)
     p_circuit = Circuit(circuit, device=p_device)
 
     n_mts=[]
@@ -44,6 +42,28 @@ def test_noisy_moments():
                       cirq.depolarize(p=0.01).on(ThreeDGridQubit(0, 0, 1))]]
 
 
+def test_default_noise():
+    noise_model = PasqalNoiseModel()
+    p_qubits= ThreeDGridQubit.cube(4)
+    p_device = PasqalDevice(control_radius=2,qubits=p_qubits)
+    circuit = Circuit()
+    Gate_l=cirq.ops.CZPowGate(exponent=2)
+    circuit.append(Gate_l.on(p_qubits[0], p_qubits[1]))
+    p_circuit = Circuit(circuit, device=p_device)
+    n_mts=[]
+    for moment in p_circuit._moments:
+        n_mts.append(noise_model.noisy_moment(moment, p_qubits))
+
+    assert n_mts == [[cirq.ops.CZPowGate(exponent=2).on(ThreeDGridQubit(0, 0, 0),
+                                 ThreeDGridQubit(0, 0, 1)),
+                      cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 0)),
+                      cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 1))]
+                      ]
+
+
+
+
+
 def test_get_op_string():
     noise_model = PasqalNoiseModel()
     p_qubits = ThreeDGridQubit.cube(4)
@@ -53,3 +73,6 @@ def test_get_op_string():
     with pytest.raises(ValueError, match='Got unknown operation:'):
         for moment in circuit._moments:
             _=noise_model.noisy_moment(moment, p_qubits)
+
+    with pytest.raises(ValueError, match='Got unknown operation:'):
+            _=cirq.pasqal.pasqal_noise_model.get_op_string(circuit)

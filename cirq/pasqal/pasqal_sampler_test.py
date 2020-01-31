@@ -10,17 +10,17 @@ from . import pasqal_sampler, pasqal_qubits, pasqal_device
 
 
 def _make_sampler() -> pasqal_sampler.PasqalSampler:
-    # Retrieve API access token from environment variable to avoid storing it in the source
+    # Retrieve API access token from environment variable to avoid storing
+    # it in the source. Would it be possible to store it in the travis conf?
     sampler = pasqal_sampler.PasqalSampler(
         remote_host='http://34.98.71.118/v0/pasqal',
-        access_token=getenv("PASQAL_API_ACCESS_TOKEN")
+        access_token=str(getenv("PASQAL_API_ACCESS_TOKEN"))
     )
     return sampler
 
 
 def test_pasqal_circuit_init():
     qs = pasqal_qubits.ThreeDGridQubit.square(3)
-
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])]
                        for i in range(len(qs) - 1)])
@@ -32,33 +32,6 @@ def test_pasqal_circuit_init():
     for moment1, moment2 in zip(test_circuit, ex_circuit):
         assert moment1 == moment2
 
-
-def test_run():
-    '''
-    Encodes a random binary number in the qubits, samples once without noise and
-    checks if the result matches the original number.
-    '''
-
-    qs = [pasqal_qubits.ThreeDGridQubit(i, j, 0) for i in range(3)
-          for j in range(3)]
-
-    num = np.random.randint(0, 2**9)
-    binary = bin(num)[2:].zfill(9)
-
-    device = pasqal_device.PasqalDevice(control_radius=1, qubits=qs)
-
-    ex_circuit = cirq.Circuit(device=device)
-    for i, b in enumerate(binary):
-        if b == '1':
-            ex_circuit.append(cirq.X(qs[-i - 1]))
-    ex_circuit.append([cirq.measure(q) for q in qs])
-
-    sampler = _make_sampler()
-    data = sampler.run(program=ex_circuit,
-                       simulate_ideal=True,
-                       repetitions=1).data.to_dict()
-    for i, q in enumerate(qs):
-        assert data['({}, {}, {})'.format(q.row, q.col, q.lay)][0] == int(binary[-i - 1])
 
 
 def test_run_sweep():
@@ -88,7 +61,6 @@ def test_run_sweep():
     sampler = _make_sampler()
     data_raw = sampler.run_sweep(program=ex_circuit,
                                  params=sweep,
-                                 simulate_ideal=True,
                                  repetitions=1)
 
     data0 = data_raw[0].data.to_dict()

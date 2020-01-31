@@ -47,7 +47,13 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         return list(moment) + noise_list
 
 
-def get_op_string(cirq_op):
+def get_op_string(cirq_op: cirq.ops.Operation) -> str:
+    """Find the string representation for a given operation
+    Args:
+        op_obj: one of Pasqal Device operations
+    Returns:
+        String representing the gate operations
+    """
     if not isinstance(cirq_op, cirq.ops.Operation):
         raise ValueError('Got unknown operation:', cirq_op)
 
