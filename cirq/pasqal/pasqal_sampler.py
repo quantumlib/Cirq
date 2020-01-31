@@ -1,20 +1,11 @@
-from typing import List, Union
-import uuid
+from typing import List
 
 import time
 import requests
 
 import cirq
-from cirq import devices, study, protocols
-from cirq.protocols.resolve_parameters import resolve_parameters
-from cirq.circuits import Circuit
-#from cirq.study import Sweepable, TrialResult
-from cirq.work import Sampler
 
-from cirq.pasqal import PasqalDevice
-
-
-class PasqalSampler(Sampler):
+class PasqalSampler(cirq.work.Sampler):
 
     def __init__(self, remote_host: str, access_token: str = '') -> None:
         """
@@ -29,8 +20,8 @@ class PasqalSampler(Sampler):
         }
 
     def _serialize_circuit(self,
-                           circuit: Circuit,
-                           param_resolver: study.ParamResolverOrSimilarType
+                           circuit: cirq.circuits.Circuit,
+                           param_resolver: cirq.study.ParamResolverOrSimilarType
                            ) -> str:
         """Serialize a given Circuit.
         Args:
@@ -39,7 +30,7 @@ class PasqalSampler(Sampler):
         Returns:
             json serialized string
         """
-        circuit = resolve_parameters(circuit, param_resolver)
+        circuit = cirq.protocols.resolve_parameters(circuit, param_resolver)
         serialized_circuit = cirq.to_json(circuit)
 
         return serialized_circuit
@@ -71,7 +62,7 @@ class PasqalSampler(Sampler):
     def _send_serialized_circuit(self,
                                  serialization_str: str,
                                  repetitions: int = 1
-                                 ) -> study.TrialResult:
+                                 ) -> cirq.study.TrialResult:
         """Sends the json string to the remote Pasqal device
         Args:
             serialization_str: Json representation of the circuit.
@@ -102,9 +93,9 @@ class PasqalSampler(Sampler):
 
     def run_sweep(self,
                   program: 'Circuit',
-                  params: study.Sweepable,
+                  params: cirq.study.Sweepable,
                   repetitions: int = 1
-                  ) -> List[study.TrialResult]:
+                  ) -> List[cirq.study.TrialResult]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -116,10 +107,10 @@ class PasqalSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        assert isinstance(program.device, PasqalDevice)
+        assert isinstance(program.device, cirq.pasqal.PasqalDevice)
         trial_results = [] 
 
-        for param_resolver in study.to_resolvers(params):
+        for param_resolver in cirq.study.to_resolvers(params):
             json_str = self._serialize_circuit(circuit=program,
                                                param_resolver=param_resolver)
             results = self._send_serialized_circuit(

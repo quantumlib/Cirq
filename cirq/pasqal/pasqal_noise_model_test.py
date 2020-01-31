@@ -3,8 +3,6 @@
 import pytest
 import cirq
 
-from cirq import Circuit
-from cirq import CZ, Z, X, XPowGate
 from cirq.pasqal import ThreeDGridQubit, PasqalNoiseModel, PasqalDevice
 
 def test_NoiseModel_init():
@@ -25,20 +23,20 @@ def test_noisy_moments():
     noise_model = PasqalNoiseModel()
     p_qubits= ThreeDGridQubit.cube(4)
     p_device = PasqalDevice(control_radius=2,qubits=p_qubits)
-    circuit = Circuit()
-    circuit.append(CZ(p_qubits[0], p_qubits[1]))
-    circuit.append(Z(p_qubits[1]))
-    p_circuit = Circuit(circuit, device=p_device)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.ops.CZ(p_qubits[0], p_qubits[1]))
+    circuit.append(cirq.ops.Z(p_qubits[1]))
+    p_circuit = cirq.Circuit(circuit, device=p_device)
 
     n_mts=[]
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[CZ.on(ThreeDGridQubit(0, 0, 0),
+    assert n_mts == [[cirq.ops.CZ.on(ThreeDGridQubit(0, 0, 0),
                                  ThreeDGridQubit(0, 0, 1)),
                       cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 0)),
                       cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 1))],
-                     [Z.on(ThreeDGridQubit(0, 0, 1)),
+                     [cirq.ops.Z.on(ThreeDGridQubit(0, 0, 1)),
                       cirq.depolarize(p=0.01).on(ThreeDGridQubit(0, 0, 1))]]
 
 
@@ -46,10 +44,10 @@ def test_default_noise():
     noise_model = PasqalNoiseModel()
     p_qubits= ThreeDGridQubit.cube(4)
     p_device = PasqalDevice(control_radius=2,qubits=p_qubits)
-    circuit = Circuit()
+    circuit = cirq.Circuit()
     Gate_l=cirq.ops.CZPowGate(exponent=2)
     circuit.append(Gate_l.on(p_qubits[0], p_qubits[1]))
-    p_circuit = Circuit(circuit, device=p_device)
+    p_circuit = cirq.Circuit(circuit, device=p_device)
     n_mts=[]
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
@@ -67,7 +65,7 @@ def test_default_noise():
 def test_get_op_string():
     noise_model = PasqalNoiseModel()
     p_qubits = ThreeDGridQubit.cube(4)
-    circuit = Circuit()
+    circuit = cirq.Circuit()
     circuit.append(cirq.ops.H(p_qubits[0]))
 
     with pytest.raises(ValueError, match='Got unknown operation:'):

@@ -2,8 +2,6 @@ from typing import List, Dict, Sequence, Any
 
 import cirq
 
-from . import PasqalDevice
-
 class PasqalNoiseModel(cirq.devices.NoiseModel):
     """A noise model for Pasqal neutral atom device """
 
@@ -57,7 +55,7 @@ def get_op_string(cirq_op: cirq.ops.Operation) -> str:
     if not isinstance(cirq_op, cirq.ops.Operation):
         raise ValueError('Got unknown operation:', cirq_op)
 
-    if not PasqalDevice.is_pasqal_device_op(cirq_op) \
+    if not cirq.pasqal.PasqalDevice.is_pasqal_device_op(cirq_op) \
             or isinstance(cirq_op.gate, cirq.ops.MeasurementGate):
         # TODO: Is there noise for measurements?
         raise ValueError('Got unknown operation:', cirq_op)

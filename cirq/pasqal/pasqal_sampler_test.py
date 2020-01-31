@@ -1,18 +1,16 @@
 """Tests for pasqal_sampler."""
 from os import getenv
 
-import pytest
 import numpy as np
 import sympy
+
 import cirq
 
-from . import pasqal_sampler, pasqal_qubits, pasqal_device
 
-
-def _make_sampler() -> pasqal_sampler.PasqalSampler:
+def _make_sampler() -> cirq.pasqal.PasqalSampler:
     # Retrieve API access token from environment variable to avoid storing
     # it in the source. Would it be possible to store it in the travis conf?
-    sampler = pasqal_sampler.PasqalSampler(
+    sampler = cirq.pasqal.PasqalSampler(
         remote_host='http://34.98.71.118/v0/pasqal',
         access_token=str(getenv("PASQAL_API_ACCESS_TOKEN"))
     )
@@ -20,11 +18,11 @@ def _make_sampler() -> pasqal_sampler.PasqalSampler:
 
 
 def test_pasqal_circuit_init():
-    qs = pasqal_qubits.ThreeDGridQubit.square(3)
+    qs = cirq.pasqal.ThreeDGridQubit.square(3)
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])]
                        for i in range(len(qs) - 1)])
-    device = pasqal_device.PasqalDevice(control_radius=3, qubits=qs)
+    device = cirq.pasqal.PasqalDevice(control_radius=3, qubits=qs)
     test_circuit = cirq.Circuit(device=device)
     test_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])]
                          for i in range(len(qs) - 1)])
@@ -40,7 +38,7 @@ def test_run_sweep():
     without noise and checks if the results match.
     '''
 
-    qs = [pasqal_qubits.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
+    qs = [cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -48,7 +46,7 @@ def test_run_sweep():
     num = np.random.randint(0, 2**9)
     binary = bin(num)[2:].zfill(9)
 
-    device = pasqal_device.PasqalDevice(control_radius=1, qubits=qs)
+    device = cirq.pasqal.PasqalDevice(control_radius=1, qubits=qs)
     ex_circuit = cirq.Circuit(device=device)
 
     xpow = cirq.XPowGate(exponent=par)

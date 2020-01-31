@@ -1,12 +1,12 @@
-from cirq.pasqal.pasqal_qubits import (
+from .pasqal_qubits import (
     ThreeDGridQubit,)
 
-from cirq.pasqal.pasqal_device import (
+from .pasqal_device import (
     PasqalDevice,)
 
-from cirq.pasqal.pasqal_noise_model import (
+from .pasqal_noise_model import (
     PasqalNoiseModel,)
 
-from cirq.pasqal.pasqal_sampler import (
-    PasqalSampler
+from .pasqal_sampler import (
+    PasqalSampler,
 )

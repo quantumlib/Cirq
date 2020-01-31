@@ -1,9 +1,9 @@
 from typing import Iterable, List, Optional, Set, Tuple
 from numpy import sqrt, isclose
-from cirq import ops, protocols
 
+import cirq
 
-class ThreeDGridQubit(ops.Qid):
+class ThreeDGridQubit(cirq.ops.Qid):
     """A qubit on a 3d lattice.
 
     ThreeDGridQubits use row-column-layer ordering:
@@ -35,12 +35,12 @@ class ThreeDGridQubit(ops.Qid):
     def dimension(self) -> int:
         return 2
 
-    def is_adjacent(self, other: ops.Qid) -> bool:
+    def is_adjacent(self, other: cirq.ops.Qid) -> bool:
         """Determines if two qubits are adjacent qubits."""
         return isclose(self.distance(other), 1)
 
 
-    def distance(self, other: ops.Qid) -> float:
+    def distance(self, other: cirq.ops.Qid) -> float:
         """Returns the distance between two qubits in a 3D grid."""
         if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
@@ -51,7 +51,7 @@ class ThreeDGridQubit(ops.Qid):
 
 
     def neighbors(self,
-                  qids: Optional[Iterable[ops.Qid]] = None
+                  qids: Optional[Iterable[cirq.ops.Qid]] = None
                   ) -> Set['ThreeDGridQubit']:
         """Returns qubits that are potential neighbors to this ThreeDGridQubit
 
@@ -161,7 +161,7 @@ class ThreeDGridQubit(ops.Qid):
         return '({}, {}, {})'.format(self.row, self.col, self.lay)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['row', 'col', 'lay'])
+        return cirq.protocols.obj_to_dict_helper(self, ['row', 'col', 'lay'])
 
     def __add__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and

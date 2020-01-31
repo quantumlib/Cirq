@@ -1,8 +1,7 @@
 import pytest
 
 import cirq
-from cirq import CCZ, CNotPowGate, GateOperation, IdentityGate, SingleQubitGate
-from cirq import Duration, measure, LineQubit, MeasurementGate
+
 from cirq.pasqal import PasqalDevice, ThreeDGridQubit
 
 
@@ -26,8 +25,8 @@ def cubic_device(width: int,
 
 def test_init():
     d = cubic_device(2, 2, 2, holes=[ThreeDGridQubit(1, 1, 1)])
-    us = Duration(nanos=10 ** 3)
-    ms = Duration(nanos=10 ** 6)
+    us = cirq.Duration(nanos=10 ** 3)
+    ms = cirq.Duration(nanos=10 ** 6)
     q000 = ThreeDGridQubit(0, 0, 0)
     q001 = ThreeDGridQubit(0, 0, 1)
     q010 = ThreeDGridQubit(0, 1, 0)
@@ -37,15 +36,15 @@ def test_init():
     q110 = ThreeDGridQubit(1, 1, 0)
 
     assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
-    assert d.duration_of(GateOperation(IdentityGate(1),
+    assert d.duration_of(cirq.ops.GateOperation(cirq.ops.IdentityGate(1),
                                        [q000])) == 2 * us
-    assert d.duration_of(measure(q000)) == 5 * ms
+    assert d.duration_of(cirq.ops.measure(q000)) == 5 * ms
     with pytest.raises(ValueError):
-        _ = d.duration_of(SingleQubitGate().on(q000))
+        _ = d.duration_of(cirq.ops.SingleQubitGate().on(q000))
 
 
 def test_init_errors():
-    line = LineQubit.range(3)
+    line = cirq.devices.LineQubit.range(3)
     with pytest.raises(TypeError, match="Unsupported qubit type"):
         _ = PasqalDevice(control_radius=1.5, qubits=line)
 
@@ -55,27 +54,27 @@ def test_init_errors():
 
 def test_decompose_error():
     d = cubic_device(2, 2, 1, holes=[ThreeDGridQubit(1, 1, 0)])
-    for op in d.decompose_operation((CCZ**1.5).on(*(d.qubit_list()))):
+    for op in d.decompose_operation((cirq.ops.CCZ**1.5).on(*(d.qubit_list()))):
         d.validate_operation(op)
 
 
     #MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
-        d.decompose_operation(MeasurementGate(num_qubits=1))
+        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
     #It has to be made into one
     assert PasqalDevice.is_pasqal_device_op(
-        GateOperation(MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
+        cirq.ops.GateOperation(cirq.ops.MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
 
 
 def test_validate_gate_errors():
     d = cubic_device(2, 2, 2)
 
-    d.validate_gate(IdentityGate(4))
+    d.validate_gate(cirq.ops.IdentityGate(4))
     with pytest.raises(ValueError, match="controlled gates must have integer "
                        "exponents"):
-        d.validate_gate(CNotPowGate(exponent=0.5))
+        d.validate_gate(cirq.ops.CNotPowGate(exponent=0.5))
     with pytest.raises(ValueError, match="Unsupported gate"):
-        d.validate_gate(SingleQubitGate())
+        d.validate_gate(cirq.ops.SingleQubitGate())
 
 
 def test_qubit_set():
@@ -87,10 +86,10 @@ def test_distance():
     assert d.distance(ThreeDGridQubit(0,0,0),ThreeDGridQubit(1,0,0)) == 1
 
     with pytest.raises(ValueError):
-        _ = d.distance(ThreeDGridQubit(0,0,0), LineQubit(1))
+        _ = d.distance(ThreeDGridQubit(0,0,0), cirq.devices.LineQubit(1))
 
     with pytest.raises(ValueError):
-        _ = d.distance(LineQubit(1), ThreeDGridQubit(0,0,0))
+        _ = d.distance(cirq.devices.LineQubit(1), ThreeDGridQubit(0,0,0))
 
 
 def test_repr():
