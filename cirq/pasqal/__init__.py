@@ -7,7 +7,6 @@ from cirq.pasqal.pasqal_device import (
 from cirq.pasqal.pasqal_noise_model import (
     PasqalNoiseModel,)
 
-from cirq.pasqal.pasqal_circuit import (
-    # PasqalCircuit,
+from cirq.pasqal.pasqal_sampler import (
     PasqalSampler
 )

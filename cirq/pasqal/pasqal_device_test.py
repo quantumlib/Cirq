@@ -45,22 +45,6 @@ def test_init():
         _ = d.duration_of(SingleQubitGate().on(q000))
 
 
-"""def test_init_timedelta():
-    d = square_device(2, 2, holes=[cirq.GridQubit(1, 1)], use_timedelta=True)
-    us = cirq.Duration(nanos=10**3)
-    ms = cirq.Duration(nanos=10**6)
-    q00 = cirq.GridQubit(0, 0)
-    q01 = cirq.GridQubit(0, 1)
-    q10 = cirq.GridQubit(1, 0)
-
-    assert d.qubits == {q10, q00, q01}
-    assert d.duration_of(cirq.GateOperation(
-        cirq.IdentityGate(1), [q00])) == 100 * us
-    assert d.duration_of(cirq.measure(q00)) == 50 * ms
-    with pytest.raises(ValueError):
-        _ = d.duration_of(cirq.SingleQubitGate().on(q00))
-"""
-
 def test_init_errors():
     line = LineQubit.range(3)
     with pytest.raises(ValueError, match="Unsupported qubit type"):
