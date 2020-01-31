@@ -36,11 +36,12 @@ class PasqalDevice(NeutralAtomDevice):
 
     def decompose_operation(self, operation: ops.Operation) -> 'cirq.OP_TREE':
 
+        # default value
+        decomposition = [operation]
+
         if not isinstance(operation, ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
-        # default value
-        decomposition = [operation]
         """
             Try to decompose the operation into elementary device operations
             TODO: Test how this works for different circuits
