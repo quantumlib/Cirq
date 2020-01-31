@@ -25,10 +25,11 @@ class PasqalDevice(NeutralAtomDevice):
         for q in qubits:
             if not isinstance(q, ThreeDGridQubit):
                 raise TypeError('Unsupported qubit type: {!r}'.format(q))
-        if control_radius >= 0:
-            self.control_radius = control_radius
-        else:
+
+        if not control_radius >= 0:
             raise ValueError("control_radius needs to be a non-negative float")
+
+        self.control_radius = control_radius
         self.qubits = qubits
 
     def qubit_set(self) -> Iterable[ThreeDGridQubit]:
@@ -58,12 +59,16 @@ class PasqalDevice(NeutralAtomDevice):
 
     @staticmethod
     def is_pasqal_device_op(op: ops.Operation) -> bool:
+
+        if isinstance(op, ops.MeasurementGate):
+            return True
+
         if not isinstance(op, ops.GateOperation):
             return False
 
         keep = False
 
-        #Currently accepting all multi-qubit operations
+        # Currently accepting all multi-qubit operations
         keep = keep or (len(op.qubits) > 1)
 
         keep = keep or (isinstance(op.gate, ops.YPowGate))
@@ -74,13 +79,19 @@ class PasqalDevice(NeutralAtomDevice):
 
         keep = keep or (isinstance(op.gate, ops.PhasedXPowGate))
 
-        keep = keep or (isinstance(op.gate, ops.MeasurementGate))
-
         keep = keep or (isinstance(op.gate, ops.IdentityGate))
 
         return keep
 
     def validate_operation(self, operation: ops.Operation):
+
+        try:
+            if isinstance(operation.gate,
+                          (ops.MeasurementGate, ops.IdentityGate)):
+                return
+        except AttributeError:
+            pass
+
         if not isinstance(operation, cirq.GateOperation):
             raise ValueError('{!r} is not a supported '
                              'operation'.format(operation))
@@ -93,9 +104,6 @@ class PasqalDevice(NeutralAtomDevice):
             if not isinstance(qub, ThreeDGridQubit):
                 raise ValueError('{} is not a 3D grid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
-
-        if isinstance(operation.gate, (ops.MeasurementGate, ops.IdentityGate)):
-            return
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, ops.GateOperation):
