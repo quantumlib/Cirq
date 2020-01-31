@@ -14,7 +14,7 @@ def _make_sampler() -> pasqal_sampler.PasqalSampler:
     # it in the source. Would it be possible to store it in the travis conf?
     sampler = pasqal_sampler.PasqalSampler(
         remote_host='http://34.98.71.118/v0/pasqal',
-        access_token=getenv("PASQAL_API_ACCESS_TOKEN")
+        access_token=str(getenv("PASQAL_API_ACCESS_TOKEN"))
     )
     return sampler
 
