@@ -31,7 +31,8 @@ document(
     If none of the above, it is used unmodified. In this case, it is assumed
     that the object implements whatever methods are required for the use case
     at hand. For example, it might be an existing instance of
-    `np.random.RandomState`.
+    `np.random.RandomState` or a custom pseudorandom number generator
+    implementation.
     """)
 
 
