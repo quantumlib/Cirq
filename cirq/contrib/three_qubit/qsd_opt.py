@@ -27,11 +27,6 @@ def extract_right_diag(a, b, U):
 
 
 def closest_unitary(A):
-    """ Calculate the unitary matrix U that is closest with respect to the
-        operator norm distance to the general matrix A.
-
-        Return U as a numpy matrix.
-    """
     V, __, Wh = np.linalg.svd(A)
     U = np.array(V @ Wh)
     return U
@@ -89,22 +84,36 @@ def multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
 
     theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
 
-    angles = rotation_angles(theta) / 4
+    angles = multiplexed_angles(theta)
 
-    rzs = [cirq.rz(angle).on(a) if angle !=0 else cirq.identity_each(a)
+    rzs = [cirq.rz(angle).on(a) if angle != 0 else []
            for angle in angles]
-    circuit_u1u2_mid = cirq.Circuit([
-        rzs[0],
-        cirq.CNOT(b, a),
-        rzs[1],
-        cirq.CNOT(c, a),
-        rzs[2],
-        cirq.CNOT(b, a),
-        rzs[3],
-        cirq.CNOT(c, a)])
 
+    if rzs[1] == [] and rzs[2] == []:
+        if rzs[3] == []:
+            ops = [
+                rzs[0],
+            ]
+        else:
+            ops = [
+                rzs[0],
+                cirq.CNOT(c, a),
+                rzs[3],
+                cirq.CNOT(c, a)]
+    else:
+        ops = [rzs[0],
+               cirq.CNOT(b, a),
+               rzs[1],
+               cirq.CNOT(c, a),
+               rzs[2],
+               cirq.CNOT(b, a),
+               rzs[3],
+               cirq.CNOT(c, a)]
 
-    np.testing.assert_almost_equal(mid, circuit_u1u2_mid._unitary_())
+    circuit_u1u2_mid = cirq.Circuit(ops)
+
+    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
+        qubits_that_should_be_present=[a, b, c]))
 
     V = diagonal @ V
 
@@ -128,12 +137,30 @@ def multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
          circuit_u1u2_R])
 
 
-def rotation_angles(theta):
-    return np.array([(theta[0] + theta[1] + theta[2] + theta[3]),
-            (theta[0] + theta[1] - theta[2] - theta[3]),
-            (theta[0] - theta[1] - theta[2] + theta[3]),
-            (theta[0] - theta[1] + theta[2] - theta[3])
-            ])
+def multiplexed_angles(theta):
+    """
+    Calculates the angles for a 4-way multiplexed rotation.
+
+    For example, if we want rz(theta[i]) if the select qubits are in state
+    |i>, then, multiplexed_angles returns a[i] that can be used in a circuit
+    similar to this:
+
+    ---rz(a[0])-X---rz(a[1])--X--rz(a[2])-X--rz(a[3])--X
+                |             |           |            |
+    ------------@-------------|-----------@------------|
+                              |                        |
+    --------------------------@------------------------@
+
+    :param theta: the desired angles for each basis state of the select qubits
+    :return: the angles to be used in actual rotations in the
+     circuit implementation
+    """
+    return np.array(
+        [(theta[0] + theta[1] + theta[2] + theta[3]),
+         (theta[0] + theta[1] - theta[2] - theta[3]),
+         (theta[0] - theta[1] - theta[2] + theta[3]),
+         (theta[0] - theta[1] + theta[2] - theta[3])
+         ]) / 4
 
 
 def two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
@@ -155,54 +182,12 @@ def two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
 
 
 def three_qubit_unitary_to_operations(U):
-    n_qubits = 3
-    M = 2 ** n_qubits  # size of unitary matrix
-
-    P = int(M / 2)  # number of rows in upper left block
-    u1, u2, v1h, v2h, theta = cs_decomp(U, P, P)
-
-    z = np.zeros((P, P))
-
-    UD = np.vstack(
-        (
-            np.hstack((u1, z)),
-            np.hstack((z, u2))
-        )
-    )
-
-    VDH = np.vstack((np.hstack((v1h, z)),
-                     np.hstack((z, v2h))))
-
-    C = np.diag(np.cos(theta))
-    S = np.diag(np.sin(theta))
-    CS = np.vstack((np.hstack((C, -S)), np.hstack((S, C))))
-
-    assert_almost_equal(U, UD @ CS @ VDH)
+    CS, UD, VDH, theta, u1, u2, v1h, v2h = csd(U)
 
     a, b, c = cirq.LineQubit.range(3)
 
-    angles = rotation_angles(theta) / 2
-
-    rys = [cirq.ry(angle).on(a) if angle != 0 else cirq.identity_each(a)
-         for angle in angles]
-    # Note: we are using / 2 as the thetas are already half angles - and ry takes
-    # full angles.
-    # we are using CZ's as an optimization as per Appendix A.1 in
-    circuit_CS = cirq.Circuit([
-        rys[0],
-        cirq.CZ(b, a),
-        rys[1],
-        cirq.CZ(c, a),
-        rys[2],
-        cirq.CZ(b, a),
-        rys[3]])
-
-    # the rightmost CZ gate is merged with the UD multiplexor later
-    # as per Appendix A.1
-    rightmost_CZ = cirq.Circuit(cirq.CZ(c, a),
-                                cirq.IdentityGate(1).on(b))._unitary_()
-
-    assert_almost_equal(rightmost_CZ @ circuit_CS._unitary_(), CS, 8)
+    circuit_CS, rightmost_CZ = cs_to_circuit_and_rightmost_cz(CS, a, b, c,
+                                                              theta)
 
     # optimization A.1 - merging the CZ(c,a) from the end of CS into UD
     u2 = u2 @ np.kron(np.eye(2), np.array([[1, 0], [0, -1]]))
@@ -211,22 +196,86 @@ def three_qubit_unitary_to_operations(U):
 
     dUD, c_UD = multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True)
     cirq.testing.assert_allclose_up_to_global_phase(UD,
-                                                    c_UD._unitary_() @ np.kron(
+                                                    c_UD.unitary(
+                                                        qubits_that_should_be_present=[
+                                                            a, b, c]) @ np.kron(
                                                         np.eye(2), dUD),
                                                     atol=1e-8)
 
-    dVDH, c_VDH = multiplexor_to_circuit(a, b, c, v1h, v2h, shiftLeft=False,
-                                         diagonal=dUD)
+    try:
+        dVDH, c_VDH = multiplexor_to_circuit(a, b, c, v1h, v2h, shiftLeft=False,
+                                             diagonal=dUD)
+    except:
+        pass
 
     cirq.testing.assert_allclose_up_to_global_phase(
-        np.kron(np.eye(2), dUD) @ VDH, c_VDH._unitary_(),
+        np.kron(np.eye(2), dUD) @ VDH,
+        c_VDH.unitary(qubits_that_should_be_present=[a, b, c]),
         atol=1e-8)
 
     final_circuit = cirq.Circuit([c_VDH, circuit_CS, c_UD])
     cirq.testing.assert_allclose_up_to_global_phase(U,
-                                                    final_circuit._unitary_(),
+                                                    final_circuit.unitary(
+                                                        qubits_that_should_be_present=[
+                                                            a, b, c]),
                                                     atol=1e-9)
     return final_circuit
+
+
+def csd(U):
+    n_qubits = 3
+    M = 2 ** n_qubits  # size of unitary matrix
+    P = int(M / 2)  # number of rows in upper left block
+    u1, u2, v1h, v2h, theta = cs_decomp(U, P, P)
+    z = np.zeros((P, P))
+    UD = np.vstack(
+        (
+            np.hstack((u1, z)),
+            np.hstack((z, u2))
+        )
+    )
+    VDH = np.vstack((np.hstack((v1h, z)),
+                     np.hstack((z, v2h))))
+    C = np.diag(np.cos(theta))
+    S = np.diag(np.sin(theta))
+    CS = np.vstack((np.hstack((C, -S)), np.hstack((S, C))))
+    assert_almost_equal(U, UD @ CS @ VDH)
+    return CS, UD, VDH, theta, u1, u2, v1h, v2h
+
+
+def cs_to_circuit_and_rightmost_cz(CS, a, b, c, theta):
+    # Note: we are using *2 as the thetas are already half angles from the
+    # CSD decomposition, but ry takes full angles.
+    angles = multiplexed_angles(theta * 2)
+    rys = [cirq.ry(angle).on(a) if angle != 0 else []
+           for angle in angles]
+
+    # we are using CZ's as an optimization as per Appendix A.1
+    if rys[1] == [] and rys[2] == []:
+        ops = [
+            rys[0],
+            cirq.CZ(c, a),
+            rys[3]]
+    else:
+        ops = [rys[0],
+               cirq.CZ(b, a),
+               rys[1],
+               cirq.CZ(c, a),
+               rys[2],
+               cirq.CZ(b, a),
+               rys[3]]
+
+    circuit_CS = cirq.Circuit(ops)
+
+    # the rightmost CZ gate is to be merged with the UD multiplexor later
+    # as per Appendix A.1
+    rightmost_CZ = cirq.Circuit(cirq.CZ(c, a)).unitary(
+        qubits_that_should_be_present=[a, b, c])
+
+    assert_almost_equal(
+        rightmost_CZ @ circuit_CS.unitary(
+            qubits_that_should_be_present=[a, b, c]), CS, 8)
+    return circuit_CS, rightmost_CZ
 
 
 def random_unitary(n_qubits=3):
@@ -241,7 +290,7 @@ np.set_printoptions(precision=16, suppress=False, linewidth=300,
                     floatmode='maxprec_equal')
 
 
-def decompose(circuit):
+def decompose_circuit(circuit):
     print()
     print()
     print("--------------- START -------------- ")
@@ -249,12 +298,11 @@ def decompose(circuit):
     print()
     print(circuit)
     print("cirq.Circuit({})".format(list(circuit.all_operations())))
-    U = circuit._unitary_()
+    decompose_unitary(circuit._unitary_())
+
+
+def decompose_unitary(U):
     print(U)
-    if len(U) < 8:
-        print("less than 3 qubit circuit, skipping...")
-        return
-    # print(circuit)
     final_circuit = three_qubit_unitary_to_operations(U)
     print("result: ")
     print(final_circuit)
@@ -264,6 +312,7 @@ def decompose(circuit):
         num_two_qubits,
         len(list(final_circuit.all_operations()))))
     if num_two_qubits > 20: exit(1)
+    print("cirq.Circuit({})".format(list(final_circuit.all_operations())))
     print("XMON optimized: ")
     final_circuit = cirq.google.optimizers.optimized_for_xmon(final_circuit)
     print(final_circuit)
@@ -276,22 +325,16 @@ def decompose(circuit):
     print(cirq.contrib.quirk.circuit_to_quirk_url((final_circuit)))
 
 
-a, b, c = cirq.LineQubit.range(3)
-decompose(cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c)))
-
-# #
-# U = random_unitary()
-for i in range(1000):
+if __name__ == '__main__':
     a, b, c = cirq.LineQubit.range(3)
+    # decompose_unitary(
+    #     cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
 
-    # circuit = cirq.Circuit(
-    #     [cirq.PhasedXPowGate(exponent=random(), phase_exponent=random())(a),
-    #      cirq.PhasedXPowGate(exponent=random(), phase_exponent=random())(b),
-    #      cirq.CNOT(a, b),
-    #      cirq.PhasedXPowGate(exponent=random(), phase_exponent=random())(c),
-    #       ])
-
-    circuit = cirq.testing.random_circuit([a,b,c], 10, 0.75)
-    decompose(circuit)
-
-
+    # #
+    U = random_unitary()
+    decompose_unitary(U)
+    for i in range(1000):
+        a, b, c = cirq.LineQubit.range(3)
+        circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
+        decompose_unitary(
+            circuit.unitary(qubits_that_should_be_present=[a, b, c]))
