@@ -149,16 +149,14 @@ def random_diagonal_gates(num_qubits: int,
              combinations(cirq.LineQubit.range(num_qubits), acquaintance_size)}
 
 
-@pytest.mark.parametrize('num_qubits, acquaintance_size, gates',
+@pytest.mark.parametrize(
+    'num_qubits, acquaintance_size, gates',
     [(num_qubits, acquaintance_size,
       random_diagonal_gates(num_qubits, acquaintance_size))
-      for acquaintance_size, num_qubits in
-      ([(2, n) for n in range(2, 9)] +
-       [(3, n) for n in range(3, 9)] +
-       [(4, n) for n in (4, 7)] +
-       [(5, n) for n in (5, 6)])
-      for _ in range(2)
-      ])
+     for acquaintance_size, num_qubits in ([(2, n) for n in range(2, 9)] +
+                                           [(3, n) for n in range(3, 8)] +
+                                           [(4, 4), (4, 6), (5, 5)])
+     for _ in range(2)])
 def test_executor_random(num_qubits: int,
                          acquaintance_size: int,
                          gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]):

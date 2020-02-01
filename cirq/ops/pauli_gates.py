@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, TYPE_CHECKING, Tuple, cast
+from typing import Any, cast, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
+from cirq.type_workarounds import NotImplementedType
 
 
 if TYPE_CHECKING:
@@ -47,7 +48,10 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def commutes_with(self, other: 'Pauli') -> bool:
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
+        if not isinstance(other, Pauli):
+            return NotImplemented
         return self is other
 
     def third(self, second: 'Pauli') -> 'Pauli':

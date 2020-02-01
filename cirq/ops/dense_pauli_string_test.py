@@ -505,21 +505,18 @@ def test_tensor_product():
 def test_commutes():
     f = cirq.DensePauliString
     m = cirq.MutableDensePauliString
-    # TODO(craiggidney,bryano): use commutes protocol instead
-    commutes = lambda a, b, default=None: cirq.BaseDensePauliString._commutes_(
-        a, b)
-    assert cirq.commutes is cirq.linalg.commutes
 
-    assert commutes(f('XX'), m('ZZ'))
-    assert commutes(2 * f('XX'), m('ZZ', coefficient=3))
-    assert commutes(2 * f('IX'), 3 * f('IX'))
-    assert not commutes(f('IX'), f('IZ'))
-    assert commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)))
-    assert commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
-    assert not commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
-    assert commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
+    assert cirq.commutes(f('XX'), m('ZZ'))
+    assert cirq.commutes(2 * f('XX'), m('ZZ', coefficient=3))
+    assert cirq.commutes(2 * f('IX'), 3 * f('IX'))
+    assert not cirq.commutes(f('IX'), f('IZ'))
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(3)))
+    assert cirq.commutes(f('IIIXII'), cirq.X(cirq.LineQubit(2)))
+    assert not cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(3)))
+    assert cirq.commutes(f('IIIXII'), cirq.Z(cirq.LineQubit(2)))
 
-    assert commutes(f('XX'), "test", default=NotImplemented) is NotImplemented
+    assert cirq.commutes(f('XX'), "test",
+                         default=NotImplemented) is NotImplemented
 
 
 def test_copy():

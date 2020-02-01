@@ -97,7 +97,9 @@ def test_example_runs_hhl():
 
 
 def test_example_runs_qubit_characterizations():
-    examples.qubit_characterizations_example.main()
+    examples.qubit_characterizations_example.main(minimum_cliffords=2,
+                                                  maximum_cliffords=6,
+                                                  cliffords_step=2)
 
 
 def test_example_swap_networks():
@@ -199,7 +201,7 @@ def test_example_shor_naive_order_finder(x, n):
     assert_order(r, x, n)
 
 
-@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8)))
+@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7)))
 def test_example_shor_quantum_order_finder(x, n):
     r = None
     for _ in range(15):

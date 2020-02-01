@@ -20,7 +20,8 @@ from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
 import abc
 import functools
 
-from cirq import value, protocols
+from cirq import protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -326,6 +327,22 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         the gate acts on.  E.g. (2, 2, 2) for the three-qubit CCZ gate and
         (3, 3) for a 2-qutrit ternary gate.
         """
+
+    def _commutes_on_qids_(self, qids: 'Sequence[cirq.Qid]', other: Any,
+                           atol: float
+                          ) -> Union[bool, NotImplementedType, None]:
+        return NotImplemented
+
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[None, NotImplementedType, bool]:
+        if not isinstance(other, Gate):
+            return NotImplemented
+        if protocols.qid_shape(self) != protocols.qid_shape(other):
+            return None
+        # HACK: break cycle
+        from cirq.devices import line_qubit
+        qs = line_qubit.LineQid.for_qid_shape(protocols.qid_shape(self))
+        return protocols.commutes(self(*qs), other(*qs))
 
     def _mul_with_qubits(self, qubits: Tuple['cirq.Qid', ...], other):
         """cirq.GateOperation.__mul__ delegates to this method."""

@@ -34,20 +34,18 @@ User Documentation
     qudits
     development
     examples
+    api
 
-Developer Documentation
------------------------
 
 .. toctree::
     :maxdepth: 1
+    :caption: Developer Documentation
 
     dev/index.rst
 
 
-API Reference
--------------
-
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
+    :caption: Google Documentation
 
-    api
+    google/index.rst
