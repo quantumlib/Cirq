@@ -264,6 +264,7 @@ _SYCAMORE_DURATIONS_PICOS = {
     'xy': 25_000,
     'xy_half_pi': 25_000,
     'xy_pi': 25_000,
+    'xyz': 25_000,
     'fsim_pi_4': 32_000,
     'inv_fsim_pi_4': 32_000,
     'syc': 12_000,
@@ -280,7 +281,6 @@ SYCAMORE_PROTO = create_device_proto_from_diagram(
 Sycamore = SerializableDevice.from_proto(
     proto=SYCAMORE_PROTO,
     gate_sets=[gate_sets.SQRT_ISWAP_GATESET, gate_sets.SYC_GATESET])
-
 
 # Subset of the Sycamore grid with a reduced layout.
 _SYCAMORE23_GRID = """

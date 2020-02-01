@@ -264,3 +264,8 @@ def test_str():
 │        │
 (1, 0)───(1, 1)
     """.strip()
+
+
+def test_qubit_set():
+    assert square_device(2, 2).qubit_set() == frozenset(
+        cirq.GridQubit.square(2, 0, 0))

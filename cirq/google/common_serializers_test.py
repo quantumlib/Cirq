@@ -244,10 +244,6 @@ def test_serialize_deserialize_arbitrary_xyz(
         z_exponent,
         axis_phase_exponent,
 ):
-    gateset = cg.serializable_gate_set.SerializableGateSet(
-        gate_set_name='test_xyz',
-        serializers=([cgc.PHASED_X_Z_SERIALIZER]),
-        deserializers=([cgc.PHASED_X_Z_DESERIALIZER]))
     gate = cirq.PhasedXZGate(
         x_exponent=x_exponent,
         z_exponent=z_exponent,
@@ -279,8 +275,8 @@ def test_serialize_deserialize_arbitrary_xyz(
             'id': '1_2'
         }]
     }
-    assert gateset.serialize_op_dict(op) == expected
-    deserialized_op = gateset.deserialize_op_dict(expected)
+    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(op) == expected
+    deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op_dict(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),

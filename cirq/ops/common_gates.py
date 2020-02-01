@@ -33,7 +33,7 @@ import cirq
 from cirq import protocols, value
 from cirq._compat import deprecated, proper_repr
 from cirq._doc import document
-from cirq.ops import controlled_gate, gate_features, eigen_gate, raw_types
+from cirq.ops import (controlled_gate, eigen_gate, gate_features, raw_types)
 
 from cirq.type_workarounds import NotImplementedType
 
@@ -114,6 +114,41 @@ class XPowGate(eigen_gate.EigenGate,
         if self._is_parameterized_():
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
+
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Constructs CNotPowGate from controlled XPowGate when applicable.
+
+        This method is a specialized controlled method for XPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CNotPowGate and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CNotPowGate is, by definition, a controlled-XPowGate.)
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CNotPowGate(exponent=self._exponent,
+                                    global_shift=self._global_shift).controlled(
+                                        result.num_controls() - 1,
+                                        result.control_values[:-1],
+                                        result.control_qid_shape[:-1])
+        return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -387,9 +422,21 @@ class ZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Specialize controlled for ZPow to return corresponding controlled CZPow
-        when the last control (which acts first semantically) is a default-type
-        control qubit.
+        Constructs CZPowGate from controlled ZPowGate when applicable.
+
+        This method is a specialized controlled method for ZPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CZPowGate and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CZPowGate is, by definition, a controlled-ZPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -502,6 +549,16 @@ class ZPowGate(eigen_gate.EigenGate,
             'cirq.ZPowGate(exponent={}, '
             'global_shift={!r})'
         ).format(proper_repr(self._exponent), self._global_shift)
+
+    def _commutes_on_qids_(self, qids: 'Sequence[cirq.Qid]', other: Any,
+                           atol: float
+                          ) -> Union[bool, NotImplementedType, None]:
+        from cirq.ops.parity_gates import ZZPowGate
+        if not isinstance(other, raw_types.Operation):
+            return NotImplemented
+        if not isinstance(other.gate, (ZPowGate, CZPowGate, ZZPowGate)):
+            return NotImplemented
+        return True
 
 
 class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
@@ -689,6 +746,41 @@ class CZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns, qubit_index):
         return self
 
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Constructs CCZPowGate from controlled CZPowGate when applicable.
+
+        This method is a specialized controlled method for CZPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CCZPowGate and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CCZPowGate is, by definition, a controlled-CZPowGate.)
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CCZPowGate(exponent=self._exponent,
+                                   global_shift=self._global_shift).controlled(
+                                       result.num_controls() - 1,
+                                       result.control_values[:-1],
+                                       result.control_qid_shape[:-1])
+        return result
+
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
@@ -819,6 +911,41 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             'ZI': global_phase * c,
             'ZX': global_phase * -c,
         })
+
+    def controlled(self,
+                   num_controls: int = None,
+                   control_values: Optional[Sequence[
+                       Union[int, Collection[int]]]] = None,
+                   control_qid_shape: Optional[Tuple[int, ...]] = None
+                  ) -> raw_types.Gate:
+        """
+        Constructs CCXPowGate from controlled CNotPowGate when applicable.
+
+        This method is a specialized controlled method for CNotPowGate. It
+        overrides the default behavior of returning a ControlledGate by
+        transforming the underlying controlled gate to a CCXPowGate and
+        removing the last specified control qubit (which acts first
+        semantically).  If this is a gate with multiple control qubits, it will
+        now be a ControlledGate with one less control.
+
+        This behavior only occurs when the last control qubit is a default-type
+        control qubit. A default-type control qubit is one with shape of 2 (not
+        a generic qudit) and where the control is satisfied by the qubit being
+        ON, as opposed to OFF.
+
+        (Note that a CCXPowGate is, by definition, a controlled-CNotPowGate.)
+        """
+        result = super().controlled(num_controls, control_values,
+                                    control_qid_shape)
+        if (isinstance(result, controlled_gate.ControlledGate) and
+                result.control_values[-1] == (1,) and
+                result.control_qid_shape[-1] == 2):
+            return cirq.CCXPowGate(exponent=self._exponent,
+                                   global_shift=self._global_shift).controlled(
+                                       result.num_controls() - 1,
+                                       result.control_values[:-1],
+                                       result.control_qid_shape[:-1])
+        return result
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
