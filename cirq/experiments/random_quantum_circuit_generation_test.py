@@ -177,7 +177,7 @@ def test_random_quantum_circuit():
     qubits = cirq.GridQubit.rect(3, 2)
     depth = 9
     circuit = cirq.experiments.random_quantum_circuit(
-        qubits, depth, pattern=cirq.experiments.GMON_EASY_PATTERN, seed=1234)
+        qubits, depth, pattern=cirq.experiments.GRID_PARALLEL_PATTERN, seed=1234)
     cirq.testing.assert_has_diagram(circuit,
                                     """
   (0, 0)        (0, 1)        (1, 0)        (1, 1)        (2, 0)        (2, 1)

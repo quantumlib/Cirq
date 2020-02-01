@@ -30,10 +30,10 @@ from cirq.experiments.fidelity_estimation import (
     xeb_fidelity,
 )
 
-from cirq.experiments.random_quantum_circuit import (
-    GMON_EASY_PATTERN,
-    GMON_HARD_PATTERN,
-    GmonLayer,
+from cirq.experiments.random_quantum_circuit_generation import (
+    GRID_PARALLEL_PATTERN,
+    GRID_STAGGERED_PATTERN,
+    GridLayer,
     random_quantum_circuit,
 )
 

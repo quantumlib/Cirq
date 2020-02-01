@@ -13,11 +13,11 @@ TwoQubitInteractionLayer = Container[
     Tuple[devices.GridQubit, devices.GridQubit]]
 
 
-class GmonLayer(TwoQubitInteractionLayer):
-    """A Gmon-style layer of 2-qubit gates where neighbors don't need to idle.
+class GridLayer(TwoQubitInteractionLayer):
+    """A layer of parallel or staggered two-qubit interactions on a grid.
 
-    These layers contain gates involving all qubits in the lattice. They come
-    in two variants, unstaggered:
+    Layers of this type have two different basic structures,
+    parallel:
 
     *-* *-* *-*
     *-* *-* *-*
@@ -37,10 +37,9 @@ class GmonLayer(TwoQubitInteractionLayer):
 
     Other variants are obtained by offsetting these lattices to the right by
     some number of columns, and/or transposing into the vertical orientation.
-    There are a total of 4 staggered and 4 unstaggered variants, and a pattern
-    will cycle through one of these groups of 4 to perform all 2-qubit gates.
+    There are a total of 4 parallel and 4 staggered variants.
 
-    The 2x2 unit cells for the unstaggered and staggered versions of this layer
+    The 2x2 unit cells for the parallel and staggered versions of this layer
     are, respectively:
 
     *-*
@@ -51,7 +50,7 @@ class GmonLayer(TwoQubitInteractionLayer):
     *-*
     * *-
 
-    with left/top qubits at (0, 0) and (1, 0) in the unstaggered case, or
+    with left/top qubits at (0, 0) and (1, 0) in the parallel case, or
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
     cells after transposing and offsetting.
     """
@@ -90,32 +89,34 @@ class GmonLayer(TwoQubitInteractionLayer):
         return pos == (0, 0) or pos == (1, self.stagger)
 
 
-GMON_HARD_PATTERN = (
-    GmonLayer(col_offset=0, vertical=True, stagger=True),  # A
-    GmonLayer(col_offset=1, vertical=True, stagger=True),  # B
-    GmonLayer(col_offset=1, vertical=False, stagger=True),  # C
-    GmonLayer(col_offset=0, vertical=False, stagger=True),  # D
-    GmonLayer(col_offset=1, vertical=False, stagger=True),  # C
-    GmonLayer(col_offset=0, vertical=False, stagger=True),  # D
-    GmonLayer(col_offset=0, vertical=True, stagger=True),  # A
-    GmonLayer(col_offset=1, vertical=True, stagger=True),  # B
+GRID_STAGGERED_PATTERN = (
+    GridLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridLayer(col_offset=1, vertical=True, stagger=True),  # B
+    GridLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridLayer(col_offset=0, vertical=False, stagger=True),  # D
+    GridLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridLayer(col_offset=0, vertical=False, stagger=True),  # D
+    GridLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridLayer(col_offset=1, vertical=True, stagger=True),  # B
 )
 document(
-    GMON_HARD_PATTERN, """A pattern of two-qubit gates that is hard to simulate.
+    GRID_STAGGERED_PATTERN,
+    """A pattern of two-qubit gates that is hard to simulate.
 
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
     to demonstrate quantum supremacy.
     """)
 
-GMON_EASY_PATTERN = (
-    GmonLayer(col_offset=0, vertical=False, stagger=False),  # E
-    GmonLayer(col_offset=1, vertical=False, stagger=False),  # F
-    GmonLayer(col_offset=0, vertical=True, stagger=False),  # G
-    GmonLayer(col_offset=1, vertical=True, stagger=False),  # H
+GRID_PARALLEL_PATTERN = (
+    GridLayer(col_offset=0, vertical=False, stagger=False),  # E
+    GridLayer(col_offset=1, vertical=False, stagger=False),  # F
+    GridLayer(col_offset=0, vertical=True, stagger=False),  # G
+    GridLayer(col_offset=1, vertical=True, stagger=False),  # H
 )
 document(
-    GMON_EASY_PATTERN, """A pattern of two-qubit gates that is easy to simulate.
+    GRID_PARALLEL_PATTERN,
+    """A pattern of two-qubit gates that is easy to simulate.
 
     This pattern of gates was used in the paper
     https://www.nature.com/articles/s41586-019-1666-5
@@ -129,7 +130,7 @@ def random_quantum_circuit(
         two_qubit_op_factory: Callable[[
             'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
         ], 'cirq.OP_TREE'] = lambda a, b, _: google.SYC(a, b),
-        pattern: Sequence[TwoQubitInteractionLayer] = GMON_HARD_PATTERN,
+        pattern: Sequence[TwoQubitInteractionLayer] = GRID_STAGGERED_PATTERN,
         single_qubit_gates: Sequence['cirq.Gate'] = (ops.X**0.5, ops.Y**0.5,
                                                      ops.PhasedXPowGate(
                                                          phase_exponent=0.25,
@@ -149,7 +150,7 @@ def random_quantum_circuit(
     by the same single-qubit gate in consecutive layers. In the layer of
     two-qubit gates, which pairs of qubits undergo interaction is determined
     by `pattern`, which is a sequence of two-qubit interaction sets. The
-    set of interactions a two-qubit layer rotates through this sequence.
+    set of interactions in a two-qubit layer rotates through this sequence.
     The two-qubit operations themselves are generated by the call
     `two_qubit_op_factory(a, b, prng)`, where `a` and `b` are the qubits and
     `prng` is the pseudorandom number generator.
