@@ -12,67 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import List, Sequence, Set, Tuple
+
 import cirq
+from cirq.experiments import (
+    random_rotations_between_grid_interaction_layers_circuit)
 
 
-def test_random_quantum_circuit():
-    # pylint: disable=line-too-long
-    qubits = cirq.GridQubit.rect(3, 2)
-    depth = 9
-    circuit = cirq.experiments.random_quantum_circuit(qubits, depth, seed=1234)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
-  (0, 0)        (0, 1)        (1, 0)        (1, 1)        (2, 0)        (2, 1)
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 Y^0.5         X^0.5         X^0.5         X^0.5         Y^0.5
-  │             │             │             │             │             │
-  SYC───────────┼─────────────SYC           SYC───────────┼─────────────SYC
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5         X^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ │             SYC───────────┼─────────────SYC           │             │             │
-│ │             │             SYC───────────┼─────────────SYC           │             │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         X^0.5         X^0.5         X^0.5         Y^0.5
-  │             │             │             │             │             │
-  │             │             SYC───────────SYC           │             │
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5
-  │             │             │             │             │             │
-  SYC───────────SYC           │             │             SYC───────────SYC
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 PhX(0.25)^0.5 X^0.5         X^0.5         Y^0.5         Y^0.5
-  │             │             │             │             │             │
-  │             │             SYC───────────SYC           │             │
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5         X^0.5
-  │             │             │             │             │             │
-  SYC───────────SYC           │             │             SYC───────────SYC
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5         Y^0.5         PhX(0.25)^0.5
-  │             │             │             │             │             │
-  SYC───────────┼─────────────SYC           SYC───────────┼─────────────SYC
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         Y^0.5         X^0.5         PhX(0.25)^0.5 X^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ │             SYC───────────┼─────────────SYC           │             │             │
-│ │             │             SYC───────────┼─────────────SYC           │             │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 PhX(0.25)^0.5 X^0.5         PhX(0.25)^0.5
-  │             │             │             │             │             │
-  SYC───────────┼─────────────SYC           SYC───────────┼─────────────SYC
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         X^0.5         Y^0.5         Y^0.5
-  │             │             │             │             │             │
-""",
-                                    transpose=True)
+def test_random_rotations_between_grid_interaction_layers():
+    # Staggered pattern
+    qubits = set(cirq.GridQubit.rect(4, 3))
+    depth = 14
+    pattern = cirq.experiments.GRID_STAGGERED_PATTERN
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
+        qubits, depth, seed=1234)
 
-    qubits = cirq.GridQubit.rect(2, 3)
-    depth = 9
+    assert len(circuit) == 2 * depth + 1
+    _validate_single_qubit_layers(qubits, circuit[::2])
+    _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
+
+    # Parallel pattern
+    qubits = set(cirq.GridQubit.rect(4, 5))
+    depth = 15
+    pattern = cirq.experiments.GRID_PARALLEL_PATTERN
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
+        qubits, depth, pattern=pattern, seed=1234)
+
+    assert len(circuit) == 2 * depth + 1
+    _validate_single_qubit_layers(qubits, circuit[::2])
+    _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
+
+    # Staggered pattern with two qubit operation factory
+    qubits = set(cirq.GridQubit.rect(5, 4))
+    depth = 16
+    pattern = cirq.experiments.GRID_STAGGERED_PATTERN
 
     def two_qubit_op_factory(a, b, prng):
         z_exponents = [prng.uniform(0, 1) for _ in range(4)]
@@ -82,152 +55,58 @@ def test_random_quantum_circuit():
         yield cirq.Z(a)**z_exponents[2]
         yield cirq.Z(b)**z_exponents[3]
 
-    circuit = cirq.experiments.random_quantum_circuit(
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
         qubits, depth, two_qubit_op_factory=two_qubit_op_factory, seed=1234)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
-  (0, 0)        (0, 1)        (0, 2)        (1, 0)        (1, 1)        (1, 2)
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 Y^0.5         X^0.5         X^0.5         X^0.5         Y^0.5
-  │             │             │             │             │             │
-  Z^0.78        │             Z^0.958       Z^(3/11)      │             Z^0.876
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ SYC───────────┼─────────────┼─────────────SYC           │             │             │
-│ │             │             SYC───────────┼─────────────┼─────────────SYC           │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  Z^0.276       │             Z^(5/14)      Z^0.802       │             Z^0.501
-  │             │             │             │             │             │
-  Y^0.5         X^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5         X^0.5
-  │             │             │             │             │             │
-  │             Z^0.561       │             │             Z^0.503       │
-  │             │             │             │             │             │
-  │             SYC───────────┼─────────────┼─────────────SYC           │
-  │             │             │             │             │             │
-  │             Z^0.014       │             │             Z^0.773       │
-  │             │             │             │             │             │
-  X^0.5         PhX(0.25)^0.5 Y^0.5         Y^0.5         X^0.5         PhX(0.25)^0.5
-  │             │             │             │             │             │
-  │             Z^0.075       Z^0.369       Z^0.397       Z^0.789       │
-  │             │             │             │             │             │
-  │             SYC───────────SYC           SYC───────────SYC           │
-  │             │             │             │             │             │
-  │             Z^(14/15)     Z^0.651       Z^0.317       Z^0.568       │
-  │             │             │             │             │             │
-  Y^0.5         Y^0.5         X^0.5         X^0.5         PhX(0.25)^0.5 Y^0.5
-  │             │             │             │             │             │
-  Z^0.144       Z^0.704       │             │             Z^0.925       Z^0.442
-  │             │             │             │             │             │
-  SYC───────────SYC           │             │             SYC───────────SYC
-  │             │             │             │             │             │
-  Z^0.705       Z^0.219       │             │             Z^(10/11)     Z^0.06
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         Y^0.5         Y^0.5         X^0.5         X^0.5
-  │             │             │             │             │             │
-  │             Z^0.595       Z^(8/15)      Z^0.33        Z^0.503       │
-  │             │             │             │             │             │
-  │             SYC───────────SYC           SYC───────────SYC           │
-  │             │             │             │             │             │
-  │             Z^0.043       Z^0.561       Z^(1/9)       Z^0.607       │
-  │             │             │             │             │             │
-  Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5         Y^0.5         Y^0.5
-  │             │             │             │             │             │
-  Z^0.912       Z^0.791       │             │             Z^0.792       Z^(2/7)
-  │             │             │             │             │             │
-  SYC───────────SYC           │             │             SYC───────────SYC
-  │             │             │             │             │             │
-  Z^0.992       Z^0.959       │             │             Z^(5/8)       Z^0.478
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5
-  │             │             │             │             │             │
-  Z^0.452       │             Z^0.739       Z^0.982       │             Z^0.587
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ SYC───────────┼─────────────┼─────────────SYC           │             │             │
-│ │             │             SYC───────────┼─────────────┼─────────────SYC           │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  Z^0.124       │             Z^0.472       Z^0.119       │             Z^0.107
-  │             │             │             │             │             │
-  X^0.5         PhX(0.25)^0.5 X^0.5         PhX(0.25)^0.5 Y^0.5         Y^0.5
-  │             │             │             │             │             │
-  │             Z^0.536       │             │             Z^0.006       │
-  │             │             │             │             │             │
-  │             SYC───────────┼─────────────┼─────────────SYC           │
-  │             │             │             │             │             │
-  │             Z^0.301       │             │             Z^(7/16)      │
-  │             │             │             │             │             │
-  Y^0.5         X^0.5         PhX(0.25)^0.5 X^0.5         X^0.5         X^0.5
-  │             │             │             │             │             │
-  Z^0.706       │             Z^0.634       Z^0.15        │             Z^(7/16)
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ SYC───────────┼─────────────┼─────────────SYC           │             │             │
-│ │             │             SYC───────────┼─────────────┼─────────────SYC           │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  Z^0.746       │             Z^(2/13)      Z^0.831       │             Z^0.568
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 Y^0.5         X^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5
-  │             │             │             │             │             │
-""",
-                                    transpose=True)
 
-    qubits = cirq.GridQubit.rect(3, 2)
-    depth = 9
-    circuit = cirq.experiments.random_quantum_circuit(
-        qubits, depth, pattern=cirq.experiments.GRID_PARALLEL_PATTERN, seed=1234)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
-  (0, 0)        (0, 1)        (1, 0)        (1, 1)        (2, 0)        (2, 1)
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 Y^0.5         X^0.5         X^0.5         X^0.5         Y^0.5
-  │             │             │             │             │             │
-  SYC───────────SYC           SYC───────────SYC           SYC───────────SYC
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5         X^0.5
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         X^0.5         X^0.5         X^0.5         Y^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ SYC───────────┼─────────────SYC           │             │             │             │
-│ │             SYC───────────┼─────────────SYC           │             │             │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ │             │             SYC───────────┼─────────────SYC           │             │
-│ │             │             │             SYC───────────┼─────────────SYC           │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 PhX(0.25)^0.5 X^0.5         X^0.5         Y^0.5         Y^0.5
-  │             │             │             │             │             │
-  SYC───────────SYC           SYC───────────SYC           SYC───────────SYC
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         PhX(0.25)^0.5 X^0.5         X^0.5
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 Y^0.5         Y^0.5         PhX(0.25)^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ SYC───────────┼─────────────SYC           │             │             │             │
-│ │             SYC───────────┼─────────────SYC           │             │             │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  PhX(0.25)^0.5 X^0.5         Y^0.5         X^0.5         PhX(0.25)^0.5 X^0.5
-  │             │             │             │             │             │
-┌╴│             │             │             │             │             │            ╶┐
-│ │             │             SYC───────────┼─────────────SYC           │             │
-│ │             │             │             SYC───────────┼─────────────SYC           │
-└╴│             │             │             │             │             │            ╶┘
-  │             │             │             │             │             │
-  Y^0.5         PhX(0.25)^0.5 PhX(0.25)^0.5 PhX(0.25)^0.5 X^0.5         PhX(0.25)^0.5
-  │             │             │             │             │             │
-  SYC───────────SYC           SYC───────────SYC           SYC───────────SYC
-  │             │             │             │             │             │
-  X^0.5         Y^0.5         Y^0.5         X^0.5         Y^0.5         Y^0.5
-  │             │             │             │             │             │
+    assert len(circuit) == 4 * depth + 1
+    _validate_single_qubit_layers(qubits, circuit[::4])
+    _validate_two_qubit_layers(qubits, circuit[2::4], pattern)
 
-""",
-                                    transpose=True)
+
+def _validate_single_qubit_layers(qubits: Set[cirq.Qid],
+                                  moments: Sequence[cirq.Moment]) -> None:
+    previous_single_qubit_gates = {q: None for q in qubits}
+    for moment in moments:
+        # All qubits are acted upon
+        assert moment.qubits == qubits
+        for op in moment:
+            # Operation is single-qubit
+            assert cirq.num_qubits(op) == 1
+            # Gate differs from previous single-qubit gate on this qubit
+            q = op.qubits[0]
+            assert op.gate != previous_single_qubit_gates[q]
+            previous_single_qubit_gates[q] = op.gate
+
+
+def _validate_two_qubit_layers(
+        qubits: Set[cirq.Qid], moments: Sequence[cirq.Moment],
+        pattern: Sequence[cirq.experiments.GridInteractionLayer]) -> None:
+    coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    for i, moment in enumerate(moments):
+        active_pairs = set()
+        for op in moment:
+            # Operation is two-qubit
+            assert cirq.num_qubits(op) == 2
+            # Operation fits pattern
+            assert op.qubits in pattern[i % len(pattern)]
+            active_pairs.add(op.qubits)
+        # All interactions that should be in this layer are present
+        assert all(pair in active_pairs
+                   for pair in coupled_qubit_pairs
+                   if pair in pattern[i % len(pattern)])
+
+
+def _coupled_qubit_pairs(qubits: Set['cirq.GridQubit'],
+                        ) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+
+    pairs = []
+    for qubit in qubits:
+
+        def add_pair(neighbor: 'cirq.GridQubit'):
+            if neighbor in qubits:
+                pairs.append((qubit, neighbor))
+
+        add_pair(cirq.GridQubit(qubit.row, qubit.col + 1))
+        add_pair(cirq.GridQubit(qubit.row + 1, qubit.col))
+
+    return pairs

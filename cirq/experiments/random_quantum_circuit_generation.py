@@ -8,12 +8,9 @@ if TYPE_CHECKING:
     import numpy as np
     import cirq
 
-# A set of 2-qubit interactions that can be performed simultaneously on a grid.
-TwoQubitInteractionLayer = Container[
-    Tuple[devices.GridQubit, devices.GridQubit]]
 
-
-class GridLayer(TwoQubitInteractionLayer):
+class GridInteractionLayer(
+        Container[Tuple[devices.GridQubit, devices.GridQubit]]):
     """A layer of parallel or staggered two-qubit interactions on a grid.
 
     Layers of this type have two different basic structures,
@@ -90,14 +87,14 @@ class GridLayer(TwoQubitInteractionLayer):
 
 
 GRID_STAGGERED_PATTERN = (
-    GridLayer(col_offset=0, vertical=True, stagger=True),  # A
-    GridLayer(col_offset=1, vertical=True, stagger=True),  # B
-    GridLayer(col_offset=1, vertical=False, stagger=True),  # C
-    GridLayer(col_offset=0, vertical=False, stagger=True),  # D
-    GridLayer(col_offset=1, vertical=False, stagger=True),  # C
-    GridLayer(col_offset=0, vertical=False, stagger=True),  # D
-    GridLayer(col_offset=0, vertical=True, stagger=True),  # A
-    GridLayer(col_offset=1, vertical=True, stagger=True),  # B
+    GridInteractionLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridInteractionLayer(col_offset=1, vertical=True, stagger=True),  # B
+    GridInteractionLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridInteractionLayer(col_offset=0, vertical=False, stagger=True),  # D
+    GridInteractionLayer(col_offset=1, vertical=False, stagger=True),  # C
+    GridInteractionLayer(col_offset=0, vertical=False, stagger=True),  # D
+    GridInteractionLayer(col_offset=0, vertical=True, stagger=True),  # A
+    GridInteractionLayer(col_offset=1, vertical=True, stagger=True),  # B
 )
 document(
     GRID_STAGGERED_PATTERN,
@@ -109,10 +106,10 @@ document(
     """)
 
 GRID_PARALLEL_PATTERN = (
-    GridLayer(col_offset=0, vertical=False, stagger=False),  # E
-    GridLayer(col_offset=1, vertical=False, stagger=False),  # F
-    GridLayer(col_offset=0, vertical=True, stagger=False),  # G
-    GridLayer(col_offset=1, vertical=True, stagger=False),  # H
+    GridInteractionLayer(col_offset=0, vertical=False, stagger=False),  # E
+    GridInteractionLayer(col_offset=1, vertical=False, stagger=False),  # F
+    GridInteractionLayer(col_offset=0, vertical=True, stagger=False),  # G
+    GridInteractionLayer(col_offset=1, vertical=True, stagger=False),  # H
 )
 document(
     GRID_PARALLEL_PATTERN,
@@ -124,13 +121,13 @@ document(
     """)
 
 
-def random_quantum_circuit(
+def random_rotations_between_grid_interaction_layers_circuit(
         qubits: Iterable['cirq.GridQubit'],
         depth: int,
         two_qubit_op_factory: Callable[[
             'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
         ], 'cirq.OP_TREE'] = lambda a, b, _: google.SYC(a, b),
-        pattern: Sequence[TwoQubitInteractionLayer] = GRID_STAGGERED_PATTERN,
+        pattern: Sequence[GridInteractionLayer] = GRID_STAGGERED_PATTERN,
         single_qubit_gates: Sequence['cirq.Gate'] = (ops.X**0.5, ops.Y**0.5,
                                                      ops.PhasedXPowGate(
                                                          phase_exponent=0.25,
@@ -223,7 +220,7 @@ def _two_qubit_layer(
         coupled_qubit_pairs: List[Tuple['cirq.GridQubit', 'cirq.GridQubit']],
         two_qubit_op_factory: Callable[[
             'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
-        ], 'cirq.OP_TREE'], layer: TwoQubitInteractionLayer,
+        ], 'cirq.OP_TREE'], layer: GridInteractionLayer,
         prng: 'np.random.RandomState') -> 'cirq.OP_TREE':
     for a, b in coupled_qubit_pairs:
         if (a, b) in layer:

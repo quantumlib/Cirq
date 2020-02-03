@@ -33,8 +33,8 @@ from cirq.experiments.fidelity_estimation import (
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_PARALLEL_PATTERN,
     GRID_STAGGERED_PATTERN,
-    GridLayer,
-    random_quantum_circuit,
+    GridInteractionLayer,
+    random_rotations_between_grid_interaction_layers_circuit,
 )
 
 from cirq.experiments.n_qubit_tomography import (
