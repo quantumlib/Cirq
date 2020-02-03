@@ -289,6 +289,7 @@ from cirq.optimizers import (
 from cirq.sim import (
     bloch_vector_from_state_vector,
     StabilizerStateChForm,
+    CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
@@ -302,6 +303,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_density_matrix,
     final_wavefunction,
     sample,
     sample_density_matrix,
