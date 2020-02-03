@@ -185,7 +185,6 @@ def random_rotations_between_grid_interaction_layers_circuit(
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
                         ) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
-
     pairs = []
     qubit_set = set(qubits)
     for qubit in qubits:

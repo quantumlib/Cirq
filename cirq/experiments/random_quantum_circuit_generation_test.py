@@ -98,7 +98,6 @@ def _validate_two_qubit_layers(
 
 def _coupled_qubit_pairs(qubits: Set['cirq.GridQubit'],
                         ) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
-
     pairs = []
     for qubit in qubits:
 
