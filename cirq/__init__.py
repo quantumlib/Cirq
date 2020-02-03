@@ -481,3 +481,7 @@ from cirq import (
     google,
     testing,
 )
+
+from cirq import(
+    pasqal,
+)
