@@ -22,7 +22,7 @@ from cirq.experiments import (
 def test_random_rotations_between_grid_interaction_layers():
     # Staggered pattern
     qubits = set(cirq.GridQubit.rect(4, 3))
-    depth = 14
+    depth = 20
     pattern = cirq.experiments.GRID_STAGGERED_PATTERN
     circuit = random_rotations_between_grid_interaction_layers_circuit(
         qubits, depth, seed=1234)
@@ -33,7 +33,7 @@ def test_random_rotations_between_grid_interaction_layers():
 
     # Parallel pattern
     qubits = set(cirq.GridQubit.rect(4, 5))
-    depth = 15
+    depth = 21
     pattern = cirq.experiments.GRID_PARALLEL_PATTERN
     circuit = random_rotations_between_grid_interaction_layers_circuit(
         qubits, depth, pattern=pattern, seed=1234)
@@ -44,7 +44,7 @@ def test_random_rotations_between_grid_interaction_layers():
 
     # Staggered pattern with two qubit operation factory
     qubits = set(cirq.GridQubit.rect(5, 4))
-    depth = 16
+    depth = 22
     pattern = cirq.experiments.GRID_STAGGERED_PATTERN
 
     def two_qubit_op_factory(a, b, prng):
