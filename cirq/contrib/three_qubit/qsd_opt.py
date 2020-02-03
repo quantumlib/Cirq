@@ -327,14 +327,14 @@ def decompose_unitary(U):
 
 if __name__ == '__main__':
     a, b, c = cirq.LineQubit.range(3)
-    # decompose_unitary(
-    #     cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
+    decompose_unitary(
+        cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
 
-    # #
-    U = random_unitary()
-    decompose_unitary(U)
-    for i in range(1000):
-        a, b, c = cirq.LineQubit.range(3)
-        circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
-        decompose_unitary(
-            circuit.unitary(qubits_that_should_be_present=[a, b, c]))
+    # # #
+    # U = random_unitary()
+    # decompose_unitary(U)
+    # for i in range(1000):
+    #     a, b, c = cirq.LineQubit.range(3)
+    #     circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
+    #     decompose_unitary(
+    #         circuit.unitary(qubits_that_should_be_present=[a, b, c]))
