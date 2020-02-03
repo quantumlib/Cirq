@@ -166,6 +166,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'CIRCUIT_LIKE',
     'DURATION_LIKE',
     'NOISE_MODEL_LIKE',
     'OP_TREE',

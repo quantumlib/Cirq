@@ -23,6 +23,7 @@ IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'^setup\.py$',  # Installation code.
+    r'^cirq/google/engine/client/.+.py$',  # Generate gRPC client code.
 ]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
