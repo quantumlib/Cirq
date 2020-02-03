@@ -98,6 +98,22 @@ def test_run_bit_flips(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_bit_flips_with_dephasing(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype,
+                                            ignore_measurement_results=True)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
+            result = simulator.run(circuit)
+            np.testing.assert_equal(result.measurements, {
+                '0': [[b0]],
+                '1': [[b1]]
+            })
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_qudit_increments(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -848,9 +864,56 @@ def test_density_matrix_trial_result_repr():
                 "qubit_map={cirq.LineQubit(0): 0}))""")
 
 
+class XAsOp(cirq.Operation):
+
+    def __init__(self, q):
+        # coverage: ignore
+        self.q = q
+
+    @property
+    def qubits(self):
+        # coverage: ignore
+        return self.q,
+
+    def with_qubits(self, *new_qubits):
+        # coverage: ignore
+        return XAsOp(new_qubits[0])
+
+    def _channel_(self):
+        # coverage: ignore
+        return cirq.channel(cirq.X)
+
+
 def test_works_on_operation():
 
     class XAsOp(cirq.Operation):
+
+        def __init__(self, q):
+            # coverage: ignore
+            self.q = q
+
+        @property
+        def qubits(self):
+            # coverage: ignore
+            return self.q,
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        def _channel_(self):
+            # coverage: ignore
+            return cirq.channel(cirq.X)
+
+    s = cirq.DensityMatrixSimulator()
+    c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
+    np.testing.assert_allclose(s.simulate(c).final_density_matrix,
+                               np.diag([0, 1]),
+                               atol=1e-8)
+
+
+def test_works_on_operation_dephased():
+
+    class HAsOp(cirq.Operation):
 
         def __init__(self, q):
             self.q = q
@@ -860,16 +923,15 @@ def test_works_on_operation():
             return self.q,
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return XAsOp(new_qubits[0])
+            raise NotImplementedError()
 
         def _channel_(self):
-            return cirq.channel(cirq.X)
+            return cirq.channel(cirq.H)
 
-    s = cirq.DensityMatrixSimulator()
-    c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
+    s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
+    c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))
     np.testing.assert_allclose(s.simulate(c).final_density_matrix,
-                               np.diag([0, 1]),
+                               [[0.5 + 0.j, 0.5 + 0.j], [0.5 + 0.j, 0.5 + 0.j]],
                                atol=1e-8)
 
 
@@ -881,7 +943,6 @@ def test_works_on_pauli_string_phasor():
     np.testing.assert_allclose(result.reshape(4, 4),
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
-
 
 def test_works_on_pauli_string():
     a, b = cirq.LineQubit.range(2)

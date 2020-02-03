@@ -84,7 +84,6 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     list)  # type: Dict[str, List[np.ndarray]]
 
                 for op in moment:
-                    print(type(op))
                     if protocols.has_unitary(op):
                         state.apply_unitary(op)
                     elif protocols.is_measurement(op):
