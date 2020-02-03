@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Sequence, Set, Tuple
+from typing import Dict, List, Optional, Sequence, Set, Tuple, cast
 
 import cirq
 from cirq.experiments import (
@@ -63,9 +63,11 @@ def test_random_rotations_between_grid_interaction_layers():
     _validate_two_qubit_layers(qubits, circuit[2::4], pattern)
 
 
-def _validate_single_qubit_layers(qubits: Set[cirq.Qid],
+def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
                                   moments: Sequence[cirq.Moment]) -> None:
-    previous_single_qubit_gates = {q: None for q in qubits}
+    previous_single_qubit_gates = {q: None for q in qubits} \
+            # type: Dict[cirq.GridQubit, Optional[cirq.Gate]]
+
     for moment in moments:
         # All qubits are acted upon
         assert moment.qubits == qubits
@@ -73,13 +75,13 @@ def _validate_single_qubit_layers(qubits: Set[cirq.Qid],
             # Operation is single-qubit
             assert cirq.num_qubits(op) == 1
             # Gate differs from previous single-qubit gate on this qubit
-            q = op.qubits[0]
+            q = cast(cirq.GridQubit, op.qubits[0])
             assert op.gate != previous_single_qubit_gates[q]
             previous_single_qubit_gates[q] = op.gate
 
 
 def _validate_two_qubit_layers(
-        qubits: Set[cirq.Qid], moments: Sequence[cirq.Moment],
+        qubits: Set[cirq.GridQubit], moments: Sequence[cirq.Moment],
         pattern: Sequence[cirq.experiments.GridInteractionLayer]) -> None:
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
     for i, moment in enumerate(moments):
