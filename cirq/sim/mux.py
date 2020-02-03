@@ -39,8 +39,9 @@ document(
 
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
-    return all(op.gate._has_stabilizer_effect_() == True or protocols.is_measurement(op)
-               for op in program.all_operations())
+    return all(
+        protocols.has_stabilizer_effect(op) or protocols.is_measurement(op)
+        for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',

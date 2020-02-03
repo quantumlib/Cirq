@@ -403,6 +403,7 @@ from cirq.protocols import (
     has_channel,
     has_mixture,
     has_mixture_channel,
+    has_stabilizer_effect,
     has_unitary,
     inverse,
     is_measurement,
