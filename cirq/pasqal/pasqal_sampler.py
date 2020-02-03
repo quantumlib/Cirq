@@ -92,7 +92,7 @@ class PasqalSampler(cirq.work.Sampler):
 
 
     def run_sweep(self,
-                  program: 'Circuit',
+                  program: cirq.Circuit,
                   params: cirq.study.Sweepable,
                   repetitions: int = 1
                   ) -> List[cirq.study.TrialResult]:

@@ -1,4 +1,4 @@
-from typing import Iterable, cast
+from typing import FrozenSet, Iterable, cast
 from numpy import sqrt
 
 import cirq
@@ -31,8 +31,8 @@ class PasqalDevice(cirq.neutral_atoms.NeutralAtomDevice):
 
         self.qubits = qubits
 
-    def qubit_set(self) -> Iterable[ThreeDGridQubit]:
-        return set(self.qubits)
+    def qubit_set(self) -> FrozenSet[cirq.Qid]:
+        return frozenset(self.qubits)
 
     def qubit_list(self):
         return [qubit for qubit in self.qubit_set()]
