@@ -28,24 +28,30 @@ class PasqalDevice(cirq.neutral_atoms.NeutralAtomDevice):
             raise ValueError("control_radius needs to be a non-negative float")
 
         self.control_radius = control_radius
+
         self.qubits = qubits
 
     def qubit_set(self) -> Iterable[ThreeDGridQubit]:
         return set(self.qubits)
 
+    def qubit_list(self):
+        return [qubit for qubit in self.qubit_set()]
+
     def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
+
+        decomposition = [operation]
 
         if not isinstance(operation, cirq.ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
         # default value
-        decomposition = [operation]
+
         """
             Try to decompose the operation into elementary device operations
             TODO: Test how this works for different circuits
         """
         if not PasqalDevice.is_pasqal_device_op(operation):
-            decomposition = cirq.decompose(operation,
+            decomposition = cirq.protocols.decompose(operation,
                                            keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
@@ -117,7 +123,7 @@ class PasqalDevice(cirq.neutral_atoms.NeutralAtomDevice):
         if isinstance(operation.gate,
                       (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
             if (len(operation.qubits) > self._max_parallel_xy and
-                    len(operation.qubits) != len(self.qubits)):
+                    len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")
 
     def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:

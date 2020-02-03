@@ -49,7 +49,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return sqrt((self.row - other.row) ** 2 + (self.col - other.col) ** 2+
                     (self.lay - other.lay) ** 2)
 
-
     def neighbors(self,
                   qids: Optional[Iterable[cirq.ops.Qid]] = None
                   ) -> Set['ThreeDGridQubit']:
