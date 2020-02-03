@@ -36,12 +36,10 @@ from typing_extensions import Protocol
 
 from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType
-import cirq.pasqal
 
 if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
-
 
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
