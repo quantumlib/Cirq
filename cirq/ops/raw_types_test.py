@@ -441,6 +441,7 @@ def test_tagged_operation_equality():
     eq.add_equality_group(op.with_tags('tag2'),
                           cirq.TaggedOperation(op, 'tag2'))
     eq.add_equality_group(op.with_tags('tag1', 'tag2'),
+                          op.with_tags('tag1').with_tags('tag2'),
                           cirq.TaggedOperation(op, 'tag1', 'tag2'))
 
 

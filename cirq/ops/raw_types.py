@@ -501,6 +501,15 @@ class TaggedOperation(Operation):
     def tags(self):
         return self._tags
 
+    def with_tags(self, *new_tags: Any) -> 'cirq.TaggedOperation':
+        """Creates a new TaggedOperation with combined tags.
+
+        Overloads Operation.with_tags to create a new TaggedOperation
+        that has the tags of this operation combined with the new_tags
+        specified as the parameter.
+        """
+        return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
+
     def __str__(self):
         tag_repr = ','.join(repr(t) for t in self._tags)
         return f"cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})"
