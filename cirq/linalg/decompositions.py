@@ -149,6 +149,50 @@ def _perp_eigendecompose(matrix: np.ndarray,
     return vals, vecs
 
 
+def closest_unitary(matrix: np.ndarray) -> np.ndarray:
+    """Returns the closest unitary to the given matrix in Frobenius norm.
+
+    The closest unitary is the orthogonal factor in the polar decomposition
+    of a matrix. For all A with singular value decomposition
+    $A = V S W^{\dagger}$ and left polar decomposition $A = UJ$,
+    where V, W and are U unitary, S is the diagonal matrix of A's
+    singular values, J is positive semi-definite, we can see that
+    $J = W S W^{\dagger}$ and the orthogonal component is $U = VW^{\dagger}$.
+
+    This case:
+    $|| A - U || <= || A - M ||$ for all unitary M.
+
+    For proof see Theorem 1 in:
+    https://www.ams.org/journals/proc/1955-006-01/S0002-9939-1955-0067841-7/S0002-9939-1955-0067841-7.pdf
+    """
+    V, __, Wd = np.linalg.svd(matrix)
+    return V @ Wd
+
+
+def unitary_eig(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    """Returns a guaranteed unitary diagonalization of a unitary matrix
+    up to 1e-14.
+
+    If `matrix` is unitary, it returns d, V such that
+    np.allclose(V @ np.diag(d) @ V.conj().T,matrix, atol=1e-14) == true.
+    If `matrix` is not unitary, it throws an error.
+
+    See https://github.com/numpy/numpy/issues/15461 for more information. If
+    there will be a better solution, we can remove this method.
+
+    Args:
+        matrix: the matrix to be diagonalized
+    Returns:
+        eigenvalues and the matrix of eigenvectors
+    """
+    if not predicates.is_unitary(matrix):
+        raise Exception("expected unitary matrix, got:\n {}", matrix)
+    eigvals, V = np.linalg.eig(matrix)
+    if predicates.is_unitary(V, atol=1e-14):
+        return eigvals, V
+    return eigvals, closest_unitary(V)
+
+
 def map_eigenvalues(
         matrix: np.ndarray,
         func: Callable[[complex], complex],
