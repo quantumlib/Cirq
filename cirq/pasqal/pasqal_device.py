@@ -6,7 +6,7 @@ import cirq
 from cirq.pasqal import ThreeDGridQubit
 
 
-class PasqalDevice(cirq.neutral_atoms.NeutralAtomDevice):
+class PasqalDevice(cirq.devices.Device):
 
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
@@ -125,6 +125,28 @@ class PasqalDevice(cirq.neutral_atoms.NeutralAtomDevice):
             if (len(operation.qubits) > self._max_parallel_xy and
                     len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")
+
+
+    def duration_of(self, operation: cirq.ops.Operation):
+        """
+        Provides the duration of the given operation on this device.
+
+        Args:
+            operation: the operation to get the duration of
+
+        Returns:
+            The duration of the given operation on this device
+
+        Raises:
+            ValueError: If the operation provided doesn't correspond to a native
+                gate
+        """
+        self.validate_operation(operation)
+        if isinstance(operation, (cirq.ops.GateOperation,
+                                  cirq.ops.ParallelGateOperation)):
+            if isinstance(operation.gate, cirq.ops.MeasurementGate):
+                return self._measurement_duration
+        return self._gate_duration
 
     def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
         if not isinstance(q, ThreeDGridQubit):

@@ -66,15 +66,15 @@ def test_decompose_error():
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
 
 
-def test_validate_gate_errors():
-    d = cubic_device(2, 2, 2)
-
-    d.validate_gate(cirq.ops.IdentityGate(4))
-    with pytest.raises(ValueError, match="controlled gates must have integer "
-                       "exponents"):
-        d.validate_gate(cirq.ops.CNotPowGate(exponent=0.5))
-    with pytest.raises(ValueError, match="Unsupported gate"):
-        d.validate_gate(cirq.ops.SingleQubitGate())
+#def test_validate_gate_errors():
+#    d = cubic_device(2, 2, 2)
+#
+#    d.validate_gate(cirq.ops.IdentityGate(4))
+#    with pytest.raises(ValueError, match="controlled gates must have integer "
+#                       "exponents"):
+#        d.validate_gate(cirq.ops.CNotPowGate(exponent=0.5))
+#    with pytest.raises(ValueError, match="Unsupported gate"):
+#        d.validate_gate(cirq.ops.SingleQubitGate())
 
 
 def test_qubit_set():
