@@ -27,9 +27,8 @@ def extract_right_diag(a, b, U):
 
 
 def closest_unitary(A):
-    V, __, Wh = np.linalg.svd(A)
-    U = np.array(V @ Wh)
-    return U
+    V, __, W = np.linalg.svd(A)
+    return np.array(V @ W)
 
 
 def isThreeCNOTUnitary(U):
@@ -202,11 +201,8 @@ def three_qubit_unitary_to_operations(U):
                                                         np.eye(2), dUD),
                                                     atol=1e-8)
 
-    try:
-        dVDH, c_VDH = multiplexor_to_circuit(a, b, c, v1h, v2h, shiftLeft=False,
-                                             diagonal=dUD)
-    except:
-        pass
+    dVDH, c_VDH = multiplexor_to_circuit(a, b, c, v1h, v2h, shiftLeft=False,
+                                         diagonal=dUD)
 
     cirq.testing.assert_allclose_up_to_global_phase(
         np.kron(np.eye(2), dUD) @ VDH,
@@ -330,11 +326,10 @@ if __name__ == '__main__':
     decompose_unitary(
         cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
 
-    # # #
-    # U = random_unitary()
-    # decompose_unitary(U)
-    # for i in range(1000):
-    #     a, b, c = cirq.LineQubit.range(3)
-    #     circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
-    #     decompose_unitary(
-    #         circuit.unitary(qubits_that_should_be_present=[a, b, c]))
+    U = random_unitary()
+    decompose_unitary(U)
+    for i in range(1000):
+        a, b, c = cirq.LineQubit.range(3)
+        circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
+        decompose_unitary(
+            circuit.unitary(qubits_that_should_be_present=[a, b, c]))
