@@ -52,93 +52,82 @@ class DepolarizingNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        if _homogeneous_moment_is_measurements(moment):
+        if (_homogeneous_moment_is_measurements(moment) or
+                self.is_virtual_moment(moment)):
             # coverage: ignore
             return moment
 
         return [
             moment,
-            ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
+            ops.Moment(
+                self.qubit_noise_gate(q).with_tags('virtual')
+                for q in system_qubits)
         ]
 
 
-class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
-    """DepolarizingNoiseModel with probabilistic bit flips preceding
-    measurement.
+class ReadoutNoiseModel(devices.NoiseModel):
+    """NoiseModel with probabilistic bit flips preceding measurement.
 
-    This simulates readout error.
+    This simulates readout error. Note that since noise is applied before the
+    measurement moment, composing this model on top of another noise model will
+    place the bit flips immediately before the measurement (regardless of the
+    previously-added noise).
 
     If a circuit contains measurements, they must be in moments that don't
     also contain gates.
     """
 
-    def __init__(self, depol_prob: float, bitflip_prob: float):
-        """A depolarizing noise model with readout error.
+    def __init__(self, bitflip_prob: float):
+        """A noise model with readout error.
 
         Args:
-            depol_prob: Depolarizing probability.
             bitflip_prob: Probability of a bit-flip during measurement.
         """
-        value.validate_probability(depol_prob, 'depol prob')
         value.validate_probability(bitflip_prob, 'bitflip prob')
-        self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
         self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
+        if self.is_virtual_moment(moment):
+            return moment
         if _homogeneous_moment_is_measurements(moment):
             return [
-                ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
-                moment,
+                ops.Moment(
+                    self.readout_noise_gate(q).with_tags('virtual')
+                    for q in system_qubits), moment
             ]
-        return [
-            moment,
-            ops.Moment(self.qubit_noise_gate(q) for q in system_qubits),
-        ]
+        return moment
 
 
-class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
-    """DepolarizingWithReadoutNoiseModel with T1 decay preceding
-    measurement.
+class DampedReadoutNoiseModel(devices.NoiseModel):
+    """NoiseModel with T1 decay preceding measurement.
 
-    This simulates asymmetric readout error. The noise is structured
-    so the T1 decay is applied, then the readout bitflip, then measurement.
+    This simulates asymmetric readout error. Note that since noise is applied
+    before the measurement moment, composing this model on top of another noise
+    model will place the T1 decay immediately before the measurement
+    (regardless of the previously-added noise).
 
     If a circuit contains measurements, they must be in moments that don't
     also contain gates.
     """
 
-    def __init__(
-            self,
-            depol_prob: float,
-            bitflip_prob: float,
-            decay_prob: float,
-    ):
+    def __init__(self, decay_prob: float):
         """A depolarizing noise model with damped readout error.
 
         Args:
-            depol_prob: Depolarizing probability.
-            bitflip_prob: Probability of a bit-flip during measurement.
             decay_prob: Probability of T1 decay during measurement.
-                Bitflip noise is applied first, then amplitude decay.
         """
-        value.validate_probability(depol_prob, 'depol prob')
-        value.validate_probability(bitflip_prob, 'bitflip prob')
         value.validate_probability(decay_prob, 'decay_prob')
-        self.qubit_noise_gate = ops.DepolarizingChannel(depol_prob)
-        self.readout_noise_gate = ops.BitFlipChannel(bitflip_prob)
         self.readout_decay_gate = ops.AmplitudeDampingChannel(decay_prob)
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
+        if self.is_virtual_moment(moment):
+            return moment
         if _homogeneous_moment_is_measurements(moment):
             return [
-                ops.Moment(self.readout_decay_gate(q) for q in system_qubits),
-                ops.Moment(self.readout_noise_gate(q) for q in system_qubits),
-                moment
+                ops.Moment(
+                    self.readout_decay_gate(q).with_tags('virtual')
+                    for q in system_qubits), moment
             ]
-        else:
-            return [
-                moment,
-                ops.Moment(self.qubit_noise_gate(q) for q in system_qubits)
-            ]
+        return moment
