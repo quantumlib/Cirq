@@ -21,7 +21,7 @@ import cirq.contrib.acquaintance as cca
 
 
 @pytest.mark.parametrize('n_qubits, acquaintance_size',
-    product(range(2, 7), range(2, 5)))
+                         product(range(2, 6), range(2, 5)))
 def test_get_logical_acquaintance_opportunities(n_qubits, acquaintance_size):
     qubits = cirq.LineQubit.range(n_qubits)
     acquaintance_strategy = cca.complete_acquaintance_strategy(

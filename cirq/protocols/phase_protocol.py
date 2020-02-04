@@ -19,6 +19,8 @@ from typing_extensions import Protocol
 # This is a special value to indicate that a type error should be returned.
 # This is used within phase_by to raise an error if no underlying
 # implementation of _phase_by_ exists.
+from cirq._doc import document
+
 RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 TDefault = TypeVar('TDefault')
@@ -27,6 +29,7 @@ TDefault = TypeVar('TDefault')
 class SupportsPhase(Protocol):
     """An effect that can be phased around the Z axis of target qubits."""
 
+    @document
     def _phase_by_(self: Any, phase_turns: float, qubit_index: int):
         """Returns a phased version of the effect.
 

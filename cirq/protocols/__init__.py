@@ -38,9 +38,10 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
-from cirq.protocols.commutes import (
+from cirq.protocols.commutes_protocol import (
     commutes,
     definitely_commutes,
+    SupportsCommutes,
 )
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
@@ -58,6 +59,10 @@ from cirq.protocols.decompose_protocol import (
 from cirq.protocols.equal_up_to_global_phase_protocol import (
     equal_up_to_global_phase,
     SupportsEqualUpToGlobalPhase,
+)
+from cirq.protocols.has_unitary_protocol import (
+    has_unitary,
+    SupportsExplicitHasUnitary,
 )
 from cirq.protocols.inverse_protocol import (
     inverse,)
@@ -115,11 +120,7 @@ from cirq.protocols.qid_shape_protocol import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
 )
-from cirq.protocols.unitary import (
+from cirq.protocols.unitary_protocol import (
     SupportsUnitary,
     unitary,
-)
-from cirq.protocols.has_unitary_protocol import (
-    has_unitary,
-    SupportsExplicitHasUnitary,
 )
