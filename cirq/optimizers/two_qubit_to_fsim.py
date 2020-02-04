@@ -251,7 +251,6 @@ def _fix_single_qubit_gates_around_kak_interaction(
     actual = linalg.kak_decomposition(
         circuits.Circuit(operations).unitary(qubit_order=qubits))
 
-
     def dag(a: np.ndarray) -> np.ndarray:
         return np.transpose(np.conjugate(a))
 

@@ -8,8 +8,7 @@ import pytest
 import cirq
 from cirq.optimizers.two_qubit_to_fsim import (
     _decompose_two_qubit_interaction_into_two_b_gates,
-    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops,
-    _sticky_0_to_1,
+    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops, _sticky_0_to_1,
     _B)
 
 UNITARY_OBJS = [
@@ -80,18 +79,16 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         obj: Any, fsim_gate: cirq.FSimGate):
     qubits = (obj.qubits
-              if isinstance(obj, cirq.Operation)
-              else cirq.LineQubit.range(2))
+              if isinstance(obj, cirq.Operation) else cirq.LineQubit.range(2))
     circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         obj, fsim_gate=fsim_gate)
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 + 5
-    assert cirq.approx_eq(
-        circuit.unitary(qubit_order=qubits),
-        desired_unitary,
-        atol=1e-6)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits),
+                          desired_unitary,
+                          atol=1e-6)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_validate():
