@@ -16,6 +16,8 @@ UNITARY_OBJS = [
     cirq.IdentityGate(2),
     cirq.XX**0.25,
     cirq.CNOT,
+    cirq.CNOT(*cirq.LineQubit.range(2)),
+    cirq.CNOT(*cirq.LineQubit.range(2)[::-1]),
     cirq.ISWAP,
     cirq.SWAP,
     cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6),
