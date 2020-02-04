@@ -212,6 +212,7 @@ results.
 .. autosummary::
     :toctree: generated/
 
+    cirq.CIRCUIT_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
@@ -220,6 +221,7 @@ results.
     cirq.bloch_vector_from_state_vector
     cirq.density_matrix_from_state_vector
     cirq.dirac_notation
+    cirq.final_density_matrix
     cirq.final_wavefunction
     cirq.flatten
     cirq.flatten_to_ops
@@ -353,6 +355,7 @@ the magic methods that can be implemented.
     cirq.SupportsApproximateEquality
     cirq.SupportsChannel
     cirq.SupportsCircuitDiagramInfo
+    cirq.SupportsCommutes
     cirq.SupportsConsistentApplyUnitary
     cirq.SupportsDecompose
     cirq.SupportsDecomposeWithQubits
@@ -419,9 +422,11 @@ run experiments.
     cirq.log_xeb_fidelity_from_probabilities
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
+    cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
     cirq.experiments.single_qubit_randomized_benchmarking
     cirq.experiments.single_qubit_state_tomography
+    cirq.experiments.state_tomography
     cirq.experiments.t1_decay
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
@@ -429,6 +434,7 @@ run experiments.
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
+    cirq.experiments.StateTomographyExperiment
     cirq.experiments.T1DecayResult
     cirq.experiments.TomographyResult
 
@@ -464,20 +470,14 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
-    cirq.google.circuit_as_schedule_to_proto_dicts
-    cirq.google.circuit_from_schedule_from_proto_dicts
     cirq.google.engine_from_environment
-    cirq.google.gate_to_proto_dict
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
     cirq.google.optimized_for_sycamore
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
-    cirq.google.sweep_from_proto_dict
-    cirq.google.sweep_to_proto_dict
     cirq.google.unpack_results
-    cirq.google.xmon_op_from_proto_dict
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration

@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Classes for running against Google's Quantum Cloud Service.
 
 As an example, to run a circuit against the xmon simulator on the cloud,
@@ -24,33 +23,32 @@ In order to run on must have access to the Quantum Engine API. Access to this
 API is (as of June 22, 2018) restricted to invitation only.
 """
 
-import base64
 import datetime
 import enum
-import json
 import random
 import string
 import sys
 import time
-from typing import Any, Dict, List, Optional, Sequence, Union, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Optional, Sequence, TypeVar, \
+    Union, TYPE_CHECKING
 import warnings
 
-from apiclient import discovery, http as apiclient_http
-from apiclient.errors import HttpError
-from apiclient.http import HttpRequest
-import google.protobuf as gp
-from google.protobuf import any_pb2
+from google.api_core.exceptions import GoogleAPICallError, NotFound
 
 from cirq import circuits, study, value
 from cirq.google import gate_sets, serializable_gate_set
 from cirq.google.api import v1, v2
 from cirq.google.engine import (calibration, engine_job, engine_program,
                                 engine_sampler)
+from cirq.google.engine.client import quantum
+from cirq.google.engine.client.quantum import types as qtypes
 
 if TYPE_CHECKING:
     import cirq
 
 TYPE_PREFIX = 'type.googleapis.com/'
+
+_R = TypeVar('_R')
 
 
 class ProtoVersion(enum.Enum):
@@ -65,25 +63,6 @@ class EngineException(Exception):
     def __init__(self, message):
         # Call the base class constructor with the parameters it needs
         super().__init__(message)
-
-
-def _any_dict_from_msg(message: gp.message.Message) -> Dict[str, Any]:
-    any_message = any_pb2.Any()
-    any_message.Pack(message)
-    return gp.json_format.MessageToDict(any_message)
-
-
-def _user_project_header_request_builder(project_id: str):
-    """Provides a request builder that sets a user project header on engine
-    requests to allow using standard OAuth credentials.
-    """
-
-    def request_builder(*args, **kwargs):
-        request = apiclient_http.HttpRequest(*args, **kwargs)
-        request.headers['X-Goog-User-Project'] = project_id
-        return request
-
-    return request_builder
 
 
 def _make_random_id(prefix: str, length: int = 16):
@@ -153,8 +132,6 @@ class Engine:
 
     def __init__(self,
                  project_id: str,
-                 version: Optional[str] = None,
-                 discovery_url: Optional[str] = None,
                  proto_version: ProtoVersion = ProtoVersion.V1,
                  service_args: Optional[Dict] = None,
                  verbose: bool = True) -> None:
@@ -165,42 +142,24 @@ class Engine:
                 API interactions will be attributed to this project and any
                 resources created will be owned by the project. See
                 https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
-            version: API version.
-            discovery_url: Discovery url for the API to select a non-default
-                backend for the Engine. Incompatible with `version` argument.
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying apiclient. See
                 https://github.com/googleapis/google-api-python-client
             verbose: Supresses stderr messages when set to False. Default is
                 true.
         """
-        if discovery_url and version:
-            raise ValueError("`version` and `discovery_url` are both "
-                             "specified, but are incompatible. Please use "
-                             "only one of these arguments")
-        if not (discovery_url or version):
-            version = 'v1alpha1'
-
         self.project_id = project_id
-        self.discovery_url = discovery_url or discovery.V2_DISCOVERY_URI
         self.max_retry_delay = 3600  # 1 hour
         self.proto_version = proto_version
         self.verbose = verbose
 
         if not service_args:
             service_args = {}
-        if not 'requestBuilder' in service_args:
-            request_builder = _user_project_header_request_builder(project_id)
-            service_args['requestBuilder'] = request_builder
 
         # Suppress warnings about using Application Default Credentials.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            self.service = discovery.build(
-                '' if discovery_url else 'quantum',
-                '' if discovery_url else version,
-                discoveryServiceUrl=self.discovery_url,
-                **service_args)
+            self.client = quantum.QuantumEngineServiceClient(**service_args)
 
     def run(
             self,
@@ -293,7 +252,6 @@ class Engine:
                                         priority=priority,
                                         processor_ids=processor_ids)
 
-
     def create_job(
             self,
             *,  # Force keyword args.
@@ -316,23 +274,19 @@ class Engine:
         run_context = self._serialize_run_context(sweeps, repetitions)
 
         # Create job.
-        request = {
-            'name': '%s/jobs/%s' % (program_name, job_config.job_id),
-            'scheduling_config': {
-                'priority': priority,
-                'processor_selector': {
-                    'processor_names': [
+        request = qtypes.QuantumJob(
+            name='%s/jobs/%s' % (program_name, job_config.job_id),
+            scheduling_config=qtypes.SchedulingConfig(
+                priority=priority,
+                processor_selector=qtypes.SchedulingConfig.ProcessorSelector(
+                    processor_names=[
                         'projects/%s/processors/%s' %
                         (self.project_id, processor_id)
                         for processor_id in processor_ids
-                    ]
-                }
-            },
-            'run_context': run_context
-        }
-        response = self._make_request(
-            self.service.projects().programs().jobs().create(
-                parent=program_name, body=request))
+                    ])),
+            run_context=run_context)
+        response = self._make_request(lambda: self.client.create_quantum_job(
+            program_name, request, False))
 
         return engine_job.EngineJob(job_config, response, self)
 
@@ -349,22 +303,19 @@ class Engine:
         if job_config.job_id is None:
             job_config.job_id = _make_random_id('job-')
 
-    def _make_request(self, request: HttpRequest) -> Dict:
+    def _make_request(self, request: Callable[[], _R]) -> _R:
         retryable_error_codes = [500, 503]
         current_delay = 0.1  #100ms
 
         while True:
             try:
-                return request.execute()
-            except ConnectionResetError:
-                message = "Lost connection to the engine."
-            except HttpError as raw_err:
-                err = json.loads(raw_err.content).get('error')
-                message = err.get('message')
+                return request()
+            except GoogleAPICallError as err:
+                message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
-                if not err.get('code') in retryable_error_codes:
-                    raise EngineException(message) from raw_err
+                if not err.code.value in retryable_error_codes:
+                    raise EngineException(message) from err
 
             current_delay *= 2
             if current_delay > self.max_retry_delay:
@@ -382,16 +333,14 @@ class Engine:
             self,
             sweeps: List[study.Sweep],
             repetitions: int,
-    ) -> Dict[str, Any]:
+    ) -> qtypes.any_pb2.Any:
+        context = qtypes.any_pb2.Any()
         proto_version = self.proto_version
         if proto_version == ProtoVersion.V1:
-            context_descriptor = v1.program_pb2.RunContext.DESCRIPTOR
-            context_dict = {}  # type: Dict[str, Any]
-            context_dict['@type'] = TYPE_PREFIX + context_descriptor.full_name
-            context_dict['parameter_sweeps'] = [
-                v1.sweep_to_proto_dict(sweep, repetitions) for sweep in sweeps
-            ]
-            return context_dict
+            context.Pack(
+                v1.program_pb2.RunContext(parameter_sweeps=[
+                    v1.sweep_to_proto(sweep, repetitions) for sweep in sweeps
+                ]))
         elif proto_version == ProtoVersion.V2:
             run_context = v2.run_context_pb2.RunContext()
             for sweep in sweeps:
@@ -399,10 +348,11 @@ class Engine:
                 sweep_proto.repetitions = repetitions
                 v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
 
-            return _any_dict_from_msg(run_context)
+            context.Pack(run_context)
         else:
             raise ValueError(
                 'invalid run context proto version: {}'.format(proto_version))
+        return context
 
     def create_program(
             self,
@@ -410,7 +360,7 @@ class Engine:
             program_id: Optional[str] = None,
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> engine_program.EngineProgram:
-        """Wraps a Circuitr for use with the Quantum Engine.
+        """Wraps a Circuit for use with the Quantum Engine.
 
         Args:
             program: The Circuit to execute.
@@ -430,14 +380,13 @@ class Engine:
         parent_name = 'projects/%s' % self.project_id
         program_name = '%s/programs/%s' % (parent_name, program_id)
         # Create program.
-        request = {
-            'name': program_name,
-            'code': self._serialize_program(program, gate_set),
-        }
-        result = self._make_request(self.service.projects().programs().create(
-            parent=parent_name, body=request))
+        request = qtypes.QuantumProgram(name=program_name,
+                                        code=self._serialize_program(
+                                            program, gate_set))
+        result = self._make_request(lambda: self.client.create_quantum_program(
+            parent_name, request, False))
 
-        return engine_program.EngineProgram(result['name'], self)
+        return engine_program.EngineProgram(result.name, self)
 
     def _serialize_program(
             self,
@@ -445,42 +394,41 @@ class Engine:
             gate_set: serializable_gate_set.SerializableGateSet = None
     ) -> Dict[str, Any]:
         gate_set = gate_set or gate_sets.XMON
+        code = qtypes.any_pb2.Any()
 
         if self.proto_version == ProtoVersion.V1:
             if isinstance(program, circuits.Circuit):
                 program.device.validate_circuit(program)
             else:
                 raise TypeError(f'Unrecognized program type: {type(program)}')
-            program_descriptor = v1.program_pb2.Program.DESCRIPTOR
-            program_dict = {}  # type: Dict[str, Any]
-            program_dict['@type'] = TYPE_PREFIX + program_descriptor.full_name
-            program_dict['operations'] = [
-                op for op in v1.circuit_as_schedule_to_proto_dicts(program)
-            ]
-            return program_dict
+            code.Pack(
+                v1.program_pb2.Program(operations=[
+                    op for op in v1.circuit_as_schedule_to_protos(program)
+                ]))
         elif self.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)
-            return _any_dict_from_msg(program)
+            code.Pack(program)
         else:
             raise ValueError('invalid program proto version: {}'.format(
                 self.proto_version))
+        return code
 
-    def get_program(self, program_id: str) -> Dict:
-        """Returns the previously created quantum program.
+    def get_program(self, program_id: str) -> qtypes.QuantumProgram:
+        """Returns a previously created quantum program.
 
         Params:
             program_id: A string containing the unique ID of a program within
               the project specified for the Engine.
 
         Returns:
-            A dictionary containing the metadata and the program.
+            A quantum program.
         """
         program_resource_name = self._program_name_from_id(program_id)
-        return self._make_request(
-            self.service.projects().programs().get(name=program_resource_name))
+        return self._make_request(lambda: self.client.get_quantum_program(
+            program_resource_name, False))
 
-    def get_job(self, job_resource_name: str) -> Dict:
-        """Returns metadata about a previously created job.
+    def get_job(self, job_resource_name: str) -> qtypes.QuantumJob:
+        """Returns a previously created job.
 
         See get_job_result if you want the results of the job and not just
         metadata about the job.
@@ -490,10 +438,10 @@ class Engine:
                 `projects/project_id/programs/program_id/jobs/job_id`.
 
         Returns:
-            A dictionary containing the metadata.
+            A quantum job.
         """
-        return self._make_request(self.service.projects().programs().jobs().get(
-            name=job_resource_name))
+        return self._make_request(lambda: self.client.get_quantum_job(
+            job_resource_name, False))
 
     def get_job_results(self,
                         job_resource_name: str) -> List[study.TrialResult]:
@@ -507,49 +455,44 @@ class Engine:
             An iterable over the TrialResult, one per parameter in the
             parameter sweep.
         """
-        response = self._make_request(
-            self.service.projects().programs().jobs().getResult(
-                parent=job_resource_name))
-        result = response['result']
-        result_type = result['@type'][len(TYPE_PREFIX):]
-        if result_type == 'cirq.google.api.v1.Result':
-            return self._get_job_results_v1(result)
-        if result_type == 'cirq.google.api.v2.Result':
-            return self._get_job_results_v2(result)
-        if result_type == 'cirq.api.google.v1.Result':
-            return self._get_job_results_v1(result)
-        if result_type == 'cirq.api.google.v2.Result':
-            # Change path to the new path
-            result['@type'] = TYPE_PREFIX + 'cirq.google.api.v2.Result'
-            return self._get_job_results_v2(result)
+        response = self._make_request(lambda: self.client.get_quantum_result(
+            job_resource_name))
+        result = response.result
+        result_type = result.type_url[len(TYPE_PREFIX):]
+        if (result_type == 'cirq.google.api.v1.Result' or
+                result_type == 'cirq.api.google.v1.Result'):
+            v1_parsed_result = v1.program_pb2.Result()
+            v1_parsed_result.ParseFromString(result.value)
+            return self._get_job_results_v1(v1_parsed_result)
+        if (result_type == 'cirq.google.api.v2.Result' or
+                result_type == 'cirq.api.google.v2.Result'):
+            v2_parsed_result = v2.result_pb2.Result()
+            v2_parsed_result.ParseFromString(result.value)
+            return self._get_job_results_v2(v2_parsed_result)
         raise ValueError('invalid result proto version: {}'.format(
             self.proto_version))
 
-    def _get_job_results_v1(self,
-                            result: Dict[str, Any]) -> List[study.TrialResult]:
+    def _get_job_results_v1(self, result: v1.program_pb2.Result
+                           ) -> List[study.TrialResult]:
         trial_results = []
-        for sweep_result in result['sweepResults']:
-            sweep_repetitions = sweep_result['repetitions']
-            key_sizes = [(m['key'], len(m['qubits']))
-                         for m in sweep_result['measurementKeys']]
-            for result in sweep_result['parameterizedResults']:
-                data = base64.standard_b64decode(result['measurementResults'])
+        for sweep_result in result.sweep_results:
+            sweep_repetitions = sweep_result.repetitions
+            key_sizes = [
+                (m.key, len(m.qubits)) for m in sweep_result.measurement_keys
+            ]
+            for result in sweep_result.parameterized_results:
+                data = result.measurement_results
                 measurements = v1.unpack_results(data, sweep_repetitions,
                                                  key_sizes)
 
                 trial_results.append(
                     study.TrialResult.from_single_parameter_set(
-                        params=study.ParamResolver(
-                            result.get('params', {}).get('assignments', {})),
+                        params=study.ParamResolver(result.params.assignments),
                         measurements=measurements))
         return trial_results
 
-    def _get_job_results_v2(self, result_dict: Dict[str, Any]
+    def _get_job_results_v2(self, result: v2.result_pb2.Result
                            ) -> List[study.TrialResult]:
-        result_any = any_pb2.Any()
-        gp.json_format.ParseDict(result_dict, result_any)
-        result = v2.result_pb2.Result()
-        result_any.Unpack(result)
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
@@ -566,88 +509,86 @@ class Engine:
             job_resource_name: A string of the form
                 `projects/project_id/programs/program_id/jobs/job_id`.
         """
-        self._make_request(self.service.projects().programs().jobs().cancel(
-            name=job_resource_name, body={}))
+        self._make_request(lambda: self.client.cancel_quantum_job(
+            job_resource_name))
 
     def _program_name_from_id(self, program_id: str) -> str:
-        return 'projects/%s/programs/%s' % (
-            self.project_id,
-            program_id,
-        )
+        return 'projects/%s/programs/%s' % (self.project_id, program_id)
 
     def _set_program_labels(self, program_id: str, labels: Dict[str, str],
                             fingerprint: str):
         program_resource_name = self._program_name_from_id(program_id)
-        self._make_request(self.service.projects().programs().patch(
-            name=program_resource_name,
-            body={
-                'name': program_resource_name,
-                'labels': labels,
-                'labelFingerprint': fingerprint
-            },
-            updateMask='labels'))
+        return self._make_request(lambda: self.client.update_quantum_program(
+            program_resource_name,
+            qtypes.QuantumProgram(name=program_resource_name,
+                                  labels=labels,
+                                  label_fingerprint=fingerprint),
+            qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
 
     def set_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
-        self._set_program_labels(program_id, labels,
-                                 program.get('labelFingerprint', ''))
+        return self._set_program_labels(program_id, labels,
+                                        program.label_fingerprint)
 
     def add_program_labels(self, program_id: str, labels: Dict[str, str]):
         program = self.get_program(program_id)
-        old_labels = program.get('labels', {})
-        new_labels = old_labels.copy()
+        old_labels = program.labels
+        new_labels = dict(old_labels)
         new_labels.update(labels)
         if new_labels != old_labels:
-            fingerprint = program.get('labelFingerprint', '')
-            self._set_program_labels(program_id, new_labels, fingerprint)
+            fingerprint = program.label_fingerprint
+            return self._set_program_labels(program_id, new_labels, fingerprint)
+        return program
 
     def remove_program_labels(self, program_id: str, label_keys: List[str]):
         program = self.get_program(program_id)
-        old_labels = program.get('labels', {})
-        new_labels = old_labels.copy()
+        old_labels = program.labels
+        new_labels = dict(old_labels)
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
-            fingerprint = program.get('labelFingerprint', '')
-            self._set_program_labels(program_id, new_labels, fingerprint)
+            fingerprint = program.label_fingerprint
+            return self._set_program_labels(program_id, new_labels, fingerprint)
+        return program
 
     def _set_job_labels(self, job_resource_name: str, labels: Dict[str, str],
                         fingerprint: str):
-        self._make_request(self.service.projects().programs().jobs().patch(
-            name=job_resource_name,
-            body={
-                'name': job_resource_name,
-                'labels': labels,
-                'labelFingerprint': fingerprint
-            },
-            updateMask='labels'))
+        return self._make_request(lambda: self.client.update_quantum_job(
+            job_resource_name,
+            qtypes.QuantumJob(name=job_resource_name,
+                              labels=labels,
+                              label_fingerprint=fingerprint),
+            qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
 
     def set_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
         job = self.get_job(job_resource_name)
-        self._set_job_labels(job_resource_name, labels,
-                             job.get('labelFingerprint', ''))
+        return self._set_job_labels(job_resource_name, labels,
+                                    job.label_fingerprint)
 
     def add_job_labels(self, job_resource_name: str, labels: Dict[str, str]):
         job = self.get_job(job_resource_name)
-        old_labels = job.get('labels', {})
-        new_labels = old_labels.copy()
+        old_labels = job.labels
+        new_labels = dict(old_labels)
         new_labels.update(labels)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
-            self._set_job_labels(job_resource_name, new_labels, fingerprint)
+            fingerprint = job.label_fingerprint
+            return self._set_job_labels(job_resource_name, new_labels,
+                                        fingerprint)
+        return job
 
     def remove_job_labels(self, job_resource_name: str, label_keys: List[str]):
         job = self.get_job(job_resource_name)
-        old_labels = job.get('labels', {})
-        new_labels = old_labels.copy()
+        old_labels = job.labels
+        new_labels = dict(old_labels)
         for key in label_keys:
             new_labels.pop(key, None)
         if new_labels != old_labels:
-            fingerprint = job.get('labelFingerprint', '')
-            self._set_job_labels(job_resource_name, new_labels, fingerprint)
+            fingerprint = job.label_fingerprint
+            return self._set_job_labels(job_resource_name, new_labels,
+                                        fingerprint)
+        return job
 
-
-    def list_processors(self) -> List[Dict]:
+    def list_processors(self) -> List[qtypes.QuantumProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
@@ -655,10 +596,10 @@ class Engine:
         Returns:
             A list of dictionaries containing the metadata of each processor.
         """
-        parent = 'projects/%s' % (self.project_id)
-        response = self._make_request(
-            self.service.projects().processors().list(parent=parent))
-        return response['processors']
+        response = self._make_request(lambda: self.client.
+                                      list_quantum_processors(
+                                          'projects/%s' % self.project_id, ''))
+        return list(response)
 
     def get_device_specification(
             self,
@@ -672,21 +613,15 @@ class Engine:
                 `projects/<project_id>/processors/<processor_id>`.
 
         Returns:
-            Device specification proto or None if it doesn't exist.
+            Device specification proto.
         """
-        processor_name = 'projects/{}/processors/{}'.format(
-            self.project_id, processor_id)
-        response = self._make_request(
-            self.service.projects().processors().get(name=processor_name))
-
-        if 'deviceSpec' not in response:
-            return None
-
-        if '@type' in response['deviceSpec']:
-            del response['deviceSpec']['@type']
+        processor_name = 'projects/%s/processors/%s' % (self.project_id,
+                                                        processor_id)
+        response = self._make_request(lambda: self.client.get_quantum_processor(
+            processor_name))
 
         device_spec = v2.device_pb2.DeviceSpecification()
-        gp.json_format.ParseDict(response['deviceSpec'], device_spec)
+        device_spec.ParseFromString(response.device_spec.value)
 
         return device_spec
 
@@ -700,18 +635,16 @@ class Engine:
                 `projects/<project_id>/processors/<processor_id>`.
 
         Returns:
-            A dictionary containing the calibration data or None if there are
-            no calibrations.
+            The calibration data or None if there is no current calibration.
         """
-        processor_name = 'projects/{}/processors/{}'.format(
-            self.project_id, processor_id)
-        response = self._make_request(
-            self.service.projects().processors().calibrations().list(
-                parent=processor_name))
-        if (not 'calibrations' in response or
-                len(response['calibrations']) < 1):
-            return None
-        return calibration.Calibration(response['calibrations'][0]['data'])
+        calibration_name = 'projects/%s/processors/%s/calibrations/%s' % (
+            self.project_id, processor_id, 'current')
+        try:
+            return self.get_calibration(calibration_name)
+        except EngineException as err:
+            if isinstance(err.__cause__, NotFound):
+                return None
+            raise
 
     def get_calibration(self, calibration_name: str) -> calibration.Calibration:
         """Retrieve metadata about a specific calibration run.
@@ -724,10 +657,11 @@ class Engine:
         Returns:
             A dictionary containing the metadata.
         """
-        response = self._make_request(
-            self.service.projects().processors().calibrations().get(
-                name=calibration_name))
-        return calibration.Calibration(response['data'])
+        response = self._make_request(lambda: self.client.
+                                      get_quantum_calibration(calibration_name))
+        metrics = v2.metrics_pb2.MetricsSnapshot()
+        metrics.ParseFromString(response.data.value)
+        return calibration.Calibration(metrics)
 
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet

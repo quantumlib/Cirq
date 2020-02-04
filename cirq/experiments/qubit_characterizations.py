@@ -574,8 +574,10 @@ def _matrix_bar_plot(mat: np.ndarray,
     ax.set_zlim3d(ylim[0], ylim[1])
 
     if kets is not None:
-        plt.xticks(np.arange(num_cols) + 0.15, kets)
-        plt.yticks(np.arange(num_rows) + 0.15, kets)
+        ax.set_xticks(np.arange(num_cols) + 0.15)
+        ax.set_yticks(np.arange(num_rows) + 0.15)
+        ax.set_xticklabels(kets)
+        ax.set_yticklabels(kets)
 
     if title is not None:
         ax.set_title(title)
