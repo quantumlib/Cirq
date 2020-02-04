@@ -209,13 +209,6 @@ def test_bad_args():
                                       repetitions=0,
                                       max_delay=cirq.Duration(micros=1))
 
-    with pytest.raises(ValueError, match='even number'):
-        _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
-                                      qubit=cirq.GridQubit(0, 0),
-                                      num_points=4,
-                                      repetitions=737,
-                                      max_delay=cirq.Duration(micros=1))
-
     with pytest.raises(ValueError, match='max_delay < min_delay'):
         _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
                                       qubit=cirq.GridQubit(0, 0),

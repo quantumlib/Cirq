@@ -89,8 +89,6 @@ def t2_decay(sampler: work.Sampler,
     # Input validation
     if repetitions <= 0:
         raise ValueError('repetitions <= 0')
-    if repetitions % 2 != 0:
-        raise ValueError('Total repetitions must be an even number.')
     if max_delay_dur < min_delay_dur:
         raise ValueError('max_delay < min_delay')
     if min_delay_dur < 0:
