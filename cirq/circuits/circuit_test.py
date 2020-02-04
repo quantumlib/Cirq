@@ -3278,11 +3278,14 @@ def test_with_noise():
     assert c.with_noise(cirq.depolarize(0.1)) == cirq.Circuit(
         cirq.X(q0),
         cirq.Y(q1),
-        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([d.with_tags('virtual')
+                     for d in cirq.depolarize(0.1).on_each(q0, q1)]),
         cirq.Z(q1),
-        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([d.with_tags('virtual')
+                     for d in cirq.depolarize(0.1).on_each(q0, q1)]),
         cirq.Moment([cirq.X(q0)]),
-        cirq.Moment(list(cirq.depolarize(0.1).on_each(q0, q1))),
+        cirq.Moment([d.with_tags('virtual')
+                     for d in cirq.depolarize(0.1).on_each(q0, q1)]),
     )
 
 
