@@ -32,6 +32,9 @@ class EngineException(Exception):
         super().__init__(message)
 
 
+RETRYABLE_ERROR_CODES = [500, 503]
+
+
 class EngineClient:
     """Client for the Quantum Engine API that deals with the engine protos and
     the gRPC client but not cirq protos or objects. All users are likely better
@@ -42,7 +45,7 @@ class EngineClient:
     def __init__(
             self,
             service_args: Optional[Dict] = None,
-            verbose: bool = True,
+            verbose: Optional[bool] = True,
             max_retry_delay_seconds: int = 3600  # 1 hour
     ) -> None:
         """Engine service client.
@@ -113,8 +116,9 @@ class EngineClient:
         return parts[1], parts[3], int(parts[5])
 
     def _make_request(self, request: Callable[[], _R]) -> _R:
-        retryable_error_codes = [500, 503]
-        current_delay = 0.1  # 100ms
+        # Start with a 100ms retry delay with exponential backoff to
+        # max_retry_delay_seconds
+        current_delay = 0.1
 
         while True:
             try:
@@ -123,7 +127,7 @@ class EngineClient:
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
-                if err.code.value not in retryable_error_codes:
+                if err.code.value not in RETRYABLE_ERROR_CODES:
                     raise EngineException(message) from err
 
             current_delay *= 2
@@ -146,7 +150,7 @@ class EngineClient:
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> Tuple[str, qtypes.QuantumProgram]:
-        """Wraps a Circuit for use with the Quantum Engine.
+        """Creates a Quantum Engine program.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
@@ -181,9 +185,6 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             return_code: If True returns the serialized program code.
-
-        Returns:
-            A quantum program.
         """
         return self._make_request(lambda: self.grpc_client.get_quantum_program(
             self._program_name_from_ids(project_id, program_id), return_code))
@@ -287,7 +288,7 @@ class EngineClient:
     def delete_program(self,
                        project_id: str,
                        program_id: str,
-                       delete_jobs=False) -> None:
+                       delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
         Params:
@@ -360,9 +361,6 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
-
-        Returns:
-            A quantum job.
         """
         return self._make_request(lambda: self.grpc_client.get_quantum_job(
             self._job_name_from_ids(project_id, program_id, job_id),

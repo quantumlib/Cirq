@@ -21,9 +21,9 @@ from cirq import study
 from cirq.google.engine import calibration
 from cirq.google.engine.client import quantum
 from cirq.google.api import v1, v2
-import cirq.google.engine.engine as engine_base
 
 if TYPE_CHECKING:
+    import cirq.google.engine.engine as engine_base
     from cirq.google.engine.engine import engine_program
 
 TERMINAL_STATES = [
@@ -46,51 +46,52 @@ class EngineJob:
       job_id: Unique ID of the job within the parent program.
     """
 
-    def __init__(self, job_id: str, program: 'engine_program.EngineProgram',
-                 job: quantum.types.QuantumJob) -> None:
+    def __init__(self,
+                 project_id: str,
+                 program_id: str,
+                 job_id: str,
+                 context: 'engine_base.EngineContext',
+                 job: Optional[quantum.types.QuantumJob] = None) -> None:
         """A job submitted to the engine.
 
         Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
-            program: Parent EngineProgram for the job.
-            job: A job proto.
+            context: Engine configuration and context to use.
+            job: The optional current job state.
         """
-        self.project_id = program.project_id
-        self.program_id = program.program_id
+        self.project_id = project_id
+        self.program_id = program_id
         self.job_id = job_id
-        self._program = program
+        self.context = context
+        if not job:
+            job = self.context.client.get_job(project_id, program_id, job_id,
+                                              False)
         self._job = job
         self._results: Optional[List[study.TrialResult]] = None
 
     def engine(self) -> 'engine_base.Engine':
-        """Returns the parent Engine object.
-
-        Returns:
-            The job's parent Engine.
-        """
-        return self._program.engine()
+        """Returns the parent Engine object."""
+        import cirq.google.engine.engine as engine_base
+        return engine_base.Engine(self.project_id, self.context)
 
     def program(self) -> 'engine_program.EngineProgram':
-        """Returns the parent EngineProgram object.
-
-        Returns:
-            The job's parent EngineProgram.
-        """
-        return self._program
+        """Returns the parent EngineProgram object."""
+        import cirq.google.engine.engine_program as engine_program
+        return engine_program.EngineProgram(self.project_id, self.program_id,
+                                            self.context)
 
     def _refresh_job(self) -> 'quantum.types.QuantumJob':
         if self._job.execution_status.state not in TERMINAL_STATES:
-            self._job = self.engine().client.get_job(self.project_id,
-                                                     self.program_id,
-                                                     self.job_id, False)
+            self._job = self.context.client.get_job(self.project_id,
+                                                    self.program_id,
+                                                    self.job_id, False)
+            print(self._job)
         return self._job
 
     def description(self) -> str:
-        """Returns the description of the job.
-
-        Returns:
-             The current description of the job.
-        """
+        """Returns the description of the job."""
         return self._job.description
 
     def set_description(self, description: str) -> 'EngineJob':
@@ -102,16 +103,12 @@ class EngineJob:
         Returns:
              This EngineJob.
         """
-        self._job = self.engine().client.set_job_description(
+        self._job = self.context.client.set_job_description(
             self.project_id, self.program_id, self.job_id, description)
         return self
 
     def labels(self) -> Dict[str, str]:
-        """Returns the labels of the job.
-
-        Returns:
-             The current labels of the job.
-        """
+        """Returns the labels of the job."""
         return self._job.labels
 
     def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
@@ -123,9 +120,9 @@ class EngineJob:
         Returns:
              This EngineJob.
         """
-        self._job = self.engine().client.set_job_labels(self.project_id,
-                                                        self.program_id,
-                                                        self.job_id, labels)
+        self._job = self.context.client.set_job_labels(self.project_id,
+                                                       self.program_id,
+                                                       self.job_id, labels)
         return self
 
     def add_labels(self, labels: Dict[str, str]) -> 'EngineJob':
@@ -137,9 +134,9 @@ class EngineJob:
         Returns:
              This EngineJob.
         """
-        self._job = self.engine().client.add_job_labels(self.project_id,
-                                                        self.program_id,
-                                                        self.job_id, labels)
+        self._job = self.context.client.add_job_labels(self.project_id,
+                                                       self.program_id,
+                                                       self.job_id, labels)
         return self
 
     def remove_labels(self, keys: List[str]) -> 'EngineJob':
@@ -152,7 +149,7 @@ class EngineJob:
         Returns:
             This EngineJob.
         """
-        self._job = self.engine().client.remove_job_labels(
+        self._job = self.context.client.remove_job_labels(
             self.project_id, self.program_id, self.job_id, keys)
         return self
 
@@ -168,14 +165,16 @@ class EngineJob:
             A tuple of the repetition count and list of sweeps.
         """
         if not self._job.HasField('run_context'):
-            self._job = self.engine().client.get_job(self.project_id,
-                                                     self.program_id,
-                                                     self.job_id, True)
+            self._job = self.context.client.get_job(self.project_id,
+                                                    self.program_id,
+                                                    self.job_id, True)
 
         return self._deserialize_run_context(self._job.run_context)
 
-    def _deserialize_run_context(self, run_context: quantum.types.any_pb2.Any
+    @staticmethod
+    def _deserialize_run_context(run_context: quantum.types.any_pb2.Any
                                 ) -> Tuple[int, List[study.Sweep]]:
+        import cirq.google.engine.engine as engine_base
         run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX):]
         if (run_context_type == 'cirq.google.api.v1.RunContext' or
                 run_context_type == 'cirq.api.google.v1.RunContext'):
@@ -197,26 +196,27 @@ class EngineJob:
         status = self._job.execution_status
         if not status.calibration_name:
             return None
-        ids = self.engine().client._ids_from_calibration_name(
+        ids = self.context.client._ids_from_calibration_name(
             status.calibration_name)
-        response = self.engine().client.get_calibration(*ids)
+        response = self.context.client.get_calibration(*ids)
         metrics = v2.metrics_pb2.MetricsSnapshot()
         metrics.ParseFromString(response.data.value)
         return calibration.Calibration(metrics)
 
     def cancel(self) -> None:
         """Cancel the job."""
-        self.engine().client.cancel_job(self.project_id, self.program_id,
-                                        self.job_id)
+        self.context.client.cancel_job(self.project_id, self.program_id,
+                                       self.job_id)
 
     def delete(self) -> None:
         """Deletes the job and result, if any."""
-        self.engine().client.delete_job(self.project_id, self.program_id,
-                                        self.job_id)
+        self.context.client.delete_job(self.project_id, self.program_id,
+                                       self.job_id)
 
     def results(self) -> List[study.TrialResult]:
         """Returns the job results, blocking until the job is complete.
         """
+        import cirq.google.engine.engine as engine_base
         if not self._results:
             job = self._refresh_job()
             for _ in range(1000):
@@ -225,7 +225,7 @@ class EngineJob:
                 time.sleep(0.5)
                 job = self._refresh_job()
             self._raise_on_failure(job)
-            response = self.engine().client.get_job_results(
+            response = self.context.client.get_job_results(
                 self.project_id, self.program_id, self.job_id)
             result = response.result
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
@@ -244,7 +244,8 @@ class EngineJob:
                     'invalid result proto version: {}'.format(result_type))
         return self._results
 
-    def _get_job_results_v1(self, result: v1.program_pb2.Result
+    @staticmethod
+    def _get_job_results_v1(result: v1.program_pb2.Result
                            ) -> List[study.TrialResult]:
         trial_results = []
         for sweep_result in result.sweep_results:
@@ -263,7 +264,8 @@ class EngineJob:
                         measurements=measurements))
         return trial_results
 
-    def _get_job_results_v2(self, result: v2.result_pb2.Result
+    @staticmethod
+    def _get_job_results_v2(result: v2.result_pb2.Result
                            ) -> List[study.TrialResult]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
@@ -272,7 +274,8 @@ class EngineJob:
             for trial_result in sweep_result
         ]
 
-    def _raise_on_failure(self, job: quantum.types.QuantumJob) -> None:
+    @staticmethod
+    def _raise_on_failure(job: quantum.types.QuantumJob) -> None:
         execution_status = job.execution_status
         state = execution_status.state
         name = job.name
@@ -301,5 +304,6 @@ class EngineJob:
         return iter(self.results())
 
     def __str__(self):
-        return str('EngineJob({}, {}, {})'.format(self.project_id,
-                                                  self.program_id, self.job_id))
+        return str(
+            'EngineJob(project_id=\'{}\', program_id=\'{}\', job_id=\'{}\')'.
+            format(self.project_id, self.program_id, self.job_id))

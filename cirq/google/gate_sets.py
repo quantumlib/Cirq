@@ -91,3 +91,5 @@ GOOGLE_GATESETS = [
     SQRT_ISWAP_GATESET,
     XMON,
 ]
+
+document(GOOGLE_GATESETS, """All Google gatesets""")

@@ -14,13 +14,13 @@
 from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 
 from cirq import study
-from cirq.google.engine import engine_job
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google import gate_sets
 from cirq.google.api import v1, v2
-import cirq.google.engine.engine as engine_base
+import cirq.google.engine.engine_job as engine_job
 
 if TYPE_CHECKING:
+    import cirq.google.engine.engine as engine_base
     from cirq import Circuit
 
 
@@ -35,27 +35,32 @@ class EngineProgram:
         program_id: Unique ID of the program within the parent project.
     """
 
-    def __init__(self, program_id: str, engine: 'engine_base.Engine',
-                 program: qtypes.QuantumProgram) -> None:
+    def __init__(self,
+                 project_id: str,
+                 program_id: str,
+                 context: 'engine_base.EngineContext',
+                 program: Optional[qtypes.QuantumProgram] = None) -> None:
         """A job submitted to the engine.
 
         Args:
+            project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            engine: The parent Engine object.
+            context: Engine configuration and context to use.
             program: The optional current program state.
         """
-        self.project_id = engine.project_id
+        self.project_id = project_id
         self.program_id = program_id
-        self._engine = engine
+        self.context = context
+        if not program:
+            program = self.context.client.get_program(project_id, program_id,
+                                                      False)
         self._program = program
 
     def run_sweep(
             self,
-            *,  # Force keyword args.
-            job_config: 'Optional[engine_base.JobConfig]' = None,
+            job_id: Optional[str] = None,
             params: study.Sweepable = None,
             repetitions: int = 1,
-            priority: int = 500,
             processor_ids: Sequence[str] = ('xmonsim',),
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
@@ -66,10 +71,12 @@ class EngineProgram:
         does not block until a result is returned.
 
         Args:
-            job_config: Configures optional job parameters.
+            job_id: Optional job id to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
             params: Parameters to run with the program.
             repetitions: The number of circuit repetitions to run.
-            priority: The priority to run at, 0-100.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
@@ -80,32 +87,28 @@ class EngineProgram:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        # Check program to run and program parameters.
-        if not 0 <= priority < 1000:
-            raise ValueError('priority must be between 0 and 1000')
-
-        job_config = engine_base.implied_job_config(job_config)
+        import cirq.google.engine.engine as engine_base
+        if not job_id:
+            job_id = engine_base._make_random_id('job-')
         sweeps = study.to_sweeps(params or study.ParamResolver({}))
         run_context = self._serialize_run_context(sweeps, repetitions)
 
-        created_job_id, job = self._engine.client.create_job(
+        created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
-            job_id=job_config.job_id,
+            job_id=job_id,
             processor_ids=processor_ids,
             run_context=run_context,
-            priority=priority,
             description=description,
             labels=labels)
-        return engine_job.EngineJob(created_job_id, self, job)
+        return engine_job.EngineJob(self.project_id, self.program_id,
+                                    created_job_id, self.context, job)
 
     def run(
             self,
-            *,  # Force keyword args.
-            job_config: 'Optional[engine_base.JobConfig]' = None,
+            job_id: Optional[str] = None,
             param_resolver: study.ParamResolver = study.ParamResolver({}),
             repetitions: int = 1,
-            priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',),
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
@@ -113,10 +116,12 @@ class EngineProgram:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
-            job_config: Configures the names of programs and jobs.
+            job_id: Optional job id to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
             param_resolver: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
-            priority: The priority to run at, 0-100.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
@@ -127,45 +132,24 @@ class EngineProgram:
             A single TrialResult for this run.
         """
         return list(
-            self.run_sweep(job_config=job_config,
+            self.run_sweep(job_id=job_id,
                            params=[param_resolver],
                            repetitions=repetitions,
-                           priority=priority,
                            processor_ids=processor_ids,
                            description=description,
                            labels=labels))[0]
 
-    def get_job(self,
-                job_id: str,
-                project_id: Optional[str] = None,
-                program_id: Optional[str] = None) -> engine_job.EngineJob:
-        """Creates an EngineJob for an existing Quantum Engine job.
+    def get_job(self, job_id: str) -> engine_job.EngineJob:
+        """Returns an EngineJob for an existing Quantum Engine job.
 
         Args:
             job_id: Unique ID of the job within the parent program.
-            project_id: The project id for the project containing the program.
-                If provided will be checked against the project id of the
-                EngineProgram.
-            program_id: Unique ID of the program within the parent project.
-                If provided will be checked against the program id of the
-                EngineProgram.
 
         Returns:
             A EngineJob for the job.
         """
-        if project_id and project_id != self.project_id:
-            raise ValueError(
-                'EngineProgram project id {} does not match given project_id {}'
-                .format(self.project_id, project_id))
-
-        if program_id and program_id != self.program_id:
-            raise ValueError(
-                'EngineProgram program id {} does not match given program_id {}'
-                .format(self.program_id, program_id))
-
-        job = self.engine().client.get_job(self.project_id, self.program_id,
-                                           job_id, False)
-        return engine_job.EngineJob(job_id, self, job)
+        return engine_job.EngineJob(self.project_id, self.program_id, job_id,
+                                    self.context)
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
@@ -173,15 +157,17 @@ class EngineProgram:
         Returns:
             The program's parent Engine.
         """
-        return self._engine
+        import cirq.google.engine.engine as engine_base
+        return engine_base.Engine(self.project_id, self.context)
 
     def _serialize_run_context(
             self,
             sweeps: List[study.Sweep],
             repetitions: int,
     ) -> qtypes.any_pb2.Any:
+        import cirq.google.engine.engine as engine_base
         context = qtypes.any_pb2.Any()
-        proto_version = self._engine.proto_version
+        proto_version = self.context.proto_version
         if proto_version == engine_base.ProtoVersion.V1:
             context.Pack(
                 v1.program_pb2.RunContext(parameter_sweeps=[
@@ -208,11 +194,13 @@ class EngineProgram:
             The program's cirq Circuit.
         """
         if not self._program.HasField('code'):
-            self._program = self._engine.client.get_program(
+            self._program = self.context.client.get_program(
                 self.project_id, self.program_id, True)
         return self._deserialize_program(self._program.code)
 
-    def _deserialize_program(self, code: qtypes.any_pb2.Any) -> 'Circuit':
+    @staticmethod
+    def _deserialize_program(code: qtypes.any_pb2.Any) -> 'Circuit':
+        import cirq.google.engine.engine as engine_base
         code_type = code.type_url[len(engine_base.TYPE_PREFIX):]
         if (code_type == 'cirq.google.api.v1.Program' or
                 code_type == 'cirq.api.google.v1.Program'):
@@ -233,11 +221,7 @@ class EngineProgram:
         raise ValueError('unsupported program type: {}'.format(code_type))
 
     def description(self) -> str:
-        """Returns the description of the program.
-
-        Returns:
-             The current description of the program.
-        """
+        """Returns the description of the program."""
         return self._program.description
 
     def set_description(self, description: str) -> 'EngineProgram':
@@ -249,16 +233,12 @@ class EngineProgram:
         Returns:
              This EngineProgram.
         """
-        self._program = self._engine.client.set_program_description(
+        self._program = self.context.client.set_program_description(
             self.project_id, self.program_id, description)
         return self
 
     def labels(self) -> Dict[str, str]:
-        """Returns the labels of the program.
-
-        Returns:
-             The current labels of the program.
-        """
+        """Returns the labels of the program."""
         return self._program.labels
 
     def set_labels(self, labels: Dict[str, str]) -> 'EngineProgram':
@@ -271,7 +251,7 @@ class EngineProgram:
         Returns:
              This EngineProgram.
         """
-        self._program = self._engine.client.set_program_labels(
+        self._program = self.context.client.set_program_labels(
             self.project_id, self.program_id, labels)
         return self
 
@@ -284,7 +264,7 @@ class EngineProgram:
         Returns:
              This EngineProgram.
         """
-        self._program = self._engine.client.add_program_labels(
+        self._program = self.context.client.add_program_labels(
             self.project_id, self.program_id, labels)
         return self
 
@@ -298,7 +278,7 @@ class EngineProgram:
         Returns:
              This EngineProgram.
         """
-        self._program = self._engine.client.remove_program_labels(
+        self._program = self.context.client.remove_program_labels(
             self.project_id, self.program_id, keys)
         return self
 
@@ -309,7 +289,7 @@ class EngineProgram:
             delete_jobs: If True will delete all the program's jobs, other this
                 will fail if the program contains any jobs.
         """
-        self._engine.client.delete_program(self.project_id,
+        self.context.client.delete_program(self.project_id,
                                            self.program_id,
                                            delete_jobs=delete_jobs)
 

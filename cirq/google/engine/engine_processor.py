@@ -29,18 +29,26 @@ class EngineProcessor:
         processor_id: Unique ID of the processor.
     """
 
-    def __init__(self, processor_id: str, engine: 'engine_base.Engine',
-                 processor: qtypes.QuantumProcessor) -> None:
+    def __init__(self,
+                 project_id: str,
+                 processor_id: str,
+                 context: 'engine_base.EngineContext',
+                 processor: Optional[qtypes.QuantumProcessor] = None) -> None:
         """A processor available via the engine.
 
         Args:
+            project_id: A project_id of the parent Google Cloud Project.
             processor_id: Unique ID of the processor.
-            engine: The parent Engine object.
+            context: Engine configuration and context to use.
             processor: The optional current processor state.
         """
-        self.project_id = engine.project_id
+        self.project_id = project_id
         self.processor_id = processor_id
-        self._engine = engine
+        self.context = context
+        if not processor:
+            processor = self.context.client.get_processor(
+                project_id, processor_id)
+
         self._processor = processor
 
     def engine(self) -> 'engine_base.Engine':
@@ -49,7 +57,14 @@ class EngineProcessor:
         Returns:
             The program's parent Engine.
         """
-        return self._engine
+        import cirq.google.engine.engine as engine_base
+        return engine_base.Engine(self.project_id, self.context)
+
+    def health(self) -> str:
+        """Returns the current health of processor."""
+        self._processor = self.context.client.get_processor(
+            self.project_id, self.processor_id)
+        return qtypes.QuantumProcessor.Health.Name(self._processor.health)
 
     def get_device_specification(
             self) -> Optional[v2.device_pb2.DeviceSpecification]:
@@ -63,7 +78,8 @@ class EngineProcessor:
         device_spec.ParseFromString(self._processor.device_spec.value)
         return device_spec
 
-    def _to_calibration(self, calibration_any: qtypes.any_pb2.Any
+    @staticmethod
+    def _to_calibration(calibration_any: qtypes.any_pb2.Any
                        ) -> calibration.Calibration:
         metrics = v2.metrics_pb2.MetricsSnapshot()
         metrics.ParseFromString(calibration_any.value)
@@ -92,7 +108,7 @@ class EngineProcessor:
             filter_str = 'timestamp <= %d' % latest_timestamp_seconds
         else:
             filter_str = ''
-        response = self.engine().client.list_calibrations(
+        response = self.context.client.list_calibrations(
             self.project_id, self.processor_id, filter_str)
         return [self._to_calibration(c.data) for c in list(response)]
 
@@ -107,7 +123,7 @@ class EngineProcessor:
         Returns:
             The calibration data.
         """
-        response = self.engine().client.get_calibration(
+        response = self.context.client.get_calibration(
             self.project_id, self.processor_id, calibration_timestamp_seconds)
         return self._to_calibration(response.data)
 
@@ -117,7 +133,7 @@ class EngineProcessor:
         Returns:
             The calibration data or None if there is no current calibration.
         """
-        response = self.engine().client.get_current_calibration(
+        response = self.context.client.get_current_calibration(
             self.project_id, self.processor_id)
         if response:
             return self._to_calibration(response.data)
