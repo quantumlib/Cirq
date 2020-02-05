@@ -2,9 +2,9 @@ from random import random, randint
 
 import cirq
 import numpy as np
-from numpy.linalg import eigh
 from numpy.testing import assert_almost_equal
 from pycsd import cs_decomp
+from cirq.linalg.decompositions import unitary_eig
 
 
 def special(u):
@@ -26,93 +26,26 @@ def extract_right_diag(a, b, U):
     return c_d._unitary_()
 
 
-def closest_unitary(A):
-    V, __, W = np.linalg.svd(A)
-    return np.array(V @ W)
-
-
 def isThreeCNOTUnitary(U):
     poly = np.poly(g(special(U)))
     return not np.alltrue(np.isclose(0, np.imag(poly)))
 
 
-def mxs(U):
-    return "np.array({})".format(np.array2string(a=U, separator=","))
+# def mxs(U):
+#     return "np.array({})".format(np.array2string(a=U, separator=","))
 
 
 def multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
     u1u2 = u1 @ u2.conj().T
-    eigvals, V = np.linalg.eig(u1u2)
-    ## sometimes V becomes non-unitary due to rounding errors, this fixes it
-    V = closest_unitary(V)
-
+    eigvals, V = unitary_eig(u1u2)
     d = np.diag(np.sqrt(eigvals))
-    cirq.testing.assert_allclose_up_to_global_phase(V @ d @ d @ V.conj().T,
-                                                    u1u2, atol=1e-8)
+    np.testing.assert_allclose(V @ d @ d @ V.conj().T, u1u2, atol=1e-14)
 
-    z = np.zeros((4, 4))
-
-    combo = np.vstack(
-        (
-            np.hstack((u1, z)),
-            np.hstack((z, u2))
-        )
-    )
-    mid = np.vstack(
-        (
-            np.hstack((d, z)),
-            np.hstack((z, d.conj().T))
-        )
-    )
-
-    vs = np.vstack(
-        (
-            np.hstack((V, z)),
-            np.hstack((z, V))
-        )
-    )
     W = d @ V.conj().T @ u2
-    ws = np.vstack(
-        (
-            np.hstack((W, z)),
-            np.hstack((z, W))
-        )
-    )
 
-    np.testing.assert_almost_equal(vs @ mid @ ws, combo)
+    mid = assertDecompositionIsCorrect(V, W, d, u1, u2)
 
-    theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
-
-    angles = multiplexed_angles(theta)
-
-    rzs = [cirq.rz(angle).on(a) if angle != 0 else []
-           for angle in angles]
-
-    if rzs[1] == [] and rzs[2] == []:
-        if rzs[3] == []:
-            ops = [
-                rzs[0],
-            ]
-        else:
-            ops = [
-                rzs[0],
-                cirq.CNOT(c, a),
-                rzs[3],
-                cirq.CNOT(c, a)]
-    else:
-        ops = [rzs[0],
-               cirq.CNOT(b, a),
-               rzs[1],
-               cirq.CNOT(c, a),
-               rzs[2],
-               cirq.CNOT(b, a),
-               rzs[3],
-               cirq.CNOT(c, a)]
-
-    circuit_u1u2_mid = cirq.Circuit(ops)
-
-    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
-        qubits_that_should_be_present=[a, b, c]))
+    circuit_u1u2_mid = _middle_multiplexor(a, b, c, eigvals, mid)
 
     V = diagonal @ V
 
@@ -134,6 +67,67 @@ def multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
         [circuit_u1u2_L,
          circuit_u1u2_mid,
          circuit_u1u2_R])
+
+
+def _middle_multiplexor(a, b, c, eigvals, mid):
+    theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
+    angles = multiplexed_angles(theta)
+    rzs = [cirq.rz(angle).on(a) if angle != 0 else []
+           for angle in angles]
+    if rzs[1] == [] and rzs[2] == []:
+        if rzs[3] == []:
+            ops = [
+                rzs[0],
+            ]
+        else:
+            ops = [
+                rzs[0],
+                cirq.CNOT(c, a),
+                rzs[3],
+                cirq.CNOT(c, a)]
+    else:
+        ops = [rzs[0],
+               cirq.CNOT(b, a),
+               rzs[1],
+               cirq.CNOT(c, a),
+               rzs[2],
+               cirq.CNOT(b, a),
+               rzs[3],
+               cirq.CNOT(c, a)]
+    circuit_u1u2_mid = cirq.Circuit(ops)
+    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
+        qubits_that_should_be_present=[a, b, c]))
+    return circuit_u1u2_mid
+
+
+def assertDecompositionIsCorrect(V, W, d, u1, u2):
+    z = np.zeros((4, 4))
+    combo = np.vstack(
+        (
+            np.hstack((u1, z)),
+            np.hstack((z, u2))
+        )
+    )
+    mid = np.vstack(
+        (
+            np.hstack((d, z)),
+            np.hstack((z, d.conj().T))
+        )
+    )
+    vs = np.vstack(
+        (
+            np.hstack((V, z)),
+            np.hstack((z, V))
+        )
+    )
+    ws = np.vstack(
+        (
+            np.hstack((W, z)),
+            np.hstack((z, W))
+        )
+    )
+    np.testing.assert_almost_equal(vs @ mid @ ws, combo)
+    return mid
 
 
 def multiplexed_angles(theta):
@@ -274,14 +268,6 @@ def cs_to_circuit_and_rightmost_cz(CS, a, b, c, theta):
     return circuit_CS, rightmost_CZ
 
 
-def random_unitary(n_qubits=3):
-    M = 2 ** n_qubits  # size of unitary matrix
-    H = np.random.rand(M, M) + 1.9j * np.random.rand(M, M)
-    H = H + H.conj().T
-    D, U = eigh(H)
-    return U
-
-
 np.set_printoptions(precision=16, suppress=False, linewidth=300,
                     floatmode='maxprec_equal')
 
@@ -326,7 +312,7 @@ if __name__ == '__main__':
     decompose_unitary(
         cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
 
-    U = random_unitary()
+    U = cirq.testing.random_unitary(8)
     decompose_unitary(U)
     for i in range(1000):
         a, b, c = cirq.LineQubit.range(3)
