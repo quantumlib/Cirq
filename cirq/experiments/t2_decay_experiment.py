@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,12 +130,11 @@ def t2_decay(sampler: work.Sampler,
         # Evolve the state for half the given amount of delay time
         # Then measure the state in both X and Y bases.
 
-        # TODO: Should be 0.5 * delay_var
         circuit = circuits.Circuit(
             ops.Y(qubit)**0.5,
-            ops.WaitGate(value.Duration(nanos=delay_var))(qubit),
+            ops.WaitGate(value.Duration(nanos=0.5 * delay_var))(qubit),
             ops.X(qubit),
-            ops.WaitGate(value.Duration(nanos=delay_var))(qubit),
+            ops.WaitGate(value.Duration(nanos=0.5 * delay_var))(qubit),
             ops.X(qubit)**inv_x_var,
             ops.Y(qubit)**inv_y_var,
             ops.measure(qubit, key='output'),
