@@ -77,6 +77,12 @@ class PasqalDevice(cirq.devices.Device):
 
         keep = keep or (isinstance(op.gate, cirq.ops.XPowGate))
 
+        keep = keep or (isinstance(op.gate, cirq.ops.Y))
+
+        keep = keep or (isinstance(op.gate, cirq.ops.Z))
+
+        keep = keep or (isinstance(op.gate, cirq.ops.X))
+
         keep = keep or (isinstance(op.gate, cirq.ops.PhasedXPowGate))
 
         keep = keep or (isinstance(op.gate, cirq.ops.MeasurementGate))
@@ -87,8 +93,7 @@ class PasqalDevice(cirq.devices.Device):
 
     def validate_operation(self, operation: cirq.ops.Operation):
         if not isinstance(operation, cirq.GateOperation):
-            raise ValueError('{!r} is not a supported '
-                             'operation'.format(operation))
+            raise ValueError("Unsupported operation")
 
         if not PasqalDevice.is_pasqal_device_op(operation):
             raise ValueError('{!r} is not a supported '
