@@ -191,6 +191,12 @@ class QasmParser:
                           cirq_gate=ops.IdentityGate(1),
                           num_params=0,
                           num_args=1),
+        'u1':
+        QasmGateStatement(
+            qasm_gate='u1',
+            cirq_gate=(lambda params: QasmUGate(0, 0, params[0] / np.pi)),
+            num_params=1,
+            num_args=1),
         'u2':
         QasmGateStatement(qasm_gate='u2',
                           cirq_gate=(lambda params: QasmUGate(

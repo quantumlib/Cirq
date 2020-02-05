@@ -14,10 +14,9 @@ Alpha Disclaimer
 ----------------
 
 **Cirq is currently in alpha.**
-We are still making breaking changes.
-We *will* break your code when we make new releases.
-We recommend that you target a specific version of Cirq, and periodically bump to the latest release.
-That way you have control over when a breaking change affects you.
+We may change or remove parts of Cirq's API when making new releases.
+To be informed of deprecations and breaking changes, subscribe to the
+`cirq-announce google group mailing list <https://groups.google.com/forum/#!forum/cirq-announce>`__.
 
 User Documentation
 ------------------
@@ -35,20 +34,18 @@ User Documentation
     qudits
     development
     examples
+    api
 
-Developer Documentation
------------------------
 
 .. toctree::
     :maxdepth: 1
+    :caption: Developer Documentation
 
     dev/index.rst
 
 
-API Reference
--------------
-
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
+    :caption: Google Documentation
 
-    api
+    google/index.rst

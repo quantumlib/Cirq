@@ -29,7 +29,7 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Build protos for each protobuf package.
-for package in cirq/api/google/v1 cirq/api/google/v2 cirq/google/api/v1 cirq/google/api/v2
+for package in cirq/google/api/v1 cirq/google/api/v2
 do
   python -m grpc_tools.protoc -I=. --python_out=. --mypy_out=. ${package}/*.proto
 done

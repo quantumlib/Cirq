@@ -5,6 +5,10 @@ import scipy.linalg
 
 import cirq
 import cirq.google.optimizers.convert_to_sycamore_gates as cgoc
+from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
+    gate_product_tabulation)
+
+_rng = cirq.value.parse_random_state(11)  # for determinism
 
 
 def test_convert_to_sycamore_gates_swap_zz():
@@ -57,6 +61,18 @@ def test_unsupported_gate():
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(UnknownGate()(q0, q1))
     with pytest.raises(ValueError, match='Unrecognized gate: '):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+
+
+def test_unsupported_phased_iswap():
+    """Tests that a Phased ISwap with a provided phase_exponent and exponent is
+    not supported."""
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit(
+        cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=.33)(q0, q1))
+    with pytest.raises(ValueError,
+                       match='phase_exponent of .25 OR an exponent of 1'):
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
@@ -207,8 +223,12 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.MatrixGate(cirq.unitary(cirq.CX), qid_shape=(2, 2)), cirq.ISWAP,
-    cirq.SWAP, cirq.CNOT, cirq.CZ, *[
+    cirq.MatrixGate(cirq.unitary(
+        cirq.CX), qid_shape=(2, 2)), cirq.ISWAP, cirq.SWAP, cirq.CNOT, cirq.CZ,
+    cirq.PhasedISwapPowGate(exponent=1.0),
+    cirq.PhasedISwapPowGate(exponent=1.0, phase_exponent=.33),
+    cirq.PhasedISwapPowGate(exponent=.66, phase_exponent=.25),
+    *[cirq.givens(theta) for theta in np.linspace(0, 2 * np.pi, 30)], *[
         cirq.ZZPowGate(exponent=2 * phi / np.pi)
         for phi in np.linspace(0, 2 * np.pi, 30)
     ], *[
@@ -223,3 +243,26 @@ def test_convert_to_sycamore_equivalent_unitaries(gate):
     u1 = cirq.unitary(cirq.Circuit(converted))
     u2 = cirq.unitary(operation)
     cirq.testing.assert_allclose_up_to_global_phase(u1, u2, atol=1e-8)
+
+
+def test_convert_to_sycamore_tabulation():
+    # A tabulation for the sycamore gate with an infidelity of .1.
+    sycamore_tabulation = gate_product_tabulation(cirq.unitary(cirq.google.SYC),
+                                                  .1,
+                                                  random_state=_rng)
+    qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
+    operation = cirq.MatrixGate(cirq.unitary(cirq.CX),
+                                qid_shape=(2, 2)).on(qubits[0], qubits[1])
+    converted = cgoc.ConvertToSycamoreGates(sycamore_tabulation).convert(
+        operation)
+    u1 = cirq.unitary(cirq.Circuit(converted))
+    u2 = cirq.unitary(operation)
+    overlap = abs(np.trace(u1.conj().T @ u2))
+    assert np.isclose(overlap, 4.0, .1)
+
+
+def test_sycamore_invalid_tabulation():
+    # An object other than a tabulation.
+    sycamore_tabulation = {}
+    with pytest.raises(ValueError):
+        cgoc.ConvertToSycamoreGates(sycamore_tabulation)

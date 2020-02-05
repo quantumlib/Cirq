@@ -18,6 +18,7 @@ import numpy as np
 import sympy
 
 from cirq import devices, ops, protocols, value, circuits
+from cirq.google.api.v1 import operations_pb2
 
 if TYPE_CHECKING:
     import cirq
@@ -30,99 +31,94 @@ def _load_json_bool(b: Any):
     return json.loads(b)
 
 
-def gate_to_proto_dict(gate: 'cirq.Gate',
-                       qubits: Tuple['cirq.Qid', ...]) -> Dict:
+def gate_to_proto(gate: 'cirq.Gate', qubits: Tuple['cirq.Qid', ...],
+                  delay: int) -> operations_pb2.Operation:
     if isinstance(gate, ops.MeasurementGate):
-        return _measure_to_proto_dict(gate, qubits)
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        measurement=_measure_to_proto(
+                                            gate, qubits))
 
     if isinstance(gate, ops.XPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return _x_to_proto_dict(gate, qubits[0])
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        exp_w=_x_to_proto(gate, qubits[0]))
 
     if isinstance(gate, ops.YPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return _y_to_proto_dict(gate, qubits[0])
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        exp_w=_y_to_proto(gate, qubits[0]))
 
     if isinstance(gate, ops.PhasedXPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return _phased_x_to_proto_dict(gate, qubits[0])
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        exp_w=_phased_x_to_proto(
+                                            gate, qubits[0]))
 
     if isinstance(gate, ops.ZPowGate):
         if len(qubits) != 1:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return _z_to_proto_dict(gate, qubits[0])
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        exp_z=_z_to_proto(gate, qubits[0]))
 
     if isinstance(gate, ops.CZPowGate):
         if len(qubits) != 2:
             # coverage: ignore
             raise ValueError('Wrong number of qubits.')
-        return _cz_to_proto_dict(gate, *qubits)
+        return operations_pb2.Operation(incremental_delay_picoseconds=delay,
+                                        exp_11=_cz_to_proto(gate, *qubits))
 
     raise ValueError("Don't know how to serialize this gate: {!r}".format(gate))
 
 
-def _x_to_proto_dict(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> Dict:
-    exp_w = {
-        'target': _qubit_to_proto_dict(q),
-        'axis_half_turns': _parameterized_value_to_proto_dict(0),
-        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
-    }
-    return {'exp_w': exp_w}
+def _x_to_proto(gate: 'cirq.XPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
+    return operations_pb2.ExpW(target=_qubit_to_proto(q),
+                               axis_half_turns=_parameterized_value_to_proto(0),
+                               half_turns=_parameterized_value_to_proto(
+                                   gate.exponent))
 
 
-def _y_to_proto_dict(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> Dict:
-    exp_w = {
-        'target': _qubit_to_proto_dict(q),
-        'axis_half_turns': _parameterized_value_to_proto_dict(0.5),
-        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
-    }
-    return {'exp_w': exp_w}
+def _y_to_proto(gate: 'cirq.YPowGate', q: 'cirq.Qid') -> operations_pb2.ExpW:
+    return operations_pb2.ExpW(
+        target=_qubit_to_proto(q),
+        axis_half_turns=_parameterized_value_to_proto(0.5),
+        half_turns=_parameterized_value_to_proto(gate.exponent))
 
 
-def _phased_x_to_proto_dict(gate: 'cirq.PhasedXPowGate', q: 'cirq.Qid') -> Dict:
-    exp_w = {
-        'target': _qubit_to_proto_dict(q),
-        'axis_half_turns':
-        _parameterized_value_to_proto_dict(gate.phase_exponent),
-        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
-    }
-    return {'exp_w': exp_w}
+def _phased_x_to_proto(gate: 'cirq.PhasedXPowGate',
+                       q: 'cirq.Qid') -> operations_pb2.ExpW:
+    return operations_pb2.ExpW(
+        target=_qubit_to_proto(q),
+        axis_half_turns=_parameterized_value_to_proto(gate.phase_exponent),
+        half_turns=_parameterized_value_to_proto(gate.exponent))
 
 
-def _z_to_proto_dict(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> Dict:
-    exp_z = {
-        'target': _qubit_to_proto_dict(q),
-        'half_turns': _parameterized_value_to_proto_dict(gate.exponent),
-    }
-    return {'exp_z': exp_z}
+def _z_to_proto(gate: 'cirq.ZPowGate', q: 'cirq.Qid') -> operations_pb2.ExpZ:
+    return operations_pb2.ExpZ(target=_qubit_to_proto(q),
+                               half_turns=_parameterized_value_to_proto(
+                                   gate.exponent))
 
 
-def _cz_to_proto_dict(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
-                      q: 'cirq.Qid') -> Dict:
-    exp_11 = {
-        'target1': _qubit_to_proto_dict(p),
-        'target2': _qubit_to_proto_dict(q),
-        'half_turns': _parameterized_value_to_proto_dict(gate.exponent)
-    }
-    return {'exp_11': exp_11}
+def _cz_to_proto(gate: 'cirq.CZPowGate', p: 'cirq.Qid',
+                 q: 'cirq.Qid') -> operations_pb2.Exp11:
+    return operations_pb2.Exp11(target1=_qubit_to_proto(p),
+                                target2=_qubit_to_proto(q),
+                                half_turns=_parameterized_value_to_proto(
+                                    gate.exponent))
 
 
-def _qubit_to_proto_dict(qubit):
-    return {
-        'row': qubit.row,
-        'col': qubit.col,
-    }
+def _qubit_to_proto(qubit):
+    return operations_pb2.Qubit(row=qubit.row, col=qubit.col)
 
 
-def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
-                           qubits: Sequence['cirq.Qid']):
+def _measure_to_proto(gate: 'cirq.MeasurementGate',
+                      qubits: Sequence['cirq.Qid']):
     if len(qubits) == 0:
         raise ValueError('Measurement gate on no qubits.')
 
@@ -134,47 +130,44 @@ def _measure_to_proto_dict(gate: 'cirq.MeasurementGate',
     if invert_mask and len(invert_mask) != len(qubits):
         raise ValueError('Measurement gate had invert mask of length '
                          'different than number of qubits it acts on.')
-    measurement = {
-        'targets': [_qubit_to_proto_dict(q) for q in qubits],
-        'key': protocols.measurement_key(gate),
-    }
-    if invert_mask:
-        measurement['invert_mask'] = [json.dumps(x) for x in invert_mask]
-    return {'measurement': measurement}
+    return operations_pb2.Measurement(
+        targets=[_qubit_to_proto(q) for q in qubits],
+        key=protocols.measurement_key(gate),
+        invert_mask=invert_mask)
 
 
-def circuit_as_schedule_to_proto_dicts(circuit: 'cirq.Circuit'
-                                      ) -> Iterator[Dict]:
-    """Convert a circuit into an iterable of proto dictionaries.
+def circuit_as_schedule_to_protos(circuit: 'cirq.Circuit'
+                                 ) -> Iterator[operations_pb2.Operation]:
+    """Convert a circuit into an iterable of protos.
 
     Args:
-        circuit: The circuit to convert to a proto dict. Must contain only
+        circuit: The circuit to convert to a proto. Must contain only
             gates that can be cast to xmon gates.
 
     Yields:
-        A proto dictionary corresponding to an Operation proto.
+        An Operation proto.
     """
     last_picos: Optional[int] = None
     time_picos = 0
     for op in circuit.all_operations():
-        proto = gate_to_proto_dict(cast(ops.Gate, op.gate), op.qubits)
         if last_picos is None:
-            proto['incremental_delay_picoseconds'] = time_picos
+            delay = time_picos
         else:
-            proto['incremental_delay_picoseconds'] = time_picos - last_picos
+            delay = time_picos - last_picos
+        op_proto = gate_to_proto(cast(ops.Gate, op.gate), op.qubits, delay)
         time_picos += 1
         last_picos = time_picos
-        yield proto
+        yield op_proto
 
 
-def circuit_from_schedule_from_proto_dicts(
+def circuit_from_schedule_from_protos(
         device: 'cirq.google.XmonDevice',
-        ops: Iterable[Dict],
+        ops: Iterable[operations_pb2.Operation],
 ) -> 'cirq.Circuit':
-    """Convert proto dictionaries into a Circuit for the given device."""
+    """Convert protos into a Circuit for the given device."""
     result = []
     for op in ops:
-        xmon_op = xmon_op_from_proto_dict(op)
+        xmon_op = xmon_op_from_proto(op)
         result.append(xmon_op)
     return circuits.Circuit(result, device=device)
 
@@ -279,89 +272,62 @@ def is_native_xmon_gate(gate: 'cirq.Gate') -> bool:
                        ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
-def xmon_op_from_proto_dict(proto_dict: Dict) -> 'cirq.Operation':
-    """Convert the proto dictionary to the corresponding operation.
+def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
+    """Convert the proto to the corresponding operation.
 
     See protos in api/google/v1 for specification of the protos.
 
     Args:
-        proto_dict: Dictionary representing the proto. Keys are always
-            strings, but values may be types correspond to a raw proto type
-            or another dictionary (for messages).
+        proto: Operation proto.
 
     Returns:
         The operation.
-
-    Raises:
-        ValueError if the dictionary does not contain required values
-        corresponding to the proto.
     """
-
-    def raise_missing_fields(gate_name: str):
-        raise ValueError('{} missing required fields: {}'.format(
-            gate_name, proto_dict))
-
-    param = _parameterized_value_from_proto_dict
-    qubit = _qubit_from_proto_dict
-    if 'exp_w' in proto_dict:
-        exp_w = proto_dict['exp_w']
-        if ('half_turns' not in exp_w or 'axis_half_turns' not in exp_w or
-                'target' not in exp_w):
-            raise_missing_fields('ExpW')
+    param = _parameterized_value_from_proto
+    qubit = _qubit_from_proto
+    if proto.HasField('exp_w'):
+        exp_w = proto.exp_w
         return ops.PhasedXPowGate(
-            exponent=param(exp_w['half_turns']),
-            phase_exponent=param(exp_w['axis_half_turns']),
-        ).on(qubit(exp_w['target']))
-    if 'exp_z' in proto_dict:
-        exp_z = proto_dict['exp_z']
-        if 'half_turns' not in exp_z or 'target' not in exp_z:
-            raise_missing_fields('ExpZ')
-        return ops.Z(qubit(exp_z['target']))**param(exp_z['half_turns'])
-    if 'exp_11' in proto_dict:
-        exp_11 = proto_dict['exp_11']
-        if ('half_turns' not in exp_11 or 'target1' not in exp_11 or
-                'target2' not in exp_11):
-            raise_missing_fields('Exp11')
-        return ops.CZ(qubit(exp_11['target1']),
-                      qubit(exp_11['target2']))**param(exp_11['half_turns'])
-    if 'measurement' in proto_dict:
-        meas = proto_dict['measurement']
-        invert_mask = cast(Tuple[Any, ...], ())
-        if 'invert_mask' in meas:
-            invert_mask = tuple(_load_json_bool(x) for x in meas['invert_mask'])
-        if 'key' not in meas or 'targets' not in meas:
-            raise_missing_fields('Measurement')
+            exponent=param(exp_w.half_turns),
+            phase_exponent=param(exp_w.axis_half_turns),
+        ).on(qubit(exp_w.target))
+    if proto.HasField('exp_z'):
+        exp_z = proto.exp_z
+        return ops.Z(qubit(exp_z.target))**param(exp_z.half_turns)
+    if proto.HasField('exp_11'):
+        exp_11 = proto.exp_11
+        return ops.CZ(qubit(exp_11.target1),
+                      qubit(exp_11.target2))**param(exp_11.half_turns)
+    if proto.HasField('measurement'):
+        meas = proto.measurement
         return ops.MeasurementGate(
-            num_qubits=len(meas['targets']),
-            key=meas['key'],
-            invert_mask=invert_mask).on(*[qubit(q) for q in meas['targets']])
+            num_qubits=len(meas.targets),
+            key=meas.key,
+            invert_mask=tuple(
+                meas.invert_mask)).on(*[qubit(q) for q in meas.targets])
 
-    raise ValueError('invalid operation: {}'.format(proto_dict))
-
-
-def _qubit_from_proto_dict(proto_dict):
-    """Proto dict must have 'row' and 'col' keys."""
-    if 'row' not in proto_dict or 'col' not in proto_dict:
-        raise ValueError(
-            'Proto dict does not contain row or col: {}'.format(proto_dict))
-    return devices.GridQubit(row=proto_dict['row'], col=proto_dict['col'])
+    raise ValueError('invalid operation: {}'.format(proto))
 
 
-def _parameterized_value_from_proto_dict(message: Dict) -> value.TParamVal:
-    parameter_key = message.get('parameter_key', None)
-    if parameter_key:
-        return sympy.Symbol(parameter_key)
-    if 'raw' in message:
-        return message['raw']
+def _qubit_from_proto(proto: operations_pb2.Qubit):
+    return devices.GridQubit(row=proto.row, col=proto.col)
+
+
+def _parameterized_value_from_proto(proto: operations_pb2.ParameterizedFloat
+                                   ) -> value.TParamVal:
+    if proto.HasField('parameter_key'):
+        return sympy.Symbol(proto.parameter_key)
+    if proto.HasField('raw'):
+        return proto.raw
     raise ValueError('No value specified for parameterized float. '
                      'Expected "raw" or "parameter_key" to be set. '
-                     'message: {!r}'.format(message))
+                     'proto: {!r}'.format(proto))
 
 
-def _parameterized_value_to_proto_dict(param: value.TParamVal) -> Dict:
-    out = {}  # type: Dict
+def _parameterized_value_to_proto(param: value.TParamVal
+                                 ) -> operations_pb2.ParameterizedFloat:
     if isinstance(param, sympy.Symbol):
-        out['parameter_key'] = str(param.free_symbols.pop())
+        return operations_pb2.ParameterizedFloat(
+            parameter_key=str(param.free_symbols.pop()))
     else:
-        out['raw'] = float(param)
-    return out
+        return operations_pb2.ParameterizedFloat(raw=float(param))

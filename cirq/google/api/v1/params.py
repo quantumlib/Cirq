@@ -11,23 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import cast, Dict
+from typing import cast
 
+from cirq.google.api.v1 import params_pb2
 from cirq.study import sweeps
 
 
-def sweep_to_proto_dict(sweep: sweeps.Sweep, repetitions: int = 1) -> Dict:
+def sweep_to_proto(sweep: sweeps.Sweep,
+                   repetitions: int = 1) -> params_pb2.ParameterSweep:
     """Converts sweep into an equivalent protobuf representation."""
-    msg = {}  # type: Dict
+    product_sweep = None
     if not sweep == sweeps.UnitSweep:
         sweep = _to_zip_product(sweep)
-        msg['sweep'] = {
-            'factors': [
-                _sweep_zip_to_proto_dict(cast(sweeps.Zip, factor))
-                for factor in sweep.factors
-            ]
-        }
-    msg['repetitions'] = repetitions
+        product_sweep = params_pb2.ProductSweep(factors=[
+            _sweep_zip_to_proto(cast(sweeps.Zip, factor))
+            for factor in sweep.factors
+        ])
+    msg = params_pb2.ParameterSweep(repetitions=repetitions,
+                                    sweep=product_sweep)
     return msg
 
 
@@ -49,58 +50,58 @@ def _to_zip_product(sweep: sweeps.Sweep) -> sweeps.Product:
     return sweep
 
 
-def _sweep_zip_to_proto_dict(sweep: sweeps.Zip) -> Dict:
+def _sweep_zip_to_proto(sweep: sweeps.Zip) -> params_pb2.ZipSweep:
     sweep_list = [
-        _single_param_sweep_to_proto_dict(cast(sweeps.SingleSweep, s))
+        _single_param_sweep_to_proto(cast(sweeps.SingleSweep, s))
         for s in sweep.sweeps
     ]
-    return {'sweeps': sweep_list}
+    return params_pb2.ZipSweep(sweeps=sweep_list)
 
 
-def _single_param_sweep_to_proto_dict(sweep: sweeps.SingleSweep) -> Dict:
-    msg = {}  # type: Dict
-    msg['parameter_key'] = sweep.key
+def _single_param_sweep_to_proto(sweep: sweeps.SingleSweep
+                                ) -> params_pb2.SingleSweep:
     if isinstance(sweep, sweeps.Linspace):
-        msg['linspace'] = {
-            'first_point': sweep.start,
-            'last_point': sweep.stop,
-            'num_points': sweep.length
-        }
+        return params_pb2.SingleSweep(parameter_key=sweep.key,
+                                      linspace=params_pb2.Linspace(
+                                          first_point=sweep.start,
+                                          last_point=sweep.stop,
+                                          num_points=sweep.length))
     elif isinstance(sweep, sweeps.Points):
-        msg['points'] = {'points': sweep.points}
+        return params_pb2.SingleSweep(
+            parameter_key=sweep.key,
+            points=params_pb2.Points(points=sweep.points))
     else:
         raise ValueError('invalid single-parameter sweep: {}'.format(sweep))
-    return msg
 
 
-def sweep_from_proto_dict(param_sweep: Dict) -> sweeps.Sweep:
-    if 'sweep' in param_sweep and 'factors' in param_sweep['sweep']:
+def sweep_from_proto(param_sweep: params_pb2.ParameterSweep) -> sweeps.Sweep:
+    if param_sweep.HasField('sweep') and len(param_sweep.sweep.factors) > 0:
         return sweeps.Product(*[
-            _sweep_from_param_sweep_zip_proto_dict(f)
-            for f in param_sweep['sweep']['factors']
+            _sweep_from_param_sweep_zip_proto(f)
+            for f in param_sweep.sweep.factors
         ])
     return sweeps.UnitSweep
 
 
-def _sweep_from_param_sweep_zip_proto_dict(param_sweep_zip: Dict
-                                          ) -> sweeps.Sweep:
-    if 'sweeps' in param_sweep_zip:
+def _sweep_from_param_sweep_zip_proto(param_sweep_zip: params_pb2.ZipSweep
+                                     ) -> sweeps.Sweep:
+    if len(param_sweep_zip.sweeps) > 0:
         return sweeps.Zip(*[
-            _sweep_from_single_param_sweep_proto_dict(sweep)
-            for sweep in param_sweep_zip['sweeps']
+            _sweep_from_single_param_sweep_proto(sweep)
+            for sweep in param_sweep_zip.sweeps
         ])
     return sweeps.UnitSweep
 
 
-def _sweep_from_single_param_sweep_proto_dict(single_param_sweep: Dict
-                                             ) -> sweeps.Sweep:
-    key = single_param_sweep['parameter_key']
-    if 'points' in single_param_sweep:
-        points = single_param_sweep['points']
-        return sweeps.Points(key, list(points['points']))
-    if 'linspace' in single_param_sweep:
-        sl = single_param_sweep['linspace']
-        return sweeps.Linspace(key, sl['first_point'], sl['last_point'],
-                               sl['num_points'])
+def _sweep_from_single_param_sweep_proto(
+        single_param_sweep: params_pb2.SingleSweep) -> sweeps.Sweep:
+    key = single_param_sweep.parameter_key
+    if single_param_sweep.HasField('points'):
+        points = single_param_sweep.points
+        return sweeps.Points(key, list(points.points))
+    if single_param_sweep.HasField('linspace'):
+        sl = single_param_sweep.linspace
+        return sweeps.Linspace(key, sl.first_point, sl.last_point,
+                               sl.num_points)
 
     raise ValueError('Single param sweep type undefined')

@@ -26,7 +26,8 @@ from cirq import _doc
 
 def setup(app):
     app.add_config_value('pandoc_use_parser', 'markdown', True)
-    app.connect('autodoc-process-docstring', pandoc_process)
+    app.connect('autodoc-process-docstring', autodoc_process)
+    app.connect('autodoc-skip-member', autodoc_skip_member)
 
 
 def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
@@ -66,13 +67,21 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
     return result
 
 
-def pandoc_process(app,
-                   what: str,
-                   name: str,
-                   obj: Any,
-                   options,
-                   lines: List[str]
-                   ) -> None:
+def autodoc_skip_member(
+        app,
+        what: str,
+        name: str,
+        obj: Any,
+        skip: bool,
+        options,
+) -> bool:
+    """Public members already kept. Also include members marked as documented.
+    """
+    return id(obj) not in _doc.RECORDED_CONST_DOCS
+
+
+def autodoc_process(app, what: str, name: str, obj: Any, options,
+                    lines: List[str]) -> None:
     # Try to lookup in documented dictionary.
     found = _doc.RECORDED_CONST_DOCS.get(id(obj))
     if name.startswith('cirq') and found is not None:
