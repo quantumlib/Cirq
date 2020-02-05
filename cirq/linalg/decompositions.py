@@ -154,10 +154,10 @@ def closest_unitary(matrix: np.ndarray) -> np.ndarray:
 
     The closest unitary is the orthogonal factor in the polar decomposition
     of a matrix. For all A with singular value decomposition
-    $A = V S W^{\dagger}$ and left polar decomposition $A = UJ$,
+    $A = V S W^H$ and left polar decomposition $A = UJ$,
     where V, W and are U unitary, S is the diagonal matrix of A's
     singular values, J is positive semi-definite, we can see that
-    $J = W S W^{\dagger}$ and the orthogonal component is $U = VW^{\dagger}$.
+    $J = W S W^H$ and the orthogonal component is $U = VW^H$.
 
     This case:
     $|| A - U || <= || A - M ||$ for all unitary M.
