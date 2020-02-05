@@ -44,15 +44,11 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(operation, cirq.ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
-        # default value
 
-        """
-            Try to decompose the operation into elementary device operations
-            TODO: Test how this works for different circuits
-        """
+        #Try to decompose the operation into elementary device operations    
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(operation,
-                                           keep=PasqalDevice.is_pasqal_device_op)
+                                keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
             if not PasqalDevice.is_pasqal_device_op(dec):
@@ -63,7 +59,8 @@ class PasqalDevice(cirq.devices.Device):
 
     @staticmethod
     def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
-        if not isinstance(op, cirq.ops.GateOperation):
+        if not isinstance(op, (cirq.ops.GateOperation,
+                               cirq.ParallelGateOperation)):
             return False
 
         keep = False
@@ -77,12 +74,6 @@ class PasqalDevice(cirq.devices.Device):
 
         keep = keep or (isinstance(op.gate, cirq.ops.XPowGate))
 
-        keep = keep or (isinstance(op.gate, cirq.ops.Y))
-
-        keep = keep or (isinstance(op.gate, cirq.ops.Z))
-
-        keep = keep or (isinstance(op.gate, cirq.ops.X))
-
         keep = keep or (isinstance(op.gate, cirq.ops.PhasedXPowGate))
 
         keep = keep or (isinstance(op.gate, cirq.ops.MeasurementGate))
@@ -92,7 +83,17 @@ class PasqalDevice(cirq.devices.Device):
         return keep
 
     def validate_operation(self, operation: cirq.ops.Operation):
-        if not isinstance(operation, cirq.GateOperation):
+        """
+        Raises an error if the given operation is invalid on this device.
+
+        Args:
+            operation: the operation to validate
+
+        Raises:
+            ValueError: If the operation is not valid
+        """
+        if not isinstance(operation, (cirq.GateOperation,
+                                      cirq.ParallelGateOperation)):
             raise ValueError("Unsupported operation")
 
         if not PasqalDevice.is_pasqal_device_op(operation):
@@ -126,7 +127,7 @@ class PasqalDevice(cirq.devices.Device):
 
         # Verify that a valid number of XY gates are applied in parallel
         if isinstance(operation.gate,
-                      (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
+            (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
             if (len(operation.qubits) > self._max_parallel_xy and
                     len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")
@@ -154,6 +155,9 @@ class PasqalDevice(cirq.devices.Device):
         return self._gate_duration
 
     def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
+        """
+        Returns the distance between two qubits.
+        """
         if not isinstance(q, ThreeDGridQubit):
             raise ValueError('Unsupported qubit type: {!r}'.format(q))
         if not isinstance(p, ThreeDGridQubit):

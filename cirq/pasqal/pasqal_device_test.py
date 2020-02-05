@@ -8,9 +8,8 @@ from cirq.pasqal import PasqalDevice, ThreeDGridQubit
 def cubic_device(width: int,
                  height: int,
                  depth: int,
-                 holes=(),
-                 max_controls=2,
-                 use_timedelta=False) -> PasqalDevice:
+                 holes=()
+                 ) -> PasqalDevice:
 
     return PasqalDevice(  # type: ignore
         control_radius=1.5,
@@ -36,6 +35,7 @@ def test_init():
     q110 = ThreeDGridQubit(1, 1, 0)
 
     assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
+    assert set(d.qubit_list()) == {q000, q001, q010, q011, q100, q101, q110}
     assert d.duration_of(cirq.ops.GateOperation(cirq.ops.IdentityGate(1),
                                        [q000])) == 2 * us
     assert d.duration_of(cirq.ops.measure(q000)) == 5 * ms
@@ -57,6 +57,19 @@ def test_decompose_error():
     for op in d.decompose_operation((cirq.ops.CCZ**1.5).on(*(d.qubit_list()))):
         d.validate_operation(op)
 
+    class bad_op(cirq.Operation):
+
+        def bad_op(self):
+            pass
+
+        def qubits(self):
+            pass
+
+        def with_qubits(self, new_qubits):
+            pass
+
+    with pytest.raises(TypeError):
+        d.decompose_operation(bad_op())
 
     #MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
@@ -65,16 +78,39 @@ def test_decompose_error():
     assert PasqalDevice.is_pasqal_device_op(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
 
+    assert PasqalDevice.is_pasqal_device_op(cirq.ops.X(ThreeDGridQubit(0, 0, 0)))
+        #cirq.ops.GateOperation(cirq.ops.X, [ThreeDGridQubit(0, 0, 0)]))
 
-#def test_validate_gate_errors():
-#    d = cubic_device(2, 2, 2)
-#
-#    d.validate_gate(cirq.ops.IdentityGate(4))
-#    with pytest.raises(ValueError, match="controlled gates must have integer "
-#                       "exponents"):
-#        d.validate_gate(cirq.ops.CNotPowGate(exponent=0.5))
-#    with pytest.raises(ValueError, match="Unsupported gate"):
-#        d.validate_gate(cirq.ops.SingleQubitGate())
+
+def test_validate_operation_errors():
+    d = cubic_device(3, 3, 3)
+
+    class bad_op(cirq.Operation):
+
+        def bad_op(self):
+            pass
+
+        def qubits(self):
+            pass
+
+        def with_qubits(self, new_qubits):
+            pass
+
+    with pytest.raises(ValueError, match="Unsupported operation"):
+        d.validate_operation(bad_op())
+
+    #with pytest.raises(ValueError, match="Qubit not on device"):
+    #    d.validate_operation(not_on_device_op)
+    with pytest.raises(ValueError):
+        d.validate_operation(cirq.CCX.on(cirq.LineQubit(0)))
+    with pytest.raises(ValueError, match="are too far away"):
+        d.validate_operation(cirq.CZ.on(ThreeDGridQubit(0, 0, 0),
+                                        ThreeDGridQubit(3, 3, 3)))
+    with pytest.raises(ValueError, match="Too many Z gates in parallel"):
+        d.validate_operation(cirq.ParallelGateOperation(cirq.ops.Z, d.qubits))
+    with pytest.raises(ValueError, match="Bad number of X/Y gates in parallel"):
+        d.validate_operation(cirq.ParallelGateOperation(cirq.ops.X,
+                                                        d.qubit_list()[1:]))
 
 
 def test_qubit_set():
