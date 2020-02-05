@@ -164,12 +164,7 @@ class PasqalDevice(cirq.devices.Device):
                                        sorted(self.qubits))
 
     def _value_equality_values_(self):
-        return (self._measurement_duration,
-                self._gate_duration,
-                self._max_parallel_z,
-                self._max_parallel_xy,
-                self._max_parallel_c,
-                self.control_radius,
+        return (self.control_radius,
                 self.qubits)
 
     def _json_dict_(self):
