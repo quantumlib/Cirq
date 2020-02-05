@@ -5,7 +5,7 @@ import cirq
 
 from cirq.pasqal import ThreeDGridQubit
 
-@value.value_equality
+@cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
 
     def __init__(self, control_radius: float,
