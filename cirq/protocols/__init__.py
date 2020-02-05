@@ -67,6 +67,8 @@ from cirq.protocols.has_unitary_protocol import (
 from cirq.protocols.inverse_protocol import (
     inverse,)
 from cirq.protocols.json_serialization import (
+    DEFAULT_RESOLVERS,
+    json_serializable_dataclass,
     to_json,
     read_json,
     obj_to_dict_helper,
