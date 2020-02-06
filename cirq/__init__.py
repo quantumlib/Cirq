@@ -485,3 +485,7 @@ from cirq import (
     google,
     testing,
 )
+
+from cirq import (
+    aqt,
+)

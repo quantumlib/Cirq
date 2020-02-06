@@ -29,19 +29,24 @@ from typing import Iterable, List, Union, Tuple, Dict, cast, TYPE_CHECKING
 
 import numpy as np
 from requests import put
-from cirq import circuits, Sampler, resolve_parameters, LineQubit
-from cirq.study.sweeps import Sweep
-from cirq.aqt.aqt_device import AQTSimulator, get_op_string
-from cirq import study, ops, IonDevice
+
+import cirq
+
+# from cirq import circuits, Sampler, resolve_parameters, LineQubit
+# from cirq.study.sweeps import Sweep
+# from cirq.aqt.aqt_device import AQTSimulator, get_op_string
+# from cirq import study, ops, IonDevice
 
 if TYPE_CHECKING:
     import cirq
+#
+# Sweepable = Union[cirq.study.ParamResolver,
+#                   Iterable[cirq.study.ParamResolver],
+#                   cirq.Sweep,
+#                   Iterable[cirq.Sweep]]
 
-Sweepable = Union[study.ParamResolver, Iterable[study.ParamResolver], Sweep,
-                  Iterable[Sweep]]
 
-
-class AQTSampler(Sampler):
+class AQTSampler(cirq.work.Sampler):
     """Sampler for the AQT ion trap device
     This sampler connects to the AQT machine and
     runs a single circuit or an entire sweep remotely
@@ -58,8 +63,8 @@ class AQTSampler(Sampler):
 
     def _generate_json(
             self,
-            circuit: circuits.Circuit,
-            param_resolver: study.ParamResolverOrSimilarType,
+            circuit: cirq.circuits.Circuit,
+            param_resolver: cirq.study.ParamResolverOrSimilarType,
     ) -> str:
         """Generates the JSON string from a Circuit
 
@@ -83,13 +88,13 @@ class AQTSampler(Sampler):
         """
 
         seq_list: List[Tuple[str, float, List[int]]] = []
-        circuit = resolve_parameters(circuit, param_resolver)
+        circuit = cirq.protocols.resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
-            line_qubit = cast(Tuple[LineQubit], op.qubits)
-            op = cast(ops.GateOperation, op)
+            line_qubit = cast(Tuple[cirq.devices.LineQubit], op.qubits)
+            op = cast(cirq.ops.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
-            op_str = get_op_string(op)
-            gate = cast(ops.EigenGate, op.gate)
+            op_str = cirq.aqt.get_op_string(op)
+            gate = cast(cirq.ops.EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:
             raise RuntimeError('Cannot send an empty circuit')
@@ -172,8 +177,8 @@ class AQTSampler(Sampler):
 
     def run_sweep(self,
                   program: 'cirq.Circuit',
-                  params: study.Sweepable,
-                  repetitions: int = 1) -> List[study.TrialResult]:
+                  params: cirq.study.Sweepable,
+                  repetitions: int = 1) -> List[cirq.study.TrialResult]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -190,9 +195,9 @@ class AQTSampler(Sampler):
             resolver.
         """
         meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
-        assert isinstance(program.device, IonDevice)
+        assert isinstance(program.device, cirq.ion.IonDevice)
         trial_results = []  # type: List[study.TrialResult]
-        for param_resolver in study.to_resolvers(params):
+        for param_resolver in cirq.study.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)
             json_str = self._generate_json(circuit=program,
@@ -204,7 +209,7 @@ class AQTSampler(Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                study.TrialResult(params=param_resolver, measurements=res_dict))
+                cirq.study.TrialResult(params=param_resolver, measurements=res_dict))
         return trial_results
 
 
@@ -252,7 +257,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
         Returns:
             Measurement results as an ndarray of booleans.
         """
-        sim = AQTSimulator(num_qubits=num_qubits,
+        sim = cirq.aqt.AQTSimulator(num_qubits=num_qubits,
                            simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)

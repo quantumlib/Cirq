@@ -26,50 +26,24 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 import json
 from typing import Union, Tuple, List, Dict, Sequence, Any, cast
 import numpy as np
-from cirq import ops, devices, study
-from cirq import Circuit, LineQubit, IonDevice, Duration
-from cirq import DensityMatrixSimulator
 
-gate_dict = {'X': ops.X, 'Y': ops.Y, 'Z': ops.Z, 'MS': ops.XX}
+import cirq
 
+# from cirq import ops, devices, study
+# from cirq import Circuit, LineQubit, IonDevice, Duration
+# from cirq import DensityMatrixSimulator
 
-def get_op_string(op_obj: ops.Operation) -> str:
-    """Find the string representation for a given gate
-
-    Args:
-        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate
-
-    Returns:
-        String representing the gate operations
-    """
-    if isinstance(op_obj, ops.XXPowGate) or isinstance(op_obj.gate,
-                                                       ops.XXPowGate):
-        op_str = 'MS'
-    elif isinstance(op_obj, ops.XPowGate) or isinstance(op_obj.gate,
-                                                        ops.XPowGate):
-        op_str = 'X'
-    elif isinstance(op_obj, ops.YPowGate) or isinstance(op_obj.gate,
-                                                        ops.YPowGate):
-        op_str = 'Y'
-    elif isinstance(op_obj, ops.ZPowGate) or isinstance(op_obj.gate,
-                                                        ops.ZPowGate):
-        op_str = 'Z'
-    elif isinstance(op_obj, ops.MeasurementGate) or isinstance(
-            op_obj.gate, ops.MeasurementGate):
-        op_str = 'Meas'
-    else:
-        raise ValueError('Got unknown gate:', op_obj)
-    return op_str
+gate_dict = {'X': cirq.ops.X, 'Y': cirq.ops.Y, 'Z': cirq.ops.Z, 'MS': cirq.ops.XX}
 
 
-class AQTNoiseModel(devices.NoiseModel):
+class AQTNoiseModel(cirq.devices.NoiseModel):
     """A noise model for the AQT ion trap """
 
     def __init__(self):
         self.noise_op_dict = get_default_noise_dict()
 
-    def noisy_moment(self, moment: ops.Moment,
-                     system_qubits: Sequence[ops.Qid]) -> List[ops.Operation]:
+    def noisy_moment(self, moment: cirq.ops.Moment,
+                     system_qubits: Sequence[cirq.ops.Qid]) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -95,9 +69,9 @@ class AQTNoiseModel(devices.NoiseModel):
             noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
 
-    def get_crosstalk_operation(self, operation: ops.Operation,
-                                system_qubits: Sequence[ops.Qid]
-                               ) -> List[ops.Operation]:
+    def get_crosstalk_operation(self, operation: cirq.ops.Operation,
+                                system_qubits: Sequence[cirq.ops.Qid]
+                               ) -> List[cirq.ops.Operation]:
         """Returns a list of operations including crosstalk
 
         Args:
@@ -107,7 +81,7 @@ class AQTNoiseModel(devices.NoiseModel):
         Returns:
             List of operations including crosstalk
         """
-        cast(Tuple[LineQubit], system_qubits)
+        cast(Tuple[cirq.devices.LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
         idx_list = []
@@ -144,7 +118,7 @@ class AQTSimulator:
 
     def __init__(self,
                  num_qubits: int,
-                 circuit: Circuit = Circuit(),
+                 circuit: cirq.Circuit = cirq.Circuit(),
                  simulate_ideal: bool = False,
                  noise_dict: Union[dict, None] = None):
         """Initializes the AQT simulator
@@ -157,7 +131,7 @@ class AQTSimulator:
         """
         self.circuit = circuit
         self.num_qubits = num_qubits
-        self.qubit_list = LineQubit.range(num_qubits)
+        self.qubit_list = cirq.devices.LineQubit.range(num_qubits)
         if noise_dict is None:
             noise_dict = get_default_noise_dict()
         self.noise_dict = noise_dict
@@ -172,7 +146,7 @@ class AQTSimulator:
         Args:
             json_string: json that specifies the sequence
         """
-        self.circuit = Circuit()
+        self.circuit = cirq.Circuit()
         json_obj = json.loads(json_string)
         for gate_list in json_obj:
             gate = gate_list[0]
@@ -181,9 +155,9 @@ class AQTSimulator:
             self.circuit.append(gate_dict[gate].on(*qubits)**angle)
         # TODO: Better solution for measurement at the end. Issue #2199
         self.circuit.append(
-            ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
+            cirq.ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
-    def simulate_samples(self, repetitions: int) -> study.TrialResult:
+    def simulate_samples(self, repetitions: int) -> cirq.study.TrialResult:
         """Samples the circuit
 
         Args:
@@ -193,17 +167,18 @@ class AQTSimulator:
             TrialResult from Cirq.Simulator
         """
         if self.simulate_ideal:
-            noise_model = devices.NO_NOISE
+            noise_model = cirq.devices.NO_NOISE
         else:
             noise_model = AQTNoiseModel()
-        if self.circuit == Circuit():
+        if self.circuit == cirq.Circuit():
             raise RuntimeError('simulate ideal called without a valid circuit')
-        sim = DensityMatrixSimulator(noise=noise_model)
+        sim = cirq.DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
 
-def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
+def get_aqt_device(num_qubits: int) -> Tuple[cirq.ion.IonDevice,
+                                             List[cirq.devices.LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -212,9 +187,9 @@ def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
     Returns:
          IonDevice, qubit_list
     """
-    qubit_list = LineQubit.range(num_qubits)
-    us = 1000 * Duration(nanos=1)
-    ion_device = IonDevice(measurement_duration=100 * us,
+    qubit_list = cirq.devices.LineQubit.range(num_qubits)
+    us = 1000 * cirq.Duration(nanos=1)
+    ion_device = cirq.ion.IonDevice(measurement_duration=100 * us,
                            twoq_gates_duration=200 * us,
                            oneq_gates_duration=10 * us,
                            qubits=qubit_list)
@@ -224,10 +199,38 @@ def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
 def get_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        'X': ops.depolarize(1e-3),
-        'Y': ops.depolarize(1e-3),
-        'Z': ops.depolarize(1e-3),
-        'MS': ops.depolarize(1e-2),
+        'X': cirq.ops.depolarize(1e-3),
+        'Y': cirq.ops.depolarize(1e-3),
+        'Z': cirq.ops.depolarize(1e-3),
+        'MS': cirq.ops.depolarize(1e-2),
         'crosstalk': 0.03
     }
     return default_noise_dict
+
+def get_op_string(op_obj: cirq.ops.Operation) -> str:
+    """Find the string representation for a given gate
+
+    Args:
+        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate
+
+    Returns:
+        String representing the gate operations
+    """
+    if isinstance(op_obj, cirq.ops.XXPowGate) or isinstance(op_obj.gate,
+                                                            cirq.ops.XXPowGate):
+        op_str = 'MS'
+    elif isinstance(op_obj, cirq.ops.XPowGate) or isinstance(op_obj.gate,
+                                                        cirq.ops.XPowGate):
+        op_str = 'X'
+    elif isinstance(op_obj, cirq.ops.YPowGate) or isinstance(op_obj.gate,
+                                                        cirq.ops.YPowGate):
+        op_str = 'Y'
+    elif isinstance(op_obj, cirq.ops.ZPowGate) or isinstance(op_obj.gate,
+                                                        cirq.ops.ZPowGate):
+        op_str = 'Z'
+    elif isinstance(op_obj, cirq.ops.MeasurementGate) or isinstance(
+            op_obj.gate, cirq.ops.MeasurementGate):
+        op_str = 'Meas'
+    else:
+        raise ValueError('Got unknown gate:', op_obj)
+    return op_str
