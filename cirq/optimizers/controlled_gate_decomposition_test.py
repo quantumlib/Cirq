@@ -70,7 +70,7 @@ def _count_operations(operations):
 
 def _test_decompose(matrix, controls_count):
     qubits = cirq.LineQubit.range(controls_count + 1)
-    operations = cirq.decompose_multi_controlled_unitary(
+    operations = cirq.decompose_multi_controlled_rotation(
         matrix, qubits[:-1], qubits[-1])
     _count_operations(operations)
     result_matrix = cirq.Circuit(operations).unitary()
@@ -108,7 +108,7 @@ def test_decompose_random_special_unitary():
 
 def _decomposition_size(U, controls_count):
     qubits = cirq.LineQubit.range(controls_count + 1)
-    operations = cirq.decompose_multi_controlled_unitary(
+    operations = cirq.decompose_multi_controlled_rotation(
         U, qubits[:controls_count], qubits[-1])
     return _count_operations(operations)
 

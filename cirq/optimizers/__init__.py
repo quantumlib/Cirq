@@ -15,7 +15,7 @@
 """Circuit transformation utilities."""
 
 from cirq.optimizers.controlled_gate_decomposition import (
-    decompose_multi_controlled_x, decompose_multi_controlled_unitary)
+    decompose_multi_controlled_x, decompose_multi_controlled_rotation)
 
 from cirq.optimizers.drop_empty_moments import (
     DropEmptyMoments,)

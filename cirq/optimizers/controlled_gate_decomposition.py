@@ -161,8 +161,8 @@ def decompose_multi_controlled_x(controls: List['cirq.Qid'], target: 'cirq.Qid',
         # No free qubits - must use general algorithm.
         # This will never happen if called from main algorithm and is added
         # only for completeness.
-        return decompose_multi_controlled_unitary(unitary(ops.X), controls,
-                                                  target)
+        return decompose_multi_controlled_rotation(unitary(ops.X), controls,
+                                                   target)
 
 
 def _decompose_su(matrix: np.ndarray, controls: List['cirq.Qid'],
@@ -211,10 +211,10 @@ def _decompose_recursive(matrix: np.ndarray, power: float,
     ]
 
 
-def decompose_multi_controlled_unitary(matrix: np.ndarray,
-                                       controls: List['cirq.Qid'],
-                                       target: 'cirq.Qid'
-                                      ) -> List['cirq.Operation']:
+def decompose_multi_controlled_rotation(matrix: np.ndarray,
+                                        controls: List['cirq.Qid'],
+                                        target: 'cirq.Qid'
+                                        ) -> List['cirq.Operation']:
     """Implements action of multi-controlled unitary gate.
 
     Returns a sequence of operations, which is equivalent to applying
@@ -227,9 +227,10 @@ def decompose_multi_controlled_unitary(matrix: np.ndarray,
     If matrix is special unitary, result has length `O(len(controls))`.
     Otherwise result has length `O(len(controls)**2)`.
 
-    === REFERENCE ===
-    Barenco, Bennett et al. Elementary gates for quantum computation. 1995.
-    https://arxiv.org/pdf/quant-ph/9503016.pdf
+    References:
+        [1] Barenco, Bennett et al.
+            Elementary gates for quantum computation. 1995.
+            https://arxiv.org/pdf/quant-ph/9503016.pdf
 
     Args:
         matrix - 2x2 numpy unitary matrix (of real or complex dtype).
@@ -247,8 +248,7 @@ def decompose_multi_controlled_unitary(matrix: np.ndarray,
         return [ops.MatrixGate(matrix).on(target)]
     elif len(controls) == 1:
         return _decompose_single_ctrl(matrix, controls[0], target)
+    elif is_special_unitary(matrix):
+        return _decompose_su(matrix, controls, target)
     else:
-        if is_special_unitary(matrix):
-            return _decompose_su(matrix, controls, target)
-        else:
-            return _decompose_recursive(matrix, 1.0, controls, target, [])
+        return _decompose_recursive(matrix, 1.0, controls, target, [])
