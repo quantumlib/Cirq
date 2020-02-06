@@ -29,10 +29,6 @@ import numpy as np
 
 import cirq
 
-# from cirq import ops, devices, study
-# from cirq import Circuit, LineQubit, IonDevice, Duration
-# from cirq import DensityMatrixSimulator
-
 gate_dict = {'X': cirq.ops.X, 'Y': cirq.ops.Y, 'Z': cirq.ops.Z, 'MS': cirq.ops.XX}
 
 

@@ -17,15 +17,9 @@ import numpy as np
 import pytest
 import sympy
 
-# from cirq import X, Y, Z, XX, ZZ, Circuit, study
-
 import cirq
 
 import cirq.aqt as aqt
-
-# from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
-#
-# from cirq.aqt.aqt_device import get_aqt_device
 
 
 class EngineReturn:

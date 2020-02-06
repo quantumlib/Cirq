@@ -17,11 +17,6 @@ import pytest
 import cirq
 
 from cirq.aqt import AQTNoiseModel
-# from cirq import X, Y, Z, XX, Circuit
-
-# from cirq.aqt import AQTSimulator
-# from cirq.aqt.aqt_device import get_aqt_device
-# from cirq.aqt.aqt_device import AQTNoiseModel
 
 
 def test_simulator_no_circ():
