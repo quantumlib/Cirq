@@ -154,26 +154,26 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
         for _ in range(n_clifford_trials):
             # Build the Pauli string as a random sample of the basis elements.
-            pauli_string = cirq.DensePauliString.eye(n_qubits)
+            dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
             for stabilizer in stabilizer_basis:
                 if np.random.randint(2) == 1:
-                    pauli_string *= stabilizer
+                    dense_pauli_string *= stabilizer
 
             # The code below is equivalent to calling
             # clifford_state.wave_function() and then calling
             # compute_characteristic_function() on the results (albeit with a
             # wave function instead of a density matrix). It is, however,
             # unncessary to do so.
-            rho_i = pauli_string.coefficient
+            rho_i = dense_pauli_string.coefficient
 
             assert np.isclose(rho_i.imag, 0.0, atol=1e-6)
             rho_i = rho_i.real
 
-            pauli_string *= rho_i
+            dense_pauli_string *= rho_i
             Pr_i = rho_i * rho_i / d
 
             pauli_traces.append({
-                'P_i': pauli_string.sparse(),
+                'P_i': dense_pauli_string.sparse(),
                 'rho_i': rho_i,
                 'Pr_i': Pr_i
             })
@@ -222,17 +222,17 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         i = np.random.choice(len(pauli_traces), p=p)
 
         Pr_i = pauli_traces[i]['Pr_i']
-        P_i = pauli_traces[i]['P_i']
+        measure_pauli_string: cirq.PauliString = pauli_traces[i]['P_i']
         rho_i = pauli_traces[i]['rho_i']
 
         if samples_per_term > 0:
             sigma_i = asyncio.get_event_loop().run_until_complete(
-                estimate_characteristic_function(circuit, P_i, qubits,
-                                                 noisy_simulator,
+                estimate_characteristic_function(circuit, measure_pauli_string,
+                                                 qubits, noisy_simulator,
                                                  samples_per_term))
         else:
             sigma_i, _ = compute_characteristic_function(
-                circuit, P_i, qubits, noisy_density_matrix)
+                circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
         fidelity += Pr_i * sigma_i / rho_i
 
