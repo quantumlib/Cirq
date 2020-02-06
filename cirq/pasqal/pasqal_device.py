@@ -45,7 +45,7 @@ class PasqalDevice(cirq.devices.Device):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
 
-        #Try to decompose the operation into elementary device operations    
+        #Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(operation,
                                 keep=PasqalDevice.is_pasqal_device_op)
@@ -105,8 +105,8 @@ class PasqalDevice(cirq.devices.Device):
                 raise ValueError('{} is not a 3D grid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
 
-        if isinstance(operation.gate, (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-            return
+        #if isinstance(operation.gate, (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
+        #    return
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
