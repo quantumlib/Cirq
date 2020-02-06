@@ -36,7 +36,7 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
     """A noise model for the AQT ion trap """
 
     def __init__(self):
-        self.noise_op_dict = get_default_noise_dict()
+        self.noise_op_dict = get_aqt_default_noise_dict()
 
     def noisy_moment(self, moment: cirq.ops.Moment,
                      system_qubits: Sequence[cirq.ops.Qid]) -> List[cirq.ops.Operation]:
@@ -129,7 +129,7 @@ class AQTSimulator:
         self.num_qubits = num_qubits
         self.qubit_list = cirq.devices.LineQubit.range(num_qubits)
         if noise_dict is None:
-            noise_dict = get_default_noise_dict()
+            noise_dict = get_aqt_default_noise_dict()
         self.noise_dict = noise_dict
         self.simulate_ideal = simulate_ideal
 
@@ -192,7 +192,7 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.ion.IonDevice,
     return ion_device, qubit_list
 
 
-def get_default_noise_dict() -> Dict[str, Any]:
+def get_aqt_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
         'X': cirq.ops.depolarize(1e-3),
