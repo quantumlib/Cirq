@@ -214,7 +214,7 @@ def _decompose_recursive(matrix: np.ndarray, power: float,
 def decompose_multi_controlled_rotation(matrix: np.ndarray,
                                         controls: List['cirq.Qid'],
                                         target: 'cirq.Qid'
-                                        ) -> List['cirq.Operation']:
+                                       ) -> List['cirq.Operation']:
     """Implements action of multi-controlled unitary gate.
 
     Returns a sequence of operations, which is equivalent to applying
