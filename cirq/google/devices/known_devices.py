@@ -264,6 +264,7 @@ _SYCAMORE_DURATIONS_PICOS = {
     'xy': 25_000,
     'xy_half_pi': 25_000,
     'xy_pi': 25_000,
+    'xyz': 25_000,
     'fsim_pi_4': 32_000,
     'inv_fsim_pi_4': 32_000,
     'syc': 12_000,

@@ -1,4 +1,6 @@
-# Copyright 2018 The Cirq Developers
+# -*- coding: utf-8 -*-
+#
+# Copyright 2019 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,10 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Check protobuf modules initialize successfully."""
+from google.protobuf import any_pb2
+from google.protobuf import empty_pb2
+from google.protobuf import field_mask_pb2
+from google.protobuf import timestamp_pb2
 
-# pylint: disable=unused-import
-from cirq.api.google.v1 import operations_pb2
-from cirq.api.google.v1 import params_pb2
-from cirq.api.google.v1 import program_pb2
-# pylint: enable=unused-import
+from cirq.google.engine.client.quantum_v1alpha1.proto.engine_pb2 import *

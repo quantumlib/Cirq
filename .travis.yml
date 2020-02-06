@@ -6,6 +6,7 @@ cache:
 branches:
   only:
   - master
+  - /^v\d+\.\d+\.\d+-dev$/
 before_install:
 - pip install --upgrade pip setuptools wheel
 stages:
@@ -50,7 +51,7 @@ matrix:
     before_install:
       - choco install python --version 3.7.3
       - export PATH="/c/Python37:/c/Python37/Scripts:$PATH"
-      - python -m pip install --upgrade pip wheel
+      - python -m pip install --upgrade wheel
     install:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
@@ -75,18 +76,18 @@ matrix:
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - sudo apt-get install pandoc
     script: dev_tools/build-docs.sh
-  #- stage: test
-  #  os: osx
-  #  env: NAME=pytest (macOS)
-  #  python: '3.6'
-  #  language: generic
-  #  install:
-  #    - python3.6 -m venv venv
-  #    - source venv/bin/activate
-  #    - python -m pip install -r requirements.txt
-  #    - python -m pip install -r cirq/contrib/contrib-requirements.txt
-  #    - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-  #  script: check/pytest --benchmark-skip
+  - stage: test
+    os: osx
+    env: NAME=pytest (macOS)
+    python: '3.7'
+    language: generic
+    install:
+      - python3.7 -m venv venv
+      - source venv/bin/activate
+      - python -m pip install -r requirements.txt
+      - python -m pip install -r cirq/contrib/contrib-requirements.txt
+      - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    script: check/pytest --benchmark-skip
   - stage: test
     os: linux
     env: NAME=pytest (without contrib)

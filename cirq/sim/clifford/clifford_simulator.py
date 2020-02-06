@@ -46,6 +46,10 @@ class CliffordSimulator(simulator.SimulatesSamples,
     def __init__(self):
         self.init = True
 
+    @staticmethod
+    def get_supported_gates() -> List['cirq.Gate']:
+        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
                       ) -> Iterator['cirq.CliffordSimulatorStepResult']:
@@ -106,6 +110,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         """
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
 
         return self._base_iterator(resolved_circuit, qubit_order,
@@ -124,11 +129,20 @@ class CliffordSimulator(simulator.SimulatesSamples,
              repetitions: int) -> Dict[str, List[np.ndarray]]:
 
         param_resolver = param_resolver or study.ParamResolver({})
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
+        self._check_all_resolved(resolved_circuit)
 
         measurements = {}  # type: Dict[str, List[np.ndarray]]
+        if repetitions == 0:
+            for _, op, _ in resolved_circuit.findall_operations_with_gate_type(
+                    ops.MeasurementGate):
+                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0)
+                resolved_circuit,
+                qubit_order=ops.QubitOrder.DEFAULT,
+                initial_state=0)
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -137,6 +151,17 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     measurements[k].append(np.array(v, dtype=bool))
 
         return {k: np.array(v) for k, v in measurements.items()}
+
+    def _check_all_resolved(self, circuit):
+        """Raises if the circuit contains unresolved symbols."""
+        if protocols.is_parameterized(circuit):
+            unresolved = [
+                op for moment in circuit for op in moment
+                if protocols.is_parameterized(op)
+            ]
+            raise ValueError(
+                'Circuit contains ops whose symbols were not specified in '
+                'parameter sweep. Ops: {}'.format(unresolved))
 
 
 class CliffordTrialResult(simulator.SimulationTrialResult):

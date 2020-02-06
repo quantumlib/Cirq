@@ -12,73 +12,123 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
+from functools import lru_cache
 from typing import Callable, cast, List, Optional, TYPE_CHECKING
 
-from cirq import circuits, devices, optimizers
-from cirq.google.optimizers import (convert_to_xmon_gates,
-                                    ConvertToSycamoreGates,
-                                    ConvertToSqrtIswapGates)
+import numpy as np
+
+from cirq import circuits, devices, optimizers, protocols
+from cirq.google import ops as cg_ops
+from cirq.google.optimizers import (
+    convert_to_xmon_gates,
+    ConvertToSycamoreGates,
+    ConvertToSqrtIswapGates,
+    gate_product_tabulation,
+    GateTabulation,
+)
 
 if TYPE_CHECKING:
     import cirq
 
-_TOLERANCE = 1e-5
+
+def _get_common_cleanup_optimizers(tolerance: float
+                                  ) -> List[Callable[['cirq.Circuit'], None]]:
+    return [
+        optimizers.EjectPhasedPaulis(tolerance=tolerance).optimize_circuit,
+        optimizers.EjectZ(tolerance=tolerance).optimize_circuit,
+        optimizers.DropNegligible(tolerance=tolerance).optimize_circuit,
+    ]
 
 
-def _merge_rots(c: 'cirq.Circuit'):
-    return optimizers.merge_single_qubit_gates_into_phased_x_z(c, _TOLERANCE)
+def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation]
+                        ) -> List[Callable[['cirq.Circuit'], None]]:
+    if tabulation is not None:
+        # coverage: ignore
+        raise ValueError("Gate tabulation not supported for xmon")
+
+    return [
+        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
+        optimizers.MergeInteractions(tolerance=tolerance,
+                                     allow_partial_czs=False).optimize_circuit,
+        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
+            c, tolerance),
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
+    ]
 
 
-_XMON_OPTIMIZERS: List[Callable[['cirq.Circuit'], None]] = [
-    convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-    optimizers.MergeInteractions(tolerance=_TOLERANCE,
-                                 allow_partial_czs=False).optimize_circuit,
-    _merge_rots,
-    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]
+def _get_xmon_optimizers_part_cz(tolerance: float,
+                                 tabulation: Optional[GateTabulation]
+                                ) -> List[Callable[['cirq.Circuit'], None]]:
+    if tabulation is not None:
+        # coverage: ignore
+        raise ValueError("Gate tabulation not supported for xmon")
+    return [
+        convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
+        optimizers.MergeInteractions(tolerance=tolerance,
+                                     allow_partial_czs=True).optimize_circuit,
+        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
+            c, tolerance),
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
+    ]
 
-_XMON_OPTIMIZERS_PART_CZ: List[Callable[['cirq.Circuit'], None]] = [
-    convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
-    optimizers.MergeInteractions(tolerance=_TOLERANCE,
-                                 allow_partial_czs=True).optimize_circuit,
-    _merge_rots,
-    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]
 
-_SYCAMORE_OPTIMIZERS = [
-    ConvertToSycamoreGates().optimize_circuit,
-    _merge_rots,
-    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+def _get_sycamore_optimizers(tolerance: float,
+                             tabulation: Optional[GateTabulation]
+                            ) -> List[Callable[['cirq.Circuit'], None]]:
+    return [
+        ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
+        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
+            c, tolerance),
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
+    ]
 
-_SQRT_ISWAP_OPTIMIZERS = [
-    ConvertToSqrtIswapGates().optimize_circuit,
-    _merge_rots,
-    optimizers.EjectPhasedPaulis(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.EjectZ(tolerance=_TOLERANCE).optimize_circuit,
-    optimizers.DropNegligible(tolerance=_TOLERANCE).optimize_circuit,
-]  # type: List[Callable[[circuits.Circuit], None]]
+
+def _get_sqrt_iswap_optimizers(tolerance: float,
+                               tabulation: Optional[GateTabulation]
+                              ) -> List[Callable[['cirq.Circuit'], None]]:
+    if tabulation is not None:
+        # coverage: ignore
+        raise ValueError("Gate tabulation not supported for sqrt_iswap")
+    return [
+        ConvertToSqrtIswapGates().optimize_circuit,
+        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
+            c, tolerance),
+        *_get_common_cleanup_optimizers(tolerance=tolerance),
+    ]
+
 
 _OPTIMIZER_TYPES = {
-    'xmon': _XMON_OPTIMIZERS,
-    'xmon_partial_cz': _XMON_OPTIMIZERS_PART_CZ,
-    'sqrt_iswap': _SQRT_ISWAP_OPTIMIZERS,
-    'sycamore': _SYCAMORE_OPTIMIZERS,
+    'xmon': _get_xmon_optimizers,
+    'xmon_partial_cz': _get_xmon_optimizers_part_cz,
+    'sqrt_iswap': _get_sqrt_iswap_optimizers,
+    'sycamore': _get_sycamore_optimizers,
 }
+
+
+@lru_cache()
+def _gate_product_tabulation_cached(optimizer_type: str,
+                                    tabulation_resolution: float
+                                   ) -> GateTabulation:
+    random_state = np.random.RandomState(51)
+    if optimizer_type == 'sycamore':
+        return gate_product_tabulation(protocols.unitary(cg_ops.SYC),
+                                       tabulation_resolution,
+                                       random_state=random_state)
+    else:
+        raise NotImplementedError(
+            f"Gate tabulation not supported for {optimizer_type}")
 
 
 def optimized_for_sycamore(
         circuit: 'cirq.Circuit',
+        *,
         new_device: Optional['cirq.google.XmonDevice'] = None,
         qubit_map: Callable[['cirq.Qid'], devices.GridQubit] = lambda e: cast(
             devices.GridQubit, e),
-        optimizer_type: str = 'sqrt_iswap') -> 'cirq.Circuit':
+        optimizer_type: str = 'sqrt_iswap',
+        tolerance: float = 1e-5,
+        tabulation_resolution: Optional[float] = None,
+) -> 'cirq.Circuit':
     """Optimizes a circuit for Google devices.
 
     Uses a set of optimizers that will compile to the proper gateset for the
@@ -94,6 +144,12 @@ def optimized_for_sycamore(
         optimizer_type: A string defining the optimizations to apply.
             Possible values are  'xmon', 'xmon_partial_cz', 'sqrt_iswap',
             'sycamore'
+        tolerance: The tolerance passed to the various circuit optimization
+            passes.
+        tabulation_resolution: If provided, compute a gateset tabulation
+            with the specified resolution and use it to approximately
+            compile arbitrary two-qubit gates for which an analytic compilation
+            is not known.
     Returns:
         The optimized circuit.
     """
@@ -101,7 +157,14 @@ def optimized_for_sycamore(
     if optimizer_type not in _OPTIMIZER_TYPES:
         raise ValueError(f'{optimizer_type} is not an allowed type.  Allowed '
                          f'types are: {_OPTIMIZER_TYPES.keys()}')
-    opts = _OPTIMIZER_TYPES[optimizer_type]
+
+    tabulation: Optional[GateTabulation] = None
+    if tabulation_resolution is not None:
+        tabulation = _gate_product_tabulation_cached(optimizer_type,
+                                                     tabulation_resolution)
+
+    opts = _OPTIMIZER_TYPES[optimizer_type](tolerance=tolerance,
+                                            tabulation=tabulation)
     for optimizer in opts:
         optimizer(copy)
 
