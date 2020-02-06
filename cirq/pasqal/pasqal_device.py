@@ -37,7 +37,8 @@ class PasqalDevice(cirq.devices.Device):
     def qubit_list(self):
         return [qubit for qubit in self.qubit_set()]
 
-    def decompose_operation(self, operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
+    def decompose_operation(self,
+                            operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
 
         decomposition = [operation]
 
@@ -105,12 +106,14 @@ class PasqalDevice(cirq.devices.Device):
                 raise ValueError('{} is not a 3D grid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
 
-        #if isinstance(operation.gate, (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-        #    return
+        if isinstance(operation.gate, (cirq.ops.MeasurementGate,
+            cirq.ops.IdentityGate)):
+            return
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
-            if len(operation.qubits) > self._max_parallel_c + self._max_parallel_t:
+            if len(operation.qubits) > self._max_parallel_c + \
+                self._max_parallel_t:
                 raise ValueError("Too many qubits acted on in parallel by a"
                                  "controlled gate operation")
             if len(operation.qubits) > 1:

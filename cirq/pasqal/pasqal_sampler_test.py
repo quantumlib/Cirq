@@ -38,7 +38,8 @@ def test_run_sweep():
     without noise and checks if the results match.
     '''
 
-    qs = [cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
+    qs = [cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3)
+          for j in range(3)]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -68,4 +69,5 @@ def test_run_sweep():
     assert data1['(0, 0, 0)'][0] == 1
 
     for i, q in enumerate(qs[1:], 1):
-        assert data0['({}, {}, {})'.format(q.row, q.col, q.lay)][0] == int(binary[-i - 1])
+        assert data0['({}, {}, {})'.format(q.row, q.col, q.lay)][0] \
+            == int(binary[-i - 1])

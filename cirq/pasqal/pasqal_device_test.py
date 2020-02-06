@@ -62,17 +62,20 @@ def test_decompose_error():
         d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
     #It has to be made into one
     assert PasqalDevice.is_pasqal_device_op(
-        cirq.ops.GateOperation(cirq.ops.MeasurementGate(1), [ThreeDGridQubit(0, 0, 0)]))
+        cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
+            [ThreeDGridQubit(0, 0, 0)]))
 
-    assert PasqalDevice.is_pasqal_device_op(cirq.ops.X(ThreeDGridQubit(0, 0, 0)))
+    assert PasqalDevice.is_pasqal_device_op(
+        cirq.ops.X(ThreeDGridQubit(0, 0, 0))
+        )
 
 
 
 def test_validate_operation_errors():
     d = cubic_device(3, 3, 3)
-
-    too_many_qubits_op = cirq.ops.X.controlled(len(d.qubit_list())-1)
-    too_many_qubits_op=cirq.ops.GateOperation(too_many_qubits_op, d.qubit_list())
+    qlist=d.qubit_list()
+    too_many_qubits_op = cirq.ops.X.controlled(len(qlist)-1)
+    too_many_qubits_op=cirq.ops.GateOperation(too_many_qubits_op, qlist)
 
     with pytest.raises(ValueError, match="Too many qubits acted on in parallel "
                        "by"):
@@ -84,7 +87,8 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="cirq.H is not a supported gate"):
         d.validate_operation(cirq.ops.H.on(ThreeDGridQubit(0, 0, 0)))
 
-    with pytest.raises(ValueError, match="is not a 3D grid qubit for gate cirq.X"):
+    with pytest.raises(ValueError, match="is not a 3D grid qubit for gate "
+                       "cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))
 
     with pytest.raises(ValueError, match="are too far away"):

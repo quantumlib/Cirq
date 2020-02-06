@@ -11,7 +11,8 @@ def test_NoiseModel_init():
         str(cirq.ops.YPowGate()): cirq.ops.depolarize(1e-2),
         str(cirq.ops.ZPowGate()): cirq.ops.depolarize(1e-2),
         str(cirq.ops.XPowGate()): cirq.ops.depolarize(1e-2),
-        str(cirq.ops.PhasedXPowGate(phase_exponent=0)): cirq.ops.depolarize(1e-2),
+        str(cirq.ops.PhasedXPowGate(phase_exponent=0)):
+        cirq.ops.depolarize(1e-2),
         str(cirq.ops.CNotPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CZPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
         str(cirq.ops.CCXPowGate(exponent=1)): cirq.ops.depolarize(8e-2),
@@ -52,7 +53,8 @@ def test_default_noise():
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[cirq.ops.CZPowGate(exponent=2).on(ThreeDGridQubit(0, 0, 0),
+    assert n_mts == [[cirq.ops.CZPowGate(exponent=2).on(
+                                 ThreeDGridQubit(0, 0, 0),
                                  ThreeDGridQubit(0, 0, 1)),
                       cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 0)),
                       cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 1))]
@@ -73,4 +75,4 @@ def test_get_op_string():
             _=noise_model.noisy_moment(moment, p_qubits)
 
     with pytest.raises(ValueError, match='Got unknown operation:'):
-            _=cirq.pasqal.pasqal_noise_model.get_op_string(circuit)
+        _=cirq.pasqal.pasqal_noise_model.get_op_string(circuit)

@@ -108,7 +108,7 @@ class PasqalSampler(cirq.work.Sampler):
             resolver.
         """
         assert isinstance(program.device, cirq.pasqal.PasqalDevice)
-        trial_results = [] 
+        trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):
             json_str = self._serialize_circuit(circuit=program,

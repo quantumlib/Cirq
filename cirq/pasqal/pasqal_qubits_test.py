@@ -1,9 +1,9 @@
 """Tests for ThreeDGridQubit class """
 
 import pytest
-import cirq
 import numpy as np
 
+import cirq
 from cirq.pasqal import ThreeDGridQubit
 
 

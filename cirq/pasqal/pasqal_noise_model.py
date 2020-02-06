@@ -14,7 +14,8 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
             str(cirq.ops.YPowGate()): cirq.ops.depolarize(1e-2),
             str(cirq.ops.ZPowGate()): cirq.ops.depolarize(1e-2),
             str(cirq.ops.XPowGate()): cirq.ops.depolarize(1e-2),
-            str(cirq.ops.PhasedXPowGate(phase_exponent=0)): cirq.ops.depolarize(1e-2),
+            str(cirq.ops.PhasedXPowGate(phase_exponent=0)):
+            cirq.ops.depolarize(1e-2),
             str(cirq.ops.CNotPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
             str(cirq.ops.CZPowGate(exponent=1)): cirq.ops.depolarize(3e-2),
             str(cirq.ops.CCXPowGate(exponent=1)): cirq.ops.depolarize(8e-2),
@@ -22,8 +23,10 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         }
         return default_noise_dict
 
-    def noisy_moment(self, moment: cirq.ops.Moment,
-                     system_qubits: Sequence[cirq.ops.Qid]) -> List[cirq.ops.Operation]:
+    def noisy_moment(
+                     self, moment: cirq.ops.Moment,
+                     system_qubits: Sequence[cirq.ops.Qid]
+                     ) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
         The model includes
         - Depolarizing noise with gate-dependent strength
