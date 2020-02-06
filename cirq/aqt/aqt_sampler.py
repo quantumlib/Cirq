@@ -93,7 +93,7 @@ class AQTSampler(cirq.work.Sampler):
             line_qubit = cast(Tuple[cirq.devices.LineQubit], op.qubits)
             op = cast(cirq.ops.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
-            op_str = cirq.aqt.get_op_string(op)
+            op_str = cirq.aqt.get_aqt_device_op_string(op)
             gate = cast(cirq.ops.EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:

@@ -22,6 +22,6 @@ from cirq.aqt.aqt_device import (
     AQTNoiseModel,
     get_aqt_device,
     get_default_noise_dict,
-    get_op_string
+    get_aqt_device_op_string
 )
 """Types and methods related to the AQT ion trap device"""

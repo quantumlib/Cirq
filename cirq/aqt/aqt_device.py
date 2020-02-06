@@ -59,7 +59,7 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
         """
         noise_list = []
         for op in moment.operations:
-            op_str = get_op_string(op)
+            op_str = get_aqt_device_op_string(op)
             try:
                 noise_op = self.noise_op_dict[op_str]
             except KeyError:
@@ -95,7 +95,7 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
         for idx in idx_list:
             xtlk_arr[idx] = 0
         xtlk_op_list = []
-        op_str = get_op_string(operation)
+        op_str = get_aqt_device_op_string(operation)
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  #type:ignore
@@ -207,7 +207,7 @@ def get_default_noise_dict() -> Dict[str, Any]:
     }
     return default_noise_dict
 
-def get_op_string(op_obj: cirq.ops.Operation) -> str:
+def get_aqt_device_op_string(op_obj: cirq.ops.Operation) -> str:
     """Find the string representation for a given gate
 
     Args:
