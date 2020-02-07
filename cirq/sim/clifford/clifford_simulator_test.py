@@ -330,9 +330,9 @@ def test_clifford_circuit():
 def test_clifford_circuit_2(qubits):
     circuit = cirq.Circuit()
 
-    np.random.seed(1)
+    np.random.seed(2)
 
-    for _ in range(100):
+    for _ in range(50):
         x = np.random.randint(7)
 
         if x == 0:
