@@ -484,8 +484,5 @@ from cirq import (
     contrib,
     google,
     testing,
-)
-
-from cirq import (
     aqt,
 )
