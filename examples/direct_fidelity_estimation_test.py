@@ -1,6 +1,6 @@
+import numpy as np
 import cirq
 import examples.direct_fidelity_estimation as direct_fidelity_estimation
-import numpy as np
 
 
 def test_direct_fidelity_estimation_no_noise_clifford():
