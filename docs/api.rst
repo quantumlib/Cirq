@@ -420,7 +420,7 @@ run experiments.
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
     cirq.log_xeb_fidelity_from_probabilities
-    cirq.experiments.GRID_PARALLEL_PATTERN
+    cirq.experiments.GRID_ALIGNED_PATTERN
     cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking

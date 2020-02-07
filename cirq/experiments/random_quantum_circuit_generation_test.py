@@ -31,10 +31,10 @@ def test_random_rotations_between_grid_interaction_layers():
     _validate_single_qubit_layers(qubits, circuit[::2])
     _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
 
-    # Parallel pattern
+    # Aligned pattern
     qubits = set(cirq.GridQubit.rect(4, 5))
     depth = 21
-    pattern = cirq.experiments.GRID_PARALLEL_PATTERN
+    pattern = cirq.experiments.GRID_ALIGNED_PATTERN
     circuit = random_rotations_between_grid_interaction_layers_circuit(
         qubits, depth, pattern=pattern, seed=1234)
 

@@ -11,10 +11,10 @@ if TYPE_CHECKING:
 
 class GridInteractionLayer(
         Container[Tuple[devices.GridQubit, devices.GridQubit]]):
-    """A layer of parallel or staggered two-qubit interactions on a grid.
+    """A layer of aligned or staggered two-qubit interactions on a grid.
 
     Layers of this type have two different basic structures,
-    parallel:
+    aligned:
 
     *-* *-* *-*
     *-* *-* *-*
@@ -34,9 +34,9 @@ class GridInteractionLayer(
 
     Other variants are obtained by offsetting these lattices to the right by
     some number of columns, and/or transposing into the vertical orientation.
-    There are a total of 4 parallel and 4 staggered variants.
+    There are a total of 4 aligned and 4 staggered variants.
 
-    The 2x2 unit cells for the parallel and staggered versions of this layer
+    The 2x2 unit cells for the aligned and staggered versions of this layer
     are, respectively:
 
     *-*
@@ -47,7 +47,7 @@ class GridInteractionLayer(
     *-*
     * *-
 
-    with left/top qubits at (0, 0) and (1, 0) in the parallel case, or
+    with left/top qubits at (0, 0) and (1, 0) in the aligned case, or
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
     cells after transposing and offsetting.
     """
@@ -105,14 +105,14 @@ document(
     to demonstrate quantum supremacy.
     """)
 
-GRID_PARALLEL_PATTERN = (
+GRID_ALIGNED_PATTERN = (
     GridInteractionLayer(col_offset=0, vertical=False, stagger=False),  # E
     GridInteractionLayer(col_offset=1, vertical=False, stagger=False),  # F
     GridInteractionLayer(col_offset=0, vertical=True, stagger=False),  # G
     GridInteractionLayer(col_offset=1, vertical=True, stagger=False),  # H
 )
 document(
-    GRID_PARALLEL_PATTERN,
+    GRID_ALIGNED_PATTERN,
     """A pattern of two-qubit gates that is easy to simulate.
 
     This pattern of gates was used in the paper
