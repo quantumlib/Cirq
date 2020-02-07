@@ -505,7 +505,7 @@ class TaggedOperation(Operation):
                                                 control_values=control_values)
 
     @property
-    def tags(self) -> Tuple[Hashable]:
+    def tags(self) -> Tuple[Hashable, ...]:
         """Returns a tuple of the operation's tags."""
         return self._tags
 
