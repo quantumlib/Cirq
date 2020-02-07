@@ -102,12 +102,12 @@ def _group_similar(items: List[T],
     return groups
 
 
-def orthogonal_eigendecompose(
+def orthonormal_eigendecompose(
         matrix: np.ndarray,
         rtol: float = 1e-5,
         atol: float = 1e-8,
 ) -> Tuple[np.array, np.ndarray]:
-    """An eigendecomposition that ensures eigenvectors are orthogonal.
+    """An eigendecomposition that ensures eigenvectors are orthonormal.
 
     numpy.linalg.eig doesn't guarantee that eigenvectors from the same
     eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
@@ -169,7 +169,7 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = orthogonal_eigendecompose(matrix, rtol=rtol, atol=atol)
+    vals, vecs = orthonormal_eigendecompose(matrix, rtol=rtol, atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs.T]
     out_vals = np.vectorize(func)(vals.astype(complex))
 

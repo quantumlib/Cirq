@@ -19,7 +19,7 @@ import pytest
 
 import cirq
 from cirq import value
-from cirq.linalg.decompositions import orthogonal_eigendecompose
+from cirq.linalg.decompositions import orthonormal_eigendecompose
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -108,9 +108,9 @@ def _random_unitary_with_close_eigenvalues():
         # that the effect is due to close eigenvalues, not diagonality
         _random_unitary_with_close_eigenvalues(),
     ])
-def test_orthogonal_eigendecompose(matrix):
+def test_orthonormal_eigendecompose(matrix):
     # np.linalg.eig(matrix) won't work for the perturbed matrix
-    d, vecs = orthogonal_eigendecompose(matrix)
+    d, vecs = orthonormal_eigendecompose(matrix)
 
     # test both unitarity and correctness of decomposition
     np.testing.assert_allclose(matrix,
