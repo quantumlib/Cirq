@@ -46,7 +46,6 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    api,
     google,
     interop,
     # Applications
@@ -299,6 +298,7 @@ from cirq.optimizers import (
 from cirq.sim import (
     bloch_vector_from_state_vector,
     StabilizerStateChForm,
+    CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
@@ -312,6 +312,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_density_matrix,
     final_wavefunction,
     sample,
     sample_density_matrix,
@@ -397,6 +398,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DEFAULT_RESOLVERS,
     definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
@@ -406,6 +408,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    json_serializable_dataclass,
     measurement_key,
     mixture,
     mixture_channel,
@@ -425,6 +428,7 @@ from cirq.protocols import (
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsCommutes,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,

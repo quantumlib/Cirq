@@ -17,6 +17,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq.linalg import matrix_commutes
 
 
 def test_is_diagonal():
@@ -294,14 +295,14 @@ def test_is_special_unitary_tolerance():
 
 
 def test_commutes():
-    assert cirq.linalg.commutes(np.empty((0, 0)), np.empty((0, 0)))
-    assert not cirq.linalg.commutes(np.empty((1, 0)), np.empty((0, 1)))
-    assert not cirq.linalg.commutes(np.empty((0, 1)), np.empty((1, 0)))
-    assert not cirq.linalg.commutes(np.empty((1, 0)), np.empty((1, 0)))
-    assert not cirq.linalg.commutes(np.empty((0, 1)), np.empty((0, 1)))
+    assert matrix_commutes(np.empty((0, 0)), np.empty((0, 0)))
+    assert not matrix_commutes(np.empty((1, 0)), np.empty((0, 1)))
+    assert not matrix_commutes(np.empty((0, 1)), np.empty((1, 0)))
+    assert not matrix_commutes(np.empty((1, 0)), np.empty((1, 0)))
+    assert not matrix_commutes(np.empty((0, 1)), np.empty((0, 1)))
 
-    assert cirq.linalg.commutes(np.array([[1]]), np.array([[2]]))
-    assert cirq.linalg.commutes(np.array([[1]]), np.array([[0]]))
+    assert matrix_commutes(np.array([[1]]), np.array([[2]]))
+    assert matrix_commutes(np.array([[1]]), np.array([[0]]))
 
     x = np.array([[0, 1], [1, 0]])
     y = np.array([[0, -1j], [1j, 0]])
@@ -309,15 +310,15 @@ def test_commutes():
     xx = np.kron(x, x)
     zz = np.kron(z, z)
 
-    assert cirq.linalg.commutes(x, x)
-    assert cirq.linalg.commutes(y, y)
-    assert cirq.linalg.commutes(z, z)
-    assert not cirq.linalg.commutes(x, y)
-    assert not cirq.linalg.commutes(x, z)
-    assert not cirq.linalg.commutes(y, z)
+    assert matrix_commutes(x, x)
+    assert matrix_commutes(y, y)
+    assert matrix_commutes(z, z)
+    assert not matrix_commutes(x, y)
+    assert not matrix_commutes(x, z)
+    assert not matrix_commutes(y, z)
 
-    assert cirq.linalg.commutes(xx, zz)
-    assert cirq.linalg.commutes(xx, np.diag([1, -1, -1, 1 + 1e-9]))
+    assert matrix_commutes(xx, zz)
+    assert matrix_commutes(xx, np.diag([1, -1, -1, 1 + 1e-9]))
 
 
 def test_commutes_tolerance():
@@ -327,8 +328,8 @@ def test_commutes_tolerance():
     z = np.array([[1, 0], [0, -1]])
 
     # Pays attention to specified tolerance.
-    assert cirq.linalg.commutes(x, x + z * 0.1, atol=atol)
-    assert not cirq.linalg.commutes(x, x + z * 0.5, atol=atol)
+    assert matrix_commutes(x, x + z * 0.1, atol=atol)
+    assert not matrix_commutes(x, x + z * 0.5, atol=atol)
 
 
 def test_allclose_up_to_global_phase():

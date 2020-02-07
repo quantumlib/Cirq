@@ -84,6 +84,77 @@ using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be
 at 0.995^(20*20) = 0.135. Using separate error rates per gates (i.e. based on calibration
 metrics) or a more complicated noise model can result in more accurate error estimation.
 
+### Use sweeps when possible
+
+Round trip network time to and from the engine typically adds latency on the order of a second
+to the overall computation time.  Reducing the number of trips and allowing the engine to
+properly batch circuits can improve the throughput of your calculations.  One way to do this
+is to use parameter sweeps to send multiple variations of a circuit at once.
+
+One example is to turn single-qubit gates on or off by using parameter sweeps.  
+For instance, the following code illustrates how to combine measuring in the
+Z basis or the X basis in one circuit.
+
+```python
+import cirq
+import sympy
+q = cirq.GridQubit(1, 1)
+sampler = cirq.Simulator()
+
+# STRATEGY #1: Have a separate circuit and sample call for each basis.
+circuit_z = cirq.Circuit(
+    cirq.measure(q, key='out'))
+circuit_x = cirq.Circuit(
+    cirq.H(q),
+    cirq.measure(q, key='out'))
+samples_z = sampler.sample(circuit_z, repetitions=5)
+samples_x = sampler.sample(circuit_x, repetitions=5)
+
+print(samples_z)
+# prints
+#    out
+# 0    0
+# 1    0
+# 2    0
+# 3    0
+# 4    0
+
+print(samples_x)
+# prints something like:
+#    out
+# 0    0
+# 1    1
+# 2    1
+# 3    0
+# 4    0
+
+# STRATEGY #2: Have a parameterized circuit.
+circuit_sweep = cirq.Circuit(
+    cirq.H(q)**sympy.Symbol('t'),
+    cirq.measure(q, key='out'))
+
+samples_sweep = sampler.sample(circuit_sweep,
+                               repetitions=5,
+                               params=[{'t': 0}, {'t': 1}])
+print(samples_sweep)
+# prints something like:
+#    t  out
+# 0  0    0
+# 1  0    0
+# 2  0    0
+# 3  0    0
+# 4  0    0
+# 0  1    0
+# 1  1    1
+# 2  1    1
+# 3  1    0
+# 4  1    1
+```
+
+One word of caution is there is a limit to the total number of repetitions.  Take some care
+that your parameter sweeps, especially products of sweeps, do not become so excessively large
+that they overcome this limit.
+
 
 ### Keep qubits busy
  
@@ -104,6 +175,16 @@ included in optimizer lists for each device will generally compile these operati
 of the circuit by pushing them back to the next non-commuting operator. If the resulting
 circuit still contains Z operations, they should be aggregated into their own moment,
 if possible.
+
+### Use caution with symbols
+
+Symbols are extremely useful for constructing parameterized circuits (see above).  However,
+only some sympy formulas can be serialized for network transport to the engine.
+Currently, sums and products of symbols, including linear combinations, are supported.
+See `cirq.google.arg_func_langs` for details.
+
+The sympy library is also infamous for being slow, so avoid using complicated formulas if you
+care about performance.  Avoid using parameter resolvers that have formulas in them. 
 
 ## Specific Device Layouts
 

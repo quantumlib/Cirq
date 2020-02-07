@@ -24,7 +24,6 @@ import numbers
 import numpy as np
 
 from cirq import value, protocols, linalg
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,
@@ -553,15 +552,12 @@ class PauliString(raw_types.Operation):
                   ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
-    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
-                  ) -> Union[bool, NotImplementedType, None]:
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, PauliString):
             return NotImplemented
         return sum(not protocols.commutes(p0, p1)
                    for p0, p1 in self.zip_paulis(other)) % 2 == 0
-
-    commutes_with = deprecated(deadline='v0.7.0',
-                               fix='Use `cirq.commutes()` instead.')(_commutes_)
 
     def __neg__(self) -> 'PauliString':
         return PauliString(qubit_pauli_map=self._qubit_pauli_map,
