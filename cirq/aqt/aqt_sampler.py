@@ -25,7 +25,7 @@ https://gateway-portal.aqt.eu/
 import json
 import time
 import uuid
-from typing import Iterable, List, Union, Tuple, Dict, cast, TYPE_CHECKING
+from typing import List, Union, Tuple, Dict, cast, TYPE_CHECKING
 
 import numpy as np
 from requests import put
