@@ -188,6 +188,7 @@ SHOULDNT_BE_SERIALIZED = [
     'GreedySequenceSearchStrategy',
     'SerializingArg',
     'Unique',
+    'DEFAULT_RESOLVERS',
 
     # Quantum Engine
     'Engine',
@@ -586,3 +587,68 @@ def test_pathlib_paths(tmpdir):
     path = pathlib.Path(tmpdir) / 'op.json'
     cirq.to_json(cirq.X, path)
     assert cirq.read_json(path) == cirq.X
+
+
+def test_json_serializable_dataclass():
+
+    @cirq.json_serializable_dataclass
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    assert_json_roundtrip_works(my_dc,
+                                text_should_be="\n".join([
+                                    '{',
+                                    '  "cirq_type": "MyDC",',
+                                    '  "q": {',
+                                    '    "cirq_type": "LineQubit",',
+                                    '    "x": 4',
+                                    '  },',
+                                    '  "desc": "hi mom"',
+                                    '}',
+                                ]),
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)
+
+
+def test_json_serializable_dataclass_parenthesis():
+
+    @cirq.json_serializable_dataclass()
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    assert_json_roundtrip_works(my_dc,
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)
+
+
+def test_json_serializable_dataclass_namespace():
+
+    @cirq.json_serializable_dataclass(namespace='cirq.experiments')
+    class QuantumVolumeParams:
+        width: int
+        depth: int
+        circuit_i: int
+
+    qvp = QuantumVolumeParams(width=5, depth=5, circuit_i=0)
+
+    def custom_resolver(name):
+        if name == 'cirq.experiments.QuantumVolumeParams':
+            return QuantumVolumeParams
+
+    assert_json_roundtrip_works(qvp,
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)
