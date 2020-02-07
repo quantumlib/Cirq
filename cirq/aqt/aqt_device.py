@@ -29,7 +29,12 @@ import numpy as np
 
 import cirq
 
-gate_dict = {'X': cirq.ops.X, 'Y': cirq.ops.Y, 'Z': cirq.ops.Z, 'MS': cirq.ops.XX}
+gate_dict = {
+    'X': cirq.ops.X,
+    'Y': cirq.ops.Y,
+    'Z': cirq.ops.Z,
+    'MS': cirq.ops.XX
+}
 
 
 class AQTNoiseModel(cirq.devices.NoiseModel):
@@ -39,7 +44,8 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
         self.noise_op_dict = get_aqt_default_noise_dict()
 
     def noisy_moment(self, moment: cirq.ops.Moment,
-                     system_qubits: Sequence[cirq.ops.Qid]) -> List[cirq.ops.Operation]:
+                     system_qubits: Sequence[cirq.ops.Qid]
+                    ) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -173,8 +179,8 @@ class AQTSimulator:
         return result
 
 
-def get_aqt_device(num_qubits: int) -> Tuple[cirq.ion.IonDevice,
-                                             List[cirq.devices.LineQubit]]:
+def get_aqt_device(num_qubits: int
+                  ) -> Tuple[cirq.ion.IonDevice, List[cirq.devices.LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -186,9 +192,9 @@ def get_aqt_device(num_qubits: int) -> Tuple[cirq.ion.IonDevice,
     qubit_list = cirq.devices.LineQubit.range(num_qubits)
     us = 1000 * cirq.Duration(nanos=1)
     ion_device = cirq.ion.IonDevice(measurement_duration=100 * us,
-                           twoq_gates_duration=200 * us,
-                           oneq_gates_duration=10 * us,
-                           qubits=qubit_list)
+                                    twoq_gates_duration=200 * us,
+                                    oneq_gates_duration=10 * us,
+                                    qubits=qubit_list)
     return ion_device, qubit_list
 
 
@@ -203,6 +209,7 @@ def get_aqt_default_noise_dict() -> Dict[str, Any]:
     }
     return default_noise_dict
 
+
 def get_aqt_device_op_string(op_obj: cirq.ops.Operation) -> str:
     """Find the string representation for a given gate
 
@@ -212,17 +219,17 @@ def get_aqt_device_op_string(op_obj: cirq.ops.Operation) -> str:
     Returns:
         String representing the gate operations
     """
-    if isinstance(op_obj, cirq.ops.XXPowGate) or isinstance(op_obj.gate,
-                                                            cirq.ops.XXPowGate):
+    if isinstance(op_obj, cirq.ops.XXPowGate) or isinstance(
+            op_obj.gate, cirq.ops.XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, cirq.ops.XPowGate) or isinstance(op_obj.gate,
-                                                        cirq.ops.XPowGate):
+    elif isinstance(op_obj, cirq.ops.XPowGate) or isinstance(
+            op_obj.gate, cirq.ops.XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, cirq.ops.YPowGate) or isinstance(op_obj.gate,
-                                                        cirq.ops.YPowGate):
+    elif isinstance(op_obj, cirq.ops.YPowGate) or isinstance(
+            op_obj.gate, cirq.ops.YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, cirq.ops.ZPowGate) or isinstance(op_obj.gate,
-                                                        cirq.ops.ZPowGate):
+    elif isinstance(op_obj, cirq.ops.ZPowGate) or isinstance(
+            op_obj.gate, cirq.ops.ZPowGate):
         op_str = 'Z'
     elif isinstance(op_obj, cirq.ops.MeasurementGate) or isinstance(
             op_obj.gate, cirq.ops.MeasurementGate):

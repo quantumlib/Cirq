@@ -204,7 +204,8 @@ class AQTSampler(cirq.work.Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                cirq.study.TrialResult(params=param_resolver, measurements=res_dict))
+                cirq.study.TrialResult(params=param_resolver,
+                                       measurements=res_dict))
         return trial_results
 
 
@@ -253,7 +254,7 @@ class AQTSamplerLocalSimulator(AQTSampler):
             Measurement results as an ndarray of booleans.
         """
         sim = cirq.aqt.AQTSimulator(num_qubits=num_qubits,
-                           simulate_ideal=self.simulate_ideal)
+                                    simulate_ideal=self.simulate_ideal)
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)
         return data.measurements['m']

@@ -17,11 +17,7 @@ from cirq.aqt.aqt_sampler import (
     AQTSamplerLocalSimulator,
 )
 
-from cirq.aqt.aqt_device import (
-    AQTSimulator,
-    AQTNoiseModel,
-    get_aqt_device,
-    get_aqt_default_noise_dict,
-    get_aqt_device_op_string
-)
+from cirq.aqt.aqt_device import (AQTSimulator, AQTNoiseModel, get_aqt_device,
+                                 get_aqt_default_noise_dict,
+                                 get_aqt_device_op_string)
 """Types and methods related to the AQT ion trap device"""
