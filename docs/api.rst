@@ -311,6 +311,7 @@ the magic methods that can be implemented.
 .. autosummary::
     :toctree: generated/
 
+    cirq.DEFAULT_RESOLVERS
     cirq.apply_channel
     cirq.apply_mixture
     cirq.apply_unitaries
@@ -535,6 +536,7 @@ operation.
     :toctree: generated/
 
     cirq.alternative
+    cirq.json_serializable_dataclass
     cirq.obj_to_dict_helper
     cirq.value_equality
     cirq.ABCMetaImplementAnyOneOf
