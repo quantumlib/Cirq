@@ -191,7 +191,7 @@ class AQTSampler(cirq.work.Sampler):
         """
         meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
         assert isinstance(program.device, cirq.ion.IonDevice)
-        trial_results = []  # type: List[study.TrialResult]
+        trial_results = []  # type: List[cirq.study.TrialResult]
         for param_resolver in cirq.study.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)
