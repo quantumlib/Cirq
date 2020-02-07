@@ -526,7 +526,7 @@ class TaggedOperation(Operation):
         return str(self)
 
     def _value_equality_values_(self):
-        return (self.sub_operation, *self._tags)
+        return (self.sub_operation, self._tags)
 
     @classmethod
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
