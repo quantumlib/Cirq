@@ -505,11 +505,11 @@ class TaggedOperation(Operation):
                                                 control_values=control_values)
 
     @property
-    def tags(self):
+    def tags(self) -> Tuple[Hashable]:
         """Returns a tuple of the operation's tags."""
         return self._tags
 
-    def with_tags(self, *new_tags: Any) -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation with combined tags.
 
         Overloads Operation.with_tags to create a new TaggedOperation
