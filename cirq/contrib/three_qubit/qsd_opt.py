@@ -1,5 +1,7 @@
 from random import random, randint
 
+import scipy
+
 import cirq
 import numpy as np
 from numpy.testing import assert_almost_equal
@@ -37,7 +39,8 @@ def isThreeCNOTUnitary(U):
 
 def multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True, diagonal=np.eye(4)):
     u1u2 = u1 @ u2.conj().T
-    eigvals, V = unitary_eig(u1u2)
+    R, V = scipy.linalg.schur(u1u2)
+    eigvals = R.diagonal()
     d = np.diag(np.sqrt(eigvals))
     np.testing.assert_allclose(V @ d @ d @ V.conj().T, u1u2, atol=1e-14)
 
