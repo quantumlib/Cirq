@@ -14,11 +14,12 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
-                    TYPE_CHECKING, Union)
+from typing import (Any, Callable, Collection, Hashable, Optional, Sequence,
+                    Tuple, TYPE_CHECKING, Union)
 
 import abc
 import functools
+import numpy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -392,6 +393,26 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+        """Creates a new TaggedOperation, with this op and the specified tags.
+
+        This method can be used to attach meta-data to specific operations
+        without affecting their functionality.  The intended usage is to
+        attach classes intended for this purpose or strings to mark operations
+        for specific usage that will be recognized by consumers.  Specific
+        examples include ignoring this operation in optimization passes,
+        hardware-specific functionality, or circuit diagram customizability.
+
+        Tags can be a list of any type of object that is useful to identify
+        this operation as long as the type is hashable.  If you wish the
+        resulting operation to be eventually serialized into JSON, you should
+        also restrict the operation to be JSON serializable.
+
+        Args:
+            new_tags: The tags to wrap this operation in.
+        """
+        return TaggedOperation(self, *new_tags)
+
     def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
                         ) -> 'Operation':
         """Returns the same operation, but with different qubits.
@@ -443,6 +464,149 @@ class Operation(metaclass=abc.ABCMeta):
             ValueError: The operation had qids that don't match it's qid shape.
         """
         _validate_qid_shape(self, qubits)
+
+
+@value.value_equality
+class TaggedOperation(Operation):
+    """A specific operation instance that has been identified with a set
+    of Tags for special processing.  This can be initialized with
+    Using Operation.with_tags(tag) or by TaggedOperation(op, tag).
+
+    Tags added can be of any type, but they should be Hashable in order
+    to allow equality checking.  If you wish to serialize operations into
+    JSON, you should restrict yourself to only use objects that have a JSON
+    serialization.
+
+    See Operation.with_tags() for more information on intended usage.
+    """
+
+    def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
+        self.sub_operation = sub_operation
+        self._tags = tuple(tags)
+
+    @property
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
+        return self.sub_operation.qubits
+
+    @property
+    def gate(self) -> Optional['cirq.Gate']:
+        return self.sub_operation.gate
+
+    def with_qubits(self, *new_qubits: 'cirq.Qid'):
+        return TaggedOperation(self.sub_operation.with_qubits(*new_qubits),
+                               *self._tags)
+
+    def controlled_by(self,
+                      *control_qubits: 'cirq.Qid',
+                      control_values: Optional[Sequence[
+                          Union[int, Collection[int]]]] = None
+                     ) -> 'cirq.Operation':
+        return self.sub_operation.controlled_by(*control_qubits,
+                                                control_values=control_values)
+
+    @property
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return self._tags
+
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+        """Creates a new TaggedOperation with combined tags.
+
+        Overloads Operation.with_tags to create a new TaggedOperation
+        that has the tags of this operation combined with the new_tags
+        specified as the parameter.
+        """
+        return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
+
+    def __str__(self):
+        tag_repr = ','.join(repr(t) for t in self._tags)
+        return f"cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})"
+
+    def __repr__(self):
+        return str(self)
+
+    def _value_equality_values_(self):
+        return (self.sub_operation, self._tags)
+
+    @classmethod
+    def _from_json_dict_(cls, sub_operation, tags, **kwargs):
+        return cls(sub_operation, *tags)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
+
+    def _decompose_(self) -> 'cirq.OP_TREE':
+        return protocols.decompose(self.sub_operation)
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        return protocols.pauli_expansion(self.sub_operation)
+
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
+                       ) -> Union[np.ndarray, None, NotImplementedType]:
+        return protocols.apply_unitary(self.sub_operation, args, default=None)
+
+    def _has_unitary_(self) -> bool:
+        return protocols.has_unitary(self.sub_operation)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        return protocols.unitary(self.sub_operation, default=None)
+
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType, None]:
+        return protocols.commutes(self.sub_operation, other, atol=atol)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self.sub_operation)
+
+    def _mixture_(self) -> Sequence[Tuple[float, Any]]:
+        return protocols.mixture(self.sub_operation, NotImplemented)
+
+    def _has_channel_(self) -> bool:
+        return protocols.has_channel(self.sub_operation)
+
+    def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
+        return protocols.channel(self.sub_operation, NotImplemented)
+
+    def _measurement_key_(self) -> str:
+        return protocols.measurement_key(self.sub_operation, NotImplemented)
+
+    def _is_parameterized_(self) -> bool:
+        return protocols.is_parameterized(self.sub_operation)
+
+    def _resolve_parameters_(self, resolver):
+        return protocols.resolve_parameters(self.sub_operation, resolver)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
+        return protocols.circuit_diagram_info(self.sub_operation, args,
+                                              NotImplemented)
+
+    def _trace_distance_bound_(self) -> float:
+        return protocols.trace_distance_bound(self.sub_operation)
+
+    def _phase_by_(self, phase_turns: float,
+                   qubit_index: int) -> 'cirq.Operation':
+        return protocols.phase_by(self.sub_operation, phase_turns, qubit_index)
+
+    def __pow__(self, exponent: Any) -> 'cirq.Operation':
+        return self.sub_operation**exponent
+
+    def __mul__(self, other: Any) -> Any:
+        return self.sub_operation * other
+
+    def __rmul__(self, other: Any) -> Any:
+        return other * self.sub_operation
+
+    def _qasm_(self, args: 'protocols.QasmArgs') -> Optional[str]:
+        return protocols.qasm(self.sub_operation, args=args, default=None)
+
+    def _equal_up_to_global_phase_(self,
+                                   other: Any,
+                                   atol: Union[int, float] = 1e-8
+                                  ) -> Union[NotImplementedType, bool]:
+        return protocols.equal_up_to_global_phase(self.sub_operation,
+                                                  other,
+                                                  atol=atol)
 
 
 @value.value_equality
