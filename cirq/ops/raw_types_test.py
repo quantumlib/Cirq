@@ -441,6 +441,7 @@ def test_tagged_operation_equality():
     eq.add_equality_group(op.with_tags('tag2'),
                           cirq.TaggedOperation(op, 'tag2'))
     eq.add_equality_group(op.with_tags('tag1', 'tag2'),
+                          op.with_tags('tag1').with_tags('tag2'),
                           cirq.TaggedOperation(op, 'tag1', 'tag2'))
 
 
@@ -452,7 +453,7 @@ def test_tagged_operation():
     assert repr(op) == f"cirq.TaggedOperation({op_repr}, 'tag1')"
 
     assert op.qubits == (q1,)
-    assert op.tags == ['tag1']
+    assert op.tags == ('tag1',)
     assert op.gate == cirq.X
     assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
     assert op.with_qubits(q2).qubits == (q2,)

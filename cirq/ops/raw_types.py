@@ -14,8 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Optional, Sequence, Tuple,
-                    TYPE_CHECKING, Union)
+from typing import (Any, Callable, Collection, Hashable, Optional, Sequence,
+                    Tuple, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -393,7 +393,7 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
-    def with_tags(self, *new_tags: Any) -> 'cirq.TaggedOperation':
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
         This method can be used to attach meta-data to specific operations
@@ -403,8 +403,10 @@ class Operation(metaclass=abc.ABCMeta):
         examples include ignoring this operation in optimization passes,
         hardware-specific functionality, or circuit diagram customizability.
 
-        However, tags can be a list of any type of object that is useful to
-        identify this operation.
+        Tags can be a list of any type of object that is useful to identify
+        this operation as long as the type is hashable.  If you wish the
+        resulting operation to be eventually serialized into JSON, you should
+        also restrict the operation to be JSON serializable.
 
         Args:
             new_tags: The tags to wrap this operation in.
@@ -470,12 +472,17 @@ class TaggedOperation(Operation):
     of Tags for special processing.  This can be initialized with
     Using Operation.with_tags(tag) or by TaggedOperation(op, tag).
 
+    Tags added can be of any type, but they should be Hashable in order
+    to allow equality checking.  If you wish to serialize operations into
+    JSON, you should restrict yourself to only use objects that have a JSON
+    serialization.
+
     See Operation.with_tags() for more information on intended usage.
     """
 
-    def __init__(self, sub_operation: 'cirq.Operation', *tags: Any):
+    def __init__(self, sub_operation: 'cirq.Operation', *tags: Hashable):
         self.sub_operation = sub_operation
-        self._tags = list(tags)
+        self._tags = tuple(tags)
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
@@ -498,8 +505,18 @@ class TaggedOperation(Operation):
                                                 control_values=control_values)
 
     @property
-    def tags(self):
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
         return self._tags
+
+    def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
+        """Creates a new TaggedOperation with combined tags.
+
+        Overloads Operation.with_tags to create a new TaggedOperation
+        that has the tags of this operation combined with the new_tags
+        specified as the parameter.
+        """
+        return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
     def __str__(self):
         tag_repr = ','.join(repr(t) for t in self._tags)
@@ -509,7 +526,7 @@ class TaggedOperation(Operation):
         return str(self)
 
     def _value_equality_values_(self):
-        return (self.sub_operation, *self._tags)
+        return (self.sub_operation, self._tags)
 
     @classmethod
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
