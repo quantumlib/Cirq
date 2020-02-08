@@ -254,6 +254,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
