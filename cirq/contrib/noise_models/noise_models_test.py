@@ -14,11 +14,14 @@
 
 import pytest
 
+from google.protobuf.text_format import Merge
+
 import cirq
 import cirq.contrib.noise_models as ccn
 from cirq.contrib.noise_models.noise_models import (
-    _homogeneous_moment_is_measurements)
+    _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
+from cirq.google.api import v2
 
 
 def test_moment_is_measurements():
@@ -181,3 +184,80 @@ def test_decay_noise_after_moment():
         cirq.measure(qubits[2], key='q2')
     ])
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
+
+
+# Fake calibration data object.
+_CALIBRATION_DATA = Merge(
+    """
+    timestamp_ms: 1579214873,
+    metrics: [{
+        name: 'xeb',
+        targets: ['0_0', '0_1'],
+        values: [{
+            double_val: .9999
+        }]
+    }, {
+        name: 'xeb',
+        targets: ['0_0', '1_0'],
+        values: [{
+            double_val: .9998
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q0_0'],
+        values: [{
+            double_val: .001
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q0_1'],
+        values: [{
+            double_val: .002
+        }]
+    }, {
+        name: 'single_qubit_rb_total_error',
+        targets: ['q1_0'],
+        values: [{
+            double_val: .003
+        }]
+    }]
+""", v2.metrics_pb2.MetricsSnapshot())
+
+
+def test_per_qubit_noise_from_data():
+    # Generate the noise model from calibration data.
+    calibration = cirq.google.Calibration(_CALIBRATION_DATA)
+    noise_model = simple_noise_from_calibration_metrics(calibration)
+
+    # Create the circuit and apply the noise model.
+    qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
+    program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
+
+    # Insert channels explicitly to construct expected output.
+    expected_program = cirq.Circuit(
+        cirq.Moment([cirq.H(qubits[0])]),
+        cirq.Moment([cirq.DepolarizingChannel(0.001).on(qubits[0])]),
+        cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
+        cirq.Moment([
+            cirq.DepolarizingChannel(0.001).on(qubits[0]),
+            cirq.DepolarizingChannel(0.002).on(qubits[1])
+        ]), cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([
+            cirq.DepolarizingChannel(0.001).on(qubits[0]),
+            cirq.DepolarizingChannel(0.003).on(qubits[2])
+        ]),
+        cirq.Moment([
+            cirq.measure(qubits[0], key='q0'),
+            cirq.measure(qubits[1], key='q1'),
+            cirq.measure(qubits[2], key='q2')
+        ]))
+    _assert_equivalent_op_tree(expected_program, noisy_circuit)

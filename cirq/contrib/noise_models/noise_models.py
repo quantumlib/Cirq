@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, TYPE_CHECKING
+from typing import Dict, Sequence, TYPE_CHECKING
 
 from cirq import devices, value, ops, protocols
+
+from cirq.google import engine
 
 if TYPE_CHECKING:
     import cirq
@@ -131,3 +133,55 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
                     for q in system_qubits), moment
             ]
         return moment
+
+
+class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
+    """DepolarizingNoiseModel which allows depolarization probabilities to be
+    specified separately for each qubit.
+
+    Similar to depol_prob in DepolarizingNoiseModel, depol_prob_map should map
+    Qids in the device to their depolarization probability.
+    """
+
+    def __init__(
+            self,
+            depol_prob_map: Dict['cirq.Qid', float],
+    ):
+        """A depolarizing noise model with variable per-qubit noise.
+
+        Args:
+            depol_prob_map: Map of depolarizing probabilities for each qubit.
+        """
+        for qubit, depol_prob in depol_prob_map.items():
+            value.validate_probability(depol_prob, f'depol prob of {qubit}')
+        self.depol_prob_map = depol_prob_map
+
+    def noisy_moment(self, moment: 'cirq.Moment',
+                     system_qubits: Sequence['cirq.Qid']):
+        if _homogeneous_moment_is_measurements(moment):
+            return moment
+        else:
+            gated_qubits = [
+                q for q in system_qubits if moment.operates_on_single_qubit(q)
+            ]
+            return [
+                moment,
+                ops.Moment(
+                    ops.DepolarizingChannel(self.depol_prob_map[q])(q)
+                    for q in gated_qubits)
+            ]
+
+
+def simple_noise_from_calibration_metrics(calibration: engine.Calibration
+                                         ) -> devices.NoiseModel:
+    """Creates a reasonable PerQubitDepolarizingNoiseModel using the provided
+    calibration data. This object can be retrived from the engine by calling
+    'get_latest_calibration()' or 'get_calibration()' using the ID of the
+    target processor.
+    """
+    assert calibration is not None
+    rb_data: Dict['cirq.Qid', float] = {
+        qubit[0]: depol_prob[0] for qubit, depol_prob in
+        calibration['single_qubit_rb_total_error'].items()
+    }
+    return PerQubitDepolarizingNoiseModel(rb_data)
