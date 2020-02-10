@@ -82,6 +82,15 @@ class _BaseLineQid(ops.Qid):
     def __neg__(self: TSelf) -> TSelf:
         return self._with_x(-self.x)
 
+    def __setattr__(self, key, value):
+        if not hasattr(self, key):
+            super().__setattr__(key, value)
+        else:
+            raise RuntimeError('Qubits are immutable')
+
+    def __delattr__(self, key):
+        raise RuntimeError('Qubits are immutable')
+
 
 class LineQid(_BaseLineQid):
     """A qid on a 1d lattice with nearest-neighbor connectivity.
