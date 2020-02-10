@@ -26,7 +26,7 @@ from typing import (
 
 import numpy as np
 import sympy
-from cirq.api.google import v2
+from cirq.google.api import v2
 
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),

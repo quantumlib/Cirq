@@ -14,6 +14,10 @@
 """
 Package for optimizers and gate compilers related to Google-specific devices.
 """
+from cirq.google.optimizers.two_qubit_gates import (
+    gate_product_tabulation,
+    GateTabulation,
+)
 
 from cirq.google.optimizers.convert_to_sycamore_gates import (
     ConvertToSycamoreGates,)
