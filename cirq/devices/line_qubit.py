@@ -32,10 +32,15 @@ class _BaseLineQid(ops.Qid):
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
-        self.x = x
+        self._x = x
 
     def _comparison_key(self):
         return self.x
+
+    @property
+    def x(self) -> int:
+        """Returns X coordinate of this qudit."""
+        return self._x
 
     def with_dimension(self, dimension: int) -> 'LineQid':
         return LineQid(self.x, dimension)
@@ -81,15 +86,6 @@ class _BaseLineQid(ops.Qid):
 
     def __neg__(self: TSelf) -> TSelf:
         return self._with_x(-self.x)
-
-    def __setattr__(self, key, value):
-        if not hasattr(self, key):
-            super().__setattr__(key, value)
-        else:
-            raise RuntimeError('Qubits are immutable')
-
-    def __delattr__(self, key):
-        raise RuntimeError('Qubits are immutable')
 
 
 class LineQid(_BaseLineQid):
