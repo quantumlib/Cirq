@@ -48,4 +48,6 @@ User Documentation
     :maxdepth: 1
     :caption: Google Documentation
 
-    google/index.rst
+    google/devices
+    google/engine
+    google/specification
