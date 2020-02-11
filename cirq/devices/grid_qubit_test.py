@@ -191,3 +191,7 @@ def test_immutable():
     with pytest.raises(AttributeError, match="can't set attribute"):
         q = cirq.GridQubit(1, 2)
         q.col = 3
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.GridQubit(1, 2)
+        q.row = 3
