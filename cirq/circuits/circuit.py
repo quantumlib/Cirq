@@ -1505,6 +1505,7 @@ class Circuit:
             *,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> str:
@@ -1514,6 +1515,7 @@ class Circuit:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether tags on TaggedOperations should be printed
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
 
@@ -1522,6 +1524,7 @@ class Circuit:
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
+            include_tags=include_tags,
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose)
@@ -1539,6 +1542,7 @@ class Circuit:
             use_unicode_characters: bool = True,
             qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info: Optional[
@@ -1579,13 +1583,9 @@ class Circuit:
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
-            _draw_moment_in_diagram(moment,
-                                    use_unicode_characters,
-                                    qubit_map,
-                                    diagram,
-                                    precision,
-                                    moment_groups,
-                                    get_circuit_diagram_info)
+            _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
+                                    diagram, precision, moment_groups,
+                                    get_circuit_diagram_info, include_tags)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -1808,7 +1808,8 @@ def _draw_moment_in_diagram(
         moment_groups: List[Tuple[int, int]],
         get_circuit_diagram_info: Optional[
             Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                     'cirq.CircuitDiagramInfo']] = None):
+                     'cirq.CircuitDiagramInfo']] = None,
+        include_tags: bool = True):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)
@@ -1834,7 +1835,8 @@ def _draw_moment_in_diagram(
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
-            precision=precision)
+            precision=precision,
+            include_tags=include_tags)
         info = get_circuit_diagram_info(op, args)
 
         # Draw vertical line linking the gate's qubits.

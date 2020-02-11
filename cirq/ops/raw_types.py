@@ -578,8 +578,13 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.circuit_diagram_info(self.sub_operation, args,
-                                              NotImplemented)
+        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args,
+                                                     NotImplemented)
+        if args and args.include_tags:
+            sub_op_info.wire_symbols = (
+                (sub_op_info.wire_symbols[0] + str(list(self._tags)),) +
+                sub_op_info.wire_symbols[1:])
+        return sub_op_info
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.sub_operation)
