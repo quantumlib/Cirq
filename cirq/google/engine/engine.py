@@ -181,9 +181,9 @@ class Engine:
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor.
             program_description: An optional description to set on the program.
-            program_labels: Optional set of label to set on the program.
+            program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of label to set on the job.
+            job_labels: Optional set of labels to set on the job.
 
         Returns:
             A single TrialResult for this run.
@@ -241,9 +241,9 @@ class Engine:
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor.
             program_description: An optional description to set on the program.
-            program_labels: Optional set of label to set on the program.
+            program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of label to set on the job.
+            job_labels: Optional set of labels to set on the job.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -280,7 +280,7 @@ class Engine:
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor
             description: An optional description to set on the program.
-            labels: Optional set of label to set on the program.
+            labels: Optional set of labels to set on the program.
 
         Returns:
             A EngineProgram for the newly created program.
@@ -354,24 +354,16 @@ class Engine:
                 self.context, p) for p in list(response)
         ]
 
-    def get_processor(self, processor_id: str, project_id: Optional[str] = None
-                     ) -> engine_processor.EngineProcessor:
+    def get_processor(self,
+                      processor_id: str) -> engine_processor.EngineProcessor:
         """Returns an EngineProcessor for a Quantum Engine processor.
 
         Args:
             processor_id: The processor unique identifier.
-            project_id: The project id for the project containing the processor.
-                If provided will be checked against the project id of the
-                engine.
 
         Returns:
             A EngineProcessor for the processor.
         """
-        if project_id and project_id != self.project_id:
-            raise ValueError(
-                'Engine project id {} does not match given project_id {}'.
-                format(self.project_id, project_id))
-
         processor = self.context.client.get_processor(self.project_id,
                                                       processor_id)
         return engine_processor.EngineProcessor(self.project_id, processor_id,

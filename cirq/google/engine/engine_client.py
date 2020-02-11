@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ class EngineClient:
 
         Args:
             service_args: A dictionary of arguments that can be used to
-                configure options on the underlying client.
+                configure options on the underlying gRPC client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
             max_retry_delay_seconds: The maximum number of seconds to retry when
@@ -157,7 +157,7 @@ class EngineClient:
             program_id: Unique ID of the program within the parent project.
             code: Properly serialized program code.
             description: An optional description to set on the program.
-            labels: Optional set of label to set on the program.
+            labels: Optional set of labels to set on the program.
 
         Returns:
             Tuple of created program id and program
@@ -321,7 +321,7 @@ class EngineClient:
             processor_ids: List of processor id for running the program.
             priority: Optional priority to run at, 0-1000.
             description: Optional description to set on the job.
-            labels: Optional set of label to set on the job.
+            labels: Optional set of labels to set on the job.
 
         Returns:
             Tuple of created job id and job
@@ -541,7 +541,13 @@ class EngineClient:
         Params:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: Filter string current only supports 'timestamp'
+            filter: Filter string current only supports 'timestamp' with values
+              of epoch time in seconds or short string 'yyyy-MM-dd' or long
+              string 'yyyy-MM-dd HH:mm:ss.SSS' both in UTC. For example:
+                'timestamp > 1577960125 AND timestamp <= 1578241810'
+                'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
+                'timestamp > "2020-01-02 10:15:25.000" AND timestamp <=
+                  "2020-01-05 16:30:10.456"'
 
         Returns:
             A list of calibrations.

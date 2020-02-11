@@ -81,7 +81,7 @@ class EngineProgram:
                 to run the program. Only one of these will be scheduled for
                 execution.
             description: An optional description to set on the job.
-            labels: Optional set of label to set on the job.
+            labels: Optional set of labels to set on the job.
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
@@ -126,7 +126,7 @@ class EngineProgram:
                 to run the program. Only one of these will be scheduled for
                 execution.
             description: An optional description to set on the job.
-            labels: Optional set of label to set on the job.
+            labels: Optional set of labels to set on the job.
 
         Returns:
             A single TrialResult for this run.
