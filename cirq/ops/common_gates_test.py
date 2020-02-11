@@ -123,57 +123,65 @@ def test_z_init():
     assert cirq.Z**-1 == cirq.Z
 
 
-def test_z_control():
-    # Single qubit control on Z gives a CZ
-    assert cirq.Z.controlled() == cirq.CZ
-    assert cirq.Z.controlled(num_controls=1) == cirq.CZ
-    assert cirq.Z.controlled(control_values=((1,),)) == cirq.CZ
-    assert cirq.Z.controlled(control_qid_shape=(2,)) == cirq.CZ
-
-    # Also works for any ZPow.
-    assert cirq.ZPowGate(exponent=5).controlled() == cirq.CZPowGate(exponent=5)
+@pytest.mark.parametrize(
+    'input_gate, specialized_output',
+    [(cirq.Z, cirq.CZ), (cirq.CZ, cirq.CCZ), (cirq.X, cirq.CX),
+     (cirq.CX, cirq.CCX),
+     (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5)),
+     (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
+     (cirq.XPowGate(exponent=0.5), cirq.CNotPowGate(exponent=0.5)),
+     (cirq.CNotPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5))])
+def test_specialized_control(input_gate, specialized_output):
+    # Single qubit control on the input gate gives the specialized output
+    assert input_gate.controlled() == specialized_output
+    assert input_gate.controlled(num_controls=1) == specialized_output
+    assert input_gate.controlled(control_values=((1,),)) == specialized_output
+    assert input_gate.controlled(control_qid_shape=(2,)) == specialized_output
+    assert np.allclose(
+        cirq.unitary(specialized_output),
+        cirq.unitary(cirq.ControlledGate(input_gate, num_controls=1)))
 
     # For multi-qudit controls, if the last control is a qubit with control
-    # value 1, construct a CZ leaving the rest of the controls as is.
-    assert cirq.Z.controlled().controlled() == cirq.ControlledGate(
-        cirq.CZ, num_controls=1)
-    assert cirq.Z.controlled(num_controls=2) == cirq.ControlledGate(
-        cirq.CZ, num_controls=1)
-    assert cirq.Z.controlled(control_values=((0,), (0,),
-                                             (1,))) == cirq.ControlledGate(
-                                                 cirq.CZ,
-                                                 num_controls=2,
-                                                 control_values=((0,), (0,)))
-    assert cirq.Z.controlled(control_qid_shape=(3, 3,
-                                                2)) == cirq.ControlledGate(
-                                                    cirq.CZ,
-                                                    num_controls=2,
-                                                    control_qid_shape=(3, 3))
-    assert cirq.Z.controlled(control_qid_shape=(2,)).controlled(
+    # value 1, construct the specialized output leaving the rest of the
+    # controls as they are.
+    assert input_gate.controlled().controlled(
+    ) == specialized_output.controlled(num_controls=1)
+    assert input_gate.controlled(
+        num_controls=2) == specialized_output.controlled(num_controls=1)
+    assert input_gate.controlled(
+        control_values=((0,), (0,), (1,))) == specialized_output.controlled(
+            num_controls=2, control_values=((0,), (0,)))
+    assert input_gate.controlled(
+        control_qid_shape=(3, 3, 2)) == specialized_output.controlled(
+            num_controls=2, control_qid_shape=(3, 3))
+    assert input_gate.controlled(control_qid_shape=(2,)).controlled(
         control_qid_shape=(3,)).controlled(
-            control_qid_shape=(4,)) == cirq.ControlledGate(
-                cirq.CZ, num_controls=2, control_qid_shape=(3, 4))
+            control_qid_shape=(4,)) == specialized_output.controlled(
+                num_controls=2, control_qid_shape=(3, 4))
 
     # When a control_value 1 qubit is not acting first, results in a regular
-    # ControlledGate on Z instance.
-    assert cirq.Z.controlled(num_controls=1,
-                             control_qid_shape=(3,)) == cirq.ControlledGate(
-                                 cirq.Z, num_controls=1, control_qid_shape=(3,))
-    assert cirq.Z.controlled(control_values=((0,), (1,),
-                                             (0,))) == cirq.ControlledGate(
-                                                 cirq.Z,
-                                                 num_controls=3,
-                                                 control_values=((0,), (1,),
-                                                                 (0,)))
-    assert cirq.Z.controlled(control_qid_shape=(3, 2,
-                                                3)) == cirq.ControlledGate(
-                                                    cirq.Z,
-                                                    num_controls=3,
-                                                    control_qid_shape=(3, 2, 3))
-    assert cirq.Z.controlled(control_qid_shape=(3,)).controlled(
+    # ControlledGate on the input gate instance.
+    assert input_gate.controlled(num_controls=1,
+                                 control_qid_shape=(3,)) == cirq.ControlledGate(
+                                     input_gate,
+                                     num_controls=1,
+                                     control_qid_shape=(3,))
+    assert input_gate.controlled(control_values=((0,), (1,),
+                                                 (0,))) == cirq.ControlledGate(
+                                                     input_gate,
+                                                     num_controls=3,
+                                                     control_values=((0,), (1,),
+                                                                     (0,)))
+    assert input_gate.controlled(control_qid_shape=(3, 2,
+                                                    3)) == cirq.ControlledGate(
+                                                        input_gate,
+                                                        num_controls=3,
+                                                        control_qid_shape=(3, 2,
+                                                                           3))
+    assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)).controlled(
             control_qid_shape=(4,)) == cirq.ControlledGate(
-                cirq.Z, num_controls=3, control_qid_shape=(3, 2, 4))
+                input_gate, num_controls=3, control_qid_shape=(3, 2, 4))
 
 
 def test_rot_gates_eq():

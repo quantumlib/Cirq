@@ -52,12 +52,13 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             x %= 2
             if x > 1:
                 x -= 2
+
         # Axis phase exponent is irrelevant if there is no X exponent.
         if x == 0:
             a = 0
         # For 180 degree X rotations, the axis phase and z exponent overlap.
         if x == 1 and z != 0:
-            a -= z / 2
+            a += z / 2
             z = 0
 
         # Canonicalize Z exponent into (-1, +1].
@@ -73,10 +74,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 a -= 2
             if a <= -0.5:
                 a += 1
-                x = -x
+                if x != 1:
+                    x = -x
             elif a > 0.5:
                 a -= 1
-                x = -x
+                if x != 1:
+                    x = -x
 
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 

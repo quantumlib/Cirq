@@ -28,7 +28,7 @@ def test_skip_and_wrap_around():
     assert ccasc.skip_and_wrap_around('abcdef') == tuple('afbecd')
 
 
-@pytest.mark.parametrize('n_qubits', range(3, 10))
+@pytest.mark.parametrize('n_qubits', range(3, 9))
 def test_cubic_acquaintance_strategy(n_qubits):
     qubits = tuple(cirq.LineQubit.range(n_qubits))
     strategy = cca.cubic_acquaintance_strategy(qubits)
