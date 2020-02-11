@@ -39,7 +39,6 @@ class _BaseLineQid(ops.Qid):
 
     @property
     def x(self) -> int:
-        """Returns X coordinate of this qudit."""
         return self._x
 
     def with_dimension(self, dimension: int) -> 'LineQid':
