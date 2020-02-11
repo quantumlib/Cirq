@@ -159,3 +159,35 @@ See `cirq.google.arg_func_langs` for details.
 
 The sympy library is also infamous for being slow, so avoid using complicated formulas if you
 care about performance.  Avoid using parameter resolvers that have formulas in them. 
+
+One way to eliminate formulas in your gates is to flatten your expressions.
+The following example shows how to take a gate with a formula and flatten it
+to a single symbol with the formula pre-computed for each value of the sweep:
+
+```python
+import cirq
+import sympy
+
+# Suppose we have a gate with a complicated formula.  (e.g. "2^t - 1")
+# This formula cannot be serialized
+# It could potentially encounter sympy slowness.
+gate_with_formula = cirq.XPowGate(exponent=2 ** sympy.Symbol('t') - 1)
+sweep = cirq.Linspace('t', start=0, stop=1, length=5)
+
+# Instead of sweeping the formula, we will pre-compute the values of the formula
+# at every point and store it a new symbol called '<2**t - 1>'
+sweep_for_gate, flat_sweep = cirq.flatten_with_sweep(gate_with_formula, sweep)
+
+print(sweep_for_gate)
+# prints:
+# (cirq.X**sympy.Symbol('<2**t - 1>'))
+
+# The sweep now contains the non-linear progression of the formula instead:
+print(list(flat_sweep.param_tuples()))
+# prints something like:
+# [(('<2**t - 1>', 0.0),),
+#  (('<2**t - 1>', 0.18920711500272103),),
+#  (('<2**t - 1>', 0.41421356237309515),),
+#  (('<2**t - 1>', 0.681792830507429),),
+#  (('<2**t - 1>', 1.0),)]
+```
