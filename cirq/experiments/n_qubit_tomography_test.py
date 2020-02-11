@@ -98,7 +98,7 @@ def test_density_matrix_from_state_tomography_is_correct(circuit, qubits):
     tomography_result = cirq.experiments.state_tomography(sim,
                                                           qubits,
                                                           circuit,
-                                                          repetitions=5000)
+                                                          repetitions=10000)
     actual_rho = tomography_result.data
     expected_rho = compute_density_matrix(circuit, qubits)
     error_rho = actual_rho - expected_rho
@@ -117,11 +117,11 @@ def test_agrees_with_two_qubit_state_tomography(circuit):
     tomography_result = cirq.experiments.state_tomography(sim,
                                                           qubits,
                                                           circuit,
-                                                          repetitions=5000)
+                                                          repetitions=10000)
     actual_rho = tomography_result.data
 
     two_qubit_tomography_result = cirq.experiments.two_qubit_state_tomography(
-        sim, qubits[0], qubits[1], circuit, repetitions=5000)
+        sim, qubits[0], qubits[1], circuit, repetitions=10000)
     expected_rho = two_qubit_tomography_result.data
 
     error_rho = actual_rho - expected_rho
