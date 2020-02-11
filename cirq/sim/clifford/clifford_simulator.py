@@ -53,7 +53,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
         Args:
             circuit: The circuit to simulate.
-            qubit_order: Determines the cansonical ordering of the qubits. This
+            qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation.
