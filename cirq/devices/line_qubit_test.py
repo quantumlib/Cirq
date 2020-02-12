@@ -258,3 +258,13 @@ def test_for_gate():
         cirq.LineQid(3, 3),
         cirq.LineQid(2, 1),
     ]
+
+
+def test_immutable():
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.LineQubit(5)
+        q.x = 6
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.LineQid(5, dimension=4)
+        q.x = 6
