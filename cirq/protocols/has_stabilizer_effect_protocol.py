@@ -19,6 +19,12 @@ from typing import (
 
 
 def has_stabilizer_effect(val: Any) -> bool:
+    """
+    Returns whether the input has a stabilizer effect. Currently only limits to
+    Pauli, H, S, CNOT and CZ gates and their Operations. Does not attempt to
+    decompose a gate into supported gates. For e.g. iSWAP or X**0.5 gate will
+    return False.
+    """
     strats = [
         _strat_has_stabilizer_effect_from_has_stabilizer_effect,
         _strat_has_stabilizer_effect_from_gate
