@@ -95,6 +95,7 @@ def test_inconclusive():
     assert not cirq.has_stabilizer_effect(object())
     assert not cirq.has_stabilizer_effect('boo')
     assert not cirq.has_stabilizer_effect(No())
+    assert not cirq.has_stabilizer_effect(NoOp())
 
 
 def test_via_has_stabilizer_effect_method():
