@@ -502,6 +502,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.GreedySequenceSearchStrategy
     cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
+    cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
     cirq.google.QuantumEngineSampler
     cirq.google.SerializableDevice
