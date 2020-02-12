@@ -93,6 +93,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
     cirq.SwapPowGate
+    cirq.TaggedOperation
     cirq.ThreeQubitDiagonalGate
     cirq.TwoQubitMatrixGate
     cirq.WaitGate
@@ -384,6 +385,8 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_multi_controlled_rotation
+    cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates

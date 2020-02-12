@@ -254,6 +254,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
@@ -277,6 +278,8 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
