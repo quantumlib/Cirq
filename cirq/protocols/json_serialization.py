@@ -55,6 +55,7 @@ class _ResolverCache:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.experiments import (CrossEntropyResult,
+                                          CrossEntropyResultDict,
                                           GridInteractionLayer)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
@@ -85,6 +86,7 @@ class _ResolverCache:
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
                 'CrossEntropyResult': CrossEntropyResult,
+                'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
