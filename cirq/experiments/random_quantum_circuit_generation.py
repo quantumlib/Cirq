@@ -173,6 +173,10 @@ def random_rotations_between_grid_interaction_layers_circuit(
     appended, subject to the same constraint regarding consecutive cycles
     described above.
 
+    If only one choice of single-qubit gate is given, then the constraint
+    that excludes repeating single-qubit gates in consecutive cycles is not
+    enforced.
+
     Args:
         qubits: The qubits to use.
         depth: The number of cycles.
