@@ -77,9 +77,23 @@ def test_random_rotations_between_grid_interaction_layers():
     _validate_single_qubit_layers(qubits, circuit[::2])
     _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
 
+    # Staggered pattern with only one kind of single-qubit gate
+    qubits = set(cirq.GridQubit.rect(4, 3))
+    depth = 20
+    pattern = cirq.experiments.GRID_STAGGERED_PATTERN
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
+        qubits, depth, single_qubit_gates=[cirq.X**0.5], seed=1234)
+
+    assert len(circuit) == 2 * depth + 1
+    _validate_single_qubit_layers(qubits,
+                                  circuit[::2],
+                                  non_repeating_layers=False)
+    _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
+
 
 def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
-                                  moments: Sequence[cirq.Moment]) -> None:
+                                  moments: Sequence[cirq.Moment],
+                                  non_repeating_layers: bool = True) -> None:
     previous_single_qubit_gates = {q: None for q in qubits} \
             # type: Dict[cirq.GridQubit, Optional[cirq.Gate]]
 
@@ -89,10 +103,11 @@ def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
         for op in moment:
             # Operation is single-qubit
             assert cirq.num_qubits(op) == 1
-            # Gate differs from previous single-qubit gate on this qubit
-            q = cast(cirq.GridQubit, op.qubits[0])
-            assert op.gate != previous_single_qubit_gates[q]
-            previous_single_qubit_gates[q] = op.gate
+            if non_repeating_layers:
+                # Gate differs from previous single-qubit gate on this qubit
+                q = cast(cirq.GridQubit, op.qubits[0])
+                assert op.gate != previous_single_qubit_gates[q]
+                previous_single_qubit_gates[q] = op.gate
 
 
 def _validate_two_qubit_layers(

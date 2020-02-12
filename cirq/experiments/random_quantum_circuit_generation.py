@@ -237,12 +237,16 @@ def _single_qubit_layer(
         previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate'],
         prng: 'np.random.RandomState',
 ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
+    if len(single_qubit_gates) == 1:
+        return {q: single_qubit_gates[0] for q in qubits}
 
     def random_gate(qubit: 'cirq.GridQubit',
                     prng: 'np.random.RandomState') -> 'cirq.Gate':
         excluded_gate = previous_single_qubit_layer.get(qubit, None)
-        allowed_gates = [g for g in single_qubit_gates if g != excluded_gate]
-        return allowed_gates[prng.randint(0, len(allowed_gates))]
+        g = single_qubit_gates[prng.randint(0, len(single_qubit_gates))]
+        while g == excluded_gate:
+            g = single_qubit_gates[prng.randint(0, len(single_qubit_gates))]
+        return g
 
     return {q: random_gate(q, prng) for q in qubits}
 
