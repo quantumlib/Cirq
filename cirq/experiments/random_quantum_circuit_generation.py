@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""Code for generating random quantum circuits."""
+
 from typing import (Callable, Container, Dict, Iterable, List, Sequence,
                     TYPE_CHECKING, Tuple)
 
