@@ -96,7 +96,6 @@ def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
                                   non_repeating_layers: bool = True) -> None:
     previous_single_qubit_gates = {q: None for q in qubits} \
             # type: Dict[cirq.GridQubit, Optional[cirq.Gate]]
-
     for moment in moments:
         # All qubits are acted upon
         assert moment.qubits == qubits
