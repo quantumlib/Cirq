@@ -32,10 +32,14 @@ class _BaseLineQid(ops.Qid):
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
-        self.x = x
+        self._x = x
 
     def _comparison_key(self):
         return self.x
+
+    @property
+    def x(self) -> int:
+        return self._x
 
     def with_dimension(self, dimension: int) -> 'LineQid':
         return LineQid(self.x, dimension)

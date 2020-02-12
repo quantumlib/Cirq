@@ -51,3 +51,4 @@ User Documentation
     google/devices
     google/engine
     google/specification
+    google/best_practices
