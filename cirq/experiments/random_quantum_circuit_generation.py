@@ -138,6 +138,7 @@ document(
 def random_rotations_between_grid_interaction_layers_circuit(
         qubits: Iterable['cirq.GridQubit'],
         depth: int,
+        *,  # forces keyword arguments
         two_qubit_op_factory: Callable[[
             'cirq.GridQubit', 'cirq.GridQubit', 'np.random.RandomState'
         ], 'cirq.OP_TREE'] = lambda a, b, _: google.SYC(a, b),
@@ -146,6 +147,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
                                                      ops.PhasedXPowGate(
                                                          phase_exponent=0.25,
                                                          exponent=0.5)),
+        add_final_single_qubit_layer: bool = True,
         seed: value.RANDOM_STATE_LIKE = None,
 ) -> 'cirq.Circuit':
     """Generate a random quantum circuit.
@@ -153,12 +155,12 @@ def random_rotations_between_grid_interaction_layers_circuit(
     This construction is based on the circuits used in the paper
     https://www.nature.com/articles/s41586-019-1666-5.
 
-    The generated circuit consists of a number of layers, this number being
-    specified by `depth`. Each layer is actually composed of two sub-layers:
+    The generated circuit consists of a number of "cycles", this number being
+    specified by `depth`. Each cycle is actually composed of two sub-layers:
     a layer of single-qubit gates followed by a layer of two-qubit gates.
     The single-qubit gates are chosen randomly from the gates specified by
     `single_qubit_gates`, but with the constraint that no qubit is acted upon
-    by the same single-qubit gate in consecutive layers. In the layer of
+    by the same single-qubit gate in consecutive cycles. In the layer of
     two-qubit gates, which pairs of qubits undergo interaction is determined
     by `pattern`, which is a sequence of two-qubit interaction sets. The
     set of interactions in a two-qubit layer rotates through this sequence.
@@ -167,8 +169,22 @@ def random_rotations_between_grid_interaction_layers_circuit(
     `prng` is the pseudorandom number generator.
 
     At the end of the circuit, an additional layer of single-qubit gates is
-    appended, subject to the same constraint regarding consecutive layers
+    appended, subject to the same constraint regarding consecutive cycles
     described above.
+
+    Args:
+        qubits: The qubits to use.
+        depth: The number of cycles.
+        two_qubit_op_factory: A factory to generate two-qubit operations.
+            These operations will be generated with calls of the form
+            `two_qubit_op_factory(a, b, prng)`, where `a` and `b` are the qubits
+            to operate on and `prng` is the pseudorandom number generator.
+        pattern: The pattern of grid interaction layers to use.
+        single_qubit_gates: The single-qubit gates to use.
+        add_final_single_qubit_layer: Whether to include a final layer of
+            single-qubit gates after the last cycle.
+        seed: A seed or random state to use for the pseudorandom number
+            generator.
     """
     prng = value.parse_random_state(seed)
     qubits = list(qubits)
@@ -188,11 +204,12 @@ def random_rotations_between_grid_interaction_layers_circuit(
         circuit.append(two_qubit_layer,
                        strategy=circuits.InsertStrategy.EARLIEST)
         previous_single_qubit_layer = single_qubit_layer
-    final_single_qubit_layer = _single_qubit_layer(qubits, single_qubit_gates,
-                                                   previous_single_qubit_layer,
-                                                   prng)
-    circuit.append([g.on(q) for q, g in final_single_qubit_layer.items()],
-                   strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
+
+    if add_final_single_qubit_layer:
+        final_single_qubit_layer = _single_qubit_layer(
+            qubits, single_qubit_gates, previous_single_qubit_layer, prng)
+        circuit.append([g.on(q) for q, g in final_single_qubit_layer.items()],
+                       strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
 
     return circuit
 

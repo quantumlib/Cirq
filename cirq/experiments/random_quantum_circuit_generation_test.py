@@ -62,6 +62,21 @@ def test_random_rotations_between_grid_interaction_layers():
     _validate_single_qubit_layers(qubits, circuit[::4])
     _validate_two_qubit_layers(qubits, circuit[2::4], pattern)
 
+    # Aligned pattern omitting final single qubit layer
+    qubits = set(cirq.GridQubit.rect(4, 5))
+    depth = 23
+    pattern = cirq.experiments.GRID_ALIGNED_PATTERN
+    circuit = random_rotations_between_grid_interaction_layers_circuit(
+        qubits,
+        depth,
+        pattern=pattern,
+        add_final_single_qubit_layer=False,
+        seed=1234)
+
+    assert len(circuit) == 2 * depth
+    _validate_single_qubit_layers(qubits, circuit[::2])
+    _validate_two_qubit_layers(qubits, circuit[1::2], pattern)
+
 
 def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
                                   moments: Sequence[cirq.Moment]) -> None:
