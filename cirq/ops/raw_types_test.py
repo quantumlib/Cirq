@@ -480,6 +480,28 @@ def test_circuit_diagram():
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
 
 
+def test_circuit_diagram_corner_cases():
+    global_phase = cirq.GlobalPhaseOperation(coefficient=1.0).with_tags('tag0')
+    assert global_phase._circuit_diagram_info_(args=None) == NotImplemented
+    assert cirq.Circuit(global_phase).to_text_diagram() == ''
+    expected = cirq.CircuitDiagramInfo(wire_symbols=tuple(),
+                                       exponent=1.0,
+                                       connected=True,
+                                       exponent_qubit_index=None,
+                                       auto_exponent_parens=True)
+
+    # Operation with no qubits and returns diagram info with no wire symbols
+    class NoWireSymbols(cirq.GlobalPhaseOperation):
+
+        def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                                  ) -> 'cirq.CircuitDiagramInfo':
+            return expected
+
+    no_wire_symbol_op = NoWireSymbols(coefficient=1.0).with_tags('tag0')
+    assert no_wire_symbol_op._circuit_diagram_info_(args=None) == expected
+    assert cirq.Circuit(no_wire_symbol_op).to_text_diagram() == ''
+
+
 def test_tagged_operation_forwards_protocols():
     """The results of all protocols applied to an operation with a tag should
     be equivalent to the result without tags.
