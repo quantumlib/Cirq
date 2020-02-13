@@ -14,7 +14,6 @@
 
 from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
                     Set, Tuple, Union)
-import dataclasses
 import numpy as np
 from matplotlib import pyplot as plt
 from cirq import circuits, devices, ops, protocols, sim, work
