@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, Union
+from typing import Dict, Iterable, Union, TYPE_CHECKING
 
 import sympy
 
@@ -20,6 +20,9 @@ from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.ops import (raw_types, common_gates, pauli_string as ps, pauli_gates,
                       op_tree, pauli_string_raw_types)
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality(approximate=True)
@@ -105,7 +108,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                                  exponent_pos=pp,
                                  exponent_neg=pn)
 
-    def _decompose_(self) -> op_tree.OP_TREE:
+    def _decompose_(self) -> 'cirq.OP_TREE':
         if len(self.pauli_string) <= 0:
             return
         qubits = self.qubits
@@ -125,8 +128,8 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
         yield protocols.inverse(xor_decomp)
         yield protocols.inverse(to_z_ops)
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return self._pauli_string_diagram_info(args,
                                                exponent=self.exponent_relative)
 
@@ -175,7 +178,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
 
 def xor_nonlocal_decompose(qubits: Iterable[raw_types.Qid],
-                           onto_qubit: raw_types.Qid
+                           onto_qubit: 'cirq.Qid'
                           ) -> Iterable[raw_types.Operation]:
     """Decomposition ignores connectivity."""
     for qubit in qubits:

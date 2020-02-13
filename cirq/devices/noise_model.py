@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Sequence, Union
+from typing import Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
+from cirq._doc import document
 
 if TYPE_CHECKING:
     from typing import Iterable
@@ -43,14 +44,15 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         """Transforms an object into a noise model if umambiguously possible.
 
         Args:
-            noise: `None`, a `cirq.NoiseModel`, or a single qubit operation.
+            noise: ``None``, a ``cirq.NoiseModel``, or a single qubit operation.
 
         Returns:
-            When given `None`: returns `cirq.NO_NOISE`.
-            When given a single qubit operation: returns
-                `cirq.ConstantQubitNoiseModel(gate)`, which applies the gate to
-                every qubit before every moment.
-            When given a `cirq.NoiseModel`: just returns the input.
+            ``cirq.NO_NOISE`` when given ``None``,
+            ``cirq.ConstantQubitNoiseModel(gate)`` when given a single qubit
+            gate, or the given value if it is already a ``cirq.NoiseModel``.
+
+        Raises:
+            TypeError: The input is not a ``cirq.NOISE_MODE_LIKE``.
         """
         if noise is None:
             return NO_NOISE
@@ -182,7 +184,11 @@ class _NoNoiseModel(NoiseModel):
 
 @value.value_equality
 class ConstantQubitNoiseModel(NoiseModel):
-    """Applies noise to each qubit individually at the start of every moment."""
+    """Applies noise to each qubit individually at the start of every moment.
+
+    This is the noise model that is wrapped around an operation when that
+    operation is given as "the noise to use" for a `NOISE_MODEL_LIKE` parameter.
+    """
 
     def __init__(self, qubit_noise_gate: 'cirq.Gate'):
         if qubit_noise_gate.num_qubits() != 1:
@@ -206,6 +212,22 @@ class ConstantQubitNoiseModel(NoiseModel):
         return protocols.obj_to_dict_helper(self, ['qubit_noise_gate'])
 
 
-NO_NOISE = _NoNoiseModel()  # type: cirq.NoiseModel
-"""An object which can be unambiguously converted into a noise model."""
+NO_NOISE: 'cirq.NoiseModel' = _NoNoiseModel()
+document(
+    NO_NOISE, """The trivial noise model with no effects.
+
+    This is the noise model used when a `NOISE_MODEL_LIKE` noise parameter is
+    set to `None`.
+    """)
+
 NOISE_MODEL_LIKE = Union[None, 'cirq.NoiseModel', 'cirq.SingleQubitGate']
+document(
+    NOISE_MODEL_LIKE,  # type: ignore
+    """A `cirq.NoiseModel` or a value that can be trivially converted into one.
+
+    `None` is a `NOISE_MODEL_LIKE`. It will be replaced by the `cirq.NO_NOISE`
+    noise model.
+
+    A single qubit gate is a `NOISE_MODEL_LIKE`. It will be wrapped inside of a
+    `cirq.ConstantQubitNoiseModel`.
+    """)

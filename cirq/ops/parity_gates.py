@@ -14,13 +14,17 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Union, Optional
+from typing import Union, Optional, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr
-from cirq.ops import gate_features, eigen_gate, common_gates
+from cirq._doc import document
+from cirq.ops import gate_features, eigen_gate, common_gates, pauli_gates
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class XXPowGate(eigen_gate.EigenGate,
@@ -59,7 +63,28 @@ class XXPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.X.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.X, False, pauli_gates.X,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.X_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
@@ -85,8 +110,8 @@ class XXPowGate(eigen_gate.EigenGate,
     def __repr__(self) -> str:
         if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
-                return 'cirq.MS(np.pi/2)'
-            return 'cirq.MS({!r}*np.pi/2)'.format(self._exponent)
+                return 'cirq.ms(np.pi/2)'
+            return 'cirq.ms({!r}*np.pi/2)'.format(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'
@@ -121,8 +146,29 @@ class YYPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _decompose_into_clifford_with_qubits_(self, qubits):
+        from cirq.ops.clifford_gate import SingleQubitCliffordGate
+        from cirq.ops.pauli_interaction_gate import PauliInteractionGate
+        if self.exponent % 2 == 0:
+            return []
+        if self.exponent % 2 == 0.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_sqrt.on_each(*qubits)
+            ]
+        if self.exponent % 2 == 1:
+            return [SingleQubitCliffordGate.Y.on_each(*qubits)]
+        if self.exponent % 2 == 1.5:
+            return [
+                PauliInteractionGate(pauli_gates.Y, False, pauli_gates.Y,
+                                     False).on(*qubits),
+                SingleQubitCliffordGate.Y_nsqrt.on_each(*qubits)
+            ]
+        return NotImplemented
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'),
             exponent=self._diagram_exponent(args))
@@ -178,8 +224,8 @@ class ZZPowGate(eigen_gate.EigenGate,
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> 'protocols.CircuitDiagramInfo':
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
             wire_symbols=('ZZ', 'ZZ'),
             exponent=self._diagram_exponent(args))
@@ -217,5 +263,20 @@ class ZZPowGate(eigen_gate.EigenGate,
 
 
 XX = XXPowGate()
+document(
+    XX, """The tensor product of two X gates.
+
+    The `exponent=1` instance of `cirq.XXPowGate`.
+    """)
 YY = YYPowGate()
+document(
+    YY, """The tensor product of two Y gates.
+
+    The `exponent=1` instance of `cirq.YYPowGate`.
+    """)
 ZZ = ZZPowGate()
+document(
+    ZZ, """The tensor product of two Z gates.
+
+    The `exponent=1` instance of `cirq.ZZPowGate`.
+    """)

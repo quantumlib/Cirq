@@ -17,6 +17,7 @@ from typing_extensions import Protocol
 import sympy
 
 from cirq import study
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
@@ -28,11 +29,13 @@ class SupportsParameterization(Protocol):
     """An object that can be parameterized by Symbols and resolved
     via a ParamResolver"""
 
+    @document
     def _is_parameterized_(self: Any) -> bool:
         """Whether the gate is parameterized by any Symbols that require
         resolution.  Returns True if the gate has any unresolved Symbols
         and False otherwise."""
 
+    @document
     def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver'):
         """Resolve the parameters in the effect."""
 

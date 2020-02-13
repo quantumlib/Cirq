@@ -10,6 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import inspect
+import re
 from typing import List, Any
 
 import os
@@ -19,11 +21,13 @@ import pypandoc
 
 cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)
+from cirq import _doc
 
 
 def setup(app):
     app.add_config_value('pandoc_use_parser', 'markdown', True)
-    app.connect('autodoc-process-docstring', pandoc_process)
+    app.connect('autodoc-process-docstring', autodoc_process)
+    app.connect('autodoc-skip-member', autodoc_skip_member)
 
 
 def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
@@ -41,7 +45,10 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
             # Avoid getting split across divs.
             s = ' '.join(s.split('\n'))
             # Avoid intermediate layers turning our newlines into slashes.
-            s = s.replace('\\\\', '\\newline')
+            s = s.replace('\\\\', r'\newline')
+            # Turn latex like "|x\rangle" into "|x \rangle".
+            # The extra space seems to be necessary to survive a later pass.
+            s = re.sub(r'([a-zA-Z0-9])\\', r'\1 \\', s)
             # Keep the $$ so MathJax can find it.
             result.append('$${}$$'.format(s))
         else:
@@ -60,14 +67,29 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
     return result
 
 
-def pandoc_process(app,
-                   what: str,
-                   name: str,
-                   obj: Any,
-                   options,
-                   lines: List[str]
-                   ) -> None:
-    if not getattr(obj, '__module__', 'cirq').startswith('cirq'):
+def autodoc_skip_member(
+        app,
+        what: str,
+        name: str,
+        obj: Any,
+        skip: bool,
+        options,
+) -> bool:
+    """Public members already kept. Also include members marked as documented.
+    """
+    return id(obj) not in _doc.RECORDED_CONST_DOCS
+
+
+def autodoc_process(app, what: str, name: str, obj: Any, options,
+                    lines: List[str]) -> None:
+    # Try to lookup in documented dictionary.
+    found = _doc.RECORDED_CONST_DOCS.get(id(obj))
+    if name.startswith('cirq') and found is not None:
+        # Override docstring if requested.
+        if found.doc_string is not None:
+            new_doc_string = inspect.cleandoc(found.doc_string)
+            lines[:] = new_doc_string.split('\n')
+    elif not (getattr(obj, '__module__', 'cirq') or '').startswith('cirq'):
         # Don't convert objects from other modules.
         return
 
@@ -164,7 +186,7 @@ html_favicon = 'favicon.ico'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-# html_static_path = ['_static']
+html_static_path = ['_static']
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -175,6 +197,9 @@ html_favicon = 'favicon.ico'
 # 'searchbox.html']``.
 #
 # html_sidebars = {}
+
+html_logo = '_static/Cirq_logo_notext.png'
+html_css_files = ['tweak-style.css']
 
 
 # -- Options for HTMLHelp output -----------------------------------------

@@ -13,11 +13,11 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
-from typing import overload, Any, Callable, Dict, List, Optional, Tuple, Union
-import numbers
+from typing import overload, Any, Callable, List, Optional, Tuple, Union
+
 import sympy
 
-from cirq import protocols, value
+from cirq import protocols
 from cirq.study import resolver, sweeps, sweepable
 
 
@@ -42,7 +42,15 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
     to a sweep over the flattened symbols e.g. a sweep over `sympy.Symbol('x')`
     to a sweep over `sympy.Symbol('<x + 1>')`.
 
-    Example:
+    Args:
+        val: The value to copy and substitute parameter expressions with
+        flattened symbols.
+
+    Returns:
+        The tuple (new value, expression map) where new value and expression map
+        are described above.
+
+    Examples:
         >>> qubit = cirq.LineQubit(0)
         >>> a = sympy.Symbol('a')
         >>> circuit = cirq.Circuit(
@@ -75,8 +83,9 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         {'<a/4>': 0.75, '<1 - a/2>': -0.5}
 
         >>> for params in sweep:  # Original
-        ...     print(circuit, '=>', end=' ')
-        ...     print(cirq.resolve_parameters(circuit, params))
+        ...     print(circuit,
+        ...           '=>',
+        ...           cirq.resolve_parameters(circuit, params))
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0───Y───
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.25───Y^0.5───
         0: ───X^(a/4)───Y^(1 - a/2)─── => 0: ───X^0.5───Y^0───
@@ -89,14 +98,6 @@ def flatten(val: Any) -> Tuple[Any, 'ExpressionMap']:
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.25───Y^0.5───
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.5───Y^0───
         0: ───X^(<a/4>)───Y^(<1 - a/2>)─── => 0: ───X^0.75───Y^-0.5───
-
-    Args:
-        val: The value to copy and substitute parameter expressions with
-        flattened symbols.
-
-    Returns:
-        The tuple (new value, expression map) where new value and expression map
-        are described above.
     """
     flattener = _ParamFlattener()
     val_flat = flattener.flatten(val)
@@ -261,7 +262,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, numbers.Real):
+        if isinstance(value, (int, float)):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)

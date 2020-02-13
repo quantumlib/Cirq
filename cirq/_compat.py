@@ -14,7 +14,7 @@
 
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
-import logging
+import warnings
 from typing import Any, Callable, Optional, Dict, Tuple
 
 import numpy as np
@@ -63,15 +63,33 @@ def proper_repr(value: Any) -> str:
     return repr(value)
 
 
-def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
-              ) -> Callable[[Callable], Callable]:
+def proper_eq(a: Any, b: Any) -> bool:
+    """Compares objects for equality, working around __eq__ not always working.
+
+    For example, in numpy a == b broadcasts and returns an array instead of
+    doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
+    when dealing with numpy arrays.
+    """
+    if type(a) == type(b):
+        if isinstance(a, np.ndarray):
+            return np.array_equal(a, b)
+        if isinstance(a, (pd.DataFrame, pd.Index, pd.MultiIndex)):
+            return a.equals(b)
+        if isinstance(a, (tuple, list)):
+            return len(a) == len(b) and all(
+                proper_eq(x, y) for x, y in zip(a, b))
+    return a == b
+
+
+def deprecated(*, deadline: str, fix: str,
+               name: Optional[str] = None) -> Callable[[Callable], Callable]:
     """Marks a function as deprecated.
 
     Args:
         deadline: The version where the function will be deleted (e.g. "v0.7").
         fix: A complete sentence describing what the user should be using
             instead of this particular function (e.g. "Use cos instead.")
-        func_name: How to refer to the function.
+        name: How to refer to the function.
             Defaults to `func.__qualname__`.
 
     Returns:
@@ -79,20 +97,16 @@ def deprecated(*, deadline: str, fix: str, func_name: Optional[str] = None
     """
 
     def decorator(func: Callable) -> Callable:
-        used = False
 
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
-            nonlocal used
-            if not used:
-                used = True
-                qualname = (func.__qualname__
-                            if func_name is None else func_name)
-                logging.warning(
-                    'DEPRECATION\n'
-                    'The function %s was used but is deprecated.\n'
-                    'It will be removed in cirq %s.\n'
-                    '%s\n', qualname, deadline, fix)
+            qualname = (func.__qualname__ if name is None else name)
+            warnings.warn(
+                f'{qualname} was used but is deprecated.\n'
+                f'It will be removed in cirq {deadline}.\n'
+                f'{fix}\n',
+                DeprecationWarning,
+                stacklevel=2)
 
             return func(*args, **kwargs)
 
@@ -144,24 +158,22 @@ def deprecated_parameter(
     """
 
     def decorator(func: Callable) -> Callable:
-        used = False
 
         @functools.wraps(func)
         def decorated_func(*args, **kwargs) -> Any:
-            nonlocal used
             if match(args, kwargs):
                 if rewrite is not None:
                     args, kwargs = rewrite(args, kwargs)
 
-                if not used:
-                    used = True
-                    qualname = (func.__qualname__
-                                if func_name is None else func_name)
-                    logging.warning(
-                        'DEPRECATION\n'
-                        f'The %s parameter of %s was used but is deprecated.\n'
-                        'It will be removed in cirq %s.\n'
-                        '%s\n', parameter_desc, qualname, deadline, fix)
+                qualname = (func.__qualname__
+                            if func_name is None else func_name)
+                warnings.warn(
+                    f'The {parameter_desc} parameter of {qualname} was '
+                    f'used but is deprecated.\n'
+                    f'It will be removed in cirq {deadline}.\n'
+                    f'{fix}\n',
+                    DeprecationWarning,
+                    stacklevel=2)
 
             return func(*args, **kwargs)
 

@@ -28,7 +28,7 @@ def random_seed():
 
 
 @pytest.mark.parametrize('n_moments,algo,circuit_seed,routing_seed',
-                         [(30, algo, random_seed(), random_seed())
+                         [(20, algo, random_seed(), random_seed())
                           for algo in ccr.ROUTERS
                           for _ in range(5)] +
                          [(0, 'greedy', random_seed(), random_seed())] +
@@ -55,7 +55,7 @@ def test_route_circuit(n_moments, algo, circuit_seed, routing_seed):
     'algo,seed',
     [(algo, random_seed()) for algo in ccr.ROUTERS for _ in range(3)])
 def test_route_circuit_reproducible_with_seed(algo, seed):
-    circuit = cirq.testing.random_circuit(10, 30, 0.5, random_state=seed)
+    circuit = cirq.testing.random_circuit(8, 20, 0.5, random_state=seed)
     device_graph = ccr.get_grid_device_graph(4, 3)
     wrappers = (lambda s: s, np.random.RandomState)
 

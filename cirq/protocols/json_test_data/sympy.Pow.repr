@@ -1,0 +1,5 @@
+[
+sympy.Pow(sympy.Symbol('s'), sympy.Symbol('t')),
+sympy.Pow(sympy.Symbol('s'), sympy.Integer(2)),
+sympy.Pow(sympy.Integer(2), sympy.Symbol('s')),
+]

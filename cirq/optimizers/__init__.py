@@ -14,6 +14,9 @@
 
 """Circuit transformation utilities."""
 
+from cirq.optimizers.controlled_gate_decomposition import (
+    decompose_multi_controlled_x, decompose_multi_controlled_rotation)
+
 from cirq.optimizers.drop_empty_moments import (
     DropEmptyMoments,)
 
@@ -53,3 +56,6 @@ from cirq.optimizers.synchronize_terminal_measurements import (
 
 from cirq.optimizers.two_qubit_decompositions import (
     two_qubit_matrix_to_operations,)
+
+from cirq.optimizers.two_qubit_to_fsim import (
+    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,)

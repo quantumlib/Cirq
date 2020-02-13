@@ -22,6 +22,7 @@ from cirq import (
     # Low level
     _version,
     _compat,
+    _doc,
     type_workarounds,
 )
 with _import.delay_import('cirq.protocols'):
@@ -37,7 +38,6 @@ with _import.delay_import('cirq.protocols'):
 from cirq import (
     # Core
     circuits,
-    schedules,
     # Optimize and run
     optimizers,
     work,
@@ -46,8 +46,8 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    api,
     google,
+    interop,
     # Applications
     experiments,
     # Extra (nothing should depend on these)
@@ -86,6 +86,7 @@ from cirq.devices import (
 )
 
 from cirq.experiments import (
+    estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
@@ -95,6 +96,11 @@ from cirq.experiments import (
     generate_boixo_2018_supremacy_circuits_v2_bristlecone,
     generate_boixo_2018_supremacy_circuits_v2_grid,
     xeb_fidelity,
+)
+
+from cirq.interop import (
+    quirk_json_to_circuit,
+    quirk_url_to_circuit,
 )
 
 from cirq.linalg import (
@@ -107,7 +113,6 @@ from cirq.linalg import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     block_diag,
-    commutes,
     CONTROL_TAG,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
@@ -183,30 +188,34 @@ from cirq.ops import (
     GateOperation,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
+    givens,
     GivensRotation,
     GlobalPhaseOperation,
     H,
     HPowGate,
     I,
-    identity,
+    identity_each,
     IdentityGate,
+    IdentityOperation,
     InterchangeableQubitsGate,
     ISWAP,
     ISwapPowGate,
+    ISwapRotation,
     LinearCombinationOfGates,
     LinearCombinationOfOperations,
+    MatrixGate,
     measure,
     measure_each,
     MeasurementGate,
     Moment,
     MutableDensePauliString,
     NamedQubit,
-    op_gate_isinstance,
     op_gate_of_type,
     OP_TREE,
     Operation,
     ParallelGateOperation,
     Pauli,
+    PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliInteractionGate,
     PauliString,
@@ -221,6 +230,7 @@ from cirq.ops import (
     PhaseGradientGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
+    PhasedXZGate,
     PhaseFlipChannel,
     QFT,
     Qid,
@@ -229,9 +239,13 @@ from cirq.ops import (
     QubitOrderOrList,
     reset,
     ResetChannel,
+    riswap,
     Rx,
+    rx,
     Ry,
+    ry,
     Rz,
+    rz,
     S,
     SingleQubitCliffordGate,
     SingleQubitGate,
@@ -240,6 +254,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
@@ -263,6 +278,9 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
+    decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
     EjectPhasedPaulis,
@@ -280,14 +298,15 @@ from cirq.optimizers import (
     two_qubit_matrix_to_operations,
 )
 
-from cirq.schedules import (
-    moment_by_moment_schedule,
-    Schedule,
-    ScheduledOperation,
-)
-
 from cirq.sim import (
     bloch_vector_from_state_vector,
+    StabilizerStateChForm,
+    CIRCUIT_LIKE,
+    CliffordSimulator,
+    CliffordState,
+    CliffordSimulatorStepResult,
+    CliffordTableau,
+    CliffordTrialResult,
     density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
@@ -296,6 +315,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_density_matrix,
     final_wavefunction,
     sample,
     sample_density_matrix,
@@ -309,6 +329,7 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
+    STATE_VECTOR_LIKE,
     StateVectorMixin,
     StepResult,
     to_valid_density_matrix,
@@ -365,18 +386,23 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
     channel,
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
+    commutes,
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DEFAULT_RESOLVERS,
+    definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
     has_mixture,
@@ -385,6 +411,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    json_serializable_dataclass,
     measurement_key,
     mixture,
     mixture_channel,
@@ -399,15 +426,20 @@ from cirq.protocols import (
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
+    SupportsApplyMixture,
     SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsCommutes,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
+    SupportsEqualUpToGlobalPhase,
     SupportsExplicitHasUnitary,
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
+    SupportsJSON,
+    SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
     SupportsPhase,
@@ -427,6 +459,7 @@ from cirq.ion import (
     ConvertToIonGates,
     IonDevice,
     MS,
+    ms,
     two_qubit_matrix_to_ion_operations,
 )
 from cirq.neutral_atoms import (

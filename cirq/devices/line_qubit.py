@@ -13,11 +13,15 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar
+from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar, \
+    TYPE_CHECKING
 
 import abc
 
 from cirq import ops, protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 TSelf = TypeVar('TSelf', bound='_BaseLineQid')
 
@@ -28,15 +32,19 @@ class _BaseLineQid(ops.Qid):
 
     def __init__(self, x: int) -> None:
         """Initializes a line qubit at the given x coordinate."""
-        self.x = x
+        self._x = x
 
     def _comparison_key(self):
         return self.x
 
+    @property
+    def x(self) -> int:
+        return self._x
+
     def with_dimension(self, dimension: int) -> 'LineQid':
         return LineQid(self.x, dimension)
 
-    def is_adjacent(self, other: ops.Qid) -> bool:
+    def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent line qubits."""
         return isinstance(other, _BaseLineQid) and abs(self.x - other.x) == 1
 

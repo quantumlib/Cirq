@@ -25,7 +25,8 @@ from cirq.contrib.quantum_volume import calculate_quantum_volume
 import cirq
 
 
-def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int):
+def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int,
+         routes: int):
     """Run the quantum volume algorithm with a preset configuration.
 
     See the calculate_quantum_volume documentation for more details.
@@ -46,9 +47,10 @@ def main(*, num_qubits: int, depth: int, num_circuits: int, seed: int):
     calculate_quantum_volume(num_qubits=num_qubits,
                              depth=depth,
                              num_circuits=num_circuits,
-                             seed=seed,
-                             device=device,
+                             random_state=seed,
+                             device_or_qubits=device,
                              samplers=[cirq.Simulator(), noisy],
+                             routing_attempts=routes,
                              compiler=compiler)
 
 
@@ -63,6 +65,10 @@ def parse_arguments(args):
                         default=4,
                         type=int,
                         help='SU(4) circuit depth.')
+    parser.add_argument('--routes',
+                        default=30,
+                        type=int,
+                        help='Number of different qubit routes to try')
     parser.add_argument('--seed',
                         default=None,
                         type=int,

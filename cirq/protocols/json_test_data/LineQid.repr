@@ -1,0 +1,1 @@
+[cirq.LineQid(0, dimension=1), cirq.LineQid(123, dimension=2), cirq.LineQid(-4, dimension=5)]

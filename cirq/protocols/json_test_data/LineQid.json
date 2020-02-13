@@ -1,0 +1,17 @@
+[
+  {
+    "cirq_type": "LineQid",
+    "x": 0,
+    "dimension": 1
+  },
+  {
+    "cirq_type": "LineQid",
+    "x": 123,
+    "dimension": 2
+  },
+  {
+    "cirq_type": "LineQid",
+    "x": -4,
+    "dimension": 5
+  }
+]

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 class EngineProgram:
     """A program created via the Quantum Engine API.
 
-    This program wraps a Circuit or Schedule with additional metadata used to
+    This program wraps a Circuit with additional metadata used to
     schedule against the devices managed by Quantum Engine.
 
     Attributes:
@@ -85,10 +85,10 @@ class EngineProgram:
             repetitions: int = 1,
             priority: int = 50,
             processor_ids: Sequence[str] = ('xmonsim',)) -> study.TrialResult:
-        """Runs the supplied Circuit or Schedule via Quantum Engine.
+        """Runs the supplied Circuit via Quantum Engine.
 
         Args:
-            program: A Quantum Engine-wrapped Circuit or Schedule object. This
+            program: A Quantum Engine-wrapped Circuit object. This
               may be generated with create_program() or get_program().
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this

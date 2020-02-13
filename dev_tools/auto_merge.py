@@ -329,16 +329,14 @@ def classify_pr_synced_state(pr: PullRequestDetails) -> Optional[bool]:
     return classification.get(state, None)
 
 
-def get_pr_review_status(pr: PullRequestDetails) -> Any:
+def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     """
     References:
         https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request
     """
-    url = ("https://api.github.com/repos/{}/{}/pulls/{}/reviews"
-           "?access_token={}".format(pr.repo.organization,
-                                     pr.repo.name,
-                                     pr.pull_id,
-                                     pr.repo.access_token))
+    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+           f"/pulls/{pr.pull_id}/reviews"
+           f"?per_page={per_page};access_token={pr.repo.access_token}")
     response = requests.get(url)
 
     if response.status_code != 200:
@@ -698,12 +696,10 @@ def remove_label_from_pr(repo: GithubRepository,
 
 
 def list_open_pull_requests(repo: GithubRepository,
-                            base_branch: Optional[str] = None
-                            ) -> List[PullRequestDetails]:
-    url = ("https://api.github.com/repos/{}/{}/pulls"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     repo.access_token))
+                            base_branch: Optional[str] = None,
+                            per_page: int = 100) -> List[PullRequestDetails]:
+    url = (f"https://api.github.com/repos/{repo.organization}/{repo.name}/pulls"
+           f"?per_page={per_page};access_token={repo.access_token}")
     data = {
         'state': 'open',
     }

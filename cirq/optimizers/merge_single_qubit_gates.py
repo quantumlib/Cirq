@@ -14,12 +14,15 @@
 
 """An optimization pass that combines adjacent single-qubit rotations."""
 
-from typing import Optional, Callable, List
+from typing import Optional, Callable, List, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.optimizers import decompositions
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class MergeSingleQubitGates(circuits.PointOptimizer):
@@ -70,7 +73,7 @@ class MergeSingleQubitGates(circuits.PointOptimizer):
             return self._synthesizer(q, unitary)
 
         # Just use the default.
-        return ops.SingleQubitMatrixGate(unitary).on(q)
+        return ops.MatrixGate(unitary).on(q)
 
     def optimization_at(self,
                         circuit: circuits.Circuit,
@@ -112,7 +115,7 @@ def merge_single_qubit_gates_into_phased_x_z(
             negligible gates to be dropped, smaller values increase accuracy.
     """
 
-    def synth(qubit: ops.Qid, matrix: np.ndarray) -> List[ops.Operation]:
+    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
         out_gates = decompositions.single_qubit_matrix_to_phased_x_z(
             matrix, atol)
         return [gate(qubit) for gate in out_gates]

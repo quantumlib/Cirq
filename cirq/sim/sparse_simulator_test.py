@@ -85,6 +85,26 @@ def test_run_bit_flips(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measure_at_end_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 4
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.Simulator(dtype=dtype)
@@ -143,6 +163,27 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype):
                                         {'m': [[1 - b0, b1]] * 3})
                 assert result.repetitions == 3
         assert mock_sim.call_count == 12
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measurement_not_terminal_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.Simulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1),
+                                       cirq.H(q0), cirq.H(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -775,8 +816,8 @@ def test_random_seed_does_not_modify_global_state_terminal_measurements():
 def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(
-        cirq.X(a)**0.5, cirq.measure(a),
-        cirq.X(a)**0.5, cirq.measure(a))
+        cirq.X(a)**0.5, cirq.measure(a, key='a0'),
+        cirq.X(a)**0.5, cirq.measure(a, key='a1'))
 
     sim = cirq.Simulator(seed=1234)
     result1 = sim.run(circuit, repetitions=50)
@@ -802,3 +843,52 @@ def test_random_seed_does_not_modify_global_state_mixture():
     result2 = sim.run(circuit, repetitions=50)
 
     assert result1 == result2
+
+
+def test_random_seed_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(cirq.X(a)**0.5, cirq.measure(a, key='a'))
+    sim = cirq.Simulator(seed=1234)
+    result1 = sim.run(circuit, repetitions=30)
+    result2 = sim.run(circuit, repetitions=30)
+    assert np.all(result1.measurements['a'] ==
+                  [[0], [1], [0], [1], [1], [0], [0], [1], [1], [1], [0], [1],
+                   [1], [1], [0], [1], [1], [0], [1], [1], [0], [1], [0], [0],
+                   [1], [1], [0], [1], [0], [1]])
+    assert np.all(result2.measurements['a'] ==
+                  [[1], [0], [1], [0], [1], [1], [0], [1], [0], [1], [0], [0],
+                   [0], [1], [1], [1], [0], [1], [0], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [1], [1], [1]])
+
+
+def test_random_seed_non_terminal_measurements_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.X(a)**0.5, cirq.measure(a, key='a'),
+        cirq.X(a)**0.5, cirq.measure(a, key='b'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[0], [0], [1], [0], [1], [0], [1], [0], [1], [1], [0], [0],
+                   [1], [0], [0], [1], [1], [1], [0], [0], [0], [0], [1], [0],
+                   [0], [0], [1], [1], [1], [1]])
+    assert np.all(result.measurements['b'] ==
+                  [[1], [1], [0], [1], [1], [1], [1], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [0], [0], [1], [1], [1], [0], [1], [1], [1],
+                   [1], [1], [0], [1], [1], [1]])
+
+
+def test_random_seed_mixture_deterministic():
+    a = cirq.NamedQubit('a')
+    circuit = cirq.Circuit(
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a),
+        cirq.depolarize(0.9).on(a), cirq.measure(a, key='a'))
+    sim = cirq.Simulator(seed=1234)
+    result = sim.run(circuit, repetitions=30)
+    assert np.all(result.measurements['a'] ==
+                  [[1], [0], [0], [0], [1], [0], [0], [1], [1], [1], [1], [1],
+                   [0], [1], [0], [0], [0], [0], [0], [1], [0], [1], [1], [0],
+                   [1], [1], [1], [1], [1], [0]])

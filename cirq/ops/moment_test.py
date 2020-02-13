@@ -253,3 +253,24 @@ def test_inverse():
     assert cirq.inverse(m) == m**-1
     assert cirq.inverse(cirq.inverse(m)) == m
     assert cirq.inverse(cirq.Moment([cirq.measure(a)]), default=None) is None
+
+
+def test_immutable_moment():
+    with pytest.raises(AttributeError):
+        q1, q2 = cirq.LineQubit.range(2)
+        circuit = cirq.Circuit(cirq.X(q1))
+        moment = circuit.moments[0]
+        moment.operations += (cirq.Y(q2),)
+
+
+def test_add():
+    a, b = cirq.LineQubit.range(2)
+    expected_circuit = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a), cirq.Y(b)])
+
+    circuit1 = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a)])
+    circuit1[1] += cirq.Y(b)
+    assert circuit1 == expected_circuit
+
+    circuit2 = cirq.Circuit(cirq.CNOT(a, b), cirq.Y(b))
+    circuit2[1] += cirq.X(a)
+    assert circuit2 == expected_circuit

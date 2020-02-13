@@ -37,15 +37,6 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
             raise ValueError('not isinstance({!r}, {!r})'.format(
                 moment, cirq.Moment))
 
-    def duration_of(self, operation):
-        return cirq.Duration(picos=0) # coverage: ignore
-
-    def validate_schedule(self, schedule):
-        pass
-
-    def validate_scheduled_operation(self, schedule, scheduled_operation):
-        pass
-
 
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
@@ -125,20 +116,7 @@ def test_approx_eq():
 
     class TestDevice(cirq.Device):
 
-        def duration_of(self, operation: cirq.Operation) -> cirq.Duration:
-            pass
-
         def validate_operation(self, operation: cirq.Operation) -> None:
-            pass
-
-        def validate_scheduled_operation(
-                self,
-                schedule: cirq.Schedule,
-                scheduled_operation: cirq.ScheduledOperation
-        ) -> None:
-            pass
-
-        def validate_schedule(self, schedule: 'cirq.Schedule') -> None:
             pass
 
     a = cirq.NamedQubit('a')
@@ -246,6 +224,47 @@ def test_add_op_tree():
     assert c + (cirq.X(a) for _ in range(1)) == cirq.Circuit(cirq.X(a))
     with pytest.raises(TypeError):
         _ = c + cirq.X
+
+
+def test_radd_op_tree():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+
+    c = cirq.Circuit()
+    assert [cirq.X(a), cirq.Y(b)] + c == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
+
+    assert cirq.X(a) + c == cirq.Circuit(cirq.X(a))
+    assert [cirq.X(a)] + c == cirq.Circuit(cirq.X(a))
+    assert [[[cirq.X(a)], []]] + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a),) + c == cirq.Circuit(cirq.X(a))
+    assert (cirq.X(a) for _ in range(1)) + c == cirq.Circuit(cirq.X(a))
+    with pytest.raises(AttributeError):
+        _ = cirq.X + c
+    with pytest.raises(TypeError):
+        _ = 0 + c
+
+    # non-empty circuit addition
+    d = cirq.Circuit()
+    d.append(cirq.Y(b))
+    assert [cirq.X(a)] + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([cirq.X(a)]) + d == cirq.Circuit(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+
+    # Preserves device.
+    c = cirq.Circuit(device=cirq.google.Bristlecone)
+    c2 = [] + c
+    assert c2.device is cirq.google.Bristlecone
+    assert c2 == c
+
+    # Validates versus device.
+    c = cirq.Circuit(device=cirq.google.Bristlecone)
+    with pytest.raises(ValueError, match='Unsupported qubit'):
+        _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
 
 def test_bool():
@@ -1180,7 +1199,12 @@ def test_findall_operations_until_blocked():
         assert circuit.findall_operations_until_blocked(
             start_frontier={d: idx}, is_blocker=stop_if_op) == []
         assert circuit.findall_operations_until_blocked(
-            start_frontier={a:idx, b:idx, c:idx, d: idx},
+            start_frontier={
+                a: idx,
+                b: idx,
+                c: idx,
+                d: idx
+            },
             is_blocker=stop_if_op) == []
 
     # Cases where nothing is blocked, it goes to the end
@@ -1294,7 +1318,7 @@ def test_are_all_measurements_terminal():
 
 def test_all_terminal():
     def is_x_pow_gate(op):
-        return cirq.op_gate_of_type(op, cirq.XPowGate) is not None
+        return isinstance(op.gate, cirq.XPowGate)
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1548,24 +1572,21 @@ def test_deprecated_from_ops():
     assert 'Circuit.from_ops' in log[0].getMessage()
     assert 'deprecated' in log[0].getMessage()
 
-    with capture_logging() as log:
-        _ = cirq.Circuit.from_ops()
-    assert len(log) == 0
-
-    actual = cirq.Circuit.from_ops(
-        cirq.X(a),
-        [cirq.Y(a), cirq.Z(b)],
-        cirq.CZ(a, b),
-        cirq.X(a),
-        [cirq.Z(b), cirq.Y(a)],
-    )
-    assert actual == cirq.Circuit([
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-        cirq.Moment([cirq.CZ(a, b)]),
-        cirq.Moment([cirq.X(a), cirq.Z(b)]),
-        cirq.Moment([cirq.Y(a)]),
-    ])
+    with capture_logging():
+        actual = cirq.Circuit.from_ops(
+            cirq.X(a),
+            [cirq.Y(a), cirq.Z(b)],
+            cirq.CZ(a, b),
+            cirq.X(a),
+            [cirq.Z(b), cirq.Y(a)],
+        )
+        assert actual == cirq.Circuit([
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+            cirq.Moment([cirq.CZ(a, b)]),
+            cirq.Moment([cirq.X(a), cirq.Z(b)]),
+            cirq.Moment([cirq.Y(a)]),
+        ])
 
 
 def test_to_text_diagram_teleportation_to_diagram():
@@ -1801,9 +1822,12 @@ def test_diagram_wgate():
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
-    cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43)^(1/8)---
-""", use_unicode_characters=False, precision=2)
+    cirq.testing.assert_has_diagram(c,
+                                    """
+a: ---PhX(0.43)^(1/8)---
+""",
+                                    use_unicode_characters=False,
+                                    precision=2)
 
 
 def test_diagram_wgate_none_precision():
@@ -1811,9 +1835,12 @@ def test_diagram_wgate_none_precision():
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
     c = cirq.Circuit([cirq.Moment([test_wgate.on(qa)])])
-    cirq.testing.assert_has_diagram(c, """
-a: ---PhasedX(0.43214321)^0.12341234---
-""", use_unicode_characters=False, precision=None)
+    cirq.testing.assert_has_diagram(c,
+                                    """
+a: ---PhX(0.43214321)^0.12341234---
+""",
+                                    use_unicode_characters=False,
+                                    precision=None)
 
 
 def test_has_unitary():
@@ -3157,25 +3184,6 @@ def test_moment_groups():
 (0, 7): ────H──────H─────────────────────
            └──┘   └───┘   └───┘   └──┘
 """, use_unicode_characters=True)
-
-
-def test_deprecated_to_unitary_matrix():
-    with capture_logging() as log:
-        np.testing.assert_allclose(cirq.Circuit().to_unitary_matrix(),
-                                   cirq.Circuit().unitary())
-    assert len(log) == 1
-    assert 'to_unitary_matrix' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-
-def test_deprecated_apply_unitary_effect_to_state():
-    with capture_logging() as log:
-        np.testing.assert_allclose(
-            cirq.Circuit().apply_unitary_effect_to_state(),
-            cirq.Circuit().final_wavefunction())
-    assert len(log) == 1
-    assert 'apply_unitary_effect_to_state' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
 
 
 def test_moments_property():

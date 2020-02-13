@@ -15,10 +15,7 @@
 """Utilities for testing code."""
 
 from cirq.testing.asynchronous import (
-    assert_asyncio_still_running,
-    assert_asyncio_will_have_result,
-    assert_asyncio_will_raise,
-)
+    asyncio_pending,)
 
 from cirq.testing.circuit_compare import (
     assert_circuits_with_terminal_measurements_are_equivalent,
@@ -43,6 +40,7 @@ from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
     assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols,
+    assert_commutes_magic_method_consistent_with_unitaries,
 )
 
 from cirq.testing.consistent_qasm import (
@@ -53,6 +51,9 @@ from cirq.testing.equals_tester import (
 
 from cirq.testing.equivalent_repr_eval import (
     assert_equivalent_repr,)
+
+from cirq.testing.json import (
+    assert_json_roundtrip_works,)
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
