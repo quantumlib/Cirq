@@ -39,12 +39,14 @@ from cirq.google.engine import (
     JobConfig,
     ProtoVersion,
     QuantumEngineSampler,
+    get_engine_sampler,
 )
 
 from cirq.google.gate_sets import (
     XMON,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
+    NAMED_GATESETS,
 )
 
 from cirq.google.line import (

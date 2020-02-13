@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import os
 from typing import List, TYPE_CHECKING, Union
 
 from cirq import work
-from cirq.google import engine
+from cirq.google import engine, gate_sets
 
 if TYPE_CHECKING:
     import cirq
@@ -64,3 +64,26 @@ class QuantumEngineSampler(work.Sampler):
     @property
     def engine(self) -> 'cirq.google.Engine':
         return self._engine
+
+
+def get_engine_sampler(processor_id: str, gate_set_name: str) \
+        -> 'cirq.google.QuantumEngineSampler':
+    """Get an EngineSampler assuming some sensible defaults.
+
+    This requires an environment variable GOOGLE_GLOUD_PROJECT to be
+    set for the Engine project_id. We also assume you are using ProtoVersion.V2.
+
+    Args:
+        processor_id: Engine processor ID (from cloud console)
+        gate_set_name: One of ['sqrt-iswap', 'syc'].
+            See `cirq.google.NAMED_GATESETS`.
+    """
+    try:
+        gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
+    except KeyError:
+        raise ValueError(f"Please use one of the following gateset names: "
+                         f"{sorted(gate_sets.NAMED_GATESETS.keys())}")
+
+    return engine.Engine(project_id=os.environ['GOOGLE_CLOUD_PROJECT'],
+                         proto_version=engine.ProtoVersion.V2) \
+        .sampler(processor_id=processor_id, gate_set=gate_set)

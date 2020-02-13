@@ -83,5 +83,9 @@ XMON = serializable_gate_set.SerializableGateSet(
         MEASUREMENT_DESERIALIZER,
     ],
 )
-
 document(XMON, """Gate set for XMON devices.""")
+
+NAMED_GATESETS = {
+    'sqrt-iswap': SQRT_ISWAP_GATESET,
+    'syc': SYC_GATESET,
+}

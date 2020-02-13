@@ -14,6 +14,8 @@
 
 from unittest import mock
 
+import pytest
+
 import cirq
 import cirq.google as cg
 
@@ -53,3 +55,14 @@ def test_engine_sampler_engine_property():
                                       processor_id='tmp',
                                       gate_set=cg.XMON)
     assert sampler.engine is engine
+
+
+def test_get_engine_sampler(monkeypatch):
+    monkeypatch.setenv('GOOGLE_CLOUD_PROJECT', 'myproj')
+    sampler = cg.get_engine_sampler(processor_id='hi mom',
+                                    gate_set_name='sqrt-iswap')
+    assert hasattr(sampler, 'run_sweep')
+
+    with pytest.raises(ValueError):
+        sampler = cg.get_engine_sampler(processor_id='hi mom',
+                                        gate_set_name='ccz')
