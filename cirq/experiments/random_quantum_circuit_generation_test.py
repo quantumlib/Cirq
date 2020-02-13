@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Callable, Iterable, List, Sequence, Set, TYPE_CHECKING,
+from typing import (Callable, Dict, Iterable, List, Optional, Sequence, Set,
                     Tuple, cast)
 
 import numpy as np
@@ -22,9 +22,6 @@ import cirq
 from cirq.experiments import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
-
-if TYPE_CHECKING:
-    from typing import Dict, Optional
 
 SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
 
