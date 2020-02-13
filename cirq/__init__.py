@@ -254,6 +254,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
@@ -277,6 +278,8 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
@@ -398,6 +401,7 @@ from cirq.protocols import (
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DEFAULT_RESOLVERS,
     definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
@@ -407,6 +411,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    json_serializable_dataclass,
     measurement_key,
     mixture,
     mixture_channel,
