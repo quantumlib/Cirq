@@ -481,9 +481,11 @@ def test_circuit_diagram():
 
 
 def test_circuit_diagram_corner_cases():
+    # Tests global phase operation
     global_phase = cirq.GlobalPhaseOperation(coefficient=1.0).with_tags('tag0')
+    expected_diagram = "\n\nglobal phase ['tag0']: 1.0"
     assert global_phase._circuit_diagram_info_(args=None) == NotImplemented
-    assert cirq.Circuit(global_phase).to_text_diagram() == ''
+    assert cirq.Circuit(global_phase).to_text_diagram() == expected_diagram
     expected = cirq.CircuitDiagramInfo(wire_symbols=tuple(),
                                        exponent=1.0,
                                        connected=True,
@@ -499,7 +501,25 @@ def test_circuit_diagram_corner_cases():
 
     no_wire_symbol_op = NoWireSymbols(coefficient=1.0).with_tags('tag0')
     assert no_wire_symbol_op._circuit_diagram_info_(args=None) == expected
-    assert cirq.Circuit(no_wire_symbol_op).to_text_diagram() == ''
+    assert cirq.Circuit(no_wire_symbol_op).to_text_diagram() == expected_diagram
+
+
+def test_circuit_diagram_no_circuit_diagram():
+
+    class NoCircuitDiagram(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def __repr__(self):
+            return 'guess-i-will-repr'
+
+    q = cirq.GridQubit(1, 1)
+    expected = "(1, 1): ───guess-i-will-repr───"
+    assert cirq.Circuit(NoCircuitDiagram()(q)).to_text_diagram() == expected
+    expected = "(1, 1): ───guess-i-will-repr ['taggy']───"
+    assert cirq.Circuit(
+        NoCircuitDiagram()(q).with_tags('taggy')).to_text_diagram() == expected
 
 
 def test_tagged_operation_forwards_protocols():

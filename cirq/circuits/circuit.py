@@ -1574,12 +1574,20 @@ class Circuit:
         diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
-        if any(
-                isinstance(op, cirq.GlobalPhaseOperation)
-                for op in self.all_operations()):
-            diagram.write(0,
-                          max(qubit_map.values(), default=0) + 1,
-                          'global phase:')
+
+        # Print out global phase information
+        for op in self.all_operations():
+            if isinstance(op, cirq.GlobalPhaseOperation):
+                diagram.write(0,
+                              max(qubit_map.values(), default=0) + 1,
+                              f'global phase: {op.coefficient}')
+            if (isinstance(op, cirq.TaggedOperation) and
+                    isinstance(op.sub_operation, cirq.GlobalPhaseOperation)):
+                diagram.write(
+                    0,
+                    max(qubit_map.values(), default=0) + 1,
+                    f'global phase {str(list(op.tags))}: '
+                    f'{op.sub_operation.coefficient}')
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
@@ -1741,11 +1749,19 @@ def _get_operation_circuit_diagram_info_with_fallback(
     # Fallback to a default representation using the operation's __str__.
     name = str(op)
 
+    # For TaggedOperation, use the sub_operations __str__ instead
+    if isinstance(op, cirq.TaggedOperation):
+        name = str(op.sub_operation)
+
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
     redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
     if name.endswith(redundant_tail):
         name = name[:-len(redundant_tail)]
+
+    # Add tags onto the representation, if they exist
+    if isinstance(op, cirq.TaggedOperation):
+        name += f' {list(op.tags)}'
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple('#{}'.format(i + 1)

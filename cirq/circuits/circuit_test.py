@@ -1843,6 +1843,16 @@ a: ---PhX(0.43214321)^0.12341234---
                                     precision=None)
 
 
+def test_diagram_global_phase():
+    qa = cirq.NamedQubit('a')
+    global_phase = cirq.GlobalPhaseOperation(coefficient=1.0)
+    c = cirq.Circuit([global_phase])
+    cirq.testing.assert_has_diagram(c,
+                                    "\n\nglobal phase: 1.0",
+                                    use_unicode_characters=False,
+                                    precision=2)
+
+
 def test_has_unitary():
 
     class NonUnitary(cirq.SingleQubitGate):
