@@ -14,6 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
+import numbers
 from typing import cast, Any, Tuple, Optional, Iterable, TYPE_CHECKING
 
 import numpy as np
@@ -77,14 +78,14 @@ class MatrixGate(raw_types.Gate):
         return self._qid_shape
 
     def __pow__(self, exponent: Any) -> 'MatrixGate':
-        if not isinstance(exponent, (int, float)):
+        if not isinstance(exponent, numbers.Real):
             return NotImplemented
         e = cast(float, exponent)
         new_mat = linalg.map_eigenvalues(self._matrix, lambda b: b**e)
         return MatrixGate(new_mat, qid_shape=self._qid_shape)
 
     def _phase_by_(self, phase_turns: float, qubit_index: int) -> 'MatrixGate':
-        if not isinstance(phase_turns, (int, float)):
+        if not isinstance(phase_turns, numbers.Real):
             return NotImplemented
         if self._qid_shape[qubit_index] != 2:
             return NotImplemented

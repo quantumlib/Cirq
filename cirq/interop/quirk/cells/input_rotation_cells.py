@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import Iterable, Iterator, Optional, Sequence, Union, List
 
 import numpy as np
@@ -65,7 +66,7 @@ class InputRotationCell(Cell):
                    register: Union[Sequence['cirq.Qid'], int]) -> 'Cell':
         # Parameterized rotations use input A as their parameter.
         if self.register is None and letter == 'a':
-            if isinstance(register, int):
+            if isinstance(register, numbers.Integral):
                 raise ValueError('Dependent operation requires known length '
                                  'input; classical constant not allowed.')
             return InputRotationCell(self.identifier, register,

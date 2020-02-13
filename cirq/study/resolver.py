@@ -14,6 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 
+import numbers
 from typing import Dict, Union, TYPE_CHECKING, cast
 import sympy
 from cirq._compat import proper_repr
@@ -87,7 +88,8 @@ class ParamResolver(object):
             The value of the parameter as resolved by this resolver.
         """
         # Input is a float, no resolution needed: return early
-        if isinstance(value, float):
+        if (isinstance(value, numbers.Real) and not
+            isinstance(value, numbers.Integral)):
             return value
 
         # Handles 2 cases:
@@ -96,7 +98,7 @@ class ParamResolver(object):
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            if isinstance(param_value, (float, int)):
+            if isinstance(param_value, numbers.Real):
                 return param_value
 
         # Input is a string and is not in the dictionary.

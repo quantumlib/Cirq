@@ -109,7 +109,7 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         return super().__isub__(other)
 
     def __pow__(self, exponent: int) -> 'LinearCombinationOfGates':
-        if not isinstance(exponent, int):
+        if not isinstance(exponent, numbers.Integral):
             return NotImplemented
         if exponent < 0:
             return NotImplemented
@@ -206,7 +206,7 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return tuple(sorted(all_qubits))
 
     def __pow__(self, exponent: int) -> 'LinearCombinationOfOperations':
-        if not isinstance(exponent, int):
+        if not isinstance(exponent, numbers.Integral):
             return NotImplemented
         if exponent < 0:
             return NotImplemented

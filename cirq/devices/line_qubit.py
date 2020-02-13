@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 import functools
 from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar, \
     TYPE_CHECKING
@@ -66,13 +67,13 @@ class _BaseLineQid(ops.Qid):
         '''Returns a qubit with the same type but a different value of `x`.'''
 
     def __add__(self: TSelf, other: int) -> TSelf:
-        if not isinstance(other, int):
+        if not isinstance(other, numbers.Integral):
             raise TypeError('Can only add ints and {}. Instead was {}'.format(
                 type(self).__name__, other))
         return self._with_x(self.x + other)
 
     def __sub__(self: TSelf, other: int) -> TSelf:
-        if not isinstance(other, int):
+        if not isinstance(other, numbers.Integral):
             raise TypeError('Can only subtract ints and {}. Instead was {}'
                             ''.format(type(self).__name__, other))
         return self._with_x(self.x - other)

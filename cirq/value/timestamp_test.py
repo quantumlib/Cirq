@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from datetime import timedelta
 import pytest
 
@@ -26,10 +27,12 @@ def test_init():
     assert Timestamp(nanos=211).raw_picos() == 211000
     assert Timestamp(nanos=211, picos=1051).raw_picos() == 212051
 
-    assert isinstance(Timestamp(picos=1).raw_picos(), int)
-    assert isinstance(Timestamp(nanos=1).raw_picos(), int)
-    assert isinstance(Timestamp(picos=1.0).raw_picos(), float)
-    assert isinstance(Timestamp(nanos=1.0).raw_picos(), float)
+    assert isinstance(Timestamp(picos=1).raw_picos(), numbers.Integral)
+    assert isinstance(Timestamp(nanos=1).raw_picos(), numbers.Integral)
+    assert (isinstance(Timestamp(picos=1.0).raw_picos(), numbers.Real) and not
+            isinstance(Timestamp(picos=1.0).raw_picos(), numbers.Integral))
+    assert (isinstance(Timestamp(nanos=1.0).raw_picos(), numbers.Real) and not
+            isinstance(Timestamp(nanos=1.0).raw_picos(), numbers.Integral))
 
 
 def test_repr():

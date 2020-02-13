@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
+import numbers
 from typing import Iterable, List, Optional, Set, Tuple, TYPE_CHECKING
 
 from cirq import ops, protocols
@@ -174,7 +174,7 @@ class GridQubit(ops.Qid):
         if isinstance(other, GridQubit):
             return GridQubit(row=self.row + other.row, col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+                all(isinstance(x, numbers.Integral) for x in other)):
             raise TypeError(
                 'Can only add tuples of length 2 to GridQubits. Was {}'.format(
                     other))
@@ -184,7 +184,7 @@ class GridQubit(ops.Qid):
         if isinstance(other, GridQubit):
             return GridQubit(row=self.row - other.row, col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+                all(isinstance(x, numbers.Integral) for x in other)):
             raise TypeError(
                 'Can only subtract tuples of length 2 to GridQubits. Was {}'.
                 format(other))

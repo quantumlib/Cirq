@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import List
 
 import numpy as np
@@ -65,7 +66,8 @@ def test_estimate_single_qubit_readout_errors_no_noise():
     assert result.zero_state_errors == {q: 0 for q in qubits}
     assert result.one_state_errors == {q: 0 for q in qubits}
     assert result.repetitions == repetitions
-    assert isinstance(result.timestamp, float)
+    assert (isinstance(result.timestamp, numbers.Real) and not
+            isinstance(result.timestamp, numbers.Integral))
 
 
 def test_estimate_single_qubit_readout_errors_with_noise():
@@ -80,7 +82,8 @@ def test_estimate_single_qubit_readout_errors_with_noise():
     for error in result.one_state_errors.values():
         assert 0.18 < error < 0.22
     assert result.repetitions == repetitions
-    assert isinstance(result.timestamp, float)
+    assert (isinstance(result.timestamp, numbers.Real) and not
+            isinstance(result.timestamp, numbers.Integral))
 
 
 def test_single_qubit_readout_calibration_result_repr():

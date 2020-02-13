@@ -95,7 +95,7 @@ def equal_up_to_global_phase(val: Any,
             return linalg.allclose_up_to_global_phase(a, b, atol=atol)
 
     # Fall back to approx_eq for compare the magnitude of two numbers.
-    if isinstance(val, numbers.Number) and isinstance(other, numbers.Number):
+    if isinstance(val, numbers.Complex) and isinstance(other, numbers.Complex):
         result = approx_eq(abs(val), abs(other), atol=atol)  # type: ignore
         if result is not NotImplemented:
             return result

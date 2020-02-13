@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numbers
 import inspect
 from typing import (Callable, Optional, Union, Iterable, Sequence, Iterator,
                     Tuple, Any, cast, List, Dict, TYPE_CHECKING)
@@ -48,10 +49,10 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
         self.identifier = identifier
         self.target: Tuple['cirq.Qid', ...] = tuple(target)
         self.inputs: Tuple[Union[Sequence['cirq.Qid'], int], ...] = tuple(
-            e if isinstance(e, int) else tuple(e) for e in inputs)
+            e if isinstance(e, numbers.Integral) else tuple(e) for e in inputs)
 
         for input_register in self.inputs:
-            if isinstance(input_register, int):
+            if isinstance(input_register, numbers.Integral):
                 continue
             if set(self.target) & set(input_register):
                 raise ValueError(f'Overlapping registers: '
@@ -59,7 +60,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
         if self.operation.is_modular:
             r = inputs[-1]
-            if isinstance(r, int):
+            if isinstance(r, numbers.Integral):
                 over = r > 1 << len(target)
             else:
                 over = len(cast(Sequence, r)) > len(target)
@@ -85,7 +86,7 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
                              f'New registers: {repr(new_registers)}\n'
                              f'Operation: {repr(self)}')
 
-        if isinstance(new_registers[0], int):
+        if isinstance(new_registers[0], numbers.Integral):
             raise ValueError('The first register is the mutable target. '
                              'It must be a list of qubits, not the constant '
                              f'{new_registers[0]}.')
@@ -104,13 +105,13 @@ class QuirkArithmeticOperation(ops.ArithmeticOperation):
 
         # Target register labels.
         consts = ''.join(f',{letter}={reg}' for letter, reg in lettered_args
-                         if isinstance(reg, int))
+                         if isinstance(reg, numbers.Integral))
         result.append(f'Quirk({self.identifier}{consts})')
         result.extend(f'#{i}' for i in range(2, len(self.target) + 1))
 
         # Input register labels.
         for letter, reg in lettered_args:
-            if not isinstance(reg, int):
+            if not isinstance(reg, numbers.Integral):
                 result.extend(f'{letter.upper()}{i}'
                               for i in range(len(cast(Sequence, reg))))
 
@@ -185,7 +186,7 @@ class ArithmeticCell(Cell):
         return ArithmeticCell(identifier=self.identifier,
                               target=Cell._replace_qubits(self.target, qubits),
                               inputs=[
-                                  e if e is None or isinstance(e, int) else
+                                  e if e is None or isinstance(e, numbers.Integral) else
                                   Cell._replace_qubits(e, qubits)
                                   for e in self.inputs
                               ])

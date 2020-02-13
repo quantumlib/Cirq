@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import math
+import numbers
 from typing import (
     List,
     Union,
@@ -121,7 +122,7 @@ def _arg_to_proto(value: ARG_LIKE,
                              f'arg_function_language {lang}')
         return func_type
 
-    if isinstance(value, (float, int, sympy.Integer, sympy.Float,
+    if isinstance(value, (numbers.Real, sympy.Integer, sympy.Float,
                           sympy.Rational, sympy.NumberSymbol)):
         msg.arg_value.float_value = float(value)
     elif isinstance(value, str):

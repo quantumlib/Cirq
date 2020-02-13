@@ -13,6 +13,7 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
+import numbers
 from typing import Sequence, Union, Tuple, Type, Any
 
 import numpy as np
@@ -36,7 +37,7 @@ def one_hot(*,
         The created numpy array.
     """
     if index is None:
-        index = 0 if isinstance(shape, int) else (0,) * len(shape)
+        index = 0 if isinstance(shape, numbers.Integral) else (0,) * len(shape)
     result = np.zeros(shape=shape, dtype=dtype)
     result[index] = value
     return result

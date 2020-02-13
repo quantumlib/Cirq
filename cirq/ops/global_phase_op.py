@@ -13,6 +13,7 @@
 # limitations under the License.
 """A no-qubit global phase operation."""
 
+import numbers
 import numpy as np
 
 from cirq import value, protocols
@@ -46,7 +47,7 @@ class GlobalPhaseOperation(raw_types.Operation):
         return True
 
     def __pow__(self, power):
-        if isinstance(power, (int, float)):
+        if isinstance(power, numbers.Real):
             return GlobalPhaseOperation(self.coefficient**power)
         return NotImplemented
 

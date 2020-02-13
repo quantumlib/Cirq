@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import numbers
 from typing import (cast, Dict, Iterable, Iterator, List, overload, Sequence,
                     Tuple, Union)
 
@@ -114,7 +115,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     def __getitem__(self, val):
         n = len(self)
-        if isinstance(val, int):
+        if isinstance(val, numbers.Integral):
             if val < -n or val >= n:
                 raise IndexError(f'sweep index out of range: {val}')
             if val < 0:

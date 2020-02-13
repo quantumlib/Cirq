@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helper class for implementing classical arithmetic operations."""
 
+import numbers
 import abc
 import itertools
 from typing import Union, Iterable, List, Sequence, cast, TYPE_CHECKING
@@ -163,13 +164,14 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
     @property
     def qubits(self):
         return tuple(qubit for register in self.registers()
-                     if not isinstance(register, int) for qubit in register)
+                     if not isinstance(register,
+                                       numbers.Integral) for qubit in register)
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         new_registers: List[Union[int, Sequence['cirq.Qid']]] = []
         qs = iter(new_qubits)
         for register in self.registers():
-            if isinstance(register, int):
+            if isinstance(register, numbers.Integral):
                 new_registers.append(register)
             else:
                 new_registers.append([next(qs) for _ in register])
@@ -181,7 +183,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         shape = []
         overflow_sizes = []
         for register in registers:
-            if isinstance(register, int):
+            if isinstance(register, numbers.Integral):
                 input_ranges.append([register])
                 shape.append(1)
                 overflow_sizes.append(register + 1)
@@ -203,14 +205,15 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
             # Wrap into list.
             inputs: List[int] = list(input_seq)
             outputs: List[int] = ([output]
-                                  if isinstance(output, int) else list(output))
+                                  if isinstance(output, numbers.Integral) else
+                                  list(output))
 
             # Omitted tail values default to the corresponding input value.
             if len(outputs) < len(inputs):
                 outputs += inputs[len(outputs) - len(inputs):]
             # Get indices into range.
             for i in range(len(outputs)):
-                if isinstance(registers[i], int):
+                if isinstance(registers[i], numbers.Integral):
                     if outputs[i] != registers[i]:
                         raise ValueError(
                             _describe_bad_arithmetic_changed_const(
@@ -246,7 +249,8 @@ def _describe_bad_arithmetic_changed_const(
     for i in range(len(registers)):
         drawer.write(0, i + 1, str(registers[i]))
         drawer.write(1, i + 1,
-                     'constant' if isinstance(registers[i], int) else 'qureg')
+                     'constant' if isinstance(registers[i],
+                                              numbers.Integral) else 'qureg')
         drawer.write(2, i + 1, str(inputs[i]))
         drawer.write(3, i + 1, str(outputs[i]))
     return (

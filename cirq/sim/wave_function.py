@@ -13,6 +13,7 @@
 # limitations under the License.
 """Helpers for handling quantum wavefunctions."""
 
+import numbers
 import itertools
 
 from typing import (
@@ -393,7 +394,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                 dtype: Type[np.number],
                                 atol: float) -> np.ndarray:
 
-    if isinstance(state_like, int):
+    if isinstance(state_like, numbers.Integral):
         return _computational_basis_state_to_state_tensor(state=state_like,
                                                           qid_shape=qid_shape,
                                                           dtype=dtype)

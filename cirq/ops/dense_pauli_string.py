@@ -165,7 +165,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return self
 
     def __pow__(self, power):
-        if isinstance(power, int):
+        if isinstance(power, numbers.Integral):
             i_group = [1, +1j, -1, -1j]
             if self.coefficient in i_group:
                 coef = i_group[i_group.index(self.coefficient) * power % 4]
@@ -178,7 +178,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def __getitem__(self, item):
-        if isinstance(item, int):
+        if isinstance(item, numbers.Integral):
             return PAULI_GATES[self.pauli_mask[item]]
 
         if isinstance(item, slice):
@@ -194,7 +194,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                                 pauli_mask=self.pauli_mask)
 
     def __truediv__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if isinstance(other, (sympy.Basic, numbers.Complex)):
             return self.__mul__(1 / other)
 
         return NotImplemented
@@ -212,7 +212,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                                     coefficient=self.coefficient *
                                     other.coefficient * tweak)
 
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if isinstance(other, (sympy.Basic, numbers.Complex)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented
@@ -232,7 +232,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         return NotImplemented
 
     def __rmul__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if isinstance(other, (sympy.Basic, numbers.Complex)):
             return self.__mul__(other)
 
         split = _attempt_value_to_pauli_index(other)
@@ -299,7 +299,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
             coef = '+'
         elif self.coefficient == -1:
             coef = '-'
-        elif isinstance(self.coefficient, (complex, sympy.Symbol)):
+        elif isinstance(self.coefficient, (numbers.Complex, sympy.Symbol)):
             coef = f'{self.coefficient}*'
         else:
             coef = f'({self.coefficient})*'
@@ -378,7 +378,7 @@ class DensePauliString(BaseDensePauliString):
 class MutableDensePauliString(BaseDensePauliString):
 
     def __setitem__(self, key, value):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             self.pauli_mask[key] = _pauli_index(value)
             return self
 
@@ -398,7 +398,7 @@ class MutableDensePauliString(BaseDensePauliString):
         raise TypeError(f'indices must be integers or slices, not {type(key)}')
 
     def __itruediv__(self, other):
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if isinstance(other, (sympy.Basic, numbers.Complex)):
             return self.__imul__(1 / other)
         return NotImplemented
 
@@ -417,7 +417,7 @@ class MutableDensePauliString(BaseDensePauliString):
             self_mask ^= other.pauli_mask
             return self
 
-        if isinstance(other, (sympy.Basic, numbers.Number)):
+        if isinstance(other, (sympy.Basic, numbers.Complex)):
             new_coef = protocols.mul(self.coefficient, other, default=None)
             if new_coef is None:
                 return NotImplemented

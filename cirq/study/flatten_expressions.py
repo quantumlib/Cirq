@@ -13,6 +13,7 @@
 # limitations under the License.
 """Resolves symbolic expressions to unique symbols."""
 
+import numbers
 from typing import overload, Any, Callable, List, Optional, Tuple, Union
 
 import sympy
@@ -262,7 +263,7 @@ class _ParamFlattener(resolver.ParamResolver):
             The unique symbol or value of the parameter as resolved by this
             resolver.
         """
-        if isinstance(value, (int, float)):
+        if isinstance(value, numbers.Real):
             return value
         if isinstance(value, str):
             value = sympy.Symbol(value)

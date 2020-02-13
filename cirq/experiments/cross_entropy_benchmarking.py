@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
                     Set, Tuple, Union)
 import numpy as np
@@ -167,7 +168,7 @@ def cross_entropy_benchmarking(
     simulator = sim.Simulator() if simulator is None else simulator
     num_qubits = len(qubits)
 
-    if isinstance(cycles, int):
+    if isinstance(cycles, numbers.Integral):
         cycle_range = [cycles]
     else:
         cycle_range = list(cycles)

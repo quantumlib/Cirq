@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from dataclasses import dataclass
 from typing import (Callable, cast, Dict, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
@@ -178,7 +179,7 @@ class GateOpSerializer:
                 raise ValueError('Expected type List[bool] but was {}'.format(
                     type(value)))
         elif arg.serialized_type == float:
-            if not isinstance(value, (float, int)):
+            if not isinstance(value, numbers.Real):
                 raise ValueError(
                     'Expected type convertible to float but was {}'.format(
                         type(value)))

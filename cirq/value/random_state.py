@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import cast, Any
 
 import numpy as np
@@ -54,7 +55,7 @@ def parse_random_state(random_state: RANDOM_STATE_LIKE
     """
     if random_state is None:
         return cast(np.random.RandomState, np.random)
-    elif isinstance(random_state, int):
+    elif isinstance(random_state, numbers.Integral):
         return np.random.RandomState(random_state)
     else:
         return cast(np.random.RandomState, random_state)

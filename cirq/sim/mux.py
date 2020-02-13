@@ -17,6 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
+import numbers
 from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
 
 import numpy as np
@@ -139,7 +140,7 @@ def final_wavefunction(
         sorting the qubits that are present into an ascending order).
     """
 
-    if not isinstance(initial_state, int):
+    if not isinstance(initial_state, numbers.Integral):
         initial_state = np.asarray(initial_state, dtype=dtype)
 
     circuit_like = _to_circuit(program)
@@ -252,7 +253,7 @@ def final_density_matrix(
 
     """
     initial_state_like = None
-    if not isinstance(initial_state, int):
+    if not isinstance(initial_state, numbers.Integral):
         initial_state_like = np.asarray(initial_state, dtype=dtype)
     else:
         initial_state_like = initial_state

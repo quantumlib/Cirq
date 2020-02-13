@@ -45,7 +45,7 @@ Estimation algorithm is retried.
 
 [1]: https://arxiv.org/abs/quant-ph/9508027
 """
-
+import numbers
 import argparse
 import fractions
 import math
@@ -148,10 +148,10 @@ class ModularExp(cirq.ArithmeticOperation):
         if not isinstance(target, Sequence):
             raise ValueError(
                 f'Target must be a qubit register, got {type(target)}')
-        if not isinstance(base, int):
+        if not isinstance(base, numbers.Integral):
             raise ValueError(
                 f'Base must be a classical constant, got {type(base)}')
-        if not isinstance(modulus, int):
+        if not isinstance(modulus, numbers.Integral):
             raise ValueError(
                 f'Modulus must be a classical constant, got {type(modulus)}')
         return ModularExp(target, exponent, base, modulus)

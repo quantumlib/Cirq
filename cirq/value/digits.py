@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import List, Iterable, Any, Union, Optional, overload
 
 
@@ -106,7 +107,8 @@ def big_endian_digits_to_int(digits: Iterable[int], *,
         23
     """
     digits = tuple(digits)
-    base = (base,) * len(digits) if isinstance(base, int) else tuple(base)
+    base = ((base,) * len(digits) if isinstance(base, numbers.Integral) else
+            tuple(base))
     if len(digits) != len(base):
         raise ValueError('len(digits) != len(base)')
 
@@ -166,7 +168,7 @@ def big_endian_int_to_digits(val: int,
         >>> cirq.big_endian_int_to_digits(11, base=[2, 3, 4])
         [0, 2, 3]
     """
-    if isinstance(base, int):
+    if isinstance(base, numbers.Integral):
         if digit_count is None:
             raise ValueError(
                 'No digit count. Provide `digit_count` when base is an int.')

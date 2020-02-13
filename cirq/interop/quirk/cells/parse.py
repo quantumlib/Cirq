@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import (
     Any,
     Callable,
@@ -389,7 +390,7 @@ def parse_formula(formula: str) -> Union[float, sympy.Basic]:
             return result
         result = complex(result)
 
-    if isinstance(result, complex):
+    if hasattr(result, 'imag'):
         if abs(np.imag(result)) > 1e-8:
             raise ValueError('Not a real result.')
         result = np.real(result)

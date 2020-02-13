@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from typing import List, Union, Sequence, Dict, Optional
 
 from cirq import ops, value
@@ -68,7 +69,7 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         raise ValueError('gate_domain must be non-empty')
     max_arity = max(gate_domain.values())
 
-    if isinstance(qubits, int):
+    if isinstance(qubits, numbers.Integral):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
     n_qubits = len(qubits)
     if n_qubits < 1:

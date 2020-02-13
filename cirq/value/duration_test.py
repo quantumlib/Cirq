@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numbers
 from datetime import timedelta
 import pytest
 import sympy
@@ -27,10 +28,12 @@ def test_init():
     assert Duration(nanos=211).total_picos() == 211000
     assert Duration(nanos=211, picos=1051).total_picos() == 212051
 
-    assert isinstance(Duration(picos=1).total_picos(), int)
-    assert isinstance(Duration(nanos=1).total_picos(), int)
-    assert isinstance(Duration(picos=1.0).total_picos(), float)
-    assert isinstance(Duration(nanos=1.0).total_picos(), float)
+    assert isinstance(Duration(picos=1).total_picos(), numbers.Integral)
+    assert isinstance(Duration(nanos=1).total_picos(), numbers.Integral)
+    assert (isinstance(Duration(picos=1.0).total_picos(), numbers.Real) and not
+            isinstance(Duration(picos=1.0).total_picos(), numbers.Integral))
+    assert (isinstance(Duration(nanos=1.0).total_picos(), numbers.Real) and not
+            isinstance(Duration(nanos=1.0).total_picos(), numbers.Integral))
 
     assert Duration(Duration(nanos=2)) == Duration(nanos=2)
     assert Duration(timedelta(0, 0, 5)) == Duration(micros=5)

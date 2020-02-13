@@ -13,6 +13,7 @@
 # limitations under the License.
 """A typed time delta that supports picosecond accuracy."""
 
+import numbers
 from typing import Union, Tuple, TYPE_CHECKING, Any, Optional
 import datetime
 
@@ -127,7 +128,7 @@ class Duration:
         return Duration(picos=other._picos - self._picos)
 
     def __mul__(self, other) -> 'Duration':
-        if not isinstance(other, (int, float, sympy.Basic)):
+        if not isinstance(other, (numbers.Real, sympy.Basic)):
             return NotImplemented
         return Duration(picos=self._picos * other)
 
@@ -135,7 +136,7 @@ class Duration:
         return self.__mul__(other)
 
     def __truediv__(self, other) -> Union['Duration', float]:
-        if isinstance(other, (int, float, sympy.Basic)):
+        if isinstance(other, (numbers.Real, sympy.Basic)):
             return Duration(picos=self._picos / other)
 
         other_duration = _attempt_duration_like_to_duration(other)
@@ -184,7 +185,7 @@ class Duration:
         return bool(self._picos)
 
     def __hash__(self):
-        if isinstance(self._picos, (int, float)) and self._picos % 1000000 == 0:
+        if isinstance(self._picos, numbers.Real) and self._picos % 1000000 == 0:
             return hash(datetime.timedelta(microseconds=self._picos / 1000000))
         return hash((Duration, self._picos))
 
@@ -215,7 +216,7 @@ class Duration:
             unit = 'picos'
             suffix = 'ps'
 
-        if isinstance(scale, int):
+        if isinstance(scale, numbers.Integral):
             amount = int(amount)
 
         return amount * rest, unit, suffix
@@ -224,7 +225,7 @@ class Duration:
         if self._picos == 0:
             return 'Duration(0)'
         amount, _, suffix = self._decompose_into_amount_unit_suffix()
-        if not isinstance(amount, (int, float, sympy.Symbol)):
+        if not isinstance(amount, (numbers.Real, sympy.Symbol)):
             amount = f'({amount})'
         return f'{amount} {suffix}'
 
@@ -244,6 +245,6 @@ def _attempt_duration_like_to_duration(value: Any) -> Optional[Duration]:
         return value
     if isinstance(value, datetime.timedelta):
         return Duration(value)
-    if isinstance(value, (int, float)) and value == 0:
+    if isinstance(value, numbers.Real) and value == 0:
         return Duration()
     return None

@@ -23,6 +23,7 @@ from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
 import math
+import numbers
 
 from typing import (List, Any, Dict, FrozenSet, Callable, Iterable, Iterator,
                     Optional, Sequence, Union, Set, Type, Tuple, cast, TypeVar,
@@ -216,7 +217,7 @@ class Circuit:
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             return self._moments[key]
 
         raise TypeError('__getitem__ called with key not of type slice or int.')
@@ -230,7 +231,7 @@ class Circuit:
         pass
 
     def __setitem__(self, key, value):
-        if isinstance(key, int):
+        if isinstance(key, numbers.Integral):
             if not isinstance(value, ops.Moment):
                 raise TypeError('Can only assign Moments into Circuits.')
             self._device.validate_moment(value)
@@ -288,13 +289,13 @@ class Circuit:
         return self
 
     def __mul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+        if not isinstance(repetitions, numbers.Integral):
             return NotImplemented
         return Circuit(self._moments * repetitions,
                        device=self._device)
 
     def __rmul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
+        if not isinstance(repetitions, numbers.Integral):
             return NotImplemented
         return self * repetitions
 
