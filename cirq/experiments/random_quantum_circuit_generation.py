@@ -14,7 +14,7 @@
 """Code for generating random quantum circuits."""
 
 from typing import (Callable, Container, Dict, Iterable, List, Optional,
-                    Sequence, TYPE_CHECKING, Tuple)
+                    Sequence, TYPE_CHECKING, Tuple, cast)
 
 from cirq import circuits, devices, google, ops, value
 from cirq._doc import document
@@ -198,7 +198,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
     circuit = circuits.Circuit()
     previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
     if len(set(single_qubit_gates)) == 1:
-        fixed_single_qubit_layer = {q: single_qubit_gates[0] for q in qubits}
+        fixed_single_qubit_layer = {q: single_qubit_gates[0] for q in qubits} \
+                # type: Optional[Dict[cirq.GridQubit, cirq.Gate]]
+
         single_qubit_layer_factory = _fixed_single_qubit_layer
     else:
         fixed_single_qubit_layer = None
@@ -268,7 +270,7 @@ def _fixed_single_qubit_layer(
         prng: 'np.random.RandomState',
         fixed_single_qubit_layer: Optional[Dict['cirq.GridQubit', 'cirq.Gate']]
 ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
-    return fixed_single_qubit_layer
+    return cast(Dict['cirq.GridQubit', 'cirq.Gate'], fixed_single_qubit_layer)
 
 
 def _two_qubit_layer(
