@@ -218,7 +218,8 @@ def cross_entropy_benchmarking(
     xeb_data = [
         CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)
     ]
-    return CrossEntropyResult(data=xeb_data, repetitions=repetitions)
+    return CrossEntropyResult(data=xeb_data,
+                              repetitions=repetitions)  # type: ignore
 
 
 def build_entangling_layers(qubits: Sequence[devices.GridQubit],
