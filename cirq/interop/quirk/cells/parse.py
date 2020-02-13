@@ -390,7 +390,7 @@ def parse_formula(formula: str) -> Union[float, sympy.Basic]:
             return result
         result = complex(result)
 
-    if hasattr(result, 'imag'):
+    if isinstance(result, numbers.Complex):
         if abs(np.imag(result)) > 1e-8:
             raise ValueError('Not a real result.')
         result = np.real(result)
