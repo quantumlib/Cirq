@@ -27,10 +27,11 @@ class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
 
     Attributes:
-        data: A sequence of NamedTuples, each of which
-            contains two fields: num_cycle which returns the circuit
-            depth as the number of cycles and xeb_fidelity which returns
-            the XEB fidelity after the given cycle number.
+        data: A sequence of NamedTuples, each of which contains two fields:
+                num_cycle: the circuit depth as the number of cycles, where
+                    a cycle consists of a layer of single-qubit gates followed
+                    by a layer of two-qubit gates.
+                xeb_fidelity: the XEB fidelity after the given cycle number.
         repetitions: The number of circuit repetitions used.
     """
     data: List[CrossEntropyPair]
@@ -218,8 +219,8 @@ def cross_entropy_benchmarking(
     xeb_data = [
         CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)
     ]
-    return CrossEntropyResult(data=xeb_data,
-                              repetitions=repetitions)  # type: ignore
+    return CrossEntropyResult(  # type: ignore
+        data=xeb_data, repetitions=repetitions)
 
 
 def build_entangling_layers(qubits: Sequence[devices.GridQubit],
