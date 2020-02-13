@@ -14,12 +14,37 @@
 
 from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
                     Set, Tuple, Union)
+import dataclasses
 import numpy as np
+import scipy
 from matplotlib import pyplot as plt
 from cirq import circuits, devices, ops, protocols, sim, work
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
+
+
+@dataclasses.dataclass
+class DepolarizingModel:
+    """A model of depolarizing noise.
+
+    Models the fidelity of a quantum process as an exponential decay of the form
+    f = S * p^d, where f is the fidelity, S is the coefficient, p is the
+    decay constant, and d is the number of iterations of the process (the
+    independent variable of the decay). For instance, in a cross entropy
+    benchmarking experiment, d would be the number of cycles, where a cycle
+    consists of a layer of single-qubit gates followed by a layer of two-qubit
+    gates.
+
+    Attributes:
+        coefficient: The value S in the above formula.
+        decay_constant: The value p in the above formula.
+        covariance: The estimated covariance in the estimation of `coefficient`
+        and `decay_constant`, in that order.
+    """
+    coefficient: float
+    decay_constant: float
+    covariance: Optional[np.ndarray] = None
 
 
 @protocols.json_serializable_dataclass(frozen=True)
@@ -60,6 +85,38 @@ class CrossEntropyResult:
         if show_plot:
             fig.show()
         return ax
+
+    def depolarizing_model(self) -> DepolarizingModel:
+        """Fit a depolarizing error model for a cycle.
+
+        Fits an exponential model f = S * p^d, where d is the number of cycles
+        and f is the cross entropy fidelity for that number of cycles,
+        using nonlinear least squares.
+
+        Returns:
+            A DepolarizingModel object, which has attributes `coefficient`
+            representing the value S, `decay_constant` representing the value
+            p, and `covariance` representing the covariance in the estimation
+            of S and p in that order.
+        """
+        # Get initial guess by linear least squares with logarithm of model
+        x = [depth for depth, fidelity in self.data if fidelity > 0]
+        y = [np.log(fidelity) for _, fidelity in self.data if fidelity > 0]
+        fit = np.polynomial.polynomial.Polynomial.fit(x, y, 1).convert()
+        p0 = np.exp(fit.coef)
+
+        # Perform nonlinear least squares
+        x = [depth for depth, _ in self.data]
+        y = [fidelity for _, fidelity in self.data]
+
+        def f(d, S, p):
+            return S * p**d
+
+        params, covariance = scipy.optimize.curve_fit(f, x, y, p0=p0)
+
+        return DepolarizingModel(coefficient=params[0],
+                                 decay_constant=params[1],
+                                 covariance=covariance)
 
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
