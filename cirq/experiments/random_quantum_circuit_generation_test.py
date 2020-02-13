@@ -82,7 +82,7 @@ def test_random_rotations_between_grid_interaction_layers():
     depth = 20
     pattern = cirq.experiments.GRID_STAGGERED_PATTERN
     circuit = random_rotations_between_grid_interaction_layers_circuit(
-        qubits, depth, single_qubit_gates=[cirq.X**0.5], seed=1234)
+        qubits, depth, single_qubit_gates=[cirq.X**0.5, cirq.X**0.5], seed=1234)
 
     assert len(circuit) == 2 * depth + 1
     _validate_single_qubit_layers(qubits,

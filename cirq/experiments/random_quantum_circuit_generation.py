@@ -13,8 +13,8 @@
 # limitations under the License.
 """Code for generating random quantum circuits."""
 
-from typing import (Callable, Container, Dict, Iterable, List, Sequence,
-                    TYPE_CHECKING, Tuple)
+from typing import (Callable, Container, Dict, Iterable, List, Optional,
+                    Sequence, TYPE_CHECKING, Tuple)
 
 from cirq import circuits, devices, google, ops, value
 from cirq._doc import document
@@ -198,10 +198,16 @@ def random_rotations_between_grid_interaction_layers_circuit(
 
     circuit = circuits.Circuit()
     previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
+    if len(set(single_qubit_gates)) == 1:
+        fixed_single_qubit_layer = {q: single_qubit_gates[0] for q in qubits}
+        single_qubit_layer_factory = _fixed_single_qubit_layer
+    else:
+        fixed_single_qubit_layer = None
+        single_qubit_layer_factory = _random_single_qubit_layer
     for i in range(depth):
-        single_qubit_layer = _single_qubit_layer(qubits, single_qubit_gates,
-                                                 previous_single_qubit_layer,
-                                                 prng)
+        single_qubit_layer = single_qubit_layer_factory(
+            qubits, single_qubit_gates, previous_single_qubit_layer, prng,
+            fixed_single_qubit_layer)
         two_qubit_layer = _two_qubit_layer(coupled_qubit_pairs,
                                            two_qubit_op_factory,
                                            pattern[i % len(pattern)], prng)
@@ -212,8 +218,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
         previous_single_qubit_layer = single_qubit_layer
 
     if add_final_single_qubit_layer:
-        final_single_qubit_layer = _single_qubit_layer(
-            qubits, single_qubit_gates, previous_single_qubit_layer, prng)
+        final_single_qubit_layer = single_qubit_layer_factory(
+            qubits, single_qubit_gates, previous_single_qubit_layer, prng,
+            fixed_single_qubit_layer)
         circuit.append([g.on(q) for q, g in final_single_qubit_layer.items()],
                        strategy=circuits.InsertStrategy.NEW_THEN_INLINE)
 
@@ -236,14 +243,13 @@ def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
     return pairs
 
 
-def _single_qubit_layer(
+def _random_single_qubit_layer(
         qubits: List['cirq.GridQubit'],
         single_qubit_gates: Sequence['cirq.Gate'],
         previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate'],
         prng: 'np.random.RandomState',
+        fixed_single_qubit_layer: Optional[Dict['cirq.GridQubit', 'cirq.Gate']]
 ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
-    if len(single_qubit_gates) == 1:
-        return {q: single_qubit_gates[0] for q in qubits}
 
     def random_gate(qubit: 'cirq.GridQubit',
                     prng: 'np.random.RandomState') -> 'cirq.Gate':
@@ -254,6 +260,16 @@ def _single_qubit_layer(
         return g
 
     return {q: random_gate(q, prng) for q in qubits}
+
+
+def _fixed_single_qubit_layer(
+        qubits: List['cirq.GridQubit'],
+        single_qubit_gates: Sequence['cirq.Gate'],
+        previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate'],
+        prng: 'np.random.RandomState',
+        fixed_single_qubit_layer: Optional[Dict['cirq.GridQubit', 'cirq.Gate']]
+) -> Dict['cirq.GridQubit', 'cirq.Gate']:
+    return fixed_single_qubit_layer
 
 
 def _two_qubit_layer(
