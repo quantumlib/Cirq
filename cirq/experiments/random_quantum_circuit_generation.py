@@ -185,8 +185,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
             `two_qubit_op_factory(a, b, prng)`, where `a` and `b` are the qubits
             to operate on and `prng` is the pseudorandom number generator.
         pattern: The pattern of grid interaction layers to use.
-        single_qubit_gates: The single-qubit gates to use. This list should
-            not contain any repeated gates.
+        single_qubit_gates: The single-qubit gates to use.
         add_final_single_qubit_layer: Whether to include a final layer of
             single-qubit gates after the last cycle.
         seed: A seed or random state to use for the pseudorandom number
