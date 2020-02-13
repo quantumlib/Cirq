@@ -26,6 +26,8 @@ from cirq.experiments import (
 if TYPE_CHECKING:
     from typing import Dict, Optional
 
+SINGLE_QUBIT_LAYER = Dict[cirq.GridQubit, Optional[cirq.Gate]]
+
 
 def _syc_with_adjacent_z_rotations(a: cirq.GridQubit, b: cirq.GridQubit,
                                    prng: np.random.RandomState):
@@ -94,8 +96,8 @@ def test_random_rotations_between_grid_interaction_layers(
 def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
                                   moments: Sequence[cirq.Moment],
                                   non_repeating_layers: bool = True) -> None:
-    previous_single_qubit_gates = {q: None for q in qubits} \
-            # type: Dict[cirq.GridQubit, Optional[cirq.Gate]]
+    previous_single_qubit_gates = {q: None for q in qubits
+                                  }  # type: SINGLE_QUBIT_LAYER
 
     for moment in moments:
         # All qubits are acted upon
