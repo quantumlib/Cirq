@@ -20,6 +20,7 @@ from cirq import circuits, devices, google, ops, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
+    from typing import Union
     import numpy as np
     import cirq
 
@@ -199,7 +200,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
     previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
     if len(set(single_qubit_gates)) == 1:
         single_qubit_layer_factory = _FixedSingleQubitLayerFactory(
-            {q: single_qubit_gates[0] for q in qubits})
+            {q: single_qubit_gates[0] for q in qubits}) \
+    # type: Union[_FixedSingleQubitLayerFactory, _RandomSingleQubitLayerFactory]
+
     else:
         single_qubit_layer_factory = _RandomSingleQubitLayerFactory(
             qubits, single_qubit_gates, prng)

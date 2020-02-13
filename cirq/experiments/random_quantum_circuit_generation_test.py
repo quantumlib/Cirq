@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterable, List, Sequence, Set, Tuple, cast
+from typing import (Callable, Iterable, List, Sequence, Set, TYPE_CHECKING,
+                    Tuple, cast)
 
 import numpy as np
 import pytest
@@ -21,6 +22,9 @@ import cirq
 from cirq.experiments import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
+
+if TYPE_CHECKING:
+    from typing import Dict, Optional
 
 
 def _syc_with_adjacent_z_rotations(a: cirq.GridQubit, b: cirq.GridQubit,
@@ -80,9 +84,11 @@ def test_random_rotations_between_grid_interaction_layers(
     assert len(circuit) == expected_circuit_length
     _validate_single_qubit_layers(
         qubits,
-        circuit[single_qubit_layers_slice],
+        cast(Sequence[cirq.Moment], circuit[single_qubit_layers_slice]),
         non_repeating_layers=len(set(single_qubit_gates)) > 1)
-    _validate_two_qubit_layers(qubits, circuit[two_qubit_layers_slice], pattern)
+    _validate_two_qubit_layers(
+        qubits, cast(Sequence[cirq.Moment], circuit[two_qubit_layers_slice]),
+        pattern)
 
 
 def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
