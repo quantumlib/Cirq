@@ -117,6 +117,7 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
+                'PhysicalZTag': cirq.google.PhysicalZTag,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
