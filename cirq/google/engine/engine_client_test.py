@@ -13,7 +13,9 @@
 # limitations under the License.
 """Tests for EngineClient."""
 from unittest import mock
-from cirq.google.engine.engine_client import EngineClient
+import pytest
+from google.api_core import exceptions
+from cirq.google.engine.engine_client import EngineClient, EngineException
 from cirq.google.engine.client import quantum
 from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
 
@@ -146,17 +148,21 @@ def test_set_program_labels(client_constructor):
 def test_add_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_program.return_value = qtypes.QuantumProgram(
-        labels={
-            'color': 'red',
-            'weather': 'sun',
-            'run': '1'
-        },
-        label_fingerprint='hash')
+    existing = qtypes.QuantumProgram(labels={
+        'color': 'red',
+        'weather': 'sun',
+        'run': '1'
+    },
+                                     label_fingerprint='hash')
+    grpc_client.get_quantum_program.return_value = existing
     result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
+    assert client.add_program_labels('proj', 'prog',
+                                     {'color': 'red'}) == existing
+    assert grpc_client.update_quantum_program.call_count == 0
+
     assert client.add_program_labels('proj', 'prog',
                                      {'hello': 'world'}) == result
     assert grpc_client.update_quantum_program.call_args[0] == (
@@ -192,17 +198,20 @@ def test_add_program_labels(client_constructor):
 def test_remove_program_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_program.return_value = qtypes.QuantumProgram(
-        labels={
-            'color': 'red',
-            'weather': 'sun',
-            'run': '1'
-        },
-        label_fingerprint='hash')
+    existing = qtypes.QuantumProgram(labels={
+        'color': 'red',
+        'weather': 'sun',
+        'run': '1'
+    },
+                                     label_fingerprint='hash')
+    grpc_client.get_quantum_program.return_value = existing
     result = qtypes.QuantumProgram(name='projects/proj/programs/prog')
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
+    assert client.remove_program_labels('proj', 'prog', ['other']) == existing
+    assert grpc_client.update_quantum_program.call_count == 0
+
     assert client.remove_program_labels('proj', 'prog',
                                         ['hello', 'weather']) == result
     assert grpc_client.update_quantum_program.call_args[0] == (
@@ -329,6 +338,14 @@ def test_create_job(client_constructor):
                     processor_names=['projects/proj/processors/processor0'])),
         ), False)
 
+    with pytest.raises(ValueError, match='priority must be between 0 and 1000'):
+        client.create_job('proj',
+                          'prog',
+                          job_id=None,
+                          processor_ids=['processor0'],
+                          run_context=run_context,
+                          priority=5000)
+
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_get_job(client_constructor):
@@ -405,17 +422,21 @@ def test_set_job_labels(client_constructor):
 def test_add_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_job.return_value = qtypes.QuantumJob(
-        labels={
-            'color': 'red',
-            'weather': 'sun',
-            'run': '1'
-        },
-        label_fingerprint='hash')
+    existing = qtypes.QuantumJob(labels={
+        'color': 'red',
+        'weather': 'sun',
+        'run': '1'
+    },
+                                 label_fingerprint='hash')
+    grpc_client.get_quantum_job.return_value = existing
     result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
+    assert client.add_job_labels('proj', 'prog', 'job0',
+                                 {'color': 'red'}) == existing
+    assert grpc_client.update_quantum_job.call_count == 0
+
     assert client.add_job_labels('proj', 'prog', 'job0',
                                  {'hello': 'world'}) == result
     assert grpc_client.update_quantum_job.call_args[0] == (
@@ -451,17 +472,21 @@ def test_add_job_labels(client_constructor):
 def test_remove_job_labels(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    grpc_client.get_quantum_job.return_value = qtypes.QuantumJob(
-        labels={
-            'color': 'red',
-            'weather': 'sun',
-            'run': '1'
-        },
-        label_fingerprint='hash')
+    existing = qtypes.QuantumJob(labels={
+        'color': 'red',
+        'weather': 'sun',
+        'run': '1'
+    },
+                                 label_fingerprint='hash')
+    grpc_client.get_quantum_job.return_value = existing
     result = qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0')
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
+    assert client.remove_job_labels('proj', 'prog', 'job0',
+                                    ['other']) == existing
+    assert grpc_client.update_quantum_program.call_count == 0
+
     assert client.remove_job_labels('proj', 'prog', 'job0',
                                     ['hello', 'weather']) == result
     assert grpc_client.update_quantum_job.call_args[0] == (
@@ -576,3 +601,67 @@ def test_get_calibration(client_constructor):
     assert client.get_calibration('proj', 'processor0', 123456) == result
     assert grpc_client.get_quantum_calibration.call_args[0] == (
         'projects/proj/processors/processor0/calibrations/123456',)
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_current_calibration(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+
+    result = qtypes.QuantumCalibration(
+        name='projects/proj/processors/processor0/calibrations/123456')
+    grpc_client.get_quantum_calibration.return_value = result
+
+    client = EngineClient()
+    assert client.get_current_calibration('proj', 'processor0') == result
+    assert grpc_client.get_quantum_calibration.call_args[0] == (
+        'projects/proj/processors/processor0/calibrations/current',)
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_current_calibration_does_not_exist(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+
+    grpc_client.get_quantum_calibration.side_effect = exceptions.NotFound(
+        'not found')
+
+    client = EngineClient()
+    assert client.get_current_calibration('proj', 'processor0') is None
+    assert grpc_client.get_quantum_calibration.call_args[0] == (
+        'projects/proj/processors/processor0/calibrations/current',)
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_current_calibration_error(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+
+    grpc_client.get_quantum_calibration.side_effect = exceptions.BadRequest(
+        'boom')
+
+    client = EngineClient()
+    with pytest.raises(EngineException, match='boom'):
+        client.get_current_calibration('proj', 'processor0')
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_api_doesnt_retry_not_found_errors(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    grpc_client.get_quantum_program.side_effect = exceptions.NotFound(
+        'not found')
+
+    client = EngineClient()
+    with pytest.raises(EngineException, match='not found'):
+        client.get_program('proj', 'prog', False)
+    assert grpc_client.get_quantum_program.call_count == 1
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_api_retry_5xx_errors(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    grpc_client.get_quantum_program.side_effect = exceptions.ServiceUnavailable(
+        'internal error')
+
+    client = EngineClient(max_retry_delay_seconds=1)
+    with pytest.raises(TimeoutError,
+                       match='Reached max retry attempts.*internal error'):
+        client.get_program('proj', 'prog', False)
+    assert grpc_client.get_quantum_program.call_count > 1

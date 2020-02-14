@@ -45,7 +45,7 @@ class EngineClient:
     def __init__(
             self,
             service_args: Optional[Dict] = None,
-            verbose: Optional[bool] = True,
+            verbose: Optional[bool] = None,
             max_retry_delay_seconds: int = 3600  # 1 hour
     ) -> None:
         """Engine service client.
@@ -59,6 +59,8 @@ class EngineClient:
                 a retryable error code is returned.
         """
         self.max_retry_delay_seconds = max_retry_delay_seconds
+        if verbose is None:
+            verbose = True
         self.verbose = verbose
 
         if not service_args:
@@ -211,7 +213,8 @@ class EngineClient:
                 qtypes.field_mask_pb2.FieldMask(paths=['description'])))
 
     def _set_program_labels(self, project_id: str, program_id: str,
-                            labels: Dict[str, str], fingerprint: str):
+                            labels: Dict[str, str],
+                            fingerprint: str) -> qtypes.QuantumProgram:
         program_resource_name = self._program_name_from_ids(
             project_id, program_id)
         return self._make_request(
@@ -223,7 +226,7 @@ class EngineClient:
                 qtypes.field_mask_pb2.FieldMask(paths=['labels'])))
 
     def set_program_labels(self, project_id: str, program_id: str,
-                           labels: Dict[str, str]):
+                           labels: Dict[str, str]) -> qtypes.QuantumProgram:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
@@ -240,7 +243,7 @@ class EngineClient:
                                         program.label_fingerprint)
 
     def add_program_labels(self, project_id: str, program_id: str,
-                           labels: Dict[str, str]):
+                           labels: Dict[str, str]) -> qtypes.QuantumProgram:
         """Adds new labels to a previously created quantum program.
 
         Params:
@@ -262,7 +265,7 @@ class EngineClient:
         return program
 
     def remove_program_labels(self, project_id: str, program_id: str,
-                              label_keys: List[str]):
+                              label_keys: List[str]) -> qtypes.QuantumProgram:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 

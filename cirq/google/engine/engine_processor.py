@@ -18,6 +18,7 @@ from cirq.google.api import v2
 from cirq.google.engine import calibration
 
 if TYPE_CHECKING:
+    import datetime
     import cirq.google.engine.engine as engine_base
 
 
@@ -33,23 +34,19 @@ class EngineProcessor:
                  project_id: str,
                  processor_id: str,
                  context: 'engine_base.EngineContext',
-                 processor: Optional[qtypes.QuantumProcessor] = None) -> None:
+                 _processor: Optional[qtypes.QuantumProcessor] = None) -> None:
         """A processor available via the engine.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: Unique ID of the processor.
             context: Engine configuration and context to use.
-            processor: The optional current processor state.
+            _processor: The optional current processor state.
         """
         self.project_id = project_id
         self.processor_id = processor_id
         self.context = context
-        if not processor:
-            processor = self.context.client.get_processor(
-                project_id, processor_id)
-
-        self._processor = processor
+        self._processor = _processor
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object.
@@ -60,11 +57,36 @@ class EngineProcessor:
         import cirq.google.engine.engine as engine_base
         return engine_base.Engine(self.project_id, self.context)
 
+    def _inner_processor(self) -> qtypes.QuantumProcessor:
+        if not self._processor:
+            self._processor = self.context.client.get_processor(
+                self.project_id, self.processor_id)
+        return self._processor
+
     def health(self) -> str:
         """Returns the current health of processor."""
         self._processor = self.context.client.get_processor(
             self.project_id, self.processor_id)
         return qtypes.QuantumProcessor.Health.Name(self._processor.health)
+
+    def expected_down_time(self) -> 'Optional[datetime.datetime]':
+        """Returns the start of the next expected down time of the processor, if
+        set."""
+        if self._inner_processor().HasField('expected_down_time'):
+            return self._inner_processor().expected_down_time.ToDatetime()
+        else:
+            return None
+
+    def expected_recovery_time(self) -> 'Optional[datetime.datetime]':
+        """Returns the expected the processor should be available, if set."""
+        if self._inner_processor().HasField('expected_recovery_time'):
+            return self._inner_processor().expected_recovery_time.ToDatetime()
+        else:
+            return None
+
+    def supported_languages(self) -> List[str]:
+        """Returns the list of processor supported program languages."""
+        return self._inner_processor().supported_languages
 
     def get_device_specification(
             self) -> Optional[v2.device_pb2.DeviceSpecification]:
@@ -72,11 +94,15 @@ class EngineProcessor:
         information about the device.
 
         Returns:
-            Device specification proto.
+            Device specification proto if present.
         """
-        device_spec = v2.device_pb2.DeviceSpecification()
-        device_spec.ParseFromString(self._processor.device_spec.value)
-        return device_spec
+        if self._inner_processor().HasField('device_spec'):
+            device_spec = v2.device_pb2.DeviceSpecification()
+            device_spec.ParseFromString(
+                self._inner_processor().device_spec.value)
+            return device_spec
+        else:
+            return None
 
     @staticmethod
     def _to_calibration(calibration_any: qtypes.any_pb2.Any
@@ -85,16 +111,17 @@ class EngineProcessor:
         metrics.ParseFromString(calibration_any.value)
         return calibration.Calibration(metrics)
 
-    def list_calibrations(self, earliest_timestamp_seconds: Optional[int],
-                          latest_timestamp_seconds: Optional[int]
+    def list_calibrations(self,
+                          earliest_timestamp_seconds: Optional[int] = None,
+                          latest_timestamp_seconds: Optional[int] = None
                          ) -> List[calibration.Calibration]:
         """Retrieve metadata about a specific calibration run.
 
         Params:
             earliest_timestamp_seconds: The earliest timestamp of a calibration
-                to return.
+                to return in UTC.
             latest_timestamp_seconds: The latest timestamp of a calibration to
-                return.
+                return in UTC.
 
         Returns:
             The list of calibration data with the most recent first.

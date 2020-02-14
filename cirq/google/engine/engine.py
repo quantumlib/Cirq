@@ -66,9 +66,9 @@ class EngineContext:
     """Context for running against the Quantum Engine API."""
 
     def __init__(self,
-                 proto_version: Optional[ProtoVersion] = ProtoVersion.V2,
+                 proto_version: Optional[ProtoVersion] = None,
                  service_args: Optional[Dict] = None,
-                 verbose: Optional[bool] = True,
+                 verbose: Optional[bool] = None,
                  client: 'Optional[engine_client.EngineClient]' = None) -> None:
         """Configuration for a job that is run on Quantum Engine.
 
@@ -78,7 +78,7 @@ class EngineContext:
             raise ValueError(
                 'either specify service_args and verbose or client')
 
-        self.proto_version = proto_version
+        self.proto_version = proto_version or ProtoVersion.V2
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args,
@@ -116,7 +116,7 @@ class Engine:
             context: Optional[EngineContext] = None,
             proto_version: Optional[ProtoVersion] = None,
             service_args: Optional[Dict] = None,
-            verbose: bool = True,
+            verbose: Optional[bool] = None,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -308,11 +308,11 @@ class Engine:
         gate_set = gate_set or gate_sets.XMON
         code = qtypes.any_pb2.Any()
 
+        if not isinstance(program, circuits.Circuit):
+            raise TypeError(f'Unrecognized program type: {type(program)}')
+        program.device.validate_circuit(program)
+
         if self.context.proto_version == ProtoVersion.V1:
-            if isinstance(program, circuits.Circuit):
-                program.device.validate_circuit(program)
-            else:
-                raise TypeError(f'Unrecognized program type: {type(program)}')
             code.Pack(
                 v1.program_pb2.Program(operations=[
                     op for op in v1.circuit_as_schedule_to_protos(program)
@@ -351,7 +351,7 @@ class Engine:
             engine_processor.EngineProcessor(
                 self.project_id,
                 self.context.client._ids_from_processor_name(p.name)[1],
-                self.context, p) for p in list(response)
+                self.context, p) for p in response
         ]
 
     def get_processor(self,
@@ -364,10 +364,8 @@ class Engine:
         Returns:
             A EngineProcessor for the processor.
         """
-        processor = self.context.client.get_processor(self.project_id,
-                                                      processor_id)
         return engine_processor.EngineProcessor(self.project_id, processor_id,
-                                                self.context, processor)
+                                                self.context)
 
     def sampler(self, processor_id: Union[str, List[str]],
                 gate_set: serializable_gate_set.SerializableGateSet

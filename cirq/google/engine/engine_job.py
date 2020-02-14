@@ -23,6 +23,7 @@ from cirq.google.engine.client import quantum
 from cirq.google.api import v1, v2
 
 if TYPE_CHECKING:
+    import datetime
     import cirq.google.engine.engine as engine_base
     from cirq.google.engine.engine import engine_program
     from cirq.google.engine.engine import engine_processor
@@ -48,11 +49,11 @@ class EngineJob:
     """
 
     def __init__(self,
-        project_id: str,
-        program_id: str,
-        job_id: str,
-        context: 'engine_base.EngineContext',
-        job: Optional[quantum.types.QuantumJob] = None) -> None:
+                 project_id: str,
+                 program_id: str,
+                 job_id: str,
+                 context: 'engine_base.EngineContext',
+                 _job: Optional[quantum.types.QuantumJob] = None) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -60,16 +61,13 @@ class EngineJob:
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
-            job: The optional current job state.
+            _job: The optional current job state.
         """
         self.project_id = project_id
         self.program_id = program_id
         self.job_id = job_id
         self.context = context
-        if not job:
-            job = self.context.client.get_job(project_id, program_id, job_id,
-                                              False)
-        self._job = job
+        self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
 
     def engine(self) -> 'engine_base.Engine':
@@ -83,17 +81,35 @@ class EngineJob:
         return engine_program.EngineProgram(self.project_id, self.program_id,
                                             self.context)
 
-    def _refresh_job(self) -> 'quantum.types.QuantumJob':
-        if self._job.execution_status.state not in TERMINAL_STATES:
+    def _inner_job(self) -> quantum.types.QuantumJob:
+        if not self._job:
             self._job = self.context.client.get_job(self.project_id,
                                                     self.program_id,
                                                     self.job_id, False)
-            print(self._job)
         return self._job
+
+    def _refresh_job(self) -> quantum.types.QuantumJob:
+        if (not self._job or
+                self._job.execution_status.state not in TERMINAL_STATES):
+            self._job = self.context.client.get_job(self.project_id,
+                                                    self.program_id,
+                                                    self.job_id, False)
+        return self._job
+
+    def create_time(self) -> 'datetime.datetime':
+        """Returns when the job was created."""
+        return self._inner_job().create_time.ToDatetime()
+
+    def update_time(self) -> 'datetime.datetime':
+        """Returns when the job was last updated."""
+        self._job = self.context.client.get_job(self.project_id,
+                                                self.program_id, self.job_id,
+                                                False)
+        return self._job.update_time.ToDatetime()
 
     def description(self) -> str:
         """Returns the description of the job."""
-        return self._job.description
+        return self._inner_job().description
 
     def set_description(self, description: str) -> 'EngineJob':
         """Sets the description of the job.
@@ -110,7 +126,7 @@ class EngineJob:
 
     def labels(self) -> Dict[str, str]:
         """Returns the labels of the job."""
-        return self._job.labels
+        return self._inner_job().labels
 
     def set_labels(self, labels: Dict[str, str]) -> 'EngineJob':
         """Sets (overwriting) the labels for a previously created quantum job.
@@ -154,10 +170,25 @@ class EngineJob:
             self.project_id, self.program_id, self.job_id, keys)
         return self
 
+    def processor_ids(self) -> List[str]:
+        """Returns the processor ids provided when the job was created."""
+        return [
+            self.context.client._ids_from_processor_name(p)[1] for p in self.
+            _inner_job().scheduling_config.processor_selector.processor_names
+        ]
+
     def status(self) -> str:
         """Return the execution status of the job."""
         return quantum.types.ExecutionStatus.State.Name(
             self._refresh_job().execution_status.state)
+
+    def failure(self) -> Optional[Tuple[str, str]]:
+        """Return failure code and message of the job if present."""
+        if self._inner_job().execution_status.HasField('failure'):
+            failure = self._inner_job().execution_status.failure
+            return (quantum.types.ExecutionStatus.Failure.Code.Name(
+                failure.error_code), failure.error_message)
+        return None
 
     def get_repetitions_and_sweeps(self) -> Tuple[int, List[study.Sweep]]:
         """Returns the repetitions and sweeps for the Quantum Engine job.
@@ -165,7 +196,7 @@ class EngineJob:
         Returns:
             A tuple of the repetition count and list of sweeps.
         """
-        if not self._job.HasField('run_context'):
+        if not self._job or not self._job.HasField('run_context'):
             self._job = self.context.client.get_job(self.project_id,
                                                     self.program_id,
                                                     self.job_id, True)
@@ -174,14 +205,14 @@ class EngineJob:
 
     @staticmethod
     def _deserialize_run_context(run_context: quantum.types.any_pb2.Any
-    ) -> Tuple[int, List[study.Sweep]]:
+                                ) -> Tuple[int, List[study.Sweep]]:
         import cirq.google.engine.engine as engine_base
         run_context_type = run_context.type_url[len(engine_base.TYPE_PREFIX):]
         if (run_context_type == 'cirq.google.api.v1.RunContext' or
-            run_context_type == 'cirq.api.google.v1.RunContext'):
+                run_context_type == 'cirq.api.google.v1.RunContext'):
             raise ValueError('deserializing a v1 RunContext is not supported')
         if (run_context_type == 'cirq.google.api.v2.RunContext' or
-            run_context_type == 'cirq.api.google.v2.RunContext'):
+                run_context_type == 'cirq.api.google.v2.RunContext'):
             v2_run_context = v2.run_context_pb2.RunContext()
             v2_run_context.ParseFromString(run_context.value)
             return v2_run_context.parameter_sweeps[0].repetitions, [
@@ -194,18 +225,18 @@ class EngineJob:
     def get_processor(self) -> 'Optional[engine_processor.EngineProcessor]':
         """Returns the EngineProcessor for the processor the job is/was run on,
         if available, else None."""
-        status = self._job.execution_status
+        status = self._inner_job().execution_status
         if not status.processor_name:
             return None
         import cirq.google.engine.engine_processor as engine_processor
         ids = self.context.client._ids_from_processor_name(
             status.processor_name)
-        return engine_processor.EngineProcessor(*(ids + (self.context,)))
+        return engine_processor.EngineProcessor(ids[0], ids[1], self.context)
 
     def get_calibration(self) -> Optional[calibration.Calibration]:
         """Returns the recorded calibration at the time when the job was run, if
         one was captured, else None."""
-        status = self._job.execution_status
+        status = self._inner_job().execution_status
         if not status.calibration_name:
             return None
         ids = self.context.client._ids_from_calibration_name(
@@ -242,7 +273,7 @@ class EngineJob:
             result = response.result
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
             if (result_type == 'cirq.google.api.v1.Result' or
-                result_type == 'cirq.api.google.v1.Result'):
+                    result_type == 'cirq.api.google.v1.Result'):
                 v1_parsed_result = v1.program_pb2.Result()
                 v1_parsed_result.ParseFromString(result.value)
                 self._results = self._get_job_results_v1(v1_parsed_result)
@@ -258,7 +289,7 @@ class EngineJob:
 
     @staticmethod
     def _get_job_results_v1(result: v1.program_pb2.Result
-    ) -> List[study.TrialResult]:
+                           ) -> List[study.TrialResult]:
         trial_results = []
         for sweep_result in result.sweep_results:
             sweep_repetitions = sweep_result.repetitions
@@ -278,7 +309,7 @@ class EngineJob:
 
     @staticmethod
     def _get_job_results_v2(result: v2.result_pb2.Result
-    ) -> List[study.TrialResult]:
+                           ) -> List[study.TrialResult]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
@@ -309,8 +340,8 @@ class EngineJob:
             else:
                 raise RuntimeError(
                     'Timed out waiting for results. Job {} is in state {}'.
-                        format(name,
-                               quantum.types.ExecutionStatus.State.Name(state)))
+                    format(name,
+                           quantum.types.ExecutionStatus.State.Name(state)))
 
     def __iter__(self):
         return iter(self.results())
@@ -318,4 +349,4 @@ class EngineJob:
     def __str__(self):
         return str(
             'EngineJob(project_id=\'{}\', program_id=\'{}\', job_id=\'{}\')'.
-                format(self.project_id, self.program_id, self.job_id))
+            format(self.project_id, self.program_id, self.job_id))
