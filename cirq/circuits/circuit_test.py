@@ -1857,12 +1857,13 @@ def test_diagram_global_phase():
                                     precision=2)
 
     c = cirq.Circuit([cirq.X(qa), global_phase, global_phase])
-    cirq.testing.assert_has_diagram(c,"""\
+    cirq.testing.assert_has_diagram(c,
+                                    """\
 a: ─────────────X───
 
 global phase:   π""",
-                                use_unicode_characters=True,
-                                precision=2)
+                                    use_unicode_characters=True,
+                                    precision=2)
 
 
 def test_has_unitary():

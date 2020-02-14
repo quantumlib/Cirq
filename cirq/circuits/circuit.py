@@ -1576,10 +1576,10 @@ class Circuit:
             diagram.write(0, i, qubit_namer(q))
 
         if any(
-            isinstance(op, cirq.GlobalPhaseOperation) or
-            (isinstance(op, cirq.TaggedOperation)
-             and isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
-            for op in self.all_operations()):
+                isinstance(op, cirq.GlobalPhaseOperation) or
+            (isinstance(op, cirq.TaggedOperation) and
+             isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
+                for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
                           'global phase:')
@@ -1756,7 +1756,7 @@ def _get_operation_circuit_diagram_info_with_fallback(
 
     # Add tags onto the representation, if they exist
     if isinstance(op, cirq.TaggedOperation):
-        name += f' {list(op.tags)}'
+        name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple('#{}'.format(i + 1)
@@ -1875,11 +1875,11 @@ def _draw_moment_in_diagram(
             max_x = x
 
     global_phase = None
-    tags = []
+    tags: List[Any] = []
     for op in moment:
         if isinstance(op, ops.TaggedOperation):
             tags.extend(op.tags)
-            op=op.sub_operation
+            op = op.sub_operation
         if isinstance(op, ops.GlobalPhaseOperation):
             if global_phase:
                 global_phase *= complex(op.coefficient)
@@ -1895,7 +1895,7 @@ def _draw_moment_in_diagram(
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
-         out_diagram.write(x0, 0, '')
+        out_diagram.write(x0, 0, '')
 
     # Group together columns belonging to the same Moment.
     if moment.operations and max_x > x0:
