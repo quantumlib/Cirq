@@ -53,6 +53,34 @@ for metric_name in latest_calibration:
 Calibration metrics will also soon be available from the 
 [Google Cloud Platform Console](https://console.cloud.google.com).
 
+## Total error and purity error
+
+Several metrics below define total error and purity error.  The total error
+measures the average error ε_a over all possible input states.  See Table 1 on
+page 11 of the [https://arxiv.org/abs/1910.11333](Supplementry Information)
+document for a description and comparison between average error, Pauli error,
+and depolarization error.
+
+The [Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) of the
+quantum state is often defined as the trace of the density matrix of the
+state after the operations (RB or XEB) have been applied.  The purity error,
+or impurity, is one minus the purity, scaled to be from zero to one.  This is
+often referred to as the normalized
+[Linear Entropy](https://en.wikipedia.org/wiki/Linear_entropy).
+after the randomized benchmark circuit has been applied.  
+
+The purity error can be interpreted as a measure of the incoherent error,
+such as those caused by stochastic processes such as relaxation.  The total
+error can be interpreted as containing both this incoherent error as well as
+the coherent, or control, error resulting from improper control or calibration
+of the device.
+
+Note that, due to statistical fluctuations, it is possible that the purity
+error can exceed the total error by small amounts.
+
+For more about purity benchmarking, see Section 6.3 of this
+[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf) .
+
 ## Individual Metrics
 
 Each metric can be referenced by its key in the calibration object, e.g.
@@ -103,15 +131,8 @@ sequences of varying length of the 24 gates within the Clifford group
 inverse of the expected final state.  The result of this sequence should always
 be identity (|0⟩ state).  The final error is measured and compared against this
 state to produce the total error.  This error is calculated for one qubit at a
-time while all other qubits on the device are idle (isolated).
-
-The purity error is defined as 1 minus the 
-[Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) of the
-quantum state after the randomized benchmark circuit has been applied.  It is
-a measure of the incoherent error (as opposed to coherent, or control, error).
-
-Note that, due to statistical fluctuations, it is possible that the purity
-error can exceed the total error by small amounts.
+time while all other qubits on the device are idle (isolated).  See the
+above section for descriptions of total versus purity error.
 
 More information about randomized benchmarking can be found in section 6.3
 (page 120) of this
@@ -129,7 +150,6 @@ This is calculated by preparing an excited state with a microwave pulse
 An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
 
-
 ### 2-qubit Isolated XEB error
  
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_purity_error
@@ -142,9 +162,7 @@ This is computed by performing a "cycle" of a random one-qubit gate on each
 qubit followed by the two qubit entangling gate.  The resulting distribution is
 analyzed and compared to the expected distribution using cross entropy.
 
-Total error includes both incoherent and coherent errors.  Purity error includes
-only incoherent error, such as those caused by stochastic processes such as
-relaxation. 
+See the above section for descriptions of total versus purity error.
 
 These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
