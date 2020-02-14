@@ -480,12 +480,20 @@ def test_circuit_diagram():
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
 
 
-def test_circuit_diagram_corner_cases():
+def test_circuit_diagram_tagged_global_phase():
     # Tests global phase operation
-    global_phase = cirq.GlobalPhaseOperation(coefficient=1.0).with_tags('tag0')
-    expected_diagram = "\n\nglobal phase ['tag0']: 1.0"
+    q=cirq.NamedQubit('a')
+    global_phase = cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0')
+
     assert global_phase._circuit_diagram_info_(args=None) == NotImplemented
-    assert cirq.Circuit(global_phase).to_text_diagram() == expected_diagram
+    cirq.testing.assert_has_diagram(cirq.Circuit(global_phase),
+                                    "\n\nglobal phase:   π['tag0']",
+                                    use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(cirq.Circuit(global_phase),
+                                    "\n\nglobal phase:   π",
+                                    use_unicode_characters=True,
+                                    include_tags=False)
+
     expected = cirq.CircuitDiagramInfo(wire_symbols=tuple(),
                                        exponent=1.0,
                                        connected=True,
@@ -499,9 +507,28 @@ def test_circuit_diagram_corner_cases():
                                   ) -> 'cirq.CircuitDiagramInfo':
             return expected
 
-    no_wire_symbol_op = NoWireSymbols(coefficient=1.0).with_tags('tag0')
+    no_wire_symbol_op = NoWireSymbols(coefficient=-1.0).with_tags('tag0')
     assert no_wire_symbol_op._circuit_diagram_info_(args=None) == expected
-    assert cirq.Circuit(no_wire_symbol_op).to_text_diagram() == expected_diagram
+    cirq.testing.assert_has_diagram(cirq.Circuit(no_wire_symbol_op),
+                                    "\n\nglobal phase:   π['tag0']",
+                                    use_unicode_characters=True)
+
+    tag1 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag1')
+    tag2 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag2')
+    c = cirq.Circuit([cirq.X(q), tag1, tag2])
+    cirq.testing.assert_has_diagram(c, """\
+a: ─────────────X───────────────────
+
+global phase:   π['tag1', 'tag2']""",
+                                use_unicode_characters=True,
+                                precision=2)
+    cirq.testing.assert_has_diagram(c, """\
+a: ─────────────X───
+
+global phase:   π""",
+                                    use_unicode_characters=True,
+                                    include_tags=False,
+                                    precision=2)
 
 
 def test_circuit_diagram_no_circuit_diagram():

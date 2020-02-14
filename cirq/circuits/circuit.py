@@ -1575,19 +1575,14 @@ class Circuit:
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
 
-        # Print out global phase information
-        for op in self.all_operations():
-            if isinstance(op, cirq.GlobalPhaseOperation):
-                diagram.write(0,
-                              max(qubit_map.values(), default=0) + 1,
-                              f'global phase: {op.coefficient}')
-            if (isinstance(op, cirq.TaggedOperation) and
-                    isinstance(op.sub_operation, cirq.GlobalPhaseOperation)):
-                diagram.write(
-                    0,
-                    max(qubit_map.values(), default=0) + 1,
-                    f'global phase {str(list(op.tags))}: '
-                    f'{op.sub_operation.coefficient}')
+        if any(
+            isinstance(op, cirq.GlobalPhaseOperation) or
+            (isinstance(op, cirq.TaggedOperation)
+             and isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
+            for op in self.all_operations()):
+            diagram.write(0,
+                          max(qubit_map.values(), default=0) + 1,
+                          'global phase:')
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
@@ -1879,19 +1874,28 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = np.product([
-        complex(e.coefficient)
-        for e in moment
-        if isinstance(e, ops.GlobalPhaseOperation)
-    ])
-    if global_phase != 1:
+    global_phase = None
+    tags = []
+    for op in moment:
+        if isinstance(op, ops.TaggedOperation):
+            tags.extend(op.tags)
+            op=op.sub_operation
+        if isinstance(op, ops.GlobalPhaseOperation):
+            if global_phase:
+                global_phase *= complex(op.coefficient)
+            else:
+                global_phase = complex(op.coefficient)
+
+    if global_phase:
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(qubit_map.values(), default=0) + 1
+            if tags and include_tags:
+                desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
-        out_diagram.write(x0, 0, '')
+         out_diagram.write(x0, 0, '')
 
     # Group together columns belonging to the same Moment.
     if moment.operations and max_x > x0:

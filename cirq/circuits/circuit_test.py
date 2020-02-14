@@ -1845,12 +1845,24 @@ a: ---PhX(0.43214321)^0.12341234---
 
 def test_diagram_global_phase():
     qa = cirq.NamedQubit('a')
-    global_phase = cirq.GlobalPhaseOperation(coefficient=1.0)
+    global_phase = cirq.GlobalPhaseOperation(coefficient=1j)
     c = cirq.Circuit([global_phase])
     cirq.testing.assert_has_diagram(c,
-                                    "\n\nglobal phase: 1.0",
+                                    "\n\nglobal phase:   0.5pi",
                                     use_unicode_characters=False,
                                     precision=2)
+    cirq.testing.assert_has_diagram(c,
+                                    "\n\nglobal phase:   0.5π",
+                                    use_unicode_characters=True,
+                                    precision=2)
+
+    c = cirq.Circuit([cirq.X(qa), global_phase, global_phase])
+    cirq.testing.assert_has_diagram(c,"""\
+a: ─────────────X───
+
+global phase:   π""",
+                                use_unicode_characters=True,
+                                precision=2)
 
 
 def test_has_unitary():
