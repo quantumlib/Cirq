@@ -14,7 +14,6 @@
 """Support for serializing and deserializing cirq.google.api.v2 protos."""
 
 from typing import (
-    cast,
     Dict,
     Iterable,
     List,

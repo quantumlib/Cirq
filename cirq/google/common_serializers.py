@@ -393,28 +393,28 @@ SQRT_ISWAP_SERIALIZERS = [
         gate_type=ops.FSimGate,
         serialized_gate_id='fsim_pi_4',
         args=[],
-        can_serialize_predicate=(
-            lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 4) and
-            _near_mod_2pi(cast(ops.FSimGate, e).phi, 0))),
+        can_serialize_predicate=(lambda e: _near_mod_2pi(
+            cast(ops.FSimGate, e.gate).theta, np.pi / 4) and _near_mod_2pi(
+                cast(ops.FSimGate, e.gate).phi, 0))),
     op_serializer.GateOpSerializer(
         gate_type=ops.ISwapPowGate,
         serialized_gate_id='fsim_pi_4',
         args=[],
         can_serialize_predicate=(lambda e: _near_mod_n(
-            cast(ops.ISwapPowGate, e).exponent, -0.5, 4))),
+            cast(ops.ISwapPowGate, e.gate).exponent, -0.5, 4))),
     op_serializer.GateOpSerializer(
         gate_type=ops.FSimGate,
         serialized_gate_id='inv_fsim_pi_4',
         args=[],
-        can_serialize_predicate=(
-            lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, -np.pi / 4) and
-            _near_mod_2pi(cast(ops.FSimGate, e).phi, 0))),
+        can_serialize_predicate=(lambda e: _near_mod_2pi(
+            cast(ops.FSimGate, e.gate).theta, -np.pi / 4) and _near_mod_2pi(
+                cast(ops.FSimGate, e.gate).phi, 0))),
     op_serializer.GateOpSerializer(
         gate_type=ops.ISwapPowGate,
         serialized_gate_id='inv_fsim_pi_4',
         args=[],
         can_serialize_predicate=(lambda e: _near_mod_n(
-            cast(ops.ISwapPowGate, e).exponent, +0.5, 4))),
+            cast(ops.ISwapPowGate, e.gate).exponent, +0.5, 4))),
 ]
 
 SQRT_ISWAP_DESERIALIZERS = [
