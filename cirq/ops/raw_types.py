@@ -581,7 +581,7 @@ class TaggedOperation(Operation):
         sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args,
                                                      NotImplemented)
         # Add tag to wire symbol if it exists.
-        if (sub_op_info is not NotImplemented and args and args.include_tags and
+        if (sub_op_info is not NotImplemented and args.include_tags and
                 sub_op_info.wire_symbols):
             sub_op_info.wire_symbols = (
                 (sub_op_info.wire_symbols[0] + str(list(self._tags)),) +

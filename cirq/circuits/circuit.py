@@ -1877,7 +1877,8 @@ def _draw_moment_in_diagram(
     global_phase = None
     tags: List[Any] = []
     for op in moment:
-        if isinstance(op, ops.TaggedOperation):
+        if (isinstance(op, ops.TaggedOperation) and
+                isinstance(op.sub_operation, ops.GlobalPhaseOperation)):
             tags.extend(op.tags)
             op = op.sub_operation
         if isinstance(op, ops.GlobalPhaseOperation):

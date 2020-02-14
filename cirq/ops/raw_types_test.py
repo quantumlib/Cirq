@@ -485,6 +485,7 @@ def test_circuit_diagram_tagged_global_phase():
     q = cirq.NamedQubit('a')
     global_phase = cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0')
 
+    # Just global phase in a circuit
     assert (cirq.circuit_diagram_info(global_phase,
                                       default='default') == 'default')
     cirq.testing.assert_has_diagram(cirq.Circuit(global_phase),
@@ -515,6 +516,7 @@ def test_circuit_diagram_tagged_global_phase():
                                     "\n\nglobal phase:   π['tag0']",
                                     use_unicode_characters=True)
 
+    # Two global phases in one moment
     tag1 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag1')
     tag2 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag2')
     c = cirq.Circuit([cirq.X(q), tag1, tag2])
@@ -525,14 +527,21 @@ a: ─────────────X────────────�
 global phase:   π['tag1', 'tag2']""",
                                     use_unicode_characters=True,
                                     precision=2)
+
+    # Two moments with global phase, one with another tagged gate
+    c = cirq.Circuit([cirq.X(q).with_tags('x_tag'), tag1])
+    c.append(cirq.Moment([cirq.X(q), tag2]))
+    for m in c:
+        print(m)
+        print('----')
     cirq.testing.assert_has_diagram(c,
                                     """\
-a: ─────────────X───
+a: ─────────────X['x_tag']─────X──────────────
 
-global phase:   π""",
+global phase:   0.5π['tag1']   0.5π['tag2']
+""",
                                     use_unicode_characters=True,
-                                    include_tags=False,
-                                    precision=2)
+                                    include_tags=True)
 
 
 def test_circuit_diagram_no_circuit_diagram():

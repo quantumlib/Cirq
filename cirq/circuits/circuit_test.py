@@ -1864,7 +1864,15 @@ a: ─────────────X───
 global phase:   π""",
                                     use_unicode_characters=True,
                                     precision=2)
+    c = cirq.Circuit([cirq.X(qa), global_phase],cirq.Moment([cirq.X(qa), global_phase]))
+    cirq.testing.assert_has_diagram(c,
+                                    """\
+a: ─────────────X──────X──────
 
+global phase:   0.5π   0.5π
+""",
+                                    use_unicode_characters=True,
+                                    precision=2)
 
 def test_has_unitary():
 
