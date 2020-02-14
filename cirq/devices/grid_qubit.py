@@ -38,11 +38,19 @@ class GridQubit(ops.Qid):
     """
 
     def __init__(self, row: int, col: int):
-        self.row = row
-        self.col = col
+        self._row = row
+        self._col = col
 
     def _comparison_key(self):
         return self.row, self.col
+
+    @property
+    def row(self) -> int:
+        return self._row
+
+    @property
+    def col(self) -> int:
+        return self._col
 
     @property
     def dimension(self) -> int:
