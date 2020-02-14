@@ -1886,7 +1886,8 @@ def _draw_moment_in_diagram(
             else:
                 global_phase = complex(op.coefficient)
 
-    if global_phase:
+    # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
+    if global_phase and (global_phase!=1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(qubit_map.values(), default=0) + 1
