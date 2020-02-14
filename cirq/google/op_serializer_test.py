@@ -213,12 +213,12 @@ def test_to_proto_gate_predicate():
                               serialized_type=float,
                               gate_getter='val')
         ],
-        can_serialize_predicate=lambda x: x.val == 1)
+        can_serialize_predicate=lambda x: x.gate.val == 1)
     q = cirq.GridQubit(1, 2)
     assert serializer.to_proto_dict(GateWithAttribute(0)(q)) is None
     assert serializer.to_proto_dict(GateWithAttribute(1)(q)) is not None
-    assert not serializer.can_serialize_gate(GateWithAttribute(0)(q))
-    assert not serializer.can_serialize_gate(GateWithAttribute(1)(q))
+    assert not serializer.can_serialize_operation(GateWithAttribute(0)(q))
+    assert serializer.can_serialize_operation(GateWithAttribute(1)(q))
 
 
 def test_to_proto_gate_mismatch():
@@ -346,7 +346,7 @@ def test_to_proto_type_mismatch(val_type, val):
         serializer.to_proto_dict(GateWithProperty(val)(q))
 
 
-def test_can_serialize_gate_subclass():
+def test_can_serialize_operation_subclass():
     serializer = cg.GateOpSerializer(
         gate_type=GateWithAttribute,
         serialized_gate_id='my_gate',
@@ -355,6 +355,7 @@ def test_can_serialize_gate_subclass():
                               serialized_type=float,
                               gate_getter='val')
         ],
-        can_serialize_predicate=lambda x: x.val == 1)
-    assert serializer.can_serialize_gate(SubclassGate(1))
-    assert not serializer.can_serialize_gate(SubclassGate(0))
+        can_serialize_predicate=lambda x: x.gate.val == 1)
+    q = cirq.GridQubit(1, 1)
+    assert serializer.can_serialize_operation(SubclassGate(1)(q))
+    assert not serializer.can_serialize_operation(SubclassGate(0)(q))

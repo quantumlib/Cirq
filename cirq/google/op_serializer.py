@@ -65,17 +65,17 @@ class GateOpSerializer:
                  gate_type: Type[Gate],
                  serialized_gate_id: str,
                  args: List[SerializingArg],
-                 can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda
-                 x: True):
+                 can_serialize_predicate: Callable[['cirq.Operation'], bool] =
+                 lambda x: True):
         """Construct the serializer.
 
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
-            can_serialize_predicate: Sometimes a gate can only be serialized for
-                particular gate parameters. If this is not None, then
+            can_serialize_predicate: Sometimes an Operation can only be
+                serialized for particular parameters. If this is not None, then
                 this predicate will be checked before attempting
-                to serialize the gate. If the predicate is False,
+                to serialize the Operation. If the predicate is False,
                 serialization will result in a None value.
             args: A list of specification of the arguments to the gate when
                 serializing, including how to get this information from the
@@ -86,18 +86,18 @@ class GateOpSerializer:
         self.args = args
         self.can_serialize_predicate = can_serialize_predicate
 
-    def can_serialize_gate(self, gate: 'cirq.Gate') -> bool:
-        """Whether the given gate can be serialized by this serializer.
+    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+        """Whether the given operation can be serialized by this serializer.
 
         This checks that the gate is a subclass of the gate type for this
         serializer, and that the gate returns true for
         `can_serializer_predicate` called on the gate.
         """
-        supported_gate_type = self.gate_type in type(gate).mro()
-        return supported_gate_type and self.can_serialize_predicate(gate)
+        supported_gate_type = self.gate_type in type(op.gate).mro()
+        return supported_gate_type and self.can_serialize_predicate(op)
 
     def to_proto_dict(self,
-                      op: 'cirq.GateOperation',
+                      op: 'cirq.Operation',
                       *,
                       arg_function_language: str = '') -> Optional[Dict]:
         msg = self.to_proto(op, arg_function_language=arg_function_language)
@@ -110,7 +110,7 @@ class GateOpSerializer:
 
     def to_proto(
             self,
-            op: 'cirq.GateOperation',
+            op: 'cirq.Operation',
             msg: Optional[v2.program_pb2.Operation] = None,
             *,
             arg_function_language: Optional[str] = '',
@@ -125,7 +125,7 @@ class GateOpSerializer:
                 'Gate of type {} but serializer expected type {}'.format(
                     type(gate), self.gate_type))
 
-        if not self.can_serialize_predicate(gate):
+        if not self.can_serialize_predicate(op):
             return None
 
         if msg is None:

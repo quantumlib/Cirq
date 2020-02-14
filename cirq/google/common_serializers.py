@@ -29,6 +29,8 @@ import sympy
 
 from cirq import ops, protocols, value
 from cirq.google import op_deserializer, op_serializer
+from cirq.google.api import v2
+from cirq.google.ops import PhysicalZTag
 
 
 def _near_mod_n(e, t, n, atol=1e-8):
@@ -44,6 +46,12 @@ def _near_mod_2pi(e, t, atol=1e-8):
 def _near_mod_2(e, t, atol=1e-8):
     return _near_mod_n(e, t, n=2, atol=atol)
 
+
+def _convert_physical_z(op: ops.Operation, proto: v2.program_pb2.Operation):
+    if 'type' in proto.args:
+        if proto.args['type'].arg_value.string_value == 'physical_z':
+            return op.with_tags(PhysicalZTag())
+    return op
 
 #############################################
 #
@@ -118,7 +126,24 @@ SINGLE_QUBIT_SERIALIZERS = [
                 gate_getter=lambda x: 'virtual_propagates_forward',
             ),
         ],
-    ),
+        can_serialize_predicate=lambda op: isinstance(op, ops.GateOperation)),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ZPowGate,
+        serialized_gate_id='z',
+        args=[
+            op_serializer.SerializingArg(
+                serialized_name='half_turns',
+                serialized_type=float,
+                gate_getter='exponent',
+            ),
+            op_serializer.SerializingArg(
+                serialized_name='type',
+                serialized_type=str,
+                gate_getter=lambda x: 'physical_z',
+            ),
+        ],
+        can_serialize_predicate=(lambda op: isinstance(op, ops.TaggedOperation)
+                                 and PhysicalZTag() in op.tags)),
     op_serializer.GateOpSerializer(
         gate_type=ops.PhasedXZGate,
         serialized_gate_id='xyz',
@@ -141,7 +166,6 @@ SINGLE_QUBIT_SERIALIZERS = [
         ],
     ),
 ]
-
 
 #
 # Single qubit deserializers for arbitrary rotations
@@ -170,7 +194,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
                 constructor_arg_name='exponent',
             ),
         ],
-    ),
+        op_wrapper=lambda op, proto: _convert_physical_z(op, proto)),
     op_deserializer.GateOpDeserializer(
         serialized_gate_id='xyz',
         gate_constructor=ops.PhasedXZGate,
@@ -233,7 +257,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          gate_getter='phase_exponent'),
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.PhasedXPowGate, x).exponent, 1)),
+            cast(ops.PhasedXPowGate, x.gate).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.XPowGate,
         serialized_gate_id='xy_pi',
@@ -244,7 +268,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                 gate_getter=lambda x: (cast(ops.XPowGate, x).exponent - 1) / 2)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.XPowGate, x).exponent, 1)),
+            cast(ops.XPowGate, x.gate).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_pi',
@@ -255,7 +279,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                 gate_getter=lambda x: cast(ops.YPowGate, x).exponent / 2)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.YPowGate, x).exponent, 1)),
+            cast(ops.YPowGate, x.gate).exponent, 1)),
     op_serializer.GateOpSerializer(
         gate_type=ops.XPowGate,
         serialized_gate_id='xy_half_pi',
@@ -266,7 +290,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                 gate_getter=lambda x: cast(ops.XPowGate, x).exponent - 0.5)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.XPowGate, x).exponent, 0.5)),
+            cast(ops.XPowGate, x.gate).exponent, 0.5)),
     op_serializer.GateOpSerializer(
         gate_type=ops.YPowGate,
         serialized_gate_id='xy_half_pi',
@@ -277,7 +301,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                 gate_getter=lambda x: cast(ops.YPowGate, x).exponent)
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.YPowGate, x).exponent, 0.5)),
+            cast(ops.YPowGate, x.gate).exponent, 0.5)),
     op_serializer.GateOpSerializer(
         gate_type=ops.PhasedXPowGate,
         serialized_gate_id='xy_half_pi',
@@ -287,7 +311,7 @@ SINGLE_QUBIT_HALF_PI_SERIALIZERS = [
                                          gate_getter='phase_exponent'),
         ],
         can_serialize_predicate=lambda x: _near_mod_2(
-            cast(ops.PhasedXPowGate, x).exponent, 0.5)),
+            cast(ops.PhasedXPowGate, x.gate).exponent, 0.5)),
 ]
 
 #
@@ -352,8 +376,8 @@ SYC_SERIALIZER = op_serializer.GateOpSerializer(
     serialized_gate_id='syc',
     args=[],
     can_serialize_predicate=(
-        lambda e: _near_mod_2pi(cast(ops.FSimGate, e).theta, np.pi / 2) and
-        _near_mod_2pi(cast(ops.FSimGate, e).phi, np.pi / 6)))
+        lambda e: _near_mod_2pi(cast(ops.FSimGate, e.gate).theta, np.pi / 2) and
+        _near_mod_2pi(cast(ops.FSimGate, e.gate).phi, np.pi / 6)))
 
 SYC_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='syc',
