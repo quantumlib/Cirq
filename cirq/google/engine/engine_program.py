@@ -170,7 +170,7 @@ class EngineProgram:
             The program's parent Engine.
         """
         import cirq.google.engine.engine as engine_base
-        return engine_base.Engine(self.project_id, self.context)
+        return engine_base.Engine(self.project_id, context=self.context)
 
     def get_job(self, job_id: str) -> engine_job.EngineJob:
         """Returns an EngineJob for an existing Quantum Engine job.

@@ -73,7 +73,7 @@ class EngineJob:
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
         import cirq.google.engine.engine as engine_base
-        return engine_base.Engine(self.project_id, self.context)
+        return engine_base.Engine(self.project_id, context=self.context)
 
     def program(self) -> 'engine_program.EngineProgram':
         """Returns the parent EngineProgram object."""

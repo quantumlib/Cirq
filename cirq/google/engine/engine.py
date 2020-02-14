@@ -63,16 +63,23 @@ def _make_random_id(prefix: str, length: int = 16):
 
 @value.value_equality
 class EngineContext:
-    """Context for running against the Quantum Engine API."""
+    """Context for running against the Quantum Engine API. Most users should
+    simply create an Engine object instead of working with one of these
+    directly."""
 
     def __init__(self,
                  proto_version: Optional[ProtoVersion] = None,
                  service_args: Optional[Dict] = None,
                  verbose: Optional[bool] = None,
                  client: 'Optional[engine_client.EngineClient]' = None) -> None:
-        """Configuration for a job that is run on Quantum Engine.
+        """Context and client for using Quantum Engine.
 
         Args:
+            proto_version: The version of cirq protos to use.
+            service_args: A dictionary of arguments that can be used to
+                configure options on the underlying client.
+            verbose: Suppresses stderr messages when set to False. Default is
+                true.
         """
         if (service_args or verbose) and client:
             raise ValueError(
@@ -113,10 +120,10 @@ class Engine:
     def __init__(
             self,
             project_id: str,
-            context: Optional[EngineContext] = None,
             proto_version: Optional[ProtoVersion] = None,
             service_args: Optional[Dict] = None,
             verbose: Optional[bool] = None,
+            context: Optional[EngineContext] = None,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -128,8 +135,7 @@ class Engine:
             context: Engine configuration and context to use.
             proto_version: The version of cirq protos to use.
             service_args: A dictionary of arguments that can be used to
-                configure options on the underlying apiclient. See
-                https://github.com/googleapis/google-api-python-client
+                configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
         """
