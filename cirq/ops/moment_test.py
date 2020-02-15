@@ -274,3 +274,21 @@ def test_add():
     circuit2 = cirq.Circuit(cirq.CNOT(a, b), cirq.Y(b))
     circuit2[1] += cirq.X(a)
     assert circuit2 == expected_circuit
+
+
+def test_indexes_by_qubit():
+    a, b, c = cirq.LineQubit.range(3)
+    circuit = cirq.Circuit([cirq.H(a), cirq.CNOT(b, c)])
+    moment = circuit[0]
+
+    assert moment[a] == cirq.H(a)
+    assert moment[b] == cirq.CNOT(b, c)
+    assert moment[c] == cirq.CNOT(b, c)
+
+def test_throws_when_indexed_by_unused_qubit():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit([cirq.H(a)])
+    moment = circuit[0]
+
+    with pytest.raises(KeyError, match="Moment doesn't act on qubit"):
+        op = moment[b]
