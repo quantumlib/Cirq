@@ -81,15 +81,6 @@ class AlignInteractions():
         for moment in solution:
             circuit.append(moment)
 
-    def trace_func(self, current: cirq.Circuit, temp: float, cost: float,
-                   accept: float, decision: bool):
-        """A trace function that can be supplied to the annealing function that
-        prints debug information."""
-        print(f"current: {len(current)}, temp: {temp}, cost: {cost}, "
-              f"accept: {accept}, decision: {decision}")
-        if decision:
-            print(current)
-
     def cost_func(self, current: cirq.Circuit) -> float:
         """Scores the given circuit. It penalizes heterogeneous moments
         as well as the total number of moments, although the former incurs a
@@ -127,6 +118,7 @@ class AlignInteractions():
         rand_op = current.operation_at(rand_qubit, rand_moment_idx)
         if rand_op is None:
             # This should never happen, and is here to appease mypy.
+            # coverage: ignore
             raise RuntimeError('Error when finding  random operation')
 
         # Move this operation, as long as it doesn't cross any 2-qubit gate
@@ -181,6 +173,7 @@ class AlignInteractions():
                 old_op = copy.operation_at(qubit, new_moment_idx)
                 if old_op is None:
                     # Should never happen - here to appease mypy.
+                    # coverage: ignore
                     continue
                 # Get rid of the old operation.
                 copy[new_moment_idx] = copy[
@@ -252,24 +245,6 @@ def moment_homogeneous_for_op(moment: cirq.Moment, op: cirq.Operation) -> bool:
         if operation_kind(moment_op) != operation_kind(op):
             return False
     return True
-
-
-def create_new_moment(current: cirq.Circuit, moment_idx: int,
-                      op: cirq.Operation) -> cirq.Circuit:
-    """Returns a copy of the given circuit with a new moment added containing
-    the given operation, and deletes this operation from its original location.
-
-    Args:
-        current: The circuit to add the new moment to. Not mutated.
-        moment_idx: The moment of the given operation.
-        op: The operation to move.
-
-    Returns: The new circuit with a new moment containing the moved operation.
-    """
-    copy = current.copy()
-    copy.insert(moment_idx, cirq.Moment([op]), strategy=InsertStrategy.NEW)
-    copy.batch_remove([(moment_idx + 1, op)])
-    return copy
 
 
 class OperationKind(Enum):

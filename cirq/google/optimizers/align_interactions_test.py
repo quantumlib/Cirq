@@ -27,6 +27,7 @@ def get_qubit_to_operations(circuit: cirq.Circuit
                 op = circuit.operation_at(qubit, n)
                 if op is None:
                     # Should never happen, and is here to appease mypy.
+                    # coverage: ignore
                     raise RuntimeError('Unexpected error gathering operations')
                 operations.append(op)
                 moment_idx = n + 1
