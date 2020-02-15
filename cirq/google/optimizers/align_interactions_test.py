@@ -19,13 +19,17 @@ def get_qubit_to_operations(circuit: cirq.Circuit
     that qubit, in order."""
     qubit_to_operations: Dict[cirq.Qid, List[cirq.Operation]] = {}
     for qubit in circuit.all_qubits():
-        operations = []
+        operations: List[cirq.Operation] = []
         moment_idx = 0
         while True:
-            moment_idx = circuit.next_moment_operating_on([qubit], moment_idx)
-            if moment_idx is not None:
-                operations.append(circuit.operation_at(qubit, moment_idx))
-                moment_idx += 1
+            n = circuit.next_moment_operating_on([qubit], moment_idx)
+            if n is not None:
+                op = circuit.operation_at(qubit, n)
+                if op is None:
+                    # Should never happen, and is here to appease mypy.
+                    raise RuntimeError('Unexpected error gathering operations')
+                operations.append(op)
+                moment_idx = n + 1
             else:
                 break
         qubit_to_operations[qubit] = operations

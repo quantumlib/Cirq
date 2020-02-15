@@ -1,6 +1,7 @@
 import random
 from enum import Enum
 from typing import List, Set
+import numpy as np
 
 import cirq
 from cirq import circuits, ops, InsertStrategy
@@ -38,7 +39,7 @@ class AlignInteractions():
        """
 
     num_repetitions: int
-    random_state: cirq.value.RANDOM_STATE_LIKE
+    random_state: np.random.RandomState
     max_num_moments: int  # The largest the circuit is allowed to grow to.
 
     def __init__(self,
@@ -124,6 +125,9 @@ class AlignInteractions():
                 indices_for_qubit.append(moment_idx)
         rand_moment_idx = random.sample(indices_for_qubit, 1)[0]
         rand_op = current.operation_at(rand_qubit, rand_moment_idx)
+        if rand_op is None:
+            # This should never happen, and is here to appease mypy.
+            raise RuntimeError('Error when finding  random operation')
 
         # Move this operation, as long as it doesn't cross any 2-qubit gate
         # boundaries.
@@ -175,6 +179,9 @@ class AlignInteractions():
         for qubit in op.qubits:
             if copy[new_moment_idx].operates_on([qubit]):
                 old_op = copy.operation_at(qubit, new_moment_idx)
+                if old_op is None:
+                    # Should never happen - here to appease mypy.
+                    continue
                 # Get rid of the old operation.
                 copy[new_moment_idx] = copy[
                     new_moment_idx].without_operations_touching([qubit])
