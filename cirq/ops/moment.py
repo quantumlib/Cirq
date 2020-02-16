@@ -15,7 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
-                    FrozenSet, TYPE_CHECKING, Iterator)
+                    FrozenSet, TYPE_CHECKING, Iterator, overload)
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -209,6 +209,15 @@ class Moment:
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
         return NotImplemented
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
+        pass
 
     def __getitem__(self, key: raw_types.Qid):
         if isinstance(key, raw_types.Qid):
