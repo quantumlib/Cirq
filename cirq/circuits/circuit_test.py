@@ -3373,7 +3373,7 @@ def test_indexing_by_pair():
 
     # Indexing by moment and qubit - throws if there is no operation.
     with pytest.raises(KeyError, match="Moment doesn't act on given qubit"):
-        op = c[0, q[1]]
+        c[0, q[1]]
 
     # Indexing by single moment and multiple qubits.
     assert c[0, q] == c[0]
@@ -3421,8 +3421,13 @@ def test_indexing_by_pair():
 
     # Indexing by several moments and several qubits.
     assert c[0:2, q[1:3]] == cirq.Circuit([cirq.H(q[1]).controlled_by(q[0])])
+    assert c[0:2, q[1:3]] == c[0:2][:, q[1:3]]
     assert c[::2, q[0:2]] == cirq.Circuit([
         cirq.Moment([cirq.H(q[0])]),
         cirq.Moment([cirq.H(q[2]).controlled_by(q[1]),
                      cirq.X(q[0])]),
     ])
+
+    # Passing more than 2 items is forbidden.
+    with pytest.raises(AssertionError):
+        c[0, q[1], 0]

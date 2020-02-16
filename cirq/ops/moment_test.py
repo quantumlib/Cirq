@@ -292,7 +292,7 @@ def test_throws_when_indexed_by_unused_qubit():
     moment = circuit[0]
 
     with pytest.raises(KeyError, match="Moment doesn't act on given qubit"):
-        op = moment[b]
+        moment[b]
 
 
 def test_indexes_by_list_of_qubits():
