@@ -127,7 +127,7 @@ class Moment:
         for op in self.operations:
             if qubit in op.qubits:
                 return op
-        raise KeyError("Moment doesn't act on qubit")
+        raise KeyError("Moment doesn't act on given qubit")
 
     def __copy__(self):
         return type(self)(self.operations)
@@ -211,7 +211,15 @@ class Moment:
         return NotImplemented
 
     def __getitem__(self, key: raw_types.Qid):
-        return self.operation_touching(key)
+        if isinstance(key, raw_types.Qid):
+            return self.operation_touching(key)
+        elif isinstance(key, Iterable):
+            qubits_to_keep = frozenset(key)
+            ops_to_keep = [
+                op for op in self.operations
+                if not qubits_to_keep.isdisjoint(frozenset(op.qubits))
+            ]
+            return Moment(ops_to_keep)
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
