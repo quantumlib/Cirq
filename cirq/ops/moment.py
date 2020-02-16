@@ -219,7 +219,7 @@ class Moment:
     def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
         pass
 
-    def __getitem__(self, key: raw_types.Qid):
+    def __getitem__(self):
         if isinstance(key, raw_types.Qid):
             return self.operation_touching(key)
         elif isinstance(key, Iterable):
