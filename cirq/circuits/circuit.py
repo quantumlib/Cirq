@@ -252,7 +252,7 @@ class Circuit:
                     moment for moment in moments if len(moment.operations) > 0
                 ]
                 return Circuit(moments)
-            raise TypeError('First element of key must be slice or int.')
+            raise TypeError('First index must be int or slice.')
 
         raise TypeError(
             '__getitem__ called with key not of type slice, int or Tuple.')

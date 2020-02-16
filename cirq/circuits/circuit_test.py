@@ -3431,3 +3431,7 @@ def test_indexing_by_pair():
     # Passing more than 2 items is forbidden.
     with pytest.raises(AssertionError):
         _ = c[0, q[1], 0]
+
+    # Checks the type.
+    with pytest.raises(TypeError, match='First index must be int or slice.'):
+        _ = c[q[1], 0]
