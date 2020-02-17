@@ -3610,7 +3610,7 @@ def test_indexing_by_pair():
     assert c[1, q[1:2]] == c[1]
     assert c[2, [q[0]]] == cirq.Moment([cirq.X(q[0])])
     assert c[2, q[1:3]] == cirq.Moment([cirq.H(q[2]).controlled_by(q[1])])
-    assert c[2, q[0:2]] == c[2]
+    assert c[np.int64(2), q[0:2]] == c[2]
 
     # Indexing by single qubit.
     assert c[:, q[0]] == cirq.Circuit([
