@@ -281,7 +281,6 @@ class Circuit:
                 self._validate_op_tree_qids(moment)
 
         self._moments[key] = value
-
     # pylint: enable=function-redefined
 
     def __delitem__(self, key: Union[int, slice]):
@@ -713,9 +712,11 @@ class Circuit:
                         q not in end_frontier):
                     active.add(q)
 
-            continue_past = (cur_op is not None and
-                             active.issuperset(cur_op.qubits) and
-                             not is_blocker(cur_op))
+            continue_past = (
+                cur_op is not None and
+                active.issuperset(cur_op.qubits) and
+                not is_blocker(cur_op)
+            )
             if continue_past:
                 for q in cur_op.qubits:
                     enqueue_next(q, cur_moment + 1)
@@ -1226,8 +1227,8 @@ class Circuit:
                          if late_frontier else 0)
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
-            self._moments[insert_index:insert_index] = ([ops.Moment()] *
-                                                        n_new_moments)
+            self._moments[insert_index:insert_index] = (
+                [ops.Moment()] * n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -1863,6 +1864,7 @@ def _is_exposed_formula(text: str) -> bool:
 
 def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
                         args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
+
     if protocols.is_parameterized(info.exponent):
         name = str(info.exponent)
         return ('({})'.format(name)
@@ -1886,8 +1888,8 @@ def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
             # funky behavior of fraction, cast to str in constructor helps.
             approx_frac = Fraction(info.exponent).limit_denominator(16)
             if approx_frac.denominator not in [2, 4, 5, 10]:
-                if abs(float(approx_frac) -
-                       info.exponent) < 10**-args.precision:
+                if abs(float(approx_frac)
+                       - info.exponent) < 10**-args.precision:
                     return '({})'.format(approx_frac)
 
             return args.format_real(info.exponent)
@@ -1913,7 +1915,7 @@ def _draw_moment_in_diagram(
                      'cirq.CircuitDiagramInfo']] = None):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
-            _get_operation_circuit_diagram_info_with_fallback)
+                _get_operation_circuit_diagram_info_with_fallback)
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]
