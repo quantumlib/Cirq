@@ -117,7 +117,7 @@ class Moment:
             operation for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits)))
 
-    def operation_touching(self, qubit: raw_types.Qid) -> 'cirq.Operation':
+    def _operation_touching(self, qubit: raw_types.Qid) -> 'cirq.Operation':
         """Returns the operation touching given qubit.
         Args:
             qubit: Operations that touch this qubit will be returned.
@@ -221,7 +221,7 @@ class Moment:
 
     def __getitem__(self, key):
         if isinstance(key, raw_types.Qid):
-            return self.operation_touching(key)
+            return self._operation_touching(key)
         elif isinstance(key, Iterable):
             qubits_to_keep = frozenset(key)
             ops_to_keep = [

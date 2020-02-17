@@ -236,8 +236,9 @@ class Circuit:
             return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
-        if isinstance(key, Tuple):
-            assert len(key) == 2
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
             # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
             if isinstance(moment_idx, int):
@@ -245,17 +246,15 @@ class Circuit:
             if isinstance(moment_idx, slice):
                 if isinstance(qubit_idx, cirq.Qid):
                     qubit_idx = [qubit_idx]
-                moments = [
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
                     moment[qubit_idx] for moment in self._moments[moment_idx]
                 ]
-                moments = [
-                    moment for moment in moments if len(moment.operations) > 0
-                ]
-                return Circuit(moments)
+                return new_circuit
             raise TypeError('First index must be int or slice.')
 
         raise TypeError(
-            '__getitem__ called with key not of type slice, int or Tuple.')
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
