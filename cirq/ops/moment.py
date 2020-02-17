@@ -33,6 +33,13 @@ class Moment:
     moment should execute at the same time (to the extent possible; not all
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
+
+    Moment can be indexed by qubit or list of qubits:
+        moment[qubit] returns the Operation in the moment which touches given
+            qubit, or throws KeyError if there is no such operation.
+        moment[qubits] returns another Moment which consists only of those
+            operations which touch at least one of given qubits. If there are no
+            such operations, returns an empty Moment.
     """
 
     def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
