@@ -306,7 +306,6 @@ def test_repr():
     ]),
 ], device=cirq.google.Foxtail)"""
 
-
 def test_empty_moments():
     # 1-qubit test
     op = cirq.X(cirq.NamedQubit('a'))
@@ -316,8 +315,7 @@ def test_empty_moments():
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ───X───X───────X───",
                                     use_unicode_characters=True)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
+    cirq.testing.assert_has_diagram(circuit, """
 a
 │
 X
@@ -329,15 +327,14 @@ X
 X
 │
 """,
-                                    use_unicode_characters=True,
-                                    transpose=True)
+            use_unicode_characters=True,
+            transpose=True)
 
     # 1-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ---X---X-------X---",
                                     use_unicode_characters=False)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
+    cirq.testing.assert_has_diagram(circuit, """
 a
 |
 X
@@ -349,8 +346,8 @@ X
 X
 |
 """,
-                                    use_unicode_characters=False,
-                                    transpose=True)
+            use_unicode_characters=False,
+            transpose=True)
 
     # 2-qubit test
     op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
@@ -361,8 +358,7 @@ X
 a: ───@───@───────@───
       │   │       │
 b: ───X───X───────X───""", use_unicode_characters=True)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
+    cirq.testing.assert_has_diagram(circuit, """
 a b
 │ │
 @─X
@@ -374,16 +370,15 @@ a b
 @─X
 │ │
 """,
-                                    use_unicode_characters=True,
-                                    transpose=True)
+        use_unicode_characters=True,
+        transpose=True)
 
     # 2-qubit ascii-only test
     cirq.testing.assert_has_diagram(circuit, """
 a: ---@---@-------@---
       |   |       |
 b: ---X---X-------X---""", use_unicode_characters=False)
-    cirq.testing.assert_has_diagram(circuit,
-                                    """
+    cirq.testing.assert_has_diagram(circuit, """
 a b
 | |
 @-X
@@ -395,8 +390,8 @@ a b
 @-X
 | |
 """,
-                                    use_unicode_characters=False,
-                                    transpose=True)
+        use_unicode_characters=False,
+        transpose=True)
 
 
 def test_symbol_addition_in_gate_exponent():
@@ -408,6 +403,7 @@ def test_symbol_addition_in_gate_exponent():
     cirq.testing.assert_has_diagram(circuit,
                                     'a: ───X^0.5───Y^(a + b)───',
                                     use_unicode_characters=True)
+
 
     cirq.testing.assert_has_diagram(circuit,
                                     """
@@ -437,7 +433,6 @@ Y^(a + b)
  """,
                                     use_unicode_characters=False,
                                     transpose=True)
-
 
 def test_slice():
     a = cirq.NamedQubit('a')
@@ -510,6 +505,7 @@ def test_concatenate_with_device():
     with pytest.raises(ValueError):
         _ = cone + fox
 
+
     unr.append(cirq.X(cirq.NamedQubit('not_allowed')))
     with pytest.raises(ValueError):
         cone += unr
@@ -520,7 +516,8 @@ def test_concatenate_with_device():
 
 def test_with_device():
     c = cirq.Circuit(cirq.X(cirq.LineQubit(0)))
-    c2 = c.with_device(cg.Foxtail, lambda e: cirq.GridQubit(e.x, 0))
+    c2 = c.with_device(cg.Foxtail,
+                                lambda e: cirq.GridQubit(e.x, 0))
     assert c2 == cirq.Circuit(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
 
     # Qubit type must be correct.
@@ -612,7 +609,6 @@ def test_bad_index():
     c = cirq.Circuit([cirq.Moment([cirq.H(a), cirq.H(b)])])
     with pytest.raises(TypeError):
         _ = c['string']
-
 
 def test_append_strategies():
     a = cirq.NamedQubit('a')
@@ -786,7 +782,6 @@ def test_insert_inline_near_start():
         cirq.Moment([cirq.Y(a)]),
         cirq.Moment(),
     ])
-
 
 def test_insert_at_frontier_init():
     x = cirq.NamedQubit('x')
@@ -1158,79 +1153,314 @@ def test_findall_operations_with_gate():
     ]
 
 
+def assert_findall_operations_until_blocked_as_expected(circuit=None,
+                                                        start_frontier=None,
+                                                        is_blocker=None,
+                                                        expected_ops=None):
+    if circuit is None:
+        circuit = cirq.Circuit()
+    if start_frontier is None:
+        start_frontier = {}
+    kwargs = {} if is_blocker is None else {'is_blocker': is_blocker}
+    found_ops = circuit.findall_operations_until_blocked(
+        start_frontier, **kwargs)
+
+    for i, op in found_ops:
+        assert i >= min(
+            (start_frontier[q] for q in op.qubits if q in start_frontier),
+            default=0)
+        assert set(op.qubits).intersection(start_frontier)
+
+    if expected_ops is None:
+        return
+    assert sorted(found_ops) == sorted(expected_ops)
+
+
 def test_findall_operations_until_blocked():
     a, b, c, d = cirq.LineQubit.range(4)
 
-    #    0: ───H───@───────────────────────────────────────@───H───
-    #              │                                       │
-    #    1: ───────@───H───@───────────────────────@───H───@───────
-    #                      │                       │
-    #    2: ───────────────@───H───@───────@───H───@───────────────
-    #                              │       │
-    #    3: ───────────────────────@───H───@───────────────────────
-    #
-    # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
-    circuit = cirq.Circuit(cirq.H(a), cirq.CZ(a, b), cirq.H(b), cirq.CZ(b, c),
-                           cirq.H(c), cirq.CZ(c, d), cirq.H(d), cirq.CZ(c, d),
-                           cirq.H(c), cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
-                           cirq.H(a))
+    assert_findall_operations_until_blocked_as_expected()
+
+    circuit = cirq.Circuit.from_ops(cirq.H(a), cirq.CZ(a, b), cirq.H(b),
+                                    cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
+                                    cirq.H(d), cirq.CZ(c, d), cirq.H(c),
+                                    cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                                    cirq.H(a))
+    expected_diagram = """
+0: ───H───@───────────────────────────────────────@───H───
+          │                                       │
+1: ───────@───H───@───────────────────────@───H───@───────
+                  │                       │
+2: ───────────────@───H───@───────@───H───@───────────────
+                          │       │
+3: ───────────────────────@───H───@───────────────────────
+""".strip()
+    #     0   1   2   3   4   5   6   7   8   9   10  11  12
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
     # Always return true to test basic features
-    go_to_end = lambda op: False
-    stop_if_op = lambda op: True
-    stop_if_h = lambda op: op.gate == cirq.H
+    go_to_end = lambda op : False
+    stop_if_op = lambda op : True
+    stop_if_h_on_a = lambda op: op.gate == cirq.H and a in op.qubits
 
     # Empty cases.
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={}, is_blocker=go_to_end) == []
-    assert circuit.findall_operations_until_blocked(
-        start_frontier={}, is_blocker=go_to_end) == []
+    assert_findall_operations_until_blocked_as_expected(is_blocker=go_to_end,
+                                                        expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(circuit=circuit,
+                                                        is_blocker=go_to_end,
+                                                        expected_ops=[])
 
     # Clamped input cases. (out of bounds)
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={a: 5}, is_blocker=stop_if_op) == []
-    assert cirq.Circuit().findall_operations_until_blocked(
-        start_frontier={a: -100}) == []
-    assert circuit.findall_operations_until_blocked(
-        start_frontier={a: 100}) == []
+    assert_findall_operations_until_blocked_as_expected(start_frontier={a: 5},
+                                                        is_blocker=stop_if_op,
+                                                        expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(
+        start_frontier={a: -100}, is_blocker=stop_if_op, expected_ops=[])
+    assert_findall_operations_until_blocked_as_expected(circuit=circuit,
+                                                        start_frontier={a: 100},
+                                                        is_blocker=stop_if_op,
+                                                        expected_ops=[])
+
 
     # Test if all operations are blocked
     for idx in range(0, 15):
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={a: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={b: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={c: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={d: idx}, is_blocker=stop_if_op) == []
-        assert circuit.findall_operations_until_blocked(
+        for q in (a, b, c, d):
+            assert_findall_operations_until_blocked_as_expected(
+                circuit=circuit,
+                start_frontier={q: idx},
+                is_blocker=stop_if_op,
+                expected_ops=[])
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
             start_frontier={
                 a: idx,
                 b: idx,
                 c: idx,
                 d: idx
             },
-            is_blocker=stop_if_op) == []
+            is_blocker=stop_if_op,
+            expected_ops=[])
 
     # Cases where nothing is blocked, it goes to the end
-    a_ending_ops = [(11, cirq.CZ.on(a, b)), (12, cirq.H.on(a))]
+    a_ending_ops = [(11, cirq.CZ.on(a,b)), (12, cirq.H.on(a))]
     for idx in range(2, 10):
-        assert circuit.findall_operations_until_blocked(
-            start_frontier={a: idx}, is_blocker=go_to_end) == a_ending_ops
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
+            start_frontier={a: idx},
+            is_blocker=go_to_end,
+            expected_ops=a_ending_ops)
 
     # Block on H, but pick up the CZ
     for idx in range(2, 10):
-        assert circuit.findall_operations_until_blocked(
+        assert_findall_operations_until_blocked_as_expected(
+            circuit=circuit,
             start_frontier={a: idx},
-            is_blocker=stop_if_h) == [(11, cirq.CZ.on(a, b))]
+            is_blocker=stop_if_h_on_a,
+            expected_ops=[(11, cirq.CZ.on(a, b))])
 
-    circuit = cirq.Circuit([cirq.CZ(a, b), cirq.CZ(a, b), cirq.CZ(b, c)])
+    circuit = cirq.Circuit.from_ops(
+        [cirq.CZ(a, b), cirq.CZ(a, b),
+         cirq.CZ(b, c)])
+    expected_diagram = """
+0: ───@───@───────
+      │   │
+1: ───@───@───@───
+              │
+2: ───────────@───
+""".strip()
+    #     0   1   2
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
 
-    start = {a: 0, b: 0}
+    start_frontier = {a: 0, b: 0}
     is_blocker = lambda next_op: sorted(next_op.qubits) != [a, b]
+    expected_ops = [(0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))]
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=expected_ops)
+
+    circuit = cirq.Circuit.from_ops([cirq.ZZ(a, b), cirq.ZZ(b, c)])
+    expected_diagram = """
+0: ───ZZ────────
+      │
+1: ───ZZ───ZZ───
+           │
+2: ────────ZZ───
+""".strip()
+    #     0    1
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, b: 0, c: 0}
+    is_blocker = lambda op: a in op.qubits
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[])
+
+    circuit = cirq.Circuit.from_ops(
+        [cirq.ZZ(a, b), cirq.XX(c, d),
+         cirq.ZZ(b, c), cirq.Z(b)])
+    expected_diagram = """
+0: ───ZZ────────────
+      │
+1: ───ZZ───ZZ───Z───
+           │
+2: ───XX───ZZ───────
+      │
+3: ───XX────────────
+""".strip()
+    #     0    1    2
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, b: 0, c: 0, d: 0}
+    is_blocker = lambda op: isinstance(op.gate, cirq.XXPowGate)
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[(0, cirq.ZZ(a, b))])
+
+    circuit = cirq.Circuit.from_ops(
+        [cirq.XX(a, b),
+         cirq.Z(a),
+         cirq.ZZ(b, c),
+         cirq.ZZ(c, d),
+         cirq.Z(d)])
+    expected_diagram = """
+0: ───XX───Z─────────────
+      │
+1: ───XX───ZZ────────────
+           │
+2: ────────ZZ───ZZ───────
+                │
+3: ─────────────ZZ───Z───
+""".strip()
+    #     0    1    2    3
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+
+    start_frontier = {a: 0, d: 0}
+    assert_findall_operations_until_blocked_as_expected(
+        circuit=circuit,
+        start_frontier=start_frontier,
+        is_blocker=is_blocker,
+        expected_ops=[])
+
+
+@pytest.mark.parametrize('seed', [randint(0, 2**31)])
+def test_findall_operations_until_blocked_docstring_examples(seed):
+    prng = np.random.RandomState(seed)
+
+    class ExampleGate(cirq.Gate):
+
+        def __init__(self, n_qubits, label):
+            self.n_qubits = n_qubits
+            self.label = label
+
+        def num_qubits(self):
+            return self.n_qubits
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(wire_symbols=[self.label] *
+                                           self.n_qubits)
+
+    def is_blocker(op):
+        if op.gate.label == 'F':
+            return False
+        if op.gate.label == 'T':
+            return True
+        return prng.rand() < 0.5
+
+    F2 = ExampleGate(2, 'F')
+    T2 = ExampleGate(2, 'T')
+    M2 = ExampleGate(2, 'M')
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    circuit = cirq.Circuit([F2(a, b), F2(a, b), T2(b, c)])
+    start = {a: 0, b: 0}
+    expected_diagram = """
+0: ───F───F───────
+      │   │
+1: ───F───F───T───
+              │
+2: ───────────T───
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+    expected_ops = [(0, F2(a, b)), (1, F2(a, b))]
+    new_circuit = cirq.Circuit(op for _, op in expected_ops)
+    expected_diagram = """
+0: ───F───F───
+      │   │
+1: ───F───F───
+    """
+    cirq.testing.assert_has_diagram(new_circuit, expected_diagram)
+    assert (circuit.findall_operations_until_blocked(
+        start, is_blocker) == expected_ops)
+
+    circuit = cirq.Circuit([M2(a, b), M2(b, c), F2(a, b), M2(c, d)])
+    start = {a: 2, b: 2}
+    expected_diagram = """
+0: ───M───────F───
+      │       │
+1: ───M───M───F───
+          │
+2: ───────M───M───
+              │
+3: ───────────M───
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+    expected_ops = [(2, F2(a, b))]
+    new_circuit = cirq.Circuit(op for _, op in expected_ops)
+    expected_diagram = """
+0: ───F───
+      │
+1: ───F───
+    """
+    cirq.testing.assert_has_diagram(new_circuit, expected_diagram)
+    assert (circuit.findall_operations_until_blocked(
+        start, is_blocker) == expected_ops)
+
+    circuit = cirq.Circuit([M2(a, b), T2(b, c), M2(a, b), M2(c, d)])
+    start = {a: 1, b: 1}
+    expected_diagram = """
+0: ───M───────M───
+      │       │
+1: ───M───T───M───
+          │
+2: ───────T───M───
+              │
+3: ───────────M───
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+    assert circuit.findall_operations_until_blocked(start, is_blocker) == []
+
+    ops = [(0, F2(a, b)), (1, F2(a, b))]
+    circuit = cirq.Circuit(op for _, op in ops)
+    start = {a: 0, b: 1}
+    expected_diagram = """
+0: ───F───F───
+      │   │
+1: ───F───F───
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
+    assert circuit.findall_operations_until_blocked(start, is_blocker) == ops
+
+    ops = [F2(a, b), F2(b, c), F2(c, d)]
+    circuit = cirq.Circuit(ops)
+    start = {a: 0, d: 0}
+    expected_diagram = """
+0: ───F───────────
+      │
+1: ───F───F───────
+          │
+2: ───────F───F───
+              │
+3: ───────────F───
+    """
+    cirq.testing.assert_has_diagram(circuit, expected_diagram)
     assert (circuit.findall_operations_until_blocked(start, is_blocker) == [
-        (0, cirq.CZ(a, b)), (1, cirq.CZ(a, b))
+        (0, F2(a, b)), (2, F2(c, d))
     ])
 
 
@@ -1753,7 +1983,6 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
                                    ) -> Tuple[str, str]:
             return 'a', 'a'
-
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -2043,7 +2272,8 @@ def test_simple_circuits_to_unitary_matrix():
         atol=1e-8)
 
     # 2-qubit matrix matches when qubits in order.
-    for expected in [np.diag([1, 1j, -1, -1j]), cirq.unitary(cirq.CNOT)]:
+    for expected in [np.diag([1, 1j, -1, -1j]),
+                     cirq.unitary(cirq.CNOT)]:
 
         class Passthrough(cirq.TwoQubitGate):
             def _unitary_(self) -> np.ndarray:
@@ -2298,14 +2528,13 @@ def test_resolve_parameters():
         cirq.ParamResolver({}))
     cirq.testing.assert_same_circuits(circuit, resolved_circuit)
     # actually resolve something
-    circuit = cirq.Circuit(
-        [cirq.Moment(),
-         cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
+    circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
     resolved_circuit = cirq.resolve_parameters(
         circuit,
         cirq.ParamResolver({'x': 0.2}))
-    expected_circuit = cirq.Circuit(
-        [cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
+    expected_circuit = cirq.Circuit([
+        cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
@@ -2625,8 +2854,8 @@ def test_pick_inserted_ops_moment_indices():
         start = randrange(n_moments)
         first_half = cirq.Circuit(circuit[:start])
         second_half = cirq.Circuit(circuit[start:])
-        operations = tuple(
-            op for moment in second_half for op in moment.operations)
+        operations = tuple(op for moment in second_half
+                for op in moment.operations)
         squeezed_second_half = cirq.Circuit(
             operations, strategy=cirq.InsertStrategy.EARLIEST)
         expected_circuit = cirq.Circuit(first_half._moments +
@@ -3020,12 +3249,8 @@ def test_reachable_frontier_from():
 
     # Blocker.
     assert circuit.reachable_frontier_from(
-        {
-            a: 0,
-            b: 0,
-            c: 0,
-            d: 0
-        }, is_blocker=lambda op: op == cirq.CZ(b, c)) == {
+        {a: 0, b: 0, c: 0, d: 0},
+        is_blocker=lambda op: op == cirq.CZ(b, c)) == {
             a: 11,
             b: 3,
             c: 3,
