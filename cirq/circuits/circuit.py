@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-import numbers
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -215,17 +214,16 @@ class Circuit:
         pass
 
     @overload
-    def __getitem__(self, key: numbers.Integral) -> 'cirq.Moment':
+    def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
 
     @overload
-    def __getitem__(self, key: Tuple[numbers.Integral, 'cirq.Qid']
-                   ) -> 'cirq.Operation':
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
         pass
 
     @overload
-    def __getitem__(self, key: Tuple[numbers.Integral, Iterable['cirq.Qid']]
-                   ) -> 'cirq.Moment':
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
         pass
 
     @overload
@@ -242,7 +240,7 @@ class Circuit:
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, numbers.Integral):
+        if hasattr(key, '__index__'):
             return self._moments[key]
         if isinstance(key, tuple):
             if len(key) != 2:
