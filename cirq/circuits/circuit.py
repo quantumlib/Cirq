@@ -211,24 +211,6 @@ class Circuit:
     def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
 
-    @overload
-    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
-        pass
-
-    @overload
-    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
-        pass
-
     def __getitem__(self, key):
         if isinstance(key, slice):
             sliced_circuit = Circuit(device=self.device)
@@ -236,25 +218,8 @@ class Circuit:
             return sliced_circuit
         if isinstance(key, int):
             return self._moments[key]
-        if isinstance(key, tuple):
-            if len(key) != 2:
-                raise ValueError('If key is tuple, it must be a pair.')
-            moment_idx, qubit_idx = key
-            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
-            selected_moments = self._moments[moment_idx]
-            # selected_moments - Moment or list[Moment].
-            if isinstance(selected_moments, list):
-                if isinstance(qubit_idx, cirq.Qid):
-                    qubit_idx = [qubit_idx]
-                new_circuit = Circuit(device=self.device)
-                new_circuit._moments = [
-                    moment[qubit_idx] for moment in selected_moments
-                ]
-                return new_circuit
-            return selected_moments[qubit_idx]
 
-        raise TypeError(
-            '__getitem__ called with key not of type slice, int or tuple.')
+        raise TypeError('__getitem__ called with key not of type slice or int.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
