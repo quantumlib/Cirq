@@ -3673,3 +3673,11 @@ def test_indexing_by_pair():
     with pytest.raises(TypeError,
                        match='list indices must be integers or slices'):
         _ = c[q[1], 0]
+
+
+def test_indexing_by_numpy_integer():
+    q = cirq.NamedQubit('q')
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q))
+
+    assert c[np.int32(1)] == cirq.Moment([cirq.Y(q)])
+    assert c[np.int64(1)] == cirq.Moment([cirq.Y(q)])
