@@ -538,6 +538,8 @@ def test_x_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_y_stabilizer():
@@ -548,6 +550,8 @@ def test_y_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_z_stabilizer():
@@ -558,6 +562,8 @@ def test_z_stabilizer():
     assert cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_h_stabilizer():
@@ -568,6 +574,8 @@ def test_h_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_cz_stabilizer():
@@ -578,6 +586,8 @@ def test_cz_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_cnot_stabilizer():
@@ -588,6 +598,8 @@ def test_cnot_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**-0.5)
     assert cirq.has_stabilizer_effect(gate**4)
     assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 @pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))

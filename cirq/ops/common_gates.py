@@ -191,7 +191,9 @@ class XPowGate(eigen_gate.EigenGate,
             exponent=self._exponent,
             phase_exponent=phase_turns * 2)
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 1 == 0
 
     def __str__(self) -> str:
@@ -333,7 +335,9 @@ class YPowGate(eigen_gate.EigenGate,
             exponent=self._exponent,
             phase_exponent=0.5 + phase_turns * 2)
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 1 == 0
 
     def __str__(self) -> str:
@@ -480,7 +484,9 @@ class ZPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns: float, qubit_index: int):
         return self
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 0.5 == 0
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
@@ -671,7 +677,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'rx({1:half_turns}) {3};\n'
             'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 1 == 0
 
     def __str__(self):
@@ -806,7 +814,9 @@ class CZPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 1 == 0
 
     def __str__(self) -> str:
@@ -969,7 +979,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
-    def _has_stabilizer_effect_(self) -> bool:
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
         return self.exponent % 1 == 0
 
     def __str__(self) -> str:

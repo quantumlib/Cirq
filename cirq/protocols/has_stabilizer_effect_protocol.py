@@ -46,7 +46,7 @@ def _strat_has_stabilizer_effect_from_has_stabilizer_effect(val: Any
     """
     if hasattr(val, '_has_stabilizer_effect_'):
         result = val._has_stabilizer_effect_()
-        if result is not NotImplemented:
+        if result is not NotImplemented and result is not None:
             return result
     return None
 
