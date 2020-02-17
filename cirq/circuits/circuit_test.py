@@ -3612,14 +3612,6 @@ def test_indexing_by_pair():
     assert c[2, q[1:3]] == cirq.Moment([cirq.H(q[2]).controlled_by(q[1])])
     assert c[2, q[0:2]] == c[2]
 
-    temp = cirq.Circuit([
-        cirq.Moment([cirq.H(q[0])]),
-        cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
-        cirq.Moment([cirq.H(q[2]).controlled_by(q[1]),
-                     cirq.X(q[0])]),
-        cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
-    ])
-
     # Indexing by single qubit.
     assert c[:, q[0]] == cirq.Circuit([
         cirq.Moment([cirq.H(q[0])]),
@@ -3677,6 +3669,7 @@ def test_indexing_by_pair():
     with pytest.raises(ValueError, match='If key is tuple, it must be a pair.'):
         _ = c[0, q[1], 0]
 
-    # Checks the type.
-    with pytest.raises(TypeError, match='First index must be int or slice.'):
+    # Can't swap indices.
+    with pytest.raises(TypeError,
+                       match='list indices must be integers or slices'):
         _ = c[q[1], 0]

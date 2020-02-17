@@ -241,17 +241,17 @@ class Circuit:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
             # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
-            if isinstance(moment_idx, int):
-                return self._moments[moment_idx][qubit_idx]
-            if isinstance(moment_idx, slice):
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
                 if isinstance(qubit_idx, cirq.Qid):
                     qubit_idx = [qubit_idx]
                 new_circuit = Circuit(device=self.device)
                 new_circuit._moments = [
-                    moment[qubit_idx] for moment in self._moments[moment_idx]
+                    moment[qubit_idx] for moment in selected_moments
                 ]
                 return new_circuit
-            raise TypeError('First index must be int or slice.')
+            return selected_moments[qubit_idx]
 
         raise TypeError(
             '__getitem__ called with key not of type slice, int or tuple.')

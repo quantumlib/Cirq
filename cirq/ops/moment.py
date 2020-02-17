@@ -224,10 +224,9 @@ class Moment:
             return self._operation_touching(key)
         elif isinstance(key, Iterable):
             qubits_to_keep = frozenset(key)
-            ops_to_keep = [
+            ops_to_keep = tuple(
                 op for op in self.operations
-                if not qubits_to_keep.isdisjoint(frozenset(op.qubits))
-            ]
+                if not qubits_to_keep.isdisjoint(frozenset(op.qubits)))
             return Moment(ops_to_keep)
 
 
