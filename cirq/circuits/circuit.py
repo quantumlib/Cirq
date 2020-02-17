@@ -85,10 +85,10 @@ class Circuit:
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
         circuit[:, qubit] is a new Circuit with the same moments, but with only
-            those operations which act on given Qubit;
+            those operations which act on the given Qubit;
         circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
             with the same moments, but only with those operations which touch
-            any of given qubits;
+            any of the given qubits;
         circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
         circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
