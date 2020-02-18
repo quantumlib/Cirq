@@ -17,7 +17,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cirq
 
-from cirq.experiments import cross_entropy_benchmarking, build_entangling_layers
+from cirq.experiments import (CrossEntropyResult, cross_entropy_benchmarking,
+                              build_entangling_layers)
+from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair
 
 
 def test_cross_entropy_benchmarking():
@@ -81,3 +83,11 @@ def test_cross_entropy_benchmarking():
     # Sanity test that plot runs.
     ax = plt.subplot()
     results_1.plot(ax)
+
+
+def test_cross_entropy_result_repr():
+    result = CrossEntropyResult(
+        data=[CrossEntropyPair(2, 0.9),
+              CrossEntropyPair(5, 0.5)],
+        repetitions=1000)
+    cirq.testing.assert_equivalent_repr(result)

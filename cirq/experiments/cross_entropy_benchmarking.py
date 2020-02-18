@@ -16,33 +16,26 @@ from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
                     Set, Tuple, Union)
 import numpy as np
 from matplotlib import pyplot as plt
-from cirq import devices, ops, circuits, sim, work
+from cirq import circuits, devices, ops, protocols, sim, work
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
 
 
+@protocols.json_serializable_dataclass(frozen=True)
 class CrossEntropyResult:
-    """Results from a cross-entropy benchmarking (XEB) experiment."""
+    """Results from a cross-entropy benchmarking (XEB) experiment.
 
-    def __init__(self, cross_entropy_pairs: Sequence[CrossEntropyPair]):
-        """
-        Args:
-            cross_entropy_pairs: A sequence of NamedTuples, each of which
-                contains two fields: num_cycle which returns the circuit
-                depth as the number of cycles and xeb_fidelity which returns
-                the XEB fidelity after the given cycle number.
-        """
-        self._data = cross_entropy_pairs
-
-    @property
-    def data(self) -> Sequence[CrossEntropyPair]:
-        """Returns a sequence of CrossEntropyPairs.
-
-        Each CrossEntropyPair is a NamedTuple that contains a cycle number and
-        the corresponding XEB fidelity.
-        """
-        return self._data
+    Attributes:
+        data: A sequence of NamedTuples, each of which contains two fields:
+                num_cycle: the circuit depth as the number of cycles, where
+                    a cycle consists of a layer of single-qubit gates followed
+                    by a layer of two-qubit gates.
+                xeb_fidelity: the XEB fidelity after the given cycle number.
+        repetitions: The number of circuit repetitions used.
+    """
+    data: List[CrossEntropyPair]
+    repetitions: int
 
     def plot(self, ax: Optional[plt.Axes] = None,
              **plot_kwargs: Any) -> plt.Axes:
@@ -58,8 +51,8 @@ class CrossEntropyResult:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        num_cycles = [d.num_cycle for d in self._data]
-        fidelities = [d.xeb_fidelity for d in self._data]
+        num_cycles = [d.num_cycle for d in self.data]
+        fidelities = [d.xeb_fidelity for d in self.data]
         ax.set_ylim([0, 1.1])
         ax.plot(num_cycles, fidelities, 'ro-', **plot_kwargs)
         ax.set_xlabel('Number of Cycles')
@@ -67,6 +60,16 @@ class CrossEntropyResult:
         if show_plot:
             fig.show()
         return ax
+
+    @classmethod
+    def _from_json_dict_(cls, data, repetitions, **kwargs):
+        return cls(data=[CrossEntropyPair(d, f) for d, f in data],
+                   repetitions=repetitions)
+
+    def __repr__(self):
+        return ('cirq.experiments.CrossEntropyResult('
+                f'data={[tuple(p) for p in self.data]!r}, '
+                f'repetitions={self.repetitions!r})')
 
 
 def cross_entropy_benchmarking(
@@ -216,7 +219,8 @@ def cross_entropy_benchmarking(
     xeb_data = [
         CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)
     ]
-    return CrossEntropyResult(xeb_data)
+    return CrossEntropyResult(  # type: ignore
+        data=xeb_data, repetitions=repetitions)
 
 
 def build_entangling_layers(qubits: Sequence[devices.GridQubit],
