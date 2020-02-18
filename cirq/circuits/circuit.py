@@ -1573,6 +1573,7 @@ class Circuit:
             *,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> str:
@@ -1582,6 +1583,7 @@ class Circuit:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether tags on TaggedOperations should be printed
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
 
@@ -1590,6 +1592,7 @@ class Circuit:
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
+            include_tags=include_tags,
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose)
@@ -1607,6 +1610,7 @@ class Circuit:
             use_unicode_characters: bool = True,
             qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info: Optional[
@@ -1638,8 +1642,11 @@ class Circuit:
         diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
+
         if any(
-                isinstance(op, cirq.GlobalPhaseOperation)
+                isinstance(op, cirq.GlobalPhaseOperation) or
+            (isinstance(op, cirq.TaggedOperation) and
+             isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
                 for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
@@ -1647,13 +1654,9 @@ class Circuit:
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
-            _draw_moment_in_diagram(moment,
-                                    use_unicode_characters,
-                                    qubit_map,
-                                    diagram,
-                                    precision,
-                                    moment_groups,
-                                    get_circuit_diagram_info)
+            _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
+                                    diagram, precision, moment_groups,
+                                    get_circuit_diagram_info, include_tags)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -1809,11 +1812,19 @@ def _get_operation_circuit_diagram_info_with_fallback(
     # Fallback to a default representation using the operation's __str__.
     name = str(op)
 
+    # For TaggedOperation, use the sub_operations __str__ instead
+    if isinstance(op, cirq.TaggedOperation):
+        name = str(op.sub_operation)
+
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
     redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
     if name.endswith(redundant_tail):
         name = name[:-len(redundant_tail)]
+
+    # Add tags onto the representation, if they exist
+    if isinstance(op, cirq.TaggedOperation):
+        name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple('#{}'.format(i + 1)
@@ -1876,7 +1887,8 @@ def _draw_moment_in_diagram(
         moment_groups: List[Tuple[int, int]],
         get_circuit_diagram_info: Optional[
             Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                     'cirq.CircuitDiagramInfo']] = None):
+                     'cirq.CircuitDiagramInfo']] = None,
+        include_tags: bool = True):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)
@@ -1902,7 +1914,8 @@ def _draw_moment_in_diagram(
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
-            precision=precision)
+            precision=precision,
+            include_tags=include_tags)
         info = get_circuit_diagram_info(op, args)
 
         # Draw vertical line linking the gate's qubits.
@@ -1929,15 +1942,26 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = np.product([
-        complex(e.coefficient)
-        for e in moment
-        if isinstance(e, ops.GlobalPhaseOperation)
-    ])
-    if global_phase != 1:
+    global_phase = None
+    tags: List[Any] = []
+    for op in moment:
+        if (isinstance(op, ops.TaggedOperation) and
+                isinstance(op.sub_operation, ops.GlobalPhaseOperation)):
+            tags.extend(op.tags)
+            op = op.sub_operation
+        if isinstance(op, ops.GlobalPhaseOperation):
+            if global_phase:
+                global_phase *= complex(op.coefficient)
+            else:
+                global_phase = complex(op.coefficient)
+
+    # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
+    if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(qubit_map.values(), default=0) + 1
+            if tags and include_tags:
+                desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:
