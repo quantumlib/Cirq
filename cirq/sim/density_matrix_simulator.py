@@ -306,7 +306,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         if self._ignore_measurement_results:
                             for i, q in enumerate(op.qubits):
                                 self._apply_op_channel(
-                                    cirq.phase_damp(1).on(q), state,
+                                    ops.phase_damp(1).on(q), state,
                                     [indices[i]])
                         else:
                             invert_mask = meas.full_invert_mask()
