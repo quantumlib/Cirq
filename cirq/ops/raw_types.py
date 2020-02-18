@@ -611,7 +611,7 @@ class TaggedOperation(Operation):
 
 class VirtualTag():
     """A TaggedOperation tag indicating that the operation is virtual.
-    
+
     Operations marked with this tag are presumed to have zero duration of their
     own, although they may have a non-zero duration if run in the same Moment
     as a non-virtual operation.
