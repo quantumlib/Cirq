@@ -16,7 +16,7 @@ from unittest import mock
 
 import pytest
 
-from apiclient import discovery
+from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
 
 import cirq
 import cirq.google as cg
@@ -24,12 +24,9 @@ import cirq.google as cg
 
 def test_status():
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-        'executionStatus': {
-            'state': 'RUNNING'
-        }
-    }
+    job = qtypes.QuantumJob(name='projects/a/programs/b/jobs/steve',
+                            execution_status=qtypes.ExecutionStatus(
+                                state=qtypes.ExecutionStatus.State.RUNNING))
     engine.get_job.return_value = job
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
                        job=job,
@@ -40,12 +37,9 @@ def test_status():
 
 def test_get_calibration():
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-        'executionStatus': {
-            'calibrationName': 'hobbes'
-        }
-    }
+    job = qtypes.QuantumJob(
+        name='projects/a/programs/b/jobs/steve',
+        execution_status=qtypes.ExecutionStatus(calibration_name='hobbes'))
     calibration = mock.Mock()
     engine.get_calibration.return_value = calibration
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
@@ -57,9 +51,7 @@ def test_get_calibration():
 
 def test_get_cancel():
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-    }
+    job = qtypes.QuantumJob(name='projects/a/programs/b/jobs/steve')
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
                        job=job,
                        engine=engine)
@@ -69,12 +61,9 @@ def test_get_cancel():
 
 def test_results():
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-        'executionStatus': {
-            'state': 'SUCCESS'
-        }
-    }
+    job = qtypes.QuantumJob(name='projects/a/programs/b/jobs/steve',
+                            execution_status=qtypes.ExecutionStatus(
+                                state=qtypes.ExecutionStatus.State.SUCCESS))
     results = mock.Mock()
     engine.get_job_results.return_value = results
 
@@ -88,12 +77,9 @@ def test_results():
 @mock.patch('time.sleep', return_value=None)
 def test_timeout(patched_time_sleep):
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-        'executionStatus': {
-            'state': 'RUNNING'
-        }
-    }
+    job = qtypes.QuantumJob(name='projects/a/programs/b/jobs/steve',
+                            execution_status=qtypes.ExecutionStatus(
+                                state=qtypes.ExecutionStatus.State.RUNNING))
     engine.get_job.return_value = job
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
                        job=job,
@@ -102,37 +88,29 @@ def test_timeout(patched_time_sleep):
         job.results()
 
 
-@mock.patch.object(discovery, 'build')
-def test_calibration_from_job_with_no_calibration(build):
-    service = mock.Mock()
-    build.return_value = service
+@mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient',
+            autospec=True)
+def test_calibration_from_job_with_no_calibration(client_constructor):
+    client = mock.Mock()
+    client_constructor.return_value = client
 
-    programs = service.projects().programs()
-    jobs = programs.jobs()
-    programs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test'
-    }
-    jobs.create().execute.return_value = {
-        'name': 'projects/project-id/programs/test/jobs/test',
-        'executionStatus': {
-            'state': 'SUCCESS',
-        },
-    }
+    client.create_quantum_program.return_value = qtypes.QuantumProgram(
+        name='projects/project-id/programs/test')
+    client.create_quantum_job.return_value = qtypes.QuantumJob(
+        name='projects/project-id/programs/test/jobs/test',
+        execution_status={'state': 'SUCCESS'})
 
-    calibrations = service.projects().processors().calibrations()
     engine = cg.Engine(project_id='project-id')
     job = engine.run_sweep(program=cirq.Circuit())
 
     calibration = job.get_calibration()
     assert not calibration
-    assert not calibrations.get.called
+    assert not client.get_quantum_calibration.called
 
 
 def test_str():
     engine = mock.Mock()
-    job = {
-        'name': 'projects/a/programs/b/jobs/steve',
-    }
+    job = qtypes.QuantumJob(name='projects/a/programs/b/jobs/steve')
     job = cg.EngineJob(job_config=cg.JobConfig(job_id='steve'),
                        job=job,
                        engine=engine)

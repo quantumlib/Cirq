@@ -15,12 +15,11 @@
 import os
 from unittest import mock
 import pytest
-from apiclient import discovery
 
 import cirq
 
 
-@mock.patch.object(discovery, 'build')
+@mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
 def test_engine_from_environment(build):
     # Default project id present.
     with mock.patch.dict(os.environ, {
