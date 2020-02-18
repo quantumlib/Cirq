@@ -21,7 +21,7 @@ from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
 import math
 import cmath
 import numpy as np
-
+import scipy
 import matplotlib.pyplot as plt
 
 from cirq import value, protocols
@@ -102,60 +102,34 @@ def _group_similar(items: List[T],
     return groups
 
 
-def orthonormal_eigendecompose(
-        matrix: np.ndarray,
-        rtol: float = 1e-5,
-        atol: float = 1e-8,
-) -> Tuple[np.array, np.ndarray]:
-    """An eigendecomposition that ensures eigenvectors are orthonormal.
-
-    numpy.linalg.eig doesn't guarantee that eigenvectors from the same
-    eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
-    a perpendicular set. It further checks that all eigenvectors are
-    perpendicular and raises an ArithmeticError otherwise.
+def unitary_eig(matrix: np.ndarray,
+                check_preconditions: bool = True,
+                atol: float = 1e-8) -> Tuple[np.array, np.ndarray]:
+    """Gives the guaranteed unitary eigendecomposition of a unitary matrix.
 
     Args:
-        matrix: The matrix to decompose.
-        rtol: Relative threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
-        atol: Absolute threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
+        matrix: a unitary matrix. If not unitary, this method is not
+            guaranteed to return correct eigenvalues.
+        check_preconditions: when true and matrix is not unitary,
+            a `ValueError` is raised
+        atol: the absolute tolerance when checking whether the original matrix
+            was unitary
 
     Returns:
-        The eigenvalues and column eigenvectors. The i'th eigenvalue is
-        associated with the i'th column eigenvector.
-
-    Raises:
-        ArithmeticError: Failed to find perpendicular eigenvectors.
+         eigvals: the eigenvalues of `matrix`
+         V: the unitary matrix with the eigenvectors as columns
     """
-    vals, cols = np.linalg.eig(matrix)
-    vecs = [cols[:, i] for i in range(len(cols))]
-
-    # Convert list of row arrays to list of column arrays.
-    for i in range(len(vecs)):
-        vecs[i] = np.reshape(vecs[i], (len(vecs[i]), vecs[i].ndim))
-
-    # Group by similar eigenvalue.
-    n = len(vecs)
-    groups = _group_similar(
-        list(range(n)), lambda k1, k2: np.allclose(
-            vals[k1], vals[k2], atol=atol, rtol=rtol))
-
-    # Remove overlap between eigenvectors with the same eigenvalue.
-    for g in groups:
-        q, _ = np.linalg.qr(np.hstack([vecs[i] for i in g]))
-        for i in range(len(g)):
-            vecs[g[i]] = q[:, i]
-
-    return vals, np.array(vecs).T
+    R, V = scipy.linalg.schur(matrix, output="complex")
+    if check_preconditions and not predicates.is_diagonal(R, atol=atol):
+        raise ValueError('Input must correspond to a unitary matrix '
+                         f'.Received input:\n{matrix}')
+    return R.diagonal(), V
 
 
-def map_eigenvalues(
-        matrix: np.ndarray,
-        func: Callable[[complex], complex],
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> np.ndarray:
+def map_eigenvalues(matrix: np.ndarray,
+                    func: Callable[[complex], complex],
+                    *,
+                    atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -169,7 +143,7 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = orthonormal_eigendecompose(matrix, rtol=rtol, atol=atol)
+    vals, vecs = unitary_eig(matrix, atol=atol)
     pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs.T]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
@@ -780,6 +754,8 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
                       [1, 1, -1, -1],
                       [-1, 1, -1, 1],
                       [1, -1, -1, 1]]) * 0.25
+
+
 # yapf: enable
 
 
