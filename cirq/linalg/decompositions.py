@@ -105,7 +105,13 @@ def _group_similar(items: List[T],
 def unitary_eig(matrix: np.ndarray,
                 check_preconditions: bool = True,
                 atol: float = 1e-8) -> Tuple[np.array, np.ndarray]:
-    """Gives the guaranteed unitary eigendecomposition of a unitary matrix.
+    """Gives the guaranteed unitary eigendecomposition of a normal matrix.
+
+    All hermitian and unitary matrices are normal matrices. This method was
+    introduced as for certain classes of unitary matrices (where the eigenvalues
+    are close to each other) the eigenvectors returned by `numpy.linalg.eig` are
+    not guaranteed to be orthogonal.
+    For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
         matrix: a unitary matrix. If not unitary, this method is not
