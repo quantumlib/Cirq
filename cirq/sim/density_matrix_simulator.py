@@ -11,19 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Simulator for density matrices that simulates noisy quantum circuits."""
 
 import collections
 
-from typing import Dict, Iterator, List, Type, Union
+from typing import Dict, Iterator, List, TYPE_CHECKING, Type, Union
 
 import numpy as np
 
 from cirq import circuits, ops, protocols, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
-import cirq
+if TYPE_CHECKING:
+    from typing import Tuple
+    import cirq
 
 
 class _StateAndBuffers:
@@ -164,16 +165,14 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
              repetitions: int) -> Dict[str, np.ndarray]:
         """See definition in `cirq.SimulatesSamples`."""
         param_resolver = param_resolver or study.ParamResolver({})
-        resolved_circuit = protocols.resolve_parameters(circuit,
-                                                        param_resolver)
+        resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
 
         if circuit.are_all_measurements_terminal():
             return self._run_sweep_sample(resolved_circuit, repetitions)
         return self._run_sweep_repeat(resolved_circuit, repetitions)
 
-    def _run_sweep_sample(self,
-                          circuit: circuits.Circuit,
+    def _run_sweep_sample(self, circuit: circuits.Circuit,
                           repetitions: int) -> Dict[str, np.ndarray]:
         for step_result in self._base_iterator(
                 circuit=circuit,
@@ -182,15 +181,15 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 perform_measurements=False,
                 all_measurements_are_terminal=True):
             pass
-        measurement_ops = [op for _, op, _ in
-                           circuit.findall_operations_with_gate_type(
-                               ops.MeasurementGate)]
+        measurement_ops = [
+            op for _, op, _ in circuit.findall_operations_with_gate_type(
+                ops.MeasurementGate)
+        ]
         return step_result.sample_measurement_ops(measurement_ops,
                                                   repetitions,
                                                   seed=self._prng)
 
-    def _run_sweep_repeat(self,
-                          circuit: circuits.Circuit,
+    def _run_sweep_repeat(self, circuit: circuits.Circuit,
                           repetitions: int) -> Dict[str, np.ndarray]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
         if repetitions == 0:
@@ -229,8 +228,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
         actual_initial_state = 0 if initial_state is None else initial_state
-        return self._base_iterator(resolved_circuit,
-                                   qubit_order,
+        return self._base_iterator(resolved_circuit, qubit_order,
                                    actual_initial_state)
 
     def _apply_op_channel(self, op: ops.Operation, state: _StateAndBuffers,
@@ -250,13 +248,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 state.buffers[i] = state.tensor
         state.tensor = result
 
-    def _base_iterator(
-            self,
-            circuit: circuits.Circuit,
-            qubit_order: ops.QubitOrderOrList,
-            initial_state: Union[int, np.ndarray],
-            perform_measurements: bool = True,
-            all_measurements_are_terminal = False) -> Iterator:
+    def _base_iterator(self,
+                       circuit: circuits.Circuit,
+                       qubit_order: ops.QubitOrderOrList,
+                       initial_state: Union[int, np.ndarray],
+                       perform_measurements: bool = True,
+                       all_measurements_are_terminal=False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
@@ -267,7 +264,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             qid_shape=qid_shape,
             dtype=self._dtype)
         measured = collections.defaultdict(
-                bool)  # type: Dict[Tuple[cirq.Qid], bool]
+            bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
             yield DensityMatrixStepResult(initial_matrix, {}, qubit_map,
                                           self._dtype)
@@ -370,10 +367,10 @@ class DensityMatrixStepResult(simulator.StepResult):
     """
 
     def __init__(self,
-            density_matrix: np.ndarray,
-            measurements: Dict[str, np.ndarray],
-            qubit_map: Dict[ops.Qid, int],
-            dtype: Type[np.number] = np.complex64):
+                 density_matrix: np.ndarray,
+                 measurements: Dict[str, np.ndarray],
+                 qubit_map: Dict[ops.Qid, int],
+                 dtype: Type[np.number] = np.complex64):
         """DensityMatrixStepResult.
 
         Args:
@@ -473,9 +470,8 @@ class DensityMatrixSimulatorState():
             ordering of the basis in density_matrix.
     """
 
-    def __init__(self,
-            density_matrix: np.ndarray,
-            qubit_map: Dict[ops.Qid, int]):
+    def __init__(self, density_matrix: np.ndarray,
+                 qubit_map: Dict[ops.Qid, int]):
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
@@ -533,10 +529,9 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         final_density_matrix: The final density matrix of the system.
     """
 
-    def __init__(self,
-            params: study.ParamResolver,
-            measurements: Dict[str, np.ndarray],
-            final_simulator_state: DensityMatrixSimulatorState) -> None:
+    def __init__(self, params: study.ParamResolver,
+                 measurements: Dict[str, np.ndarray],
+                 final_simulator_state: DensityMatrixSimulatorState) -> None:
         super().__init__(params=params,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state)
@@ -545,8 +540,9 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
             final_simulator_state.density_matrix, (size, size))
 
     def _value_equality_values_(self):
-        measurements = {k: v.tolist() for k, v in
-                        sorted(self.measurements.items())}
+        measurements = {
+            k: v.tolist() for k, v in sorted(self.measurements.items())
+        }
         return (self.params, measurements, self._final_simulator_state)
 
     def __str__(self):
