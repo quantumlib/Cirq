@@ -616,6 +616,7 @@ class VirtualTag():
     own, although they may have a non-zero duration if run in the same Moment
     as a non-virtual operation.
     """
+
     def __eq__(self, other):
         return isinstance(other, VirtualTag)
 

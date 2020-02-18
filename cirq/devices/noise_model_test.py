@@ -71,7 +71,8 @@ def test_infers_other_methods():
 
         def noisy_moment(self, moment, system_qubits):
             return [
-                y.with_tags(ops.VirtualTag()) for y in cirq.Y.on_each(*moment.qubits)
+                y.with_tags(ops.VirtualTag())
+                for y in cirq.Y.on_each(*moment.qubits)
             ]
 
     b = NoiseModelWithNoisyMomentMethod()

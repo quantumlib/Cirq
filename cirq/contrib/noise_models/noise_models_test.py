@@ -117,8 +117,10 @@ def test_readout_noise_after_moment():
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
-    true_noisy_program.append(
-        [cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag()) for q in qubits])
+    true_noisy_program.append([
+        cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag())
+        for q in qubits
+    ])
     true_noisy_program.append([
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),
@@ -177,8 +179,10 @@ def test_decay_noise_after_moment():
         cirq.AmplitudeDampingChannel(0.02).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ])
-    true_noisy_program.append(
-        [cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag()) for q in qubits])
+    true_noisy_program.append([
+        cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag())
+        for q in qubits
+    ])
     true_noisy_program.append([
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),
