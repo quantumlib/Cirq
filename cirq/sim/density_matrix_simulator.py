@@ -179,7 +179,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 circuit=circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
                 initial_state=0,
-                perform_measurements=False):
+                perform_measurements=False,
+                all_measurements_are_terminal=True):
             pass
         measurement_ops = [op for _, op, _ in
                            circuit.findall_operations_with_gate_type(
@@ -254,7 +255,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             circuit: circuits.Circuit,
             qubit_order: ops.QubitOrderOrList,
             initial_state: Union[int, np.ndarray],
-            perform_measurements: bool = True) -> Iterator:
+            perform_measurements: bool = True,
+            all_measurements_are_terminal = False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
@@ -264,6 +266,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             len(qid_shape),
             qid_shape=qid_shape,
             dtype=self._dtype)
+        measured = collections.defaultdict(
+                bool)  # type: Dict[Tuple[cirq.Qid], bool]
         if len(circuit) == 0:
             yield DensityMatrixStepResult(initial_matrix, {}, qubit_map,
                                           self._dtype)
@@ -296,7 +300,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
+                if all_measurements_are_terminal and measured[op.qubits]:
+                    continue
                 if isinstance(op.gate, ops.MeasurementGate):
+                    measured[op.qubits] = True
                     meas = op.gate
                     if perform_measurements:
                         if self._ignore_measurement_results:
