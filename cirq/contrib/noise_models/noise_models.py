@@ -62,7 +62,7 @@ class DepolarizingNoiseModel(devices.NoiseModel):
         return [
             moment,
             ops.Moment(
-                self.qubit_noise_gate(q).with_tags('virtual')
+                self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
                 for q in system_qubits)
         ]
 
@@ -95,7 +95,7 @@ class ReadoutNoiseModel(devices.NoiseModel):
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(
-                    self.readout_noise_gate(q).with_tags('virtual')
+                    self.readout_noise_gate(q).with_tags(ops.VirtualTag())
                     for q in system_qubits), moment
             ]
         return moment
@@ -129,7 +129,7 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         if _homogeneous_moment_is_measurements(moment):
             return [
                 ops.Moment(
-                    self.readout_decay_gate(q).with_tags('virtual')
+                    self.readout_decay_gate(q).with_tags(ops.VirtualTag())
                     for q in system_qubits), moment
             ]
         return moment

@@ -17,6 +17,7 @@ from typing import Sequence
 import pytest
 
 import cirq
+from cirq import ops
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
@@ -52,49 +53,49 @@ def test_infers_other_methods():
                 if moment.operations:
                     result.append(
                         cirq.X(moment.operations[0].qubits[0]).with_tags(
-                            'virtual'))
+                            ops.VirtualTag()))
                 else:
                     result.append([])
             return result
 
     a = NoiseModelWithNoisyMomentListMethod()
     _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)),
-                               cirq.X(q).with_tags('virtual'))
+                               cirq.X(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.X(q).with_tags('virtual'))
+                               cirq.X(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         a.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.X(q).with_tags('virtual')])
+        [[], cirq.X(q).with_tags(ops.VirtualTag())])
 
     class NoiseModelWithNoisyMomentMethod(cirq.NoiseModel):
 
         def noisy_moment(self, moment, system_qubits):
             return [
-                y.with_tags('virtual') for y in cirq.Y.on_each(*moment.qubits)
+                y.with_tags(ops.VirtualTag()) for y in cirq.Y.on_each(*moment.qubits)
             ]
 
     b = NoiseModelWithNoisyMomentMethod()
     _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)),
-                               cirq.Y(q).with_tags('virtual'))
+                               cirq.Y(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.Y(q).with_tags('virtual'))
+                               cirq.Y(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         b.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.Y(q).with_tags('virtual')])
+        [[], cirq.Y(q).with_tags(ops.VirtualTag())])
 
     class NoiseModelWithNoisyOperationMethod(cirq.NoiseModel):
 
         def noisy_operation(self, operation: 'cirq.Operation'):
-            return cirq.Z(operation.qubits[0]).with_tags('virtual')
+            return cirq.Z(operation.qubits[0]).with_tags(ops.VirtualTag())
 
     c = NoiseModelWithNoisyOperationMethod()
     _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)),
-                               cirq.Z(q).with_tags('virtual'))
+                               cirq.Z(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(c.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.Z(q).with_tags('virtual'))
+                               cirq.Z(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         c.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.Z(q).with_tags('virtual')])
+        [[], cirq.Z(q).with_tags(ops.VirtualTag())])
 
 
 def test_no_noise():
@@ -118,13 +119,13 @@ def test_constant_qubit_noise():
         [
             cirq.Moment([cirq.X(a)]),
             cirq.Moment(
-                d.with_tags('virtual')
+                d.with_tags(ops.VirtualTag())
                 for d in [damp(a), damp(b), damp(c)]),
         ],
         [
             cirq.Moment(),
             cirq.Moment(
-                d.with_tags('virtual')
+                d.with_tags(ops.VirtualTag())
                 for d in [damp(a), damp(b), damp(c)]),
         ],
     ]

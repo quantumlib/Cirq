@@ -87,7 +87,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         if not moment.operations:
             return False
         return all([
-            isinstance(op, ops.TaggedOperation) and 'virtual' in op.tags
+            isinstance(op, ops.TaggedOperation) and ops.VirtualTag() in op.tags
             for op in moment.operations
         ])
 
@@ -230,7 +230,8 @@ class ConstantQubitNoiseModel(NoiseModel):
         return [
             moment,
             ops.Moment([
-                self.qubit_noise_gate(q).with_tags('virtual')
+                # TODO: Replace with "VirtualTag" class instance.
+                self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
                 for q in system_qubits
             ])
         ]

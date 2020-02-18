@@ -22,6 +22,7 @@ from cirq.contrib.noise_models.noise_models import (
     _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 from cirq.google.api import v2
+from cirq import ops
 
 
 def test_moment_is_measurements():
@@ -100,24 +101,24 @@ def test_readout_noise_after_moment():
     true_noisy_program = cirq.Circuit()
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[0], qubits[1])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append(
-        [cirq.BitFlipChannel(0.05).on(q).with_tags('virtual') for q in qubits])
+        [cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag()) for q in qubits])
     true_noisy_program.append([
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),
@@ -156,28 +157,28 @@ def test_decay_noise_after_moment():
     true_noisy_program = cirq.Circuit()
     true_noisy_program.append([cirq.H(qubits[0])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[0], qubits[1])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([cirq.CNOT(qubits[1], qubits[2])])
     true_noisy_program.append([
-        cirq.DepolarizingChannel(0.01).on(q).with_tags('virtual')
+        cirq.DepolarizingChannel(0.01).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ],
                               strategy=cirq.InsertStrategy.NEW_THEN_INLINE)
     true_noisy_program.append([
-        cirq.AmplitudeDampingChannel(0.02).on(q).with_tags('virtual')
+        cirq.AmplitudeDampingChannel(0.02).on(q).with_tags(ops.VirtualTag())
         for q in qubits
     ])
     true_noisy_program.append(
-        [cirq.BitFlipChannel(0.05).on(q).with_tags('virtual') for q in qubits])
+        [cirq.BitFlipChannel(0.05).on(q).with_tags(ops.VirtualTag()) for q in qubits])
     true_noisy_program.append([
         cirq.measure(qubits[0], key='q0'),
         cirq.measure(qubits[1], key='q1'),
