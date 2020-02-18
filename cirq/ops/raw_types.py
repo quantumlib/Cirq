@@ -621,7 +621,7 @@ class VirtualTag():
         return isinstance(other, VirtualTag)
 
     def __str__(self):
-        return "<virtual>"
+        return '<virtual>'
 
     def __repr__(self):
         return str(self)

@@ -531,3 +531,11 @@ def test_tagged_operation_forwards_protocols():
     assert (cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args))
 
     cirq.testing.assert_has_consistent_apply_unitary(tagged_h)
+
+
+def test_virtual_tag():
+    tag1 = cirq.ops.VirtualTag()
+    tag2 = cirq.ops.VirtualTag()
+
+    assert tag1 == tag2
+    assert repr(tag1) == repr(tag2) == '<virtual>'
