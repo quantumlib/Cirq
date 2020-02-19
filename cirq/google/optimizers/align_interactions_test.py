@@ -203,14 +203,26 @@ def test_two_qubit_gates_pushed_back():
 
 
 def test_greedy_merging():
-    """Tests a tricky situation where the algorithm of "Merge single-qubit gates,
-    greedily search for single-qubit then 2-qubit operations" doesn't work."""
+    """Tests a tricky situation where the algorithm of "Merge single-qubit
+    gates, greedily align single-qubit then 2-qubit operations" doesn't work."""
     q1, q2, q3, q4 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.Moment([cirq.X(q1)]),
                            cirq.Moment([cirq.SWAP(q1, q2),
                                         cirq.SWAP(q3, q4)]),
                            cirq.Moment([cirq.X(q3)]),
                            cirq.Moment([cirq.SWAP(q3, q4)]))
+
+    assert_optimizes(circuit, 3)
+
+
+def test_greedy_merging_reverse():
+    """Same as the above test, except that the aligning is done in reverse."""
+    q1, q2, q3, q4 = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(cirq.Moment([cirq.SWAP(q1, q2),
+                                        cirq.SWAP(q3, q4)]),
+                           cirq.Moment([cirq.X(q4)]),
+                           cirq.Moment([cirq.SWAP(q3, q4)]),
+                           cirq.Moment([cirq.X(q1)]))
 
     assert_optimizes(circuit, 3)
 
