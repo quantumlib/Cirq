@@ -451,7 +451,7 @@ def test_serialize_z(gate, half_turns):
             },
             'type': {
                 'arg_value': {
-                    'string_value': 'physical_z'
+                    'string_value': cirq.google.common_serializers.PHYSICAL_Z
                 }
             }
         },
@@ -463,7 +463,6 @@ def test_serialize_z(gate, half_turns):
 
 @pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [
     (0.25, 0.25),
-    (0, 0.25),
     (0, 0.25),
     (0.5, 0.25),
 ])
@@ -533,7 +532,7 @@ def test_deserialize_z(half_turns):
             },
             'type': {
                 'arg_value': {
-                    'string_value': 'virtual_propagates_forward'
+                    'string_value': cirq.google.common_serializers.VIRTUAL_Z
                 }
             }
         },
@@ -545,7 +544,8 @@ def test_deserialize_z(half_turns):
     expected = cirq.ZPowGate(exponent=half_turns)(q)
     assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
 
-    serialized_op['args']['type']['arg_value']['string_value'] = 'physical_z'
+    serialized_op['args']['type']['arg_value'][
+        'string_value'] = cirq.google.common_serializers.PHYSICAL_Z
     expected = cirq.ZPowGate(exponent=half_turns)(q).with_tags(
         cg.PhysicalZTag())
     assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
@@ -562,7 +562,7 @@ def test_deserialize_z_parameterized():
             },
             'type': {
                 'arg_value': {
-                    'string_value': 'virtual_propagates_forward'
+                    'string_value': cirq.google.common_serializers.VIRTUAL_Z
                 }
             }
         },

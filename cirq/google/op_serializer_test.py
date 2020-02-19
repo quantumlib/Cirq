@@ -53,8 +53,8 @@ class SubclassGate(GateWithAttribute):
     pass
 
 
-def get_val(gate):
-    return gate.get_val()
+def get_val(op):
+    return op.gate.get_val()
 
 
 TEST_CASES = (
@@ -131,7 +131,7 @@ def test_to_proto_attribute(val_type, val, arg_value):
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=val_type,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
     result = serializer.to_proto_dict(GateWithAttribute(val)(q),
@@ -158,7 +158,7 @@ def test_to_proto_property(val_type, val, arg_value):
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=val_type,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
     result = serializer.to_proto_dict(GateWithProperty(val)(q),
@@ -185,7 +185,7 @@ def test_to_proto_callable(val_type, val, arg_value):
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=val_type,
-                                             gate_getter=get_val)
+                                             op_getter=get_val)
                                      ])
     q = cirq.GridQubit(1, 2)
     result = serializer.to_proto_dict(GateWithMethod(val)(q),
@@ -211,7 +211,7 @@ def test_to_proto_gate_predicate():
         args=[
             cg.SerializingArg(serialized_name='my_val',
                               serialized_type=float,
-                              gate_getter='val')
+                              op_getter='val')
         ],
         can_serialize_predicate=lambda x: x.gate.val == 1)
     q = cirq.GridQubit(1, 2)
@@ -228,7 +228,7 @@ def test_to_proto_gate_mismatch():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=float,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='GateWithAttribute.*GateWithProperty'):
@@ -242,7 +242,7 @@ def test_to_proto_unsupported_type():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=bytes,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='bytes'):
@@ -256,7 +256,7 @@ def test_to_proto_unsupported_qubit_type():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=float,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.NamedQubit('a')
     with pytest.raises(ValueError, match='GridQubit'):
@@ -270,7 +270,7 @@ def test_to_proto_required_but_not_present():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=float,
-                                             gate_getter=lambda x: None)
+                                             op_getter=lambda x: None)
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='required'):
@@ -284,7 +284,7 @@ def test_to_proto_no_getattr():
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=float,
-                                             gate_getter='nope')
+                                             op_getter='nope')
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='does not have'):
@@ -298,10 +298,10 @@ def test_to_proto_not_required_ok():
         args=[
             cg.SerializingArg(serialized_name='my_val',
                               serialized_type=float,
-                              gate_getter='val'),
+                              op_getter='val'),
             cg.SerializingArg(serialized_name='not_req',
                               serialized_type=float,
-                              gate_getter='not_req',
+                              op_getter='not_req',
                               required=False)
         ])
     expected = {
@@ -339,7 +339,7 @@ def test_to_proto_type_mismatch(val_type, val):
                                          cg.SerializingArg(
                                              serialized_name='my_val',
                                              serialized_type=val_type,
-                                             gate_getter='val')
+                                             op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match=str(type(val))):
@@ -353,7 +353,7 @@ def test_can_serialize_operation_subclass():
         args=[
             cg.SerializingArg(serialized_name='my_val',
                               serialized_type=float,
-                              gate_getter='val')
+                              op_getter='val')
         ],
         can_serialize_predicate=lambda x: x.gate.val == 1)
     q = cirq.GridQubit(1, 1)

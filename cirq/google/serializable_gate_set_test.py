@@ -24,7 +24,7 @@ X_SERIALIZER = cg.GateOpSerializer(
         cg.SerializingArg(
             serialized_name='half_turns',
             serialized_type=float,
-            gate_getter='exponent',
+            op_getter='exponent',
         )
     ],
 )
@@ -47,7 +47,7 @@ Y_SERIALIZER = cg.GateOpSerializer(
         cg.SerializingArg(
             serialized_name='half_turns',
             serialized_type=float,
-            gate_getter='exponent',
+            op_getter='exponent',
         )
     ],
 )
@@ -90,7 +90,7 @@ def test_is_supported_operation_can_serialize_predicate():
             cg.SerializingArg(
                 serialized_name='half_turns',
                 serialized_type=float,
-                gate_getter='exponent',
+                op_getter='exponent',
             )
         ],
         can_serialize_predicate=lambda x: x.gate.exponent == 1.0)
@@ -292,7 +292,7 @@ def test_multiple_serializers():
         args=[
             cg.SerializingArg(serialized_name='half_turns',
                               serialized_type=float,
-                              gate_getter='exponent')
+                              op_getter='exponent')
         ],
         can_serialize_predicate=lambda x: x.gate.exponent != 1)
     serializer2 = cg.GateOpSerializer(
@@ -301,7 +301,7 @@ def test_multiple_serializers():
         args=[
             cg.SerializingArg(serialized_name='half_turns',
                               serialized_type=float,
-                              gate_getter='exponent')
+                              op_getter='exponent')
         ],
         can_serialize_predicate=lambda x: x.gate.exponent == 1)
     gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
