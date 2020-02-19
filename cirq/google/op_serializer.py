@@ -147,8 +147,8 @@ class GateOpSerializer:
                         ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
         op_getter = arg.op_getter
-        gate = op.gate
         if isinstance(op_getter, str):
+            gate = op.gate
             value = getattr(gate, op_getter, None)
             if value is None and arg.required:
                 raise ValueError(
