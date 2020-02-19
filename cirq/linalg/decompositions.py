@@ -114,7 +114,7 @@ def unitary_eig(matrix: np.ndarray,
     For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
-        matrix: a unitary matrix. If not unitary, this method is not
+        matrix: a normal matrix. If not normal, this method is not
             guaranteed to return correct eigenvalues.
         check_preconditions: when true and matrix is not unitary,
             a `ValueError` is raised
