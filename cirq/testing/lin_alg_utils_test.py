@@ -16,12 +16,13 @@ import numpy as np
 import pytest
 
 from cirq.testing import (
+    assert_allclose_up_to_global_phase,
+    random_density_matrix,
+    random_orthogonal,
+    random_special_orthogonal,
+    random_special_unitary,
     random_superposition,
     random_unitary,
-    random_orthogonal,
-    random_special_unitary,
-    random_special_orthogonal,
-    assert_allclose_up_to_global_phase,
 )
 from cirq.linalg import (is_unitary, is_orthogonal,
                          is_special_unitary, is_special_orthogonal)
@@ -38,6 +39,24 @@ def test_random_superposition(dim):
 def test_random_superposition_deterministic_given_seed():
     state1 = random_superposition(10, random_state=1234)
     state2 = random_superposition(10, random_state=1234)
+
+    np.testing.assert_equal(state1, state2)
+
+
+@pytest.mark.parametrize('dim',  range(1, 10))
+def test_random_density_matrix(dim):
+    state = random_density_matrix(dim)
+
+    assert state.shape == (dim, dim)
+    np.testing.assert_allclose(np.trace(state), 1)
+    np.testing.assert_allclose(state, state.T.conj())
+    eigs, _ = np.linalg.eigh(state)
+    assert np.all(eigs >= 0)
+
+
+def test_random_density_matrix_deterministic_given_seed():
+    state1 = random_density_matrix(10, random_state=1234)
+    state2 = random_density_matrix(10, random_state=1234)
 
     np.testing.assert_equal(state1, state2)
 
