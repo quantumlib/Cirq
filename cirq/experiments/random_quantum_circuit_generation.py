@@ -14,7 +14,7 @@
 """Code for generating random quantum circuits."""
 
 from typing import (Callable, Container, Dict, Iterable, List, Sequence,
-                    TYPE_CHECKING, Tuple)
+                    TYPE_CHECKING, Tuple, Union)
 
 import dataclasses
 
@@ -22,7 +22,6 @@ from cirq import circuits, devices, google, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    from typing import Union
     import numpy as np
     import cirq
 
