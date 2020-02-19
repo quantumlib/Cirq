@@ -24,11 +24,11 @@ from cirq.testing import (
     random_superposition,
     random_unitary,
 )
-from cirq.linalg import (is_unitary, is_orthogonal,
-                         is_special_unitary, is_special_orthogonal)
+from cirq.linalg import (is_unitary, is_orthogonal, is_special_unitary,
+                         is_special_orthogonal)
 
 
-@pytest.mark.parametrize('dim',  range(1, 10))
+@pytest.mark.parametrize('dim', range(1, 10))
 def test_random_superposition(dim):
     state = random_superposition(dim)
 
@@ -43,7 +43,7 @@ def test_random_superposition_deterministic_given_seed():
     np.testing.assert_equal(state1, state2)
 
 
-@pytest.mark.parametrize('dim',  range(1, 10))
+@pytest.mark.parametrize('dim', range(1, 10))
 def test_random_density_matrix(dim):
     state = random_density_matrix(dim)
 
@@ -67,6 +67,7 @@ def test_random_unitary():
     assert is_unitary(u1)
     assert is_unitary(u2)
     assert not np.allclose(u1, u2)
+
 
 def test_random_orthogonal():
     o1 = random_orthogonal(2)
@@ -115,29 +116,24 @@ def test_random_special_orthogonal_deterministic_given_seed():
 
 
 def test_assert_allclose_up_to_global_phase():
-    assert_allclose_up_to_global_phase(
-        np.array([[1]]),
-        np.array([[1j]]),
-        atol=0)
+    assert_allclose_up_to_global_phase(np.array([[1]]),
+                                       np.array([[1j]]),
+                                       atol=0)
 
     with pytest.raises(AssertionError):
-        assert_allclose_up_to_global_phase(
-            np.array([[1]]),
-            np.array([[2]]),
-            atol=0)
+        assert_allclose_up_to_global_phase(np.array([[1]]),
+                                           np.array([[2]]),
+                                           atol=0)
 
-    assert_allclose_up_to_global_phase(
-        np.array([[1e-8, -1, 1e-8]]),
-        np.array([[1e-8, 1, 1e-8]]),
-        atol=1e-6)
+    assert_allclose_up_to_global_phase(np.array([[1e-8, -1, 1e-8]]),
+                                       np.array([[1e-8, 1, 1e-8]]),
+                                       atol=1e-6)
 
     with pytest.raises(AssertionError):
-        assert_allclose_up_to_global_phase(
-            np.array([[1e-4, -1, 1e-4]]),
-            np.array([[1e-4, 1, 1e-4]]),
-            atol=1e-6)
+        assert_allclose_up_to_global_phase(np.array([[1e-4, -1, 1e-4]]),
+                                           np.array([[1e-4, 1, 1e-4]]),
+                                           atol=1e-6)
 
-    assert_allclose_up_to_global_phase(
-        np.array([[1, 2], [3, 4]]),
-        np.array([[-1, -2], [-3, -4]]),
-        atol=0)
+    assert_allclose_up_to_global_phase(np.array([[1, 2], [3, 4]]),
+                                       np.array([[-1, -2], [-3, -4]]),
+                                       atol=0)

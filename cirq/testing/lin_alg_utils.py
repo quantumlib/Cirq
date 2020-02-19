@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A testing class with utilities for checking linear algebra."""
 
 from typing import Optional
@@ -47,7 +46,7 @@ def random_superposition(dim: int,
 def random_density_matrix(dim: int,
                           *,
                           random_state: value.RANDOM_STATE_LIKE = None
-                          ) -> np.ndarray:
+                         ) -> np.ndarray:
     """Returns a random density matrix distributed with Hilbert-Schmidt measure.
 
     Args:
@@ -187,11 +186,10 @@ def assert_allclose_up_to_global_phase(
     # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
-    np.testing.assert_allclose(
-        actual=actual,
-        desired=desired,
-        rtol=rtol,
-        atol=atol,
-        equal_nan=equal_nan,
-        err_msg=err_msg,
-        verbose=verbose)
+    np.testing.assert_allclose(actual=actual,
+                               desired=desired,
+                               rtol=rtol,
+                               atol=atol,
+                               equal_nan=equal_nan,
+                               err_msg=err_msg,
+                               verbose=verbose)
