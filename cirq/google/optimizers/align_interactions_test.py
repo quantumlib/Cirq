@@ -202,6 +202,19 @@ def test_two_qubit_gates_pushed_back():
     assert_optimizes(circuit, 3)
 
 
+def test_greedy_merging():
+    """Tests a tricky situation where the algorithm of "Merge single-qubit gates,
+    greedily search for single-qubit then 2-qubit operations" doesn't work."""
+    q1, q2, q3, q4 = cirq.LineQubit.range(4)
+    circuit = cirq.Circuit(cirq.Moment([cirq.X(q1)]),
+                           cirq.Moment([cirq.SWAP(q1, q2),
+                                        cirq.SWAP(q3, q4)]),
+                           cirq.Moment([cirq.X(q3)]),
+                           cirq.Moment([cirq.SWAP(q3, q4)]))
+
+    assert_optimizes(circuit, 3)
+
+
 def test_complex_circuit():
     """Tests that a complex circuit is correctly optimized."""
     q1, q2, q3, q4, q5 = cirq.LineQubit.range(5)
