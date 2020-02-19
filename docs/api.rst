@@ -385,6 +385,8 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_multi_controlled_rotation
+    cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
@@ -422,10 +424,13 @@ run experiments.
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
     cirq.log_xeb_fidelity_from_probabilities
+    cirq.experiments.GRID_ALIGNED_PATTERN
+    cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
+    cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
     cirq.experiments.single_qubit_state_tomography
     cirq.experiments.state_tomography
@@ -433,6 +438,7 @@ run experiments.
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
+    cirq.experiments.GridInteractionLayer
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
@@ -498,6 +504,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.GreedySequenceSearchStrategy
     cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
+    cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
     cirq.google.QuantumEngineSampler
     cirq.google.SerializableDevice

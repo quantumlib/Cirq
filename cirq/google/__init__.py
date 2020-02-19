@@ -56,7 +56,8 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.ops.sycamore_gate import (
+from cirq.google.ops import (
+    PhysicalZTag,
     SycamoreGate,
     SYC,
 )

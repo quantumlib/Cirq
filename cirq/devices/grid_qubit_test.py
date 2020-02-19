@@ -185,3 +185,13 @@ def test_to_json():
         'row': 5,
         'col': 6,
     }
+
+
+def test_immutable():
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.GridQubit(1, 2)
+        q.col = 3
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.GridQubit(1, 2)
+        q.row = 3
