@@ -16,7 +16,9 @@
 from typing import (Callable, Container, Dict, Iterable, List, Sequence,
                     TYPE_CHECKING, Tuple)
 
-from cirq import circuits, devices, google, ops, value
+import dataclasses
+
+from cirq import circuits, devices, google, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
@@ -25,6 +27,7 @@ if TYPE_CHECKING:
     import cirq
 
 
+@dataclasses.dataclass(frozen=True)
 class GridInteractionLayer(
         Container[Tuple[devices.GridQubit, devices.GridQubit]]):
     """A layer of aligned or staggered two-qubit interactions on a grid.
@@ -66,22 +69,16 @@ class GridInteractionLayer(
     with left/top qubits at (0, 0) and (1, 0) in the aligned case, or
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
     cells after transposing and offsetting.
-    """
 
-    def __init__(self,
-                 col_offset: int = 0,
-                 vertical: bool = False,
-                 stagger: bool = False) -> None:
-        """
-        Args:
-            col_offset: Number of columns by which to shift the basic lattice.
-            vertical: Whether gates should be oriented vertically rather than
-                horizontally.
-            stagger: Whether to stagger gates in neighboring rows.
-        """
-        self.col_offset = col_offset
-        self.vertical = vertical
-        self.stagger = stagger
+    Attributes:
+        col_offset: Number of columns by which to shift the basic lattice.
+        vertical: Whether gates should be oriented vertically rather than
+            horizontally.
+        stagger: Whether to stagger gates in neighboring rows.
+    """
+    col_offset: int = 0
+    vertical: bool = False
+    stagger: bool = False
 
     def __contains__(self, pair) -> bool:
         """Checks whether a pair is in this layer."""
@@ -100,6 +97,16 @@ class GridInteractionLayer(
         # mod to get the position in the 2 x 2 unit cell with column offset.
         pos = a.row % 2, (a.col - self.col_offset) % 2
         return pos == (0, 0) or pos == (1, self.stagger)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self,
+                                            ['col_offset', 'vertical, stagger'])
+
+    def __repr__(self):
+        return ('cirq.experiments.GridInteractionLayer('
+                f'col_offset={self.col_offset}, '
+                f'vertical={self.vertical}, '
+                f'stagger={self.stagger})')
 
 
 GRID_STAGGERED_PATTERN = (
