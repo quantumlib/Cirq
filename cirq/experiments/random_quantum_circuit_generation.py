@@ -206,9 +206,9 @@ def random_rotations_between_grid_interaction_layers_circuit(
     circuit = circuits.Circuit()
     previous_single_qubit_layer = {}  # type: Dict[cirq.GridQubit, cirq.Gate]
     if len(set(single_qubit_gates)) == 1:
-        single_qubit_layer_factory = _FixedSingleQubitLayerFactory(
-            {q: single_qubit_gates[0] for q in qubits}) \
-    # type: Union[_FixedSingleQubitLayerFactory, _RandomSingleQubitLayerFactory]
+        single_qubit_layer_factory = _FixedSingleQubitLayerFactory({
+            q: single_qubit_gates[0] for q in qubits
+        })  # type: _SingleQubitLayerFactory
 
     else:
         single_qubit_layer_factory = _RandomSingleQubitLayerFactory(
@@ -288,6 +288,10 @@ class _FixedSingleQubitLayerFactory:
             previous_single_qubit_layer: Dict['cirq.GridQubit', 'cirq.Gate']
     ) -> Dict['cirq.GridQubit', 'cirq.Gate']:
         return self.fixed_single_qubit_layer
+
+
+_SingleQubitLayerFactory = Union[_FixedSingleQubitLayerFactory,
+                                 _RandomSingleQubitLayerFactory]
 
 
 def _two_qubit_layer(
