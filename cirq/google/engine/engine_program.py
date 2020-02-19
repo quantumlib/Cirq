@@ -17,7 +17,7 @@ from cirq import study
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google import gate_sets
 from cirq.google.api import v1, v2
-import cirq.google.engine.engine_job as engine_job
+from cirq.google.engine import engine_job
 
 if TYPE_CHECKING:
     import datetime
