@@ -99,8 +99,8 @@ class GridInteractionLayer(
         return pos == (0, 0) or pos == (1, self.stagger)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self,
-                                            ['col_offset', 'vertical, stagger'])
+        return protocols.obj_to_dict_helper(
+            self, ['col_offset', 'vertical', 'stagger'])
 
     def __repr__(self):
         return ('cirq.experiments.GridInteractionLayer('
