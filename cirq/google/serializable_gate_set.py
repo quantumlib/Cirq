@@ -14,7 +14,6 @@
 """Support for serializing and deserializing cirq.google.api.v2 protos."""
 
 from typing import (
-    cast,
     Dict,
     Iterable,
     List,
@@ -87,12 +86,13 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
-    def is_supported_gate(self, gate: 'cirq.Gate') -> bool:
+    def is_supported_operation(self, op: 'cirq.Operation') -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
+        gate = op.gate
         for gate_type_mro in type(gate).mro():
             if gate_type_mro in self.serializers:
                 for serializer in self.serializers[gate_type_mro]:
-                    if serializer.can_serialize_gate(gate):
+                    if serializer.can_serialize_operation(op):
                         return True
         return False
 
@@ -139,8 +139,7 @@ class SerializableGateSet:
         Returns:
             A dictionary corresponds to the cirq.google.api.v2.Operation proto.
         """
-        gate_op = cast(ops.GateOperation, op)
-        gate_type = type(gate_op.gate)
+        gate_type = type(op.gate)
         for gate_type_mro in gate_type.mro():
             # Check all super classes in method resolution order.
             if gate_type_mro in self.serializers:
@@ -148,13 +147,11 @@ class SerializableGateSet:
                 # None, then skip.
                 for serializer in self.serializers[gate_type_mro]:
                     proto_msg = serializer.to_proto(
-                        gate_op,
-                        msg,
-                        arg_function_language=arg_function_language)
+                        op, msg, arg_function_language=arg_function_language)
                     if proto_msg is not None:
                         return proto_msg
         raise ValueError('Cannot serialize op {!r} of type {}'.format(
-            gate_op, gate_type))
+            op, gate_type))
 
     def deserialize(self,
                     proto: v2.program_pb2.Program,
