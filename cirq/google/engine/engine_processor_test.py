@@ -13,9 +13,8 @@
 # limitations under the License.
 
 from unittest import mock
-import pytest
-
 import datetime
+import pytest
 from google.protobuf.text_format import Merge
 import cirq.google as cg
 from cirq.google.api import v2
