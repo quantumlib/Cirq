@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from unittest import mock
+import pytest
 
 import datetime
 from google.protobuf.text_format import Merge
@@ -100,6 +101,13 @@ valid_targets: [{
     }]
 }]
 """, v2.device_pb2.DeviceSpecification()))
+
+
+@pytest.fixture(scope='session', autouse=True)
+def mock_grpc_client():
+    with mock.patch('cirq.google.engine.engine_client'
+                    '.quantum.QuantumEngineServiceClient') as _fixture:
+        yield _fixture
 
 
 def test_engine():

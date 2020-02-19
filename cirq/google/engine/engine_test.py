@@ -141,6 +141,13 @@ sweep_results: [{
 """, v2.result_pb2.Result()))
 
 
+@pytest.fixture(scope='session', autouse=True)
+def mock_grpc_client():
+    with mock.patch('cirq.google.engine.engine_client'
+                    '.quantum.QuantumEngineServiceClient') as _fixture:
+        yield _fixture
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient')
 def test_create_context(client):
     with pytest.raises(ValueError,

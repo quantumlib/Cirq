@@ -311,6 +311,13 @@ circuit {
     get_program.assert_called_once_with('a', 'b', True)
 
 
+@pytest.fixture(scope='session', autouse=True)
+def mock_grpc_client():
+    with mock.patch('cirq.google.engine.engine_client'
+                    '.quantum.QuantumEngineServiceClient') as _fixture:
+        yield _fixture
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
 def test_get_circuit_v2_unknown_gateset(get_program):
     program = cg.EngineProgram('a', 'b', EngineContext())

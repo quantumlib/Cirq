@@ -31,6 +31,13 @@ def _to_any(proto):
     return any_proto
 
 
+@pytest.fixture(scope='session', autouse=True)
+def mock_grpc_client():
+    with mock.patch('cirq.google.engine.engine_client'
+                    '.quantum.QuantumEngineServiceClient') as _fixture:
+        yield _fixture
+
+
 def test_engine():
     job = cg.EngineJob('a', 'b', 'steve', EngineContext())
     assert job.engine().project_id == 'a'
