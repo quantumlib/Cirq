@@ -24,7 +24,7 @@ X_SERIALIZER = cg.GateOpSerializer(
         cg.SerializingArg(
             serialized_name='half_turns',
             serialized_type=float,
-            gate_getter='exponent',
+            op_getter='exponent',
         )
     ],
 )
@@ -47,7 +47,7 @@ Y_SERIALIZER = cg.GateOpSerializer(
         cg.SerializingArg(
             serialized_name='half_turns',
             serialized_type=float,
-            gate_getter='exponent',
+            op_getter='exponent',
         )
     ],
 )
@@ -74,13 +74,15 @@ def test_supported_gate_types():
     assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate,)
 
 
-def test_is_supported_gate():
-    assert MY_GATE_SET.is_supported_gate(cirq.XPowGate())
-    assert MY_GATE_SET.is_supported_gate(cirq.X)
-    assert not MY_GATE_SET.is_supported_gate(cirq.ZPowGate())
+def test_is_supported_operation():
+    q = cirq.GridQubit(1, 1)
+    assert MY_GATE_SET.is_supported_operation(cirq.XPowGate()(q))
+    assert MY_GATE_SET.is_supported_operation(cirq.X(q))
+    assert not MY_GATE_SET.is_supported_operation(cirq.ZPowGate()(q))
 
 
-def test_is_supported_gate_can_serialize_predicate():
+def test_is_supported_operation_can_serialize_predicate():
+    q = cirq.GridQubit(1, 2)
     serializer = cg.GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='x_pow',
@@ -88,16 +90,16 @@ def test_is_supported_gate_can_serialize_predicate():
             cg.SerializingArg(
                 serialized_name='half_turns',
                 serialized_type=float,
-                gate_getter='exponent',
+                op_getter='exponent',
             )
         ],
-        can_serialize_predicate=lambda x: x.exponent == 1.0)
+        can_serialize_predicate=lambda x: x.gate.exponent == 1.0)
     gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
                                       serializers=[serializer],
                                       deserializers=[X_DESERIALIZER])
-    assert gate_set.is_supported_gate(cirq.XPowGate())
-    assert not gate_set.is_supported_gate(cirq.XPowGate()**0.5)
-    assert gate_set.is_supported_gate(cirq.X)
+    assert gate_set.is_supported_operation(cirq.XPowGate()(q))
+    assert not gate_set.is_supported_operation(cirq.XPowGate()(q)**0.5)
+    assert gate_set.is_supported_operation(cirq.X(q))
 
 
 def test_serialize_deserialize_circuit():
@@ -290,18 +292,18 @@ def test_multiple_serializers():
         args=[
             cg.SerializingArg(serialized_name='half_turns',
                               serialized_type=float,
-                              gate_getter='exponent')
+                              op_getter='exponent')
         ],
-        can_serialize_predicate=lambda x: x.exponent != 1)
+        can_serialize_predicate=lambda x: x.gate.exponent != 1)
     serializer2 = cg.GateOpSerializer(
         gate_type=cirq.XPowGate,
         serialized_gate_id='x',
         args=[
             cg.SerializingArg(serialized_name='half_turns',
                               serialized_type=float,
-                              gate_getter='exponent')
+                              op_getter='exponent')
         ],
-        can_serialize_predicate=lambda x: x.exponent == 1)
+        can_serialize_predicate=lambda x: x.gate.exponent == 1)
     gate_set = cg.SerializableGateSet(gate_set_name='my_gate_set',
                                       serializers=[serializer1, serializer2],
                                       deserializers=[])
@@ -311,6 +313,7 @@ def test_multiple_serializers():
 
 
 def test_gateset_with_added_gates():
+    q = cirq.GridQubit(1, 1)
     x_gateset = cg.SerializableGateSet(
         gate_set_name='x',
         serializers=[X_SERIALIZER],
@@ -322,12 +325,11 @@ def test_gateset_with_added_gates():
         deserializers=[Y_DESERIALIZER],
     )
     assert x_gateset.gate_set_name == 'x'
-    assert x_gateset.is_supported_gate(cirq.X)
-    assert not x_gateset.is_supported_gate(cirq.Y)
-
+    assert x_gateset.is_supported_operation(cirq.X(q))
+    assert not x_gateset.is_supported_operation(cirq.Y(q))
     assert xy_gateset.gate_set_name == 'xy'
-    assert xy_gateset.is_supported_gate(cirq.X)
-    assert xy_gateset.is_supported_gate(cirq.Y)
+    assert xy_gateset.is_supported_operation(cirq.X(q))
+    assert xy_gateset.is_supported_operation(cirq.Y(q))
 
     # test serialization and deserialization
     proto = {
@@ -353,6 +355,7 @@ def test_gateset_with_added_gates():
 
 def test_gateset_with_added_gates_again():
     """Verify that adding a serializer twice doesn't mess anything up."""
+    q = cirq.GridQubit(2, 2)
     x_gateset = cg.SerializableGateSet(
         gate_set_name='x',
         serializers=[X_SERIALIZER],
@@ -365,8 +368,8 @@ def test_gateset_with_added_gates_again():
     )
 
     assert xx_gateset.gate_set_name == 'xx'
-    assert xx_gateset.is_supported_gate(cirq.X)
-    assert not xx_gateset.is_supported_gate(cirq.Y)
+    assert xx_gateset.is_supported_operation(cirq.X(q))
+    assert not xx_gateset.is_supported_operation(cirq.Y(q))
 
     # test serialization and deserialization
     proto = {
