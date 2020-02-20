@@ -1644,9 +1644,7 @@ class Circuit:
             diagram.write(0, i, qubit_namer(q))
 
         if any(
-                isinstance(op, cirq.GlobalPhaseOperation) or
-            (isinstance(op, cirq.TaggedOperation) and
-             isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
+                isinstance(op.untagged, cirq.GlobalPhaseOperation)
                 for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
@@ -1809,12 +1807,8 @@ def _get_operation_circuit_diagram_info_with_fallback(
                     info))
         return info
 
-    # Fallback to a default representation using the operation's __str__.
-    name = str(op)
-
-    # For TaggedOperation, use the sub_operations __str__ instead
-    if isinstance(op, cirq.TaggedOperation):
-        name = str(op.sub_operation)
+    # Use the untagged operation's __str__.
+    name = str(op.untagged)
 
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
@@ -1823,7 +1817,7 @@ def _get_operation_circuit_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if isinstance(op, cirq.TaggedOperation):
+    if op.tags:
         name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
@@ -1942,18 +1936,14 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = None
+    global_phase: Optional[complex] = None
     tags: List[Any] = []
     for op in moment:
-        if (isinstance(op, ops.TaggedOperation) and
-                isinstance(op.sub_operation, ops.GlobalPhaseOperation)):
+        if isinstance(op.untagged, ops.GlobalPhaseOperation):
             tags.extend(op.tags)
-            op = op.sub_operation
-        if isinstance(op, ops.GlobalPhaseOperation):
-            if global_phase:
-                global_phase *= complex(op.coefficient)
-            else:
-                global_phase = complex(op.coefficient)
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= complex(op.untagged.coefficient)
 
     # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
     if global_phase and (global_phase != 1 or not non_global_ops):
