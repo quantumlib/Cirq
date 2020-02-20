@@ -128,9 +128,8 @@ SINGLE_QUBIT_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='type',
                 serialized_type=str,
-                op_getter=lambda op: PHYSICAL_Z if isinstance(
-                    op, ops.TaggedOperation) and PhysicalZTag() in op.tags else
-                VIRTUAL_Z,
+                op_getter=lambda op: PHYSICAL_Z
+                if PhysicalZTag() in op.tags else VIRTUAL_Z,
             ),
         ],
     ),
