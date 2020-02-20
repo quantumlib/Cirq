@@ -34,7 +34,7 @@ def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
                                             optimizer_type=optimizer_type)
     for moment in new_circuit:
         for op in moment:
-            assert gateset.is_supported_gate(op.gate)
+            assert gateset.is_supported_operation(op)
 
 
 def test_invalid_input():

@@ -60,11 +60,14 @@ class GateOpDeserializer:
         serialized_gate_id: The id used when serializing the gate.
     """
 
-    def __init__(self,
-                 serialized_gate_id: str,
-                 gate_constructor: Callable,
-                 args: Sequence[DeserializingArg],
-                 num_qubits_param: Optional[str] = None):
+    def __init__(
+            self,
+            serialized_gate_id: str,
+            gate_constructor: Callable,
+            args: Sequence[DeserializingArg],
+            num_qubits_param: Optional[str] = None,
+            op_wrapper: Callable[['cirq.Operation', v2.program_pb2.Operation],
+                                 'cirq.Operation'] = lambda x, y: x):
         """Constructs a deserializer.
 
         Args:
@@ -79,14 +82,17 @@ class GateOpDeserializer:
                 of qubits be passed to their constructor. This is the name
                 of the parameter in the constructor for this value. If None,
                 no number of qubits is passed to the constructor.
+            op_wrapper: An optional Callable to modify the resulting
+                GateOperation, for instance, to add tags
         """
         self.serialized_gate_id = serialized_gate_id
         self.gate_constructor = gate_constructor
         self.args = args
         self.num_qubits_param = num_qubits_param
+        self.op_wrapper = op_wrapper
 
-    def from_proto_dict(self, proto: Dict, *, arg_function_language: str = ''
-                       ) -> 'cirq.GateOperation':
+    def from_proto_dict(self, proto: Dict, *,
+                        arg_function_language: str = '') -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
 
         msg = v2.program_pb2.Operation()
@@ -96,7 +102,7 @@ class GateOpDeserializer:
     def from_proto(self,
                    proto: v2.program_pb2.Operation,
                    *,
-                   arg_function_language: str = '') -> 'cirq.GateOperation':
+                   arg_function_language: str = '') -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.grid_qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(
@@ -104,7 +110,7 @@ class GateOpDeserializer:
         if self.num_qubits_param is not None:
             args[self.num_qubits_param] = len(qubits)
         gate = self.gate_constructor(**args)
-        return gate.on(*qubits)
+        return self.op_wrapper(gate.on(*qubits), proto)
 
     def _args_from_proto(self, proto: v2.program_pb2.Operation, *,
                          arg_function_language: str
