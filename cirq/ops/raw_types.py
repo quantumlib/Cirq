@@ -393,6 +393,16 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
+    @property
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return ()
+
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self
+
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
@@ -508,6 +518,11 @@ class TaggedOperation(Operation):
     def tags(self) -> Tuple[Hashable, ...]:
         """Returns a tuple of the operation's tags."""
         return self._tags
+
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self.sub_operation
 
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation with combined tags.
