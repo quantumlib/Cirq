@@ -178,7 +178,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 circuit=circuit,
                 qubit_order=ops.QubitOrder.DEFAULT,
                 initial_state=0,
-                perform_measurements=False,
                 all_measurements_are_terminal=True):
             pass
         measurement_ops = [
@@ -199,10 +198,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
-                circuit,
-                qubit_order=ops.QubitOrder.DEFAULT,
-                initial_state=0,
-                perform_measurements=True)
+                circuit, qubit_order=ops.QubitOrder.DEFAULT, initial_state=0)
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
                     if not k in measurements:
@@ -252,7 +248,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                        circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList,
                        initial_state: Union[int, np.ndarray],
-                       perform_measurements: bool = True,
                        all_measurements_are_terminal=False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
@@ -302,28 +297,27 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 if isinstance(op.gate, ops.MeasurementGate):
                     measured[op.qubits] = True
                     meas = op.gate
-                    if perform_measurements:
-                        if self._ignore_measurement_results:
-                            for i, q in enumerate(op.qubits):
-                                self._apply_op_channel(
-                                    ops.phase_damp(1).on(q), state,
-                                    [indices[i]])
-                        else:
-                            invert_mask = meas.full_invert_mask()
-                            # Measure updates inline.
-                            bits, _ = (
-                                density_matrix_utils.measure_density_matrix(
-                                    state.tensor,
-                                    indices,
-                                    qid_shape=qid_shape,
-                                    out=state.tensor,
-                                    seed=self._prng))
-                            corrected = [
-                                bit ^ (bit < 2 and mask)
-                                for bit, mask in zip(bits, invert_mask)
-                            ]
-                            key = protocols.measurement_key(meas)
-                            measurements[key].extend(corrected)
+                    if all_measurements_are_terminal:
+                        continue
+                    if self._ignore_measurement_results:
+                        for i, q in enumerate(op.qubits):
+                            self._apply_op_channel(
+                                ops.phase_damp(1).on(q), state, [indices[i]])
+                    else:
+                        invert_mask = meas.full_invert_mask()
+                        # Measure updates inline.
+                        bits, _ = (density_matrix_utils.measure_density_matrix(
+                            state.tensor,
+                            indices,
+                            qid_shape=qid_shape,
+                            out=state.tensor,
+                            seed=self._prng))
+                        corrected = [
+                            bit ^ (bit < 2 and mask)
+                            for bit, mask in zip(bits, invert_mask)
+                        ]
+                        key = protocols.measurement_key(meas)
+                        measurements[key].extend(corrected)
                 else:
                     # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
