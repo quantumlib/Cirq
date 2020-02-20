@@ -18,6 +18,7 @@ import pytest
 
 import cirq
 import cirq.google as cg
+import cirq.google.engine.client.quantum
 
 
 def test_run_circuit():
@@ -59,8 +60,12 @@ def test_engine_sampler_engine_property():
 
 def test_get_engine_sampler(monkeypatch):
     monkeypatch.setenv('GOOGLE_CLOUD_PROJECT', 'myproj')
-    sampler = cg.get_engine_sampler(processor_id='hi mom',
-                                    gate_set_name='sqrt-iswap')
+
+    with mock.patch.object(cirq.google.engine.client.quantum,
+                           'QuantumEngineServiceClient',
+                           autospec=True):
+        sampler = cg.get_engine_sampler(processor_id='hi mom',
+                                        gate_set_name='sqrt-iswap')
     assert hasattr(sampler, 'run_sweep')
 
     with pytest.raises(ValueError):
