@@ -459,8 +459,7 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
                 response.status_code, response.content))
 
 
-def update_branch(pr: PullRequestDetails
-                  ) -> Union[bool, CannotAutomergeError]:
+def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
     """Equivalent to hitting the 'update branch' button on a PR.
 
     As of Feb 2020 this API feature is still in beta. Note that currently, if
@@ -470,11 +469,9 @@ def update_branch(pr: PullRequestDetails
     References:
         https://developer.github.com/v3/pulls/#update-a-pull-request-branch
     """
-    url = (
-        f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
-        f"/pulls/{pr.pull_id}/update-branch"
-        f"?access_token={pr.repo.access_token}"
-    )
+    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+           f"/pulls/{pr.pull_id}/update-branch"
+           f"?access_token={pr.repo.access_token}")
     data = {
         'expected_head_sha': pr.branch_sha,
     }
