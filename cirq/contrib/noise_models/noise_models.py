@@ -158,7 +158,8 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
-        if _homogeneous_moment_is_measurements(moment):
+        if (_homogeneous_moment_is_measurements(moment) or
+                self.is_virtual_moment(moment)):
             return moment
         else:
             gated_qubits = [

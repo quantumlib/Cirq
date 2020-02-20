@@ -203,7 +203,6 @@ from cirq.ops.raw_types import (
     Operation,
     Qid,
     TaggedOperation,
-    VirtualTag,
 )
 
 from cirq.ops.swap_gates import (
@@ -213,6 +212,10 @@ from cirq.ops.swap_gates import (
     riswap,
     SWAP,
     SwapPowGate,
+)
+
+from cirq.ops.tags import (
+    VirtualTag,
 )
 
 from cirq.ops.three_qubit_gates import (
