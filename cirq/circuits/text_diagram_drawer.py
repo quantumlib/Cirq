@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Callable, cast, Dict, List, Optional, NamedTuple, Tuple,
-                    Union)
+
+from typing import (Any, Callable, cast, Dict, Iterable, List, Mapping,
+                    NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING, Union)
 
 import numpy as np
 
+from cirq import value
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer
 from cirq.circuits._box_drawing_character_data import (
     BoxDrawCharacterSet,
@@ -23,6 +25,10 @@ from cirq.circuits._box_drawing_character_data import (
     BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
 )
+
+if TYPE_CHECKING:
+    # pylint: disable=unused-import
+    from typing import Tuple, DefaultDict, Dict, Optional
 
 _HorizontalLine = NamedTuple('HorizontalLine', [
     ('y', Union[int, float]),
@@ -50,17 +56,41 @@ def pick_charset(use_unicode: bool, emphasize: bool) -> BoxDrawCharacterSet:
     return NORMAL_BOX_CHARS
 
 
+@value.value_equality(unhashable=True)
 class TextDiagramDrawer:
     """A utility class for creating simple text diagrams.
     """
 
-    def __init__(self):
-        """Initializes an empty diagram drawer."""
-        self.entries: Dict[Tuple[int, int], _DiagramText] = dict()
-        self.vertical_lines: List[_VerticalLine] = []
-        self.horizontal_lines: List[_HorizontalLine] = []
-        self.horizontal_padding: Dict[int, Union[int, float]] = {}
-        self.vertical_padding: Dict[int, Union[int, float]] = {}
+    def __init__(
+            self,
+            entries: Optional[Mapping[Tuple[int, int], _DiagramText]] = None,
+            horizontal_lines: Optional[Iterable[_HorizontalLine]] = None,
+            vertical_lines: Optional[Iterable[_VerticalLine]] = None,
+            horizontal_padding: Optional[Mapping[int, int]] = None,
+            vertical_padding: Optional[Mapping[int, int]] = None,
+    ) -> None:
+        self.entries = (dict() if entries is None else dict(entries)
+                       )  # type: Dict[Tuple[int, int], _DiagramText]
+        self.horizontal_lines = (
+            [] if horizontal_lines is None else list(horizontal_lines)
+        )  # type: List[_HorizontalLine]
+        self.vertical_lines = (
+            [] if vertical_lines is None else list(vertical_lines)
+        )  # type: List[_VerticalLine]
+        self.horizontal_padding = (
+            dict() if horizontal_padding is None else dict(horizontal_padding)
+        )  # type: Dict[int, Union[int, float]]
+        self.vertical_padding = (
+            dict() if vertical_padding is None else dict(vertical_padding)
+        )  # type: Dict[int, Union[int, float]]
+
+    def _value_equality_values_(self):
+        attrs = ('entries', 'horizontal_lines', 'vertical_lines',
+                 'horizontal_padding', 'vertical_padding')
+        return tuple(getattr(self, attr) for attr in attrs)
+
+    def __bool__(self):
+        return any(self._value_equality_values_())
 
     def write(self,
               x: int,
@@ -301,3 +331,127 @@ class TextDiagramDrawer:
             block_diagram.mutable_block(x, y).content = v.text
 
         return block_diagram.render()
+
+    def copy(self):
+        return self.__class__(entries=self.entries,
+                              vertical_lines=self.vertical_lines,
+                              horizontal_lines=self.horizontal_lines,
+                              vertical_padding=self.vertical_padding,
+                              horizontal_padding=self.horizontal_padding)
+
+    def shift(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+        self._transform_coordinates(lambda x, y: (x + dx, y + dy))
+        return self
+
+    def shifted(self, dx: int = 0, dy: int = 0) -> 'TextDiagramDrawer':
+        return self.copy().shift(dx, dy)
+
+    def superimpose(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+        self.entries.update(other.entries)
+        self.horizontal_lines += other.horizontal_lines
+        self.vertical_lines += other.vertical_lines
+        self.horizontal_padding.update(other.horizontal_padding)
+        self.vertical_padding.update(other.vertical_padding)
+        return self
+
+    def superimposed(self, other: 'TextDiagramDrawer') -> 'TextDiagramDrawer':
+        return self.copy().superimpose(other)
+
+    @classmethod
+    def vstack(cls,
+               diagrams: Sequence['TextDiagramDrawer'],
+               padding_resolver: Optional[
+                   Callable[[Sequence[Optional[int]]], int]] = None):
+        """Vertically stack text diagrams.
+
+        Args:
+            diagrams: The diagrams to stack, ordered from bottom to top.
+            padding_resolver: A function that takes a list of paddings
+                specified for a column and returns the padding to use in the
+                stacked diagram. If None, defaults to raising ValueError if the
+                diagrams to stack contain inconsistent padding in any column,
+                including if some specify a padding and others don't.
+
+        Raises:
+            ValueError: Inconsistent padding cannot be resolved.
+
+        Returns:
+            The vertically stacked diagram.
+        """
+
+        if padding_resolver is None:
+            padding_resolver = _same_element_or_throw_error
+
+        stacked = cls()
+        dy = 0
+        for diagram in diagrams:
+            stacked.superimpose(diagram.shifted(dy=dy))
+            dy += diagram.height()
+        for x in stacked.horizontal_padding:
+            resolved_padding = padding_resolver(
+                tuple(
+                    cast(Optional[int], diagram.horizontal_padding.get(x))
+                    for diagram in diagrams))
+            if resolved_padding is not None:
+                stacked.horizontal_padding[x] = resolved_padding
+        return stacked
+
+    @classmethod
+    def hstack(cls,
+               diagrams: Sequence['TextDiagramDrawer'],
+               padding_resolver: Optional[
+                   Callable[[Sequence[Optional[int]]], int]] = None):
+        """Horizontally stack text diagrams.
+
+        Args:
+            diagrams: The diagrams to stack, ordered from left to right.
+            padding_resolver: A function that takes a list of paddings
+                specified for a row and returns the padding to use in the
+                stacked diagram. Defaults to raising ValueError if the diagrams
+                to stack contain inconsistent padding in any row, including
+                if some specify a padding and others don't.
+
+        Raises:
+            ValueError: Inconsistent padding cannot be resolved.
+
+        Returns:
+            The horizontally stacked diagram.
+        """
+
+        if padding_resolver is None:
+            padding_resolver = _same_element_or_throw_error
+
+        stacked = cls()
+        dx = 0
+        for diagram in diagrams:
+            stacked.superimpose(diagram.shifted(dx=dx))
+            dx += diagram.width()
+        for y in stacked.vertical_padding:
+            resolved_padding = padding_resolver(
+                tuple(
+                    cast(Optional[int], diagram.vertical_padding.get(y))
+                    for diagram in diagrams))
+            if resolved_padding is not None:
+                stacked.vertical_padding[y] = resolved_padding
+        return stacked
+
+
+def _same_element_or_throw_error(elements: Sequence[Any]):
+    """Extract an element or throw an error.
+
+    Args:
+        elements: A sequence of something.
+
+    copies of it. Returns None on an empty sequence.
+
+    Raises:
+        ValueError: The sequence contains more than one unique element.
+
+    Returns:
+        The element when given a sequence containing only multiple copies of a
+        single element. None if elements is empty.
+    """
+    unique_elements = set(elements)
+    if len(unique_elements) > 1:
+        raise ValueError('len(set({})) > 1'.format(elements))
+    return unique_elements.pop() if elements else None
