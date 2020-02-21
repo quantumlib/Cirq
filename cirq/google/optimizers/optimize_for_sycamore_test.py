@@ -99,14 +99,14 @@ def test_one_q_matrix_gate():
     assert len(circuit_iswap) == 2
     for moment in circuit_iswap:
         for op in moment:
-            assert cg.SQRT_ISWAP_GATESET.is_supported_gate(op.gate)
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
             # single qubit gates shared between gatesets, so:
-            assert cg.SYC_GATESET.is_supported_gate(op.gate)
+            assert cg.SYC_GATESET.is_supported_operation(op)
 
     circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
     assert len(circuit_syc) == 2
     for moment in circuit_iswap:
         for op in moment:
-            assert cg.SYC_GATESET.is_supported_gate(op.gate)
+            assert cg.SYC_GATESET.is_supported_operation(op)
             # single qubit gates shared between gatesets, so:
-            assert cg.SQRT_ISWAP_GATESET.is_supported_gate(op.gate)
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
