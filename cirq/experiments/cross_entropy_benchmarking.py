@@ -40,7 +40,7 @@ class DepolarizingModel:
         coefficient: The value S in the above formula.
         decay_constant: The value p in the above formula.
         covariance: The estimated covariance in the estimation of `coefficient`
-        and `decay_constant`, in that order.
+            and `decay_constant`, in that order.
     """
     coefficient: float
     decay_constant: float
