@@ -111,7 +111,6 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 
     def optimization_at(self, circuit, index, op):
-
         if not isinstance(op, ops.GateOperation):
             return None
 
