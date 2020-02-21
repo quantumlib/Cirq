@@ -126,5 +126,5 @@ def test_agrees_with_two_qubit_state_tomography(circuit):
 
     error_rho = actual_rho - expected_rho
 
-    assert np.linalg.norm(error_rho) < 0.05
+    assert np.linalg.norm(error_rho) < 0.06
     assert np.max(np.abs(error_rho)) < 0.05
