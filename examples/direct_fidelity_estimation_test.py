@@ -75,10 +75,12 @@ def test_same_pauli_traces_clifford():
         clifford_state.apply_unitary(gate)
 
     # Run both algos
-    pauli_traces_clifford = direct_fidelity_estimation._estimate_pauli_traces_clifford(
-        n_qubits, clifford_state, n_clifford_trials=3)
-    pauli_traces_general = direct_fidelity_estimation._estimate_pauli_traces_general(
-        qubits, circuit)
+    pauli_traces_clifford = (
+        direct_fidelity_estimation._estimate_pauli_traces_clifford(
+            n_qubits, clifford_state, n_clifford_trials=3))
+    pauli_traces_general = (
+        direct_fidelity_estimation._estimate_pauli_traces_general(
+            qubits, circuit))
 
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [
