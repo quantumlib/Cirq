@@ -1,8 +1,46 @@
 """ Example program to demonstrate BB84 QKD Protocol
 
+BB84 [1] is a quantum key distribution (QKD) protocol developed by
+Charles Bennett and Gilles Brassard in 1984. it was the first quantum
+cryptographic protocol, using the laws of quantum mechanics (specifically,
+no-cloning) to provide provably secure key generation.
+
+BB84 relies on the fact that it is impossible to gain information
+distinguising two non-orthogonal states without disturbing the signal.
+
+The scheme involves two parties Alice and Bob connected by a classical
+communication channel. In addition to this, Alice can also prepare
+qubits in a particular state and send them to Bob using a unidirectional
+quantum channel.
+
+Alice generates two binary strings a and b of the same length n.
+The string a encodes the state and the string b encodes the basis.
+She then prepares n qubits according to the following prescription:
+
+|q[i]> = |0> if a[i] == 0 and b[i] == 0
+|q[i]> = |1> if a[i] == 1 and b[i] == 0
+|q[i]> = |+> if a[i] == 0 and b[i] == 1
+|q[i]> = |-> if a[i] == 1 and b[i] == 1
+
+where |+/-> = 1/sqrt(2)*(|0>+/-|1>).
+
+Alice sends her qubits to Bob. Bob then generates a binary string c
+(of length n). He measures the qubit |q[i]> in the {|0>, |1>} basis
+(computational basis) if c[i] == 0 and in the {|+>,|->} basis
+(Hadamard basis) if c[i] == 1 and stores the result in a string m.
+Alice and Bob then announce the strings b and c.
+
+The strings a and m match in the places where b and c are the same.
+This happens because the state was measured in the same basis in
+which it was prepared. For the remaining bits, the results are
+uncorrelated. The bits from strings a and m where the bases match
+can be used as a key for cryptography.
+
+[1]: https://doi.org/10.1016/j.tcs.2014.05.025
+
  === Example output ===
 
- 0: ────X───H───H───M───
+0: ────X───H───H───M───
 
 1: ────X───H───M───────
 
