@@ -1,80 +1,84 @@
-# Example program to demonstrate BB84 QKD Protocol
+""" Example program to demonstrate BB84 QKD Protocol
 
-################ Example output
+ === Example output ===
 
-# 0: ────X───H───H───M───
+ 0: ────X───H───H───M───
 
-# 1: ────M───────────────
+1: ────X───H───M───────
 
-# 2: ────X───H───M───────
+2: ────H───M───────────
 
-# 3: ────H───M───────────
+3: ────H───M───────────
 
-# 4: ────X───H───M───────
+4: ────X───H───M───────
 
-# 5: ────H───M───────────
+5: ────H───M───────────
 
-# 6: ────M───────────────
+6: ────X───H───M───────
 
-# 7: ────X───H───H───M───
+7: ────X───H───M───────
 
-# 8: ────X───H───M───────
+8: ────X───H───M───────
 
-# 9: ────M───────────────
+9: ────H───M───────────
 
-# 10: ───H───H───M───────
+10: ───X───H───H───M───
 
-# 11: ───X───H───H───M───
+11: ───H───H───M───────
 
-# 12: ───X───M───────────
+12: ───X───H───H───M───
 
-# 13: ───H───M───────────
+13: ───X───H───H───M───
 
-# 14: ───H───H───M───────
+14: ───H───M───────────
 
-# 15: ───X───M───────────
-# Simulating 5 repetitions...
-# Alice's basis:  HCCCHCCHHCHHCHHC
-# Bob's basis:    HCHHCHCHCCHHCCHC
-# Alice's bits:   1010100110011001
-# Bases match::   XX____XX_XXXX_XX
-# Expected key:   10____01_0011_01
-# Actual key:     1001001101
+15: ───X───H───H───M───
 
-################
+Simulating...
+Alice's basis:  HHHCHHCHCCHHHHHH
+Bob's basis:    HCCHCCHCHHHHHHCH
+Alice's bits:   1100101110101101
+Bases match::   X_________XXXX_X
+Expected key:   110111
+Actual key:     110111
 
-import numpy as np
+"""
+
 import cirq
+import random
 
 
 def main(num_qubits=16):
 
-    alice_basis = np.random.randint(2, size=num_qubits)
-    alice_state = np.random.randint(2, size=num_qubits)
-    bob_basis = np.random.randint(2, size=num_qubits)
+    alice_basis = [random.randint(0, 1) for _ in range(num_qubits)]
+    alice_state = [random.randint(0, 1) for _ in range(num_qubits)]
+    bob_basis = [random.randint(0, 1) for _ in range(num_qubits)]
+
+    expected_key = bitstring([
+        alice_state[i] for i in range(num_qubits)
+        if alice_basis[i] == bob_basis[i]
+    ])
 
     circuit = make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state)
     print(circuit)
 
     # Run simulations.
-    repetitions = 5
-    print('Simulating {} repetitions...'.format(repetitions))
+    repetitions = 1
+    print('Simulating...')
     result = cirq.Simulator().run(program=circuit, repetitions=repetitions)
+    result_bitstring = bitstring(
+        [int(result.measurements[str(i)]) for i in range(num_qubits)])
 
     # Take only qubits where bases match
-    keys = []
-    for i in range(num_qubits):
-        if alice_basis[i] == bob_basis[
-                i]:  # Only choose bits where Alice and Bob chose the same basis
-            keys.append(result.measurements[str(i)][:, 0])
+    obtained_key = ''.join([
+        result_bitstring[i] for i in range(num_qubits)
+        if alice_basis[i] == bob_basis[i]
+    ])
 
-    keys = np.array(keys, dtype='int64')
-    key_bitstr = [
-        np.array2string(keys[:, i], separator='')[1:-1]
-        for i in range(repetitions)
-    ]
+    assert expected_key == obtained_key, "Keys don't match"
 
-    print_results(alice_basis, bob_basis, alice_state, key_bitstr)
+    print_results(alice_basis, bob_basis, alice_state, expected_key,
+                  obtained_key)
 
 
 def make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
@@ -100,33 +104,33 @@ def make_bb84_circ(num_qubits, alice_basis, bob_basis, alice_state):
             bob_basis_choice.append(cirq.H(qubits[index]))
 
     circuit.append(bob_basis_choice)
-
     circuit.append(cirq.measure_each(*qubits))
 
     return circuit
 
 
-def print_results(alice_basis, bob_basis, alice_state, key_bitstr):
-    basis_match = ''
-    key_expected = ''
+def bitstring(bits):
+    return ''.join(str(int(b)) for b in bits)
 
-    for i, char in enumerate(alice_state):
-        basis_match += 'X' if alice_basis[i] == bob_basis[i] else '_'
-        key_expected += str(char) if alice_basis[i] == bob_basis[i] else '_'
 
-    alice_basis_str = "".join(np.where(alice_basis == 0, "C", "H"))
-    bob_basis_str = "".join(np.where(bob_basis == 0, "C", "H"))
-    alice_bitstr = np.array2string(alice_state, separator="")[1:-1]
-    key_bitstr = str(np.unique(key_bitstr)[0])
+def print_results(alice_basis, bob_basis, alice_state, expected_key,
+                  obtained_key):
+    num_qubits = len(alice_basis)
+    basis_match = ''.join([
+        'X' if alice_basis[i] == bob_basis[i] else '_'
+        for i in range(num_qubits)
+    ])
+    alice_basis_str = "".join(
+        ['C' if alice_basis[i] == 0 else "H" for i in range(num_qubits)])
+    bob_basis_str = "".join(
+        ['C' if bob_basis[i] == 0 else "H" for i in range(num_qubits)])
 
     print('Alice\'s basis:\t{}'.format(alice_basis_str))
     print('Bob\'s basis:\t{}'.format(bob_basis_str))
-    print('Alice\'s bits:\t{}'.format(alice_bitstr))
+    print('Alice\'s bits:\t{}'.format(bitstring(alice_state)))
     print('Bases match::\t{}'.format(basis_match))
-    print('Expected key:\t{}'.format(key_expected))
-    print('Actual key:\t{}'.format(key_bitstr))
-
-    assert key_expected.replace('_', '') == key_bitstr, "Keys don't match"
+    print('Expected key:\t{}'.format(expected_key))
+    print('Actual key:\t{}'.format(obtained_key))
 
 
 if __name__ == "__main__":
