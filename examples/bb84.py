@@ -55,7 +55,8 @@ def main(num_qubits=16):
     bob_basis = [random.randint(0, 1) for _ in range(num_qubits)]
 
     expected_key = bitstring([
-        alice_state[i] for i in range(num_qubits)
+        alice_state[i]
+        for i in range(num_qubits)
         if alice_basis[i] == bob_basis[i]
     ])
 
@@ -71,7 +72,8 @@ def main(num_qubits=16):
 
     # Take only qubits where bases match
     obtained_key = ''.join([
-        result_bitstring[i] for i in range(num_qubits)
+        result_bitstring[i]
+        for i in range(num_qubits)
         if alice_basis[i] == bob_basis[i]
     ])
 
