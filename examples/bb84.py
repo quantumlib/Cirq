@@ -43,9 +43,8 @@ Expected key:   110111
 Actual key:     110111
 
 """
-
-import cirq
 import random
+import cirq
 
 
 def main(num_qubits=16):
