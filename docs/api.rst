@@ -634,6 +634,7 @@ Algebra and Representation
     cirq.subwavefunction
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.unitary_eig
     cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition
