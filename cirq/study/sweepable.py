@@ -69,8 +69,10 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
             else:
                 for shortdict in expandsweepable:
                     shortdict[key] = value
-        return [_resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
-                for dictitem in expandsweepable]
+        return [
+            _resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
+            for dictitem in expandsweepable
+        ]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
