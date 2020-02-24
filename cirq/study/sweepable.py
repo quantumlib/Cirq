@@ -56,9 +56,10 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         return [sweepable]
     if isinstance(sweepable, dict):
         expandsweepable = [cast(Dict, {})]
-        for key, value in sweepable:
+        for key in sweepable.keys():
+            value = sweepable[key]
             if isinstance(value, Iterable):
-                tempsweepable = []
+                tempsweepable = []s
                 for item in value:
                     for shortdict in expandsweepable:
                         tempdict = shortdict.copy()
