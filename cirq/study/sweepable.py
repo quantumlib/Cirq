@@ -59,7 +59,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         for key in sweepable.keys():
             value = sweepable[key]
             if isinstance(value, Iterable):
-                tempsweepable = []s
+                tempsweepable = []
                 for item in value:
                     for shortdict in expandsweepable:
                         tempdict = shortdict.copy()
