@@ -34,7 +34,7 @@ def test_optimizer_output_gates_are_supported(optimizer_type, gateset):
                                             optimizer_type=optimizer_type)
     for moment in new_circuit:
         for op in moment:
-            assert gateset.is_supported_gate(op.gate)
+            assert gateset.is_supported_operation(op)
 
 
 def test_invalid_input():
@@ -59,10 +59,11 @@ def test_tabulation():
                                                     atol=1e-5)
     assert len(circuit2) == 14
 
-    # sorry for the weak tolerances...
+    # Note this is run on every commit, so it needs to be relatively quick.
+    # This requires us to use relatively loose tolerances
     circuit3 = cg.optimized_for_sycamore(circuit,
                                          optimizer_type='sycamore',
-                                         tabulation_resolution=0.01)
+                                         tabulation_resolution=0.1)
     cirq.testing.assert_allclose_up_to_global_phase(u,
                                                     cirq.unitary(circuit3),
                                                     rtol=1e-1,
@@ -86,3 +87,26 @@ def test_no_tabulation():
         cg.optimized_for_sycamore(circuit,
                                   optimizer_type='xmon_partial_cz',
                                   tabulation_resolution=0.01)
+
+
+def test_one_q_matrix_gate():
+    u = cirq.testing.random_special_unitary(2)
+    q = cirq.LineQubit(0)
+    circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
+    assert len(circuit0) == 1
+    circuit_iswap = cg.optimized_for_sycamore(circuit0,
+                                              optimizer_type='sqrt_iswap')
+    assert len(circuit_iswap) == 2
+    for moment in circuit_iswap:
+        for op in moment:
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
+            # single qubit gates shared between gatesets, so:
+            assert cg.SYC_GATESET.is_supported_operation(op)
+
+    circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
+    assert len(circuit_syc) == 2
+    for moment in circuit_iswap:
+        for op in moment:
+            assert cg.SYC_GATESET.is_supported_operation(op)
+            # single qubit gates shared between gatesets, so:
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
