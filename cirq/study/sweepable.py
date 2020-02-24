@@ -55,7 +55,20 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        return [_resolver_to_sweep(ParamResolver(cast(Dict, sweepable)))]
+        expandsweepable = [cast(Dict, {})]
+        for key, value in sweepable:
+            if isinstance(value, Iterable):
+                tempsweepable = []
+                for item in value:
+                    for shortdict in expandsweepable:
+                        tempdict = shortdict.copy()
+                        tempdict[key] = item
+                        tempsweepable.append(cast(Dict, tempdict))
+                expandsweepable = tempsweepable
+            else:
+                for shortdict in expandsweepable:
+                    shortdict[key] = value
+        return [_resolver_to_sweep(ParamResolver(cast(Dict, expandsweepable)))]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
