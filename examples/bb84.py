@@ -13,7 +13,7 @@ communication channel. In addition to this, Alice can also prepare
 qubits in a particular state and send them to Bob using a unidirectional
 quantum channel.
 
-Alice generates two binary strings a and b of the same length n.
+Alice generates two random binary strings a and b of the same length n.
 The string a encodes the state and the string b encodes the basis.
 She then prepares n qubits according to the following prescription:
 
@@ -24,11 +24,12 @@ She then prepares n qubits according to the following prescription:
 
 where |+/-> = 1/sqrt(2)*(|0>+/-|1>).
 
-Alice sends her qubits to Bob. Bob then generates a binary string c
-(of length n). He measures the qubit |q[i]> in the {|0>, |1>} basis
+Alice sends her qubits to Bob. Bob then generates a random binary string
+c of length n. He measures the qubit |q[i]> in the {|0>, |1>} basis
 (computational basis) if c[i] == 0 and in the {|+>,|->} basis
 (Hadamard basis) if c[i] == 1 and stores the result in a string m.
-Alice and Bob then announce the strings b and c.
+Alice and Bob then announce the strings b and c, which encode
+the random basis choices of Alice and Bob respectively.
 
 The strings a and m match in the places where b and c are the same.
 This happens because the state was measured in the same basis in
