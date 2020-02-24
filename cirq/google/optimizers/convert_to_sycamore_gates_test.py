@@ -38,6 +38,16 @@ def test_convert_to_sycamore_gates_swap_zz():
         circuit1, compiled_circuit1, atol=1e-7)
 
 
+def test_convert_to_sycamore_gates_fsim():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1))
+    compiled_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates()(compiled_circuit)
+
+    cirq.testing.assert_same_circuits(circuit, compiled_circuit)
+
+
 def test_single_qubit_gate():
     q = cirq.LineQubit(0)
     mat = cirq.testing.random_unitary(2)
