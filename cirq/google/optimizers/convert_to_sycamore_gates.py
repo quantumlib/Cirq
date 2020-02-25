@@ -75,10 +75,20 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
         Returns:
             True if the operation is native to the gmon, false otherwise.
         """
-        return (isinstance(op, ops.GateOperation) and isinstance(
-            cast(ops.GateOperation, op).gate,
-            (SycamoreGate, ops.MeasurementGate, ops.PhasedXPowGate,
-             ops.XPowGate, ops.YPowGate, ops.ZPowGate)))
+        gate = op.gate
+
+        if isinstance(
+                gate,
+            (SycamoreGate, ops.MeasurementGate, ops.PhasedXZGate,
+             ops.PhasedXPowGate, ops.XPowGate, ops.YPowGate, ops.ZPowGate)):
+            return True
+
+        if (isinstance(gate, ops.FSimGate) and
+                math.isclose(gate.theta, np.pi / 2) and
+                math.isclose(gate.phi, np.pi / 6)):
+            return True
+
+        return False
 
     def _convert_one(self, op: ops.Operation) -> ops.OP_TREE:
         """
