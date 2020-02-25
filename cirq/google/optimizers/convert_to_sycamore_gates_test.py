@@ -38,6 +38,16 @@ def test_convert_to_sycamore_gates_swap_zz():
         circuit1, compiled_circuit1, atol=1e-7)
 
 
+def test_convert_to_sycamore_gates_fsim():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1))
+    compiled_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates()(compiled_circuit)
+
+    cirq.testing.assert_same_circuits(circuit, compiled_circuit)
+
+
 def test_single_qubit_gate():
     q = cirq.LineQubit(0)
     mat = cirq.testing.random_unitary(2)
@@ -50,6 +60,19 @@ def test_single_qubit_gate():
         assert isinstance(gate, (cirq.PhasedXPowGate, cirq.ZPowGate))
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8)
+
+
+def test_single_qubit_gate_phased_xz():
+    q = cirq.LineQubit(0)
+    gate = cirq.PhasedXZGate(axis_phase_exponent=0.2,
+                             x_exponent=0.3,
+                             z_exponent=0.4)
+    circuit = cirq.Circuit(gate(q))
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    ops = list(converted_circuit.all_operations())
+    assert len(ops) == 1
+    assert ops[0].gate == gate
 
 
 def test_unsupported_gate():

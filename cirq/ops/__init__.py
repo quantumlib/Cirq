@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
@@ -202,6 +201,7 @@ from cirq.ops.raw_types import (
     Gate,
     Operation,
     Qid,
+    TaggedOperation,
 )
 
 from cirq.ops.swap_gates import (
@@ -212,6 +212,9 @@ from cirq.ops.swap_gates import (
     SWAP,
     SwapPowGate,
 )
+
+from cirq.ops.tags import (
+    VirtualTag,)
 
 from cirq.ops.three_qubit_gates import (
     CCNOT,
