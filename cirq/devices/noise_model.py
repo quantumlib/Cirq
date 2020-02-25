@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, TYPE_CHECKING, Union
+from typing import List, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -102,7 +102,7 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     def _noisy_moments_impl_operation(self, moments: 'Iterable[cirq.Moment]',
                                       system_qubits: Sequence['cirq.Qid']
                                      ) -> Sequence['cirq.OP_TREE']:
-        result = []
+        result: List['cirq.OP_TREE'] = []
         for moment in moments:
             if self.is_virtual_moment(moment):
                 result.append(moment)
