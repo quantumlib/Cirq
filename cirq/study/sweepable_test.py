@@ -83,6 +83,18 @@ def test_to_sweeps_iterable_sweeps():
     assert cirq.study.to_sweeps(sweeps) == sweeps
 
 
+def test_to_sweeps_dictionary_of_list():
+    assert cirq.to_sweeps({'t': [0, 2, 3]}) == \
+        cirq.to_sweeps([{'t': 0}, {'t': 1}, {'t': 3}])
+    assert cirq.to_sweeps == \
+        cirq.to_sweeps([
+            {'t': 0, 's': 2, 'r': 4},
+            {'t': 0, 's': 3, 'r': 4},
+            {'t': 1, 's': 2, 'r': 4},
+            {'t': 1, 's': 3, 'r': 4},
+        ])
+
+
 def test_to_sweeps_invalid():
     with pytest.raises(TypeError, match='Unrecognized sweepable'):
         cirq.study.to_sweeps('nope')
