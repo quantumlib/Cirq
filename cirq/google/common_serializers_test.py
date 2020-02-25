@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+from typing import Dict
 import pytest
 import numpy as np
 import sympy
 
+from google.protobuf import json_format
+
 import cirq
 import cirq.google as cg
 import cirq.google.common_serializers as cgc
+from cirq.google.api import v2
 
 SINGLE_QUBIT_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
     gate_set_name='test_half_pi',
@@ -33,9 +38,15 @@ HALF_PI_GATE_SET = cg.serializable_gate_set.SerializableGateSet(
                    cgc.SINGLE_QUBIT_HALF_PI_DESERIALIZERS))
 
 
+def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
+    op = v2.program_pb2.Operation()
+    json_format.ParseDict(json_dict, op)
+    return op
+
+
 @pytest.mark.parametrize('phase_exponent', (0, 0.25, 0.75))
 def test_serialize_deserialize_phased_x_pi_gate(phase_exponent):
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_pi'
         },
@@ -49,16 +60,16 @@ def test_serialize_deserialize_phased_x_pi_gate(phase_exponent):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.PhasedXPowGate(phase_exponent=phase_exponent)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
-    assert HALF_PI_GATE_SET.deserialize_op_dict(proto_dict) == op
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
+    assert HALF_PI_GATE_SET.deserialize_op(proto) == op
 
 
 @pytest.mark.parametrize('phase_exponent', (0, 0.25, 0.75))
 def test_serialize_deserialize_phased_x_half_pi_gate(phase_exponent):
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_half_pi'
         },
@@ -72,15 +83,15 @@ def test_serialize_deserialize_phased_x_half_pi_gate(phase_exponent):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.PhasedXPowGate(exponent=0.5, phase_exponent=phase_exponent)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
-    assert HALF_PI_GATE_SET.deserialize_op_dict(proto_dict) == op
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
+    assert HALF_PI_GATE_SET.deserialize_op(proto) == op
 
 
 def test_serialize_x_pow_gate():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_pi'
         },
@@ -94,18 +105,18 @@ def test_serialize_x_pow_gate():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.XPowGate(exponent=1)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        HALF_PI_GATE_SET.deserialize_op_dict(proto_dict)),
+        HALF_PI_GATE_SET.deserialize_op(proto)),
                                                     cirq.unitary(op),
                                                     atol=1e-6)
 
 
 def test_serialize_y_pow_gate():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_pi'
         },
@@ -119,18 +130,18 @@ def test_serialize_y_pow_gate():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.YPowGate(exponent=1)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        HALF_PI_GATE_SET.deserialize_op_dict(proto_dict)),
+        HALF_PI_GATE_SET.deserialize_op(proto)),
                                                     cirq.unitary(op),
                                                     atol=1e-6)
 
 
 def test_serialize_sqrt_x_pow_gate():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_half_pi'
         },
@@ -144,18 +155,18 @@ def test_serialize_sqrt_x_pow_gate():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.XPowGate(exponent=0.5)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        HALF_PI_GATE_SET.deserialize_op_dict(proto_dict)),
+        HALF_PI_GATE_SET.deserialize_op(proto)),
                                                     cirq.unitary(op),
                                                     atol=1e-6)
 
 
 def test_serialize_sqrt_y_pow_gate():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'xy_half_pi'
         },
@@ -169,12 +180,12 @@ def test_serialize_sqrt_y_pow_gate():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.YPowGate(exponent=0.5)(q)
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        HALF_PI_GATE_SET.deserialize_op_dict(proto_dict)),
+        HALF_PI_GATE_SET.deserialize_op(proto)),
                                                     cirq.unitary(op),
                                                     atol=1e-6)
 
@@ -190,7 +201,7 @@ def test_serialize_sqrt_y_pow_gate():
 ])
 def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     op = gate.on(cirq.GridQubit(1, 2))
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -209,9 +220,9 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(op) == expected
-    deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op_dict(expected)
+    })
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == expected
+    deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),
@@ -223,12 +234,12 @@ def test_half_pi_does_not_serialize_arbitrary_xy():
     q = cirq.GridQubit(1, 2)
     gate = cirq.PhasedXPowGate(exponent=0.125, phase_exponent=0.25)
     with pytest.raises(ValueError):
-        HALF_PI_GATE_SET.serialize_op_dict(gate(q))
+        HALF_PI_GATE_SET.serialize_op(gate(q))
 
     gate = cirq.PhasedXPowGate(exponent=sympy.Symbol('a'),
                                phase_exponent=sympy.Symbol('b'))
     with pytest.raises(ValueError):
-        HALF_PI_GATE_SET.serialize_op_dict(gate(q))
+        HALF_PI_GATE_SET.serialize_op(gate(q))
 
 
 @pytest.mark.parametrize(('x_exponent', 'z_exponent', 'axis_phase_exponent'), [
@@ -250,7 +261,7 @@ def test_serialize_deserialize_arbitrary_xyz(
         axis_phase_exponent=axis_phase_exponent,
     )
     op = gate.on(cirq.GridQubit(1, 2))
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xyz'
         },
@@ -274,9 +285,9 @@ def test_serialize_deserialize_arbitrary_xyz(
         'qubits': [{
             'id': '1_2'
         }]
-    }
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(op) == expected
-    deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op_dict(expected)
+    })
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == expected
+    deserialized_op = SINGLE_QUBIT_GATE_SET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),
@@ -292,11 +303,13 @@ def test_serialize_deserialize_arbitrary_xyz(
 ])
 def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'meas'
         },
-        'qubits': [],
+        'qubits': [{
+            'id': id
+        } for id in qubit_ids],
         'args': {
             'key': {
                 'arg_value': {
@@ -311,13 +324,11 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
                 }
             }
         },
-    }
-    for qubit_id in qubit_ids:
-        proto_dict['qubits'].append({'id': qubit_id})
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(op) == proto_dict
-    assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(proto_dict) == op
-    assert HALF_PI_GATE_SET.serialize_op_dict(op) == proto_dict
-    assert HALF_PI_GATE_SET.deserialize_op_dict(proto_dict) == op
+    })
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == proto
+    assert SINGLE_QUBIT_GATE_SET.deserialize_op(proto) == op
+    assert HALF_PI_GATE_SET.serialize_op(op) == proto
+    assert HALF_PI_GATE_SET.deserialize_op(proto) == op
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -331,7 +342,7 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
 ])
 def test_serialize_xy(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -350,9 +361,9 @@ def test_serialize_xy(gate, axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(gate.on(q)) == expected
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(gate.on(q)) == expected
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -364,7 +375,7 @@ def test_serialize_xy(gate, axis_half_turns, half_turns):
 def test_serialize_xy_parameterized_half_turns(gate, axis_half_turns,
                                                half_turns):
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -381,15 +392,15 @@ def test_serialize_xy_parameterized_half_turns(gate, axis_half_turns,
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(gate.on(q)) == expected
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(gate.on(q)) == expected
 
 
 def test_serialize_xy_parameterized_axis_half_turns():
     gate = cirq.PhasedXPowGate(exponent=0.25, phase_exponent=sympy.Symbol('a'))
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -406,9 +417,9 @@ def test_serialize_xy_parameterized_axis_half_turns():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(gate.on(q)) == expected
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(gate.on(q)) == expected
 
 
 @pytest.mark.parametrize(('gate', 'half_turns'), [
@@ -418,7 +429,7 @@ def test_serialize_xy_parameterized_axis_half_turns():
 ])
 def test_serialize_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(gate.on(q)) == {
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(gate.on(q)) == op_proto({
         'gate': {
             'id': 'z'
         },
@@ -437,9 +448,9 @@ def test_serialize_z(gate, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     physical_op = gate.on(q).with_tags(cg.PhysicalZTag())
-    assert SINGLE_QUBIT_GATE_SET.serialize_op_dict(physical_op) == {
+    assert SINGLE_QUBIT_GATE_SET.serialize_op(physical_op) == op_proto({
         'gate': {
             'id': 'z'
         },
@@ -458,7 +469,7 @@ def test_serialize_z(gate, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
 
 @pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [
@@ -467,7 +478,7 @@ def test_serialize_z(gate, half_turns):
     (0.5, 0.25),
 ])
 def test_deserialize_xy(axis_half_turns, half_turns):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -486,16 +497,16 @@ def test_deserialize_xy(axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.PhasedXPowGate(exponent=half_turns,
                                    phase_exponent=axis_half_turns)(q)
-    actual = SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op)
+    actual = SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op)
     assert actual == expected
 
 
 def test_deserialize_xy_parameterized():
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -510,17 +521,16 @@ def test_deserialize_xy_parameterized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.PhasedXPowGate(exponent=sympy.Symbol('b'),
                                    phase_exponent=sympy.Symbol('a'))(q)
-    assert (
-        SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected)
+    assert (SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected)
 
 
 @pytest.mark.parametrize('half_turns', [0, 0.25, 1.0])
 def test_deserialize_z(half_turns):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'z'
         },
@@ -539,20 +549,20 @@ def test_deserialize_z(half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.ZPowGate(exponent=half_turns)(q)
-    assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
+    assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
-    serialized_op['args']['type']['arg_value'][
-        'string_value'] = cirq.google.common_serializers.PHYSICAL_Z
+    serialized_op.args['type'].arg_value.string_value = \
+        cirq.google.common_serializers.PHYSICAL_Z
     expected = cirq.ZPowGate(exponent=half_turns)(q).with_tags(
         cg.PhysicalZTag())
-    assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
+    assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
 
 def test_deserialize_z_parameterized():
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'z'
         },
@@ -569,16 +579,16 @@ def test_deserialize_z_parameterized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.ZPowGate(exponent=sympy.Symbol('a'))(q)
-    assert SINGLE_QUBIT_GATE_SET.deserialize_op_dict(serialized_op) == expected
+    assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
 
 def test_wait_gate():
     gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
                                       [cgc.WAIT_GATE_DESERIALIZER])
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'wait'
         },
@@ -592,8 +602,8 @@ def test_wait_gate():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
-    assert gate_set.serialize_op_dict(op) == proto_dict
-    assert gate_set.deserialize_op_dict(proto_dict) == op
+    assert gate_set.serialize_op(op) == proto
+    assert gate_set.deserialize_op(proto) == op
