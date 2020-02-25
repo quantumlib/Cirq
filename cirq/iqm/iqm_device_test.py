@@ -14,7 +14,7 @@ class TestOperationValidation:
     def test_valid_operations(self):
         self.adonis.validate_operation(cirq.X(self.q0))
         self.adonis.validate_operation(cirq.Y(self.q2))
-        self.adonis.validate_operation(cirq.Z(self.q4))
+        self.adonis.validate_operation(cirq.Z(self.q4).with_tags('tag_foo'))
 
         self.adonis.validate_operation(cirq.YPowGate(exponent=0.25)(self.q0))
 
@@ -77,7 +77,7 @@ class TestGateDecomposition:
             cirq.XPowGate(exponent=0.75).on(self.q0))
         assert TestGateDecomposition.is_native(decomposition_xpow)
 
-        decomposition_z = self.adonis.decompose_operation(cirq.Z.on(self.q0))
+        decomposition_z = self.adonis.decompose_operation(cirq.Z.on(self.q0).with_tags('tag_baz'))
         assert TestGateDecomposition.is_native(decomposition_z)
 
     def test_unsupported_single_qubit_gates(self):
