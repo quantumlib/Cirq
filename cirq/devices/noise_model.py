@@ -104,6 +104,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
                                      ) -> Sequence['cirq.OP_TREE']:
         result = []
         for moment in moments:
+            if self.is_virtual_moment(moment):
+                result.append(moment)
             result.append([self.noisy_operation(op) for op in moment])
         return result
 
@@ -133,6 +135,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
     def _noisy_moment_impl_operation(self, moment: 'cirq.Moment',
                                      system_qubits: Sequence['cirq.Qid']
                                     ) -> 'cirq.OP_TREE':
+        if self.is_virtual_moment(moment):
+            return moment
         return [self.noisy_operation(op) for op in moment]
 
     @value.alternative(requires='noisy_moments',

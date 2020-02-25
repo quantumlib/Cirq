@@ -98,6 +98,21 @@ def test_infers_other_methods():
         c.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
         [[], cirq.Z(q).with_tags(ops.VirtualTag())])
 
+    # Demonstrate that noisy_operation respects virtual moments.
+    q2 = cirq.LineQubit(1)
+    half_virtual_moment = cirq.Moment(
+        [cirq.H(q), cirq.X(q2).with_tags(ops.VirtualTag())])
+    full_virtual_moment = cirq.Moment([
+        cirq.H(q).with_tags(ops.VirtualTag()),
+        cirq.X(q2).with_tags(ops.VirtualTag())
+    ])
+    _assert_equivalent_op_tree(c.noisy_moment(half_virtual_moment, [q, q2]), [
+        cirq.Z(q).with_tags(ops.VirtualTag()),
+        cirq.Z(q2).with_tags(ops.VirtualTag())
+    ])
+    _assert_equivalent_op_tree(c.noisy_moment(full_virtual_moment, [q, q2]),
+                               full_virtual_moment)
+
 
 def test_no_noise():
     q = cirq.LineQubit(0)
