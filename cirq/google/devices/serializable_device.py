@@ -34,8 +34,8 @@ class _GateDefinition:
             target_set: Set[Tuple['cirq.Qid', ...]],
             number_of_qubits: int,
             is_permutation: bool,
-            can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda x:
-            True,
+            can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda
+            x: True,
     ):
         self.duration = Duration(duration)
         self.target_set = target_set
@@ -49,7 +49,7 @@ class _GateDefinition:
         }
 
     def with_can_serialize_predicate(
-            self, can_serialize_predicate: Callable[['cirq.Gate'], bool]
+            self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
     ) -> '_GateDefinition':
         """Creates a new _GateDefintion as a copy of the existing definition
         but with a new with_can_serialize_predicate.  This is useful if multiple
@@ -246,7 +246,7 @@ class SerializableDevice(devices.Device):
         for type_key, gate_defs in self.gate_definitions.items():
             if isinstance(op.gate, type_key):
                 for gate_def in gate_defs:
-                    if gate_def.can_serialize_predicate(op.gate):
+                    if gate_def.can_serialize_predicate(op):
                         return gate_def
         return None
 

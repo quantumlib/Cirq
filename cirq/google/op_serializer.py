@@ -38,9 +38,9 @@ class SerializingArg:
     Args:
         serialized_name: The name of the argument when it is serialized.
         serialized_type: The type of the argument when it is serialized.
-        gate_getter: The name of the property or attribute for getting the
+        op_getter: The name of the property or attribute for getting the
             value of this argument from a gate, or a function that takes a
-            gate and returns this value. The later can be used to supply
+            operation and returns this value. The later can be used to supply
             a value of the serialized arg by supplying a lambda that
             returns this value (i.e. `lambda x: default_value`)
         required: Whether this argument is a required argument for the
@@ -48,7 +48,7 @@ class SerializingArg:
     """
     serialized_name: str
     serialized_type: Type[arg_func_langs.ARG_LIKE]
-    gate_getter: Union[str, Callable[['cirq.Gate'], arg_func_langs.ARG_LIKE]]
+    op_getter: Union[str, Callable[['cirq.Operation'], arg_func_langs.ARG_LIKE]]
     required: bool = True
 
 
@@ -65,18 +65,18 @@ class GateOpSerializer:
                  gate_type: Type[Gate],
                  serialized_gate_id: str,
                  args: List[SerializingArg],
-                 can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda
-                 x: True):
+                 can_serialize_predicate: Callable[['cirq.Operation'], bool] =
+                 lambda x: True):
         """Construct the serializer.
 
         Args:
             gate_type: The type of the gate that is being serialized.
             serialized_gate_id: The string id of the gate when serialized.
-            can_serialize_predicate: Sometimes a gate can only be serialized for
-                particular gate parameters. If this is not None, then
-                this predicate will be checked before attempting
-                to serialize the gate. If the predicate is False,
-                serialization will result in a None value.
+            can_serialize_predicate: Sometimes an Operation can only be
+                serialized for particular parameters. This predicate will be
+                checked before attempting to serialize the Operation. If the
+                predicate is False, serialization will result in a None value.
+                Default value is a lambda that always returns True.
             args: A list of specification of the arguments to the gate when
                 serializing, including how to get this information from the
                 gate of the given gate type.
@@ -86,18 +86,18 @@ class GateOpSerializer:
         self.args = args
         self.can_serialize_predicate = can_serialize_predicate
 
-    def can_serialize_gate(self, gate: 'cirq.Gate') -> bool:
-        """Whether the given gate can be serialized by this serializer.
+    def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
+        """Whether the given operation can be serialized by this serializer.
 
         This checks that the gate is a subclass of the gate type for this
         serializer, and that the gate returns true for
         `can_serializer_predicate` called on the gate.
         """
-        supported_gate_type = self.gate_type in type(gate).mro()
-        return supported_gate_type and self.can_serialize_predicate(gate)
+        supported_gate_type = self.gate_type in type(op.gate).mro()
+        return supported_gate_type and self.can_serialize_predicate(op)
 
     def to_proto_dict(self,
-                      op: 'cirq.GateOperation',
+                      op: 'cirq.Operation',
                       *,
                       arg_function_language: str = '') -> Optional[Dict]:
         msg = self.to_proto(op, arg_function_language=arg_function_language)
@@ -110,7 +110,7 @@ class GateOpSerializer:
 
     def to_proto(
             self,
-            op: 'cirq.GateOperation',
+            op: 'cirq.Operation',
             msg: Optional[v2.program_pb2.Operation] = None,
             *,
             arg_function_language: Optional[str] = '',
@@ -125,7 +125,7 @@ class GateOpSerializer:
                 'Gate of type {} but serializer expected type {}'.format(
                     type(gate), self.gate_type))
 
-        if not self.can_serialize_predicate(gate):
+        if not self.can_serialize_predicate(op):
             return None
 
         if msg is None:
@@ -136,31 +136,31 @@ class GateOpSerializer:
             msg.qubits.add().id = v2.qubit_to_proto_id(
                 cast(devices.GridQubit, qubit))
         for arg in self.args:
-            value = self._value_from_gate(gate, arg)
+            value = self._value_from_gate(op, arg)
             if value is not None:
                 _arg_to_proto(value,
                               out=msg.args[arg.serialized_name],
                               arg_function_language=arg_function_language)
         return msg
 
-    def _value_from_gate(self, gate: 'cirq.Gate', arg: SerializingArg
+    def _value_from_gate(self, op: 'cirq.Operation', arg: SerializingArg
                         ) -> Optional[arg_func_langs.ARG_LIKE]:
         value = None
-        gate_getter = arg.gate_getter
-
-        if isinstance(gate_getter, str):
-            value = getattr(gate, gate_getter, None)
+        op_getter = arg.op_getter
+        if isinstance(op_getter, str):
+            gate = op.gate
+            value = getattr(gate, op_getter, None)
             if value is None and arg.required:
                 raise ValueError(
                     'Gate {!r} does not have attribute or property {}'.format(
-                        gate, gate_getter))
-        elif callable(gate_getter):
-            value = gate_getter(gate)
+                        gate, op_getter))
+        elif callable(op_getter):
+            value = op_getter(op)
 
         if arg.required and value is None:
             raise ValueError(
-                'Argument {} is required, but could not get from gate {!r}'.
-                format(arg.serialized_name, gate))
+                'Argument {} is required, but could not get from op {!r}'.
+                format(arg.serialized_name, op))
 
         if isinstance(value, arg_func_langs.SUPPORTED_SYMPY_OPS):
             return value

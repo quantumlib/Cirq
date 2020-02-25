@@ -148,6 +148,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
 
