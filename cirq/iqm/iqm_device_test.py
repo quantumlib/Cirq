@@ -32,7 +32,8 @@ class TestOperationValidation:
 
         with pytest.raises(ValueError):
             self.adonis.validate_operation(
-                cirq.PauliString([cirq.X(self.q0), cirq.Y(self.q0)]))
+                cirq.PauliString([cirq.X(self.q0),
+                                  cirq.Y(self.q0)]))
 
         with pytest.raises(ValueError):
             self.adonis.validate_operation(cirq.CNOT(self.q1, self.q2))
