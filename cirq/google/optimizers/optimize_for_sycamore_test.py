@@ -87,3 +87,26 @@ def test_no_tabulation():
         cg.optimized_for_sycamore(circuit,
                                   optimizer_type='xmon_partial_cz',
                                   tabulation_resolution=0.01)
+
+
+def test_one_q_matrix_gate():
+    u = cirq.testing.random_special_unitary(2)
+    q = cirq.LineQubit(0)
+    circuit0 = cirq.Circuit(cirq.MatrixGate(u).on(q))
+    assert len(circuit0) == 1
+    circuit_iswap = cg.optimized_for_sycamore(circuit0,
+                                              optimizer_type='sqrt_iswap')
+    assert len(circuit_iswap) == 2
+    for moment in circuit_iswap:
+        for op in moment:
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
+            # single qubit gates shared between gatesets, so:
+            assert cg.SYC_GATESET.is_supported_operation(op)
+
+    circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
+    assert len(circuit_syc) == 2
+    for moment in circuit_iswap:
+        for op in moment:
+            assert cg.SYC_GATESET.is_supported_operation(op)
+            # single qubit gates shared between gatesets, so:
+            assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)

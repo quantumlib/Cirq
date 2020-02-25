@@ -101,6 +101,9 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         return a
 
     def optimization_at(self, circuit, index, op):
+        if isinstance(op.gate, ops.MatrixGate) and len(op.qubits) == 1:
+            return None
+
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None

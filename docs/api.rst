@@ -495,12 +495,12 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.DeserializingArg
     cirq.google.Engine
     cirq.google.EngineJob
+    cirq.google.EngineProcessor
     cirq.google.EngineProgram
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
     cirq.google.GreedySequenceSearchStrategy
-    cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
@@ -634,6 +634,7 @@ Algebra and Representation
     cirq.subwavefunction
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.unitary_eig
     cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition
