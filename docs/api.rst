@@ -495,12 +495,12 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.DeserializingArg
     cirq.google.Engine
     cirq.google.EngineJob
+    cirq.google.EngineProcessor
     cirq.google.EngineProgram
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
     cirq.google.GreedySequenceSearchStrategy
-    cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
