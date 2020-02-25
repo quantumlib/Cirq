@@ -100,22 +100,27 @@ Note that the metric names below are subject to change without notice.
 
 *   Metric key: single_qubit_readout_p00_error
 
-The p00 readout error is the probability that a qubit is incorrectly measured as
-|1⟩ after being prepared in the |0⟩ state.  This is mostly a measure of the
-error in measurement (read out) of the qubit while in the ground state,
-though this probability also contains the error than the qubit was not reset
-into the |0⟩ ground state properly.  This is often called the SPAM (state 
+The p_00 is defined as the probability that the state is measured as |0⟩ after
+being prepared in the |0⟩ state.  The p_00 error is defined as one minus this
+result.  
+
+There are several sources of error in this model.  This error is primarily
+composed of error in measurement (read out) of the qubit while in the ground
+state.  However, this probability also contains the error than the qubit was not
+reset into the |0⟩ ground state properly.  This is often called the SPAM (state 
 preparation and measurement) error.
 
 ### P_11 readout error
 *   Metric key: single_qubit_readout_p11_error
 
-The P1 readout error is the probability that a qubit is incorrectly measured as
-|0⟩ after being prepared in the |1⟩ state.  This is dominated by the error in
-measurement (read out) of the qubit, but it implicitly contains several
-different types of error.  Also possible is that the excited state |1⟩ was not
-prepared correctly or that the state decayed before measurement.  This error is
-generally expected to be higher than the P0 error.
+The p_11 is defined as the probability that the state is measured as |1⟩ after
+being prepared in the |1⟩ state.  The p_11 error is defined as one minus this
+result.  
+
+This is dominated by the error in measurement (read out) of the qubit, but it
+implicitly contains several different types of error.  Also possible is that the
+excited state |1⟩ was not prepared correctly or that the state decayed before
+measurement.  This error is generally expected to be higher than the P_00 error.
 
 ### Readout separation error
 *   Metric key: single_qubit_readout_separation_error
