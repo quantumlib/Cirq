@@ -24,16 +24,19 @@ class Adonis(devices.Device):
     """IQM's five-qubit superconducting device with pairwise connectivity.
     The qubits are connected thus (recommend using fixed-width font for
     viewing):
-         q0
-         |
-    q1 - q2 - q3
-         |
-         q4
-    where the lines denote which qubits can be subject to the two-qubit gate.
+            (0,1)
+              |
+    (1,0) - (1,1) - (1,2)
+              |
+            (2,1)
 
-    Each qubit can be rotated about any axis by an arbitrary angle. I.e. the
-    device supports XPowGate, YPowGate, and ZPowGate. Adonis' two qubit-gate
-    is CZPowGate (aka. CPHASE(𝛼)) again accepting an arbitrary exponent.
+    where the lines denote which qubit pairs can be subject to the two-qubit
+    gate.
+
+    Each qubit can be rotated about the x, y, and z axes by an arbitrary angle,
+    i.e. the device supports XPowGate, YPowGate, and ZPowGate. Adonis' two
+    qubit-gate is CZPowGate (aka. CPHASE(𝛼)) again accepting an arbitrary
+    exponent.
 
     The qubits can be measured simultaneously or separately during any moment.
     """
