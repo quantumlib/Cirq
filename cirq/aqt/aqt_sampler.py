@@ -82,7 +82,11 @@ class AQTSampler(Sampler):
             json formatted string of the sequence
         """
 
-        seq_list: List[Tuple[str, float, List[int]]] = []
+        # seq_list: List[Tuple[str, float, List[int]]] = []
+        seq_list: Union[
+            List[Tuple[str, float, List[int]]],
+            List[Tuple[str, float, float, List[int]]]
+        ] = []
         circuit = resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[LineQubit], op.qubits)
@@ -90,7 +94,10 @@ class AQTSampler(Sampler):
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
             gate = cast(ops.EigenGate, op.gate)
-            seq_list.append((op_str, gate.exponent, qubit_idx))
+            if op_str == 'R':
+                seq_list.append((op_str, gate.exponent, gate.phase_exponent, qubit_idx))
+            else:
+                seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:
             raise RuntimeError('Cannot send an empty circuit')
         json_str = json.dumps(seq_list)
@@ -130,6 +137,7 @@ class AQTSampler(Sampler):
                            'no_qubits': num_qubits
                        },
                        headers=header)
+        print(json_str)
         response = response.json()
         data = cast(Dict, response)
         if 'status' not in data.keys():
