@@ -1,46 +1,224 @@
-## Gates
+# Gates
 
 A ``Gate`` is an operation that can be applied to a collection of
 qubits (objects with a ``Qid``).  ``Gates`` can be applied
 to qubits by calling their ``on`` method, or, alternatively
 calling the gate on the qubits.  The object created by such calls
 is an ``Operation``.
+
+This can be compared to circuit diagrams often seen in quantum computing
+papers and textbooks.
+
+## Gates versus Operations
+
+![Structures in Cirq](moments.png)
+
+The above example shows the first half of a quantum teleportation circuit,
+found in many quantum computation textbooks.  This example uses three different
+gates: a Hadamard (H), controlled-Not (CNOT), and measurement.  These are
+represented in cirq by ```cirq.H```, ```cirq.CNOT```, and ``cirq.measure``,
+respectively.
+
+In this example, a Hadamard is an example of a `Gate` object that can be applied
+in many different circumstances and to many different qubits.  Note that the
+above example has two instances of an H gate but applied to different qubits.
+This is an example of one `Gate` type with two `Operation` instances, one
+applied to the qubit '|b⟩' and the other applied to qubit '|a⟩'.
+
+Gates can generally be applied to any type of qubit (``NamedQubit``,
+``LineQubit``, ``GridQubit``, etc) to create an Operation.
+However, depending on the application, you may want to prefer a specific type
+of qubit.  For instance, [Google devices](google/devices.md) generally use
+``GridQubits``.  Other [devices](devices.md) may have connectivity constraints
+that further restrict the set of qubits that can be used, especially in multi-
+qubit operations. 
+
+The following example shows how to construct each of these gates and operations.
+
 ```python
-from cirq.ops import CNOT
-from cirq.devices import GridQubit
-q0, q1 = (GridQubit(0, 0), GridQubit(0, 1))
-print(CNOT.on(q0, q1))
-print(CNOT(q0, q1))
+import cirq
+
+# This examples uses named qubits to remain abstract.
+# However, we can easily also LineQubits or GridQubits to specify a geometry
+a = cirq.NamedQubit('a')
+b = cirq.NamedQubit('b')
+c = cirq.NamedQubit('c')
+
+# Example Operations, that correspond to the moments above
+print(cirq.H(b))
+print(cirq.CNOT(b, c))
+print(cirq.CNOT(a, b))
+print(cirq.H(a))
+print(cirq.measure(a,b))
 # prints
-# CNOT((0, 0), (0, 1))
-# CNOT((0, 0), (0, 1))
+# H(b)
+# CNOT(b, c)
+# CNOT(a, b)
+# H(a)
+# cirq.MeasurementGate(2, 'a,b', ())(a, b)
 ```
 
-``Gate``s operate on a specific number of qubits and classes that
-implement ``Gate`` must supply either the ``_num_qubits_`` or ``_qid_shape_`` magic method.  For
-convenience one can use the ``SingleQubitGate``, ``TwoQubitGate``,
-and ``ThreeQubitGate`` classes for these common gate sizes.
+This would create the operations needed to comprise the circuit from the above
+diagram.  The next step would be composing these operations into moments and
+circuits.  For more on those types, see the documentation on
+[Circuits](circuits.md).
 
-The most common type of ``Gate`` is one that corresponds to applying
-a unitary evolution on the qubits that the gate acts on.
+## Other gate features
+
+Most ``Gate``s operate on a specific number of qubits, which can be accessed
+by the ``num_qubits()`` function.  One notable exception is the
+``MeasurementGate`` which can be applied to a variable number of qubits.
+
+Most gates also have a unitary matrix representation, which can be accessed
+by ``cirq.unitary(gate)``.  
+
 ``Gate``s can also correspond to noisy evolution on the qubits. This
 version of a gate is not used when sending the circuit to a
 quantum computer for execution, but it can be used with
-various simulators. See [noise documentation](noise.md).
+various simulators. See [noise documentation](noise.md) for more details.
+
+Many arithmetic operators will also work in the expected way when applied to
+gates.  For instance, ``cirq.X ** 0.5`` represents a square root of X gate.
+These can also be applied to Operators for a more compact representation, such
+as ``cirq.X(q1) ** 0.5`` will be a square root of X gate applied to the q1
+qubit.  This functionality depends on the "magic methods" of the gate
+being defined (see below for details).
+
+Gates can be converted to a controlled version by using `Gate.controlled()`.
+For instance, `cirq.X.controlled()` returns a `cirq.CNOT` gate.
+Operations have similar functionality `Operation.controlled_by()`, such as
+`cirq.X(q0).controlled_by(q1)`.
+
+
+## Common gates
+
+Cirq supports a number of gates natively, with the opportunity to extend these
+gates for more advanced use cases.
+
+### Measurement gate
+
+**cirq.MeasurementGate** This is a measurement in the computational basis.
+This gate can be applied to a variable number of qubits.  The function
+``cirq.measure(q0,q1,...)`` can also be used as a short-hand to create a
+``MeasurementGate`` .
+
+
+### Single qubit gates
+
+Most single-qubit gates can be thought of as rotation around an axis in the
+[Bloch Sphere](https://en.wikipedia.org/wiki/Bloch_sphere) representation and
+are usually referred to by their axis of rotation.
+
+
+**cirq.Z / cirq.ZPowGate / cirq.rz** Rotations about the Pauli ``Z`` axis.
+The matrix of `cirq.Z**t` and the equivalent representation
+`cirq.ZPowGate(exponent=t)` is ``exp(i pi |1><1| t)`` whereas the matrix of
+`cirq.rz(θ)` is `exp(-i Z θ/2)`.  Since computation is often done in the
+Z-basis, these are implemented as phase changes on later operations on
+[Google devices](google/devices.md) instead of a physical modification applied
+to the qubits.
+
+**cirq.Y / cirq.YPowGate / cirq.ry** Rotations about the Pauli ``Y`` axis.
+The gate `cirq.Y**t` and the equivalent representation
+`cirq.YPowGate(exponent=t)` are measured in terms of 180 degree turns, while
+the function `cirq.ry(θ)` uses a radian angle of rotation.
+
+**cirq.X / cirq.XPowGate / cirq.rx** Rotations about the Pauli ``X`` axis.
+The gate `cirq.X**t` and the equivalent representation
+`cirq.XPowGate(exponent=t)` are measured in terms of 180 degree turns, while
+the function `cirq.rx(θ)` uses a radian angle of rotation.
+
+**cirq.PhasedXPowGate**
+This gate is a rotation about an axis in the XY plane of the Bloch sphere.
+The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
+The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the
+`phase_exponent` and `t` is the `exponent`.
+
+**cirq.H / cirq.HPowGate** The Hadamard gate is a rotation around the X+Z axis.
+``cirq.HPowGate(exponent=t)`` is a variable rotation of t turns around this
+axis. ```cirq.H` is a π rotation and is equivalent to
+``cirq.HPowGate(exponent=1)``
+
+**S** The square root of Z gate, equivalent to ``cirq.Z ** 0.5``
+
+**T** The fourth root of Z gate, equivalent to ``cirq.Z ** 0.25``.  Often used
+in error correction.
+
+
+## Two qubit gates
+
+**cirq.CZ / cirq.CZPowGate** The controlled-Z gate.  A two qubit gate that
+phases the |11> state.  `cirq.CZPowGate(exponent=y)` is equivalent to
+`cirq.CZ**t` and has a matrix representation of ``exp(i pi |11><11| t)``.
+
+**cirq.CNOT / cirq.CNotPowGate** The controlled-X gate.  This gate swaps the
+|11⟩ and |10⟩ states.  ``cirq.CNotPowGate(exponent=t)`` is equivalent
+to ``cirq.CNOT ** t`` .
+
+**cirq.SWAP / cirq.SwapPowGate** The swap gate swaps the |01⟩ and |10⟩ states.
+``cirq.SWAP ** t`` is the same as ``cirq.SwapPowGate(exponent = t)``
+
+**cirq.ISWAP / cirq.ISwapPowGate**  The swap gate swaps the |01⟩ and |10⟩
+states and adds a relative phase of i.  ``cirq.ISWAP ** t`` is the same as
+``cirq.ISwapPowGate(exponent = t)``
+
+**Parity gates**: The gates cirq.XX, cirq.YY, and cirq.ZZ are equivalent to
+performing the equivalent one-qubit Pauli gates on both qubits.  The gates
+cirq.XXPowGate, cirq.YYPowGate, and cirq.ZZPowGate are the exponentiations of
+these gates.  
+
+
+### Other Gates
+
+**cirq.MatrixGate**: A gate defined by its unitary matrix in the form of a
+numpy ndarray.
+
+**cirq.WaitGate**:  This gate does nothing for a specified `cirq.Duration`
+amount of time.  This is useful for conducting T1 and T2 decay experiments. 
+
+**cirq.CCNOT, cirq.CCX, cirq.TOFFOLI, cirq.CCXPowGate**: Three qubit gates
+representing the controlled-controlled-X gates and its resulting exponentiation.
+
+**cirq.CCZ, cirq.CCZPowGate**: Three qubit gates representing a
+controlled-controlled-Z gate and its resulting exponentiation.
+
+**CSWAP, CSwapGate, FREDKIN**: Three qubit gates representing a controlled-SWAP
+gate and its exponentiation.
+
+
+## Advanced: Creating your own gates
+
+If the above gates are not sufficient for your use case, it is fairly simple
+to create your own gate.   In order to do so, you can define your class and
+inherit the `cirq.Gate` class and define the functionality in your class.
+
+At minimum, you will need to define either the ``_num_qubits_`` or
+``_qid_shape_`` magic method to define the number of qubits (or qudits) used
+in the gate.  For convenience one can use the ``SingleQubitGate``,
+``TwoQubitGate``, and ``ThreeQubitGate`` classes for these common gate sizes.
+
+Much of cirq relies on "magic methods", which are methods prefixed with one or
+two underscores and used by cirq's protocols or built-in python methods.
+For instance,  python translates ``cirq.Z ** 0.25`` into
+``cirq.Z.__pow__(0.25)``.  Other uses are specific to cirq and are found in the
+protocols subdirectory.  They are defined below.
 
 
 ### Magic Methods
 
-A class that implements ``Gate`` can be applied to qubits to produce an ``Operation``.
-In order to support functionality beyond that basic task, it is necessary to implement several *magic methods*.
 
-Standard magic methods in python are `__add__`, `__eq__`, and `__len__`.
-Cirq defines several additional magic methods, for functionality such as parameterization, diagramming, and simulation.
-For example, if a gate specifies a `_unitary_` method that returns a matrix for the gate, then simulators will be able to simulate applying the gate.
-Or, if a gate specifies a `__pow__` method that works for an exponent of -1, then `cirq.inverse` will start to work on lists including the gate.
+#### Standard python magic methods
 
-We describe some magic methods below.
-
+There are many standard magic methods in python.  Here are a few of the most
+important ones used in cirq:
+  * `__str__` for user-friendly string output and  `__repr__` which should be
+  able to be evaluated by python to the object itself.
+  * `__eq__` and `__hash__` which define whether objects are equal or not.  You
+  can also use `cirq.value.value_equality` for objects that have a small list
+  of sub-values that can be compared for equality.
+  * Arithmetic functions such as `__pow__`, `__mul__`, `__add__` define the
+  action of `**`, `*`, and `+` respectively.
+   
 #### `cirq.num_qubits` and `def _num_qubits_`
 
 A `Gate` must implement the `_num_qubits_` (or `_qid_shape_`) method.
@@ -143,47 +321,4 @@ in the future).
 
 You can query the circuit diagram info of a value by passing it into `cirq.circuit_diagram_info`.
 
-### Xmon gates
 
-Google's Xmon devices support a specific gate set. Gates
-in this gate set operate on ``GridQubit``s, which are qubits
-arranged on a square grid and which have an ``x`` and ``y``
-coordinate.
-
-The native Xmon gates are
-
-**cirq.PhasedXPowGate**
-This gate is a rotation about an axis in the XY plane of the Bloch sphere.
-The ``PhasedXPowGate`` takes two parameters, ``exponent`` and ``phase_exponent``.
-The gate is equivalent to the circuit `───Z^-p───X^t───Z^p───` where `p` is the `phase_exponent` and `t` is the `exponent`.
-
-**cirq.Z / cirq.rz** Rotations about the Pauli ``Z`` axis.
-The matrix of `cirq.Z**t` is ``exp(i pi |1><1| t)`` whereas the matrix of `cirq.rz(θ)` is `exp(-i Z θ/2)`.
-Note that in quantum computing hardware, this gate is often implemented in the
-classical control hardware as a phase change on later operations, instead of as
-a physical modification applied to the qubits.
-(TODO: explain this in more detail)
-
-**cirq.CZ** The controlled-Z gate.
-A two qubit gate that phases the ``|11>`` state.
-The matrix of `cirq.CZ**t` is ``exp(i pi |11><11| t)``.
-
-**cirq.MeasurementGate** This is a single qubit measurement
-in the computational basis. 
-
-
-### Other Common Gates
-
-Cirq comes with a number of common named gates:
-
-**CNOT** the controlled-X gate
-
-**SWAP** the swap gate
-
-**H** the Hadamard gate
-
-**S** the square root of Z gate
-
-and our error correcting friend the **T** gate
-
-TODO: describe these in more detail.  
