@@ -1,12 +1,12 @@
 """ Example program to demonstrate BB84 QKD Protocol
 
 BB84 [1] is a quantum key distribution (QKD) protocol developed by
-Charles Bennett and Gilles Brassard in 1984. it was the first quantum
+Charles Bennett and Gilles Brassard in 1984. It was the first quantum
 cryptographic protocol, using the laws of quantum mechanics (specifically,
 no-cloning) to provide provably secure key generation.
 
 BB84 relies on the fact that it is impossible to gain information
-distinguising two non-orthogonal states without disturbing the signal.
+distinguishing two non-orthogonal states without disturbing the signal.
 
 The scheme involves two parties Alice and Bob connected by a classical
 communication channel. In addition to this, Alice can also prepare
@@ -17,16 +17,16 @@ Alice generates two random binary strings a and b of the same length n.
 The string a encodes the state and the string b encodes the basis.
 She then prepares n qubits according to the following prescription:
 
-|q[i]> = |0> if a[i] == 0 and b[i] == 0
-|q[i]> = |1> if a[i] == 1 and b[i] == 0
-|q[i]> = |+> if a[i] == 0 and b[i] == 1
-|q[i]> = |-> if a[i] == 1 and b[i] == 1
+|q[i]⟩ = |0⟩ if a[i] == 0 and b[i] == 0
+|q[i]⟩ = |1⟩ if a[i] == 1 and b[i] == 0
+|q[i]⟩ = |+⟩ if a[i] == 0 and b[i] == 1
+|q[i]⟩ = |-⟩ if a[i] == 1 and b[i] == 1
 
-where |+/-> = 1/sqrt(2)*(|0>+/-|1>).
+where |+/-⟩ = 1/sqrt(2)*(|0⟩+/-|1⟩).
 
 Alice sends her qubits to Bob. Bob then generates a random binary string
-c of length n. He measures the qubit |q[i]> in the {|0>, |1>} basis
-(computational basis) if c[i] == 0 and in the {|+>,|->} basis
+c of length n. He measures the qubit |q[i]⟩ in the {|0⟩, |1⟩} basis
+(computational basis) if c[i] == 0 and in the {|+⟩,|-⟩} basis
 (Hadamard basis) if c[i] == 1 and stores the result in a string m.
 Alice and Bob then announce the strings b and c, which encode
 the random basis choices of Alice and Bob respectively.
