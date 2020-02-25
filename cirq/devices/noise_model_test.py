@@ -114,10 +114,9 @@ def test_infers_other_methods():
                                full_virtual_moment)
     _assert_equivalent_op_tree(
         c.noisy_moments([half_virtual_moment, full_virtual_moment], [q, q2]), [
-        cirq.Z(q).with_tags(ops.VirtualTag()),
-        cirq.Z(q2).with_tags(ops.VirtualTag()),
-        full_virtual_moment
-    ])
+            cirq.Z(q).with_tags(ops.VirtualTag()),
+            cirq.Z(q2).with_tags(ops.VirtualTag()), full_virtual_moment
+        ])
 
 
 def test_no_noise():

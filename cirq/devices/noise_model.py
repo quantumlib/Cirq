@@ -106,7 +106,8 @@ class NoiseModel(metaclass=value.ABCMetaImplementAnyOneOf):
         for moment in moments:
             if self.is_virtual_moment(moment):
                 result.append(moment)
-            result.append([self.noisy_operation(op) for op in moment])
+            else:
+                result.append([self.noisy_operation(op) for op in moment])
         return result
 
     @value.alternative(requires='noisy_moment',
