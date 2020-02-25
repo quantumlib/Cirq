@@ -77,7 +77,8 @@ class TestGateDecomposition:
             cirq.XPowGate(exponent=0.75).on(self.q0))
         assert TestGateDecomposition.is_native(decomposition_xpow)
 
-        decomposition_z = self.adonis.decompose_operation(cirq.Z.on(self.q0).with_tags('tag_baz'))
+        decomposition_z = self.adonis.decompose_operation(
+            cirq.Z.on(self.q0).with_tags('tag_baz'))
         assert TestGateDecomposition.is_native(decomposition_z)
 
     def test_unsupported_single_qubit_gates(self):
