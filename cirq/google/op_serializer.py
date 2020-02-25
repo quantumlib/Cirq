@@ -13,11 +13,10 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import (Callable, cast, Dict, List, Optional, Type, TypeVar, Union,
+from typing import (Callable, cast, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
 import numpy as np
-from google.protobuf import json_format
 
 from cirq import devices, ops
 from cirq.google.api import v2
@@ -95,18 +94,6 @@ class GateOpSerializer:
         """
         supported_gate_type = self.gate_type in type(op.gate).mro()
         return supported_gate_type and self.can_serialize_predicate(op)
-
-    def to_proto_dict(self,
-                      op: 'cirq.Operation',
-                      *,
-                      arg_function_language: str = '') -> Optional[Dict]:
-        msg = self.to_proto(op, arg_function_language=arg_function_language)
-        if msg is None:
-            return None
-        return json_format.MessageToDict(msg,
-                                         including_default_value_fields=True,
-                                         preserving_proto_field_name=True,
-                                         use_integers_for_enums=True)
 
     def to_proto(
             self,

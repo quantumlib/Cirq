@@ -23,8 +23,6 @@ from typing import (
     TYPE_CHECKING,
 )
 
-from google.protobuf import json_format
-
 from cirq import circuits, ops
 from cirq.google import op_deserializer, op_serializer, arg_func_langs
 from cirq.google.api import v2
@@ -98,24 +96,6 @@ class SerializableGateSet:
                         return True
         return False
 
-    def serialize_dict(self,
-                       program: 'cirq.Circuit',
-                       *,
-                       arg_function_language: Optional[str] = None) -> Dict:
-        """Serialize a Circuit to cirq.google.api.v2.Program proto.
-
-        Args:
-            program: The Circuit to serialize.
-
-        Returns:
-            A dictionary corresponding to the cirq.google.api.v2.Program proto.
-        """
-        return json_format.MessageToDict(self.serialize(
-            program, arg_function_language=arg_function_language),
-                                         including_default_value_fields=True,
-                                         preserving_proto_field_name=True,
-                                         use_integers_for_enums=True)
-
     def serialize(self,
                   program: 'cirq.Circuit',
                   msg: Optional[v2.program_pb2.Program] = None,
@@ -143,24 +123,6 @@ class SerializableGateSet:
                 f'Unrecognized program type: {type(program)}')
         msg.language.arg_function_language = arg_function_language
         return msg
-
-    def serialize_op_dict(self,
-                          op: 'cirq.Operation',
-                          *,
-                          arg_function_language: Optional[str] = '') -> Dict:
-        """Serialize an Operation to cirq.google.api.v2.Operation proto.
-
-        Args:
-            op: The operation to serialize.
-
-        Returns:
-            A dictionary corresponds to the cirq.google.api.v2.Operation proto.
-        """
-        return json_format.MessageToDict(self.serialize_op(
-            op, arg_function_language=arg_function_language),
-                                         including_default_value_fields=True,
-                                         preserving_proto_field_name=True,
-                                         use_integers_for_enums=True)
 
     def serialize_op(
             self,
@@ -190,24 +152,6 @@ class SerializableGateSet:
                         return proto_msg
         raise ValueError('Cannot serialize op {!r} of type {}'.format(
             op, gate_type))
-
-    def deserialize_dict(self,
-                         proto: Dict,
-                         device: Optional['cirq.Device'] = None
-                        ) -> 'cirq.Circuit':
-        """Deserialize a Circuit from a cirq.google.api.v2.Program.
-
-        Args:
-            proto: A dictionary representing a cirq.google.api.v2.Program proto.
-            device: Optional device for validation.
-
-        Returns:
-            The deserialized Circuit, with a device if device was
-            not None.
-        """
-        msg = v2.program_pb2.Program()
-        json_format.ParseDict(proto, msg)
-        return self.deserialize(msg, device)
 
     def deserialize(self,
                     proto: v2.program_pb2.Program,
@@ -245,25 +189,6 @@ class SerializableGateSet:
                 arg_function_language=proto.language.arg_function_language)
 
         raise NotImplementedError('Program proto does not contain a circuit.')
-
-    def deserialize_op_dict(self,
-                            operation_proto: Dict,
-                            *,
-                            arg_function_language: str = ''
-                           ) -> 'cirq.Operation':
-        """Deserialize an Operation from a cirq.google.api.v2.Operation.
-
-        Args:
-            operation_proto: A dictionary representing a
-                cirq.google.api.v2.Operation proto.
-
-        Returns:
-            The deserialized Operation.
-        """
-        msg = v2.program_pb2.Operation()
-        json_format.ParseDict(operation_proto, msg)
-        return self.deserialize_op(msg,
-                                   arg_function_language=arg_function_language)
 
     def deserialize_op(
             self,

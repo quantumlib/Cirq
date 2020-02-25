@@ -12,14 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 import pytest
 import sympy
 
+from google.protobuf import json_format
+
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
+
+
+def op_proto(json: Dict) -> v2.program_pb2.Operation:
+    op = v2.program_pb2.Operation()
+    json_format.ParseDict(json, op)
+    return op
 
 
 class GateWithAttribute(cirq.SingleQubitGate):
@@ -134,9 +143,9 @@ def test_to_proto_attribute(val_type, val, arg_value):
                                              op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithAttribute(val)(q),
-                                      arg_function_language='linear')
-    expected = {
+    result = serializer.to_proto(GateWithAttribute(val)(q),
+                                 arg_function_language='linear')
+    expected = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -146,7 +155,7 @@ def test_to_proto_attribute(val_type, val, arg_value):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     assert result == expected
 
 
@@ -161,9 +170,9 @@ def test_to_proto_property(val_type, val, arg_value):
                                              op_getter='val')
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithProperty(val)(q),
-                                      arg_function_language='linear')
-    expected = {
+    result = serializer.to_proto(GateWithProperty(val)(q),
+                                 arg_function_language='linear')
+    expected = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -173,7 +182,7 @@ def test_to_proto_property(val_type, val, arg_value):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     assert result == expected
 
 
@@ -188,9 +197,9 @@ def test_to_proto_callable(val_type, val, arg_value):
                                              op_getter=get_val)
                                      ])
     q = cirq.GridQubit(1, 2)
-    result = serializer.to_proto_dict(GateWithMethod(val)(q),
-                                      arg_function_language='linear')
-    expected = {
+    result = serializer.to_proto(GateWithMethod(val)(q),
+                                 arg_function_language='linear')
+    expected = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -200,7 +209,7 @@ def test_to_proto_callable(val_type, val, arg_value):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     assert result == expected
 
 
@@ -215,8 +224,8 @@ def test_to_proto_gate_predicate():
         ],
         can_serialize_predicate=lambda x: x.gate.val == 1)
     q = cirq.GridQubit(1, 2)
-    assert serializer.to_proto_dict(GateWithAttribute(0)(q)) is None
-    assert serializer.to_proto_dict(GateWithAttribute(1)(q)) is not None
+    assert serializer.to_proto(GateWithAttribute(0)(q)) is None
+    assert serializer.to_proto(GateWithAttribute(1)(q)) is not None
     assert not serializer.can_serialize_operation(GateWithAttribute(0)(q))
     assert serializer.can_serialize_operation(GateWithAttribute(1)(q))
 
@@ -232,7 +241,7 @@ def test_to_proto_gate_mismatch():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='GateWithAttribute.*GateWithProperty'):
-        serializer.to_proto_dict(GateWithAttribute(1.0)(q))
+        serializer.to_proto(GateWithAttribute(1.0)(q))
 
 
 def test_to_proto_unsupported_type():
@@ -246,7 +255,7 @@ def test_to_proto_unsupported_type():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='bytes'):
-        serializer.to_proto_dict(GateWithProperty(b's')(q))
+        serializer.to_proto(GateWithProperty(b's')(q))
 
 
 def test_to_proto_unsupported_qubit_type():
@@ -260,7 +269,7 @@ def test_to_proto_unsupported_qubit_type():
                                      ])
     q = cirq.NamedQubit('a')
     with pytest.raises(ValueError, match='GridQubit'):
-        serializer.to_proto_dict(GateWithProperty(1.0)(q))
+        serializer.to_proto(GateWithProperty(1.0)(q))
 
 
 def test_to_proto_required_but_not_present():
@@ -274,7 +283,7 @@ def test_to_proto_required_but_not_present():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='required'):
-        serializer.to_proto_dict(GateWithProperty(1.0)(q))
+        serializer.to_proto(GateWithProperty(1.0)(q))
 
 
 def test_to_proto_no_getattr():
@@ -288,7 +297,7 @@ def test_to_proto_no_getattr():
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match='does not have'):
-        serializer.to_proto_dict(GateWithProperty(1.0)(q))
+        serializer.to_proto(GateWithProperty(1.0)(q))
 
 
 def test_to_proto_not_required_ok():
@@ -304,7 +313,7 @@ def test_to_proto_not_required_ok():
                               op_getter='not_req',
                               required=False)
         ])
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -318,10 +327,10 @@ def test_to_proto_not_required_ok():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
     q = cirq.GridQubit(1, 2)
-    assert serializer.to_proto_dict(GateWithProperty(0.125)(q)) == expected
+    assert serializer.to_proto(GateWithProperty(0.125)(q)) == expected
 
 
 @pytest.mark.parametrize(('val_type', 'val'), (
@@ -343,7 +352,7 @@ def test_to_proto_type_mismatch(val_type, val):
                                      ])
     q = cirq.GridQubit(1, 2)
     with pytest.raises(ValueError, match=str(type(val))):
-        serializer.to_proto_dict(GateWithProperty(val)(q))
+        serializer.to_proto(GateWithProperty(val)(q))
 
 
 def test_can_serialize_operation_subclass():
