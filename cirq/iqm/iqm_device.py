@@ -22,14 +22,14 @@ from cirq import devices, ops, protocols
 
 class Adonis(devices.Device):
     """IQM's five-qubit superconducting device with pairwise connectivity.
-    The qubits are connected thus (recommend using fixed-width font for
-    viewing):
+    The qubits are connected thus:
+    ```
             (0,1)
               |
     (1,0) - (1,1) - (1,2)
               |
             (2,1)
-
+    ```
     where the lines denote which qubit pairs can be subject to the two-qubit
     gate.
 
