@@ -20,7 +20,8 @@ class TestOperationValidation:
 
         self.adonis.validate_operation(cirq.CZ(self.q1, self.q2))
 
-        self.adonis.validate_operation(cirq.CZPowGate(exponent=0.5)(self.q1, self.q2))
+        self.adonis.validate_operation(cirq.CZPowGate(exponent=0.5)(self.q1,
+                                                                    self.q2))
 
         self.adonis.validate_operation(cirq.measure(self.q0))
         self.adonis.validate_operation(cirq.measure(self.q1, key='test'))
@@ -41,14 +42,16 @@ class TestOperationValidation:
             self.adonis.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
 
         with pytest.raises(ValueError):
-            self.adonis.validate_operation(cirq.CZ(cirq.GridQubit(2, 0), cirq.GridQubit(2, 1)))
+            self.adonis.validate_operation(cirq.CZ(cirq.GridQubit(2, 0),
+                                                   cirq.GridQubit(2, 1)))
 
     def test_qubits_not_connected(self):
         with pytest.raises(ValueError):
             self.adonis.validate_operation(cirq.CZ(self.q0, self.q3))
 
         with pytest.raises(ValueError):
-            self.adonis.validate_operation(cirq.CZPowGate(exponent=0.11)(self.q1, self.q3))
+            self.adonis.validate_operation(
+                cirq.CZPowGate(exponent=0.11)(self.q1, self.q3))
 
 
 class TestGateDecomposition:
