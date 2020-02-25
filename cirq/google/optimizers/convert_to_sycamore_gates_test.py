@@ -62,6 +62,19 @@ def test_single_qubit_gate():
         circuit, converted_circuit, atol=1e-8)
 
 
+def test_single_qubit_gate_phased_xz():
+    q = cirq.LineQubit(0)
+    gate = cirq.PhasedXZGate(axis_phase_exponent=0.2,
+                             x_exponent=0.3,
+                             z_exponent=0.4)
+    circuit = cirq.Circuit(gate(q))
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    ops = list(converted_circuit.all_operations())
+    assert len(ops) == 1
+    assert ops[0].gate == gate
+
+
 def test_unsupported_gate():
 
     class UnknownGate(cirq.TwoQubitGate):
