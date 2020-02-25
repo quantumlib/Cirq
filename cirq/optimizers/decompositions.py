@@ -14,7 +14,7 @@
 
 """Utility methods related to optimizing quantum circuits."""
 
-from typing import List, Tuple, cast
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 import sympy
@@ -211,3 +211,43 @@ def single_qubit_matrix_to_phased_x_z(
         ]
 
     return result
+
+
+def single_qubit_matrix_to_phxz(
+        mat: np.ndarray,
+        atol: float = 0,
+) -> Optional[ops.SingleQubitGate]:
+    """Implements a single-qubit operation with a PhasedXZ gate.
+
+    Args:
+        mat: The 2x2 unitary matrix of the operation to implement.
+        atol: A limit on the amount of error introduced by the
+            construction.
+
+    Returns:
+        A PhasedXZ gate that implements the given matrix, or None if it is
+        close to identity (trace distance < atol).
+    """
+
+    xy_turn, xy_phase_turn, total_z_turn = (
+        _deconstruct_single_qubit_matrix_into_gate_turns(mat))
+
+    # Build the intended operation out of non-negligible XY and Z rotations.
+    g = ops.PhasedXZGate(
+        x_exponent=2 * xy_turn,
+        axis_phase_exponent=2 * xy_phase_turn,
+        z_exponent=2 * total_z_turn,
+    )
+
+    if protocols.trace_distance_bound(g) <= atol:
+        return None
+
+    # Special case: XY half-turns can absorb Z rotations.
+    if abs(xy_turn) >= 0.5 - atol:
+        g = ops.PhasedXZGate(
+            axis_phase_exponent=2 * xy_phase_turn + total_z_turn,
+            x_exponent=1,
+            z_exponent=0,
+        )
+
+    return g

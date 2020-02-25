@@ -121,3 +121,25 @@ def merge_single_qubit_gates_into_phased_x_z(
         return [gate(qubit) for gate in out_gates]
 
     MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
+
+
+def merge_single_qubit_gates_into_phxz(
+        circuit: circuits.Circuit,
+        atol: float = 1e-8,
+) -> None:
+    """Canonicalizes runs of single-qubit rotations in a circuit.
+
+    Specifically, any run of non-parameterized circuits will be replaced by an
+    optional PhasedXZ operation.
+
+    Args:
+        circuit: The circuit to rewrite. This value is mutated in-place.
+        atol: Absolute tolerance to angle error. Larger values allow more
+            negligible gates to be dropped, smaller values increase accuracy.
+    """
+
+    def synth(qubit: 'cirq.Qid', matrix: np.ndarray) -> List[ops.Operation]:
+        gate = decompositions.single_qubit_matrix_to_phxz(matrix, atol)
+        return [gate(qubit)] if gate else []
+
+    MergeSingleQubitGates(synthesizer=synth).optimize_circuit(circuit)
