@@ -85,3 +85,11 @@ XMON = serializable_gate_set.SerializableGateSet(
 )
 
 document(XMON, """Gate set for XMON devices.""")
+
+GOOGLE_GATESETS = [
+    SYC_GATESET,
+    SQRT_ISWAP_GATESET,
+    XMON,
+]
+
+document(GOOGLE_GATESETS, """All Google gatesets""")

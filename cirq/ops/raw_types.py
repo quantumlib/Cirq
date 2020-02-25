@@ -393,6 +393,16 @@ class Operation(metaclass=abc.ABCMeta):
                 `qubits` property.
         """
 
+    @property
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return ()
+
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self
+
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation, with this op and the specified tags.
 
@@ -509,6 +519,11 @@ class TaggedOperation(Operation):
         """Returns a tuple of the operation's tags."""
         return self._tags
 
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self.sub_operation
+
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation with combined tags.
 
@@ -578,8 +593,15 @@ class TaggedOperation(Operation):
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
-        return protocols.circuit_diagram_info(self.sub_operation, args,
-                                              NotImplemented)
+        sub_op_info = protocols.circuit_diagram_info(self.sub_operation, args,
+                                                     NotImplemented)
+        # Add tag to wire symbol if it exists.
+        if (sub_op_info is not NotImplemented and args.include_tags and
+                sub_op_info.wire_symbols):
+            sub_op_info.wire_symbols = (
+                (sub_op_info.wire_symbols[0] + str(list(self._tags)),) +
+                sub_op_info.wire_symbols[1:])
+        return sub_op_info
 
     def _trace_distance_bound_(self) -> float:
         return protocols.trace_distance_bound(self.sub_operation)
