@@ -84,10 +84,10 @@ def test_to_sweeps_iterable_sweeps():
 
 
 def test_to_sweeps_dictionary_of_list():
-    assert cirq.to_sweeps({'t': [0, 2, 3]}) == \
-        cirq.to_sweeps([{'t': 0}, {'t': 1}, {'t': 3}])
-    assert cirq.to_sweeps == \
-        cirq.to_sweeps([
+    assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == \
+        cirq.study.to_sweeps([{'t': 0}, {'t': 2}, {'t': 3}])
+    assert cirq.study.to_sweeps == \
+        cirq.study.to_sweeps([
             {'t': 0, 's': 2, 'r': 4},
             {'t': 0, 's': 3, 'r': 4},
             {'t': 1, 's': 2, 'r': 4},
