@@ -53,11 +53,20 @@ for metric_name in latest_calibration:
 Calibration metrics will also soon be available from the 
 [Google Cloud Platform Console](https://console.cloud.google.com).
 
-## Total error and purity error
+## Average, Pauli and Purity Error
 
-Several metrics below define total error and purity error.  The total error
-measures the average error ε_a over all possible input states.  See Table 1 on
-page 11 of the [https://arxiv.org/abs/1910.11333](Supplementry Information)
+Several metrics below define average error, pauli error and purity error.
+The average error measures the error ε_a, averaged over all possible input
+states.  
+
+Pauli error defines decoherence of a single qubit in one of the Pauli channels
+X, Y, or Z.  If the errors are distributed in a uniform distribution across all
+three axes, the probability of applying an erroneous Pauli gate X, Y, or Z will
+be the Pauli error divided by three.  The Pauli error and average error are
+related by a multiplicative factor based on the number of qubits.
+
+See Table 1 on page 11 of the
+[https://arxiv.org/abs/1910.11333](Supplementry Information)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
@@ -70,13 +79,12 @@ often referred to as the normalized
 after the randomized benchmark circuit has been applied.  
 
 The purity error can be interpreted as a measure of the incoherent error,
-such as those caused by stochastic processes such as relaxation.  The total
+such as those caused by stochastic processes such as relaxation.  The average
 error can be interpreted as containing both this incoherent error as well as
-the coherent, or control, error resulting from improper control or calibration
-of the device.
+the coherent error resulting from improper control or calibration of the device.
 
 Note that, due to statistical fluctuations, it is possible that the purity
-error can exceed the total error by small amounts.
+error can exceed the average error by small amounts.
 
 For more about purity benchmarking, see Section 6.3 of this
 [thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf) .
@@ -90,7 +98,7 @@ Note that the metric names below are subject to change without notice.
 
 ### P_00 readout error
 
-*   Metric key: single_qubit_readout_p0_error
+*   Metric key: single_qubit_readout_p00_error
 
 The p00 readout error is the probability that a qubit is incorrectly measured as
 |1⟩ after being prepared in the |0⟩ state.  This is mostly a measure of the
@@ -100,7 +108,7 @@ into the |0⟩ ground state properly.  This is often called the SPAM (state
 preparation and measurement) error.
 
 ### P_11 readout error
-*   Metric key: single_qubit_readout_p1_error
+*   Metric key: single_qubit_readout_p11_error
 
 The P1 readout error is the probability that a qubit is incorrectly measured as
 |0⟩ after being prepared in the |1⟩ state.  This is dominated by the error in
@@ -122,7 +130,8 @@ calculated by fitting Gaussian distributions to the signals prepared in the
 distributions.
 
 ### Isolated 1 qubit randomized benchmark error: 
-*   Metric key: single_qubit_rb_total_error
+*   Metric key: single_qubit_rb_average_error
+*   Metric key: single_qubit_rb_pauli_error
 *   Metric key: single_qubit_rb_purity_error
 
 Single qubit gate error is estimated using randomized benchmarking by taking
@@ -152,10 +161,12 @@ which is reported in microseconds.
 
 ### 2-qubit Isolated XEB error
  
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_purity_error
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_total_error
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_total_error
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
 
 Two qubit error is primarily characterized by cross-entropy benchmarking (XEB).
 This is computed by performing a "cycle" of a random one-qubit gate on each
@@ -168,10 +179,12 @@ These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
 
 ### 2-qubit Parallel XEB error
+*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_average_error
+*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_pauli_error
 *   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_purity_error
-*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_total_error
+*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_average_error
+*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_pauli_error
 *   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_purity_error
-*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_total_error
 
 These metrics are calculated the same way as the 2-qubit isolated XEB error
 metrics.  However, this metric calculates the error of multiple 2-qubit cycles
