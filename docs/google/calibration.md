@@ -21,17 +21,17 @@ import cirq.google as cg
 # Create an Engine object to use.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
 engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
+processor = engine.get_processor(processor_id=PROCESSOR_ID)
 
 # gets the latest calibration metrics
-latest_calibration = engine.get_latest_calibration(processor_id=PROCESSOR_ID)
+latest_calibration = processor.get_current_calibration()
 
 # If you know the timestamp of a previous calibration, you can retrieve the
-# calibration using the timestamp
-calibration_name = ("projects/" + PROJECT_ID 
-                    + "/processors/" + PROCESSOR_ID
-                    + "/calibrations/" 
-                    + str(EPOCH_TIMESTAMP_SECONDS)) 
-previous_calibration = engine.get_calibration(calibration)
+# calibration using the timestamp in epoch seconds
+previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
+
+# If you would like to find a calibration from a time-frame:
+calibration_list = processor.list_calibration(START_SECONDS, END_SECONDS)
 
 # If you know the job-id, you can retrieve the calibration that the job used.
 job = engine.get_job("projects/" + PROJECT_ID
