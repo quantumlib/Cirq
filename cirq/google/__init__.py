@@ -36,7 +36,7 @@ from cirq.google.engine import (
     engine_from_environment,
     EngineJob,
     EngineProgram,
-    JobConfig,
+    EngineProcessor,
     ProtoVersion,
     QuantumEngineSampler,
 )
@@ -54,7 +54,8 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.ops.sycamore_gate import (
+from cirq.google.ops import (
+    PhysicalZTag,
     SycamoreGate,
     SYC,
 )

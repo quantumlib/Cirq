@@ -16,3 +16,6 @@ from cirq.google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,
 )
+
+from cirq.google.ops.physical_z_tag import (
+    PhysicalZTag,)
