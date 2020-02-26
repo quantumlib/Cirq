@@ -22,8 +22,6 @@ from typing import (
 )
 from dataclasses import dataclass
 
-from google.protobuf import json_format
-
 from cirq.google.api import v2
 from cirq.google import arg_func_langs
 
@@ -90,14 +88,6 @@ class GateOpDeserializer:
         self.args = args
         self.num_qubits_param = num_qubits_param
         self.op_wrapper = op_wrapper
-
-    def from_proto_dict(self, proto: Dict, *,
-                        arg_function_language: str = '') -> 'cirq.Operation':
-        """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
-
-        msg = v2.program_pb2.Operation()
-        json_format.ParseDict(proto, msg)
-        return self.from_proto(msg, arg_function_language=arg_function_language)
 
     def from_proto(self,
                    proto: v2.program_pb2.Operation,
