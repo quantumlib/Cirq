@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from math import exp
 from typing import Dict, Sequence, TYPE_CHECKING
 
 from cirq import devices, value, ops, protocols
