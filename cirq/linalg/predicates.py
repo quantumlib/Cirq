@@ -154,6 +154,26 @@ def is_special_unitary(
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
+def is_normal(
+        matrix: np.ndarray,
+        *,
+        rtol: float = 1e-5,
+        atol: float = 1e-8) -> bool:
+    """Determines if a matrix is approximately normal.
+
+    A matrix is normal if it's square and commutes with its adjoint.
+
+    Args:
+        matrix: The matrix to check.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
+
+    Returns:
+        Whether the matrix is normal within the given tolerance.
+    """
+    return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
+
+
 def matrix_commutes(m1: np.ndarray,
                     m2: np.ndarray,
                     *,

@@ -294,6 +294,29 @@ def test_is_special_unitary_tolerance():
         np.array([[1.2, 0, 0], [0, 1.3, 0], [0, 0, 1 / 1.2]]), atol=atol)
 
 
+def test_is_normal():
+    assert cirq.is_normal(np.array([[1]]))
+    assert cirq.is_normal(np.array([[3j]]))
+    assert cirq.is_normal(cirq.testing.random_density_matrix(4))
+    assert cirq.is_normal(cirq.testing.random_unitary(5))
+    assert not cirq.is_normal(np.array([[0, 1], [0, 0]]))
+    assert not cirq.is_normal(np.zeros((1, 0)))
+
+
+def test_is_normal_tolerance():
+    atol = 0.25
+
+    # Pays attention to specified tolerance.
+    assert cirq.is_normal(np.array([[0, 0.5], [0, 0]]), atol=atol)
+    assert not cirq.is_normal(np.array([[0, 0.6], [0, 0]]), atol=atol)
+
+    # Error isn't accumulated across entries.
+    assert cirq.is_normal(
+        np.array([[0, 0.5, 0], [0, 0, 0.5], [0, 0, 0]]), atol=atol)
+    assert not cirq.is_normal(
+        np.array([[0, 0.5, 0], [0, 0, 0.6], [0, 0, 0]]), atol=atol)
+
+
 def test_commutes():
     assert matrix_commutes(np.empty((0, 0)), np.empty((0, 0)))
     assert not matrix_commutes(np.empty((1, 0)), np.empty((0, 1)))
