@@ -194,6 +194,8 @@ SHOULDNT_BE_SERIALIZED = [
     'Engine',
     'EngineJob',
     'EngineProcessor',
+    'EngineProcessorTimeSlot',
+    'EngineProcessorTimeSlotType',
     'EngineProgram',
     'QuantumEngineSampler',
 
