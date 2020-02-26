@@ -116,6 +116,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                             axis_phase_exponent=-pre_phase,
                             z_exponent=post_phase + pre_phase)._canonical()
 
+    def with_z_exponent(self, z_exponent: Union[numbers.Real, sympy.Basic]
+                       ) -> 'cirq.PhasedXZGate':
+        return PhasedXZGate(axis_phase_exponent=self._axis_phase_exponent,
+                            x_exponent=self._x_exponent,
+                            z_exponent=z_exponent)
+
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
