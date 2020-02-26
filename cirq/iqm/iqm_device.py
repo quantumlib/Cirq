@@ -45,7 +45,9 @@ class Adonis(devices.Device):
     def is_native_operation(op: ops.Operation):
         supported_gates = (ops.CZPowGate, ops.XPowGate, ops.YPowGate,
                            ops.ZPowGate, ops.MeasurementGate)
-        return isinstance(op, (ops.GateOperation, ops.TaggedOperation)) and isinstance(op.gate, supported_gates)
+        return isinstance(
+            op, (ops.GateOperation, ops.TaggedOperation)) and isinstance(
+                op.gate, supported_gates)
 
     def __init__(self):
         """Instantiate the description of an Adonis device"""
