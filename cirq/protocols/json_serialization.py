@@ -131,11 +131,8 @@ class _ResolverCache:
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
-<<<<<<< HEAD
-                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
-=======
                 'TaggedOperation': cirq.TaggedOperation,
->>>>>>> master
+                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
