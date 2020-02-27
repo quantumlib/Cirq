@@ -21,10 +21,26 @@ from cirq.pasqal import ThreeDGridQubit
 
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
+    """
+    A Pasqal Device with qubits placed on a 3D grid.
+    """
 
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
+         """
+        Initializes the description of the device.
 
+        Args:
+            control_radius: the maximum distance between qubits for a controlled
+                gate. Distance is measured in units of the indices passed into
+                the qubit constructor.
+            qubits: Qubits on the device, identified by their x, y, z position.
+                Must be of type ThreeDGridQubit.
+
+        Raises:
+            ValueError: if the wrong qubit type is provided or if invalid
+                parameter is provided for control_radius.
+        """
         us = cirq.value.Duration(micros=1)
 
         self._measurement_duration = 5000 * us
