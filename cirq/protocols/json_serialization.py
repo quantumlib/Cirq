@@ -54,6 +54,8 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
+            from cirq.experiments import (CrossEntropyResult,
+                                          GridInteractionLayer)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -82,6 +84,7 @@ class _ResolverCache:
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
                 'CZPowGate': cirq.CZPowGate,
+                'CrossEntropyResult': CrossEntropyResult,
                 'Circuit': cirq.Circuit,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
@@ -93,6 +96,7 @@ class _ResolverCache:
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GridInteractionLayer': GridInteractionLayer,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
@@ -117,6 +121,7 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
+                'PhysicalZTag': cirq.google.PhysicalZTag,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
@@ -126,6 +131,7 @@ class _ResolverCache:
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
+                'TaggedOperation': cirq.TaggedOperation,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':

@@ -148,6 +148,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
 
@@ -254,6 +255,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
@@ -277,6 +279,8 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
