@@ -98,6 +98,22 @@ def test_run_bit_flips(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_bit_flips_with_dephasing(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype,
+                                            ignore_measurement_results=True)
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                   cirq.measure(q0), cirq.measure(q1))
+            result = simulator.run(circuit)
+            np.testing.assert_equal(result.measurements, {
+                '0': [[b0]],
+                '1': [[b1]]
+            })
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_qudit_increments(dtype):
     q0, q1 = cirq.LineQid.for_qid_shape((3, 4))
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -215,6 +231,26 @@ def test_run_qudit_channel(dtype):
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measure_at_end_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 4
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
@@ -250,6 +286,27 @@ def test_run_qudits_repetitions_measure_at_end(dtype):
                 })
                 assert result.repetitions == 3
         assert mock_sim.call_count == 6
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_measurement_not_terminal_no_repetitions(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    with mock.patch.object(simulator,
+                           '_base_iterator',
+                           wraps=simulator._base_iterator) as mock_sim:
+        for b0 in [0, 1]:
+            for b1 in [0, 1]:
+                circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1),
+                                       cirq.measure(q0), cirq.measure(q1),
+                                       cirq.H(q0), cirq.H(q1))
+                result = simulator.run(circuit, repetitions=0)
+                np.testing.assert_equal(result.measurements, {
+                    '0': np.empty([0, 1]),
+                    '1': np.empty([0, 1])
+                })
+                assert result.repetitions == 0
+        assert mock_sim.call_count == 0
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
@@ -807,9 +864,56 @@ def test_density_matrix_trial_result_repr():
                 "qubit_map={cirq.LineQubit(0): 0}))""")
 
 
+class XAsOp(cirq.Operation):
+
+    def __init__(self, q):
+        # coverage: ignore
+        self.q = q
+
+    @property
+    def qubits(self):
+        # coverage: ignore
+        return self.q,
+
+    def with_qubits(self, *new_qubits):
+        # coverage: ignore
+        return XAsOp(new_qubits[0])
+
+    def _channel_(self):
+        # coverage: ignore
+        return cirq.channel(cirq.X)
+
+
 def test_works_on_operation():
 
     class XAsOp(cirq.Operation):
+
+        def __init__(self, q):
+            # coverage: ignore
+            self.q = q
+
+        @property
+        def qubits(self):
+            # coverage: ignore
+            return self.q,
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        def _channel_(self):
+            # coverage: ignore
+            return cirq.channel(cirq.X)
+
+    s = cirq.DensityMatrixSimulator()
+    c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
+    np.testing.assert_allclose(s.simulate(c).final_density_matrix,
+                               np.diag([0, 1]),
+                               atol=1e-8)
+
+
+def test_works_on_operation_dephased():
+
+    class HAsOp(cirq.Operation):
 
         def __init__(self, q):
             self.q = q
@@ -819,16 +923,15 @@ def test_works_on_operation():
             return self.q,
 
         def with_qubits(self, *new_qubits):
-            # coverage: ignore
-            return XAsOp(new_qubits[0])
+            raise NotImplementedError()
 
         def _channel_(self):
-            return cirq.channel(cirq.X)
+            return cirq.channel(cirq.H)
 
-    s = cirq.DensityMatrixSimulator()
-    c = cirq.Circuit(XAsOp(cirq.LineQubit(0)))
+    s = cirq.DensityMatrixSimulator(ignore_measurement_results=True)
+    c = cirq.Circuit(HAsOp(cirq.LineQubit(0)))
     np.testing.assert_allclose(s.simulate(c).final_density_matrix,
-                               np.diag([0, 1]),
+                               [[0.5 + 0.j, 0.5 + 0.j], [0.5 + 0.j, 0.5 + 0.j]],
                                atol=1e-8)
 
 
@@ -840,7 +943,6 @@ def test_works_on_pauli_string_phasor():
     np.testing.assert_allclose(result.reshape(4, 4),
                                np.diag([0, 0, 0, 1]),
                                atol=1e-8)
-
 
 def test_works_on_pauli_string():
     a, b = cirq.LineQubit.range(2)
@@ -922,8 +1024,8 @@ def test_random_seed_does_not_modify_global_state_terminal_measurements():
 def test_random_seed_does_not_modify_global_state_non_terminal_measurements():
     a = cirq.NamedQubit('a')
     circuit = cirq.Circuit(
-        cirq.X(a)**0.5, cirq.measure(a),
-        cirq.X(a)**0.5, cirq.measure(a))
+        cirq.X(a)**0.5, cirq.measure(a, key='a0'),
+        cirq.X(a)**0.5, cirq.measure(a, key='a1'))
 
     sim = cirq.DensityMatrixSimulator(seed=1234)
     result1 = sim.run(circuit, repetitions=50)
@@ -998,3 +1100,15 @@ def test_simulate_with_invert_mask():
     )
     assert np.all(cirq.DensityMatrixSimulator().run(c).measurements['a'] ==
                   [[0, 1, 0, 2, 3]])
+
+
+def test_simulate_noise_with_terminal_measurements():
+    q = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.measure(q))
+    circuit2 = circuit1 + cirq.I(q)
+
+    simulator = cirq.DensityMatrixSimulator(noise=cirq.X)
+    result1 = simulator.run(circuit1, repetitions=10)
+    result2 = simulator.run(circuit2, repetitions=10)
+
+    assert result1 == result2

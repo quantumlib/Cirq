@@ -636,6 +636,29 @@ def test_measurement_bounds():
         parser.parse(qasm)
 
 
+def test_u1_gate():
+    qasm = """
+     OPENQASM 2.0;
+     include "qelib1.inc";
+     qreg q[1];
+     u1(pi / 3.0) q[0];    
+"""
+    parser = QasmParser()
+
+    q0 = cirq.NamedQubit('q_0')
+
+    expected_circuit = Circuit()
+    expected_circuit.append(QasmUGate(0, 0, 1.0 / 3.0)(q0))
+
+    parsed_qasm = parser.parse(qasm)
+
+    assert parsed_qasm.supportedFormat
+    assert parsed_qasm.qelib1Include
+
+    ct.assert_same_circuits(parsed_qasm.circuit, expected_circuit)
+    assert parsed_qasm.qregs == {'q': 1}
+
+
 def test_u2_gate():
     qasm = """
      OPENQASM 2.0;

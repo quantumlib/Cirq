@@ -93,6 +93,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.SingleQubitGate
     cirq.SingleQubitMatrixGate
     cirq.SwapPowGate
+    cirq.TaggedOperation
     cirq.ThreeQubitDiagonalGate
     cirq.TwoQubitMatrixGate
     cirq.WaitGate
@@ -212,6 +213,7 @@ results.
 .. autosummary::
     :toctree: generated/
 
+    cirq.CIRCUIT_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
@@ -220,6 +222,7 @@ results.
     cirq.bloch_vector_from_state_vector
     cirq.density_matrix_from_state_vector
     cirq.dirac_notation
+    cirq.final_density_matrix
     cirq.final_wavefunction
     cirq.flatten
     cirq.flatten_to_ops
@@ -308,6 +311,7 @@ the magic methods that can be implemented.
 .. autosummary::
     :toctree: generated/
 
+    cirq.DEFAULT_RESOLVERS
     cirq.apply_channel
     cirq.apply_mixture
     cirq.apply_unitaries
@@ -353,6 +357,7 @@ the magic methods that can be implemented.
     cirq.SupportsApproximateEquality
     cirq.SupportsChannel
     cirq.SupportsCircuitDiagramInfo
+    cirq.SupportsCommutes
     cirq.SupportsConsistentApplyUnitary
     cirq.SupportsDecompose
     cirq.SupportsDecomposeWithQubits
@@ -380,6 +385,8 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_multi_controlled_rotation
+    cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.single_qubit_matrix_to_gates
@@ -417,18 +424,25 @@ run experiments.
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
     cirq.log_xeb_fidelity_from_probabilities
+    cirq.experiments.GRID_ALIGNED_PATTERN
+    cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
+    cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
+    cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
     cirq.experiments.single_qubit_state_tomography
+    cirq.experiments.state_tomography
     cirq.experiments.t1_decay
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
+    cirq.experiments.GridInteractionLayer
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
+    cirq.experiments.StateTomographyExperiment
     cirq.experiments.T1DecayResult
     cirq.experiments.TomographyResult
 
@@ -464,19 +478,14 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
-    cirq.google.circuit_as_schedule_to_proto_dicts
-    cirq.google.circuit_from_schedule_from_proto_dicts
     cirq.google.engine_from_environment
-    cirq.google.gate_to_proto_dict
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
+    cirq.google.optimized_for_sycamore
     cirq.google.optimized_for_xmon
     cirq.google.pack_results
-    cirq.google.sweep_from_proto_dict
-    cirq.google.sweep_to_proto_dict
     cirq.google.unpack_results
-    cirq.google.xmon_op_from_proto_dict
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
@@ -486,13 +495,14 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.DeserializingArg
     cirq.google.Engine
     cirq.google.EngineJob
+    cirq.google.EngineProcessor
     cirq.google.EngineProgram
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
     cirq.google.GreedySequenceSearchStrategy
-    cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
+    cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
     cirq.google.QuantumEngineSampler
     cirq.google.SerializableDevice
@@ -519,7 +529,6 @@ contrib may change without notice.
     cirq.contrib.paulistring
     cirq.contrib.qcircuit
     cirq.contrib.quirk
-    cirq.contrib.tpu
 
 
 Coding and Testing Tools
@@ -534,6 +543,7 @@ operation.
     :toctree: generated/
 
     cirq.alternative
+    cirq.json_serializable_dataclass
     cirq.obj_to_dict_helper
     cirq.value_equality
     cirq.ABCMetaImplementAnyOneOf
@@ -543,6 +553,7 @@ operation.
     cirq.PeriodicValue
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
+    cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
     cirq.testing.assert_equivalent_repr
@@ -552,6 +563,7 @@ operation.
     cirq.testing.assert_has_consistent_trace_distance_bound
     cirq.testing.assert_has_diagram
     cirq.testing.assert_implements_consistent_protocols
+    cirq.testing.assert_json_roundtrip_works
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
@@ -560,6 +572,7 @@ operation.
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
     cirq.testing.random_circuit
+    cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
@@ -589,6 +602,7 @@ Algebra and Representation
     cirq.chosen_angle_to_canonical_half_turns
     cirq.chosen_angle_to_half_turns
     cirq.commutes
+    cirq.definitely_commutes
     cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
     cirq.diagonalize_real_symmetric_matrix
     cirq.dot
@@ -620,6 +634,7 @@ Algebra and Representation
     cirq.subwavefunction
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.unitary_eig
     cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition

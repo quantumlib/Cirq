@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    TypeVar, Union)
+from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
+                    TypeVar, Union, TYPE_CHECKING)
 
 from cirq import circuits, ops, optimizers, protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -149,6 +150,14 @@ class SwapPermutationGate(PermutationGate):
 
     def _value_equality_values_(self):
         return (self.swap_gate,)
+
+    def _commutes_(self, other: Any, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
+        if (isinstance(other, ops.Gate) and
+                isinstance(other, ops.InterchangeableQubitsGate) and
+                protocols.num_qubits(other) == 2):
+            return True
+        return NotImplemented
 
 
 def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:

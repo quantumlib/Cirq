@@ -14,6 +14,7 @@
 
 import math
 import random
+import sys
 from typing import Sequence
 
 import numpy as np
@@ -174,6 +175,8 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
     assert len(kept) == 3
 
 
+@pytest.mark.xfail(sys.platform == 'win32',
+                   reason='https://github.com/quantumlib/Cirq/issues/2468')
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(
         cirq.unitary(cirq.Y**0.25))

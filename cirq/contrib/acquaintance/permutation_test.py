@@ -40,6 +40,10 @@ def test_swap_permutation_gate():
     expander(circuit)
     assert tuple(circuit.all_operations()) == (cirq.CZ(a, b),)
 
+    assert cirq.commutes(gate, cirq.ZZ)
+    with pytest.raises(TypeError):
+        cirq.commutes(gate, cirq.CCZ)
+
 
 def test_validate_permutation_errors():
     validate_permutation = cca.PermutationGate.validate_permutation

@@ -40,6 +40,7 @@ from cirq.testing.consistent_protocols import (
     assert_eigengate_implements_consistent_protocols,
     assert_has_consistent_trace_distance_bound,
     assert_implements_consistent_protocols,
+    assert_commutes_magic_method_consistent_with_unitaries,
 )
 
 from cirq.testing.consistent_qasm import (
@@ -51,8 +52,12 @@ from cirq.testing.equals_tester import (
 from cirq.testing.equivalent_repr_eval import (
     assert_equivalent_repr,)
 
+from cirq.testing.json import (
+    assert_json_roundtrip_works,)
+
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
+    random_density_matrix,
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,

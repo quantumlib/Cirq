@@ -8,27 +8,32 @@ import pytest
 import cirq
 from cirq.optimizers.two_qubit_to_fsim import (
     _decompose_two_qubit_interaction_into_two_b_gates,
-    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops,
-    _sticky_0_to_1,
-)
+    _decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops, _sticky_0_to_1,
+    _B)
 
 UNITARY_OBJS = [
     cirq.IdentityGate(2),
     cirq.XX**0.25,
     cirq.CNOT,
+    cirq.CNOT(*cirq.LineQubit.range(2)),
+    cirq.CNOT(*cirq.LineQubit.range(2)[::-1]),
     cirq.ISWAP,
     cirq.SWAP,
     cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 6),
 ] + [cirq.testing.random_unitary(4) for _ in range(5)]
 
 FEASIBLE_FSIM_GATES = [
+    cirq.ISWAP,
+    cirq.google.SYC,
     cirq.FSimGate(np.pi / 2, 0),
+    cirq.FSimGate(-np.pi / 2, 0),
     cirq.FSimGate(np.pi / 2, np.pi / 6),
     cirq.FSimGate(np.pi / 2, -np.pi / 6),
     cirq.FSimGate(5 * np.pi / 9, -np.pi / 6),
     cirq.FSimGate(5 * np.pi / 9, 0),
     cirq.FSimGate(4 * np.pi / 9, -np.pi / 6),
     cirq.FSimGate(4 * np.pi / 9, 0),
+    cirq.FSimGate(-4 * np.pi / 9, 0),
     # Extreme points.
     cirq.FSimGate(np.pi * 3 / 8, -np.pi / 4),
     cirq.FSimGate(np.pi * 5 / 8, -np.pi / 4),
@@ -46,6 +51,8 @@ def test_decompose_two_qubit_interaction_into_two_b_gates(obj: Any):
         _decompose_two_qubit_interaction_into_two_b_gates(
             obj, qubits=cirq.LineQubit.range(2)))
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
+    for operation in circuit.all_operations():
+        assert len(operation.qubits) < 2 or operation.gate == _B
     assert cirq.approx_eq(cirq.unitary(circuit), desired_unitary, atol=1e-6)
 
 
@@ -71,11 +78,17 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
                          itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         obj: Any, fsim_gate: cirq.FSimGate):
+    qubits = (obj.qubits
+              if isinstance(obj, cirq.Operation) else cirq.LineQubit.range(2))
     circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         obj, fsim_gate=fsim_gate)
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
+    for operation in circuit.all_operations():
+        assert len(operation.qubits) < 2 or operation.gate == fsim_gate
     assert len(circuit) <= 4 + 5
-    assert cirq.approx_eq(cirq.unitary(circuit), desired_unitary, atol=1e-6)
+    assert cirq.approx_eq(circuit.unitary(qubit_order=qubits),
+                          desired_unitary,
+                          atol=1e-6)
 
 
 def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_validate():

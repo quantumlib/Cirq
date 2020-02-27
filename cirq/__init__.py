@@ -46,7 +46,6 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    api,
     google,
     interop,
     # Applications
@@ -114,7 +113,6 @@ from cirq.linalg import (
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
     block_diag,
-    commutes,
     CONTROL_TAG,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
@@ -150,6 +148,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
 
@@ -256,6 +255,7 @@ from cirq.ops import (
     SWAP,
     SwapPowGate,
     T,
+    TaggedOperation,
     ThreeQubitGate,
     ThreeQubitDiagonalGate,
     TOFFOLI,
@@ -279,6 +279,8 @@ from cirq.ops import (
 
 from cirq.optimizers import (
     ConvertToCzAndSingleGates,
+    decompose_multi_controlled_x,
+    decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
     DropEmptyMoments,
     DropNegligible,
@@ -300,6 +302,7 @@ from cirq.optimizers import (
 from cirq.sim import (
     bloch_vector_from_state_vector,
     StabilizerStateChForm,
+    CIRCUIT_LIKE,
     CliffordSimulator,
     CliffordState,
     CliffordSimulatorStepResult,
@@ -313,6 +316,7 @@ from cirq.sim import (
     dirac_notation,
     measure_density_matrix,
     measure_state_vector,
+    final_density_matrix,
     final_wavefunction,
     sample,
     sample_density_matrix,
@@ -394,9 +398,12 @@ from cirq.protocols import (
     circuit_diagram_info,
     CircuitDiagramInfo,
     CircuitDiagramInfoArgs,
+    commutes,
     decompose,
     decompose_once,
     decompose_once_with_qubits,
+    DEFAULT_RESOLVERS,
+    definitely_commutes,
     equal_up_to_global_phase,
     has_channel,
     has_mixture,
@@ -405,6 +412,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    json_serializable_dataclass,
     measurement_key,
     mixture,
     mixture_channel,
@@ -424,6 +432,7 @@ from cirq.protocols import (
     SupportsApproximateEquality,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
+    SupportsCommutes,
     SupportsDecompose,
     SupportsDecomposeWithQubits,
     SupportsEqualUpToGlobalPhase,
