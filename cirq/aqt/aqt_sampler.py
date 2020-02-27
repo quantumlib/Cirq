@@ -31,30 +31,17 @@ import numpy as np
 from requests import put
 
 from cirq import Circuit
-
 from cirq.work import Sampler
-
-from cirq.study import ParamResolverOrSimilarType, Sweepable, \
-    TrialResult, to_resolvers
-
+from cirq.study import (ParamResolverOrSimilarType, Sweepable, TrialResult,
+                        to_resolvers)
 from cirq.ops import GateOperation, EigenGate
-
 from cirq.protocols import resolve_parameters
-
 from cirq.ion import IonDevice
-
 from cirq.devices import LineQubit
-
-from cirq.aqt.aqt_device import AQTSimulator, get_aqt_device_op_string
+from cirq.aqt.aqt_device import AQTSimulator, _get_aqt_device_op_string
 
 if TYPE_CHECKING:
     import cirq
-#
-# Sweepable = Union[cirq.study.ParamResolver,
-#                   Iterable[cirq.study.ParamResolver],
-#                   cirq.Sweep,
-#                   Iterable[cirq.Sweep]]
-
 
 class AQTSampler(Sampler):
     """Sampler for the AQT ion trap device
@@ -103,7 +90,7 @@ class AQTSampler(Sampler):
             line_qubit = cast(Tuple[LineQubit], op.qubits)
             op = cast(GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
-            op_str = get_aqt_device_op_string(op)
+            op_str = _get_aqt_device_op_string(op)
             gate = cast(EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:

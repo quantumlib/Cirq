@@ -27,21 +27,17 @@ import json
 from typing import Union, Tuple, List, Dict, Sequence, Any, cast
 import numpy as np
 
-from cirq.ops import MeasurementGate, \
-    X, Y, Z, XX,\
-    ZPowGate, XPowGate, YPowGate, XXPowGate,\
-    Moment, Operation, Qid,\
-    depolarize, measure
-
+from cirq.ops import (MeasurementGate, X, Y, Z, XX, ZPowGate, XPowGate,
+                      YPowGate, XXPowGate, Moment, Operation, Qid, depolarize,
+                      measure)
 from cirq import Circuit, Duration, DensityMatrixSimulator
-
 from cirq.devices import LineQubit, NoiseModel, NO_NOISE
-
 from cirq.ion import IonDevice
-
 from cirq.study import TrialResult
 
-gate_dict = {'X': X, 'Y': Y, 'Z': Z, 'MS': XX}
+# A global dictionary used for de/serialising the circuits from/to the
+# remote server, as well as for determining the crosstalk per gate
+AQT_GATE_DICT = {'X': X, 'Y': Y, 'Z': Z, 'MS': XX}
 
 
 class AQTNoiseModel(NoiseModel):
@@ -67,7 +63,7 @@ class AQTNoiseModel(NoiseModel):
         """
         noise_list = []
         for op in moment.operations:
-            op_str = get_aqt_device_op_string(op)
+            op_str = _get_aqt_device_op_string(op)
             try:
                 noise_op = self.noise_op_dict[op_str]
             except KeyError:
@@ -103,20 +99,20 @@ class AQTNoiseModel(NoiseModel):
         for idx in idx_list:
             xtlk_arr[idx] = 0
         xtlk_op_list = []
-        op_str = get_aqt_device_op_string(operation)
+        op_str = _get_aqt_device_op_string(operation)
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  #type:ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
+                xtlk_op = AQT_GATE_DICT[op_str].on(system_qubits[idx])**exponent
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
                 for idx in xtlk_arr.nonzero()[0]:
                     exponent = operation.gate.exponent  # type:ignore
                     exponent = exponent * xtlk_arr[idx]
-                    xtlk_op = gate_dict[op_str].on(op_qubit,
-                                                   system_qubits[idx])**exponent
+                    xtlk_op = AQT_GATE_DICT[op_str].on(
+                        op_qubit, system_qubits[idx])**exponent
                     xtlk_op_list.append(xtlk_op)
         return xtlk_op_list
 
@@ -160,7 +156,7 @@ class AQTSimulator:
             gate = gate_list[0]
             angle = gate_list[1]
             qubits = [self.qubit_list[i] for i in gate_list[2]]
-            self.circuit.append(gate_dict[gate].on(*qubits)**angle)
+            self.circuit.append(AQT_GATE_DICT[gate].on(*qubits)**angle)
         # TODO: Better solution for measurement at the end. Issue #2199
         self.circuit.append(
             measure(*[qubit for qubit in self.qubit_list], key='m'))
@@ -215,11 +211,12 @@ def get_aqt_default_noise_dict() -> Dict[str, Any]:
     return default_noise_dict
 
 
-def get_aqt_device_op_string(op_obj: Operation) -> str:
+def _get_aqt_device_op_string(op_obj: Operation) -> str:
     """Find the string representation for a given gate
 
     Args:
         op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate
+        or MeasurementGate
 
     Returns:
         String representing the gate operations
