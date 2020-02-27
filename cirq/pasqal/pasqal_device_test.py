@@ -50,7 +50,7 @@ def test_init():
     assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
     assert set(d.qubit_list()) == {q000, q001, q010, q011, q100, q101, q110}
     assert d.duration_of(cirq.ops.GateOperation(cirq.ops.IdentityGate(1),
-                                       [q000])) == 2 * us
+                                                [q000])) == 2 * us
     assert d.duration_of(cirq.ops.measure(q000)) == 5 * ms
     with pytest.raises(ValueError):
         _ = d.duration_of(cirq.ops.SingleQubitGate().on(q000))
@@ -67,28 +67,27 @@ def test_init_errors():
 
 def test_decompose_error():
     d = cubic_device(2, 2, 1, holes=[ThreeDGridQubit(1, 1, 0)])
-    op=(cirq.ops.CCZ**1.5).on(*(d.qubit_list()))
+    op = (cirq.ops.CCZ**1.5).on(*(d.qubit_list()))
     assert d.decompose_operation(op) == [op]
 
-    #MeasurementGate is not a GateOperation
+    # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
         d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
-    #It has to be made into one
+    # It has to be made into one
     assert PasqalDevice.is_pasqal_device_op(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
-            [ThreeDGridQubit(0, 0, 0)]))
+                               [ThreeDGridQubit(0, 0, 0)]))
 
     assert PasqalDevice.is_pasqal_device_op(
         cirq.ops.X(ThreeDGridQubit(0, 0, 0))
-        )
-
+    )
 
 
 def test_validate_operation_errors():
     d = cubic_device(3, 3, 3)
-    qlist=d.qubit_list()
-    too_many_qubits_op = cirq.ops.X.controlled(len(qlist)-1)
-    too_many_qubits_op=cirq.ops.GateOperation(too_many_qubits_op, qlist)
+    qlist = d.qubit_list()
+    too_many_qubits_op = cirq.ops.X.controlled(len(qlist) - 1)
+    too_many_qubits_op = cirq.ops.GateOperation(too_many_qubits_op, qlist)
 
     with pytest.raises(ValueError, match="Too many qubits acted on in parallel "
                        "by"):
@@ -116,15 +115,17 @@ def test_validate_operation_errors():
 
     assert d.validate_operation(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
-        [ThreeDGridQubit(0, 0, 0)])) == None
+                               [ThreeDGridQubit(0, 0, 0)])) is None
+
 
 def test_qubit_set():
     assert cubic_device(2, 2, 2).qubit_set() == set(
         ThreeDGridQubit.cube(2, 0, 0, 0))
 
+
 def test_distance():
     d = cubic_device(2, 2, 1)
-    assert d.distance(ThreeDGridQubit(0, 0, 0),ThreeDGridQubit(1, 0, 0)) == 1
+    assert d.distance(ThreeDGridQubit(0, 0, 0), ThreeDGridQubit(1, 0, 0)) == 1
 
     with pytest.raises(ValueError):
         _ = d.distance(ThreeDGridQubit(0, 0, 0), cirq.devices.LineQubit(1))
@@ -132,19 +133,20 @@ def test_distance():
     with pytest.raises(ValueError):
         _ = d.distance(cirq.devices.LineQubit(1), ThreeDGridQubit(0, 0, 0))
 
+
 def test_value_equal():
     dev = cirq.pasqal.PasqalDevice(
         control_radius=5,
-        qubits= [ThreeDGridQubit(1, 1, 1)])
+        qubits=[ThreeDGridQubit(1, 1, 1)])
 
     assert cirq.pasqal.PasqalDevice(
         control_radius=5,
-        qubits= [ThreeDGridQubit(1, 1, 1)]) == dev
+        qubits=[ThreeDGridQubit(1, 1, 1)]) == dev
 
 
 def test_repr():
     assert repr(cubic_device(1, 1, 1)) == ("pasqal.PasqalDevice("
-            "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
+                                           "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
 
 
 def test_to_json():

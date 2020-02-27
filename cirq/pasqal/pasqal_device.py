@@ -18,6 +18,7 @@ import cirq
 
 from cirq.pasqal import ThreeDGridQubit
 
+
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
 
@@ -58,11 +59,10 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(operation, cirq.ops.GateOperation):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
-
         # Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(operation,
-                                keep=PasqalDevice.is_pasqal_device_op)
+                                                     keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
             if not PasqalDevice.is_pasqal_device_op(dec):
@@ -120,13 +120,13 @@ class PasqalDevice(cirq.devices.Device):
                                  'for gate {!r}'.format(qub, operation.gate))
 
         if isinstance(operation.gate, (cirq.ops.MeasurementGate,
-            cirq.ops.IdentityGate)):
+                                       cirq.ops.IdentityGate)):
             return
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
             if len(operation.qubits) > self._max_parallel_c + \
-                self._max_parallel_t:
+                    self._max_parallel_t:
                 raise ValueError("Too many qubits acted on in parallel by a"
                                  "controlled gate operation")
             if len(operation.qubits) > 1:
@@ -143,11 +143,10 @@ class PasqalDevice(cirq.devices.Device):
 
         # Verify that a valid number of XY gates are applied in parallel
         if isinstance(operation.gate,
-            (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
+                      (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
             if (len(operation.qubits) > self._max_parallel_xy and
                     len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")
-
 
     def duration_of(self, operation: cirq.ops.Operation):
         """

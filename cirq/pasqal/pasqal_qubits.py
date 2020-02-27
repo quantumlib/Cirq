@@ -16,6 +16,7 @@ from numpy import sqrt, isclose
 
 import cirq
 
+
 class ThreeDGridQubit(cirq.ops.Qid):
     """A qubit on a 3d lattice.
 
@@ -40,7 +41,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
         self.col = col
         self.lay = lay
 
-
     def _comparison_key(self):
         return self.row, self.col, self.lay
 
@@ -52,14 +52,13 @@ class ThreeDGridQubit(cirq.ops.Qid):
         """Determines if two qubits are adjacent qubits."""
         return isclose(self.distance(other), 1)
 
-
     def distance(self, other: cirq.ops.Qid) -> float:
         """Returns the distance between two qubits in a 3D grid."""
         if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDGridQubit, but {}"
                 .format(other))
-        return sqrt((self.row - other.row) ** 2 + (self.col - other.col) ** 2+
+        return sqrt((self.row - other.row) ** 2 + (self.col - other.col) ** 2 +
                     (self.lay - other.lay) ** 2)
 
     def neighbors(self,
@@ -76,8 +75,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
             if qids is None or q in qids:
                 neighbors.add(q)
         return neighbors
-
-
 
     @staticmethod
     def cube(diameter: int,
@@ -97,7 +94,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
         """
         return ThreeDGridQubit.parallelep(diameter, diameter, diameter,
                                           top=top, left=left, upper=upper)
-
 
     @staticmethod
     def parallelep(rows: int,
@@ -124,7 +120,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
             for lay in range(upper, upper + lays)
         ]
 
-
     @staticmethod
     def square(diameter: int,
                top: int = 0,
@@ -140,7 +135,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
             A list of ThreeDGridQubits filling in a square grid
         """
         return ThreeDGridQubit.rect(diameter, diameter, top=top, left=left)
-
 
     @staticmethod
     def rect(rows: int, cols: int, top: int = 0,
@@ -161,8 +155,6 @@ class ThreeDGridQubit(cirq.ops.Qid):
             for row in range(top, top + rows)
             for col in range(left, left + cols)
         ]
-
-
 
     def __repr__(self):
         return 'pasqal.ThreeDGridQubit({}, {}, {})'.format(self.row,

@@ -15,6 +15,7 @@ from typing import List, Dict, Sequence, Any
 
 import cirq
 
+
 class PasqalNoiseModel(cirq.devices.NoiseModel):
     """A noise model for Pasqal neutral atom device """
 

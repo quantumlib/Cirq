@@ -18,6 +18,7 @@ import requests
 
 import cirq
 
+
 class PasqalSampler(cirq.work.Sampler):
 
     def __init__(self, remote_host: str, access_token: str = '') -> None:
@@ -55,7 +56,6 @@ class PasqalSampler(cirq.work.Sampler):
         Returns:
             json representation of the results
         """
-
 
         url = f'{self.remote_host}/get-result/{task_id}'
         while True:
@@ -101,8 +101,6 @@ class PasqalSampler(cirq.work.Sampler):
         result = cirq.read_json(json_text=result_serialized)
 
         return result
-
-
 
     def run_sweep(self,
                   program: cirq.Circuit,
