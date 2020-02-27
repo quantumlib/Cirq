@@ -25,7 +25,7 @@ class PasqalDevice(cirq.devices.Device):
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
 
-        us = 1000 * cirq.value.Duration(nanos=1)
+        us = cirq.value.Duration(micros=1)
 
         self._measurement_duration = 5000 * us
         self._gate_duration = 2 * us

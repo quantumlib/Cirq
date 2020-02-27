@@ -36,11 +36,10 @@ class MockGet:
 
 
 def _make_sampler() -> cirq.pasqal.PasqalSampler:
-    # Retrieve API access token from environment variable to avoid storing
-    # it in the source. Would it be possible to store it in the travis config ?
+
     sampler = cirq.pasqal.PasqalSampler(
-        remote_host='http://34.98.71.118/v0/pasqal',
-        access_token=str(getenv("PASQAL_API_ACCESS_TOKEN"))
+        remote_host='http://00.00.00/',
+        access_token='N/A'
     )
     return sampler
 
