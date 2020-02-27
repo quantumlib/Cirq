@@ -1,3 +1,16 @@
+# Copyright 2020 The Cirq Developers
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 from typing import FrozenSet, Iterable, cast
 from numpy import sqrt
 
@@ -46,7 +59,7 @@ class PasqalDevice(cirq.devices.Device):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
 
-        #Try to decompose the operation into elementary device operations
+        # Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(operation,
                                 keep=PasqalDevice.is_pasqal_device_op)
@@ -66,7 +79,7 @@ class PasqalDevice(cirq.devices.Device):
 
         keep = False
 
-        #Currently accepting all multi-qubit operations
+        # Currently accepting all multi-qubit operations
         keep = keep or (len(op.qubits) > 1)
 
         keep = keep or (isinstance(op.gate, cirq.ops.YPowGate))
