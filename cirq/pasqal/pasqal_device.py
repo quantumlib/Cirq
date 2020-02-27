@@ -21,14 +21,13 @@ from cirq.pasqal import ThreeDGridQubit
 
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
-    """
-    A Pasqal Device with qubits placed on a 3D grid.
-    """
+    """A Pasqal Device with qubits placed on a 3D grid."""
 
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
-         """
-        Initializes the description of the device.
+
+
+        """ Initializes the description of the device.
 
         Args:
             control_radius: the maximum distance between qubits for a controlled
@@ -39,8 +38,7 @@ class PasqalDevice(cirq.devices.Device):
 
         Raises:
             ValueError: if the wrong qubit type is provided or if invalid
-                parameter is provided for control_radius.
-        """
+                parameter is provided for control_radius. """
         us = cirq.value.Duration(micros=1)
 
         self._measurement_duration = 5000 * us
@@ -77,8 +75,9 @@ class PasqalDevice(cirq.devices.Device):
 
         # Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
-            decomposition = cirq.protocols.decompose(operation,
-                                                     keep=PasqalDevice.is_pasqal_device_op)
+            decomposition = cirq.protocols.decompose(
+                                operation,
+                                keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
             if not PasqalDevice.is_pasqal_device_op(dec):
