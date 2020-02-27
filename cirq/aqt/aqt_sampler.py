@@ -45,8 +45,7 @@ from cirq.ion import IonDevice
 
 from cirq.devices import LineQubit
 
-import cirq.aqt as aqt
-
+from cirq.aqt.aqt_device import AQTSimulator, get_aqt_device_op_string
 
 if TYPE_CHECKING:
     import cirq
@@ -104,7 +103,7 @@ class AQTSampler(Sampler):
             line_qubit = cast(Tuple[LineQubit], op.qubits)
             op = cast(GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
-            op_str = aqt.get_aqt_device_op_string(op)
+            op_str = get_aqt_device_op_string(op)
             gate = cast(EigenGate, op.gate)
             seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:
@@ -220,8 +219,7 @@ class AQTSampler(Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                TrialResult(params=param_resolver,
-                            measurements=res_dict))
+                TrialResult(params=param_resolver, measurements=res_dict))
         return trial_results
 
 
@@ -269,8 +267,8 @@ class AQTSamplerLocalSimulator(AQTSampler):
         Returns:
             Measurement results as an ndarray of booleans.
         """
-        sim = aqt.AQTSimulator(num_qubits=num_qubits,
-                               simulate_ideal=self.simulate_ideal)
+        sim = AQTSimulator(num_qubits=num_qubits,
+                           simulate_ideal=self.simulate_ideal)
 
         sim.generate_circuit_from_list(json_str)
         data = sim.simulate_samples(repetitions)

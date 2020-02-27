@@ -41,12 +41,7 @@ from cirq.ion import IonDevice
 
 from cirq.study import TrialResult
 
-gate_dict = {
-    'X': X,
-    'Y': Y,
-    'Z': Z,
-    'MS': XX
-}
+gate_dict = {'X': X, 'Y': Y, 'Z': Z, 'MS': XX}
 
 
 class AQTNoiseModel(NoiseModel):
@@ -56,8 +51,7 @@ class AQTNoiseModel(NoiseModel):
         self.noise_op_dict = get_aqt_default_noise_dict()
 
     def noisy_moment(self, moment: Moment,
-                     system_qubits: Sequence[Qid]
-                    ) -> List[Operation]:
+                     system_qubits: Sequence[Qid]) -> List[Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -191,8 +185,7 @@ class AQTSimulator:
         return result
 
 
-def get_aqt_device(num_qubits: int
-                  ) -> Tuple[IonDevice, List[LineQubit]]:
+def get_aqt_device(num_qubits: int) -> Tuple[IonDevice, List[LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -204,9 +197,9 @@ def get_aqt_device(num_qubits: int
     qubit_list = LineQubit.range(num_qubits)
     us = 1000 * Duration(nanos=1)
     ion_device = IonDevice(measurement_duration=100 * us,
-                            twoq_gates_duration=200 * us,
-                            oneq_gates_duration=10 * us,
-                            qubits=qubit_list)
+                           twoq_gates_duration=200 * us,
+                           oneq_gates_duration=10 * us,
+                           qubits=qubit_list)
     return ion_device, qubit_list
 
 
@@ -231,17 +224,13 @@ def get_aqt_device_op_string(op_obj: Operation) -> str:
     Returns:
         String representing the gate operations
     """
-    if isinstance(op_obj, XXPowGate) or isinstance(
-            op_obj.gate, XXPowGate):
+    if isinstance(op_obj, XXPowGate) or isinstance(op_obj.gate, XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, XPowGate) or isinstance(
-            op_obj.gate, XPowGate):
+    elif isinstance(op_obj, XPowGate) or isinstance(op_obj.gate, XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, YPowGate) or isinstance(
-            op_obj.gate, YPowGate):
+    elif isinstance(op_obj, YPowGate) or isinstance(op_obj.gate, YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, ZPowGate) or isinstance(
-            op_obj.gate, ZPowGate):
+    elif isinstance(op_obj, ZPowGate) or isinstance(op_obj.gate, ZPowGate):
         op_str = 'Z'
     elif isinstance(op_obj, MeasurementGate) or isinstance(
             op_obj.gate, MeasurementGate):
