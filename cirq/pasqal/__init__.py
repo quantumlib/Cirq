@@ -12,15 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from pasqal_qubits import (
+from .pasqal_qubits import (
     ThreeDGridQubit,)
 
-from pasqal_device import (
+from .pasqal_device import (
     PasqalDevice,)
 
-from pasqal_noise_model import (
+from .pasqal_noise_model import (
     PasqalNoiseModel,)
 
-from pasqal_sampler import (
+from .pasqal_sampler import (
     PasqalSampler,
 )
