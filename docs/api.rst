@@ -612,6 +612,7 @@ Algebra and Representation
     cirq.is_diagonal
     cirq.is_hermitian
     cirq.is_negligible_turn
+    cirq.is_normal
     cirq.is_orthogonal
     cirq.is_special_orthogonal
     cirq.is_special_unitary
