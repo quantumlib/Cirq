@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Optional
+from typing import Iterator, List, Optional, TYPE_CHECKING
 
 import math
 import numpy as np
@@ -20,6 +20,9 @@ from cirq import circuits, google, linalg, ops, optimizers, protocols
 from cirq.google.ops import SycamoreGate
 from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
     GateTabulation)
+
+if TYPE_CHECKING:
+    import cirq
 
 UNITARY_ZZ = np.kron(protocols.unitary(ops.Z), protocols.unitary(ops.Z))
 PAULI_OPS = [
@@ -159,7 +162,7 @@ class ConvertToSycamoreGates(circuits.PointOptimizer):
 def known_two_q_operations_to_sycamore_operations(
         qubit_a: ops.Qid,
         qubit_b: ops.Qid,
-        op: ops.GateOperation,
+        op: ops.Operation,
         tabulation: Optional[GateTabulation] = None) -> ops.OP_TREE:
     """
     Synthesize a known gate operation to a sycamore operation
@@ -297,7 +300,7 @@ def decompose_phased_iswap_into_syc_precomputed(theta: float, a: ops.Qid,
 
 
 def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
-                                            op: ops.GateOperation,
+                                            op: ops.Operation,
                                             tabulation: GateTabulation
                                            ) -> ops.OP_TREE:
     """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
@@ -321,7 +324,7 @@ def decompose_arbitrary_into_syc_tabulation(qubit_a: ops.Qid, qubit_b: ops.Qid,
 
 
 def decompose_arbitrary_into_syc_analytic(qubit_a: ops.Qid, qubit_b: ops.Qid,
-                                          op: ops.GateOperation) -> ops.OP_TREE:
+                                          op: ops.Operation) -> ops.OP_TREE:
     """Synthesize an arbitrary 2 qubit operation to a sycamore operation using
     the given Tabulation.
 
@@ -458,7 +461,8 @@ def create_corrected_circuit(target_unitary: np.ndarray,
     yield from _phased_x_z_ops(a_1, q1)
 
 
-def _phased_x_z_ops(mat: np.ndarray, q: 'cirq.Qid') -> ops.OP_TREE:
+def _phased_x_z_ops(mat: np.ndarray,
+                    q: 'cirq.Qid') -> Iterator['cirq.Operation']:
     gate = optimizers.single_qubit_matrix_to_phxz(mat)
     if gate:
         yield gate(q)
