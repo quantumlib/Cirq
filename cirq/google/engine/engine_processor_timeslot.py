@@ -35,6 +35,7 @@ class EngineProcessorTimeSlotType(enum.Enum):
 
 _DEFAULT_SLOT_TYPE = EngineProcessorTimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 
+
 @dataclasses.dataclass
 class EngineProcessorTimeSlot:
     """A python wrapping of a Quantum Engine timeslot.
