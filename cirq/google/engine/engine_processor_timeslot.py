@@ -33,13 +33,15 @@ class EngineProcessorTimeSlotType(enum.Enum):
     UNALLOCATED = 4
 
 
+_DEFAULT_SLOT_TYPE = EngineProcessorTimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
+
 @dataclasses.dataclass
 class EngineProcessorTimeSlot:
     """A python wrapping of a Quantum Engine timeslot.
   """
     start_seconds: int
     end_seconds: int
-    slot_type: EngineProcessorTimeSlotType = EngineProcessorTimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
+    slot_type: EngineProcessorTimeSlotType = _DEFAULT_SLOT_TYPE
     project_id: Optional[int] = None
     maintenance_title: Optional[str] = None
     maintenance_description: Optional[str] = None
