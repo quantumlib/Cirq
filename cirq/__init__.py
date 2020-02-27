@@ -487,9 +487,6 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
-    testing,
-)
-
-from cirq import(
     pasqal,
+    testing,
 )
