@@ -27,25 +27,37 @@ import json
 from typing import Union, Tuple, List, Dict, Sequence, Any, cast
 import numpy as np
 
-import cirq
+from cirq.ops import MeasurementGate, \
+    X, Y, Z, XX,\
+    ZPowGate, XPowGate, YPowGate, XXPowGate,\
+    Moment, Operation, Qid,\
+    depolarize, measure
+
+from cirq import Circuit, Duration, DensityMatrixSimulator
+
+from cirq.devices import LineQubit, NoiseModel, NO_NOISE
+
+from cirq.ion import IonDevice
+
+from cirq.study import TrialResult
 
 gate_dict = {
-    'X': cirq.ops.X,
-    'Y': cirq.ops.Y,
-    'Z': cirq.ops.Z,
-    'MS': cirq.ops.XX
+    'X': X,
+    'Y': Y,
+    'Z': Z,
+    'MS': XX
 }
 
 
-class AQTNoiseModel(cirq.devices.NoiseModel):
+class AQTNoiseModel(NoiseModel):
     """A noise model for the AQT ion trap """
 
     def __init__(self):
         self.noise_op_dict = get_aqt_default_noise_dict()
 
-    def noisy_moment(self, moment: cirq.ops.Moment,
-                     system_qubits: Sequence[cirq.ops.Qid]
-                    ) -> List[cirq.ops.Operation]:
+    def noisy_moment(self, moment: Moment,
+                     system_qubits: Sequence[Qid]
+                    ) -> List[Operation]:
         """Returns a list of noisy moments.
 
         The model includes
@@ -71,9 +83,9 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
             noise_list += self.get_crosstalk_operation(op, system_qubits)
         return list(moment) + noise_list
 
-    def get_crosstalk_operation(self, operation: cirq.ops.Operation,
-                                system_qubits: Sequence[cirq.ops.Qid]
-                               ) -> List[cirq.ops.Operation]:
+    def get_crosstalk_operation(self, operation: Operation,
+                                system_qubits: Sequence[Qid]
+                               ) -> List[Operation]:
         """Returns a list of operations including crosstalk
 
         Args:
@@ -83,7 +95,7 @@ class AQTNoiseModel(cirq.devices.NoiseModel):
         Returns:
             List of operations including crosstalk
         """
-        cast(Tuple[cirq.devices.LineQubit], system_qubits)
+        cast(Tuple[LineQubit], system_qubits)
         num_qubits = len(system_qubits)
         xtlk_arr = np.zeros(num_qubits)
         idx_list = []
@@ -120,7 +132,7 @@ class AQTSimulator:
 
     def __init__(self,
                  num_qubits: int,
-                 circuit: cirq.Circuit = cirq.Circuit(),
+                 circuit: Circuit = Circuit(),
                  simulate_ideal: bool = False,
                  noise_dict: Union[dict, None] = None):
         """Initializes the AQT simulator
@@ -133,7 +145,7 @@ class AQTSimulator:
         """
         self.circuit = circuit
         self.num_qubits = num_qubits
-        self.qubit_list = cirq.devices.LineQubit.range(num_qubits)
+        self.qubit_list = LineQubit.range(num_qubits)
         if noise_dict is None:
             noise_dict = get_aqt_default_noise_dict()
         self.noise_dict = noise_dict
@@ -148,7 +160,7 @@ class AQTSimulator:
         Args:
             json_string: json that specifies the sequence
         """
-        self.circuit = cirq.Circuit()
+        self.circuit = Circuit()
         json_obj = json.loads(json_string)
         for gate_list in json_obj:
             gate = gate_list[0]
@@ -157,9 +169,9 @@ class AQTSimulator:
             self.circuit.append(gate_dict[gate].on(*qubits)**angle)
         # TODO: Better solution for measurement at the end. Issue #2199
         self.circuit.append(
-            cirq.ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
+            measure(*[qubit for qubit in self.qubit_list], key='m'))
 
-    def simulate_samples(self, repetitions: int) -> cirq.study.TrialResult:
+    def simulate_samples(self, repetitions: int) -> TrialResult:
         """Samples the circuit
 
         Args:
@@ -169,18 +181,18 @@ class AQTSimulator:
             TrialResult from Cirq.Simulator
         """
         if self.simulate_ideal:
-            noise_model = cirq.devices.NO_NOISE
+            noise_model = NO_NOISE
         else:
             noise_model = AQTNoiseModel()
-        if self.circuit == cirq.Circuit():
+        if self.circuit == Circuit():
             raise RuntimeError('simulate ideal called without a valid circuit')
-        sim = cirq.DensityMatrixSimulator(noise=noise_model)
+        sim = DensityMatrixSimulator(noise=noise_model)
         result = sim.run(self.circuit, repetitions=repetitions)
         return result
 
 
 def get_aqt_device(num_qubits: int
-                  ) -> Tuple[cirq.ion.IonDevice, List[cirq.devices.LineQubit]]:
+                  ) -> Tuple[IonDevice, List[LineQubit]]:
     """Returns an AQT ion device
 
     Args:
@@ -189,28 +201,28 @@ def get_aqt_device(num_qubits: int
     Returns:
          IonDevice, qubit_list
     """
-    qubit_list = cirq.devices.LineQubit.range(num_qubits)
-    us = 1000 * cirq.Duration(nanos=1)
-    ion_device = cirq.ion.IonDevice(measurement_duration=100 * us,
-                                    twoq_gates_duration=200 * us,
-                                    oneq_gates_duration=10 * us,
-                                    qubits=qubit_list)
+    qubit_list = LineQubit.range(num_qubits)
+    us = 1000 * Duration(nanos=1)
+    ion_device = IonDevice(measurement_duration=100 * us,
+                            twoq_gates_duration=200 * us,
+                            oneq_gates_duration=10 * us,
+                            qubits=qubit_list)
     return ion_device, qubit_list
 
 
 def get_aqt_default_noise_dict() -> Dict[str, Any]:
     """Returns the current noise parameters"""
     default_noise_dict = {
-        'X': cirq.ops.depolarize(1e-3),
-        'Y': cirq.ops.depolarize(1e-3),
-        'Z': cirq.ops.depolarize(1e-3),
-        'MS': cirq.ops.depolarize(1e-2),
+        'X': depolarize(1e-3),
+        'Y': depolarize(1e-3),
+        'Z': depolarize(1e-3),
+        'MS': depolarize(1e-2),
         'crosstalk': 0.03
     }
     return default_noise_dict
 
 
-def get_aqt_device_op_string(op_obj: cirq.ops.Operation) -> str:
+def get_aqt_device_op_string(op_obj: Operation) -> str:
     """Find the string representation for a given gate
 
     Args:
@@ -219,20 +231,20 @@ def get_aqt_device_op_string(op_obj: cirq.ops.Operation) -> str:
     Returns:
         String representing the gate operations
     """
-    if isinstance(op_obj, cirq.ops.XXPowGate) or isinstance(
-            op_obj.gate, cirq.ops.XXPowGate):
+    if isinstance(op_obj, XXPowGate) or isinstance(
+            op_obj.gate, XXPowGate):
         op_str = 'MS'
-    elif isinstance(op_obj, cirq.ops.XPowGate) or isinstance(
-            op_obj.gate, cirq.ops.XPowGate):
+    elif isinstance(op_obj, XPowGate) or isinstance(
+            op_obj.gate, XPowGate):
         op_str = 'X'
-    elif isinstance(op_obj, cirq.ops.YPowGate) or isinstance(
-            op_obj.gate, cirq.ops.YPowGate):
+    elif isinstance(op_obj, YPowGate) or isinstance(
+            op_obj.gate, YPowGate):
         op_str = 'Y'
-    elif isinstance(op_obj, cirq.ops.ZPowGate) or isinstance(
-            op_obj.gate, cirq.ops.ZPowGate):
+    elif isinstance(op_obj, ZPowGate) or isinstance(
+            op_obj.gate, ZPowGate):
         op_str = 'Z'
-    elif isinstance(op_obj, cirq.ops.MeasurementGate) or isinstance(
-            op_obj.gate, cirq.ops.MeasurementGate):
+    elif isinstance(op_obj, MeasurementGate) or isinstance(
+            op_obj.gate, MeasurementGate):
         op_str = 'Meas'
     else:
         raise ValueError('Got unknown gate:', op_obj)
