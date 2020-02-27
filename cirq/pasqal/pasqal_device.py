@@ -25,8 +25,6 @@ class PasqalDevice(cirq.devices.Device):
 
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
-
-
         """ Initializes the description of the device.
 
         Args:
@@ -76,8 +74,8 @@ class PasqalDevice(cirq.devices.Device):
         # Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(
-                                operation,
-                                keep=PasqalDevice.is_pasqal_device_op)
+                operation,
+                keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
             if not PasqalDevice.is_pasqal_device_op(dec):
@@ -158,7 +156,9 @@ class PasqalDevice(cirq.devices.Device):
 
         # Verify that a valid number of XY gates are applied in parallel
         if isinstance(operation.gate,
-                      (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
+                      (cirq.ops.XPowGate,
+                       cirq.ops.YPowGate,
+                       cirq.ops.PhasedXPowGate)):
             if (len(operation.qubits) > self._max_parallel_xy and
                     len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")

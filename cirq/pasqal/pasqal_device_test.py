@@ -145,8 +145,10 @@ def test_value_equal():
 
 
 def test_repr():
-    assert repr(cubic_device(1, 1, 1)) == ("pasqal.PasqalDevice("
-                                           "control_radius=1.5, qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
+    assert repr(
+        cubic_device(1, 1, 1)) == ("pasqal.PasqalDevice("
+                                   "control_radius=1.5,"
+                                   " qubits=[pasqal.ThreeDGridQubit(0, 0, 0)])")
 
 
 def test_to_json():
