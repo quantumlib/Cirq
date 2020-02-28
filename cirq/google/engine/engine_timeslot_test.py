@@ -14,39 +14,41 @@
 import cirq
 import cirq.google as cg
 
+from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
+
 
 def test_timeslot_equality():
     start = 1582592400
     end = 1582596000
     eq = cirq.testing.equals_tester.EqualsTester()
     eq.add_equality_group(
-        cg.EngineProcessorTimeSlot(start_seconds=start, end_seconds=end),
-        cg.EngineProcessorTimeSlot(start_seconds=start, end_seconds=end),
-        cg.EngineProcessorTimeSlot(start_seconds=start,
-                                   end_seconds=end,
-                                   slot_type=cg.EngineProcessorTimeSlotType.
-                                   TIME_SLOT_TYPE_UNSPECIFIED))
+        cg.EngineTimeSlot(start_seconds=start, end_seconds=end),
+        cg.EngineTimeSlot(start_seconds=start, end_seconds=end),
+        cg.EngineTimeSlot(start_seconds=start,
+                          end_seconds=end,
+                          slot_type=enums.QuantumProcessor.TimeSlotType.
+                          TIME_SLOT_TYPE_UNSPECIFIED))
     eq.add_equality_group(
-        cg.EngineProcessorTimeSlot(start_seconds=start,
-                                   end_seconds=end,
-                                   project_id=12345))
+        cg.EngineTimeSlot(start_seconds=start,
+                          end_seconds=end,
+                          project_id=12345))
     eq.add_equality_group(
-        cg.EngineProcessorTimeSlot(
+        cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=cg.EngineProcessorTimeSlotType.RESERVATION,
+            slot_type=enums.QuantumProcessor.TimeSlotType.RESERVATION,
             project_id=12345))
     eq.add_equality_group(
-        cg.EngineProcessorTimeSlot(
+        cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=cg.EngineProcessorTimeSlotType.MAINTENANCE,
+            slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
             project_id=12345))
     eq.add_equality_group(
-        cg.EngineProcessorTimeSlot(
+        cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=cg.EngineProcessorTimeSlotType.MAINTENANCE,
+            slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
             project_id=12345,
             maintenance_title="Testing",
             maintenance_description="Testing some new configuration."))
