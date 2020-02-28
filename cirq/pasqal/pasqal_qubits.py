@@ -29,10 +29,10 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
     New ThreeDGridQubit can be constructed by adding or subtracting tuples
 
-        >>> pasqal.ThreeDGridQubit(2, 3, 4) + (3, 1, 6)
+        >>> cirq.pasqal.ThreeDGridQubit(2, 3, 4) + (3, 1, 6)
         pasqal.ThreeDGridQubit(5, 4, 10)
 
-        >>> pasqal.ThreeDGridQubit(2, 3, 4) - (1, 2, 2)
+        >>> cirq.pasqal.ThreeDGridQubit(2, 3, 4) - (1, 2, 2)
         pasqal.ThreeDGridQubit(1, 1, 2)
     """
 
