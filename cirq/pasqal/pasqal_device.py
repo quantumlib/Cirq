@@ -77,7 +77,8 @@ class PasqalDevice(cirq.devices.Device):
                 operation, keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
-            if not PasqalDevice.is_pasqal_device_op(dec):  # coverage: ignore
+            # coverage: ignore
+            if not PasqalDevice.is_pasqal_device_op(dec):
                 raise TypeError("Don't know how to work with {!r}.".format(
                     operation.gate))
 
@@ -87,7 +88,7 @@ class PasqalDevice(cirq.devices.Device):
     def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
         if not isinstance(op,
                           (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
-            return False
+            return False  # coverage: ignore
 
         keep = False
 
