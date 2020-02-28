@@ -28,13 +28,15 @@ CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
 class DepolarizingModel:
     """A model of depolarizing noise.
 
-    Models the fidelity of a quantum process as an exponential decay of the form
-    f = S * p^d, where f is the fidelity, S is the coefficient, p is the
-    decay constant, and d is the number of iterations of the process (the
-    independent variable of the decay). For instance, in a cross entropy
-    benchmarking experiment, d would be the number of cycles, where a cycle
-    consists of a layer of single-qubit gates followed by a layer of two-qubit
-    gates.
+    A model of a depolarizing process that maps a density matrix ρ as
+
+        ρ → (S * p^d) ρ + (1 - S * p^d) I / D
+
+    where I / D is the maximally mixed state, S and p are real numbers, and
+    d is the number of iterations of the process. For instance, in a cross
+    entropy benchmarking experiment, d would be the number of cycles, where a
+    cycle consists of a layer of single-qubit gates followed by a layer of
+    two-qubit gates.
 
     Attributes:
         coefficient: The value S in the above formula.
