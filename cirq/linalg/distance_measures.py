@@ -13,8 +13,6 @@
 # limitations under the License.
 """Distance measures between quantum states and operations."""
 
-import numbers
-
 import numpy as np
 import scipy
 
