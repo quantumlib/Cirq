@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Types and methods related to performing linear algebra.
 
 Focuses on methods useful for analyzing and optimizing quantum circuits.
@@ -53,6 +52,9 @@ from cirq.linalg.diagonalize import (
     diagonalize_real_symmetric_matrix,
 )
 
+from cirq.linalg.distance_measures import (
+    fidelity,)
+
 from cirq.linalg.operator_spaces import (
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
@@ -77,7 +79,7 @@ from cirq.linalg.predicates import (
 
 from cirq.linalg.tolerance import (
     all_near_zero,
-    all_near_zero_mod
+    all_near_zero_mod,
 )
 
 from cirq.linalg.transformations import (
