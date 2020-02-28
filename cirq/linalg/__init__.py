@@ -66,6 +66,7 @@ from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
     is_diagonal,
     is_hermitian,
+    is_normal,
     is_orthogonal,
     is_special_orthogonal,
     is_special_unitary,
