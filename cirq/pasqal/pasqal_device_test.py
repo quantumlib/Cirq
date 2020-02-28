@@ -64,6 +64,13 @@ def test_decompose_error():
     op = (cirq.ops.CCZ**1.5).on(*(d.qubit_list()))
     assert d.decompose_operation(op) == [op]
 
+    op = cirq.H.on(ThreeDGridQubit(0, 0, 0))
+    decomposition = d.decompose_operation(op)
+    assert len(decomposition) == 2
+    assert decomposition == [(cirq.Y**0.5).on(ThreeDGridQubit(0, 0, 0)),
+                             cirq.XPowGate(exponent=1.0,
+                             global_shift=-0.25).on(ThreeDGridQubit(0, 0, 0))]
+
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
         d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
