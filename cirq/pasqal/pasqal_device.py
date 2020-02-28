@@ -74,8 +74,7 @@ class PasqalDevice(cirq.devices.Device):
         # Try to decompose the operation into elementary device operations
         if not PasqalDevice.is_pasqal_device_op(operation):
             decomposition = cirq.protocols.decompose(
-                operation,
-                keep=PasqalDevice.is_pasqal_device_op)
+                operation, keep=PasqalDevice.is_pasqal_device_op)
 
         for dec in decomposition:
             if not PasqalDevice.is_pasqal_device_op(dec):
@@ -86,8 +85,8 @@ class PasqalDevice(cirq.devices.Device):
 
     @staticmethod
     def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
-        if not isinstance(op, (cirq.ops.GateOperation,
-                               cirq.ParallelGateOperation)):
+        if not isinstance(op,
+                          (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
             return False
 
         keep = False
@@ -119,8 +118,8 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             ValueError: If the operation is not valid
         """
-        if not isinstance(operation, (cirq.GateOperation,
-                                      cirq.ParallelGateOperation)):
+        if not isinstance(operation,
+                          (cirq.GateOperation, cirq.ParallelGateOperation)):
             raise ValueError("Unsupported operation")
 
         if not PasqalDevice.is_pasqal_device_op(operation):
@@ -132,8 +131,8 @@ class PasqalDevice(cirq.devices.Device):
                 raise ValueError('{} is not a 3D grid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
 
-        if isinstance(operation.gate, (cirq.ops.MeasurementGate,
-                                       cirq.ops.IdentityGate)):
+        if isinstance(operation.gate,
+                      (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
             return
 
         # Verify that a controlled gate operation is valid
@@ -155,10 +154,9 @@ class PasqalDevice(cirq.devices.Device):
                 raise ValueError("Too many Z gates in parallel")
 
         # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(operation.gate,
-                      (cirq.ops.XPowGate,
-                       cirq.ops.YPowGate,
-                       cirq.ops.PhasedXPowGate)):
+        if isinstance(
+                operation.gate,
+            (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
             if (len(operation.qubits) > self._max_parallel_xy and
                     len(operation.qubits) != len(self.qubit_list())):
                 raise ValueError("Bad number of X/Y gates in parallel")
@@ -178,8 +176,8 @@ class PasqalDevice(cirq.devices.Device):
                 gate
         """
         self.validate_operation(operation)
-        if isinstance(operation, (cirq.ops.GateOperation,
-                                  cirq.ops.ParallelGateOperation)):
+        if isinstance(operation,
+                      (cirq.ops.GateOperation, cirq.ops.ParallelGateOperation)):
             if isinstance(operation.gate, cirq.ops.MeasurementGate):
                 return self._measurement_duration
         return self._gate_duration
@@ -194,19 +192,16 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError('Unsupported qubit type: {!r}'.format(p))
         p = cast(ThreeDGridQubit, p)
         q = cast(ThreeDGridQubit, q)
-        return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2 +
-                    (p.lay - q.lay) ** 2)
+        return sqrt((p.row - q.row)**2 + (p.col - q.col)**2 +
+                    (p.lay - q.lay)**2)
 
     def __repr__(self):
         return ('pasqal.PasqalDevice(control_radius={!r}, '
-                'qubits={!r})').format(self.control_radius,
-                                       sorted(self.qubits))
+                'qubits={!r})').format(self.control_radius, sorted(self.qubits))
 
     def _value_equality_values_(self):
-        return (self.control_radius,
-                self.qubits)
+        return (self.control_radius, self.qubits)
 
     def _json_dict_(self):
-        return cirq.protocols.obj_to_dict_helper(self, ['control_radius',
-                                                        'qubits'
-                                                        ])
+        return cirq.protocols.obj_to_dict_helper(self,
+                                                 ['control_radius', 'qubits'])

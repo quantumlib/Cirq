@@ -35,22 +35,20 @@ class MockGet:
 
 def _make_sampler() -> cirq.pasqal.PasqalSampler:
 
-    sampler = cirq.pasqal.PasqalSampler(
-        remote_host='http://00.00.00/',
-        access_token='N/A'
-    )
+    sampler = cirq.pasqal.PasqalSampler(remote_host='http://00.00.00/',
+                                        access_token='N/A')
     return sampler
 
 
 def test_pasqal_circuit_init():
     qs = cirq.pasqal.ThreeDGridQubit.square(3)
     ex_circuit = cirq.Circuit()
-    ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])]
-                       for i in range(len(qs) - 1)])
+    ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
+                        cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
     device = cirq.pasqal.PasqalDevice(control_radius=3, qubits=qs)
     test_circuit = cirq.Circuit(device=device)
-    test_circuit.append([[cirq.CZ(qs[i], qs[i + 1]), cirq.X(qs[i + 1])]
-                         for i in range(len(qs) - 1)])
+    test_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
+                          cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
 
     for moment1, moment2 in zip(test_circuit, ex_circuit):
         assert moment1 == moment2
@@ -64,8 +62,9 @@ def test_run_sweep(mock_post, mock_get):
     without noise and checks if the results match.
     '''
 
-    qs = [cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3)
-          for j in range(3)]
+    qs = [
+        cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)
+    ]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -89,9 +88,7 @@ def test_run_sweep(mock_post, mock_get):
 
     mock_get.return_value = MockGet(cirq.to_json(ex_circuit_odd))
     sampler = _make_sampler()
-    data = sampler.run_sweep(program=ex_circuit,
-                             params=sweep,
-                             repetitions=1)
+    data = sampler.run_sweep(program=ex_circuit, params=sweep, repetitions=1)
 
     submitted_json = mock_post.call_args[1]['data']
     assert cirq.read_json(json_text=submitted_json) == ex_circuit_odd

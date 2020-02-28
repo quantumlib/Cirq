@@ -45,12 +45,15 @@ def test_noisy_moments():
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[cirq.ops.CZ.on(ThreeDGridQubit(0, 0, 0),
-                                     ThreeDGridQubit(0, 0, 1)),
-                      cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 0)),
-                      cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 1))],
-                     [cirq.ops.Z.on(ThreeDGridQubit(0, 0, 1)),
-                      cirq.depolarize(p=0.01).on(ThreeDGridQubit(0, 0, 1))]]
+    assert n_mts == [[
+        cirq.ops.CZ.on(ThreeDGridQubit(0, 0, 0), ThreeDGridQubit(0, 0, 1)),
+        cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 0)),
+        cirq.depolarize(p=0.03).on(ThreeDGridQubit(0, 0, 1))
+    ],
+                     [
+                         cirq.ops.Z.on(ThreeDGridQubit(0, 0, 1)),
+                         cirq.depolarize(p=0.01).on(ThreeDGridQubit(0, 0, 1))
+                     ]]
 
 
 def test_default_noise():
@@ -65,12 +68,12 @@ def test_default_noise():
     for moment in p_circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[cirq.ops.CZPowGate(exponent=2).on(
-        ThreeDGridQubit(0, 0, 0),
-        ThreeDGridQubit(0, 0, 1)),
+    assert n_mts == [[
+        cirq.ops.CZPowGate(exponent=2).on(ThreeDGridQubit(0, 0, 0),
+                                          ThreeDGridQubit(0, 0, 1)),
         cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 0)),
-        cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 1))]
-    ]
+        cirq.depolarize(p=0.05).on(ThreeDGridQubit(0, 0, 1))
+    ]]
 
 
 def test_get_op_string():

@@ -56,30 +56,29 @@ class ThreeDGridQubit(cirq.ops.Qid):
         """Returns the distance between two qubits in a 3D grid."""
         if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
-                "Can compute distance to another ThreeDGridQubit, but {}"
-                .format(other))
-        return sqrt((self.row - other.row) ** 2 + (self.col - other.col) ** 2 +
-                    (self.lay - other.lay) ** 2)
+                "Can compute distance to another ThreeDGridQubit, but {}".
+                format(other))
+        return sqrt((self.row - other.row)**2 + (self.col - other.col)**2 +
+                    (self.lay - other.lay)**2)
 
-    def neighbors(self,
-                  qids: Optional[Iterable[cirq.ops.Qid]] = None
-                  ) -> Set['ThreeDGridQubit']:
+    def neighbors(self, qids: Optional[Iterable[cirq.ops.Qid]] = None
+                 ) -> Set['ThreeDGridQubit']:
         """Returns qubits that are potential neighbors to this ThreeDGridQubit
 
         Args:
             qids: optional Iterable of qubits to constrain neighbors to.
         """
         neighbors = set()
-        for q in [self + (0, 0, 1), self + (0, 1, 0), self + (1, 0, 0),
-                  self + (0, 0, -1), self + (0, -1, 0), self + (-1, 0, 0)]:
+        for q in [
+                self + (0, 0, 1), self + (0, 1, 0), self + (1, 0, 0),
+                self + (0, 0, -1), self + (0, -1, 0), self + (-1, 0, 0)
+        ]:
             if qids is None or q in qids:
                 neighbors.add(q)
         return neighbors
 
     @staticmethod
-    def cube(diameter: int,
-             top: int = 0,
-             left: int = 0,
+    def cube(diameter: int, top: int = 0, left: int = 0,
              upper: int = 0) -> List['ThreeDGridQubit']:
         """Returns a cube of ThreeDGridQubits.
 
@@ -92,8 +91,12 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Returns:
             A list of ThreeDGridQubits filling in a square grid
         """
-        return ThreeDGridQubit.parallelep(diameter, diameter, diameter,
-                                          top=top, left=left, upper=upper)
+        return ThreeDGridQubit.parallelep(diameter,
+                                          diameter,
+                                          diameter,
+                                          top=top,
+                                          left=left,
+                                          upper=upper)
 
     @staticmethod
     def parallelep(rows: int,
@@ -114,15 +117,13 @@ class ThreeDGridQubit(cirq.ops.Qid):
             A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDGridQubit(row, col, lay)
-            for row in range(top, top + rows)
+            ThreeDGridQubit(row, col, lay) for row in range(top, top + rows)
             for col in range(left, left + cols)
             for lay in range(upper, upper + lays)
         ]
 
     @staticmethod
-    def square(diameter: int,
-               top: int = 0,
+    def square(diameter: int, top: int = 0,
                left: int = 0) -> List['ThreeDGridQubit']:
         """Returns a square of ThreeDGridQubits.
 
@@ -157,9 +158,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         ]
 
     def __repr__(self):
-        return 'pasqal.ThreeDGridQubit({}, {}, {})'.format(self.row,
-                                                           self.col,
-                                                           self.lay)
+        return 'pasqal.ThreeDGridQubit({}, {}, {})'.format(
+            self.row, self.col, self.lay)
 
     def __str__(self):
         return '({}, {}, {})'.format(self.row, self.col, self.lay)
@@ -171,18 +171,18 @@ class ThreeDGridQubit(cirq.ops.Qid):
         if not (isinstance(other, tuple) and len(other) == 3 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                'Can only add tuples of length 3. Was {}'.format(
-                    other))
-        return ThreeDGridQubit(row=self.row + other[0], col=self.col + other[1],
+                'Can only add tuples of length 3. Was {}'.format(other))
+        return ThreeDGridQubit(row=self.row + other[0],
+                               col=self.col + other[1],
                                lay=self.lay + other[2])
 
     def __sub__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                'Can only subtract tuples of length 3. Was {}'.
-                format(other))
-        return ThreeDGridQubit(row=self.row - other[0], col=self.col - other[1],
+                'Can only subtract tuples of length 3. Was {}'.format(other))
+        return ThreeDGridQubit(row=self.row - other[0],
+                               col=self.col - other[1],
                                lay=self.lay - other[2])
 
     def __radd__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':

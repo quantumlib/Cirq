@@ -53,9 +53,10 @@ def test_square():
 
 
 def test_rec():
-    assert ThreeDGridQubit.rect(
-        1, 2, top=5, left=6) == [ThreeDGridQubit(5, 6, 0),
-                                 ThreeDGridQubit(5, 7, 0)]
+    assert ThreeDGridQubit.rect(1, 2, top=5, left=6) == [
+        ThreeDGridQubit(5, 6, 0),
+        ThreeDGridQubit(5, 7, 0)
+    ]
     assert ThreeDGridQubit.rect(2, 2) == [
         ThreeDGridQubit(0, 0, 0),
         ThreeDGridQubit(0, 1, 0),
@@ -88,12 +89,12 @@ def test_cube():
 
 
 def test_parrallelep():
-    assert ThreeDGridQubit.parallelep(
-        1, 2, 2, top=5, left=6, upper=7) == [ThreeDGridQubit(5, 6, 7),
-                                             ThreeDGridQubit(5, 6, 8),
-                                             ThreeDGridQubit(5, 7, 7),
-                                             ThreeDGridQubit(5, 7, 8),
-                                             ]
+    assert ThreeDGridQubit.parallelep(1, 2, 2, top=5, left=6, upper=7) == [
+        ThreeDGridQubit(5, 6, 7),
+        ThreeDGridQubit(5, 6, 8),
+        ThreeDGridQubit(5, 7, 7),
+        ThreeDGridQubit(5, 7, 8),
+    ]
 
     assert ThreeDGridQubit.parallelep(2, 2, 2) == [
         ThreeDGridQubit(0, 0, 0),
@@ -175,10 +176,10 @@ def test_pasqal_qubit_is_adjacent():
 
     assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(2, 0, 0))
 
-    assert (ThreeDGridQubit(500, 999, 1500)
-            .is_adjacent(ThreeDGridQubit(501, 999, 1500)))
-    assert not (ThreeDGridQubit(500, 999, 1500)
-                .is_adjacent(ThreeDGridQubit(5034, 999, 1500)))
+    assert (ThreeDGridQubit(500, 999,
+                            1500).is_adjacent(ThreeDGridQubit(501, 999, 1500)))
+    assert not (ThreeDGridQubit(500, 999, 1500).is_adjacent(
+        ThreeDGridQubit(5034, 999, 1500)))
 
 
 def test_pasqal_qubit_neighbors():
@@ -199,8 +200,8 @@ def test_pasqal_qubit_neighbors():
 
 
 def test_repr():
-    assert repr(ThreeDGridQubit(4, -25, 109)
-                ) == 'pasqal.ThreeDGridQubit(4, -25, 109)'
+    assert repr(ThreeDGridQubit(4, -25,
+                                109)) == 'pasqal.ThreeDGridQubit(4, -25, 109)'
 
 
 def test_str():

@@ -22,5 +22,4 @@ from .pasqal_noise_model import (
     PasqalNoiseModel,)
 
 from .pasqal_sampler import (
-    PasqalSampler,
-)
+    PasqalSampler,)
