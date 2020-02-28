@@ -27,27 +27,18 @@ def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     return vecs @ np.diag(np.sqrt(eigs)) @ vecs.T.conj()
 
 
-def fidelity(state1: np.ndarray, state2: np.ndarray, *, rtol=1e-5,
-             atol=1e-8) -> float:
+def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
     """Fidelity of two quantum states.
 
     The fidelity of two density matrices ρ and σ is defined as
 
         trace(sqrt(sqrt(ρ) σ sqrt(ρ)))^2.
 
-    The given states can be state vectors or density matrices. If two density
-    matrices are given, this checks if they approximately commute, and if so,
-    computes the fidelity in a more efficient way. The relative and absolute
-    numerical tolerances used for the commutativity check can be specified by
-    rtol and atol, respectively.
+    The given states can be state vectors or density matrices.
 
     Args:
         state1: The first state.
         state2: The second state.
-        rtol: The per-matrix-entry relative tolerance used to check whether
-            two density matrices commute.
-        atol: The per-matrix-entry absolute tolerance used to check whether
-            two density matrices commute.
     """
     if len(state1.shape) == 1 and len(state2.shape) == 1:
         # Both state vectors
@@ -60,11 +51,6 @@ def fidelity(state1: np.ndarray, state2: np.ndarray, *, rtol=1e-5,
         return np.real(np.conjugate(state2) @ state1 @ state2)
     elif len(state1.shape) == 2 and len(state2.shape) == 2:
         # Both density matrices
-        if linalg.matrix_commutes(state1, state2, rtol=rtol, atol=atol):
-            # Fidelity of commuting matrices can be computed about twice as fast
-            return np.real(
-                np.trace(_sqrt_positive_semidefinite_matrix(
-                    state1 @ state2))**2)
         state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
         return np.real(
             np.trace(
