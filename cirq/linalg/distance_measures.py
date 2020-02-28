@@ -19,6 +19,14 @@ import scipy
 from cirq import linalg
 
 
+def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
+    """Square root of a positive semidefinite matrix."""
+    eigs, vecs = scipy.linalg.eigh(mat)
+    # Zero out small negative entries
+    eigs = np.maximum(eigs, np.zeros(eigs.shape))
+    return vecs @ np.diag(np.sqrt(eigs)) @ vecs.T.conj()
+
+
 def fidelity(state1: np.ndarray, state2: np.ndarray, *, rtol=1e-5,
              atol=1e-8) -> float:
     """Fidelity of two quantum states.
@@ -54,10 +62,14 @@ def fidelity(state1: np.ndarray, state2: np.ndarray, *, rtol=1e-5,
         # Both density matrices
         if linalg.matrix_commutes(state1, state2, rtol=rtol, atol=atol):
             # Fidelity of commuting matrices can be computed about twice as fast
-            return np.real(np.trace(scipy.linalg.sqrtm(state1 @ state2))**2)
-        state1_sqrt = scipy.linalg.sqrtm(state1)
+            return np.real(
+                np.trace(_sqrt_positive_semidefinite_matrix(
+                    state1 @ state2))**2)
+        state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
         return np.real(
-            np.trace(scipy.linalg.sqrtm(state1_sqrt @ state2 @ state1_sqrt))**2)
+            np.trace(
+                _sqrt_positive_semidefinite_matrix(
+                    state1_sqrt @ state2 @ state1_sqrt))**2)
     else:
         raise ValueError('The given arrays must be one- or two-dimensional. '
                          f'Got shapes {state1.shape} and {state2.shape}.')
