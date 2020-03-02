@@ -496,8 +496,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.Engine
     cirq.google.EngineJob
     cirq.google.EngineProcessor
-    cirq.google.EngineTimeSlot
     cirq.google.EngineProgram
+    cirq.google.EngineTimeSlot
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
