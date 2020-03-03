@@ -122,6 +122,7 @@ from cirq.linalg import (
     eye_tensor,
     is_diagonal,
     is_hermitian,
+    is_normal,
     is_orthogonal,
     is_special_orthogonal,
     is_special_unitary,

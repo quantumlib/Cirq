@@ -12,13 +12,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
-
+from typing import Dict, List
 import pytest
 import sympy
 
+from google.protobuf import json_format
+
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
+
+
+def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
+    op = v2.program_pb2.Operation()
+    json_format.ParseDict(json_dict, op)
+    return op
 
 
 @cirq.value_equality
@@ -91,7 +99,7 @@ def test_from_proto(val_type, val, arg_value):
                                                  constructor_arg_name='val',
                                              )
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -101,10 +109,9 @@ def test_from_proto(val_type, val, arg_value):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto_dict(serialized,
-                                          arg_function_language='linear')
+    result = deserializer.from_proto(serialized, arg_function_language='linear')
     assert result == GateWithAttribute(val)(q)
 
 
@@ -117,7 +124,7 @@ def test_from_proto_required_missing():
                                                  constructor_arg_name='val',
                                              )
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -131,9 +138,9 @@ def test_from_proto_required_missing():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(Exception, match='my_val'):
-        deserializer.from_proto_dict(serialized)
+        deserializer.from_proto(serialized)
 
 
 def test_from_proto_unknown_function():
@@ -145,7 +152,7 @@ def test_from_proto_unknown_function():
                                                  constructor_arg_name='val',
                                              )
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -169,9 +176,9 @@ def test_from_proto_unknown_function():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(ValueError, match='Unrecognized function type'):
-        _ = deserializer.from_proto_dict(serialized)
+        _ = deserializer.from_proto(serialized)
 
 
 def test_from_proto_value_type_not_recognized():
@@ -183,7 +190,7 @@ def test_from_proto_value_type_not_recognized():
                                                  constructor_arg_name='val',
                                              )
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -195,9 +202,9 @@ def test_from_proto_value_type_not_recognized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(ValueError, match='Unrecognized value type'):
-        _ = deserializer.from_proto_dict(serialized)
+        _ = deserializer.from_proto(serialized)
 
 
 def test_from_proto_function_argument_not_set():
@@ -209,7 +216,7 @@ def test_from_proto_function_argument_not_set():
                                                  constructor_arg_name='val',
                                              )
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -229,39 +236,10 @@ def test_from_proto_function_argument_not_set():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(ValueError,
                        match='A multiplication argument is missing'):
-        _ = deserializer.from_proto_dict(serialized,
-                                         arg_function_language='linear')
-
-
-def test_from_proto_unknown_arg_type():
-    deserializer = cg.GateOpDeserializer(serialized_gate_id='my_gate',
-                                         gate_constructor=GateWithAttribute,
-                                         args=[
-                                             cg.DeserializingArg(
-                                                 serialized_name='my_val',
-                                                 constructor_arg_name='val',
-                                             )
-                                         ])
-    serialized = {
-        'gate': {
-            'id': 'my_gate'
-        },
-        'args': {
-            'my_val': {
-                'arg_value': {
-                    'what_value': 0.125
-                }
-            }
-        },
-        'qubits': [{
-            'id': '1_2'
-        }]
-    }
-    with pytest.raises(Exception, match='what_value'):
-        deserializer.from_proto_dict(serialized)
+        _ = deserializer.from_proto(serialized, arg_function_language='linear')
 
 
 def test_from_proto_value_func():
@@ -273,7 +251,7 @@ def test_from_proto_value_func():
                                                  constructor_arg_name='val',
                                                  value_func=lambda x: x + 1)
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -287,9 +265,9 @@ def test_from_proto_value_func():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto_dict(serialized)
+    result = deserializer.from_proto(serialized)
     assert result == GateWithAttribute(1.125)(q)
 
 
@@ -306,7 +284,7 @@ def test_from_proto_not_required_ok():
                                                  constructor_arg_name='not_req',
                                                  required=False)
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -320,9 +298,9 @@ def test_from_proto_not_required_ok():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
-    result = deserializer.from_proto_dict(serialized)
+    result = deserializer.from_proto(serialized)
     assert result == GateWithAttribute(0.125)(q)
 
 
@@ -339,7 +317,7 @@ def test_from_proto_missing_required_arg():
                                                  constructor_arg_name='not_req',
                                                  required=False)
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -353,9 +331,9 @@ def test_from_proto_missing_required_arg():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(ValueError):
-        deserializer.from_proto_dict(serialized)
+        deserializer.from_proto(serialized)
 
 
 def test_from_proto_required_arg_not_assigned():
@@ -371,7 +349,7 @@ def test_from_proto_required_arg_not_assigned():
                                                  constructor_arg_name='not_req',
                                                  required=False)
                                          ])
-    serialized = {
+    serialized = op_proto({
         'gate': {
             'id': 'my_gate'
         },
@@ -381,6 +359,6 @@ def test_from_proto_required_arg_not_assigned():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     with pytest.raises(ValueError):
-        deserializer.from_proto_dict(serialized)
+        deserializer.from_proto(serialized)

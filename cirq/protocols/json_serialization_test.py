@@ -193,6 +193,7 @@ SHOULDNT_BE_SERIALIZED = [
     # Quantum Engine
     'Engine',
     'EngineJob',
+    'EngineProcessor',
     'EngineProgram',
     'QuantumEngineSampler',
 
@@ -278,7 +279,6 @@ NOT_YET_SERIALIZABLE = [
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
-    'JobConfig',
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
