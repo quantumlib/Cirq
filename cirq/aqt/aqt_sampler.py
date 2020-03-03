@@ -174,7 +174,6 @@ class AQTSampler(Sampler):
         for i, result_int in enumerate(measurements_int):
             measurement_int_bin = format(result_int, '0{}b'.format(num_qubits))
             for j in range(num_qubits):
-                # measurements[i, j] = np.floor(result_int / 2**j)
                 measurements[i, j] = int(measurement_int_bin[j])
         return measurements
 
