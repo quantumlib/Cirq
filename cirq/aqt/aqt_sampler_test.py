@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import X, Y, Z, XX, ZZ, H, measure, Circuit, study, LineQubit
+from cirq import X, Z, XX, CNOT, Circuit, study, LineQubit
 from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
 from cirq.aqt.aqt_device import get_aqt_device, get_op_string
 
@@ -229,9 +229,9 @@ def test_aqt_sampler_ms():
 
 def test_aqt_device_wrong_op_str():
     circuit = Circuit()
-    q0 = LineQubit(0)
-    circuit.append(H(q0)**0.5)
-    circuit.append(measure(q0, key="output"))
+    q0, q1 = LineQubit.range(2)
+    circuit.append(CNOT(q0, q1)**1.0)
     for op in circuit.all_operations():
         with pytest.raises(ValueError):
             _result = get_op_string(op)
+            print(_result)
