@@ -58,8 +58,7 @@ class CliffordGateDecomposer:
             if np.allclose(unitary, candidate * phase_shift):
                 return name, phase_shift
 
-        raise ValueError('%s is not a Clifford gate.' %
-                         str(gate))  # type: ignore
+        raise ValueError('%s is not a Clifford gate.' % str(gate))
 
     def can_decompose(self, gate: 'ops.Gate') -> bool:
         """Checks whether this gate can be decomposed."""
