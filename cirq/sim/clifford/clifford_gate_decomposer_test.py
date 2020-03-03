@@ -36,40 +36,20 @@ def test_can_decompose_all_clifford_gates():
             assert np.linalg.matrix_rank(np.stack([v1, v2])) == 2
 
 
-def test_identity():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.I)
-    assert seq == ''
-    assert np.allclose(phase, 1)
+def test_clifford_gates():
 
+    def _test(gate, expected_sequence, expected_phase):
+        seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(gate)
+        assert seq == expected_sequence
+        assert np.allclose(phase, expected_phase)
 
-def test_x_gate():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.X)
-    assert seq == 'HSSH'
-    assert np.allclose(phase, 1)
-
-
-def test_y_gate():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.Y)
-    assert seq == 'HSSHSS'
-    assert np.allclose(phase, 1j)
-
-
-def test_z_gate():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.Z)
-    assert seq == 'SS'
-    assert np.allclose(phase, 1)
-
-
-def test_s_gate():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.S)
-    assert seq == 'S'
-    assert np.allclose(phase, 1)
-
-
-def test_h_gate():
-    seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(cirq.H)
-    assert seq == 'H'
-    assert np.allclose(phase, 1)
+    _test(cirq.I, '', 1)
+    _test(cirq.X, 'HSSH', 1)
+    _test(cirq.Y, 'HSSHSS', 1j)
+    _test(cirq.Z, 'SS', 1)
+    _test(cirq.S, 'S', 1)
+    _test(cirq.H, 'H', 1)
+    _test(cirq.Y**-0.5, 'SSH', 1j**-0.5)
 
 
 def test_non_clifford_gate():
