@@ -17,9 +17,9 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import X, Y, Z, XX, ZZ, Circuit, study
+from cirq import X, Y, Z, XX, ZZ, H, measure, Circuit, study, LineQubit
 from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
-from cirq.aqt.aqt_device import get_aqt_device
+from cirq.aqt.aqt_device import get_aqt_device, get_op_string
 
 
 class EngineReturn:
@@ -227,13 +227,11 @@ def test_aqt_sampler_ms():
     assert hist[0] > repetitions / 3
 
 
-def test_aqt_sampler_wrong_gate():
-    repetitions = 100
-    num_qubits = 4
-    device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerLocalSimulator()
-    circuit = Circuit(device=device)
-    circuit.append(Y(qubits[0])**0.5)
-    circuit.append(ZZ(qubits[0], qubits[1])**0.5)
-    with pytest.raises(ValueError):
-        _results = sampler.run(circuit, repetitions=repetitions)
+def test_aqt_device_wrong_op_str():
+    circuit = Circuit()
+    q0 = LineQubit(0)
+    circuit.append(H(q0)**0.5)
+    circuit.append(measure(q0, key="output"))
+    for op in circuit.all_operations():
+        with pytest.raises(ValueError):
+            _result = get_op_string(op)
