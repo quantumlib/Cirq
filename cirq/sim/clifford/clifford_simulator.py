@@ -316,7 +316,9 @@ class CliffordState():
                              str(op.gate))  # type: ignore
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
-        sequence, phase_shift = CLIFFORD_GATE_DECOMPOSER.decompose(op.gate)
+        gate = op.gate
+        assert gate is not None
+        sequence, phase_shift = CLIFFORD_GATE_DECOMPOSER.decompose(gate)
 
         for char in sequence[::-1]:
             if char == 'H':
