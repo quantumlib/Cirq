@@ -25,10 +25,17 @@ class CliffordGateDecomposer:
                 elif ch == 'H': result = result @ h
             return result
 
-        # Calculate unitaries for all candidates.
+        # Calculate matrices for all candidates.
         self._candidates = [
             (name, name_to_unitary(name)) for name in _ALL_CLIFFORD_GATES
         ]
+
+    @staticmethod
+    def _possible_phase_shift(matrix1, matrix2):
+        if np.abs(matrix2[0, 0]) > 1e-9:
+            return matrix1[0, 0] / matrix2[0, 0]
+        else:
+            return matrix1[0, 1] / matrix2[0, 1]
 
     def decompose(self, gate: 'ops.Gate') -> Tuple[str, np.complex128]:
         """Decomposes unitary into S or H gates and global phase.
@@ -46,18 +53,13 @@ class CliffordGateDecomposer:
         unitary = protocols.unitary(gate)
         assert unitary.shape == (2, 2)
 
-        def _possible_phase_shift(matrix1, matrix2):
-            if np.abs(matrix2[0, 0]) > 1e-9:
-                return matrix1[0, 0] / matrix2[0, 0]
-            else:
-                return matrix1[0, 1] / matrix2[0, 1]
-
         for name, candidate in self._candidates:
-            phase_shift = _possible_phase_shift(unitary, candidate)
+            phase_shift = self._possible_phase_shift(unitary, candidate)
             if np.allclose(unitary, candidate * phase_shift):
                 return name, phase_shift
 
-        raise ValueError('%s cannot be run with Clifford simulator' % str(gate))
+        raise ValueError('%s is not a Clifford gate.' %
+                         str(gate))  # type: ignore
 
     def can_decompose(self, gate: 'ops.Gate') -> bool:
         """Checks whether this gate can be decomposed."""
