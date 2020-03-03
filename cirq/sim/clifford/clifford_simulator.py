@@ -37,6 +37,7 @@ from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import circuits, study, ops, protocols, value
+from cirq.sim.clifford.clifford_gate_decomposer import CLIFFORD_GATE_DECOMPOSER
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -47,8 +48,15 @@ class CliffordSimulator(simulator.SimulatesSamples,
         self.init = True
 
     @staticmethod
-    def get_supported_gates() -> List['cirq.Gate']:
-        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+    def is_supported_gate(gate: 'cirq.Gate') -> bool:
+        if cirq.unitary(gate).shape == (2, 2):
+            try:
+                CLIFFORD_GATE_DECOMPOSER.decompose(gate)
+                return True
+            except ValueError:
+                return False
+        else:
+            return gate in [cirq.CNOT, cirq.CZ]
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -290,7 +298,9 @@ class CliffordState():
         return self.ch_form.wave_function()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        if op.gate == cirq.CNOT:
+        if len(op.qubits) == 1:
+            self.apply_single_qubit_unitary(op)
+        elif op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
             self.ch_form._CNOT(self.qubit_map[op.qubits[0]],
@@ -300,24 +310,22 @@ class CliffordState():
                              self.qubit_map[op.qubits[1]])
             self.ch_form._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.Z:
-            self.tableau._Z(self.qubit_map[op.qubits[0]])
-            self.ch_form._Z(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.X:
-            self.tableau._X(self.qubit_map[op.qubits[0]])
-            self.ch_form._X(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.Y:
-            self.tableau._Y(self.qubit_map[op.qubits[0]])
-            self.ch_form._Y(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.S:
-            self.tableau._S(self.qubit_map[op.qubits[0]])
-            self.ch_form._S(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.H:
-            self.tableau._H(self.qubit_map[op.qubits[0]])
-            self.ch_form._H(self.qubit_map[op.qubits[0]])
         else:
             raise ValueError('%s cannot be run with Clifford simulator' %
                              str(op.gate))  # type: ignore
+
+    def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
+        sequence, phase_shift = CLIFFORD_GATE_DECOMPOSER.decompose(op.gate)
+
+        for char in sequence[::-1]:
+            if char == 'H':
+                self.tableau._H(self.qubit_map[op.qubits[0]])
+                self.ch_form._H(self.qubit_map[op.qubits[0]])
+            else:
+                assert char == 'S'
+                self.tableau._S(self.qubit_map[op.qubits[0]])
+                self.ch_form._S(self.qubit_map[op.qubits[0]])
+        self.ch_form.omega *= phase_shift
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
