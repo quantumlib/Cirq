@@ -1,7 +1,8 @@
-import numpy as np
-from cirq import protocols, ops
-
 from typing import (Tuple)
+
+import numpy as np
+
+from cirq import protocols, ops
 
 # All 24 Clifford gates, written as products of H and S gates.
 _ALL_CLIFFORD_GATES = [
