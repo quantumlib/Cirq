@@ -21,7 +21,6 @@ import argparse
 import asyncio
 import itertools
 from typing import cast
-from typing import Iterable
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -95,8 +94,28 @@ async def estimate_characteristic_function(
     return sigma_i
 
 
-def _estimate_pauli_traces_clifford(n_qubits, clifford_state,
-                                    n_clifford_trials):
+def _estimate_pauli_traces_clifford(n_qubits: int,
+                                    clifford_state: cirq.CliffordState,
+                                    n_clifford_trials: int):
+    """
+    Estimates the Pauli traces in case the circuit is Clifford. When we have a
+    Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
+    and all the other traces have probability 0. In addition, there is a fast
+    way to compute find out what the traces are. See the documentation of
+    cirq.CliffordState for more detail. This function uses the speedup to sample
+    the Pauli states with non-zero probability.
+
+    Args:
+        n_qubits: An integer that is the number of qubits.
+        clifford_state: The basis of the Pauli states with non-zero probability.
+        n_clifford_trials: An integer that is the number of Pauli states to
+            sample.
+
+    Returns:
+        A list of Pauli states (represented as tuples of Pauli string, rho_i,
+            and probability.
+    """
+
     # When the circuit consists of Clifford gates only, we can sample the
     # Pauli states more efficiently as described on page 4 of:
     # https://arxiv.org/abs/1104.4695
@@ -140,7 +159,23 @@ def _estimate_pauli_traces_clifford(n_qubits, clifford_state,
     return pauli_traces
 
 
-def _estimate_pauli_traces_general(qubits, circuit):
+def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
+                                   circuit: cirq.Circuit):
+    """
+    Estimates the Pauli traces in case the circuit is not Clifford. In this case
+    we cannot use the speedup implemented in the function
+    _estimate_pauli_traces_clifford() above, and so do a slow, density matrix
+    simulation.
+
+    Args:
+        qubits: The list of qubits.
+        circuit: The (non Clifford) circuit.
+
+    Returns:
+        A list of Pauli states (represented as tuples of Pauli string, rho_i,
+            and probability.
+    """
+
     n_qubits = len(qubits)
 
     dense_simulator = cirq.DensityMatrixSimulator()
@@ -191,7 +226,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     d = 2**n_qubits
 
     clifford_circuit = True
-    clifford_state = None
+    clifford_state: Optional[cirq.CliffordState] = None
     try:
         clifford_state = cirq.CliffordState(
             qubit_map={qubits[i]: i for i in range(len(qubits))})
@@ -205,8 +240,10 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     # inside the variable 'pauli_traces'.
     if clifford_circuit:
         print('Circuit is Clifford')
-        pauli_traces = _estimate_pauli_traces_clifford(n_qubits, clifford_state,
-                                                       n_clifford_trials)
+        assert clifford_state is not None
+        pauli_traces = _estimate_pauli_traces_clifford(
+            n_qubits, cast(cirq.CliffordState, clifford_state),
+            n_clifford_trials)
     else:
         print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
@@ -263,10 +300,19 @@ def parse_arguments(args):
                         type=int,
                         help='Number of trials to run.')
 
+    # TODO(#2802): Offer some guidance on how to set this flag. Maybe have an
+    # option to do an exhaustive sample and do numerical studies to know which
+    # choice is the best.
     parser.add_argument('--n_clifford_trials',
                         default=3,
                         type=int,
-                        help='Number of trials for Clifford circuits')
+                        help='Number of trials for Clifford circuits. This is '
+                        'in effect when the circuit is Clifford. In this '
+                        'case, we randomly sample the Pauli traces with '
+                        'non-zero probabilities. The higher the number, '
+                        'the more accurate the overall fidelity '
+                        'estimation, at the cost of extra computing and '
+                        'measurements.')
 
     parser.add_argument('--samples_per_term',
                         default=0,
