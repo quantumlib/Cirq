@@ -69,11 +69,12 @@ by the ``num_qubits()`` function.  One notable exception is the
 Most gates also have a unitary matrix representation, which can be accessed
 by ``cirq.unitary(gate)``.  
 
-``Gate``s can also correspond to noisy evolution on the qubits.  These `Gate`s
-may not correspond to unitary operations and may instead represent a noise
-`channel` or may produce a probabilistic `mixture` of states. Such gates are
-generally only used in simulations.  See [noise documentation](noise.md)
-for more details.
+Not all `Gate`s correspond to unitary evolution. They may represent a
+probabilistic mixture of unitaries, or a general quantum channel. The component
+unitaries and associated probabilities of a mixture can be accessed by
+`cirq.mixture(gate)`. The Kraus operator representation of a channel can be
+accessed by `cirq.channel(gate)`. Non-unitary gates are often used in the
+simulation of noise. See [noise documentation](noise.md) for more details.
 
 Many arithmetic operators will also work in the expected way when applied to
 gates.  For instance, ``cirq.X ** 0.5`` represents a square root of X gate.
