@@ -43,7 +43,8 @@ def get_op_string(op_obj: ops.Operation) -> str:
     """Find the string representation for a given gate
 
     Args:
-        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate
+        op_obj: Gate object, one of: XXPowGate, XPowGate, YPowGate, ZPowGate,
+        PhasedXPowGate
 
     Returns:
         String representing the gate operations
@@ -131,19 +132,23 @@ class AQTNoiseModel(devices.NoiseModel):
             xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
+        gate: Union[ops.PhasedXPowGate, ops.EigenGate]
+        if op_str == 'R':
+            gate = cast(ops.PhasedXPowGate, gate_dict[op_str])
+        else:
+            gate = cast(ops.EigenGate, gate_dict[op_str])
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  #type:ignore
                 exponent = exponent * xtlk_arr[idx]
-                xtlk_op = gate_dict[op_str].on(system_qubits[idx])**exponent
+                xtlk_op = gate.on(system_qubits[idx])**exponent
                 xtlk_op_list.append(xtlk_op)
         elif len(operation.qubits) == 2:
             for op_qubit in operation.qubits:
                 for idx in xtlk_arr.nonzero()[0]:
                     exponent = operation.gate.exponent  # type:ignore
                     exponent = exponent * xtlk_arr[idx]
-                    xtlk_op = gate_dict[op_str].on(op_qubit,
-                                                   system_qubits[idx])**exponent
+                    xtlk_op = gate.on(op_qubit, system_qubits[idx])**exponent
                     xtlk_op_list.append(xtlk_op)
         return xtlk_op_list
 
@@ -183,18 +188,21 @@ class AQTSimulator:
         """
         self.circuit = Circuit()
         json_obj = json.loads(json_string)
-        for gate_list in json_obj:
-            gate = gate_list[0]
-            if gate == 'R':
-                theta = gate_list[1]
-                phi = gate_list[2]
-                qubits = [self.qubit_list[i] for i in gate_list[3]]
-                self.circuit.append(gate_dict[gate](phase_exponent=phi,
-                                                    exponent=theta).on(*qubits))
+        gate: Union[ops.PhasedXPowGate, ops.EigenGate]
+        for circuit_list in json_obj:
+            op_str = circuit_list[0]
+            if op_str == 'R':
+                gate = cast(ops.PhasedXPowGate, gate_dict[op_str])
+                theta = circuit_list[1]
+                phi = circuit_list[2]
+                qubits = [self.qubit_list[i] for i in circuit_list[3]]
+                self.circuit.append(gate(phase_exponent=phi,
+                                         exponent=theta).on(*qubits))
             else:
-                angle = gate_list[1]
-                qubits = [self.qubit_list[i] for i in gate_list[2]]
-                self.circuit.append(gate_dict[gate].on(*qubits)**angle)
+                gate = cast(ops.EigenGate, gate_dict[op_str])
+                angle = circuit_list[1]
+                qubits = [self.qubit_list[i] for i in circuit_list[2]]
+                self.circuit.append(gate.on(*qubits)**angle)
         # TODO: Better solution for measurement at the end. Issue #2199
         self.circuit.append(
             ops.measure(*[qubit for qubit in self.qubit_list], key='m'))

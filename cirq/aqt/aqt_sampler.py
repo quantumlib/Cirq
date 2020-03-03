@@ -90,11 +90,13 @@ class AQTSampler(Sampler):
             op = cast(ops.GateOperation, op)
             qubit_idx = [obj.x for obj in line_qubit]
             op_str = get_op_string(op)
-            gate = cast(ops.EigenGate, op.gate)
+            gate: Union[ops.EigenGate, ops.PhasedXPowGate]
             if op_str == 'R':
+                gate = cast(ops.PhasedXPowGate, op.gate)
                 seq_list.append((op_str, float(gate.exponent),
                                  float(gate.phase_exponent), qubit_idx))
             else:
+                gate = cast(ops.EigenGate, op.gate)
                 seq_list.append((op_str, float(gate.exponent), qubit_idx))
         if len(seq_list) == 0:
             raise RuntimeError('Cannot send an empty circuit')
