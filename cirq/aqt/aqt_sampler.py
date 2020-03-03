@@ -82,10 +82,8 @@ class AQTSampler(Sampler):
             json formatted string of the sequence
         """
 
-        seq_list: Union[
-            List[Tuple[str, float, List[int]]],
-            List[Tuple[str, float, float, List[int]]]
-        ] = []
+        seq_list: Union[List[Tuple[str, float, List[int]]], List[
+            Tuple[str, float, float, List[int]]]] = []
         circuit = resolve_parameters(circuit, param_resolver)
         for op in circuit.all_operations():
             line_qubit = cast(Tuple[LineQubit], op.qubits)
@@ -94,7 +92,8 @@ class AQTSampler(Sampler):
             op_str = get_op_string(op)
             gate = cast(ops.EigenGate, op.gate)
             if op_str == 'R':
-                seq_list.append((op_str, float(gate.exponent), float(gate.phase_exponent), qubit_idx))
+                seq_list.append((op_str, float(gate.exponent),
+                                 float(gate.phase_exponent), qubit_idx))
             else:
                 seq_list.append((op_str, gate.exponent, qubit_idx))
         if len(seq_list) == 0:
