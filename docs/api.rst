@@ -389,9 +389,11 @@ Classes and methods for rewriting circuits.
     cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
+    cirq.merge_single_qubit_gates_into_phxz
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
     cirq.single_qubit_matrix_to_phased_x_z
+    cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
