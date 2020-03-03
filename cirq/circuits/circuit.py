@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -85,6 +84,13 @@ class Circuit:
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
             followed by the moments in circuit2;
@@ -211,15 +217,50 @@ class Circuit:
     def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
 
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
+        pass
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if hasattr(key, '__index__'):
             return self._moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
+                if isinstance(qubit_idx, cirq.Qid):
+                    qubit_idx = [qubit_idx]
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return new_circuit
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type slice or int.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
