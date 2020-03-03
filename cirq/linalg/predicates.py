@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Utility methods for checking properties of matrices."""
 from typing import cast, List, Optional, Sequence, Union, Tuple
 
@@ -39,11 +38,8 @@ def is_diagonal(matrix: np.ndarray, *, atol: float = 1e-8) -> bool:
     return tolerance.all_near_zero(matrix, atol=atol)
 
 
-def is_hermitian(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_hermitian(matrix: np.ndarray, *, rtol: float = 1e-5,
+                 atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately Hermitian.
 
     A matrix is Hermitian if it's square and equal to its adjoint.
@@ -60,11 +56,8 @@ def is_hermitian(
             np.allclose(matrix, np.conj(matrix.T), rtol=rtol, atol=atol))
 
 
-def is_orthogonal(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_orthogonal(matrix: np.ndarray, *, rtol: float = 1e-5,
+                  atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately orthogonal.
 
     A matrix is orthogonal if it's square and real and its transpose is its
@@ -80,16 +73,16 @@ def is_orthogonal(
     """
     return (matrix.shape[0] == matrix.shape[1] and
             np.all(np.imag(matrix) == 0) and
-            np.allclose(matrix.dot(matrix.T), np.eye(matrix.shape[0]),
+            np.allclose(matrix.dot(matrix.T),
+                        np.eye(matrix.shape[0]),
                         rtol=rtol,
                         atol=atol))
 
 
-def is_special_orthogonal(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_special_orthogonal(matrix: np.ndarray,
+                          *,
+                          rtol: float = 1e-5,
+                          atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately special orthogonal.
 
     A matrix is special orthogonal if it is square and real and its transpose
@@ -108,11 +101,8 @@ def is_special_orthogonal(
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
 
 
-def is_unitary(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_unitary(matrix: np.ndarray, *, rtol: float = 1e-5,
+               atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary.
 
     A matrix is unitary if it's square and its adjoint is its inverse.
@@ -126,16 +116,16 @@ def is_unitary(
         Whether the matrix is unitary within the given tolerance.
     """
     return (matrix.shape[0] == matrix.shape[1] and
-            np.allclose(matrix.dot(np.conj(matrix.T)), np.eye(matrix.shape[0]),
+            np.allclose(matrix.dot(np.conj(matrix.T)),
+                        np.eye(matrix.shape[0]),
                         rtol=rtol,
                         atol=atol))
 
 
-def is_special_unitary(
-        matrix: np.ndarray,
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> bool:
+def is_special_unitary(matrix: np.ndarray,
+                       *,
+                       rtol: float = 1e-5,
+                       atol: float = 1e-8) -> bool:
     """Determines if a matrix is approximately unitary with unit determinant.
 
     A matrix is special-unitary if it is square and its adjoint is its inverse
@@ -152,6 +142,23 @@ def is_special_unitary(
     return (is_unitary(matrix, rtol=rtol, atol=atol) and
             (matrix.shape[0] == 0 or
              np.allclose(np.linalg.det(matrix), 1, rtol=rtol, atol=atol)))
+
+
+def is_normal(matrix: np.ndarray, *, rtol: float = 1e-5,
+              atol: float = 1e-8) -> bool:
+    """Determines if a matrix is approximately normal.
+
+    A matrix is normal if it's square and commutes with its adjoint.
+
+    Args:
+        matrix: The matrix to check.
+        rtol: The per-matrix-entry relative tolerance on equality.
+        atol: The per-matrix-entry absolute tolerance on equality.
+
+    Returns:
+        Whether the matrix is normal within the given tolerance.
+    """
+    return matrix_commutes(matrix, matrix.T.conj(), rtol=rtol, atol=atol)
 
 
 def matrix_commutes(m1: np.ndarray,
@@ -174,19 +181,16 @@ def matrix_commutes(m1: np.ndarray,
         Whether the two matrices have compatible sizes and a commutator equal
         to zero within tolerance.
   """
-    return (m1.shape[0] == m1.shape[1] and
-            m1.shape == m2.shape and
+    return (m1.shape[0] == m1.shape[1] and m1.shape == m2.shape and
             np.allclose(m1.dot(m2), m2.dot(m1), rtol=rtol, atol=atol))
 
 
-def allclose_up_to_global_phase(
-        a: np.ndarray,
-        b: np.ndarray,
-        *,
-        rtol: float = 1.e-5,
-        atol: float = 1.e-8,
-        equal_nan: bool = False
-) -> bool:
+def allclose_up_to_global_phase(a: np.ndarray,
+                                b: np.ndarray,
+                                *,
+                                rtol: float = 1.e-5,
+                                atol: float = 1.e-8,
+                                equal_nan: bool = False) -> bool:
     """Determines if a ~= b * exp(i t) for some t.
 
     Args:
