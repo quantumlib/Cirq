@@ -48,13 +48,14 @@ class CliffordSimulator(simulator.SimulatesSamples,
         self.init = True
 
     @staticmethod
-    def is_supported_gate(gate: 'cirq.Gate') -> bool:
+    def is_supported_operation(op: 'cirq.Operation') -> bool:
+        """Checks whether given operation can be simulated by this simulator."""
+        if protocols.is_measurement(op): return True
+        gate = op.gate
+        if gate is None: return False
+        if not protocols.has_unitary(gate): return False
         if cirq.unitary(gate).shape == (2, 2):
-            try:
-                CLIFFORD_GATE_DECOMPOSER.decompose(gate)
-                return True
-            except ValueError:
-                return False
+            return CLIFFORD_GATE_DECOMPOSER.can_decompose(gate)
         else:
             return gate in [cirq.CNOT, cirq.CZ]
 
@@ -297,7 +298,7 @@ class CliffordState():
     def wave_function(self):
         return self.ch_form.wave_function()
 
-    def apply_unitary(self, op: 'cirq.Operation'):
+    def apply_unitary(self, op: 'cirq.Operationcirq.Operation'):
         if len(op.qubits) == 1:
             self.apply_single_qubit_unitary(op)
         elif op.gate == cirq.CNOT:
