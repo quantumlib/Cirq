@@ -196,8 +196,8 @@ class AQTSimulator:
                 theta = circuit_list[1]
                 phi = circuit_list[2]
                 qubits = [self.qubit_list[i] for i in circuit_list[3]]
-                self.circuit.append(gate(phase_exponent=phi,
-                                         exponent=theta).on(*qubits))
+                self.circuit.append(
+                    gate(phase_exponent=phi, exponent=theta).on(*qubits))
             else:
                 gate = cast(ops.EigenGate, gate_dict[op_str])
                 angle = circuit_list[1]
