@@ -106,8 +106,9 @@ def merge_single_qubit_gates_into_phased_x_z(
         atol: float = 1e-8) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 
-    Specifically, any run of non-parameterized circuits will be replaced by an
-    optional PhasedX operation followed by an optional Z operation.
+    Specifically, any run of non-parameterized single-qubit gates will be
+    replaced by an optional PhasedX operation followed by an optional Z
+    operation.
 
     Args:
         circuit: The circuit to rewrite. This value is mutated in-place.
@@ -129,8 +130,8 @@ def merge_single_qubit_gates_into_phxz(
 ) -> None:
     """Canonicalizes runs of single-qubit rotations in a circuit.
 
-    Specifically, any run of non-parameterized circuits will be replaced by an
-    optional PhasedXZ operation.
+    Specifically, any run of non-parameterized single-qubit gates will be
+    replaced by an optional PhasedXZ operation.
 
     Args:
         circuit: The circuit to rewrite. This value is mutated in-place.
