@@ -1,38 +1,18 @@
 import numpy as np
 from cirq import protocols, ops
 
-import cirq
-
 from typing import (Tuple)
 
+# All 24 Clifford gates, written as products of H and S gates.
 _ALL_CLIFFORD_GATES = [
-    '', # I
-    'HSSH', # =X
-    'HSSSH',
-    'HSH',
-    'SS', # =Z
-    'HSSHSS', # = -i*Y
-    'SHSSS',
-    'SSSHS',
-    'HSSS',
-    'SHSSSH',
-    'S',
-    'HSSHSSS',
-    'HS',
-    'SSHSSS',
-    'SSS',
-    'HSSHS',
-    'H',
-    'SSH',
-    'SH',
-    'HSHS',
-    'HSS',
-    'SSHSS',
-    'SHSS',
-    'SSSHSS'
+    '', 'HSSH', 'HSSSH', 'HSH', 'SS', 'HSSHSS', 'SHSSS', 'SSSHS', 'HSSS',
+    'SHSSSH', 'S', 'HSSHSSS', 'HS', 'SSHSSS', 'SSS', 'HSSHS', 'H', 'SSH', 'SH',
+    'HSHS', 'HSS', 'SSHSS', 'SHSS', 'SSSHSS'
 ]
 
+
 class CliffordGateDecomposer:
+
     def __init__(self):
         s = protocols.unitary(ops.S)
         h = protocols.unitary(ops.H)
@@ -45,13 +25,24 @@ class CliffordGateDecomposer:
                 elif ch == 'H': result = result @ h
             return result
 
-        self._unitaries = [(name, name_to_unitary(name)) for name in _ALL_CLIFFORD_GATES]
+        # Calculate unitaries for all candidates.
+        self._candidates = [
+            (name, name_to_unitary(name)) for name in _ALL_CLIFFORD_GATES
+        ]
 
-    """
-    Decomposes unitary into SH gates and global phase.
-    Raises ValueError if it's not possible.
-    """
-    def decompose(self, gate : 'cirq.Gate') -> Tuple[str, np.complex128]:
+    def decompose(self, gate: 'ops.Gate') -> Tuple[str, np.complex128]:
+        """Decomposes unitary into S or H gates and global phase.
+
+        Args:
+            gate: Clifford gate to decompose.
+        Returns:
+            Tuple of string and phase (complex number with absolute value 1).
+            String consists exclusively of letters S or H.
+            Given gate is equal to product of S and H gates as specified in the
+            string, multiplied by the phase.
+
+        Raises ValueError if `gate` is not a Clifford gate.
+        """
         unitary = protocols.unitary(gate)
         assert unitary.shape == (2, 2)
 
@@ -61,13 +52,20 @@ class CliffordGateDecomposer:
             else:
                 return matrix1[0, 1] / matrix2[0, 1]
 
-        for name, unitary_candidate in self._unitaries:
-            phase_shift = _possible_phase_shift(unitary, unitary_candidate)
-            if np.allclose(unitary, unitary_candidate * phase_shift):
+        for name, candidate in self._candidates:
+            phase_shift = _possible_phase_shift(unitary, candidate)
+            if np.allclose(unitary, candidate * phase_shift):
                 return name, phase_shift
 
+        raise ValueError('%s cannot be run with Clifford simulator' % str(gate))
 
-        raise ValueError('%s cannot be run with Clifford simulator' %
-                        str(gate))  # type: ignore
+    def can_decompose(self, gate: 'ops.Gate') -> bool:
+        """Checks whether this gate can be decomposed."""
+        try:
+            self.decompose(gate)
+            return True
+        except ValueError:
+            return False
+
 
 CLIFFORD_GATE_DECOMPOSER = CliffordGateDecomposer()

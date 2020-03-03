@@ -357,6 +357,34 @@ def test_clifford_circuit_2(qubits):
     assert sum(result.measurements['0'])[0] > 20
 
 
+def test_clifford_circuit_3():
+    # This test tests the simulator on arbitrary 1-qubit Clifford gates.
+    (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
+    circuit = cirq.Circuit()
+
+    np.random.seed(0)
+
+    def random_clifford_gate():
+        matrix = np.eye(2)
+        for _ in range(10):
+            matrix = matrix @ cirq.unitary(np.random.choice((cirq.H, cirq.S)))
+        matrix *= np.exp(1j * np.random.uniform(0, 2 * np.pi))
+        return cirq.MatrixGate(matrix)
+
+    for _ in range(20):
+        if np.random.randint(5) == 0:
+            circuit.append(cirq.CNOT(q0, q1))
+        else:
+            circuit.append(random_clifford_gate()(np.random.choice((q0, q1))))
+
+    clifford_simulator = cirq.CliffordSimulator()
+    wave_function_simulator = cirq.Simulator()
+
+    np.testing.assert_almost_equal(
+        clifford_simulator.simulate(circuit).final_state.wave_function(),
+        wave_function_simulator.simulate(circuit).final_state)
+
+
 def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
@@ -364,3 +392,13 @@ def test_non_clifford_circuit():
     with pytest.raises(ValueError,
                        match="T cannot be run with Clifford simulator"):
         cirq.CliffordSimulator().simulate(circuit)
+
+
+def test_is_supported_operation():
+    q1, q2 = cirq.LineQubit.range(2)
+    assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))
+    assert cirq.CliffordSimulator.is_supported_operation(cirq.H(q1))
+    assert cirq.CliffordSimulator.is_supported_operation(cirq.CNOT(q1, q2))
+    assert cirq.CliffordSimulator.is_supported_operation(cirq.measure(q1))
+
+    assert not cirq.CliffordSimulator.is_supported_operation(cirq.T(q1))

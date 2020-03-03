@@ -39,9 +39,9 @@ document(
 
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
-    return all(clifford_simulator.CliffordSimulator.is_supported_gate(op.gate)
-               or protocols.is_measurement(op)
-               for op in program.all_operations())
+    return all(
+        clifford_simulator.CliffordSimulator.is_supported_operation(op)
+        for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',
