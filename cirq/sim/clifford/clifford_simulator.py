@@ -298,7 +298,7 @@ class CliffordState():
     def wave_function(self):
         return self.ch_form.wave_function()
 
-    def apply_unitary(self, op: 'cirq.Operationcirq.Operation'):
+    def apply_unitary(self, op: 'cirq.Operation'):
         if len(op.qubits) == 1:
             self.apply_single_qubit_unitary(op)
         elif op.gate == cirq.CNOT:
@@ -312,7 +312,7 @@ class CliffordState():
             self.ch_form._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
         else:
-            raise ValueError('%s cannot be run with Clifford simulator' %
+            raise ValueError('%s cannot be run with Clifford simulator.' %
                              str(op.gate))  # type: ignore
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):

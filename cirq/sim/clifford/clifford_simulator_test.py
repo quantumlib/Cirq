@@ -389,8 +389,18 @@ def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
     circuit.append(cirq.T(q0))
+    with pytest.raises(ValueError, match="T is not a Clifford gate."):
+        cirq.CliffordSimulator().simulate(circuit)
+
+
+def test_gate_not_supported():
+    q = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit()
+    circuit.append(cirq.SWAP(q[0], q[1]))
+
+    # This is a Clifford gate, but it's not supported yet.
     with pytest.raises(ValueError,
-                       match="T cannot be run with Clifford simulator"):
+                       match="SWAP cannot be run with Clifford simulator."):
         cirq.CliffordSimulator().simulate(circuit)
 
 
