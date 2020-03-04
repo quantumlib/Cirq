@@ -85,7 +85,7 @@ FSIM_GATESET = serializable_gate_set.SerializableGateSet(
         MEASUREMENT_DESERIALIZER,
         WAIT_GATE_DESERIALIZER,
     ])
-document(SQRT_ISWAP_GATESET,
+document(FSIM_GATESET,
          """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
 
 # The xmon gate set.

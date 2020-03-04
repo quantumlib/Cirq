@@ -458,8 +458,9 @@ LIMITED_FSIM_SERIALIZERS = [
             op_serializer.SerializingArg(
                 serialized_name='theta',
                 serialized_type=float,
+                # Note that ISWAP ** 0.5 is Fsim(-pi/4,0)
                 op_getter=(lambda op: cast(ops.ISwapPowGate, op.gate).exponent *
-                           np.pi / 2)),
+                           -np.pi / 2)),
             op_serializer.SerializingArg(serialized_name='phi',
                                          serialized_type=float,
                                          op_getter=lambda e: 0)

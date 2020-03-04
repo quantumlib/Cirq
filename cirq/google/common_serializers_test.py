@@ -610,7 +610,8 @@ def test_wait_gate():
 
 
 @pytest.mark.parametrize(('gate', 'theta', 'phi'), [
-    (cirq.ISWAP**0.5, np.pi / 4, 0),
+    (cirq.ISWAP**0.5, -np.pi / 4, 0),
+    (cirq.ISWAP**-0.5, np.pi / 4, 0),
     (cirq.ISWAP**0.0, 0, 0),
     (cirq.FSimGate(theta=0, phi=0), 0, 0),
     (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
