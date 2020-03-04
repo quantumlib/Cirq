@@ -1,22 +1,23 @@
-FROM ubuntu
+FROM python:3-slim
 
-# Install dependencies.
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-     python3-pip python3-tk texlive-latex-base latexmk git emacs vim locales
+# ARG default version is master if no BUILD_CIRQ_TAG
+ARG BUILD_CIRQ_TAG=master
 
-# Configure UTF-8 encoding.
-RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && locale-gen
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8 
+# ARG default value is no editor 
+ARG BUILD_CIRQ_EDITOR=""
+#ARG BUILD_CIRQ_EDITOR="emacs vim nano"
 
-# Make python3 default
-RUN rm -f /usr/bin/python && ln -s /usr/bin/python3 /usr/bin/python
+LABEL maintainer="Martial Rioux <martial.rioux@kloodz.com>"
 
-# Install Cirq with the needed Python libraries.
-RUN pip3 install cirq
+LABEL description="Docker image python3 and cirq:$BUILD_CIRQ_TAG"
 
-RUN git clone -n --depth=1 https://github.com/quantumlib/Cirq  && cd Cirq && git checkout HEAD -- examples && mv examples / && cd .. && rm -r -f Cirq
+RUN apt update && \
+    apt install -y make git $BUILD_CIRQ_EDITOR && \
+    pip install git+https://github.com/quantumlib/Cirq.git@$BUILD_CIRQ_TAG
+
+RUN git clone -n --depth=1 https://github.com/quantumlib/Cirq -b $BUILD_CIRQ_TAG && \
+    (cd Cirq;git checkout HEAD -- examples;mv examples /) && \
+    rm -rf Cirq
 
 WORKDIR /examples
 
