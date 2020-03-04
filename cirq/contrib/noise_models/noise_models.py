@@ -286,7 +286,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
     if depolNoise:
         depol_prob_map = {
             qubit[0]: depol_prob[0] for qubit, depol_prob in
-            calibration['single_qubit_rb_total_error'].items()
+            calibration['single_qubit_rb_pauli_error'].items()
         }
     if dampingNoise:
         # TODO: implement per-gate amplitude damping noise.
