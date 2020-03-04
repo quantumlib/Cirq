@@ -302,12 +302,9 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
             for qubit, t1 in calibration['single_qubit_idle_t1_micros'].items()
         }
     if readoutErrorNoise:
-        # This assumes that p(<1|0>) is negligible for readout timescales.
-        # TODO: add support for qubit-excitation error in readout.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2807
         readout_error_map = {
-            qubit[0]: p0[0] for qubit, p0 in
-            calibration['single_qubit_readout_p0_error'].items()
+            qubit[0]: err[0] for qubit, err in
+            calibration['single_qubit_readout_separation_error'].items()
         }
     return PerQubitDepolarizingWithDampedReadoutNoiseModel(
         depol_prob_map=depol_prob_map,

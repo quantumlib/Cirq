@@ -227,19 +227,19 @@ _CALIBRATION_DATA = Merge(
             double_val: .003
         }]
     }, {
-        name: 'single_qubit_readout_p0_error',
+        name: 'single_qubit_readout_separation_error',
         targets: ['q0_0'],
         values: [{
             double_val: .004
         }]
     }, {
-        name: 'single_qubit_readout_p0_error',
+        name: 'single_qubit_readout_separation_error',
         targets: ['q0_1'],
         values: [{
             double_val: .005
         }]
     }, {
-        name: 'single_qubit_readout_p0_error',
+        name: 'single_qubit_readout_separation_error',
         targets: ['q1_0'],
         values: [{
             double_val: .006
