@@ -22,7 +22,7 @@ def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     eigs, vecs = scipy.linalg.eigh(mat)
     # Zero out small negative entries
     eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
-    return vecs @ np.diag(np.sqrt(eigs)) @ vecs.T.conj()
+    return vecs @ (np.sqrt(eigs) * vecs).T.conj()
 
 
 def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
