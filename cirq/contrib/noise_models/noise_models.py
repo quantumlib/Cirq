@@ -166,6 +166,8 @@ class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
             gated_qubits = [
                 q for q in system_qubits if moment.operates_on_single_qubit(q)
             ]
+            if not gated_qubits:
+                return moment
             return [
                 moment,
                 ops.Moment(
@@ -241,10 +243,11 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
                     q for q in system_qubits
                     if moment.operates_on_single_qubit(q)
                 ]
-                moments.append(
-                    ops.Moment(
-                        ops.DepolarizingChannel(self.depol_prob_map[q])(q)
-                        for q in gated_qubits))
+                if gated_qubits:
+                    moments.append(
+                        ops.Moment(
+                            ops.DepolarizingChannel(self.depol_prob_map[q])(q)
+                            for q in gated_qubits))
             return moments
 
 
@@ -287,6 +290,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         }
     if dampingNoise:
         # TODO: implement per-gate amplitude damping noise.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2807
         raise NotImplementedError('Gate damping is not yet supported.')
 
     if readoutDecayNoise:
@@ -299,6 +303,8 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         }
     if readoutErrorNoise:
         # This assumes that p(<1|0>) is negligible for readout timescales.
+        # TODO: add support for qubit-excitation error in readout.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2807
         readout_error_map = {
             qubit[0]: p0[0] for qubit, p0 in
             calibration['single_qubit_readout_p0_error'].items()
