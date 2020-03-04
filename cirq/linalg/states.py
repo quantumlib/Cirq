@@ -13,13 +13,16 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import (Any, Iterable, List, Optional, Sequence, Union, Tuple, Type,
-                    cast)
+from typing import (Any, Iterable, List, Optional, Sequence, Union,
+                    TYPE_CHECKING, Tuple, Type, cast)
 
 import itertools
 
 import numpy as np
 import scipy.stats
+
+if TYPE_CHECKING:
+    import cirq
 
 STATE_VECTOR_LIKE = Union[
     # Full big-endian computational basis state index.
