@@ -40,7 +40,7 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
     """
     if len(state1.shape) == 1 and len(state2.shape) == 1:
         # Both state vectors
-        return np.abs(np.dot(np.conjugate(state1), state2))**2
+        return np.abs(np.vdot(state1, state2))**2
     elif len(state1.shape) == 1 and len(state2.shape) == 2:
         # state1 is a state vector and state2 is a density matrix
         return np.real(np.conjugate(state1) @ state2 @ state1)
