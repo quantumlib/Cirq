@@ -50,10 +50,11 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
     elif len(state1.shape) == 2 and len(state2.shape) == 2:
         # Both density matrices
         state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
-        return np.real(
-            np.trace(
-                _sqrt_positive_semidefinite_matrix(
-                    state1_sqrt @ state2 @ state1_sqrt))**2)
+        eigs = scipy.linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
+        # Zero out small negative entries
+        eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
+        trace = np.sum(np.sqrt(eigs))
+        return trace**2
     else:
         raise ValueError('The given arrays must be one- or two-dimensional. '
                          f'Got shapes {state1.shape} and {state2.shape}.')
