@@ -223,7 +223,8 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
         moments = []
-        if _homogeneous_moment_is_measurements(moment):
+        if (_homogeneous_moment_is_measurements(moment) or
+                self.is_virtual_moment(moment)):
             if self.decay_prob_map:
                 moments.append(
                     ops.Moment(
