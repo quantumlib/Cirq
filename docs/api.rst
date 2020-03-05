@@ -476,6 +476,7 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
+    cirq.google.FSIM_GATESET
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
