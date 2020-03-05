@@ -427,11 +427,27 @@ def _can_serialize_limited_fsim(theta: float, phi: float):
     # Identity
     if _near_mod_2pi(theta, 0) and _near_mod_2pi(phi, 0):
         return True
-    # sqrt ISWAP and inverse sqrt ISWAP
-    if _near_mod_2pi(abs(theta), np.pi / 4) and _near_mod_2pi(phi, 0):
+    # sqrt ISWAP
+    if _near_mod_2pi(theta, -np.pi / 4) and _near_mod_2pi(phi, 0):
+        return True
+    # inverse sqrt ISWAP
+    if _near_mod_2pi(theta, np.pi / 4) and _near_mod_2pi(phi, 0):
         return True
     # Sycamore
     if _near_mod_2pi(theta, np.pi / 2) and _near_mod_2pi(phi, np.pi / 6):
+        return True
+    return False
+
+
+def _can_serialize_limited_iswap(exponent: float):
+    # Sqrt ISWAP
+    if _near_mod_n(exponent, 0.5, 4):
+        return True
+    # Inverse Sqrt ISWAP
+    if _near_mod_n(exponent, -0.5, 4):
+        return True
+    # Identity
+    if _near_mod_n(exponent, 0.0, 4):
         return True
     return False
 
@@ -465,9 +481,8 @@ LIMITED_FSIM_SERIALIZERS = [
                                          serialized_type=float,
                                          op_getter=lambda e: 0)
         ],
-        can_serialize_predicate=(lambda op: _near_mod_n(
-            abs(cast(ops.ISwapPowGate, op.gate).exponent), 0.5, 4
-        ) or _near_mod_n(cast(ops.ISwapPowGate, op.gate).exponent, 0, 4))),
+        can_serialize_predicate=(lambda op: _can_serialize_limited_iswap(
+            cast(ops.ISwapPowGate, op.gate).exponent))),
 ]
 
 LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(

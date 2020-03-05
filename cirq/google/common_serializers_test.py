@@ -615,7 +615,9 @@ def test_wait_gate():
     (cirq.ISWAP**0.0, 0, 0),
     (cirq.FSimGate(theta=0, phi=0), 0, 0),
     (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
+    (cirq.FSimGate(theta=7 * np.pi / 4, phi=0), 7 * np.pi / 4, 0),
     (cirq.FSimGate(theta=-np.pi / 4, phi=0), -np.pi / 4, 0),
+    (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), -7 * np.pi / 4, 0),
     (cirq.google.SYC, np.pi / 2, np.pi / 6),
     (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
 ])
