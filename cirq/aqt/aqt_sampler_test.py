@@ -185,8 +185,10 @@ def test_aqt_sampler_sim():
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = True
     circuit = Circuit(X(qubits[3])**theta, device=device)
-    circuit.append(PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
-    circuit.append(PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
+    circuit.append(
+        PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
+    circuit.append(
+        PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
