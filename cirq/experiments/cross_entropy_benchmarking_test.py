@@ -96,8 +96,8 @@ def test_cross_entropy_result_depolarizing_model():
     ]
     result = CrossEntropyResult(data=data, repetitions=1000)
     model = result.depolarizing_model()
-    np.testing.assert_allclose(model.coefficient, S, atol=1e-2)
-    np.testing.assert_allclose(model.decay_constant, p, atol=1e-2)
+    np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
+    np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
 
 
 def test_cross_entropy_result_repr():

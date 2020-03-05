@@ -25,27 +25,40 @@ CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
 
 
 @dataclasses.dataclass
-class DepolarizingModel:
-    """A model of depolarizing noise.
+class CrossEntropyDepolarizingModel:
+    """A depolarizing noise model for cross entropy benchmarking.
 
-    A model of a depolarizing process that maps a density matrix ρ as
+    The depolarizing channel maps a density matrix ρ as
 
-        ρ → (S * p^d) ρ + (1 - S * p^d) I / D
+        ρ → p_eff ρ + (1 - p_eff) I / D
 
-    where I / D is the maximally mixed state, S and p are real numbers, and
-    d is the number of iterations of the process. For instance, in a cross
-    entropy benchmarking experiment, d would be the number of cycles, where a
-    cycle consists of a layer of single-qubit gates followed by a layer of
-    two-qubit gates.
+    where I / D is the maximally mixed state and p_eff is between 0 and 1.
+    It is used to model the effect of noise in certain quantum processes.
+    This class models the noise that results from the execution of multiple
+    layers, or cycles, of a random quantum circuit. In this model, p_eff for
+    the whole process is separated into a part that is independent of the number
+    of cycles (representing depolarization from state preparation and
+    measurement errors), and a part that exhibits exponential decay with the
+    number of cycles (representing depolarization from circuit execution
+    errors). So p_eff is modeled as
+
+        p_eff = S * p^d
+
+    where d is the number of cycles, or depth, S is the part that is independent
+    of depth, and p describes the exponential decay with depth. This class
+    stores S and p, as well as possibly the covariance in their estimation from
+    experimental data.
 
     Attributes:
-        coefficient: The value S in the above formula.
-        decay_constant: The value p in the above formula.
-        covariance: The estimated covariance in the estimation of `coefficient`
-            and `decay_constant`, in that order.
+        spam_depolarization: The depolarization constant for state preparation
+            and measurement, i.e., S in p_eff = S * p^d.
+        cycle_depolarization: The depolarization constant for circuit execution,
+            i.e., p in p_eff = S * p^d.
+        covariance: The estimated covariance in the estimation of
+            `spam_depolarization` and `cycle_depolarization`, in that order.
     """
-    coefficient: float
-    decay_constant: float
+    spam_depolarization: float
+    cycle_depolarization: float
     covariance: Optional[np.ndarray] = None
 
 
@@ -88,7 +101,7 @@ class CrossEntropyResult:
             fig.show()
         return ax
 
-    def depolarizing_model(self) -> DepolarizingModel:
+    def depolarizing_model(self) -> CrossEntropyDepolarizingModel:
         """Fit a depolarizing error model for a cycle.
 
         Fits an exponential model f = S * p^d, where d is the number of cycles
@@ -116,9 +129,9 @@ class CrossEntropyResult:
 
         params, covariance = scipy.optimize.curve_fit(f, x, y, p0=p0)
 
-        return DepolarizingModel(coefficient=params[0],
-                                 decay_constant=params[1],
-                                 covariance=covariance)
+        return CrossEntropyDepolarizingModel(spam_depolarization=params[0],
+                                             cycle_depolarization=params[1],
+                                             covariance=covariance)
 
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
