@@ -50,8 +50,7 @@ def _get_xmon_optimizers(tolerance: float, tabulation: Optional[GateTabulation]
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         optimizers.MergeInteractions(tolerance=tolerance,
                                      allow_partial_czs=False).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
-            c, tolerance),
+        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
@@ -66,8 +65,7 @@ def _get_xmon_optimizers_part_cz(tolerance: float,
         convert_to_xmon_gates.ConvertToXmonGates().optimize_circuit,
         optimizers.MergeInteractions(tolerance=tolerance,
                                      allow_partial_czs=True).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
-            c, tolerance),
+        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
@@ -77,8 +75,7 @@ def _get_sycamore_optimizers(tolerance: float,
                             ) -> List[Callable[['cirq.Circuit'], None]]:
     return [
         ConvertToSycamoreGates(tabulation=tabulation).optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
-            c, tolerance),
+        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
@@ -91,8 +88,7 @@ def _get_sqrt_iswap_optimizers(tolerance: float,
         raise ValueError("Gate tabulation not supported for sqrt_iswap")
     return [
         ConvertToSqrtIswapGates().optimize_circuit,
-        lambda c: optimizers.merge_single_qubit_gates_into_phased_x_z(
-            c, tolerance),
+        lambda c: optimizers.merge_single_qubit_gates_into_phxz(c, tolerance),
         *_get_common_cleanup_optimizers(tolerance=tolerance),
     ]
 
