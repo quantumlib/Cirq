@@ -20,12 +20,17 @@ from cirq.google.engine.calibration import (
 
 from cirq.google.engine.engine import (
     Engine,
-    JobConfig,
     ProtoVersion,
 )
 
+from cirq.google.engine.engine_client import (
+    EngineException,)
+
 from cirq.google.engine.engine_job import (
     EngineJob,)
+
+from cirq.google.engine.engine_processor import (
+    EngineProcessor,)
 
 from cirq.google.engine.engine_program import (
     EngineProgram,)

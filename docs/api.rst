@@ -389,9 +389,11 @@ Classes and methods for rewriting circuits.
     cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
+    cirq.merge_single_qubit_gates_into_phxz
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
     cirq.single_qubit_matrix_to_phased_x_z
+    cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
@@ -474,6 +476,7 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
+    cirq.google.FSIM_GATESET
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
@@ -495,12 +498,12 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.DeserializingArg
     cirq.google.Engine
     cirq.google.EngineJob
+    cirq.google.EngineProcessor
     cirq.google.EngineProgram
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
     cirq.google.GreedySequenceSearchStrategy
-    cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
@@ -612,6 +615,7 @@ Algebra and Representation
     cirq.is_diagonal
     cirq.is_hermitian
     cirq.is_negligible_turn
+    cirq.is_normal
     cirq.is_orthogonal
     cirq.is_special_orthogonal
     cirq.is_special_unitary
@@ -634,6 +638,7 @@ Algebra and Representation
     cirq.subwavefunction
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.unitary_eig
     cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition
