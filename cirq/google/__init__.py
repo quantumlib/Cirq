@@ -43,6 +43,7 @@ from cirq.google.engine import (
 
 from cirq.google.gate_sets import (
     XMON,
+    FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
 )
