@@ -234,4 +234,3 @@ def test_aqt_device_wrong_op_str():
     for op in circuit.all_operations():
         with pytest.raises(ValueError):
             _result = get_op_string(op)
-            print(_result)
