@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import X, Z, XX, CNOT, Circuit, study, LineQubit
+from cirq import X, Z, XX, CNOT, PhasedXPowGate, Circuit, study, LineQubit
 from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
 from cirq.aqt.aqt_device import get_aqt_device, get_op_string
 
@@ -185,6 +185,8 @@ def test_aqt_sampler_sim():
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = True
     circuit = Circuit(X(qubits[3])**theta, device=device)
+    circuit.append(PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
+    circuit.append(PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,

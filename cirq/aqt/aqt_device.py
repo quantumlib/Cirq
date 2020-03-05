@@ -132,11 +132,7 @@ class AQTNoiseModel(devices.NoiseModel):
             xtlk_arr[idx] = 0
         xtlk_op_list = []
         op_str = get_op_string(operation)
-        gate: Union[ops.PhasedXPowGate, ops.EigenGate]
-        if op_str == 'R':
-            gate = cast(ops.PhasedXPowGate, gate_dict[op_str])
-        else:
-            gate = cast(ops.EigenGate, gate_dict[op_str])
+        gate = cast(ops.EigenGate, gate_dict[op_str])
         if len(operation.qubits) == 1:
             for idx in xtlk_arr.nonzero()[0]:
                 exponent = operation.gate.exponent  #type:ignore
