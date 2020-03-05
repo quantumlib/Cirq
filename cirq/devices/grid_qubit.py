@@ -43,7 +43,7 @@ class GridQubit(ops.Qid):
 
     def __hash__(self):
         return hash((self.__class__, self._row, self._col))
-    
+
     def _comparison_key(self):
         return self._row, self._col
 
