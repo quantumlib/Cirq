@@ -94,6 +94,9 @@ class QuantumProcessor(object):
         DOWN = 2
         UNAVAILABLE = 3
 
+
+class QuantumTimeSlot(object):
+
     class TimeSlotType(enum.IntEnum):
         """
         -

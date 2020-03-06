@@ -26,7 +26,7 @@ def test_timeslot_equality():
         cg.EngineTimeSlot(start_seconds=start, end_seconds=end),
         cg.EngineTimeSlot(start_seconds=start,
                           end_seconds=end,
-                          slot_type=enums.QuantumProcessor.TimeSlotType.
+                          slot_type=enums.QuantumTimeSlot.TimeSlotType.
                           TIME_SLOT_TYPE_UNSPECIFIED))
     eq.add_equality_group(
         cg.EngineTimeSlot(start_seconds=start,
@@ -36,19 +36,19 @@ def test_timeslot_equality():
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=enums.QuantumProcessor.TimeSlotType.RESERVATION,
+            slot_type=enums.QuantumTimeSlot.TimeSlotType.RESERVATION,
             project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
+            slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
-            slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
+            slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             project_id='123456',
             maintenance_title="Testing",
             maintenance_description="Testing some new configuration."))
