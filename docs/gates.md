@@ -97,7 +97,7 @@ gates for more advanced use cases.
 
 **cirq.MeasurementGate** This is a measurement in the computational basis.
 This gate can be applied to a variable number of qubits.  The function
-`cirq.measure(q0,q1,...)` can also be used as a short-hand to create a
+`cirq.measure(q0, q1, ...)` can also be used as a short-hand to create a
 `MeasurementGate` .
 
 ### Single qubit gates
