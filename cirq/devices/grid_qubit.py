@@ -45,7 +45,7 @@ class GridQubit(ops.Qid):
         if not isinstance(other, GridQubit):
             return NotImplemented
         return self._row == other._row and self._col == other._col
-    
+
     def __hash__(self):
         return hash((self.__class__, self._row, self._col))
 
