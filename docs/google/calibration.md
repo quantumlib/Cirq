@@ -53,9 +53,11 @@ for metric_name in latest_calibration:
 Calibration metrics will also soon be available from the 
 [Google Cloud Platform Console](https://console.cloud.google.com).
 
-## Average, Pauli and Purity Error
+## Average, Pauli and Incoherent Error
 
-Several metrics below define average error, pauli error and purity error.
+Several metrics below define average error, pauli error and incoherent error.
+This section explains the difference between each of those metrics.
+
 The average error is equal to one minus fidelity averaged over all possible
 input states.
 
@@ -70,13 +72,11 @@ See Table 1 on page 11 of the
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
-The [Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) of the
-quantum state is often defined as the trace of the square of the 
-density matrix of the state after the operations have been applied.
-The purity error, or impurity, is one minus the purity, scaled to be from zero
-to one.  This is measured by determining the Bloch vector length and fit to an
-exponential decay function and scaled to estimate the incoherent error per
-Clifford gate.  For more about purity benchmarking, see Section 6.3 of this
+The incoherent error is defined as the decay rate of the
+[Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) 
+when fit to an exponential curve.  This rate is scaled to estimate
+the incoherent error per Clifford gate.  For more about purity benchmarking,
+see Section 6.3 of this
 [thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
 The purity error can be interpreted as a measure of the incoherent error,
@@ -86,7 +86,6 @@ the coherent error resulting from improper control or calibration of the device.
 
 Note that, due to statistical fluctuations, it is possible that the purity
 error can exceed the average error by small amounts.
-
 
 ## Individual Metrics
 
@@ -135,7 +134,7 @@ distributions.
 ### Isolated 1 qubit randomized benchmark error: 
 *   Metric key: single_qubit_rb_average_error
 *   Metric key: single_qubit_rb_pauli_error
-*   Metric key: single_qubit_rb_purity_error
+*   Metric key: single_qubit_rb_incoherent_error
 
 Single qubit gate error is estimated using randomized benchmarking by taking
 sequences of varying length of the 24 gates within the Clifford group
@@ -165,10 +164,10 @@ which is reported in microseconds.
 ### 2-qubit Isolated XEB error
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error
 
 Two qubit error is primarily characterized by applying cross-entropy
 benchmarking (XEB).  This procedure consists of performing a "cycle" of a
@@ -184,10 +183,10 @@ pair of qubits being considered is active.  All other qubits are idle.
 ### 2-qubit Parallel XEB error
 *   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_average_error
 *   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_purity_error
+*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_incoherent_error
 *   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_average_error
 *   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_purity_error
+*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_incoherent_error
 
 These metrics are calculated the same way as the 2-qubit isolated XEB error
 metrics.  However, this metric calculates the error of multiple 2-qubit cycles
