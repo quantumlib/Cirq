@@ -7,7 +7,7 @@ are collected.  This calibration data is stored by Quantum Engine and users can
 then query for the current or previous state of the calibration.
 Calibrations are also available for past jobs.
 
-Calibration objects are a dictionary from metric name (see below) to the value
+A calibration object is a dictionary from metric name (see below) to the value
 of the metric.  Note that the value of the metric is also usually a dictionary
 (for instance, from qubit or qubit pair to a float value).
 
@@ -23,14 +23,14 @@ import cirq.google as cg
 engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 
-# gets the latest calibration metrics
+# Get the latest calibration metrics.
 latest_calibration = processor.get_current_calibration()
 
 # If you know the timestamp of a previous calibration, you can retrieve the
-# calibration using the timestamp in epoch seconds
+# calibration using the timestamp in epoch seconds.
 previous_calibration = processor.get_calibration(CALIBRATION_SECONDS)
 
-# If you would like to find a calibration from a time-frame:
+# If you would like to find a calibration from a time-frame, use this.
 calibration_list = processor.list_calibration(START_SECONDS, END_SECONDS)
 
 # If you know the job-id, you can retrieve the calibration that the job used.
@@ -39,13 +39,13 @@ job = engine.get_job("projects/" + PROJECT_ID
                    + "/jobs/" + JOB_ID)
 job_calibration = cg.EngineJob(cg.JobConfig(), job, engine).get_calibration()
 
-# The calibration can be iterated through using something like this:
+# The calibration can be iterated through using something like the following.
 for metric_name in latest_calibration:
   print(metric_name)
   print('------')
   for qubit_or_pair in latest_calibration[metric_name]:
      # Note that although the value is often singular,
-     # The metric_value is of the type list and can have multiple values     
+     # the metric_value is of the type list and can have multiple values     
      metric_value = latest_calibration[metric_name][qubit_or_pair]
      print(f'{qubit_or_pair} = {metric_value}')
 ```
@@ -56,8 +56,8 @@ Calibration metrics will also soon be available from the
 ## Average, Pauli and Purity Error
 
 Several metrics below define average error, pauli error and purity error.
-The average error measures the error ε_a, averaged over all possible input
-states.  
+The average error is equal to one minus fidelity averaged over all possible
+input states.
 
 Pauli error defines decoherence of a single qubit in one of the Pauli channels
 X, Y, or Z.  If the errors are distributed in a uniform distribution across all
@@ -71,12 +71,12 @@ document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
 The [Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) of the
-quantum state is often defined as the trace of the density matrix of the
-state after the operations (RB or XEB) have been applied.  The purity error,
-or impurity, is one minus the purity, scaled to be from zero to one.  This is
-often referred to as the normalized
+quantum state is often defined as the trace of the square of the 
+density matrix of the state after the operations have been applied.
+The purity error, or impurity, is one minus the purity, scaled to be from zero
+to one.  This is often referred to as the normalized
 [Linear Entropy](https://en.wikipedia.org/wiki/Linear_entropy).
-after the randomized benchmark circuit has been applied.  
+after the circuit has been applied.  
 
 The purity error can be interpreted as a measure of the incoherent error,
 such as those caused by stochastic processes such as relaxation.  The average
@@ -97,7 +97,6 @@ Each metric can be referenced by its key in the calibration object, e.g.
 Note that the metric names below are subject to change without notice.
 
 ### P_00 readout error
-
 *   Metric key: single_qubit_readout_p00_error
 
 The p_00 is defined as the probability that the state is measured as |0⟩ after
@@ -105,7 +104,7 @@ being prepared in the |0⟩ state.  The p_00 error is defined as one minus this
 result.  
 
 There are several sources of error in this model.  This error is primarily
-composed of error in measurement (read out) of the qubit while in the ground
+composed of error in measurement (readout) of the qubit while in the ground
 state.  However, this probability also contains the error than the qubit was not
 reset into the |0⟩ ground state properly.  This is often called the SPAM (state 
 preparation and measurement) error.
@@ -117,7 +116,7 @@ The p_11 is defined as the probability that the state is measured as |1⟩ after
 being prepared in the |1⟩ state.  The p_11 error is defined as one minus this
 result.  
 
-This is dominated by the error in measurement (read out) of the qubit, but it
+This is dominated by the error in measurement (readout) of the qubit, but it
 implicitly contains several different types of error.  Also possible is that the
 excited state |1⟩ was not prepared correctly or that the state decayed before
 measurement.  This error is generally expected to be higher than the P_00 error.
@@ -126,9 +125,9 @@ measurement.  This error is generally expected to be higher than the P_00 error.
 *   Metric key: single_qubit_readout_separation_error
 
 When measured by the system, the |0⟩ and |1⟩ states manifest as outgoing analog
-signals.  These signals must be interpreted as being in one state or the other.
-Since these analog signals are continuous distributions, there will be some
-statistical overlap in the two distributions that would be theoretically
+signals.  These signals must be interpreted as signifying one state or the
+other.  Since these analog signals are continuous distributions, there will be
+some statistical overlap in the two distributions that would be theoretically
 impossible to distinguish.  This is classified as the separation error, and is
 calculated by fitting Gaussian distributions to the signals prepared in the
 |0⟩ state and |1⟩ state and calculating the overlap between the two
@@ -141,9 +140,10 @@ distributions.
 
 Single qubit gate error is estimated using randomized benchmarking by taking
 sequences of varying length of the 24 gates within the Clifford group
-(those that preserve the Pauli group under conjugation) then applying the
-inverse of the expected final state.  The result of this sequence should always
-be identity (|0⟩ state).  The final error is measured and compared against this
+(those that preserve the Pauli group under conjugation) then applying then
+applying the inverse of the unitary equivalent to the executed gate sequence.
+The result of the total sequence should always be the identity (|0⟩ state).
+The final error is measured and compared against this
 state to produce the total error.  This error is calculated for one qubit at a
 time while all other qubits on the device are idle (isolated).  See the
 above section for descriptions of total versus purity error.
@@ -152,7 +152,6 @@ More information about randomized benchmarking can be found in section 6.3
 (page 120) of this
 [thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
- 
 ### T1 
 *   Metric key: single_qubit_idle_t1_micros
 
@@ -165,7 +164,6 @@ An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
 
 ### 2-qubit Isolated XEB error
- 
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
@@ -173,10 +171,11 @@ which is reported in microseconds.
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_purity_error
 
-Two qubit error is primarily characterized by cross-entropy benchmarking (XEB).
-This is computed by performing a "cycle" of a random one-qubit gate on each
-qubit followed by the two qubit entangling gate.  The resulting distribution is
-analyzed and compared to the expected distribution using cross entropy.
+Two qubit error is primarily characterized by applying cross-entropy
+benchmarking (XEB).  This procedure consists of performing a "cycle" of a
+random one-qubit gate on each qubit followed by the two qubit entangling gate.
+The resulting distribution is analyzed and compared to the expected distribution
+using cross entropy.
 
 See the above section for descriptions of total versus purity error.
 
@@ -200,5 +199,3 @@ Since there are many different possible layouts of parallel two-qubit gates
 and each layout may have different cross-talk effects, users may want to perform
 this experiment on their own if they have a specific layout commonly used in
 their experiment.
-
-
