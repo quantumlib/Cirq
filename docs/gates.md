@@ -76,7 +76,7 @@ unitaries and associated probabilities of a mixture can be accessed by
 accessed by `cirq.channel(gate)`. Non-unitary gates are often used in the
 simulation of noise. See [noise documentation](noise.md) for more details.
 
-Many arithmetic operators will also work in the expected way when applied to
+Many arithmetic operators will work in the expected way when applied to
 gates.  For instance, ``cirq.X ** 0.5`` represents a square root of X gate.
 These can also be applied to Operators for a more compact representation, such
 as ``cirq.X(q1) ** 0.5`` will be a square root of X gate applied to the q1
@@ -97,8 +97,8 @@ gates for more advanced use cases.
 
 **cirq.MeasurementGate** This is a measurement in the computational basis.
 This gate can be applied to a variable number of qubits.  The function
-``cirq.measure(q0,q1,...)`` can also be used as a short-hand to create a
-``MeasurementGate`` .
+`cirq.measure(q0,q1,...)` can also be used as a short-hand to create a
+`MeasurementGate` .
 
 ### Single qubit gates
 
@@ -132,32 +132,32 @@ The gate is equivalent to the circuit `───Z^-p───X^t───Z^p─�
 `phase_exponent` and `t` is the `exponent`.
 
 **cirq.H / cirq.HPowGate** The Hadamard gate is a rotation around the X+Z axis.
-``cirq.HPowGate(exponent=t)`` is a variable rotation of t turns around this
+`cirq.HPowGate(exponent=t)` is a variable rotation of t turns around this
 axis. `cirq.H` is a π rotation and is equivalent to
-``cirq.HPowGate(exponent=1)``
+`cirq.HPowGate(exponent=1)`
 
-**S** The square root of Z gate, equivalent to ``cirq.Z ** 0.5``
+**S** The square root of Z gate, equivalent to `cirq.Z ** 0.5`
 
-**T** The fourth root of Z gate, equivalent to ``cirq.Z ** 0.25``.  Often used
-in error correction.
+**T** The fourth root of Z gate, equivalent to `cirq.Z ** 0.25`.  Often used
+in fault-tolerant algoithms.
 
 
-## Two qubit gates
+### Two qubit gates
 
 **cirq.CZ / cirq.CZPowGate** The controlled-Z gate.  A two qubit gate that
 phases the |11⟩ state.  `cirq.CZPowGate(exponent=y)` is equivalent to
 `cirq.CZ**t` and has a matrix representation of ``exp(i pi |11⟩⟨11| t)``.
 
 **cirq.CNOT / cirq.CNotPowGate** The controlled-X gate.  This gate swaps the
-|11⟩ and |10⟩ states.  ``cirq.CNotPowGate(exponent=t)`` is equivalent
-to ``cirq.CNOT ** t`` .
+|11⟩ and |10⟩ states.  `cirq.CNotPowGate(exponent=t)` is equivalent
+to `cirq.CNOT ** t` .
 
 **cirq.SWAP / cirq.SwapPowGate** The swap gate swaps the |01⟩ and |10⟩ states.
-``cirq.SWAP ** t`` is the same as ``cirq.SwapPowGate(exponent = t)``
+`cirq.SWAP ** t` is the same as `cirq.SwapPowGate(exponent = t)`
 
 **cirq.ISWAP / cirq.ISwapPowGate**  The iSwap gate swaps the |01⟩ and |10⟩
-states and adds a relative phase of i.  ``cirq.ISWAP ** t`` is the same as
-``cirq.ISwapPowGate(exponent = t)``
+states and adds a relative phase of i.  `cirq.ISWAP ** t` is the same as
+`cirq.ISwapPowGate(exponent = t)`
 
 **Parity gates**: The gates cirq.XX, cirq.YY, and cirq.ZZ are equivalent to
 performing the equivalent one-qubit Pauli gates on both qubits.  The gates
@@ -196,8 +196,8 @@ in the gate.  For convenience one can use the ``SingleQubitGate``,
 
 Much of cirq relies on "magic methods", which are methods prefixed with one or
 two underscores and used by cirq's protocols or built-in python methods.
-For instance,  python translates ``cirq.Z ** 0.25`` into
-``cirq.Z.__pow__(0.25)``.  Other uses are specific to cirq and are found in the
+For instance,  python translates `cirq.Z ** 0.25` into
+`cirq.Z.__pow__(0.25)`.  Other uses are specific to cirq and are found in the
 protocols subdirectory.  They are defined below.
 
 
