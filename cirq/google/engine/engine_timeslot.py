@@ -26,6 +26,6 @@ class EngineTimeSlot:
     start_seconds: int
     end_seconds: int
     slot_type: enums.QuantumProcessor.TimeSlotType = _DEFAULT_TYPE
-    project_id: Optional[int] = None
+    project_id: Optional[str] = None
     maintenance_title: Optional[str] = None
     maintenance_description: Optional[str] = None

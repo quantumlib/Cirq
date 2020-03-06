@@ -31,24 +31,24 @@ def test_timeslot_equality():
     eq.add_equality_group(
         cg.EngineTimeSlot(start_seconds=start,
                           end_seconds=end,
-                          project_id=12345))
+                          project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
             slot_type=enums.QuantumProcessor.TimeSlotType.RESERVATION,
-            project_id=12345))
+            project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
             slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
-            project_id=12345))
+            project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
             start_seconds=start,
             end_seconds=end,
             slot_type=enums.QuantumProcessor.TimeSlotType.MAINTENANCE,
-            project_id=12345,
+            project_id='123456',
             maintenance_title="Testing",
             maintenance_description="Testing some new configuration."))
