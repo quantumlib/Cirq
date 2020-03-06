@@ -295,6 +295,7 @@ def test_per_qubit_depol_noise_from_data():
         cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
+        cirq.Moment([cirq.Z(qubits[1]).with_tags(ops.VirtualTag())]),
         cirq.Moment([
             cirq.measure(qubits[0], key='q0'),
             cirq.measure(qubits[1], key='q1'),
@@ -314,7 +315,7 @@ def test_per_qubit_depol_noise_from_data():
         cirq.Moment([
             cirq.DepolarizingChannel(0.001).on(qubits[0]),
             cirq.DepolarizingChannel(0.003).on(qubits[2])
-        ]),
+        ]), cirq.Moment([cirq.Z(qubits[1]).with_tags(ops.VirtualTag())]),
         cirq.Moment([
             cirq.measure(qubits[0], key='q0'),
             cirq.measure(qubits[1], key='q1'),

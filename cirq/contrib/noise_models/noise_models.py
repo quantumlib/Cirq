@@ -136,46 +136,6 @@ class DampedReadoutNoiseModel(devices.NoiseModel):
         return moment
 
 
-class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
-    """DepolarizingNoiseModel which allows depolarization probabilities to be
-    specified separately for each qubit.
-
-    Similar to depol_prob in DepolarizingNoiseModel, depol_prob_map should map
-    Qids in the device to their depolarization probability.
-    """
-
-    def __init__(
-            self,
-            depol_prob_map: Dict['cirq.Qid', float],
-    ):
-        """A depolarizing noise model with variable per-qubit noise.
-
-        Args:
-            depol_prob_map: Map of depolarizing probabilities for each qubit.
-        """
-        for qubit, depol_prob in depol_prob_map.items():
-            value.validate_probability(depol_prob, f'depol prob of {qubit}')
-        self.depol_prob_map = depol_prob_map
-
-    def noisy_moment(self, moment: 'cirq.Moment',
-                     system_qubits: Sequence['cirq.Qid']):
-        if (_homogeneous_moment_is_measurements(moment) or
-                self.is_virtual_moment(moment)):
-            return moment
-        else:
-            gated_qubits = [
-                q for q in system_qubits if moment.operates_on_single_qubit(q)
-            ]
-            if not gated_qubits:
-                return moment
-            return [
-                moment,
-                ops.Moment(
-                    ops.DepolarizingChannel(self.depol_prob_map[q])(q)
-                    for q in gated_qubits)
-            ]
-
-
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """DepolarizingWithDampedReadoutNoiseModel which allows probabilities to be
     specified separately for each qubit.
@@ -222,9 +182,10 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']):
+        if self.is_virtual_moment(moment):
+            return moment
         moments = []
-        if (_homogeneous_moment_is_measurements(moment) or
-                self.is_virtual_moment(moment)):
+        if _homogeneous_moment_is_measurements(moment):
             if self.decay_prob_map:
                 moments.append(
                     ops.Moment(
