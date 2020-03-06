@@ -74,9 +74,10 @@ The [Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) of the
 quantum state is often defined as the trace of the square of the 
 density matrix of the state after the operations have been applied.
 The purity error, or impurity, is one minus the purity, scaled to be from zero
-to one.  This is often referred to as the normalized
-[Linear Entropy](https://en.wikipedia.org/wiki/Linear_entropy).
-after the circuit has been applied.  
+to one.  This is measured by determining the Bloch vector length and fit to an
+exponential decay function and scaled to estimate the incoherent error per
+Clifford gate.  For more about purity benchmarking, see Section 6.3 of this
+[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
 The purity error can be interpreted as a measure of the incoherent error,
 such as those caused by stochastic processes such as relaxation.  The average
@@ -86,8 +87,6 @@ the coherent error resulting from improper control or calibration of the device.
 Note that, due to statistical fluctuations, it is possible that the purity
 error can exceed the average error by small amounts.
 
-For more about purity benchmarking, see Section 6.3 of this
-[thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf) .
 
 ## Individual Metrics
 
