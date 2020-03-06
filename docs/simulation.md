@@ -14,6 +14,12 @@ In other words, there are some noisy evolutions
 that are supported by the pure state simulator as long as they
 preserve the purity of the state.
 
+Some external high-performance simulators also provide an interface
+to Cirq. These can sometimes provide results faster than Cirq's
+built-in simulators, especially when working with larger circuits.
+For details on these tools, see the
+[external simulators section](#external-simulators).
+
 ### Introduction to pure state simulation
 
 Here is a simple circuit
@@ -337,3 +343,20 @@ print(np.around(result.final_density_matrix, 3))
 ```
 We see that we have access to the density matrix at the
 end of the simulation via ``final_density_matrix``.
+
+### External simulators
+
+There are a few high-performance circuit simulators which
+provide an interface for simulating Cirq `Circuit`s.
+These projects are listed below, along with their PyPI package
+name and a description of simulator methods that they support.
+
+**Note:** In general, these simulators are optimized for
+specific use cases. Before choosing a simulator, make sure it
+supports the behavior that you need!
+
+| Project name | PyPI package | Description |
+| --- | --- | --- |
+| [qsim](https://github.com/quantumlib/qsim) | qsimcirq | Implements `SimulatesAmplitudes` and `SimulatesFinalState`. Recommended for deep circuits with up to 30 qubits (consumes 8GB RAM). Larger circuits are possible, but RAM usage doubles with each additional qubit. |
+| [qsimh](https://github.com/quantumlib/qsim/blob/master/qsimcirq/qsimh_simulator.py) | qsimcirq | Implements `SimulatesAmplitudes`. Intended for heavy parallelization across several computers; Cirq users should generally prefer one of the other simulators listed here. |
+| [qFlex](https://github.com/ngnrsaa/qflex) | qflexcirq | Implements `SimulatesAmplitudes`. Recommended for shallow / low-entanglement circuits with more than 30 qubits. RAM usage is highly dependent on the number of two-qubit gates in the circuit. |
