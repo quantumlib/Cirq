@@ -13,8 +13,8 @@
 # limitations under the License.
 
 from typing import Dict
-import pytest
 import math
+import pytest
 import numpy as np
 import sympy
 
