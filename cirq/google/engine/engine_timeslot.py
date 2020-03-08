@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
+import datetime
 
 from typing import Optional
 from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
@@ -22,9 +23,19 @@ _DEFAULT_TYPE = enums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 @dataclasses.dataclass(frozen=True)
 class EngineTimeSlot:
     """A python wrapping of a Quantum Engine timeslot.
-  """
-    start_seconds: int
-    end_seconds: int
+
+    Args:
+       start_time: starting datetime of the time slot, usually in local time.
+       end_time: ending datetime of the time slot, usually in local time.
+       slot_type: type of time slot (reservation, open swim, etc)
+       project_id: Google Cloud Platform id of the project, as a string
+       maintenance_title: If a MAINTENANCE period, a string title describing the
+          type of maintenance being done.
+       maintenance_description: If a MAINTENANCE period, a string describing the
+          particulars of the maintenancethe title of the slot
+    """
+    start_time: datetime.datetime
+    end_time: datetime.datetime
     slot_type: enums.QuantumTimeSlot.TimeSlotType = _DEFAULT_TYPE
     project_id: Optional[str] = None
     maintenance_title: Optional[str] = None

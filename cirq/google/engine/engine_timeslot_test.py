@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
+
 import cirq
 import cirq.google as cg
 
@@ -18,36 +20,34 @@ from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
 
 
 def test_timeslot_equality():
-    start = 1582592400
-    end = 1582596000
+    start = datetime.datetime.fromtimestamp(1582592400)
+    end = datetime.datetime.fromtimestamp(1582596000)
     eq = cirq.testing.equals_tester.EqualsTester()
     eq.add_equality_group(
-        cg.EngineTimeSlot(start_seconds=start, end_seconds=end),
-        cg.EngineTimeSlot(start_seconds=start, end_seconds=end),
-        cg.EngineTimeSlot(start_seconds=start,
-                          end_seconds=end,
+        cg.EngineTimeSlot(start_time=start, end_time=end),
+        cg.EngineTimeSlot(start_time=start, end_time=end),
+        cg.EngineTimeSlot(start_time=start,
+                          end_time=end,
                           slot_type=enums.QuantumTimeSlot.TimeSlotType.
                           TIME_SLOT_TYPE_UNSPECIFIED))
     eq.add_equality_group(
-        cg.EngineTimeSlot(start_seconds=start,
-                          end_seconds=end,
-                          project_id='123456'))
+        cg.EngineTimeSlot(start_time=start, end_time=end, project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
-            start_seconds=start,
-            end_seconds=end,
+            start_time=start,
+            end_time=end,
             slot_type=enums.QuantumTimeSlot.TimeSlotType.RESERVATION,
             project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
-            start_seconds=start,
-            end_seconds=end,
+            start_time=start,
+            end_time=end,
             slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             project_id='123456'))
     eq.add_equality_group(
         cg.EngineTimeSlot(
-            start_seconds=start,
-            end_seconds=end,
+            start_time=start,
+            end_time=end,
             slot_type=enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
             project_id='123456',
             maintenance_title="Testing",
