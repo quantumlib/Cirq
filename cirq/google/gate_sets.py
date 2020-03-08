@@ -27,6 +27,8 @@ from cirq.google.common_serializers import (
     SYC_DESERIALIZER,
     SQRT_ISWAP_SERIALIZERS,
     SQRT_ISWAP_DESERIALIZERS,
+    LIMITED_FSIM_SERIALIZERS,
+    LIMITED_FSIM_DESERIALIZER,
     WAIT_GATE_SERIALIZER,
     WAIT_GATE_DESERIALIZER,
 )
@@ -49,7 +51,7 @@ SYC_GATESET = serializable_gate_set.SerializableGateSet(
     ],
 )
 document(SYC_GATESET,
-         """Gate set with fsim(pi/4, pi/6) as the core 2 qubit interaction.""")
+         """Gate set with fsim(pi/2, pi/6) as the core 2 qubit interaction.""")
 
 SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
     gate_set_name='sqrt_iswap',
@@ -68,6 +70,23 @@ SQRT_ISWAP_GATESET = serializable_gate_set.SerializableGateSet(
 document(SQRT_ISWAP_GATESET,
          """Gate set with sqrt(iswap) as the core 2 qubit interaction.""")
 
+
+FSIM_GATESET = serializable_gate_set.SerializableGateSet(
+    gate_set_name='fsim',
+    serializers=[
+        *LIMITED_FSIM_SERIALIZERS,
+        *SINGLE_QUBIT_SERIALIZERS,
+        MEASUREMENT_SERIALIZER,
+        WAIT_GATE_SERIALIZER,
+    ],
+    deserializers=[
+        LIMITED_FSIM_DESERIALIZER,
+        *SINGLE_QUBIT_DESERIALIZERS,
+        MEASUREMENT_DESERIALIZER,
+        WAIT_GATE_DESERIALIZER,
+    ])
+document(FSIM_GATESET,
+         """Gate set that combines sqrt(iswap) and syc as one fsim id.""")
 
 # The xmon gate set.
 XMON = serializable_gate_set.SerializableGateSet(
