@@ -195,6 +195,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineJob',
     'EngineProcessor',
     'EngineProgram',
+    'EngineTimeSlot',
     'QuantumEngineSampler',
 
     # enums
