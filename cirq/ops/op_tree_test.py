@@ -43,13 +43,6 @@ def test_flatten_op_tree():
                                       cirq.Moment(operations[1:5]),
                                       operations[5:]))) == operations
 
-    # Don't flatten moment.
-    assert list(cirq.flatten_op_tree((operations[0],
-                                      cirq.Moment(operations[1:5]),
-                                      operations[5:]), preserve_moments=True)
-                ) == ([operations[0], cirq.Moment(operations[1:5])]
-                      + operations[5:])
-
     # Bad trees.
     with pytest.raises(TypeError):
         _ = list(cirq.flatten_op_tree(None))
@@ -57,6 +50,29 @@ def test_flatten_op_tree():
         _ = list(cirq.flatten_op_tree(5))
     with pytest.raises(TypeError):
         _ = list(cirq.flatten_op_tree([operations[0], (4,)]))
+
+
+def test_flatten_to_ops_or_moments():
+    operations = [
+        cirq.GateOperation(cirq.SingleQubitGate(), [cirq.NamedQubit(str(i))])
+        for i in range(10)
+    ]
+    op_tree = [
+        operations[0],
+        cirq.Moment(operations[1:5]),
+        operations[5:],
+    ]
+    output = [operations[0], cirq.Moment(operations[1:5])] + operations[5:]
+    assert list(cirq.flatten_to_ops_or_moments(op_tree)) == output
+    assert list(cirq.flatten_op_tree(op_tree, preserve_moments=True)) == output
+
+    # Bad trees.
+    with pytest.raises(TypeError):
+        _ = list(cirq.flatten_to_ops_or_moments(None))
+    with pytest.raises(TypeError):
+        _ = list(cirq.flatten_to_ops_or_moments(5))
+    with pytest.raises(TypeError):
+        _ = list(cirq.flatten_to_ops_or_moments([operations[0], (4,)]))
 
 
 def test_freeze_op_tree():
@@ -166,50 +182,6 @@ def test_transform_internal_nodes():
     assert skip_tree_freeze(operations) == tuple(operations[1:])
 
     # Tree.
-    assert (
-        skip_tree_freeze((operations[1:5], operations[0], operations[5:])) ==
-        (operations[0], tuple(operations[6:])))
-
-
-def test_max_qid_shape():
-
-    class QuditGate(cirq.Gate):
-
-        def _qid_shape_(self):
-            return (3, 2, 1)
-
-    qubits = cirq.LineQubit.range(8)
-
-    def make_op_tree():
-        return [
-            cirq.X.on_each(*qubits[:2]),
-            (QuditGate().on(*qubits[i:i + 3]) for i in range(1, 4)),
-        ]
-
-    c = cirq.Circuit.from_ops(make_op_tree())
-
-    assert cirq.max_qid_shape(make_op_tree()) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(c) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              default_level=2) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=(qubits[1],)) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=qubits[:6]) == (2, 3, 3, 3, 2, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubits_that_should_be_present=qubits) == (2, 3, 3,
-                                                                        3, 2, 1,
-                                                                        1, 1)
-    assert cirq.max_qid_shape(
-        make_op_tree(),
-        qubits_that_should_be_present=qubits[::-1]) == (2, 3, 3, 3, 2, 1, 1, 1)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[5::-1]) == (1, 2, 3, 3, 3, 2)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[::-1]) == (1, 1, 1, 2, 3, 3, 3,
-                                                            2)
-    assert cirq.max_qid_shape(make_op_tree(),
-                              qubit_order=qubits[::-1],
-                              default_level=2) == (2, 2, 1, 2, 3, 3, 3, 2)
+    assert (skip_tree_freeze(
+        (operations[1:5], operations[0],
+         operations[5:])) == (operations[0], tuple(operations[6:])))

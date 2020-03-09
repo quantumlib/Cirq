@@ -76,6 +76,32 @@ def test_controlled_operation_init():
     assert c.controls == (cb,)
     assert c.qubits == (cb, q)
     assert c == c.with_qubits(cb, q)
+    assert c.control_values == ((1,),)
+    assert cirq.qid_shape(c) == (2, 2)
+
+    c = cirq.ControlledOperation([cb], v, control_values=[0])
+    assert c.sub_operation == v
+    assert c.controls == (cb,)
+    assert c.qubits == (cb, q)
+    assert c == c.with_qubits(cb, q)
+    assert c.control_values == ((0,),)
+    assert cirq.qid_shape(c) == (2, 2)
+
+    c = cirq.ControlledOperation([cb.with_dimension(3)], v)
+    assert c.sub_operation == v
+    assert c.controls == (cb.with_dimension(3),)
+    assert c.qubits == (cb.with_dimension(3), q)
+    assert c == c.with_qubits(cb.with_dimension(3), q)
+    assert c.control_values == ((1,),)
+    assert cirq.qid_shape(c) == (3, 2)
+
+    with pytest.raises(ValueError,
+                       match=r'len\(control_values\) != len\(controls\)'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[1, 1])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[2])
+    with pytest.raises(ValueError, match='Control values .*outside of range'):
+        _ = cirq.ControlledOperation([cb], v, control_values=[(1, -1)])
 
 
 def test_controlled_operation_eq():
@@ -91,6 +117,13 @@ def test_controlled_operation_eq():
     eq.add_equality_group(cirq.ControlledOperation([c2], cirq.Z(q1)))
     eq.add_equality_group(cirq.ControlledOperation([c1, c2], cirq.Z(q1)),
                           cirq.ControlledOperation([c2, c1], cirq.Z(q1)))
+    eq.add_equality_group(
+        cirq.ControlledOperation([c1, c2.with_dimension(3)],
+                                 cirq.Z(q1),
+                                 control_values=[1, (0, 2)]),
+        cirq.ControlledOperation([c2.with_dimension(3), c1],
+                                 cirq.Z(q1),
+                                 control_values=[(2, 0), 1]))
 
 
 def test_str():
@@ -107,18 +140,36 @@ def test_str():
             pass
         def __str__(self):
             return "Op(q2)"
-    assert (str(cirq.ControlledOperation([c1, c2], SingleQubitOp())) ==
-            "C(c1, c2, Op(q2))")
+
+    assert (str(cirq.ControlledOperation(
+        [c1, c2], SingleQubitOp())) == "CC(c1, c2, Op(q2))")
+
+    assert (str(
+        cirq.ControlledOperation(
+            [c1, c2.with_dimension(3)],
+            SingleQubitOp())) == "CC(c1, c2 (d=3), Op(q2))")
+
+    assert (str(
+        cirq.ControlledOperation(
+            [c1, c2.with_dimension(3)],
+            SingleQubitOp(),
+            control_values=[1, (2, 0)])) == "C1C02(c1, c2 (d=3), Op(q2))")
 
 
 def test_repr():
-    c0, c1, t = cirq.LineQubit.range(3)
+    c0, c1, t, c2 = cirq.LineQubit.range(4)
 
     ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
-    assert (repr(ccz) ==
-            "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
-            "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)))")
+    assert (
+        repr(ccz) == "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
+        "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)), "
+        "control_values=((1,),))")
     cirq.testing.assert_equivalent_repr(ccz)
+
+    c1c02z = cirq.ControlledOperation([c0, c1.with_dimension(3)],
+                                      cirq.CZ(c2, t),
+                                      control_values=[1, (2, 0)])
+    cirq.testing.assert_equivalent_repr(c1c02z)
 
 
 # A contrived multiqubit Hadamard gate that asserts the consistency of
@@ -170,6 +221,24 @@ def test_circuit_diagram():
 2: ───H(2)───
 """)
 
+    qubits = cirq.LineQid.for_qid_shape((3, 3, 3, 2))
+    c = cirq.Circuit()
+    c.append(
+        cirq.ControlledOperation(qubits[:3],
+                                 MultiH(1)(*qubits[3:]),
+                                 control_values=[1, (0, 1), (2, 0)]))
+
+    cirq.testing.assert_has_diagram(
+        c, """
+0 (d=3): ───@────────────
+            │
+1 (d=3): ───(0,1)────────
+            │
+2 (d=3): ───(0,2)────────
+            │
+3 (d=2): ───H(3 (d=2))───
+""")
+
 
 class MockGate(cirq.TwoQubitGate):
 
@@ -210,23 +279,30 @@ def test_non_diagrammable_subop():
 
 @pytest.mark.parametrize('gate', [
     cirq.X(cirq.NamedQubit('q1')),
-    cirq.X(cirq.NamedQubit('q1')) ** 0.5,
-    cirq.Rx(np.pi)(cirq.NamedQubit('q1')),
-    cirq.Rx(np.pi / 2)(cirq.NamedQubit('q1')),
+    cirq.X(cirq.NamedQubit('q1'))**0.5,
+    cirq.rx(np.pi)(cirq.NamedQubit('q1')),
+    cirq.rx(np.pi / 2)(cirq.NamedQubit('q1')),
     cirq.Z(cirq.NamedQubit('q1')),
     cirq.H(cirq.NamedQubit('q1')),
     cirq.CNOT(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.SWAP(cirq.NamedQubit('q1'), cirq.NamedQubit('q2')),
     cirq.CCZ(cirq.NamedQubit('q1'), cirq.NamedQubit('q2'),
              cirq.NamedQubit('q3')),
-    cirq.ControlledGate(cirq.ControlledGate(cirq.CCZ))(
-        *cirq.LineQubit.range(5)),
+    cirq.ControlledGate(cirq.ControlledGate(
+        cirq.CCZ))(*cirq.LineQubit.range(5)),
     GateUsingWorkspaceForApplyUnitary()(cirq.NamedQubit('q1')),
     GateAllocatingNewSpaceForResult()(cirq.NamedQubit('q1')),
 ])
 def test_controlled_operation_is_consistent(gate: cirq.GateOperation):
     cb = cirq.NamedQubit('ctr')
     cgate = cirq.ControlledOperation([cb], gate)
+    cirq.testing.assert_implements_consistent_protocols(cgate)
+
+    cgate = cirq.ControlledOperation([cb], gate, control_values=[0])
+    cirq.testing.assert_implements_consistent_protocols(cgate)
+
+    cb3 = cb.with_dimension(3)
+    cgate = cirq.ControlledOperation([cb3], gate, control_values=[(0, 2)])
     cirq.testing.assert_implements_consistent_protocols(cgate)
 
 
@@ -243,6 +319,30 @@ def test_parameterizable():
 
 
 def test_bounded_effect():
-    qubits = cirq.LineQubit.range(2)
+    qubits = cirq.LineQubit.range(3)
     cy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1]))
     assert cirq.trace_distance_bound(cy ** 0.001) < 0.01
+    foo = sympy.Symbol('foo')
+    scy = cirq.ControlledOperation(qubits[:1], cirq.Y(qubits[1])**foo)
+    assert cirq.trace_distance_bound(scy) == 1.0
+    assert cirq.approx_eq(cirq.trace_distance_bound(cy), 1.0)
+    mock = cirq.ControlledOperation(qubits[:1], MockGate().on(*qubits[1:]))
+    assert cirq.approx_eq(cirq.trace_distance_bound(mock), 1)
+
+
+def test_controlled_operation_gate():
+    gate = cirq.X.controlled(control_values=[0, 1], control_qid_shape=[2, 3])
+    op = gate.on(cirq.LineQubit(0), cirq.LineQid(1, 3), cirq.LineQubit(2))
+    assert op.gate == gate
+
+    class Gateless(cirq.Operation):
+
+        @property
+        def qubits(self):
+            return ()  # coverage: ignore
+
+        def with_qubits(self, *new_qubits):
+            return self  # coverage: ignore
+
+    op = Gateless().controlled_by(cirq.LineQubit(0))
+    assert op.gate is None

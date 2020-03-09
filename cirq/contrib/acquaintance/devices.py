@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, TYPE_CHECKING
 
 import abc
 
-from cirq import circuits, devices, ops, schedules
+from cirq import circuits, devices, ops
 from cirq.contrib.acquaintance.gates import (
     AcquaintanceOpportunityGate, SwapNetworkGate)
 from cirq.contrib.acquaintance.bipartite import (
@@ -26,17 +26,15 @@ from cirq.contrib.acquaintance.shift_swap_network import (
 from cirq.contrib.acquaintance.permutation import (
     PermutationGate)
 
+if TYPE_CHECKING:
+    import cirq
+
 
 class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
-    """A device that contains only acquaintance and permutation gates.
-
-    Raises:
-        NotImplementedError: Any of the schedule-related methods (duration_of,
-            validate_schedule[d_operation]) is called.
-    """
+    """A device that contains only acquaintance and permutation gates."""
     gate_types = (AcquaintanceOpportunityGate, PermutationGate)
 
-    def validate_operation(self, operation: ops.Operation) -> None:
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
         if not (isinstance(operation, ops.GateOperation) and
                 isinstance(operation.gate, self.gate_types)):
             raise ValueError(
@@ -44,21 +42,8 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
                           'ininstance({0!r}.gate, {2!r})'.format(
                         operation, ops.Operation, self.gate_types))
 
-    def duration_of(self, operation):
-        raise NotImplementedError()
 
-    def validate_scheduled_operation(
-            self,
-            schedule: schedules.Schedule,
-            scheduled_operation: schedules.ScheduledOperation
-    ) -> None:
-        raise NotImplementedError()
-
-
-    def validate_schedule(self, schedule: schedules.Schedule) -> None:
-        raise NotImplementedError()
-
-def is_acquaintance_strategy(circuit: circuits.Circuit):
+def is_acquaintance_strategy(circuit: 'cirq.Circuit'):
     return isinstance(circuit._device, AcquaintanceDevice)
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:

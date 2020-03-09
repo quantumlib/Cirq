@@ -44,15 +44,18 @@ for arg in $@; do
         apply_arg="--apply"
     elif [ -z "${rev}" ]; then
         if [ "$(git cat-file -t ${arg} 2> /dev/null)" != "commit" ]; then
-            echo -e "\e[31mNo revision '${arg}'.\e[0m" >&2
+            echo -e "\033[31mNo revision '${arg}'.\033[0m" >&2
             exit 1
         fi
         rev="${arg}"
     else
-        echo -e "\e[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\e[0m" >&2
+        echo -e "\033[31mInvalid arguments. Expected [BASE_REVISION] [--only-changed-files] [--apply-format].\033[0m" >&2
         exit 1
     fi
 done
+
+echo "Running misc"
+check/misc
 
 echo "Running pylint"
 check/pylint
@@ -61,14 +64,14 @@ echo "Running mypy"
 check/mypy
 
 echo "Running incremental format"
-check/format-incremental ${rev} "${apply_arg}"
+check/format-incremental "${rev}" "${apply_arg}"
 
 if [ -z "${only_changed}" ]; then
-    echo "Running pytest on changed files without incremental coverage"
-    check/pytest-changed-files ${rev}
+    echo "Running pytest and incremental coverage on changed files"
+    check/pytest-changed-files-and-incremental-coverage "${rev}"
 else
     echo "Running pytest and incremental coverage"
-    check/pytest-and-incremental-coverage ${rev}
+    check/pytest-and-incremental-coverage "${rev}"
 fi
 
 echo "Running doctest"

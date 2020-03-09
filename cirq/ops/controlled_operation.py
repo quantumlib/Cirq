@@ -11,32 +11,73 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Union, Any, Optional, List, Sequence
+from typing import (
+    cast,
+    Any,
+    Collection,
+    Optional,
+    Sequence,
+    Tuple,
+    Union,
+    TYPE_CHECKING,
+)
 
+import itertools
 import numpy as np
 
 from cirq import protocols, linalg, value
-from cirq.ops import raw_types, gate_operation
+from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @value.value_equality
 class ControlledOperation(raw_types.Operation):
-    def __new__(cls,
-                controls: Sequence[raw_types.Qid],
-                sub_operation: raw_types.Operation):
-        """Auto-flatten nested controlled operations."""
-        if isinstance(sub_operation, ControlledOperation):
-            return ControlledOperation(
-                tuple(controls) + sub_operation.controls,
-                sub_operation.sub_operation)
-        return super().__new__(cls)
+    """Augments existing operations to have one or more control qubits.
+
+    This object is typically created via `operation.controlled_by(*qubits)`.
+    """
 
     def __init__(self,
                  controls: Sequence[raw_types.Qid],
-                 sub_operation: raw_types.Operation):
-        self.controls = tuple(controls)
-        self.sub_operation = sub_operation
+                 sub_operation: 'cirq.Operation',
+                 control_values: Optional[Sequence[
+                     Union[int, Collection[int]]]] = None):
+        if control_values is None:
+            control_values = ((1,),) * len(controls)
+        if len(control_values) != len(controls):
+            raise ValueError('len(control_values) != len(controls)')
+        # Convert to sorted tuples
+        self.control_values = cast(
+            Tuple[Tuple[int, ...], ...],
+            tuple((val,) if isinstance(val, int) else tuple(sorted(val))
+                  for val in control_values))
+        # Verify control values not out of bounds
+        for q, val in zip(controls, self.control_values):
+            if not all(0 <= v < q.dimension for v in val):
+                raise ValueError(
+                    'Control values <{!r}> outside of range for qubit '
+                    '<{!r}>.'.format(val, q))
+
+        if not isinstance(sub_operation, ControlledOperation):
+            self.controls = tuple(controls)
+            self.sub_operation = sub_operation
+        else:
+            # Auto-flatten nested controlled operations.
+            self.controls = tuple(controls) + sub_operation.controls
+            self.sub_operation = sub_operation.sub_operation
+            self.control_values += sub_operation.control_values
+
+    @property
+    def gate(self) -> Optional['cirq.ControlledGate']:
+        if self.sub_operation.gate is None:
+            return None
+        return controlled_gate.ControlledGate(
+            self.sub_operation.gate,
+            control_values=self.control_values,
+            control_qid_shape=[q.dimension for q in self.controls])
 
     @property
     def qubits(self):
@@ -45,46 +86,46 @@ class ControlledOperation(raw_types.Operation):
     def with_qubits(self, *new_qubits):
         n = len(self.controls)
         return ControlledOperation(
-            new_qubits[:n],
-            self.sub_operation.with_qubits(*new_qubits[n:]))
+            new_qubits[:n], self.sub_operation.with_qubits(*new_qubits[n:]),
+            self.control_values)
 
     def _decompose_(self):
         result = protocols.decompose_once(self.sub_operation, NotImplemented)
         if result is NotImplemented:
             return NotImplemented
 
-        return [ControlledOperation(self.controls, op) for op in result]
+        return [
+            ControlledOperation(self.controls, op, self.control_values)
+            for op in result
+        ]
 
     def _value_equality_values_(self):
-        return frozenset(self.controls), self.sub_operation
+        return (frozenset(zip(self.controls,
+                              self.control_values)), self.sub_operation)
 
-    def _apply_unitary_(self, args: protocols.ApplyUnitaryArgs) -> np.ndarray:
+    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
         n = len(self.controls)
-        control_axes = args.axes[:n]
+        sub_n = len(args.axes) - n
         sub_axes = args.axes[n:]
-        active = linalg.slice_for_qubits_equal_to(control_axes, -1)
-        view_axes = _positions_after_removals_at(
-            initial_positions=sub_axes,
-            removals=control_axes)
-        target_view = args.target_tensor[active]
-        buffer_view = args.available_buffer[active]
-        result = protocols.apply_unitary(
-            self.sub_operation,
-            protocols.ApplyUnitaryArgs(
-                target_view,
-                buffer_view,
-                view_axes),
-            default=NotImplemented)
+        for control_vals in itertools.product(*self.control_values):
+            active = (..., *(slice(v, v + 1) for v in control_vals),
+                      *(slice(None),) * sub_n)
+            target_view = args.target_tensor[active]
+            buffer_view = args.available_buffer[active]
+            result = protocols.apply_unitary(self.sub_operation,
+                                             protocols.ApplyUnitaryArgs(
+                                                 target_view, buffer_view,
+                                                 sub_axes),
+                                             default=NotImplemented)
 
-        if result is NotImplemented:
-            return NotImplemented
+            if result is NotImplemented:
+                return NotImplemented
 
-        if result is target_view:
-            return args.target_tensor
+            if result is not target_view:
+                # HACK: assume they didn't somehow escape the slice view and
+                # edit the rest of target_tensor.
+                target_view[...] = result
 
-        # HACK: assume they didn't somehow escape the slice view and edit the
-        # rest of target_tensor.
-        args.target_tensor[active] = result
         return args.target_tensor
 
     def _has_unitary_(self) -> bool:
@@ -94,33 +135,54 @@ class ControlledOperation(raw_types.Operation):
         sub_matrix = protocols.unitary(self.sub_operation, None)
         if sub_matrix is None:
             return NotImplemented
-        return linalg.block_diag(
-                    np.eye(pow(2, len(self.qubits))-sub_matrix.shape[0]),
-                    sub_matrix)
+        qid_shape = protocols.qid_shape(self)
+        sub_n = len(qid_shape) - len(self.controls)
+        tensor = linalg.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
+        sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls):] * 2)
+        for control_vals in itertools.product(*self.control_values):
+            active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
+            tensor[active] = sub_tensor
+        return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
 
     def __str__(self):
+        if set(self.control_values) == {(1,)}:
+
+            def get_prefix(control_vals):
+                return 'C'
+        else:
+
+            def get_prefix(control_vals):
+                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
+
+        prefix = ''.join(map(get_prefix, self.control_values))
         if isinstance(self.sub_operation, gate_operation.GateOperation):
-            return '{}{}({})'.format(
-                'C' * len(self.controls),
-                self.sub_operation.gate,
-                ', '.join(map(str, self.qubits)))
-        return 'C({}, {})'.format(', '.join(str(q) for q in self.controls),
-                                  str(self.sub_operation))
+            return '{}{}({})'.format(prefix, self.sub_operation.gate,
+                                     ', '.join(map(str, self.qubits)))
+        return '{}({}, {})'.format(prefix,
+                                   ', '.join(str(q) for q in self.controls),
+                                   str(self.sub_operation))
 
     def __repr__(self):
-        return ('cirq.ControlledOperation(controls={!r}, '
-                'sub_operation={!r})'.format(self.controls,
-                                             self.sub_operation))
+        return ('cirq.ControlledOperation(controls={!r}, sub_operation={!r}, '
+                'control_values={!r})'.format(self.controls, self.sub_operation,
+                                              self.control_values))
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
 
     def _resolve_parameters_(self, resolver):
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
-        return ControlledOperation(self.controls, new_sub_op)
+        return ControlledOperation(self.controls, new_sub_op,
+                                   self.control_values)
 
-    def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(self.sub_operation)
+    def _trace_distance_bound_(self) -> Optional[float]:
+        if self._is_parameterized_():
+            return None
+        u = protocols.unitary(self.sub_operation, default=None)
+        if u is None:
+            return NotImplemented
+        angle_list = np.append(np.angle(np.linalg.eigvals(u)), 0)
+        return protocols.trace_distance_from_angle_list(angle_list)
 
     def __pow__(self, exponent: Any) -> 'ControlledOperation':
         new_sub_op = protocols.pow(self.sub_operation,
@@ -128,11 +190,11 @@ class ControlledOperation(raw_types.Operation):
                                    NotImplemented)
         if new_sub_op is NotImplemented:
             return NotImplemented
-        return ControlledOperation(self.controls, new_sub_op)
+        return ControlledOperation(self.controls, new_sub_op,
+                                   self.control_values)
 
-    def _circuit_diagram_info_(self,
-                               args: protocols.CircuitDiagramInfoArgs
-                               ) -> Optional[protocols.CircuitDiagramInfo]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Optional['protocols.CircuitDiagramInfo']:
         n = len(self.controls)
 
         sub_args = protocols.CircuitDiagramInfoArgs(
@@ -149,16 +211,23 @@ class ControlledOperation(raw_types.Operation):
         if sub_info is None:
             return NotImplemented
 
-        return protocols.CircuitDiagramInfo(wire_symbols=('@',) * n +
-                                            sub_info.wire_symbols,
-                                            exponent=sub_info.exponent)
+        def get_symbol(vals):
+            if tuple(vals) == (1,):
+                return '@'
+            return '({})'.format(','.join(map(str, vals)))
 
+        wire_symbols = (*(get_symbol(vals) for vals in self.control_values),
+                        *sub_info.wire_symbols)
+        return protocols.CircuitDiagramInfo(
+            wire_symbols=wire_symbols,
+            exponent=sub_info.exponent,
+            exponent_qubit_index=None if sub_info.exponent_qubit_index is None
+            else sub_info.exponent_qubit_index + 1)
 
-def _positions_after_removals_at(initial_positions: Sequence[int],
-                                 removals: Sequence[int]) -> List[int]:
-    # TODO: O(n lg n) instead of O(n**2)
-    result = []
-    for p in initial_positions:
-        change = len([1 for r in removals if r < p])
-        result.append(p - change)
-    return result
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'controls': self.controls,
+            'control_values': self.control_values,
+            'sub_operation': self.sub_operation,
+        }

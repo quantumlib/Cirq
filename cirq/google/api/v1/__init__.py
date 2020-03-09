@@ -13,16 +13,21 @@
 # limitations under the License.
 """Data format v1 for google api."""
 
-from cirq.google.api.v1.params import (sweep_from_proto_dict,
-                                       sweep_to_proto_dict)
+from cirq.google.api.v1 import (
+    operations_pb2,
+    params_pb2,
+    program_pb2,
+)
+
+from cirq.google.api.v1.params import (sweep_from_proto, sweep_to_proto)
 
 from cirq.google.api.v1.programs import (
-    gate_to_proto_dict,
+    gate_to_proto,
     is_native_xmon_gate,
     is_native_xmon_op,
     pack_results,
-    schedule_from_proto_dicts,
-    schedule_to_proto_dicts,
+    circuit_as_schedule_to_protos,
+    circuit_from_schedule_from_protos,
     unpack_results,
-    xmon_op_from_proto_dict,
+    xmon_op_from_proto,
 )

@@ -17,6 +17,7 @@ from typing import Sequence
 import pytest
 
 import cirq
+from cirq import ops
 
 
 def _assert_equivalent_op_tree(x: cirq.OP_TREE, y: cirq.OP_TREE):
@@ -50,44 +51,52 @@ def test_infers_other_methods():
             result = []
             for moment in moments:
                 if moment.operations:
-                    result.append(cirq.X(moment.operations[0].qubits[0]))
+                    result.append(
+                        cirq.X(moment.operations[0].qubits[0]).with_tags(
+                            ops.VirtualTag()))
                 else:
                     result.append([])
             return result
 
     a = NoiseModelWithNoisyMomentListMethod()
-    _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)), cirq.X(q))
+    _assert_equivalent_op_tree(a.noisy_operation(cirq.H(q)),
+                               cirq.X(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(a.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.X(q))
+                               cirq.X(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         a.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.X(q)])
+        [[], cirq.X(q).with_tags(ops.VirtualTag())])
 
     class NoiseModelWithNoisyMomentMethod(cirq.NoiseModel):
 
         def noisy_moment(self, moment, system_qubits):
-            return cirq.Y.on_each(*moment.qubits)
+            return [
+                y.with_tags(ops.VirtualTag())
+                for y in cirq.Y.on_each(*moment.qubits)
+            ]
 
     b = NoiseModelWithNoisyMomentMethod()
-    _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)), cirq.Y(q))
+    _assert_equivalent_op_tree(b.noisy_operation(cirq.H(q)),
+                               cirq.Y(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(b.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.Y(q))
+                               cirq.Y(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         b.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.Y(q)])
+        [[], cirq.Y(q).with_tags(ops.VirtualTag())])
 
     class NoiseModelWithNoisyOperationMethod(cirq.NoiseModel):
 
         def noisy_operation(self, operation: 'cirq.Operation'):
-            return cirq.Z(operation.qubits[0])
+            return cirq.Z(operation.qubits[0]).with_tags(ops.VirtualTag())
 
     c = NoiseModelWithNoisyOperationMethod()
-    _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)), cirq.Z(q))
+    _assert_equivalent_op_tree(c.noisy_operation(cirq.H(q)),
+                               cirq.Z(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree(c.noisy_moment(cirq.Moment([cirq.H(q)]), [q]),
-                               cirq.Z(q))
+                               cirq.Z(q).with_tags(ops.VirtualTag()))
     _assert_equivalent_op_tree_sequence(
         c.noisy_moments([cirq.Moment(), cirq.Moment([cirq.H(q)])], [q]),
-        [[], cirq.Z(q)])
+        [[], cirq.Z(q).with_tags(ops.VirtualTag())])
 
 
 def test_no_noise():
@@ -105,11 +114,89 @@ def test_constant_qubit_noise():
     a, b, c = cirq.LineQubit.range(3)
     damp = cirq.amplitude_damp(0.5)
     damp_all = cirq.ConstantQubitNoiseModel(damp)
-    assert damp_all.noisy_moments(
-        [cirq.Moment([cirq.X(a)]), cirq.Moment()],
-        [a, b, c]) == [[cirq.X(a), damp(a),
-                        damp(b), damp(c)], [damp(a), damp(b),
-                                            damp(c)]]
+    actual = damp_all.noisy_moments(
+        [cirq.Moment([cirq.X(a)]), cirq.Moment()], [a, b, c])
+    expected = [
+        [
+            cirq.Moment([cirq.X(a)]),
+            cirq.Moment(
+                d.with_tags(ops.VirtualTag())
+                for d in [damp(a), damp(b), damp(c)]),
+        ],
+        [
+            cirq.Moment(),
+            cirq.Moment(
+                d.with_tags(ops.VirtualTag())
+                for d in [damp(a), damp(b), damp(c)]),
+        ],
+    ]
+    assert actual == expected
+    cirq.testing.assert_equivalent_repr(damp_all)
 
     with pytest.raises(ValueError, match='num_qubits'):
         _ = cirq.ConstantQubitNoiseModel(cirq.CNOT**0.01)
+
+
+def test_noise_composition():
+    # Verify that noise models can be composed without regard to ordering, as
+    # long as the noise operators commute with one another.
+    a, b, c = cirq.LineQubit.range(3)
+    noise_z = cirq.ConstantQubitNoiseModel(cirq.Z)
+    noise_inv_s = cirq.ConstantQubitNoiseModel(cirq.S**-1)
+    merge = cirq.optimizers.merge_single_qubit_gates_into_phased_x_z
+    base_moments = [
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Y(b)]),
+        cirq.Moment([cirq.H(c)])
+    ]
+    circuit_z = cirq.Circuit(noise_z.noisy_moments(base_moments, [a, b, c]))
+    circuit_s = cirq.Circuit(noise_inv_s.noisy_moments(base_moments, [a, b, c]))
+    actual_zs = cirq.Circuit(
+        noise_inv_s.noisy_moments(circuit_z.moments, [a, b, c]))
+    actual_sz = cirq.Circuit(noise_z.noisy_moments(circuit_s.moments,
+                                                   [a, b, c]))
+
+    expected_circuit = cirq.Circuit(
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
+        cirq.Moment([cirq.Y(b)]),
+        cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
+        cirq.Moment([cirq.H(c)]),
+        cirq.Moment([cirq.S(a), cirq.S(b), cirq.S(c)]),
+    )
+
+    # All of the gates will be the same, just out of order. Merging fixes this.
+    merge(actual_zs)
+    merge(actual_sz)
+    merge(expected_circuit)
+    _assert_equivalent_op_tree(actual_zs, actual_sz)
+    _assert_equivalent_op_tree(actual_zs, expected_circuit)
+
+
+def test_constant_qubit_noise_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.ConstantQubitNoiseModel(cirq.X**0.01))
+
+
+def test_wrap():
+
+    class Forget(cirq.NoiseModel):
+
+        def noisy_operation(self, operation):
+            raise NotImplementedError()
+
+    forget = Forget()
+
+    assert cirq.NoiseModel.from_noise_model_like(None) is cirq.NO_NOISE
+    assert (cirq.NoiseModel.from_noise_model_like(
+        cirq.depolarize(0.1)) == cirq.ConstantQubitNoiseModel(
+            cirq.depolarize(0.1)))
+    assert (cirq.NoiseModel.from_noise_model_like(
+        cirq.Z**0.01) == cirq.ConstantQubitNoiseModel(cirq.Z**0.01))
+    assert cirq.NoiseModel.from_noise_model_like(forget) is forget
+
+    with pytest.raises(TypeError, match='Expected a NOISE_MODEL_LIKE'):
+        _ = cirq.NoiseModel.from_noise_model_like('test')
+
+    with pytest.raises(ValueError, match='Multi-qubit gate'):
+        _ = cirq.NoiseModel.from_noise_model_like(cirq.CZ**0.01)

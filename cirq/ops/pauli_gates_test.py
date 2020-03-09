@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+
 import numpy as np
 import pytest
 import cirq
@@ -25,14 +27,17 @@ def test_equals():
 
 
 def test_phased_pauli_product():
+    assert cirq.X.phased_pauli_product(cirq.I) == (1, cirq.X)
     assert cirq.X.phased_pauli_product(cirq.X) == (1, cirq.I)
     assert cirq.X.phased_pauli_product(cirq.Y) == (1j, cirq.Z)
     assert cirq.X.phased_pauli_product(cirq.Z) == (-1j, cirq.Y)
 
+    assert cirq.Y.phased_pauli_product(cirq.I) == (1, cirq.Y)
     assert cirq.Y.phased_pauli_product(cirq.X) == (-1j, cirq.Z)
     assert cirq.Y.phased_pauli_product(cirq.Y) == (1, cirq.I)
     assert cirq.Y.phased_pauli_product(cirq.Z) == (1j, cirq.X)
 
+    assert cirq.Z.phased_pauli_product(cirq.I) == (1, cirq.Z)
     assert cirq.Z.phased_pauli_product(cirq.X) == (1j, cirq.Y)
     assert cirq.Z.phased_pauli_product(cirq.Y) == (-1j, cirq.X)
     assert cirq.Z.phased_pauli_product(cirq.Z) == (1, cirq.I)
@@ -171,16 +176,12 @@ def test_third():
     assert cirq.Z.third(cirq.Z) == cirq.Z
 
 
-def test_commutes_with():
-    assert cirq.X.commutes_with(cirq.X)
-    assert not cirq.X.commutes_with(cirq.Y)
-    assert not cirq.X.commutes_with(cirq.Z)
-    assert not cirq.Y.commutes_with(cirq.X)
-    assert cirq.Y.commutes_with(cirq.Y)
-    assert not cirq.Y.commutes_with(cirq.Z)
-    assert not cirq.Z.commutes_with(cirq.X)
-    assert not cirq.Z.commutes_with(cirq.Y)
-    assert cirq.Z.commutes_with(cirq.Z)
+def test_commutes():
+    for A, B in itertools.product([cirq.X, cirq.Y, cirq.Z], repeat=2):
+        assert cirq.commutes(A, B) == (A == B)
+    with pytest.raises(TypeError):
+        assert cirq.commutes(cirq.X, 'X')
+    assert cirq.commutes(cirq.X, 'X', default='default') == 'default'
 
 
 def test_unitary():
@@ -193,6 +194,20 @@ def test_apply_unitary():
     cirq.testing.assert_has_consistent_apply_unitary(cirq.X)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Y)
     cirq.testing.assert_has_consistent_apply_unitary(cirq.Z)
+
+
+def test_identity_multiplication():
+    a, b, c = cirq.LineQubit.range(3)
+    assert cirq.X(a) * cirq.I(a) == cirq.X(a)
+    assert cirq.X(a) * cirq.I(b) == cirq.X(a)
+    assert cirq.X(a) * cirq.Y(b) * cirq.I(c) == cirq.X(a) * cirq.Y(b)
+    assert cirq.I(c) * cirq.X(a) * cirq.Y(b) == cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.H(c) * cirq.X(a) * cirq.Y(b)
+    with pytest.raises(TypeError):
+        _ = cirq.X(a) * cirq.Y(b) * cirq.H(c)
+    with pytest.raises(TypeError):
+        _ = cirq.I(a) * str(cirq.Y(b))
 
 
 def test_powers():

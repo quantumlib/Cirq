@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, cast, TYPE_CHECKING
+from typing import List, Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -24,8 +24,7 @@ from cirq.circuits.optimization_pass import (
 )
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import List
+    import cirq
 
 
 class ConvertToPauliStringPhasors(PointOptimizer):
@@ -56,12 +55,11 @@ class ConvertToPauliStringPhasors(PointOptimizer):
         self.keep_clifford = keep_clifford
         self.atol = atol
 
-    def _matrix_to_pauli_string_phasors(self,
-                                        mat: np.ndarray,
-                                        qubit: ops.Qid) -> ops.OP_TREE:
+    def _matrix_to_pauli_string_phasors(self, mat: np.ndarray,
+                                        qubit: 'cirq.Qid') -> ops.OP_TREE:
         rotations = optimizers.single_qubit_matrix_to_pauli_rotations(
             mat, self.atol)
-        out_ops = []  # type: List[ops.Operation]
+        out_ops: List[ops.Operation] = []
         for pauli, half_turns in rotations:
             if (self.keep_clifford
                     and linalg.all_near_zero_mod(half_turns, 0.5)):
@@ -76,9 +74,8 @@ class ConvertToPauliStringPhasors(PointOptimizer):
                     out_ops.append(
                         cliff_gate(qubit))
             else:
-                pauli_string = ops.PauliString.from_single(qubit, pauli)
                 out_ops.append(
-                    ops.PauliStringPhasor(pauli_string,
+                    ops.PauliStringPhasor(ops.PauliString(pauli.on(qubit)),
                                           exponent_neg=round(half_turns, 10)))
         return out_ops
 

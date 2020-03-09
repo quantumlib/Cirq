@@ -69,9 +69,15 @@ def run_tests(file_paths: Iterable[str],
         include_local: If True, the file under test is imported as a python
             module (only if the file extension is .py) and all globals defined
             in the file may be used by the snippets.
+        quiet: Determines if progress output is shown.
 
     Returns: A tuple with the results: (# tests failed, # tests attempted)
     """
+
+    # Ignore calls to `plt.show()`.
+    import matplotlib.pyplot as plt
+    plt.switch_backend('pdf')
+
     tests = load_tests(file_paths,
                        include_modules=include_modules,
                        include_local=include_local,
@@ -201,6 +207,10 @@ def main():
     quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
 
     file_names = glob.glob('cirq/**/*.py', recursive=True)
+    # Remove the engine client code.
+    file_names = [
+        f for f in file_names if not f.startswith('cirq/google/engine/client/')
+    ]
     failed, attempted = run_tests(file_names,
                                   include_modules=True,
                                   include_local=False,

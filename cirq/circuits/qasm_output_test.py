@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import re
-
+import os
 import numpy as np
 import pytest
 
@@ -27,7 +27,8 @@ def _make_qubits(n):
 
 def test_u_gate_repr():
     gate = QasmUGate(0.1, 0.2, 0.3)
-    assert repr(gate) == 'cirq.QasmUGate(0.1, 0.2, 0.3)'
+    assert repr(gate) == ('cirq.circuits.qasm_output.QasmUGate('
+                          'theta=0.1, phi=0.2, lmda=0.3)')
 
 
 def test_u_gate_eq():
@@ -50,6 +51,8 @@ def test_qasm_u_qubit_gate_unitary():
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(g),
                                                     u,
                                                     atol=1e-7)
+
+    cirq.testing.assert_implements_consistent_protocols(g)
 
 
 def test_qasm_two_qubit_gate_unitary():
@@ -189,13 +192,13 @@ def test_version():
         _ = str(output)
 
 
-def test_save_to_file():
+def test_save_to_file(tmpdir):
+    file_path = os.path.join(tmpdir, 'test.qasm')
     q0, = _make_qubits(1)
     output = cirq.QasmOutput((), (q0,))
-    with cirq.testing.TempFilePath() as file_path:
-        output.save(file_path)
-        with open(file_path, 'r') as f:
-            file_content = f.read()
+    output.save(file_path)
+    with open(file_path, 'r') as f:
+        file_content = f.read()
     assert (file_content ==
             """OPENQASM 2.0;
 include "qelib1.inc";
@@ -284,7 +287,7 @@ def test_output_unitary_same_as_qiskit():
                              precision=10)
     text = str(output)
 
-    circuit = cirq.Circuit.from_ops(operations)
+    circuit = cirq.Circuit(operations)
     cirq_unitary = circuit.unitary(qubit_order=qubits)
     cq.assert_qiskit_parsed_qasm_consistent_with_unitary(text, cirq_unitary)
 
@@ -292,8 +295,8 @@ def test_output_unitary_same_as_qiskit():
 def test_fails_on_big_unknowns():
     class UnrecognizedGate(cirq.ThreeQubitGate):
         pass
-    c = cirq.Circuit.from_ops(
-        UnrecognizedGate().on(*cirq.LineQubit.range(3)))
+
+    c = cirq.Circuit(UnrecognizedGate().on(*cirq.LineQubit.range(3)))
     with pytest.raises(ValueError, match='Cannot output operation as QASM'):
         _ = c.to_qasm()
 

@@ -12,14 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Tuple, TypeVar, Union
+from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
 
+from cirq import ops
+from cirq._doc import document
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    # pylint: disable=unused-import
     import cirq
 
 # This is a special indicator value used by the methods to determine whether or
@@ -38,6 +39,7 @@ class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
+    @document
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
         """A tuple specifying the number of quantum levels of each qid this
         object operates on, e.g. (2, 2, 2) for a three-qubit gate.
@@ -56,8 +58,8 @@ class SupportsExplicitQidShape(Protocol):
         `qubits` attribute.
 
         Returns:
-            A unitary matrix describing this value, or NotImplemented if the
-            shape is unknown.
+            The qid shape of this value, or NotImplemented if the shape is
+            unknown.
         """
 
 
@@ -65,6 +67,7 @@ class SupportsExplicitNumQubits(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number of qubits."""
 
+    @document
     def _num_qubits_(self) -> Union[int, NotImplementedType]:
         """The number of qubits, qudits, or qids this object operates on.
 
@@ -106,6 +109,10 @@ def qid_shape(val: Any, default: TDefault = RaiseTypeErrorIfNotProvided
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented:
         return result
+
+    # Check if val is a list of qids
+    if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
+        return tuple(q.dimension for q in val)
 
     # Fallback to _num_qubits_
     num_getter = getattr(val, '_num_qubits_', None)
@@ -159,6 +166,10 @@ def num_qubits(val: Any, default: TDefault = RaiseTypeErrorIfNotProvidedInt
     shape = NotImplemented if getter is None else getter()
     if shape is not NotImplemented:
         return len(shape)
+
+    # Check if val is a list of qids
+    if isinstance(val, Sequence) and all(isinstance(q, ops.Qid) for q in val):
+        return len(val)
 
     if default is not RaiseTypeErrorIfNotProvidedInt:
         return default

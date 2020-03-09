@@ -45,12 +45,11 @@ def test_clears_small():
 
 def test_clears_known_empties_even_at_zero_tolerance():
     a, b = cirq.LineQubit.range(2)
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         cirq.Z(a)**0,
         cirq.Y(a)**0.0000001,
         cirq.X(a)**-0.0000001,
-        cirq.CZ(a, b)**0
-    )
+        cirq.CZ(a, b)**0)
     assert_optimizes(optimizer=cirq.DropNegligible(tolerance=0.001),
                      initial_circuit=circuit,
                      expected_circuit=cirq.Circuit([cirq.Moment()] * 4))

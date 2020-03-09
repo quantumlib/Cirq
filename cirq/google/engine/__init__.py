@@ -15,10 +15,28 @@
 """Client for running on Google's Quantum Engine.
 """
 
+from cirq.google.engine.calibration import (
+    Calibration,)
+
 from cirq.google.engine.engine import (
     Engine,
-    JobConfig,
+    ProtoVersion,
 )
+
+from cirq.google.engine.engine_client import (
+    EngineException,)
+
+from cirq.google.engine.engine_job import (
+    EngineJob,)
+
+from cirq.google.engine.engine_processor import (
+    EngineProcessor,)
+
+from cirq.google.engine.engine_timeslot import (
+    EngineTimeSlot,)
+
+from cirq.google.engine.engine_program import (
+    EngineProgram,)
 
 from cirq.google.engine.engine_sampler import (
     QuantumEngineSampler,)
