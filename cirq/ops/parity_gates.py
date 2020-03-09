@@ -124,7 +124,15 @@ class XXPowGate(eigen_gate.EigenGate,
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Y-parity gate, possibly raised to a power."""
+    """The Y-parity gate, possibly raised to a power.
+    
+        At exponent=1, this gate implements the following unitary:
+
+        Y⊗Y = [ 0  0  0 -1]
+              [ 0  0  1  0]
+              [ 0  1  0  0]
+              [-1  0  0  0]
+    """
 
     def _eigen_components(self):
         return [
