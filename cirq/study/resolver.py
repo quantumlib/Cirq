@@ -15,15 +15,23 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Dict, Union, TYPE_CHECKING, cast
-
 import sympy
+from cirq._compat import proper_repr
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-# Things that ParamResolver understands how to wrap.
-ParamResolverOrSimilarType = Union['cirq.ParamResolver', Dict[str, float], None]
+ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
+document(
+    ParamDictType,  # type: ignore
+    """Dictionary from symbols to values.""")
+
+ParamResolverOrSimilarType = Union['cirq.ParamResolver', ParamDictType, None]
+document(
+    ParamResolverOrSimilarType,  # type: ignore
+    """Something that can be used to turn parameters into values.""")
 
 
 class ParamResolver(object):
@@ -39,25 +47,35 @@ class ParamResolver(object):
             assigned value.
     """
 
-    def __new__(cls, param_dict: ParamResolverOrSimilarType = None):
+    def __new__(cls, param_dict: 'cirq.ParamResolverOrSimilarType' = None):
         if isinstance(param_dict, ParamResolver):
             return param_dict
         return super().__new__(cls)
 
-    def __init__(self, param_dict: ParamResolverOrSimilarType = None) -> None:
-        if hasattr(self, '_param_hash'):
+    def __init__(self,
+                 param_dict: 'cirq.ParamResolverOrSimilarType' = None) -> None:
+        if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self.param_dict = cast(Dict[str, float],
+        self._param_hash = None
+        self.param_dict = cast(ParamDictType,
                                {} if param_dict is None else param_dict)
-        self._param_hash = hash(frozenset(self.param_dict.items()))
 
-    def value_of(
-            self,
-            value: Union[sympy.Basic, float, str]
-    ) -> Union[sympy.Basic, float]:
-        """Attempt to resolve a Symbol or name or float to its assigned value.
+    def value_of(self,
+                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
+        """Attempt to resolve a Symbol, string, or float to its assigned value.
 
+        Floats are returned without modification.  Strings are resolved via
+        the parameter dictionary with exact match only.  Otherwise, strings
+        are considered to be sympy.Symbols with the name as the input string.
+
+        sympy.Symbols are first checked for exact match in the parameter
+        dictionary.  Otherwise, the symbol is resolved using sympy substitution.
+
+        Note that passing a formula to this resolver can be slow due to the
+        underlying sympy library.  For circuits relying on quick performance,
+        it is recommended that all formulas are flattened before-hand using
+        cirq.flatten or other means so that formula resolution is avoided.
         If unable to resolve a sympy.Symbol, returns it unchanged.
         If unable to resolve a name, returns a sympy.Symbol with that name.
 
@@ -68,8 +86,37 @@ class ParamResolver(object):
         Returns:
             The value of the parameter as resolved by this resolver.
         """
+        # Input is a float, no resolution needed: return early
+        if isinstance(value, float):
+            return value
+
+        # Handles 2 cases:
+        # Input is a string and maps to a number in the dictionary
+        # Input is a symbol and maps to a number in the dictionary
+        # In both cases, return it directly.
+        if value in self.param_dict:
+            param_value = self.param_dict[value]
+            if isinstance(param_value, (float, int)):
+                return param_value
+
+        # Input is a string and is not in the dictionary.
+        # Treat it as a symbol instead.
         if isinstance(value, str):
-            return self.param_dict.get(value, sympy.Symbol(value))
+            # If the string is in the param_dict as a value, return it.
+            # Otherwise, try using the symbol instead.
+            return self.value_of(sympy.Symbol(value))
+
+        # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
+        # in the dictionary ({'a': 1.0}).  Return it.
+        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
+            param_value = self.param_dict[value.name]
+            if isinstance(param_value, (float, int)):
+                return param_value
+
+        # Input is either a sympy formula or the dictionary maps to a
+        # formula.  Use sympy to resolve the value.
+        # Note that sympy.subs() is slow, so we want to avoid this and
+        # only use it for cases that require complicated resolution.
         if isinstance(value, sympy.Basic):
             v = value.subs(self.param_dict)
             if v.free_symbols:
@@ -78,7 +125,12 @@ class ParamResolver(object):
                 return complex(v)
             else:
                 return float(v)
+
+        # No known way to resolve this variable, return unchanged.
         return value
+
+    def __iter__(self):
+        return iter(self.param_dict)
 
     def __bool__(self):
         return bool(self.param_dict)
@@ -87,6 +139,8 @@ class ParamResolver(object):
         return self.value_of(key)
 
     def __hash__(self):
+        if self._param_hash is None:
+            self._param_hash = hash(frozenset(self.param_dict.items()))
         return self._param_hash
 
     def __eq__(self, other):
@@ -98,4 +152,19 @@ class ParamResolver(object):
         return not self == other
 
     def __repr__(self):
-        return 'cirq.ParamResolver({})'.format(repr(self.param_dict))
+        param_dict_repr = ('{' + ', '.join([
+            f'{proper_repr(k)}: {proper_repr(v)}'
+            for k, v in self.param_dict.items()
+        ]) + '}')
+        return 'cirq.ParamResolver({})'.format(param_dict_repr)
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have keys of basic types.
+            'param_dict': list(self.param_dict.items())
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, param_dict, **kwargs):
+        return cls(dict(param_dict))

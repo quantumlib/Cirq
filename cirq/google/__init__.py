@@ -14,24 +14,21 @@
 
 from cirq.google import api
 
-from cirq.google.api.v1.params import (
-    sweep_to_proto_dict,
-    sweep_from_proto_dict,
-)
-
 from cirq.google.api.v1.programs import (
-    gate_to_proto_dict,
     is_native_xmon_gate,
     is_native_xmon_op,
     pack_results,
-    schedule_from_proto_dicts,
-    schedule_to_proto_dicts,
     unpack_results,
-    xmon_op_from_proto_dict,
 )
 
-from cirq.google.convert_to_xmon_gates import (
-    ConvertToXmonGates,)
+from cirq.google.devices import (
+    Bristlecone,
+    Foxtail,
+    SerializableDevice,
+    Sycamore,
+    Sycamore23,
+    XmonDevice,
+)
 
 from cirq.google.engine import (
     Calibration,
@@ -39,17 +36,17 @@ from cirq.google.engine import (
     engine_from_environment,
     EngineJob,
     EngineProgram,
-    JobConfig,
+    EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
-    XMON,)
-
-from cirq.google.known_devices import (
-    Bristlecone,
-    Foxtail,
+    XMON,
+    FSIM_GATESET,
+    SQRT_ISWAP_GATESET,
+    SYC_GATESET,
 )
 
 from cirq.google.line import (
@@ -59,8 +56,19 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.optimize import (
-    optimized_for_xmon,)
+from cirq.google.ops import (
+    PhysicalZTag,
+    SycamoreGate,
+    SYC,
+)
+
+from cirq.google.optimizers import (
+    ConvertToXmonGates,
+    ConvertToSqrtIswapGates,
+    ConvertToSycamoreGates,
+    optimized_for_sycamore,
+    optimized_for_xmon,
+)
 
 from cirq.google.op_deserializer import (
     DeserializingArg,
@@ -74,12 +82,3 @@ from cirq.google.op_serializer import (
 
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
-
-from cirq.google.sim import (
-    XmonOptions,
-    XmonSimulator,
-    XmonStepResult,
-)
-
-from cirq.google.xmon_device import (
-    XmonDevice,)

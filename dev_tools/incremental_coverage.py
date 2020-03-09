@@ -23,6 +23,7 @@ IGNORED_FILE_PATTERNS = [
     r'^dev_tools/.+',  # Environment-heavy code.
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'^setup\.py$',  # Installation code.
+    r'^cirq/google/engine/client/.+.py$',  # Generate gRPC client code.
 ]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
@@ -36,11 +37,15 @@ IGNORED_LINE_PATTERNS = [
     # Empty method definitions.
     r'^pass$',
     # Code explicitly marked as not implemented.
-    r'raise NotImplementedError\(.+',
+    r'raise NotImplementedError.*',
     # Code explicitly marked as unreachable.
     r'^assert False.*$',
     # Code testing if libraries are present.
     r'except ImportError',
+    # Plotting code.
+    r'plt\.show\(\)',
+    r'fig(ure)?\.show\(\)',
+    r'=\s*plt.subplots?\(',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 

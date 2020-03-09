@@ -57,12 +57,12 @@ def test_executor_explicit():
         executor(cirq.Circuit())
 
     with pytest.raises(TypeError):
-        bad_strategy = cirq.Circuit.from_ops(cirq.X(qubits[0]))
+        bad_strategy = cirq.Circuit(cirq.X(qubits[0]))
         executor(bad_strategy)
 
     with pytest.raises(TypeError):
         op = cirq.X(qubits[0])
-        bad_strategy = cirq.Circuit.from_ops(op)
+        bad_strategy = cirq.Circuit(op)
         executor.optimization_at(bad_strategy, 0, op)
 
     executor(circuit)
@@ -130,7 +130,7 @@ def test_diagonal_gate():
 
     qubits = cirq.LineQubit.range(2)
     gate = DiagonalGate.random(2)
-    circuit = cirq.Circuit.from_ops([gate(*qubits)])
+    circuit = cirq.Circuit([gate(*qubits)])
     actual_text_diagram = circuit.to_text_diagram()
     expected_text_diagram = """
 0: ───Diag───
@@ -149,23 +149,21 @@ def random_diagonal_gates(num_qubits: int,
              combinations(cirq.LineQubit.range(num_qubits), acquaintance_size)}
 
 
-@pytest.mark.parametrize('num_qubits, acquaintance_size, gates',
+@pytest.mark.parametrize(
+    'num_qubits, acquaintance_size, gates',
     [(num_qubits, acquaintance_size,
       random_diagonal_gates(num_qubits, acquaintance_size))
-      for acquaintance_size, num_qubits in
-      ([(2, n) for n in range(2, 9)] +
-       [(3, n) for n in range(3, 9)] +
-       [(4, n) for n in (4, 7)] +
-       [(5, n) for n in (5, 6)])
-      for _ in range(2)
-      ])
+     for acquaintance_size, num_qubits in ([(2, n) for n in range(2, 9)] +
+                                           [(3, n) for n in range(3, 8)] +
+                                           [(4, 4), (4, 6), (5, 5)])
+     for _ in range(2)])
 def test_executor_random(num_qubits: int,
                          acquaintance_size: int,
                          gates: Dict[Tuple[cirq.Qid, ...], cirq.Gate]):
     qubits = cirq.LineQubit.range(num_qubits)
     circuit = cca.complete_acquaintance_strategy(qubits, acquaintance_size)
 
-    logical_circuit = cirq.Circuit.from_ops([g(*Q) for Q, g in gates.items()])
+    logical_circuit = cirq.Circuit([g(*Q) for Q, g in gates.items()])
     expected_unitary = logical_circuit.unitary()
 
     initial_mapping = {q: q for q in qubits}

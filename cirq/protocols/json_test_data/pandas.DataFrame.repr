@@ -1,0 +1,17 @@
+[
+pd.DataFrame(
+    columns=pd.Index(['x', 'y', 'z'], name=None, dtype='object'), 
+    index=pd.Index([2, 5], name=None, dtype='int64'), 
+    data=[(1, 2, 3), (4, 5, 6)]
+),
+pd.DataFrame(
+    columns=pd.Index(['a', 'b'], name=None, dtype='object'), 
+    index=pd.Index([1, 2, 3], name='test', dtype='int64'), 
+    data=[(11, 21.0), (12, 22.0), (13, 23.0)]
+),
+pd.DataFrame(
+    columns=pd.Index(['a', 'b'], name='c', dtype='object'), 
+    index=pd.MultiIndex.from_tuples([(1, 2), (2, 3), (3, 4)], names=['x', 'y']), 
+    data=[(11, 21.0), (12, 22.0), (13, 23.0)]
+),
+]

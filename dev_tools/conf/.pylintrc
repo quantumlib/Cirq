@@ -1,7 +1,7 @@
 [config]
 max-line-length=80
 disable=all
-ignore-patterns=.*_pb2\.py
+ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
 output-format=colorized
 score=no
 reports=no

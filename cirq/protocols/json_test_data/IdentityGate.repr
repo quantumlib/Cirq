@@ -1,0 +1,1 @@
+[cirq.I, cirq.IdentityGate(5), cirq.IdentityGate(5, (3, 3, 3, 3, 3))]

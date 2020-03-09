@@ -47,13 +47,28 @@ def test_eq_ne_and_hash():
             _paulis, _bools,
             _paulis, _bools,
             (0.125, -0.25, 1)):
-        def gate_gen(offset):
-            return cirq.PauliInteractionGate(
-                pauli0, invert0,
-                pauli1, invert1,
-                exponent=e + offset)
-        eq.add_equality_group(gate_gen(0), gate_gen(0), gate_gen(2),
-                              gate_gen(-4), gate_gen(-2))
+        eq.add_equality_group(
+            cirq.PauliInteractionGate(pauli0,
+                                      invert0,
+                                      pauli1,
+                                      invert1,
+                                      exponent=e))
+
+
+def test_exponent_shifts_are_equal():
+    eq = cirq.testing.EqualsTester()
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.X, False, cirq.X, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.X, True, cirq.X, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.Y, False, cirq.Z, False, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
+    eq.add_equality_group(
+        cirq.PauliInteractionGate(cirq.Z, False, cirq.Y, True, exponent=e)
+        for e in [0.1, 0.1, 2.1, -1.9, 4.1])
 
 
 @pytest.mark.parametrize('gate',
@@ -62,8 +77,8 @@ def test_interchangeable_qubits(gate):
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     op0 = gate(q0, q1)
     op1 = gate(q1, q0)
-    mat0 = cirq.Circuit.from_ops(op0).unitary()
-    mat1 = cirq.Circuit.from_ops(op1).unitary()
+    mat0 = cirq.Circuit(op0).unitary()
+    mat1 = cirq.Circuit(op1).unitary()
     same = op0 == op1
     same_check = cirq.allclose_up_to_global_phase(mat0, mat1)
     assert same == same_check
@@ -81,6 +96,11 @@ def test_exponent():
         ]))
 
 
+def test_repr():
+    cnot = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False)
+    cirq.testing.assert_equivalent_repr(cnot)
+
+
 def test_decomposes_despite_symbol():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
     gate = cirq.PauliInteractionGate(cirq.Z, False, cirq.X, False,
@@ -90,25 +110,16 @@ def test_decomposes_despite_symbol():
 
 def test_text_diagrams():
     q0, q1 = cirq.NamedQubit('q0'), cirq.NamedQubit('q1')
-    circuit = cirq.Circuit.from_ops(
-        cirq.PauliInteractionGate(cirq.X, False,
-                                  cirq.X, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.X, True,
-                                  cirq.X, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.X, False,
-                                  cirq.X, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.X, True,
-                                  cirq.X, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.X, False,
-                                  cirq.Y, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Y, False,
-                                  cirq.Z, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Z, False,
-                                  cirq.Y, False)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Y, True,
-                                  cirq.Z, True)(q0, q1),
-        cirq.PauliInteractionGate(cirq.Z, True,
-                                  cirq.Y, True)(q0, q1))
+    circuit = cirq.Circuit(
+        cirq.PauliInteractionGate(cirq.X, False, cirq.X, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, True, cirq.X, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, False, cirq.X, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, True, cirq.X, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.X, False, cirq.Y, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Y, False, cirq.Z, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Z, False, cirq.Y, False)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Y, True, cirq.Z, True)(q0, q1),
+        cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, True)(q0, q1))
     assert circuit.to_text_diagram().strip() == """
 q0: ───X───(-X)───X──────(-X)───X───Y───@───(-Y)───(-@)───
        │   │      │      │      │   │   │   │      │

@@ -2,15 +2,9 @@
 
 ### Conceptual overview
 
-There are two primary representations of quantum programs in Cirq, each of
-which are represented by a class: `Circuit` and `Schedule`. 
-Conceptually a Circuit object is very closely related to the 
-abstract quantum circuit model, while a Schedule object is
-like the abstract quantum circuit model but includes detailed timing
-information.
-
-Conceptually: a `Circuit` is a collection of ``Moments``. A
-`Moment` is a collection of ``Operations`` that all act during
+The primary representation of quantum programs in Cirq is the `Circuit` class.
+A `Circuit` is a collection of ``Moments``.
+A `Moment` is a collection of ``Operations`` that all act during
 the same abstract time slice. An `Operation` is a
 some effect that operates on a specific subset of ``Qubits``,
 the most common type of `Operation` is a `GateOperation`.
@@ -324,11 +318,11 @@ A very nice pattern emerges from this structure: define
 or `Operation` parameters.
 
 Another useful method is to construct a `Circuit` fully formed
-from an ``OP_TREE`` via the static method `Circuit.from_ops`
-(which takes an insertion strategy as a parameter):
+from an ``OP_TREE`` is to pass the `OP_TREE` into `Circuit`
+when initializing it:
 
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), H(q1))
+circuit = cirq.Circuit(H(q0), H(q1))
 print(circuit)
 # prints
 # (0, 0): ───H───
@@ -341,7 +335,7 @@ print(circuit)
 ``Circuits`` can be iterated over and sliced. When they are iterated
 over each item in the iteration is a moment:
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1))
+circuit = cirq.Circuit(H(q0), CZ(q0, q1))
 for moment in circuit:
     print(moment)
 # prints
@@ -351,7 +345,7 @@ for moment in circuit:
 Slicing a `Circuit` on the other hand, produces a new
 `Circuit` with only the moments corresponding to the slice:
 ```python
-circuit = cirq.Circuit.from_ops(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
+circuit = cirq.Circuit(H(q0), CZ(q0, q1), H(q1), CZ(q0, q1))
 print(circuit[1:3])
 # prints
 # (0, 0): ───@───────
@@ -449,9 +443,9 @@ based on the `U` and `CX` built-in instructions and we could generate them dynam
 |`sdg`|`cirq.S**-1`|| 
 |`t`|`cirq.T`|| 
 |`tdg`|`cirq.T**-1`||
-|`rx(θ)`|`cirq.Rx(θ)`|| 
-|`ry(θ)`|`cirq.Ry(θ)`|| 
-|`rz(θ)`|`cirq.Rz(θ)`|| 
+|`rx(θ)`|`cirq.rx(θ)`|| 
+|`ry(θ)`|`cirq.ry(θ)`|| 
+|`rz(θ)`|`cirq.rz(θ)`|| 
 |`cx`|`cirq.CX`|| 
 |`cy`|`cirq.ControlledGate(cirq.Y)`|| 
 |`cz`|`cirq.CZ`|| 
