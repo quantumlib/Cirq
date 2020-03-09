@@ -607,3 +607,66 @@ def test_wait_gate():
     op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
     assert gate_set.serialize_op(op) == proto
     assert gate_set.deserialize_op(proto) == op
+
+
+@pytest.mark.parametrize(('gate', 'theta', 'phi'), [
+    (cirq.ISWAP**0.5, -np.pi / 4, 0),
+    (cirq.ISWAP**-0.5, np.pi / 4, 0),
+    (cirq.ISWAP**0.0, 0, 0),
+    (cirq.FSimGate(theta=0, phi=0), 0, 0),
+    (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
+    (cirq.FSimGate(theta=7 * np.pi / 4, phi=0), 7 * np.pi / 4, 0),
+    (cirq.FSimGate(theta=-np.pi / 4, phi=0), -np.pi / 4, 0),
+    (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), -7 * np.pi / 4, 0),
+    (cirq.google.SYC, np.pi / 2, np.pi / 6),
+    (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
+])
+def test_serialize_deserialize_fsim_gate(gate, theta, phi):
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    proto = op_proto({
+        'gate': {
+            'id': 'fsim'
+        },
+        'args': {
+            'theta': {
+                'arg_value': {
+                    'float_value': theta
+                }
+            },
+            'phi': {
+                'arg_value': {
+                    'float_value': phi
+                }
+            }
+        },
+        'qubits': [{
+            'id': '5_4'
+        }, {
+            'id': '5_5'
+        }]
+    })
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    op = cirq.FSimGate(theta=theta, phi=phi)
+    assert gate_set.serialize_op(gate(q1, q2)) == proto
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(gate_set.deserialize_op(proto)),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.ISWAP**0.25,
+    cirq.ISWAP,
+    cirq.FSimGate(theta=0.1, phi=0),
+    cirq.FSimGate(theta=0, phi=0.1),
+])
+def test_fsim_gate_not_allowed(gate):
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    with pytest.raises(ValueError):
+        gate_set.serialize_op(gate(q1, q2))
