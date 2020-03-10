@@ -30,11 +30,11 @@ class QuantumEngineServiceGrpcTransport(object):
     """
     # The scopes needed to make gRPC calls to all of the methods defined
     # in this service.
-    _OAUTH_SCOPES = (
-        'https://www.googleapis.com/auth/cloud-platform',
-    )
+    _OAUTH_SCOPES = ('https://www.googleapis.com/auth/cloud-platform',)
 
-    def __init__(self, channel=None, credentials=None,
+    def __init__(self,
+                 channel=None,
+                 credentials=None,
                  address='quantum.googleapis.com:443'):
         """Instantiate the transport class.
 
@@ -54,8 +54,7 @@ class QuantumEngineServiceGrpcTransport(object):
         if channel is not None and credentials is not None:
             raise ValueError(
                 'The `channel` and `credentials` arguments are mutually '
-                'exclusive.',
-            )
+                'exclusive.',)
 
         # Create the channel.
         if channel is None:
@@ -73,16 +72,16 @@ class QuantumEngineServiceGrpcTransport(object):
         # gRPC uses objects called "stubs" that are bound to the
         # channel and provide a basic method for each RPC.
         self._stubs = {
-            'quantum_engine_service_stub': engine_pb2_grpc.QuantumEngineServiceStub(channel),
+            'quantum_engine_service_stub':
+            engine_pb2_grpc.QuantumEngineServiceStub(channel),
         }
 
 
     @classmethod
-    def create_channel(
-                cls,
-                address='quantum.googleapis.com:443',
-                credentials=None,
-                **kwargs):
+    def create_channel(cls,
+                       address='quantum.googleapis.com:443',
+                       credentials=None,
+                       **kwargs):
         """Create and return a gRPC channel object.
 
         Args:
@@ -102,8 +101,7 @@ class QuantumEngineServiceGrpcTransport(object):
             address,
             credentials=credentials,
             scopes=cls._OAUTH_SCOPES,
-            **kwargs
-        )
+            **kwargs)
 
     @property
     def channel(self):
@@ -320,7 +318,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].ListQuantumCalibrations
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumCalibrations
 
     @property
     def get_quantum_calibration(self):
@@ -346,7 +345,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].CreateQuantumReservation
+        return self._stubs[
+            'quantum_engine_service_stub'].CreateQuantumReservation
 
     @property
     def cancel_quantum_reservation(self):
@@ -359,7 +359,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].CancelQuantumReservation
+        return self._stubs[
+            'quantum_engine_service_stub'].CancelQuantumReservation
 
     @property
     def delete_quantum_reservation(self):
@@ -372,7 +373,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].DeleteQuantumReservation
+        return self._stubs[
+            'quantum_engine_service_stub'].DeleteQuantumReservation
 
     @property
     def get_quantum_reservation(self):
@@ -398,7 +400,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].ListQuantumReservations
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservations
 
     @property
     def update_quantum_reservation(self):
@@ -411,7 +414,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].UpdateQuantumReservation
+        return self._stubs[
+            'quantum_engine_service_stub'].UpdateQuantumReservation
 
     @property
     def quantum_run_stream(self):
@@ -437,7 +441,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].ListQuantumReservationGrants
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservationGrants
 
     @property
     def reallocate_quantum_reservation_grant(self):
@@ -450,7 +455,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].ReallocateQuantumReservationGrant
+        return self._stubs[
+            'quantum_engine_service_stub'].ReallocateQuantumReservationGrant
 
     @property
     def list_quantum_reservation_budgets(self):
@@ -463,7 +469,8 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized request object and returns a
                 deserialized response object.
         """
-        return self._stubs['quantum_engine_service_stub'].ListQuantumReservationBudgets
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservationBudgets
 
     @property
     def list_quantum_time_slots(self):

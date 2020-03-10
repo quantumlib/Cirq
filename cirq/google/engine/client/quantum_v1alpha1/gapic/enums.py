@@ -20,6 +20,7 @@ import enum
 
 
 class ExecutionStatus(object):
+
     class State(enum.IntEnum):
         """
         -
@@ -41,8 +42,8 @@ class ExecutionStatus(object):
         SUCCESS = 5
         FAILURE = 6
 
-
     class Failure(object):
+
         class Code(enum.IntEnum):
             """
             -
@@ -78,6 +79,7 @@ class ExecutionStatus(object):
 
 
 class QuantumProcessor(object):
+
     class Health(enum.IntEnum):
         """
         -
@@ -95,6 +97,7 @@ class QuantumProcessor(object):
 
 
 class QuantumTimeSlot(object):
+
     class TimeSlotType(enum.IntEnum):
         """
         -
@@ -114,6 +117,7 @@ class QuantumTimeSlot(object):
 
 
 class StreamError(object):
+
     class Code(enum.IntEnum):
         """
         -
@@ -142,4 +146,3 @@ class StreamError(object):
         PROCESSOR_DOES_NOT_EXIST = 8
         INVALID_PROCESSOR_FOR_JOB = 9
         RESERVATION_REQUIRED = 10
-    

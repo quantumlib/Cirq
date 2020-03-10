@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 from __future__ import absolute_import
 import sys
 
@@ -27,7 +26,6 @@ from google.protobuf import duration_pb2
 from google.protobuf import empty_pb2
 from google.protobuf import field_mask_pb2
 from google.protobuf import timestamp_pb2
-
 
 _shared_modules = [
     any_pb2,
@@ -49,10 +47,9 @@ for module in _shared_modules:  # pragma: NO COVER
         setattr(sys.modules[__name__], name, message)
         names.append(name)
 for module in _local_modules:
-      for name, message in get_messages(module).items():
-          message.__module__ = 'cirq.google.engine.client.quantum_v1alpha1.types'
-          setattr(sys.modules[__name__], name, message)
-          names.append(name)
-
+    for name, message in get_messages(module).items():
+        message.__module__ = 'cirq.google.engine.client.quantum_v1alpha1.types'
+        setattr(sys.modules[__name__], name, message)
+        names.append(name)
 
 __all__ = tuple(sorted(names))
