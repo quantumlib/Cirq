@@ -16,8 +16,6 @@ from typing import Dict, Sequence, TYPE_CHECKING
 
 from cirq import devices, value, ops, protocols
 
-from cirq._compat import deprecated
-from cirq.circuits import Circuit
 from cirq.google import engine
 
 if TYPE_CHECKING:
@@ -145,9 +143,6 @@ class DepolarizingWithReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    @deprecated(
-        deadline='v0.9',
-        fix='Compose small models instead of constructing aggregate models.')
     def __init__(self, depol_prob: float, bitflip_prob: float):
         """A depolarizing noise model with readout error.
         Args:
@@ -181,9 +176,6 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     also contain gates.
     """
 
-    @deprecated(
-        deadline='v0.9',
-        fix='Compose small models instead of constructing aggregate models.')
     def __init__(
             self,
             depol_prob: float,
