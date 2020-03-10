@@ -381,7 +381,7 @@ def test_per_qubit_readout_decay_from_data():
     noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
 
     # Insert channels explicitly to construct expected output.
-    decay_prob = [exp(1 - 1 / 0.007), exp(1 - 1 / 0.008), exp(1 - 1 / 0.009)]
+    decay_prob = [1 - exp(-1 / 0.007), 1 - exp(-1 / 0.008), 1 - exp(-1 / 0.009)]
     expected_program = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
@@ -420,7 +420,7 @@ def test_per_qubit_combined_noise_from_data():
     noisy_circuit = cirq.Circuit(noise_model.noisy_moments(program, qubits))
 
     # Insert channels explicitly to construct expected output.
-    decay_prob = [exp(1 - 1 / 0.007), exp(1 - 1 / 0.008), exp(1 - 1 / 0.009)]
+    decay_prob = [1 - exp(-1 / 0.007), 1 - exp(-1 / 0.008), 1 - exp(-1 / 0.009)]
     expected_program = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[0])]),
         cirq.Moment([cirq.DepolarizingChannel(0.001).on(qubits[0])]),

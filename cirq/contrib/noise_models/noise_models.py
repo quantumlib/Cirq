@@ -260,7 +260,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
         # TODO: replace with polling from DeviceSpecification.
         readout_micros = 1
         readout_decay_map = {
-            qubit[0]: exp(1 - readout_micros / t1[0])
+            qubit[0]: 1 - exp(-1 * readout_micros / t1[0])
             for qubit, t1 in calibration['single_qubit_idle_t1_micros'].items()
         }
     if readoutErrorNoise:
