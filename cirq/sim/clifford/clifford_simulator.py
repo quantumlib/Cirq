@@ -37,7 +37,7 @@ from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import circuits, study, ops, protocols, value
-from cirq.sim.clifford.clifford_gate_decomposer import CLIFFORD_GATE_DECOMPOSER
+from cirq.sim.clifford.clifford_gate_decomposer import CliffordGateDecomposer
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -55,7 +55,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         if gate is None: return False
         if not protocols.has_unitary(gate): return False
         if cirq.unitary(gate).shape == (2, 2):
-            return CLIFFORD_GATE_DECOMPOSER.can_decompose(gate)
+            return CliffordGateDecomposer.can_decompose(gate)
         else:
             return gate in [cirq.CNOT, cirq.CZ]
 
@@ -318,7 +318,7 @@ class CliffordState():
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
         gate = op.gate
         assert gate is not None
-        sequence, phase_shift = CLIFFORD_GATE_DECOMPOSER.decompose(gate)
+        sequence, phase_shift = CliffordGateDecomposer.decompose(gate)
 
         for char in sequence[::-1]:
             if char == 'H':
