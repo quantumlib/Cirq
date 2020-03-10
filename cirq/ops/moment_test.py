@@ -274,3 +274,35 @@ def test_add():
     circuit2 = cirq.Circuit(cirq.CNOT(a, b), cirq.Y(b))
     circuit2[1] += cirq.X(a)
     assert circuit2 == expected_circuit
+
+
+def test_indexes_by_qubit():
+    a, b, c = cirq.LineQubit.range(3)
+    moment = cirq.Moment([cirq.H(a), cirq.CNOT(b, c)])
+
+    assert moment[a] == cirq.H(a)
+    assert moment[b] == cirq.CNOT(b, c)
+    assert moment[c] == cirq.CNOT(b, c)
+
+
+def test_throws_when_indexed_by_unused_qubit():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment([cirq.H(a)])
+
+    with pytest.raises(KeyError, match="Moment doesn't act on given qubit"):
+        _ = moment[b]
+
+
+def test_indexes_by_list_of_qubits():
+    q = cirq.LineQubit.range(4)
+    moment = cirq.Moment([cirq.Z(q[0]), cirq.CNOT(q[1], q[2])])
+
+    assert moment[[q[0]]] == Moment([cirq.Z(q[0])])
+    assert moment[[q[1]]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[2]]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[3]]] == Moment([])
+    assert moment[q[0:2]] == moment
+    assert moment[q[1:3]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[q[2:4]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[0], q[3]]] == Moment([cirq.Z(q[0])])
+    assert moment[q] == moment

@@ -125,10 +125,10 @@ def unitary_eig(matrix: np.ndarray,
          eigvals: the eigenvalues of `matrix`
          V: the unitary matrix with the eigenvectors as columns
     """
-    R, V = scipy.linalg.schur(matrix, output="complex")
-    if check_preconditions and not predicates.is_diagonal(R, atol=atol):
-        raise ValueError('Input must correspond to a unitary matrix '
+    if check_preconditions and not predicates.is_normal(matrix, atol=atol):
+        raise ValueError('Input must correspond to a normal matrix '
                          f'.Received input:\n{matrix}')
+    R, V = scipy.linalg.schur(matrix, output="complex")
     return R.diagonal(), V
 
 
