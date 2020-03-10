@@ -2,13 +2,13 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq.sim.clifford.clifford_gate_decomposer import CLIFFORD_GATE_DECOMPOSER
+from cirq.sim.clifford.clifford_gate_decomposer import CliffordGateDecomposer
 
 
 def test_can_decompose_all_clifford_gates():
     # This test checks that candidate matrices in the decomposer are all 1-qubit
     # Clifford gates (up to global phase).
-    matrices = [u for _, u in CLIFFORD_GATE_DECOMPOSER._candidates]
+    matrices = [u for _, u in CliffordGateDecomposer._candidates]
 
     # Check that there are 24 matrices.
     assert len(matrices) == 24
@@ -39,7 +39,7 @@ def test_can_decompose_all_clifford_gates():
 def test_clifford_gates():
 
     def _test(gate, expected_sequence, expected_phase):
-        seq, phase = CLIFFORD_GATE_DECOMPOSER.decompose(gate)
+        seq, phase = CliffordGateDecomposer.decompose(gate)
         assert seq == expected_sequence
         assert np.allclose(phase, expected_phase)
 
@@ -54,4 +54,4 @@ def test_clifford_gates():
 
 def test_non_clifford_gate():
     with pytest.raises(ValueError, match="T is not a Clifford gate."):
-        CLIFFORD_GATE_DECOMPOSER.decompose(cirq.T)
+        CliffordGateDecomposer.decompose(cirq.T)
