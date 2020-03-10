@@ -114,7 +114,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def create_quantum_program(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.create_quantum_program`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.create_quantum_program`.
 
         -
 
@@ -127,7 +128,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_program(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_program`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_program`.
 
         -
 
@@ -140,7 +142,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_programs(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_programs`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_programs`.
 
         -
 
@@ -153,7 +156,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def delete_quantum_program(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.delete_quantum_program`.
+        """Return the gRPC stub
+        for :meth:`QuantumEngineServiceClient.delete_quantum_program`.
 
         -
 
@@ -166,7 +170,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def update_quantum_program(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.update_quantum_program`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.update_quantum_program`.
 
         -
 
@@ -179,7 +184,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def create_quantum_job(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.create_quantum_job`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.create_quantum_job`.
 
         -
 
@@ -192,7 +198,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_job(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_job`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_job`.
 
         -
 
@@ -205,7 +212,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_jobs(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_jobs`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_jobs`.
 
         -
 
@@ -218,7 +226,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def delete_quantum_job(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.delete_quantum_job`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.delete_quantum_job`.
 
         -
 
@@ -231,7 +240,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def update_quantum_job(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.update_quantum_job`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.update_quantum_job`.
 
         -
 
@@ -244,7 +254,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def cancel_quantum_job(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.cancel_quantum_job`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.cancel_quantum_job`.
 
         -
 
@@ -257,7 +268,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_job_events(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_job_events`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_job_events`.
 
         -
 
@@ -270,7 +282,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_result(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_result`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_result`.
 
         -
 
@@ -283,7 +296,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_processors(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_processors`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_processors`.
 
         -
 
@@ -296,7 +310,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_processor(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_processor`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_processor`.
 
         -
 
@@ -309,7 +324,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_calibrations(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_calibrations`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_calibrations`.
 
         -
 
@@ -323,7 +339,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_calibration(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_calibration`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_calibration`.
 
         -
 
@@ -336,7 +353,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def create_quantum_reservation(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.create_quantum_reservation`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.create_quantum_reservation`.
 
         -
 
@@ -350,7 +368,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def cancel_quantum_reservation(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.cancel_quantum_reservation`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.cancel_quantum_reservation`.
 
         -
 
@@ -364,7 +383,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def delete_quantum_reservation(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.delete_quantum_reservation`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.delete_quantum_reservation`.
 
         -
 
@@ -378,7 +398,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def get_quantum_reservation(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.get_quantum_reservation`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_reservation`.
 
         -
 
@@ -391,7 +412,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_reservations(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_reservations`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservations`.
 
         -
 
@@ -405,7 +427,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def update_quantum_reservation(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.update_quantum_reservation`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.update_quantum_reservation`.
 
         -
 
@@ -419,7 +442,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def quantum_run_stream(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.quantum_run_stream`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.quantum_run_stream`.
 
         -
 
@@ -432,7 +456,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_reservation_grants(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_reservation_grants`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservation_grants`.
 
         -
 
@@ -446,7 +471,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def reallocate_quantum_reservation_grant(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.reallocate_quantum_reservation_grant`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.reallocate_quantum_reservation_grant`.
 
         -
 
@@ -460,7 +486,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_reservation_budgets(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_reservation_budgets`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservation_budgets`.
 
         -
 
@@ -474,7 +501,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def list_quantum_time_slots(self):
-        """Return the gRPC stub for :meth:`QuantumEngineServiceClient.list_quantum_time_slots`.
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_time_slots`.
 
         -
 

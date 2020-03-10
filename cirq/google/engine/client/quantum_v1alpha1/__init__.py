@@ -21,7 +21,8 @@ import warnings
 
 from cirq.google.engine.client.quantum_v1alpha1 import types
 from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
-from cirq.google.engine.client.quantum_v1alpha1.gapic import quantum_engine_service_client
+from cirq.google.engine.client.quantum_v1alpha1.gapic import (
+    quantum_engine_service_client)
 
 if sys.version_info[:2] == (2, 7):
     message = (
