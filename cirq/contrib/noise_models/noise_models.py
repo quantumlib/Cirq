@@ -212,9 +212,9 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             ]
 
 
-class PerQubitDepolarizingNoiseModel(devices.NoiseModel):
-    """DepolarizingNoiseModel which allows depolarization probabilities to be
-    specified separately for each qubit.
+class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
+    """DepolarizingWithDampedReadoutNoiseModel which allows depolarization
+    probabilities to be specified separately for each qubit.
 
     This simulates asymmetric readout error. The noise is structured
     so the T1 decay is applied, then the readout bitflip, then measurement.
