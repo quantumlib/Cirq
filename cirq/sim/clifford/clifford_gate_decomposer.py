@@ -15,6 +15,7 @@ def _name_to_unitary(name):
             result = result @ protocols.unitary(ops.H)
     return result
 
+
 class CliffordGateDecomposer:
     # All 24 Clifford gates, written as products of H and S gates.
     _all_gates = [
