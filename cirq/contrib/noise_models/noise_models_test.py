@@ -191,8 +191,8 @@ def test_decay_noise_after_moment():
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
-# Test the deprecated aggregate noise models.
-def test_deprecated_readout_noise_after_moment():
+# Test the aggregate noise models.
+def test_aggregate_readout_noise_after_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append([
@@ -235,7 +235,7 @@ def test_deprecated_readout_noise_after_moment():
     _assert_equivalent_op_tree(true_noisy_program, noisy_circuit)
 
 
-def test_decay_noise_after_moment():
+def test_aggregate_decay_noise_after_moment():
     program = cirq.Circuit()
     qubits = cirq.LineQubit.range(3)
     program.append([
