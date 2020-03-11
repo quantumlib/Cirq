@@ -68,7 +68,8 @@ class PasqalDevice(cirq.devices.Device):
 
         decomposition = [operation]
 
-        if not isinstance(operation, cirq.ops.GateOperation):
+        if not isinstance(operation,
+                          (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
         # Try to decompose the operation into elementary device operations
@@ -86,9 +87,6 @@ class PasqalDevice(cirq.devices.Device):
 
     @staticmethod
     def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
-        if not isinstance(op,
-                          (cirq.ops.GateOperation, cirq.ParallelGateOperation)):
-            return False  # coverage: ignore
 
         keep = False
 
