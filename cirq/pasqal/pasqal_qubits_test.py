@@ -109,37 +109,17 @@ def test_parrallelep():
 
 
 def test_pasqal_qubit_ordering():
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 1, 0)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 0, 0)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 1, 1)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 1, 0)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 0, 1)
-    assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 1, 1)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(0, 0, 0)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(0, 0, 1)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(0, 1, 0)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(1, 0, 0)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(0, 1, 1)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(1, 1, 0)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(1, 0, 1)
-    assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(1, 1, 1)
 
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(0, 1, 1)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(1, 1, 0)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(1, 0, 1)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(0, 0, 1)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(0, 1, 0)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(1, 0, 0)
-    assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(0, 0, 0)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(1, 1, 1)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(0, 1, 1)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(1, 1, 0)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(1, 0, 1)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(0, 0, 1)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(0, 1, 0)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(1, 0, 0)
-    assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(0, 0, 0)
+    for i in range(8):
+        v = [int(x) for x in bin(i)[2:].zfill(3)]
+
+        assert ThreeDGridQubit(0, 0, 0) <= ThreeDGridQubit(v[0], v[1], v[2])
+        assert ThreeDGridQubit(1, 1, 1) >= ThreeDGridQubit(v[0], v[1], v[2])
+
+        if i >= 1:
+            assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(v[0], v[1], v[2])
+        if i < 7:
+            assert ThreeDGridQubit(1, 1, 1) > ThreeDGridQubit(v[0], v[1], v[2])
 
 
 def test_distance():
