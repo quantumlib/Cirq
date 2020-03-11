@@ -167,6 +167,17 @@ class EngineProcessor:
         else:
             return None
 
+    def get_schedule(
+        from_date:  datetime = now(),
+        to_date: datetime = now + timedelta(weeks=2),
+        time_slot_type: TimeSlotType) -> List[EngineProcessorTimeSlot]:
+        """Retrieves the schedule for a processor.
+
+        The schedule may be filtered by time and by the type of time
+        (e.g. maintenance, open swim, unallocated, reservation).
+        """
+        pass
+
     def __str__(self):
         return 'EngineProcessor(project_id=\'{}\', processor_id=\'{}\')'.format(
             self.project_id, self.processor_id)
