@@ -22,7 +22,7 @@ from cirq.pasqal import ThreeDGridQubit
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
     """A Pasqal Device with qubits placed on a 3D grid."""
-    
+
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
         """ Initializes the description of the device.
