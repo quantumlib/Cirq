@@ -46,7 +46,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def noisy_moment(self, moment: cirq.ops.Moment,
                      system_qubits: Sequence[cirq.ops.Qid]
-                    ) -> List[cirq.ops.Operation]:
+                     ) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
         The model includes
         - Depolarizing noise with gate-dependent strength
@@ -80,7 +80,6 @@ def get_op_string(cirq_op: cirq.ops.Operation) -> str:
 
     if not cirq.pasqal.PasqalDevice.is_pasqal_device_op(cirq_op) \
             or isinstance(cirq_op.gate, cirq.ops.MeasurementGate):
-        # TODO: Is there noise for measurements?
         raise ValueError('Got unknown operation:', cirq_op)
 
     return str(cirq_op.gate)

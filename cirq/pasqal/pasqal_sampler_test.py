@@ -57,10 +57,10 @@ def test_pasqal_circuit_init():
 @patch('cirq.pasqal.pasqal_sampler.requests.get')
 @patch('cirq.pasqal.pasqal_sampler.requests.post')
 def test_run_sweep(mock_post, mock_get):
-    '''
+    """
     Encodes a random binary number in the qubits, sweeps between odd and even
     without noise and checks if the results match.
-    '''
+    """
 
     qs = [
         cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)
