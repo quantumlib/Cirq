@@ -30,7 +30,9 @@ class MockGet:
 
     @property
     def text(self):
-        return self.json
+        self.counter += 1
+        if self.counter > 1:
+            return self.json
 
 
 def _make_sampler() -> cirq.pasqal.PasqalSampler:

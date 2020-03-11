@@ -66,7 +66,7 @@ class PasqalSampler(cirq.work.Sampler):
             if result:
                 return result
 
-            time.sleep(1.0)  # coverage: ignore
+            time.sleep(1.0)
 
     def _send_serialized_circuit(self,
                                  serialization_str: str,
