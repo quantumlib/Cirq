@@ -37,6 +37,7 @@ from cirq.google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
 )
