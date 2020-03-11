@@ -19,7 +19,7 @@ class QuantumEngineServiceStub(object):
       channel: A grpc.Channel.
     """
         self.CreateQuantumProgram = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/CreateQuantumProgram',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/CreateQuantumProgram',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             CreateQuantumProgramRequest.SerializeToString,
@@ -28,7 +28,7 @@ class QuantumEngineServiceStub(object):
             QuantumProgram.FromString,
         )
         self.GetQuantumProgram = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumProgram',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumProgram',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumProgramRequest.SerializeToString,
@@ -37,7 +37,7 @@ class QuantumEngineServiceStub(object):
             QuantumProgram.FromString,
         )
         self.ListQuantumPrograms = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumPrograms',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumPrograms',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumProgramsRequest.SerializeToString,
@@ -46,7 +46,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumProgramsResponse.FromString,
         )
         self.DeleteQuantumProgram = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/DeleteQuantumProgram',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/DeleteQuantumProgram',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             DeleteQuantumProgramRequest.SerializeToString,
@@ -54,7 +54,7 @@ class QuantumEngineServiceStub(object):
             FromString,
         )
         self.UpdateQuantumProgram = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/UpdateQuantumProgram',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/UpdateQuantumProgram',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             UpdateQuantumProgramRequest.SerializeToString,
@@ -63,7 +63,7 @@ class QuantumEngineServiceStub(object):
             QuantumProgram.FromString,
         )
         self.CreateQuantumJob = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/CreateQuantumJob',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/CreateQuantumJob',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             CreateQuantumJobRequest.SerializeToString,
@@ -72,7 +72,7 @@ class QuantumEngineServiceStub(object):
             QuantumJob.FromString,
         )
         self.GetQuantumJob = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumJob',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumJob',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumJobRequest.SerializeToString,
@@ -81,7 +81,7 @@ class QuantumEngineServiceStub(object):
             QuantumJob.FromString,
         )
         self.ListQuantumJobs = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumJobs',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumJobs',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumJobsRequest.SerializeToString,
@@ -90,7 +90,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumJobsResponse.FromString,
         )
         self.DeleteQuantumJob = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/DeleteQuantumJob',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/DeleteQuantumJob',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             DeleteQuantumJobRequest.SerializeToString,
@@ -98,7 +98,7 @@ class QuantumEngineServiceStub(object):
             FromString,
         )
         self.UpdateQuantumJob = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/UpdateQuantumJob',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/UpdateQuantumJob',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             UpdateQuantumJobRequest.SerializeToString,
@@ -107,7 +107,7 @@ class QuantumEngineServiceStub(object):
             QuantumJob.FromString,
         )
         self.CancelQuantumJob = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/CancelQuantumJob',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/CancelQuantumJob',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             CancelQuantumJobRequest.SerializeToString,
@@ -115,7 +115,7 @@ class QuantumEngineServiceStub(object):
             FromString,
         )
         self.ListQuantumJobEvents = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumJobEvents',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumJobEvents',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumJobEventsRequest.SerializeToString,
@@ -124,7 +124,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumJobEventsResponse.FromString,
         )
         self.GetQuantumResult = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumResult',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumResult',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumResultRequest.SerializeToString,
@@ -133,7 +133,7 @@ class QuantumEngineServiceStub(object):
             QuantumResult.FromString,
         )
         self.ListQuantumProcessors = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumProcessors',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumProcessors',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumProcessorsRequest.SerializeToString,
@@ -142,7 +142,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumProcessorsResponse.FromString,
         )
         self.GetQuantumProcessor = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumProcessor',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumProcessor',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumProcessorRequest.SerializeToString,
@@ -151,7 +151,7 @@ class QuantumEngineServiceStub(object):
             QuantumProcessor.FromString,
         )
         self.ListQuantumCalibrations = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumCalibrations',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumCalibrations',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumCalibrationsRequest.SerializeToString,
@@ -160,7 +160,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumCalibrationsResponse.FromString,
         )
         self.GetQuantumCalibration = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumCalibration',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumCalibration',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumCalibrationRequest.SerializeToString,
@@ -169,7 +169,7 @@ class QuantumEngineServiceStub(object):
             QuantumCalibration.FromString,
         )
         self.CreateQuantumReservation = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/CreateQuantumReservation',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/CreateQuantumReservation',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             CreateQuantumReservationRequest.SerializeToString,
@@ -178,7 +178,7 @@ class QuantumEngineServiceStub(object):
             QuantumReservation.FromString,
         )
         self.CancelQuantumReservation = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/CancelQuantumReservation',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/CancelQuantumReservation',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             CancelQuantumReservationRequest.SerializeToString,
@@ -187,7 +187,7 @@ class QuantumEngineServiceStub(object):
             QuantumReservation.FromString,
         )
         self.DeleteQuantumReservation = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/DeleteQuantumReservation',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/DeleteQuantumReservation',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             DeleteQuantumReservationRequest.SerializeToString,
@@ -195,7 +195,7 @@ class QuantumEngineServiceStub(object):
             FromString,
         )
         self.GetQuantumReservation = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/GetQuantumReservation',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/GetQuantumReservation',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             GetQuantumReservationRequest.SerializeToString,
@@ -204,7 +204,7 @@ class QuantumEngineServiceStub(object):
             QuantumReservation.FromString,
         )
         self.ListQuantumReservations = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumReservations',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumReservations',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumReservationsRequest.SerializeToString,
@@ -213,7 +213,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumReservationsResponse.FromString,
         )
         self.UpdateQuantumReservation = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/UpdateQuantumReservation',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/UpdateQuantumReservation',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             UpdateQuantumReservationRequest.SerializeToString,
@@ -222,7 +222,7 @@ class QuantumEngineServiceStub(object):
             QuantumReservation.FromString,
         )
         self.QuantumRunStream = channel.stream_stream(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/QuantumRunStream',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/QuantumRunStream',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             QuantumRunStreamRequest.SerializeToString,
@@ -231,7 +231,7 @@ class QuantumEngineServiceStub(object):
             QuantumRunStreamResponse.FromString,
         )
         self.ListQuantumReservationGrants = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumReservationGrants',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumReservationGrants',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumReservationGrantsRequest.SerializeToString,
@@ -240,7 +240,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumReservationGrantsResponse.FromString,
         )
         self.ReallocateQuantumReservationGrant = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ReallocateQuantumReservationGrant',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ReallocateQuantumReservationGrant',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ReallocateQuantumReservationGrantRequest.SerializeToString,
@@ -249,7 +249,7 @@ class QuantumEngineServiceStub(object):
             QuantumReservationGrant.FromString,
         )
         self.ListQuantumReservationBudgets = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumReservationBudgets',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumReservationBudgets',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumReservationBudgetsRequest.SerializeToString,
@@ -258,7 +258,7 @@ class QuantumEngineServiceStub(object):
             ListQuantumReservationBudgetsResponse.FromString,
         )
         self.ListQuantumTimeSlots = channel.unary_unary(
-            '/cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService/ListQuantumTimeSlots',
+            '/google.cloud.quantum.v1alpha1.QuantumEngineService/ListQuantumTimeSlots',
             request_serializer=
             google_dot_cloud_dot_quantum__v1alpha1_dot_proto_dot_engine__pb2.
             ListQuantumTimeSlotsRequest.SerializeToString,
@@ -751,6 +751,6 @@ def add_QuantumEngineServiceServicer_to_server(servicer, server):
         ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
-        'cirq.google.engine.client.quantum_v1alpha1.proto.QuantumEngineService',
+        'google.cloud.quantum.v1alpha1.QuantumEngineService',
         rpc_method_handlers)
     server.add_generic_rpc_handlers((generic_handler,))
