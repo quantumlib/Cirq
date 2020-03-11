@@ -39,6 +39,19 @@ class XXPowGate(eigen_gate.EigenGate,
               [0 1 0 0]
               [1 0 0 0]
 
+    The XX**t gate implements the following unitary:
+
+        (X⊗X)^t = [c 0 0 -s]
+                  [0 c -i.s 0]
+                  [0 -i.s c 0]
+                  [-i.s 0 0 c]
+
+        where:
+
+             c = cos(π.t/2)
+             s = sin(π.t/2)
+
+
     See also: `cirq.MS` (the Mølmer–Sørensen gate), which is implemented via
         this class.
     """
@@ -125,13 +138,25 @@ class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """The Y-parity gate, possibly raised to a power.
-    
+
         At exponent=1, this gate implements the following unitary:
 
         Y⊗Y = [ 0  0  0 -1]
               [ 0  0  1  0]
               [ 0  1  0  0]
               [-1  0  0  0]
+
+        The YY**t gate implements the following unitary:
+
+        (Y⊗Y)^t = [c 0 0 i.s]
+                  [0 c -i.s 0]
+                  [0 -i.s c 0]
+                  [i.s 0 0 c]
+
+        where
+
+            c = cos(π.t/2)
+            s = sin(π.t/2)
     """
 
     def _eigen_components(self):
@@ -200,6 +225,13 @@ class ZZPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
     r"""The Z-parity gate, possibly raised to a power.
+
+        At exponent=1, this gate implements the following unitary:
+
+        Z⊗Z = [ 1  0  0  0]
+              [ 0 -1  0  0]
+              [ 0  0 -1  0]
+              [ 0  0  0  1]
 
     The ZZ**t gate implements the following unitary:
 
