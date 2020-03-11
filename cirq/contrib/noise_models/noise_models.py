@@ -323,6 +323,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
 
     if depolNoise:
         # TODO: replace with Pauli error once it's available.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2832
         depol_prob_map = {
             qubit[0]: depol_prob[0] for qubit, depol_prob in
             calibration['single_qubit_rb_total_error'].items()
@@ -335,6 +336,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
     if readoutDecayNoise:
         # Copied from Sycamore readout duration in known_devices.py
         # TODO: replace with polling from DeviceSpecification.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2832
         readout_micros = 1
         readout_decay_map = {
             qubit[0]: 1 - exp(-1 * readout_micros / t1[0])
