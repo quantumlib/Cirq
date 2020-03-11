@@ -424,22 +424,32 @@ SQRT_ISWAP_DESERIALIZERS = [
 # Only allows sqrt_iswap, its inverse, identity, and sycamore
 #
 def _can_serialize_limited_fsim(theta: float, phi: float):
-    # Identity
-    if _near_mod_2pi(theta, 0) and _near_mod_2pi(phi, 0):
-        return True
-    # sqrt ISWAP
-    if _near_mod_2pi(theta, -np.pi / 4) and _near_mod_2pi(phi, 0):
-        return True
-    # inverse sqrt ISWAP
-    if _near_mod_2pi(theta, np.pi / 4) and _near_mod_2pi(phi, 0):
-        return True
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if _near_mod_2pi(phi, 0) or isinstance(phi, sympy.Symbol):
+        if isinstance(theta, sympy.Symbol):
+            return True
+        # Identity
+        if _near_mod_2pi(theta, 0):
+            return True
+        # sqrt ISWAP
+        if _near_mod_2pi(theta, -np.pi / 4):
+            return True
+        # inverse sqrt ISWAP
+        if _near_mod_2pi(theta, np.pi / 4):
+            return True
     # Sycamore
-    if _near_mod_2pi(theta, np.pi / 2) and _near_mod_2pi(phi, np.pi / 6):
+    if ((_near_mod_2pi(theta, np.pi / 2) or isinstance(theta, sympy.Symbol)) and
+        (_near_mod_2pi(phi, np.pi / 6)) or isinstance(phi, sympy.Symbol)):
         return True
     return False
 
 
 def _can_serialize_limited_iswap(exponent: float):
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if isinstance(exponent, sympy.Symbol):
+        return True
     # Sqrt ISWAP
     if _near_mod_n(exponent, 0.5, 4):
         return True
