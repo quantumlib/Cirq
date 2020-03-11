@@ -23,11 +23,6 @@ import "google/protobuf/empty.proto";
 import "google/protobuf/field_mask.proto";
 import "google/api/client.proto";
 
-option go_package = "google.golang.org/genproto/googleapis/cloud/quantum/v1alpha1;quantum";
-option java_package = "com.google.cloud.quantum.engine.v1alpha1";
-
-// -
-
 // -
 service QuantumEngineService {
   option (.google.api.default_host) = "quantum.googleapis.com";
