@@ -22,7 +22,7 @@ from cirq.pasqal import ThreeDGridQubit
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
     """A Pasqal Device with qubits placed on a 3D grid."""
-    
+
     def __init__(self, control_radius: float,
                  qubits: Iterable[ThreeDGridQubit]) -> None:
         """ Initializes the description of the device.
@@ -186,6 +186,14 @@ class PasqalDevice(cirq.devices.Device):
     def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
         """
         Returns the distance between two qubits.
+
+        Args:
+            p: qubit involved in the distance computation
+            q: qubit involved in the distance computation
+
+        Returns:
+            The distance between qubits p and q, in lattice spacing units.
+
         """
         if not isinstance(q, ThreeDGridQubit):
             raise ValueError('Unsupported qubit type: {!r}'.format(q))
