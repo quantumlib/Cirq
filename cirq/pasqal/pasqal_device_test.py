@@ -19,7 +19,6 @@ from cirq.pasqal import PasqalDevice, ThreeDGridQubit
 
 
 def cubic_device(width: int, height: int, depth: int, holes=()) -> PasqalDevice:
-
     return PasqalDevice(control_radius=1.5,
                         qubits=[
                             ThreeDGridQubit(row, col, lay)

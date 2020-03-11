@@ -134,25 +134,17 @@ def test_distance():
 
 
 def test_pasqal_qubit_is_adjacent():
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 0, 1))
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 0, -1))
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 1, 0))
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, -1, 0))
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(1, 0, 0))
-    assert ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(-1, 0, 0))
 
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(1, -1, 0))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(1, 1, 0))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(-1, -1, 0))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(-1, 1, 0))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 1, -1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, 1, 1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, -1, -1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(0, -1, 1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(1, 0, -1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(1, 0, 1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(-1, 0, -1))
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(-1, 0, 1))
+    for ind in range(3):
+        v = [0, 0, 0]
+        for x in [-1, 1]:
+            v[ind] = 1
+            assert ThreeDGridQubit(0, 0, 0).is_adjacent(
+                ThreeDGridQubit(v[0], v[1], v[2]))
+            for u in [[x, y] for y in [-1, 1]]:
+                u.insert(ind, 0)
+                assert not ThreeDGridQubit(0, 0, 0).is_adjacent(
+                    ThreeDGridQubit(u[0], u[1], u[2]))
 
     assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(2, 0, 0))
 
