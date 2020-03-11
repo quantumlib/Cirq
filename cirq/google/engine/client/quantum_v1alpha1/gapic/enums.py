@@ -95,6 +95,26 @@ class QuantumProcessor(object):
         UNAVAILABLE = 3
 
 
+class QuantumTimeSlot(object):
+
+    class TimeSlotType(enum.IntEnum):
+        """
+        -
+
+        Attributes:
+        TIME_SLOT_TYPE_UNSPECIFIED (int): Default value for compatibility.
+        MAINTENANCE (int): Reserved to run calibration or make changes.
+        OPEN_SWIM (int): Time for anyone to create jobs.
+        RESERVATION (int): One project has exclusive hold to create jobs.
+        UNALLOCATED (int):  Available for reservations to be made
+        """
+        TIME_SLOT_TYPE_UNSPECIFIED = 0
+        MAINTENANCE = 1
+        OPEN_SWIM = 2
+        RESERVATION = 3
+        UNALLOCATED = 4
+
+
 class StreamError(object):
 
     class Code(enum.IntEnum):
