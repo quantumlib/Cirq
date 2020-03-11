@@ -109,7 +109,6 @@ def test_parrallelep():
 
 
 def test_pasqal_qubit_ordering():
-    # test
     assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
     assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 1, 0)
     assert ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 0, 0)
