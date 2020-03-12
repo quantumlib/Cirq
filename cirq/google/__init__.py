@@ -36,13 +36,15 @@ from cirq.google.engine import (
     engine_from_environment,
     EngineJob,
     EngineProgram,
-    JobConfig,
+    EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
     XMON,
+    FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
 )
@@ -54,7 +56,8 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.ops.sycamore_gate import (
+from cirq.google.ops import (
+    PhysicalZTag,
     SycamoreGate,
     SYC,
 )

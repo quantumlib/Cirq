@@ -21,7 +21,7 @@ from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
 import math
 import cmath
 import numpy as np
-
+import scipy
 import matplotlib.pyplot as plt
 
 from cirq import value, protocols
@@ -102,103 +102,40 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(matrix: np.ndarray,
-                         rtol: float = 1e-5,
-                         atol: float = 1e-8,
-                         ) -> Tuple[np.array, List[np.ndarray]]:
-    """An eigendecomposition that ensures eigenvectors are perpendicular.
+def unitary_eig(matrix: np.ndarray,
+                check_preconditions: bool = True,
+                atol: float = 1e-8) -> Tuple[np.array, np.ndarray]:
+    """Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
-    numpy.linalg.eig doesn't guarantee that eigenvectors from the same
-    eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
-    a perpendicular set. It further checks that all eigenvectors are
-    perpendicular and raises an ArithmeticError otherwise.
-
-    Args:
-        matrix: The matrix to decompose.
-        rtol: Relative threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
-        atol: Absolute threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
-
-    Returns:
-        The eigenvalues and column eigenvectors. The i'th eigenvalue is
-        associated with the i'th column eigenvector.
-
-    Raises:
-        ArithmeticError: Failed to find perpendicular eigenvectors.
-    """
-    vals, cols = np.linalg.eig(matrix)
-    vecs = [cols[:, i] for i in range(len(cols))]
-
-    # Convert list of row arrays to list of column arrays.
-    for i in range(len(vecs)):
-        vecs[i] = np.reshape(vecs[i], (len(vecs[i]), vecs[i].ndim))
-
-    # Group by similar eigenvalue.
-    n = len(vecs)
-    groups = _group_similar(
-        list(range(n)),
-        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
-
-    # Remove overlap between eigenvectors with the same eigenvalue.
-    for g in groups:
-        q, _ = np.linalg.qr(np.hstack([vecs[i] for i in g]))
-        for i in range(len(g)):
-            vecs[g[i]] = q[:, i]
-
-    return vals, vecs
-
-
-def closest_unitary(matrix: np.ndarray) -> np.ndarray:
-    """Returns the closest unitary to the given matrix in Frobenius norm.
-
-    The closest unitary is the orthogonal factor in the polar decomposition
-    of a matrix. For all A with singular value decomposition
-    $A = V S W^H$ and left polar decomposition $A = UJ$,
-    where V, W and are U unitary, S is the diagonal matrix of A's
-    singular values, J is positive semi-definite, we can see that
-    $J = W S W^H$ and the orthogonal component is $U = VW^H$.
-
-    This case:
-    $|| A - U || <= || A - M ||$ for all unitary M.
-
-    For proof see Theorem 1 in:
-    https://www.ams.org/journals/proc/1955-006-01/S0002-9939-1955-0067841-7/S0002-9939-1955-0067841-7.pdf
-    """
-    V, __, Wd = np.linalg.svd(matrix)
-    return V @ Wd
-
-
-def unitary_eig(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-    """Returns a guaranteed unitary diagonalization of a unitary matrix
-    up to 1e-14.
-
-    If `matrix` is unitary, it returns d, V such that
-    np.allclose(V @ np.diag(d) @ V.conj().T,matrix, atol=1e-14) == true.
-    If `matrix` is not unitary, it throws an error.
-
-    See https://github.com/numpy/numpy/issues/15461 for more information. If
-    there will be a better solution, we can remove this method.
+    All hermitian and unitary matrices are normal matrices. This method was
+    introduced as for certain classes of unitary matrices (where the eigenvalues
+    are close to each other) the eigenvectors returned by `numpy.linalg.eig` are
+    not guaranteed to be orthogonal.
+    For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
-        matrix: the matrix to be diagonalized
+        matrix: a normal matrix. If not normal, this method is not
+            guaranteed to return correct eigenvalues.
+        check_preconditions: when true and matrix is not unitary,
+            a `ValueError` is raised
+        atol: the absolute tolerance when checking whether the original matrix
+            was unitary
+
     Returns:
-        eigenvalues and the matrix of eigenvectors
+         eigvals: the eigenvalues of `matrix`
+         V: the unitary matrix with the eigenvectors as columns
     """
-    if not predicates.is_unitary(matrix):
-        raise Exception("expected unitary matrix, got:\n {}", matrix)
-    eigvals, V = np.linalg.eig(matrix)
-    if predicates.is_unitary(V, atol=1e-14):
-        return eigvals, V
-    return eigvals, closest_unitary(V)
+    if check_preconditions and not predicates.is_normal(matrix, atol=atol):
+        raise ValueError('Input must correspond to a normal matrix '
+                         f'.Received input:\n{matrix}')
+    R, V = scipy.linalg.schur(matrix, output="complex")
+    return R.diagonal(), V
 
 
-def map_eigenvalues(
-        matrix: np.ndarray,
-        func: Callable[[complex], complex],
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> np.ndarray:
+def map_eigenvalues(matrix: np.ndarray,
+                    func: Callable[[complex], complex],
+                    *,
+                    atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -212,10 +149,8 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix,
-                                      rtol=rtol,
-                                      atol=atol)
-    pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
+    vals, vecs = unitary_eig(matrix, atol=atol)
+    pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs.T]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
     total = np.zeros(shape=matrix.shape)
@@ -825,6 +760,8 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
                       [1, 1, -1, -1],
                       [-1, 1, -1, 1],
                       [1, -1, -1, 1]]) * 0.25
+
+
 # yapf: enable
 
 

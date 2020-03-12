@@ -19,7 +19,7 @@ import pytest
 
 import cirq
 from cirq import value
-from cirq.linalg.decompositions import unitary_eig
+from cirq import unitary_eig
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -110,10 +110,12 @@ def _random_unitary_with_close_eigenvalues():
     ])
 def test_unitary_eig(matrix):
     # np.linalg.eig(matrix) won't work for the perturbed matrix
-    d, V = unitary_eig(matrix)
+    d, vecs = unitary_eig(matrix)
 
     # test both unitarity and correctness of decomposition
-    np.testing.assert_allclose(matrix, V @ np.diag(d) @ V.conj().T, atol=1e-14)
+    np.testing.assert_allclose(matrix,
+                               vecs @ np.diag(d) @ vecs.conj().T,
+                               atol=1e-14)
 
 
 def test_non_unitary_eig():
