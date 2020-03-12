@@ -109,7 +109,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         n_qubits: An integer that is the number of qubits.
         clifford_state: The basis of the Pauli states with non-zero probability.
         n_clifford_trials: An integer that is the number of Pauli states to
-            sample.
+            sample. If set to 0, we compute the exhaustive list of Pauli states.
 
     Returns:
         A list of Pauli states (represented as tuples of Pauli string, rho_i,
@@ -128,14 +128,27 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     # must flip a coin for each, whether or not to include them.
     stabilizer_basis = clifford_state.stabilizers()
 
-    pauli_traces = []
-    for _ in range(n_clifford_trials):
-        # Build the Pauli string as a random sample of the basis elements.
-        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
-        for stabilizer in stabilizer_basis:
-            if np.random.randint(2) == 1:
-                dense_pauli_string *= stabilizer
+    dense_pauli_strings = []
+    if n_clifford_trials > 0:
+        # Randomly sample the trials
+        for _ in range(n_clifford_trials):
+            # Build the Pauli string as a random sample of the basis elements.
+            dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+            for stabilizer in stabilizer_basis:
+                if np.random.randint(2) == 1:
+                    dense_pauli_string *= stabilizer
+            dense_pauli_strings.append(dense_pauli_string)
+    else:
+        # Enumerate all the Clifford states.
+        for coefficients in itertools.product([False, True], repeat=n_qubits):
+            dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+            for (keep, stabilizer) in zip(coefficients, stabilizer_basis):
+                if keep:
+                    dense_pauli_string *= stabilizer
+            dense_pauli_strings.append(dense_pauli_string)
 
+    pauli_traces = []
+    for dense_pauli_string in dense_pauli_strings:
         # The code below is equivalent to calling
         # clifford_state.wave_function() and then calling
         # compute_characteristic_function() on the results (albeit with a
@@ -312,7 +325,8 @@ def parse_arguments(args):
                         'non-zero probabilities. The higher the number, '
                         'the more accurate the overall fidelity '
                         'estimation, at the cost of extra computing and '
-                        'measurements.')
+                        'measurements. If zero, we exhaustively enumerate all '
+                        'the Pauli traces.')
 
     parser.add_argument('--samples_per_term',
                         default=0,

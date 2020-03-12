@@ -77,11 +77,12 @@ def test_same_pauli_traces_clifford():
     # Run both algos
     pauli_traces_clifford = (
         direct_fidelity_estimation._estimate_pauli_traces_clifford(
-            n_qubits, clifford_state, n_clifford_trials=3))
+            n_qubits, clifford_state, n_clifford_trials=0))
     pauli_traces_general = (
         direct_fidelity_estimation._estimate_pauli_traces_general(
             qubits, circuit))
 
+    assert len(pauli_traces_clifford) == 2**n_qubits
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [
             x for x in pauli_traces_general
