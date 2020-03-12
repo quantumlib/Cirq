@@ -7,7 +7,7 @@ ARG BUILD_CIRQ_TAG=master
 ARG BUILD_CIRQ_EDITOR=""
 #ARG BUILD_CIRQ_EDITOR="emacs vim nano"
 
-LABEL maintainer="Martial Rioux <martial.rioux@kloodz.com>"
+LABEL maintainer="Cirq team"
 
 LABEL description="Docker image python3 and cirq:$BUILD_CIRQ_TAG"
 
