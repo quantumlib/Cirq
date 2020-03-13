@@ -14,6 +14,8 @@
 
 from cirq.contrib.noise_models.noise_models import (
     DepolarizingNoiseModel,
+    ReadoutNoiseModel,
+    DampedReadoutNoiseModel,
     DepolarizingWithReadoutNoiseModel,
     DepolarizingWithDampedReadoutNoiseModel,
 )

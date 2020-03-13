@@ -193,7 +193,9 @@ SHOULDNT_BE_SERIALIZED = [
     # Quantum Engine
     'Engine',
     'EngineJob',
+    'EngineProcessor',
     'EngineProgram',
+    'EngineTimeSlot',
     'QuantumEngineSampler',
 
     # enums
@@ -275,10 +277,10 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixStepResult',
     'DensityMatrixTrialResult',
     'ExpressionMap',
+    'FSIM_GATESET',
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
-    'JobConfig',
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
