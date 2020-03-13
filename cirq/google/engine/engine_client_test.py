@@ -586,7 +586,7 @@ def test_list_calibrations(client_constructor):
     client = EngineClient()
     assert client.list_calibrations('proj', 'processor0') == results
     assert grpc_client.list_quantum_calibrations.call_args[0] == (
-        'projects/proj/processors/processor0', '')
+        'projects/proj/processors/processor0',)
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)

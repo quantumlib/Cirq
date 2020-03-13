@@ -11,14 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import datetime
+
 from typing import List, Optional, TYPE_CHECKING
 
 from cirq.google.engine.client.quantum import types as qtypes
+from cirq.google.engine.client.quantum import enums as qenums
 from cirq.google.api import v2
 from cirq.google.engine import calibration
+from cirq.google.engine.engine_timeslot import EngineTimeSlot
 
 if TYPE_CHECKING:
-    import datetime
     import cirq.google.engine.engine as engine_base
 
 
@@ -167,16 +170,129 @@ class EngineProcessor:
         else:
             return None
 
-    def get_schedule(
-        from_date:  datetime = now(),
-        to_date: datetime = now + timedelta(weeks=2),
-        time_slot_type: TimeSlotType) -> List[EngineProcessorTimeSlot]:
+    def create_reservation(self, start_date: datetime.datetime,
+                           end_date: datetime.datetime,
+                           whitelisted_users: List[str]):
+        """Creates a reservation on this processor.
+
+        Args:
+            start_date: the starting date/time of the reservation.
+            end_date: the ending date/time of the reservation.
+            whitelisted_users: a list of emails that are allowed
+              to send programs during this reservation.
+        """
+        response = self.context.client.create_reservation(
+            self.project_id, self.processor_id, None, start_date, end_date,
+            whitelisted_users)
+        return response
+
+    def _delete_reservation(self, reservation_id: str):
+        """Delete a reservation.
+
+        This will only work for reservations outside the processor's
+        forzen window.  If you are not sure whether the reservation
+        falls within this window, use remove_reservation
+        """
+        return self.context.client.delete_reservation(self.project_id,
+                                                      self.processor_id,
+                                                      reservation_id)
+
+    def _cancel_reservation(self, reservation_id: str):
+        """Cancel a reservation.
+
+        This will only work for reservations inside the processor's
+        forzen window.  If you are not sure whether the reservation
+        falls within this window, use remove_reservation
+        """
+        return self.context.client.cancel_reservation(self.project_id,
+                                                      self.processor_id,
+                                                      reservation_id)
+
+    #TODO(dstrain): add remove reservation
+
+    def get_reservation(self, reservation_id: str):
+        """Retrieve a reservation given its id."""
+        return self.context.client.get_reservation(self.project_id,
+                                                   self.processor_id,
+                                                   reservation_id)
+
+    def update_reservation(self,
+                           reservation_id: str,
+                           start_date: datetime.datetime = None,
+                           end_date: datetime.datetime = None,
+                           whitelisted_users: List[str] = None):
+        """Updates a reservation with new information.
+
+        Updates a reservation with a new start date, end date, or
+        list of users.  For each field, it the argument is left as
+        None, it will not be updated.
+        """
+        rtn = None
+        if start_date is not None:
+            rtn = self.context.client.set_reservation_start_time(
+                self.project_id,
+                self.processor_id,
+                reservation_id,
+                start=start_date)
+        if end_date is not None:
+            rtn = self.context.client.set_reservation_end_time(
+                self.project_id,
+                self.processor_id,
+                reservation_id,
+                end=end_date)
+        if whitelisted_users is not None:
+            rtn = self.context.client.set_reservation_whitelisted_users(
+                self.project_id,
+                self.processor_id,
+                reservation_id,
+                whitelisted_users=whitelisted_users)
+        return rtn
+
+    # TODO(dstrain): add update_reservation
+
+    def list_reservations(
+            self,
+            from_date: datetime.datetime = datetime.datetime.now(),
+            to_date: datetime.datetime = datetime.datetime.now() +
+            datetime.timedelta(weeks=2)) -> List[EngineTimeSlot]:
+        """Retrieves the reservations from a processor.
+
+
+        The schedule may be filtered by time and by the type of time
+        (e.g. maintenance, open swim, unallocated, reservation).
+        """
+        filters = []
+        if from_date:
+            filters.append(f'start_time >= {from_date}')
+        if to_date:
+            filters.append(f'start_time <= {to_date}')
+        filter_str = ' AND '.join(filters)
+        return self.context.client.list_reservations(self.project_id,
+                                                     self.processor_id,
+                                                     filter_str)
+
+    def get_schedule(self,
+                     from_date: datetime.datetime = datetime.datetime.now(),
+                     to_date: datetime.datetime = datetime.datetime.now() +
+                     datetime.timedelta(weeks=2),
+                     time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
+                    ) -> List[EngineTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time and by the type of time
         (e.g. maintenance, open swim, unallocated, reservation).
         """
-        pass
+        filters = []
+        if from_date:
+            filters.append(f'start_time >= {from_date}')
+        if to_date:
+            filters.append(f'start_time <= {to_date}')
+        if time_slot_type:
+            filters.append(f'time_slot_type = "{time_slot_type}"')
+        filter_str = ' AND '.join(filters)
+        return self.context.client.list_time_slots(self.project_id,
+                                                   self.processor_id,
+                                                   filter_str)
 
     def __str__(self):
         return 'EngineProcessor(project_id=\'{}\', processor_id=\'{}\')'.format(
