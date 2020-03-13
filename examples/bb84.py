@@ -110,7 +110,6 @@ import cirq
 
 
 def main(num_qubits=8):
-    np.random.seed(200)
     # Setup non-eavesdropped protocol
     print('Simulating non-eavesdropped protocol')
     alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
@@ -146,6 +145,7 @@ def main(num_qubits=8):
 
     # Setup eavesdropped protocol
     print('Simulating eavesdropped protocol')
+    np.random.seed(200)  # Seed random generator for consistent results
     alice_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
     alice_state = [np.random.randint(0, 2) for _ in range(num_qubits)]
     bob_basis = [np.random.randint(0, 2) for _ in range(num_qubits)]
