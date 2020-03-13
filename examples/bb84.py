@@ -49,8 +49,8 @@ for that qubit even if their basis choices match. Thus, Alice and Bob
 can detect eavesdropping by comparing a few bits from their
 obtained keys.
 
-[1]: https://doi.org/10.1016/j.tcs.2014.05.025
-[2]: https://doi.org/10.1038/299802a0
+[1]: https://en.wikipedia.org/wiki/BB84
+[2]: https://en.wikipedia.org/wiki/No-cloning_theorem
 
  === Example output ===
 
