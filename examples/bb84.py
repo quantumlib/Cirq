@@ -37,49 +37,72 @@ which it was prepared. For the remaining bits, the results are
 uncorrelated. The bits from strings a and m where the bases match
 can be used as a key for cryptography.
 
+BB84 is secure against intercept-and-resend attacks. The no-cloning
+theorem [2] guarantees that a qubit that is in an unknown state to
+begin with cannot be copied or cloned. Thus, any measurement will
+destroy the initial state of the qubit. Suppose an eavesdropper Eve
+intercepts all of Alice's qubits, measures them in a randomly chosen
+basis, prepares another qubit in the state that she measured and resends
+it to Bob. The state Eve measures is not necessarily the state Alice
+prepared,  and hence, Alice and Bob will not measure the same outcome
+for that qubit even if their basis choices match. Thus, Alice and Bob
+can detect eavesdropping by comparing a few bits from their
+obtained keys.
+
 [1]: https://doi.org/10.1016/j.tcs.2014.05.025
+[2]: https://doi.org/10.1038/299802a0
 
  === Example output ===
 
-0: ────X───H───H───M───
+Simulating non-eavesdropped protocol
 
-1: ────X───H───M───────
+0: ───X───M───────────
 
-2: ────H───M───────────
+1: ───H───H───M───────
 
-3: ────H───M───────────
+2: ───X───H───M───────
 
-4: ────X───H───M───────
+3: ───X───H───M───────
 
-5: ────H───M───────────
+4: ───X───H───M───────
 
-6: ────X───H───M───────
+5: ───X───H───H───M───
 
-7: ────X───H───M───────
+6: ───H───M───────────
 
-8: ────X───H───M───────
+7: ───H───H───M───────
 
-9: ────H───M───────────
+Alice's basis:  CHCCCHCH
+Bob's basis:    CHHHHHHH
+Alice's bits:   10111100
+Bases match::   XX___X_X
+Expected key:   1010
+Actual key:     1010
 
-10: ───X───H───H───M───
+Simulating eavesdropped protocol
 
-11: ───H───H───M───────
+0: ───H───M───────────H───M───────────
 
-12: ───X───H───H───M───
+1: ───H───M───────────H───H───M───────
 
-13: ───X───H───H───M───
+2: ───X───H───H───M───X───H───H───M───
 
-14: ───H───M───────────
+3: ───H───M───────────H───M───────────
 
-15: ───X───H───H───M───
+4: ───M───────────────M───────────────
 
-Simulating...
-Alice's basis:  HHHCHHCHCCHHHHHH
-Bob's basis:    HCCHCCHCHHHHHHCH
-Alice's bits:   1100101110101101
-Bases match::   X_________XXXX_X
-Expected key:   110111
-Actual key:     110111
+5: ───X───H───M───────X───H───M───────
+
+6: ───H───M───────────X───H───M───────
+
+7: ───X───H───H───M───X───H───M───────
+
+Alice's basis:  HCHCCHCH
+Bob's basis:    HHHCCHCC
+Alice's bits:   00100101
+Bases match::   X_XXXXX_
+Expected key:   010010
+Actual key:     111011
 
 """
 import cirq
@@ -162,7 +185,7 @@ def main(num_qubits=8):
         if alice_basis[i] == bob_basis[i]
     ])
 
-    assert expected_key != obtained_key, "Keys shoudn't match"
+    assert expected_key != obtained_key, "Keys shouldn't match"
 
     circuit = alice_eve_circuit + eve_bob_circuit
     print(circuit)
