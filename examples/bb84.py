@@ -86,7 +86,7 @@ import random
 import cirq
 
 
-def main(num_qubits=16):
+def main(num_qubits=8):
 
     alice_basis = [random.randint(0, 1) for _ in range(num_qubits)]
     alice_state = [random.randint(0, 1) for _ in range(num_qubits)]
