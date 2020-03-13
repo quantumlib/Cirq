@@ -516,7 +516,7 @@ class EngineClient:
         """
         response = self._make_request(lambda: self.grpc_client.
                                       list_quantum_processors(
-                                          self._project_name(project_id), ''))
+                                          self._project_name(project_id), filter_=''))
         return list(response)
 
     def get_processor(self, project_id: str,
@@ -558,7 +558,7 @@ class EngineClient:
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_calibrations(
                 self._processor_name_from_ids(project_id, processor_id),
-                filter_str))
+                filter_=filter_str))
         return list(response)
 
     def get_calibration(self, project_id: str, processor_id: str,
