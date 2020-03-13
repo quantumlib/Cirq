@@ -105,8 +105,8 @@ Expected key:   010010
 Actual key:     111011
 
 """
-import cirq
 import numpy as np
+import cirq
 
 
 def main(num_qubits=8):
