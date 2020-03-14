@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Iterable, cast
+from typing import FrozenSet, Iterable
 from numpy import sqrt
 
 import cirq
@@ -85,13 +85,7 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
 
-        return (len(op.qubits) > 1) or (isinstance(
-            op.gate, cirq.ops.YPowGate)) or (isinstance(
-                op.gate, cirq.ops.ZPowGate)) or (isinstance(
-                    op.gate, cirq.ops.XPowGate)) or (isinstance(
-                        op.gate, cirq.ops.PhasedXPowGate)) or (isinstance(
-                            op.gate, cirq.ops.MeasurementGate)) or (isinstance(
-                                op.gate, cirq.ops.IdentityGate))
+        return (len(op.qubits) > 1) or isinstance(op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate, cirq.ops.PhasedXPowGate, cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """
