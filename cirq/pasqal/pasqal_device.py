@@ -61,7 +61,7 @@ class PasqalDevice(cirq.devices.Device):
         return frozenset(self.qubits)
 
     def qubit_list(self):
-        return [qubit for qubit in self.qubit_set()]
+        return [qubit for qubit in self.qubits]
 
     def decompose_operation(self,
                             operation: cirq.ops.Operation) -> 'cirq.OP_TREE':
