@@ -130,10 +130,10 @@ def test_distance():
     d = cubic_device(2, 2, 1)
     assert d.distance(ThreeDGridQubit(0, 0, 0), ThreeDGridQubit(1, 0, 0)) == 1
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = d.distance(ThreeDGridQubit(0, 0, 0), cirq.devices.LineQubit(1))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(TypeError):
         _ = d.distance(cirq.devices.LineQubit(1), ThreeDGridQubit(0, 0, 0))
 
 
