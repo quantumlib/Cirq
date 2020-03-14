@@ -89,7 +89,7 @@ class PasqalDevice(cirq.devices.Device):
             op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
                       cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
                       cirq.ops.YPowGate, cirq.ops.ZPowGate))
-                      
+    
     def validate_operation(self, operation: cirq.ops.Operation):
         """
         Raises an error if the given operation is invalid on this device.
