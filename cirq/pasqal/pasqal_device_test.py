@@ -41,7 +41,7 @@ def test_init():
     q110 = ThreeDGridQubit(1, 1, 0)
 
     assert d.qubit_set() == {q000, q001, q010, q011, q100, q101, q110}
-    assert set(d.qubit_list()) == {q000, q001, q010, q011, q100, q101, q110}
+    assert d.qubit_list() == [q000, q001, q010, q011, q100, q101, q110]
     assert d.duration_of(
         cirq.ops.GateOperation(cirq.ops.IdentityGate(1), [q000])) == 2 * us
     assert d.duration_of(cirq.ops.measure(q000)) == 5 * ms
