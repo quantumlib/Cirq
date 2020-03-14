@@ -85,8 +85,13 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
 
-        return  (len(op.qubits) > 1) or (isinstance(op.gate, cirq.ops.YPowGate)) or (isinstance(op.gate, cirq.ops.ZPowGate)) or (isinstance(op.gate, cirq.ops.XPowGate)) or (isinstance(op.gate, cirq.ops.PhasedXPowGate)) or (isinstance(op.gate, cirq.ops.MeasurementGate)) or (isinstance(op.gate, cirq.ops.IdentityGate))
-
+        return (len(op.qubits) > 1) or (isinstance(
+            op.gate, cirq.ops.YPowGate)) or (isinstance(
+                op.gate, cirq.ops.ZPowGate)) or (isinstance(
+                    op.gate, cirq.ops.XPowGate)) or (isinstance(
+                        op.gate, cirq.ops.PhasedXPowGate)) or (isinstance(
+                            op.gate, cirq.ops.MeasurementGate)) or (isinstance(
+                                op.gate, cirq.ops.IdentityGate))
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """
