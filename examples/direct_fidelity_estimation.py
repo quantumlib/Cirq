@@ -109,7 +109,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         n_qubits: An integer that is the number of qubits.
         clifford_state: The basis of the Pauli states with non-zero probability.
         n_clifford_trials: An integer that is the number of Pauli states to
-            sample. If set to 0, we compute the exhaustive list of Pauli states.
+            sample. If set to sys.maxsize, we do an exhaustive search.
 
     Returns:
         A list of Pauli states (represented as tuples of Pauli string, rho_i,
@@ -129,7 +129,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     stabilizer_basis = clifford_state.stabilizers()
 
     dense_pauli_strings = []
-    if n_clifford_trials > 0:
+    if n_clifford_trials != sys.maxsize:
         # Randomly sample the trials
         for _ in range(n_clifford_trials):
             # Build the Pauli string as a random sample of the basis elements.
@@ -325,8 +325,8 @@ def parse_arguments(args):
                         'non-zero probabilities. The higher the number, '
                         'the more accurate the overall fidelity '
                         'estimation, at the cost of extra computing and '
-                        'measurements. If zero, we exhaustively enumerate all '
-                        'the Pauli traces.')
+                        'measurements. If set to sys.maxsize, we exhaustively '
+                        'enumerate all the Pauli traces.')
 
     parser.add_argument('--samples_per_term',
                         default=0,

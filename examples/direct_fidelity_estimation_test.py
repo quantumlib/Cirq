@@ -1,6 +1,7 @@
 import numpy as np
 import cirq
 import examples.direct_fidelity_estimation as direct_fidelity_estimation
+import sys
 
 
 def test_direct_fidelity_estimation_no_noise_clifford():
@@ -77,7 +78,7 @@ def test_same_pauli_traces_clifford():
     # Run both algos
     pauli_traces_clifford = (
         direct_fidelity_estimation._estimate_pauli_traces_clifford(
-            n_qubits, clifford_state, n_clifford_trials=0))
+            n_qubits, clifford_state, n_clifford_trials=sys.maxsize))
     pauli_traces_general = (
         direct_fidelity_estimation._estimate_pauli_traces_general(
             qubits, circuit))
