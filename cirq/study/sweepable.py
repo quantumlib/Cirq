@@ -15,6 +15,7 @@
 """Defines which types are Sweepable."""
 
 from typing import Dict, Iterable, Iterator, List, Union, cast
+import itertools
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
@@ -55,20 +56,12 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        expandsweepable = [cast(dict, {})]
-        for key in sweepable.keys():
-            value = sweepable[key]
-            if isinstance(value, Iterable):
-                tempsweepable = []
-                for item in value:
-                    for shortdict in expandsweepable:
-                        tempdict = shortdict.copy()
-                        tempdict[key] = item
-                        tempsweepable.append(cast(dict, tempdict))
-                expandsweepable = tempsweepable
-            else:
-                for shortdict in expandsweepable:
-                    shortdict[key] = value
+        """change dictionary of lists to list of dictionaries of single values using Cartesian product"""
+        for key, value in sweepable.items():
+            if not isinstance(value, Iterable):
+                sweepable[key] = [value]
+        expandsweepable = [zip(sweepable.keys(), v)
+                           for v in itertools.product(*sweepable.values())]
         return [
             _resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
             for dictitem in expandsweepable
