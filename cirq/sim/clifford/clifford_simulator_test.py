@@ -389,7 +389,8 @@ def test_non_clifford_circuit():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit()
     circuit.append(cirq.T(q0))
-    with pytest.raises(ValueError, match="T is not a Clifford gate."):
+    with pytest.raises(ValueError,
+                       match="T cannot be run with Clifford simulator."):
         cirq.CliffordSimulator().simulate(circuit)
 
 
