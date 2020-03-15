@@ -1,6 +1,6 @@
 config = {
     "interfaces": {
-        "cirq.google.engine.client.quantum.v1alpha1.QuantumEngineService": {
+        "google.cloud.quantum.v1alpha1.QuantumEngineService": {
             "retry_codes": {
                 "idempotent": ["DEADLINE_EXCEEDED", "UNAVAILABLE"],
                 "non_idempotent": []
@@ -34,7 +34,7 @@ config = {
                 },
                 "DeleteQuantumProgram": {
                     "timeout_millis": 60000,
-                    "retry_codes_name": "idempotent",
+                    "retry_codes_name": "non_idempotent",
                     "retry_params_name": "default"
                 },
                 "UpdateQuantumProgram": {
@@ -59,7 +59,7 @@ config = {
                 },
                 "DeleteQuantumJob": {
                     "timeout_millis": 60000,
-                    "retry_codes_name": "idempotent",
+                    "retry_codes_name": "non_idempotent",
                     "retry_params_name": "default"
                 },
                 "UpdateQuantumJob": {
@@ -102,9 +102,59 @@ config = {
                     "retry_codes_name": "idempotent",
                     "retry_params_name": "default"
                 },
+                "CreateQuantumReservation": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
+                "CancelQuantumReservation": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
+                "DeleteQuantumReservation": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
+                "GetQuantumReservation": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "idempotent",
+                    "retry_params_name": "default"
+                },
+                "ListQuantumReservations": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "idempotent",
+                    "retry_params_name": "default"
+                },
+                "UpdateQuantumReservation": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
                 "QuantumRunStream": {
                     "timeout_millis": 60000,
                     "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
+                "ListQuantumReservationGrants": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "idempotent",
+                    "retry_params_name": "default"
+                },
+                "ReallocateQuantumReservationGrant": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "non_idempotent",
+                    "retry_params_name": "default"
+                },
+                "ListQuantumReservationBudgets": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "idempotent",
+                    "retry_params_name": "default"
+                },
+                "ListQuantumTimeSlots": {
+                    "timeout_millis": 60000,
+                    "retry_codes_name": "idempotent",
                     "retry_params_name": "default"
                 }
             }

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,12 +14,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 from __future__ import absolute_import
+import sys
+import warnings
 
 from cirq.google.engine.client.quantum_v1alpha1 import types
 from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
-from cirq.google.engine.client.quantum_v1alpha1.gapic import \
-    quantum_engine_service_client
+from cirq.google.engine.client.quantum_v1alpha1.gapic import (
+    quantum_engine_service_client)
+
+if sys.version_info[:2] == (2, 7):
+    message = (
+        'A future version of this library will drop support for Python 2.7.'
+        'More details about Python 2 support for Google Cloud Client Libraries'
+        'can be found at https://cloud.google.com/python/docs/python2-sunset/')
+    warnings.warn(message, DeprecationWarning)
 
 
 class QuantumEngineServiceClient(
