@@ -56,12 +56,17 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        """change dictionary of lists to list of dictionaries of single values using Cartesian product"""
+        """
+        change dictionary of lists to list of dictionaries
+        of single values using Cartesian product.
+        """
         for key, value in sweepable.items():
             if not isinstance(value, Iterable):
                 sweepable[key] = [value]
-        expandsweepable = [zip(sweepable.keys(), v)
-                           for v in itertools.product(*sweepable.values())]
+        expandsweepable = [
+            dict(zip(sweepable.keys(), v))
+            for v in itertools.product(*sweepable.values())
+        ]
         return [
             _resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
             for dictitem in expandsweepable
