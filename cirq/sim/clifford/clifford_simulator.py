@@ -29,15 +29,19 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Sequence
 import collections
+from typing import Dict, List, Iterator, Sequence
+
 import numpy as np
+
 import cirq
+from cirq import circuits, study, ops, protocols, value
+from cirq.ops import pauli_gates
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
+from cirq.ops.dense_pauli_string import DensePauliString
+from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
-from cirq.ops.dense_pauli_string import DensePauliString
-from cirq import circuits, study, ops, protocols, value
-from cirq.sim.clifford.clifford_gate_decomposer import CliffordGateDecomposer
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -54,8 +58,9 @@ class CliffordSimulator(simulator.SimulatesSamples,
         gate = op.gate
         if gate is None: return False
         if not protocols.has_unitary(gate): return False
-        if cirq.unitary(gate).shape == (2, 2):
-            return CliffordGateDecomposer.can_decompose(gate)
+        u = cirq.unitary(gate)
+        if u.shape == (2, 2):
+            return not SingleQubitCliffordGate.from_unitary(u) is None
         else:
             return gate in [cirq.CNOT, cirq.CZ]
 
@@ -316,19 +321,44 @@ class CliffordState():
                              str(op.gate))  # type: ignore
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
-        gate = op.gate
-        assert gate is not None
-        sequence, phase_shift = CliffordGateDecomposer.decompose(gate)
+        assert op.gate is not None
+        u = unitary(op.gate)
+        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
+        if clifford_gate is None:
+            raise ValueError('%s cannot be run with Clifford simulator.' %
+                             str(op.gate))
 
-        for char in sequence[::-1]:
-            if char == 'H':
-                self.tableau._H(self.qubit_map[op.qubits[0]])
-                self.ch_form._H(self.qubit_map[op.qubits[0]])
-            else:
-                assert char == 'S'
-                self.tableau._S(self.qubit_map[op.qubits[0]])
-                self.ch_form._S(self.qubit_map[op.qubits[0]])
+        h = unitary(ops.H)
+        s = unitary(ops.S)
+        applied_unitary = np.eye(2)
+        for axis, quarter_turns in clifford_gate.decompose_rotation():
+            for _ in range(quarter_turns % 4):
+                if axis == pauli_gates.X:
+                    self._apply_H(self.qubit_map[op.qubits[0]])
+                    self._apply_S(self.qubit_map[op.qubits[0]])
+                    self._apply_H(self.qubit_map[op.qubits[0]])
+                    applied_unitary = h @ s @ h @ applied_unitary
+                elif axis == pauli_gates.Y:
+                    self._apply_S(self.qubit_map[op.qubits[0]])
+                    self._apply_S(self.qubit_map[op.qubits[0]])
+                    self._apply_H(self.qubit_map[op.qubits[0]])
+                    applied_unitary = h @ s @ s @ applied_unitary
+                else:
+                    assert axis == pauli_gates.Z
+                    self._apply_S(self.qubit_map[op.qubits[0]])
+                    applied_unitary = s @ applied_unitary
+
+        max_idx = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        phase_shift = u[max_idx] / applied_unitary[max_idx]
         self.ch_form.omega *= phase_shift
+
+    def _apply_H(self, q):
+        self.tableau._H(q)
+        self.ch_form._H(q)
+
+    def _apply_S(self, q):
+        self.tableau._S(q)
+        self.ch_form._S(q)
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
