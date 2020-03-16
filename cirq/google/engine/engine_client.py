@@ -611,7 +611,6 @@ class EngineClient:
             raise
 
     def create_reservation(self, project_id: str, processor_id: str,
-                           reservation_id: Optional[str],
                            start: datetime.datetime, end: datetime.datetime,
                            whitelisted_users: List[str]):
         """Creates a quantum reservation and returns the created object.
@@ -626,11 +625,9 @@ class EngineClient:
             whitelisted_users: a list of emails that can use the reservation.
         """
         parent = self._processor_name_from_ids(project_id, processor_id)
-        name = self._reservation_name_from_ids(
-            project_id, processor_id, reservation_id) if reservation_id else ''
 
         reservation = qtypes.QuantumReservation(
-            name=name,
+            name='',
             start_time=Timestamp(seconds=int(start.timestamp())),
             end_time=Timestamp(seconds=int(end.timestamp())),
             whitelisted_users=whitelisted_users,
@@ -708,8 +705,10 @@ class EngineClient:
                           project_id: str,
                           processor_id: str,
                           filter_str: str = ''
-                         ) -> List[qtypes.QuantumCalibration]:
+                         ) -> List[qtypes.QuantumReservation]:
         """Returns a list of quantum reservations.
+
+        Only reservations owned by this project will be returned.
 
         Params:
             project_id: A project_id of the parent Google Cloud Project.
@@ -717,13 +716,13 @@ class EngineClient:
             filter: A string for filtering quantum reservationsFilter string
                 The fields eligible for filtering are start_time and end_time
                 Examples:
-                    `start_time >= 2017-01-02`: Reservation began on or after
-                        Jan 2nd, 2017.
-                    `end_time >= 2017-01-02 15:21:15.142`: Reservation ends on
+                    `start_time >= 1584385200`: Reservation began on or after
+                        the epoch time Mar 16th, 7pm GMT.
+                    `end_time >= "2017-01-02 15:21:15.142"`: Reservation ends on
                         or after Jan 2nd 2017 15:21:15.142
 
         Returns:
-            A list of calibrations.
+            A list of QuantumReservation objects.
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_reservations(
@@ -732,86 +731,52 @@ class EngineClient:
 
         return list(response)
 
-    def set_reservation_start_time(self, project_id: str, processor_id: str,
-                                   reservation_id: str,
-                                   start: datetime.datetime):
-        """Updates a quantum reservation's starting time.
+    def update_reservation(self,
+                           project_id: str,
+                           processor_id: str,
+                           reservation_id: str,
+                           start: Optional[datetime.datetime] = None,
+                           end: Optional[datetime.datetime] = None,
+                           whitelisted_users: Optional[List[str]] = None):
+        """Updates a quantum reservation.
+
+        This will update a quantum reservation's starting time, ending time,
+        and list of whitelisted users.  If any field is not filled, it will
+        not be updated.
 
         Params:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
             start: the new starting time of the reservation as a datetime object
-        """
-        name = self._reservation_name_from_ids(
-            project_id, processor_id, reservation_id) if reservation_id else ''
-
-        reservation = qtypes.QuantumReservation(
-            name=name,
-            start_time=Timestamp(seconds=int(start.timestamp())),
-        )
-        return self._make_request(
-            lambda: self.grpc_client.update_quantum_reservation(
-                name=name,
-                quantum_reservation=reservation,
-                update_mask=qtypes.field_mask_pb2.FieldMask(paths=
-                                                            ['start_time'])))
-
-    def set_reservation_end_time(self, project_id: str, processor_id: str,
-                                 reservation_id: str, end: datetime.datetime):
-        """Updates a quantum reservation's ending time.
-
-        Params:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            reservation_id: Unique ID of the reservation in the parent project,
             end: the new ending time of the reservation as a datetime object
-        """
-        name = self._reservation_name_from_ids(
-            project_id, processor_id, reservation_id) if reservation_id else ''
-
-        reservation = qtypes.QuantumReservation(
-            name=name,
-            end_time=Timestamp(seconds=int(end.timestamp())),
-        )
-        return self._make_request(
-            lambda: self.grpc_client.update_quantum_reservation(
-                name=name,
-                quantum_reservation=reservation,
-                update_mask=qtypes.field_mask_pb2.FieldMask(paths=['end_time']
-                                                           )))
-
-    def set_reservation_whitelisted_users(self, project_id: str,
-                                          processor_id: str,
-                                          reservation_id: str,
-                                          whitelisted_users: List[str]):
-        """Updates a quantum reservation's allowed users.
-
-        Params:
-            project_id: A project_id of the parent Google Cloud Project.
-            processor_id: The processor unique identifier.
-            reservation_id: Unique ID of the reservation in the parent project,
             whitelisted_users: a list of emails that can use the reservation.
         """
         name = self._reservation_name_from_ids(
             project_id, processor_id, reservation_id) if reservation_id else ''
 
-        reservation = qtypes.QuantumReservation(
-            name=name,
-            whitelisted_users=whitelisted_users,
-        )
+        reservation = qtypes.QuantumReservation(name=name,)
+        paths = []
+        if start:
+            reservation.start_time.seconds = int(start.timestamp())
+            paths.append('start_time')
+        if end:
+            reservation.end_time.seconds = int(end.timestamp())
+            paths.append('end_time')
+        if whitelisted_users:
+            reservation.whitelisted_users.extend(whitelisted_users)
+            paths.append('whitelisted_users')
+
         return self._make_request(
             lambda: self.grpc_client.update_quantum_reservation(
                 name=name,
                 quantum_reservation=reservation,
-                update_mask=qtypes.field_mask_pb2.FieldMask(
-                    paths=['whitelisted_users'])))
+                update_mask=qtypes.field_mask_pb2.FieldMask(paths=paths)))
 
     def list_time_slots(self,
                         project_id: str,
                         processor_id: str,
-                        filter_str: str = ''
-                       ) -> List[qtypes.QuantumCalibration]:
+                        filter_str: str = '') -> List[qtypes.QuantumTimeSlot]:
         """Returns a list of quantum time slots on a processor.
 
         Params:
@@ -819,11 +784,10 @@ class EngineClient:
             processor_id: The processor unique identifier.
             filter:  A string expression for filtering the quantum
                 time slots returned by the list command. The fields
-                eligible for filtering are `start_time`, `end_time`, and
-                `time_slot_type`
+                eligible for filtering are `start_time`, `end_time`.
 
         Returns:
-            A list of calibrations.
+            A list of QuantumTimeSlot objects.
         """
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_time_slots(

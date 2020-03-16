@@ -182,7 +182,7 @@ class EngineProcessor:
               to send programs during this reservation.
         """
         response = self.context.client.create_reservation(
-            self.project_id, self.processor_id, None, start_date, end_date,
+            self.project_id, self.processor_id, start_date, end_date,
             whitelisted_users)
         return response
 
@@ -227,28 +227,13 @@ class EngineProcessor:
         list of users.  For each field, it the argument is left as
         None, it will not be updated.
         """
-        rtn = None
-        if start_date is not None:
-            rtn = self.context.client.set_reservation_start_time(
-                self.project_id,
-                self.processor_id,
-                reservation_id,
-                start=start_date)
-        if end_date is not None:
-            rtn = self.context.client.set_reservation_end_time(
-                self.project_id,
-                self.processor_id,
-                reservation_id,
-                end=end_date)
-        if whitelisted_users is not None:
-            rtn = self.context.client.set_reservation_whitelisted_users(
-                self.project_id,
-                self.processor_id,
-                reservation_id,
-                whitelisted_users=whitelisted_users)
-        return rtn
-
-    # TODO(dstrain): add update_reservation
+        return self.context.client.update_reservation(
+            self.project_id,
+            self.processor_id,
+            reservation_id,
+            start=start_date,
+            end=end_date,
+            whitelisted_users=whitelisted_users)
 
     def list_reservations(
             self,
@@ -257,15 +242,14 @@ class EngineProcessor:
             datetime.timedelta(weeks=2)) -> List[EngineTimeSlot]:
         """Retrieves the reservations from a processor.
 
-
-        The schedule may be filtered by time and by the type of time
-        (e.g. maintenance, open swim, unallocated, reservation).
+        Only reservations from this processor and project will be
+        returned.  The schedule may be filtered by starting and ending time.
         """
         filters = []
         if from_date:
-            filters.append(f'start_time >= {from_date}')
+            filters.append(f'start_time >= {int(from_date.timestamp())}')
         if to_date:
-            filters.append(f'start_time <= {to_date}')
+            filters.append(f'start_time <= {int(to_date.timestamp())}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_reservations(self.project_id,
                                                      self.processor_id,
@@ -279,16 +263,17 @@ class EngineProcessor:
                     ) -> List[EngineTimeSlot]:
         """Retrieves the schedule for a processor.
 
-        The schedule may be filtered by time and by the type of time
-        (e.g. maintenance, open swim, unallocated, reservation).
+        The schedule may be filtered by time.
+
+        Time slot type will be supported in the future.
         """
         filters = []
         if from_date:
-            filters.append(f'start_time >= {from_date}')
+            filters.append(f'start_time >= {int(from_date.timestamp())}')
         if to_date:
-            filters.append(f'start_time <= {to_date}')
+            filters.append(f'start_time <= {int(to_date.timestamp())}')
         if time_slot_type:
-            filters.append(f'time_slot_type = "{time_slot_type}"')
+            raise ValueError('Filtering by time_slot_type not yet supported')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id,
                                                    self.processor_id,
