@@ -71,14 +71,14 @@ def test_from_to_proto_plain():
     slot = enums.QuantumTimeSlot.TimeSlotType.RESERVATION
     proto = qtypes.QuantumTimeSlot(
         processor_name='potofgold',
-        start_time=Timestamp(seconds=10000),
-        end_time=Timestamp(seconds=20000),
+        start_time=Timestamp(seconds=1500000000),
+        end_time=Timestamp(seconds=1500010000),
         slot_type=slot,
     )
     time_slot = cg.EngineTimeSlot(
         processor_id='potofgold',
-        start_time=datetime.datetime.fromtimestamp(10000),
-        end_time=datetime.datetime.fromtimestamp(20000),
+        start_time=datetime.datetime.fromtimestamp(1500000000),
+        end_time=datetime.datetime.fromtimestamp(1500010000),
         slot_type=slot,
     )
     actual_from_proto = cg.EngineTimeSlot.from_proto(proto)
@@ -91,16 +91,16 @@ def test_from_to_proto_reservation():
     slot = enums.QuantumTimeSlot.TimeSlotType.RESERVATION
     proto = qtypes.QuantumTimeSlot(
         processor_name='potofgold',
-        start_time=Timestamp(seconds=10000),
-        end_time=Timestamp(seconds=20000),
+        start_time=Timestamp(seconds=1500000000),
+        end_time=Timestamp(seconds=1500010000),
         slot_type=slot,
         reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
             project_id='super_secret_quantum'),
     )
     time_slot = cg.EngineTimeSlot(
         processor_id='potofgold',
-        start_time=datetime.datetime.fromtimestamp(10000),
-        end_time=datetime.datetime.fromtimestamp(20000),
+        start_time=datetime.datetime.fromtimestamp(1500000000),
+        end_time=datetime.datetime.fromtimestamp(1500010000),
         slot_type=slot,
         project_id='super_secret_quantum',
     )
@@ -114,8 +114,8 @@ def test_from_to_proto_maintenance():
     slot = enums.QuantumTimeSlot.TimeSlotType.MAINTENANCE
     proto = qtypes.QuantumTimeSlot(
         processor_name='potofgold',
-        start_time=Timestamp(seconds=20000),
-        end_time=Timestamp(seconds=40000),
+        start_time=Timestamp(seconds=1500020000),
+        end_time=Timestamp(seconds=1500040000),
         slot_type=slot,
         maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
             title='Testing',
@@ -124,8 +124,8 @@ def test_from_to_proto_maintenance():
     )
     time_slot = cg.EngineTimeSlot(
         processor_id='potofgold',
-        start_time=datetime.datetime.fromtimestamp(20000),
-        end_time=datetime.datetime.fromtimestamp(40000),
+        start_time=datetime.datetime.fromtimestamp(1500020000),
+        end_time=datetime.datetime.fromtimestamp(1500040000),
         slot_type=slot,
         maintenance_title='Testing',
         maintenance_description='Testing some new configuration.',
