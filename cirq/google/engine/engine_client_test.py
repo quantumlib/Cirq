@@ -12,13 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for EngineClient."""
+import datetime
 from unittest import mock
 import pytest
 from google.api_core import exceptions
+from google.protobuf.field_mask_pb2 import FieldMask
+from google.protobuf.timestamp_pb2 import Timestamp
 from cirq.google.engine.engine_client import EngineClient, EngineException
 from cirq.google.engine.client import quantum
 from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
-
 
 def setup_mock_(client_constructor):
     grpc_client = mock.Mock()
@@ -665,3 +667,204 @@ def test_api_retry_5xx_errors(client_constructor):
                        match='Reached max retry attempts.*internal error'):
         client.get_program('proj', 'prog', False)
     assert grpc_client.get_quantum_program.call_count > 1
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_create_reservation(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    start = datetime.datetime.fromtimestamp(0)
+    end = datetime.datetime.fromtimestamp(3600)
+    users = ['jeff@google.com']
+    result = qtypes.QuantumReservation(
+        name='projects/proj/processors/processor0/reservations/papar-party-44',
+        start_time=Timestamp(seconds=0),
+        end_time=Timestamp(seconds=3600),
+        whitelisted_users=users,
+    )
+    grpc_client.create_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert client.create_reservation('proj', 'processor0', None, start, end,
+                                     users) == result
+    assert grpc_client.create_quantum_reservation.call_count == 1
+    kwargs = grpc_client.create_quantum_reservation.call_args[1]
+    # The outgoing argument will not have the resource name
+    result.name = ''
+    assert kwargs == {
+        'parent': 'projects/proj/processors/processor0',
+        'quantum_reservation': result
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_cancel_reservation(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=10000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com'],
+    )
+    grpc_client.cancel_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.cancel_reservation('proj', 'processor0',
+                                      'papar-party-44') == result)
+    kwargs = grpc_client.cancel_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_delete_reservation(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=10000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com'],
+    )
+    grpc_client.delete_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.delete_reservation('proj', 'processor0',
+                                      'papar-party-44') == result)
+    kwargs = grpc_client.delete_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_reservation(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=10000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com'],
+    )
+    grpc_client.get_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.get_reservation('proj', 'processor0',
+                                   'papar-party-44') == result)
+    kwargs = grpc_client.get_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_reservation_not_found(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    grpc_client.get_quantum_reservation.side_effect = exceptions.NotFound(
+        'not found')
+
+    client = EngineClient()
+    assert (client.get_reservation('proj', 'processor0',
+                                   'papar-party-44') == None)
+    kwargs = grpc_client.get_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_get_reservation_exception(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    grpc_client.get_quantum_reservation.side_effect = exceptions.BadRequest(
+        'boom')
+
+    client = EngineClient()
+    with pytest.raises(EngineException, match='boom'):
+        client.get_reservation('proj', 'processor0', 'goog')
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_set_reservation_start_date(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=11000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com'],
+    )
+    param = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=11000),
+    )
+    grpc_client.update_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.set_reservation_start_time(
+        'proj', 'processor0', 'papar-party-44',
+        datetime.datetime.fromtimestamp(11000)) == result)
+    kwargs = grpc_client.update_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+        'quantum_reservation': param,
+        'update_mask': FieldMask(paths=['start_time'])
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_set_reservation_end_date(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=11000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com'],
+    )
+    param = qtypes.QuantumReservation(
+        name=name,
+        end_time=Timestamp(seconds=12000),
+    )
+    grpc_client.update_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.set_reservation_end_time(
+        'proj', 'processor0', 'papar-party-44',
+        datetime.datetime.fromtimestamp(12000)) == result)
+    kwargs = grpc_client.update_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+        'quantum_reservation': param,
+        'update_mask': FieldMask(paths=['end_time'])
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_set_reservation_users(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=11000),
+        end_time=Timestamp(seconds=12000),
+        whitelisted_users=['jeff@google.com', 'dstrain@google.com'],
+    )
+    param = qtypes.QuantumReservation(
+        name=name,
+        whitelisted_users=['jeff@google.com', 'dstrain@google.com'],
+    )
+    grpc_client.update_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.set_reservation_whitelisted_users(
+        'proj', 'processor0', 'papar-party-44',
+        ['jeff@google.com', 'dstrain@google.com']) == result)
+    kwargs = grpc_client.update_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+        'quantum_reservation': param,
+        'update_mask': FieldMask(paths=['whitelisted_users'])
+    }

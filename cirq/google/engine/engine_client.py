@@ -625,25 +625,19 @@ class EngineClient:
             end: the ending time of the reservation as a datetime object
             whitelisted_users: a list of emails that can use the reservation.
         """
-        try:
-            parent = self._processor_name_from_ids(project_id, processor_id)
-            name = self._reservation_name_from_ids(
-                project_id, processor_id,
-                reservation_id) if reservation_id else ''
+        parent = self._processor_name_from_ids(project_id, processor_id)
+        name = self._reservation_name_from_ids(
+            project_id, processor_id, reservation_id) if reservation_id else ''
 
-            reservation = qtypes.QuantumReservation(
-                name=name,
-                start_time=Timestamp(seconds=int(start.timestamp())),
-                end_time=Timestamp(seconds=int(end.timestamp())),
-                whitelisted_users=whitelisted_users,
-            )
-            return self._make_request(
-                lambda: self.grpc_client.create_quantum_reservation(
-                    parent=parent, quantum_reservation=reservation))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+        reservation = qtypes.QuantumReservation(
+            name=name,
+            start_time=Timestamp(seconds=int(start.timestamp())),
+            end_time=Timestamp(seconds=int(end.timestamp())),
+            whitelisted_users=whitelisted_users,
+        )
+        return self._make_request(
+            lambda: self.grpc_client.create_quantum_reservation(
+                parent=parent, quantum_reservation=reservation))
 
     def cancel_reservation(self, project_id: str, processor_id: str,
                            reservation_id: str):
@@ -665,15 +659,10 @@ class EngineClient:
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        try:
-            name = self._reservation_name_from_ids(project_id, processor_id,
-                                                   reservation_id)
-            return self._make_request(lambda: self.grpc_client.
-                                      cancel_quantum_reservation(name=name))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+        name = self._reservation_name_from_ids(project_id, processor_id,
+                                               reservation_id)
+        return self._make_request(lambda: self.grpc_client.
+                                  cancel_quantum_reservation(name=name))
 
     def delete_reservation(self, project_id: str, processor_id: str,
                            reservation_id: str):
@@ -691,15 +680,10 @@ class EngineClient:
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
         """
-        try:
-            name = self._reservation_name_from_ids(project_id, processor_id,
-                                                   reservation_id)
-            return self._make_request(lambda: self.grpc_client.
-                                      delete_quantum_reservation(name=name))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+        name = self._reservation_name_from_ids(project_id, processor_id,
+                                               reservation_id)
+        return self._make_request(lambda: self.grpc_client.
+                                  delete_quantum_reservation(name=name))
 
     def get_reservation(self, project_id: str, processor_id: str,
                         reservation_id: str):
@@ -741,7 +725,6 @@ class EngineClient:
         Returns:
             A list of calibrations.
         """
-        print(filter_str)
         response = self._make_request(
             lambda: self.grpc_client.list_quantum_reservations(
                 self._processor_name_from_ids(project_id, processor_id),
@@ -760,25 +743,19 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             start: the new starting time of the reservation as a datetime object
         """
-        try:
-            name = self._reservation_name_from_ids(
-                project_id, processor_id,
-                reservation_id) if reservation_id else ''
+        name = self._reservation_name_from_ids(
+            project_id, processor_id, reservation_id) if reservation_id else ''
 
-            reservation = qtypes.QuantumReservation(
+        reservation = qtypes.QuantumReservation(
+            name=name,
+            start_time=Timestamp(seconds=int(start.timestamp())),
+        )
+        return self._make_request(
+            lambda: self.grpc_client.update_quantum_reservation(
                 name=name,
-                start_time=Timestamp(seconds=int(start.timestamp())),
-            )
-            return self._make_request(
-                lambda: self.grpc_client.update_quantum_reservation(
-                    name=name,
-                    quantum_reservation=reservation,
-                    update_mask=qtypes.field_mask_pb2.FieldMask(
-                        paths=['start_time'])))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+                quantum_reservation=reservation,
+                update_mask=qtypes.field_mask_pb2.FieldMask(paths=
+                                                            ['start_time'])))
 
     def set_reservation_end_time(self, project_id: str, processor_id: str,
                                  reservation_id: str, end: datetime.datetime):
@@ -790,25 +767,19 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             end: the new ending time of the reservation as a datetime object
         """
-        try:
-            name = self._reservation_name_from_ids(
-                project_id, processor_id,
-                reservation_id) if reservation_id else ''
+        name = self._reservation_name_from_ids(
+            project_id, processor_id, reservation_id) if reservation_id else ''
 
-            reservation = qtypes.QuantumReservation(
+        reservation = qtypes.QuantumReservation(
+            name=name,
+            end_time=Timestamp(seconds=int(end.timestamp())),
+        )
+        return self._make_request(
+            lambda: self.grpc_client.update_quantum_reservation(
                 name=name,
-                end_time=Timestamp(seconds=int(end.timestamp())),
-            )
-            return self._make_request(
-                lambda: self.grpc_client.update_quantum_reservation(
-                    name=name,
-                    quantum_reservation=reservation,
-                    update_mask=qtypes.field_mask_pb2.FieldMask(paths=
-                                                                ['end_time'])))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+                quantum_reservation=reservation,
+                update_mask=qtypes.field_mask_pb2.FieldMask(paths=['end_time']
+                                                           )))
 
     def set_reservation_whitelisted_users(self, project_id: str,
                                           processor_id: str,
@@ -822,25 +793,19 @@ class EngineClient:
             reservation_id: Unique ID of the reservation in the parent project,
             whitelisted_users: a list of emails that can use the reservation.
         """
-        try:
-            name = self._reservation_name_from_ids(
-                project_id, processor_id,
-                reservation_id) if reservation_id else ''
+        name = self._reservation_name_from_ids(
+            project_id, processor_id, reservation_id) if reservation_id else ''
 
-            reservation = qtypes.QuantumReservation(
+        reservation = qtypes.QuantumReservation(
+            name=name,
+            whitelisted_users=whitelisted_users,
+        )
+        return self._make_request(
+            lambda: self.grpc_client.update_quantum_reservation(
                 name=name,
-                whitelisted_users=whitelisted_users,
-            )
-            return self._make_request(
-                lambda: self.grpc_client.update_quantum_reservation(
-                    name=name,
-                    quantum_reservation=reservation,
-                    update_mask=qtypes.field_mask_pb2.FieldMask(
-                        paths=['whitelisted_users'])))
-        except EngineException as err:
-            if isinstance(err.__cause__, NotFound):
-                return None
-            raise
+                quantum_reservation=reservation,
+                update_mask=qtypes.field_mask_pb2.FieldMask(
+                    paths=['whitelisted_users'])))
 
     def list_time_slots(self,
                         project_id: str,

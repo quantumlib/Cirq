@@ -22,7 +22,7 @@ _DEFAULT_TYPE = enums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 
 
 def _to_timestamp(dt: datetime.datetime):
-    return timestamp_pb2.Timestamp(seconds=dt.timestamp())
+    return timestamp_pb2.Timestamp(seconds=int(dt.timestamp()))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -50,35 +50,44 @@ class EngineTimeSlot:
 
     @classmethod
     def from_proto(cls, proto: qtypes.QuantumTimeSlot):
+        slot_type = enums.QuantumTimeSlot.TimeSlotType(proto.slot_type)
         if proto.HasField('reservation_config'):
-            return cls(processor_id=proto.processor_id,
+            return cls(processor_id=proto.processor_name,
                        start_time=datetime.datetime.fromtimestamp(
                            proto.start_time.seconds),
                        end_time=datetime.datetime.fromtimestamp(
                            proto.end_time.seconds),
-                       slot_type=proto.slot_type,
+                       slot_type=slot_type,
                        project_id=proto.reservation_config.project_id)
-        else:
+        if proto.HasField('maintenance_config'):
             return cls(
-                processor_id=proto.processor_id,
+                processor_id=proto.processor_name,
                 start_time=datetime.datetime.fromtimestamp(
                     proto.start_time.seconds),
                 end_time=datetime.datetime.fromtimestamp(
                     proto.end_time.seconds),
-                slot_type=proto.slot_type,
+                slot_type=slot_type,
                 maintenance_title=proto.maintenance_config.title,
                 maintenance_description=proto.maintenance_config.description)
+        return cls(processor_id=proto.processor_name,
+                   start_time=datetime.datetime.fromtimestamp(
+                       proto.start_time.seconds),
+                   end_time=datetime.datetime.fromtimestamp(
+                       proto.end_time.seconds),
+                   slot_type=slot_type)
 
     def to_proto(self):
         time_slot = qtypes.QuantumTimeSlot(
-            processor_id=self.processor_id,
+            processor_name=self.processor_id,
             start_time=_to_timestamp(self.start_time),
             end_time=_to_timestamp(self.end_time),
             slot_type=self.slot_type,
         )
-        if self.project_id is not None:
+        if self.project_id:
             time_slot.reservation_config.project_id = self.project_id
-        else:
-            config = time_slot.maintenance_config
+        config = time_slot.maintenance_config
+        if self.maintenance_title:
             config.title = self.maintenance_title
+        if self.maintenance_description:
             config.description = self.maintenance_description
+        return time_slot
