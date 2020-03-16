@@ -359,25 +359,25 @@ _CALIBRATION_DATA = Merge(
 def test_noise_from_metrics_requires_type():
     # Attempt to generate a noise model without specifying a noise type.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    with pytest.raises(ValueError) as e:
+    with pytest.raises(ValueError,
+                       match='At least one error type must be specified.'):
         simple_noise_from_calibration_metrics(calibration=calibration)
-    assert e.match("At least one error type must be specified.")
 
 
 def test_noise_from_metrics_unsupported():
     # Attempt to generate a damping noise model (not yet supported).
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    with pytest.raises(NotImplementedError) as e:
+    with pytest.raises(NotImplementedError,
+                       match='Gate damping is not yet supported.'):
         simple_noise_from_calibration_metrics(calibration=calibration,
-                                              dampingNoise=True)
-    assert e.match("Gate damping is not yet supported.")
+                                              damping_noise=True)
 
 
 def test_per_qubit_depol_noise_from_data():
     # Generate the depolarization noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
     noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
-                                                        depolNoise=True)
+                                                        depol_noise=True)
 
     # Create the circuit and apply the noise model.
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
@@ -417,8 +417,8 @@ def test_per_qubit_depol_noise_from_data():
 def test_per_qubit_readout_error_from_data():
     # Generate the readout error noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
-                                                        readoutErrorNoise=True)
+    noise_model = simple_noise_from_calibration_metrics(
+        calibration=calibration, readout_error_noise=True)
 
     # Create the circuit and apply the noise model.
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
@@ -454,8 +454,8 @@ def test_per_qubit_readout_error_from_data():
 def test_per_qubit_readout_decay_from_data():
     # Generate the readout decay noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
-                                                        readoutDecayNoise=True)
+    noise_model = simple_noise_from_calibration_metrics(
+        calibration=calibration, readout_decay_noise=True)
 
     # Create the circuit and apply the noise model.
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
@@ -491,10 +491,11 @@ def test_per_qubit_readout_decay_from_data():
 def test_per_qubit_combined_noise_from_data():
     # Generate the combined noise model from calibration data.
     calibration = cirq.google.Calibration(_CALIBRATION_DATA)
-    noise_model = simple_noise_from_calibration_metrics(calibration=calibration,
-                                                        depolNoise=True,
-                                                        readoutErrorNoise=True,
-                                                        readoutDecayNoise=True)
+    noise_model = simple_noise_from_calibration_metrics(
+        calibration=calibration,
+        depol_noise=True,
+        readout_error_noise=True,
+        readout_decay_noise=True)
 
     # Create the circuit and apply the noise model.
     qubits = [cirq.GridQubit(0, 0), cirq.GridQubit(0, 1), cirq.GridQubit(1, 0)]
