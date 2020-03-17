@@ -179,7 +179,8 @@ class EngineProcessor:
             start_date: the starting date/time of the reservation.
             end_date: the ending date/time of the reservation.
             whitelisted_users: a list of emails that are allowed
-              to send programs during this reservation.
+              to send programs during this reservation (in addition to users
+              with permission "quantum.reservations.use" on the project).
         """
         response = self.context.client.create_reservation(
             self.project_id, self.processor_id, start_date, end_date,
@@ -190,7 +191,7 @@ class EngineProcessor:
         """Delete a reservation.
 
         This will only work for reservations outside the processor's
-        forzen window.  If you are not sure whether the reservation
+        schedule freeze window.  If you are not sure whether the reservation
         falls within this window, use remove_reservation
         """
         return self.context.client.delete_reservation(self.project_id,
@@ -201,7 +202,7 @@ class EngineProcessor:
         """Cancel a reservation.
 
         This will only work for reservations inside the processor's
-        forzen window.  If you are not sure whether the reservation
+        schedule freeze window.  If you are not sure whether the reservation
         falls within this window, use remove_reservation
         """
         return self.context.client.cancel_reservation(self.project_id,
@@ -224,7 +225,7 @@ class EngineProcessor:
         """Updates a reservation with new information.
 
         Updates a reservation with a new start date, end date, or
-        list of users.  For each field, it the argument is left as
+        list of additional users.  For each field, it the argument is left as
         None, it will not be updated.
         """
         return self.context.client.update_reservation(

@@ -15,10 +15,10 @@ import dataclasses
 import datetime
 from typing import Optional
 from google.protobuf import timestamp_pb2
-from cirq.google.engine.client.quantum_v1alpha1.gapic import enums
+from cirq.google.engine.client.quantum import enums as qenums
 from cirq.google.engine.client.quantum import types as qtypes
 
-_DEFAULT_TYPE = enums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
+_DEFAULT_TYPE = qenums.QuantumTimeSlot.TimeSlotType.TIME_SLOT_TYPE_UNSPECIFIED
 
 
 def _to_timestamp(dt: datetime.datetime):
@@ -43,14 +43,14 @@ class EngineTimeSlot:
     processor_id: str
     start_time: datetime.datetime
     end_time: datetime.datetime
-    slot_type: enums.QuantumTimeSlot.TimeSlotType = _DEFAULT_TYPE
+    slot_type: qenums.QuantumTimeSlot.TimeSlotType = _DEFAULT_TYPE
     project_id: Optional[str] = None
     maintenance_title: Optional[str] = None
     maintenance_description: Optional[str] = None
 
     @classmethod
     def from_proto(cls, proto: qtypes.QuantumTimeSlot):
-        slot_type = enums.QuantumTimeSlot.TimeSlotType(proto.slot_type)
+        slot_type = qenums.QuantumTimeSlot.TimeSlotType(proto.slot_type)
         if proto.HasField('reservation_config'):
             return cls(processor_id=proto.processor_name,
                        start_time=datetime.datetime.fromtimestamp(

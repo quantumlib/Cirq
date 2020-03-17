@@ -610,9 +610,12 @@ class EngineClient:
                 return None
             raise
 
-    def create_reservation(self, project_id: str, processor_id: str,
-                           start: datetime.datetime, end: datetime.datetime,
-                           whitelisted_users: List[str]):
+    def create_reservation(self,
+                           project_id: str,
+                           processor_id: str,
+                           start: datetime.datetime,
+                           end: datetime.datetime,
+                           whitelisted_users: Optional[List[str]] = []):
         """Creates a quantum reservation and returns the created object.
 
         Params:
@@ -713,7 +716,7 @@ class EngineClient:
         Params:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
-            filter: A string for filtering quantum reservationsFilter string
+            filter: A string for filtering quantum reservations.
                 The fields eligible for filtering are start_time and end_time
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
