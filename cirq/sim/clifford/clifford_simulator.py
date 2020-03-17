@@ -129,12 +129,9 @@ class CliffordSimulator(simulator.SimulatesSamples,
                                    measurements=measurements,
                                    final_simulator_state=final_simulator_state)
 
-    def _run(self,
-             circuit: circuits.Circuit,
+    def _run(self, circuit: circuits.Circuit,
              param_resolver: study.ParamResolver,
-             repetitions: int,
-             seed: value.RANDOM_STATE_LIKE = None
-            ) -> Dict[str, List[np.ndarray]]:
+             repetitions: int) -> Dict[str, List[np.ndarray]]:
 
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
