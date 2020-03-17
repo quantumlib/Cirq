@@ -101,6 +101,9 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         return a
 
     def optimization_at(self, circuit, index, op):
+        if isinstance(op.gate, ops.MatrixGate) and len(op.qubits) == 1:
+            return None
+
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
@@ -146,8 +149,9 @@ def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
         Returns:
             True if the gate is native to the gate set, false otherwise.
         """
-    return isinstance(gate, (ops.MeasurementGate, ops.PhasedXPowGate,
-                             ops.XPowGate, ops.YPowGate, ops.ZPowGate))
+    return isinstance(
+        gate, (ops.MeasurementGate, ops.PhasedXZGate, ops.PhasedXPowGate,
+               ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
 def cphase_to_sqrt_iswap(a, b, turns):
@@ -262,6 +266,21 @@ def swap_to_sqrt_iswap(a, b, turns):
             theta: The rotational angle that specifies the gate, where
             c = cos(π·t/2), s = sin(π·t/2), g = exp(i·π·t/2).
     """
+    if not isinstance(turns, sympy.Basic) and _near_mod_n(turns, 1.0, 2):
+        # Decomposition for cirq.SWAP
+        yield ops.Y(a)**0.5
+        yield ops.Y(b)**0.5
+        yield SQRT_ISWAP(a, b)
+        yield ops.Y(a)**-0.5
+        yield ops.Y(b)**-0.5
+        yield SQRT_ISWAP(a, b)
+        yield ops.X(a)**-0.5
+        yield ops.X(b)**-0.5
+        yield SQRT_ISWAP(a, b)
+        yield ops.X(a)**0.5
+        yield ops.X(b)**0.5
+        return
+
     yield ops.Z(a)**1.25
     yield ops.Z(b)**-0.25
     yield ops.ISWAP(a, b)**-0.5

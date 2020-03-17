@@ -50,23 +50,25 @@ class Calibration(abc.Mapping):
             the epoch.
     """
 
-    def __init__(self, calibration: Dict) -> None:
-        self.timestamp = int(calibration['timestampMs'])
-        self._metric_dict = self._compute_metric_dict(calibration['metrics'])
+    def __init__(self, calibration: v2.metrics_pb2.MetricsSnapshot) -> None:
+        self.timestamp = calibration.timestamp_ms
+        self._metric_dict = self._compute_metric_dict(calibration.metrics)
 
     def _compute_metric_dict(
-            self, metrics: Dict
+            self, metrics: v2.metrics_pb2.MetricsSnapshot
     ) -> Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]:
         results: Dict[str, Dict[Tuple[devices.
                                       GridQubit, ...], Any]] = defaultdict(dict)
         for metric in metrics:
-            name = metric['name']
+            name = metric.name
             # Flatten the values to a list, removing keys containing type names
             # (e.g. proto version of each value is {<type>: value}).
-            flat_values = [v[t] for v in metric['values'] for t in v]
-            if 'targets' in metric:
+            flat_values = [
+                getattr(v, v.WhichOneof('val')) for v in metric.values
+            ]
+            if metric.targets:
                 targets = [
-                    t[1:] if t.startswith('q') else t for t in metric['targets']
+                    t[1:] if t.startswith('q') else t for t in metric.targets
                 ]
                 # TODO: Remove when calibrations don't prepend this.
                 qubits = tuple(v2.grid_qubit_from_proto_id(t) for t in targets)

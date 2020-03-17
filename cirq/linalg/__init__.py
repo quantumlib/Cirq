@@ -36,6 +36,7 @@ from cirq.linalg.decompositions import (
     KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
+    unitary_eig,
     scatter_plot_normalized_kak_interaction_coefficients,
     so4_to_magic_su2s,
 )
@@ -63,13 +64,14 @@ from cirq.linalg.operator_spaces import (
 
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
-    commutes,
     is_diagonal,
     is_hermitian,
+    is_normal,
     is_orthogonal,
     is_special_orthogonal,
     is_special_unitary,
     is_unitary,
+    matrix_commutes,
     slice_for_qubits_equal_to,
 )
 

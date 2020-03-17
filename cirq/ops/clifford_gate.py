@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, NamedTuple, Optional, Sequence, Tuple, Union, cast, \
-    TYPE_CHECKING
+from typing import (Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 
 import numpy as np
 
 from cirq import protocols, value
 from cirq._doc import document
-from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates
+from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates,
+                      raw_types)
 from cirq.ops.pauli_gates import Pauli
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -221,15 +223,13 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return SingleQubitCliffordGate(_rotation_map=self._inverse_map,
                                        _inverse_map=self._rotation_map)
 
-    def commutes_with(self,
-                      gate_or_pauli: Union['SingleQubitCliffordGate', Pauli]
-                      ) -> bool:
-        if isinstance(gate_or_pauli, SingleQubitCliffordGate):
-            gate = gate_or_pauli
-            return self.commutes_with_single_qubit_gate(gate)
-
-        pauli = gate_or_pauli
-        return self.commutes_with_pauli(pauli)
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType]:
+        if isinstance(other, SingleQubitCliffordGate):
+            return self.commutes_with_single_qubit_gate(other)
+        if isinstance(other, Pauli):
+            return self.commutes_with_pauli(other)
+        return NotImplemented
 
     def commutes_with_single_qubit_gate(self,
                                         gate: 'SingleQubitCliffordGate') \

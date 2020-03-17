@@ -38,11 +38,27 @@ class GridQubit(ops.Qid):
     """
 
     def __init__(self, row: int, col: int):
-        self.row = row
-        self.col = col
+        self._row = row
+        self._col = col
+
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, GridQubit):
+            return NotImplemented
+        return self._row == other._row and self._col == other._col
+
+    def __hash__(self):
+        return hash((self.__class__, self._row, self._col))
 
     def _comparison_key(self):
-        return self.row, self.col
+        return self._row, self._col
+
+    @property
+    def row(self) -> int:
+        return self._row
+
+    @property
+    def col(self) -> int:
+        return self._col
 
     @property
     def dimension(self) -> int:
@@ -163,6 +179,8 @@ class GridQubit(ops.Qid):
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
     def __add__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row + other.row, col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
@@ -171,6 +189,8 @@ class GridQubit(ops.Qid):
         return GridQubit(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self, other: Tuple[int, int]) -> 'GridQubit':
+        if isinstance(other, GridQubit):
+            return GridQubit(row=self.row - other.row, col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(

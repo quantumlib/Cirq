@@ -38,6 +38,16 @@ def test_convert_to_sycamore_gates_swap_zz():
         circuit1, compiled_circuit1, atol=1e-7)
 
 
+def test_convert_to_sycamore_gates_fsim():
+    q0, q1 = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6)(q0, q1))
+    compiled_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates()(compiled_circuit)
+
+    cirq.testing.assert_same_circuits(circuit, compiled_circuit)
+
+
 def test_single_qubit_gate():
     q = cirq.LineQubit(0)
     mat = cirq.testing.random_unitary(2)
@@ -45,11 +55,24 @@ def test_single_qubit_gate():
     circuit = cirq.Circuit(gate(q))
     converted_circuit = circuit.copy()
     cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
-    for op in converted_circuit.all_operations():
-        gate = op.gate
-        assert isinstance(gate, (cirq.PhasedXPowGate, cirq.ZPowGate))
+    ops = list(converted_circuit.all_operations())
+    assert len(ops) == 1
+    assert isinstance(ops[0].gate, cirq.PhasedXZGate)
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent(
         circuit, converted_circuit, atol=1e-8)
+
+
+def test_single_qubit_gate_phased_xz():
+    q = cirq.LineQubit(0)
+    gate = cirq.PhasedXZGate(axis_phase_exponent=0.2,
+                             x_exponent=0.3,
+                             z_exponent=0.4)
+    circuit = cirq.Circuit(gate(q))
+    converted_circuit = circuit.copy()
+    cgoc.ConvertToSycamoreGates().optimize_circuit(converted_circuit)
+    ops = list(converted_circuit.all_operations())
+    assert len(ops) == 1
+    assert ops[0].gate == gate
 
 
 def test_unsupported_gate():
@@ -61,6 +84,18 @@ def test_unsupported_gate():
     q1 = cirq.LineQubit(1)
     circuit = cirq.Circuit(UnknownGate()(q0, q1))
     with pytest.raises(ValueError, match='Unrecognized gate: '):
+        cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
+
+
+def test_unsupported_phased_iswap():
+    """Tests that a Phased ISwap with a provided phase_exponent and exponent is
+    not supported."""
+    q0 = cirq.LineQubit(0)
+    q1 = cirq.LineQubit(1)
+    circuit = cirq.Circuit(
+        cirq.PhasedISwapPowGate(exponent=0.5, phase_exponent=.33)(q0, q1))
+    with pytest.raises(ValueError,
+                       match='phase_exponent of .25 OR an exponent of 1'):
         cgoc.ConvertToSycamoreGates().optimize_circuit(circuit)
 
 
@@ -211,8 +246,12 @@ def test_known_two_q_operations_to_sycamore_operations_cnot():
 
 
 @pytest.mark.parametrize('gate', [
-    cirq.MatrixGate(cirq.unitary(cirq.CX), qid_shape=(2, 2)), cirq.ISWAP,
-    cirq.SWAP, cirq.CNOT, cirq.CZ, *[
+    cirq.MatrixGate(cirq.unitary(
+        cirq.CX), qid_shape=(2, 2)), cirq.ISWAP, cirq.SWAP, cirq.CNOT, cirq.CZ,
+    cirq.PhasedISwapPowGate(exponent=1.0),
+    cirq.PhasedISwapPowGate(exponent=1.0, phase_exponent=.33),
+    cirq.PhasedISwapPowGate(exponent=.66, phase_exponent=.25),
+    *[cirq.givens(theta) for theta in np.linspace(0, 2 * np.pi, 30)], *[
         cirq.ZZPowGate(exponent=2 * phi / np.pi)
         for phi in np.linspace(0, 2 * np.pi, 30)
     ], *[

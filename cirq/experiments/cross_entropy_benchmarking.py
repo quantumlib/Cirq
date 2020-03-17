@@ -14,35 +14,68 @@
 
 from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
                     Set, Tuple, Union)
+import dataclasses
 import numpy as np
+import scipy
 from matplotlib import pyplot as plt
-from cirq import devices, ops, circuits, sim, work
+from cirq import circuits, devices, ops, protocols, sim, work
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
 
 
+@dataclasses.dataclass
+class CrossEntropyDepolarizingModel:
+    """A depolarizing noise model for cross entropy benchmarking.
+
+    The depolarizing channel maps a density matrix ρ as
+
+        ρ → p_eff ρ + (1 - p_eff) I / D
+
+    where I / D is the maximally mixed state and p_eff is between 0 and 1.
+    It is used to model the effect of noise in certain quantum processes.
+    This class models the noise that results from the execution of multiple
+    layers, or cycles, of a random quantum circuit. In this model, p_eff for
+    the whole process is separated into a part that is independent of the number
+    of cycles (representing depolarization from state preparation and
+    measurement errors), and a part that exhibits exponential decay with the
+    number of cycles (representing depolarization from circuit execution
+    errors). So p_eff is modeled as
+
+        p_eff = S * p^d
+
+    where d is the number of cycles, or depth, S is the part that is independent
+    of depth, and p describes the exponential decay with depth. This class
+    stores S and p, as well as possibly the covariance in their estimation from
+    experimental data.
+
+    Attributes:
+        spam_depolarization: The depolarization constant for state preparation
+            and measurement, i.e., S in p_eff = S * p^d.
+        cycle_depolarization: The depolarization constant for circuit execution,
+            i.e., p in p_eff = S * p^d.
+        covariance: The estimated covariance in the estimation of
+            `spam_depolarization` and `cycle_depolarization`, in that order.
+    """
+    spam_depolarization: float
+    cycle_depolarization: float
+    covariance: Optional[np.ndarray] = None
+
+
+@protocols.json_serializable_dataclass(frozen=True)
 class CrossEntropyResult:
-    """Results from a cross-entropy benchmarking (XEB) experiment."""
+    """Results from a cross-entropy benchmarking (XEB) experiment.
 
-    def __init__(self, cross_entropy_pairs: Sequence[CrossEntropyPair]):
-        """
-        Args:
-            cross_entropy_pairs: A sequence of NamedTuples, each of which
-                contains two fields: num_cycle which returns the circuit
-                depth as the number of cycles and xeb_fidelity which returns
-                the XEB fidelity after the given cycle number.
-        """
-        self._data = cross_entropy_pairs
-
-    @property
-    def data(self) -> Sequence[CrossEntropyPair]:
-        """Returns a sequence of CrossEntropyPairs.
-
-        Each CrossEntropyPair is a NamedTuple that contains a cycle number and
-        the corresponding XEB fidelity.
-        """
-        return self._data
+    Attributes:
+        data: A sequence of NamedTuples, each of which contains two fields:
+                num_cycle: the circuit depth as the number of cycles, where
+                    a cycle consists of a layer of single-qubit gates followed
+                    by a layer of two-qubit gates.
+                xeb_fidelity: the XEB fidelity after the given cycle number.
+        repetitions: The number of circuit repetitions used.
+    """
+    data: List[CrossEntropyPair]
+    repetitions: int
 
     def plot(self, ax: Optional[plt.Axes] = None,
              **plot_kwargs: Any) -> plt.Axes:
@@ -58,8 +91,8 @@ class CrossEntropyResult:
         show_plot = not ax
         if not ax:
             fig, ax = plt.subplots(1, 1, figsize=(8, 8))
-        num_cycles = [d.num_cycle for d in self._data]
-        fidelities = [d.xeb_fidelity for d in self._data]
+        num_cycles = [d.num_cycle for d in self.data]
+        fidelities = [d.xeb_fidelity for d in self.data]
         ax.set_ylim([0, 1.1])
         ax.plot(num_cycles, fidelities, 'ro-', **plot_kwargs)
         ax.set_xlabel('Number of Cycles')
@@ -67,6 +100,48 @@ class CrossEntropyResult:
         if show_plot:
             fig.show()
         return ax
+
+    def depolarizing_model(self) -> CrossEntropyDepolarizingModel:
+        """Fit a depolarizing error model for a cycle.
+
+        Fits an exponential model f = S * p^d, where d is the number of cycles
+        and f is the cross entropy fidelity for that number of cycles,
+        using nonlinear least squares.
+
+        Returns:
+            A DepolarizingModel object, which has attributes `coefficient`
+            representing the value S, `decay_constant` representing the value
+            p, and `covariance` representing the covariance in the estimation
+            of S and p in that order.
+        """
+        # Get initial guess by linear least squares with logarithm of model
+        x = [depth for depth, fidelity in self.data if fidelity > 0]
+        y = [np.log(fidelity) for _, fidelity in self.data if fidelity > 0]
+        fit = np.polynomial.polynomial.Polynomial.fit(x, y, 1).convert()
+        p0 = np.exp(fit.coef)
+
+        # Perform nonlinear least squares
+        x = [depth for depth, _ in self.data]
+        y = [fidelity for _, fidelity in self.data]
+
+        def f(d, S, p):
+            return S * p**d
+
+        params, covariance = scipy.optimize.curve_fit(f, x, y, p0=p0)
+
+        return CrossEntropyDepolarizingModel(spam_depolarization=params[0],
+                                             cycle_depolarization=params[1],
+                                             covariance=covariance)
+
+    @classmethod
+    def _from_json_dict_(cls, data, repetitions, **kwargs):
+        return cls(data=[CrossEntropyPair(d, f) for d, f in data],
+                   repetitions=repetitions)
+
+    def __repr__(self):
+        return ('cirq.experiments.CrossEntropyResult('
+                f'data={[tuple(p) for p in self.data]!r}, '
+                f'repetitions={self.repetitions!r})')
 
 
 def cross_entropy_benchmarking(
@@ -216,7 +291,8 @@ def cross_entropy_benchmarking(
     xeb_data = [
         CrossEntropyPair(c, k) for (c, k) in zip(cycle_range, fidelity_vals)
     ]
-    return CrossEntropyResult(xeb_data)
+    return CrossEntropyResult(  # type: ignore
+        data=xeb_data, repetitions=repetitions)
 
 
 def build_entangling_layers(qubits: Sequence[devices.GridQubit],
