@@ -72,7 +72,7 @@ def sample(program: 'cirq.Circuit',
         if _is_clifford_circuit(program):
             # If all non-measurement operations are clifford, use the Clifford
             # simulator.
-            return clifford_simulator.CliffordSimulator().run(
+            return clifford_simulator.CliffordSimulator(seed=seed).run(
                 program, param_resolver=param_resolver, repetitions=repetitions)
         if protocols.has_unitary(program):
             return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
