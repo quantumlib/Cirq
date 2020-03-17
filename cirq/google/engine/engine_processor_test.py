@@ -15,6 +15,7 @@
 from unittest import mock
 import datetime
 import pytest
+from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq.google as cg
@@ -308,6 +309,80 @@ def test_cancel_reservation(cancel_reservation):
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
     assert processor._cancel_reservation('rid') == result
     cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
+def test_remove_reservation_delete(delete_reservation, get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 20000),
+        end_time=Timestamp(seconds=now + 23610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    delete_reservation.return_value = result
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    assert processor.remove_reservation('rid') == result
+    delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.cancel_reservation')
+def test_remove_reservation_cancel(cancel_reservation, get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 10),
+        end_time=Timestamp(seconds=now + 3610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    cancel_reservation.return_value = result
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    assert processor.remove_reservation('rid') == result
+    cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+def test_remove_reservation_not_found(get_reservation):
+    get_reservation.return_value = None
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+def test_remove_reservation_failures(get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 10),
+        end_time=Timestamp(seconds=now + 3610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+
+    # no processor
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
+
+    # No freeze period defined
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext(),
+                                   qtypes.QuantumProcessor())
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')

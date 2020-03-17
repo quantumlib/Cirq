@@ -170,20 +170,20 @@ class EngineProcessor:
         else:
             return None
 
-    def create_reservation(self, start_date: datetime.datetime,
-                           end_date: datetime.datetime,
+    def create_reservation(self, start_time: datetime.datetime,
+                           end_time: datetime.datetime,
                            whitelisted_users: List[str]):
         """Creates a reservation on this processor.
 
         Args:
-            start_date: the starting date/time of the reservation.
-            end_date: the ending date/time of the reservation.
+            start_time: the starting date/time of the reservation.
+            end_time: the ending date/time of the reservation.
             whitelisted_users: a list of emails that are allowed
               to send programs during this reservation (in addition to users
               with permission "quantum.reservations.use" on the project).
         """
         response = self.context.client.create_reservation(
-            self.project_id, self.processor_id, start_date, end_date,
+            self.project_id, self.processor_id, start_time, end_time,
             whitelisted_users)
         return response
 
@@ -209,7 +209,23 @@ class EngineProcessor:
                                                       self.processor_id,
                                                       reservation_id)
 
-    #TODO(dstrain): add remove reservation
+    def remove_reservation(self, reservation_id: str):
+        reservation = self.get_reservation(reservation_id)
+        if reservation is None:
+            raise ValueError(f'Reservation id {reservation_id} not found.')
+        if self._processor:
+            freeze = self._processor.schedule_frozen_period.seconds
+        else:
+            freeze = None
+        if not freeze:
+            raise ValueError('Cannot determine freeze_schedule from processor.'
+                             'Call _cancel_reservation or _delete_reservation.')
+        secs_until = (reservation.start_time.seconds -
+                      int(datetime.datetime.now().timestamp()))
+        if secs_until > freeze:
+            return self._delete_reservation(reservation_id)
+        else:
+            return self._cancel_reservation(reservation_id)
 
     def get_reservation(self, reservation_id: str):
         """Retrieve a reservation given its id."""
@@ -219,8 +235,8 @@ class EngineProcessor:
 
     def update_reservation(self,
                            reservation_id: str,
-                           start_date: datetime.datetime = None,
-                           end_date: datetime.datetime = None,
+                           start_time: datetime.datetime = None,
+                           end_time: datetime.datetime = None,
                            whitelisted_users: List[str] = None):
         """Updates a reservation with new information.
 
@@ -232,14 +248,14 @@ class EngineProcessor:
             self.project_id,
             self.processor_id,
             reservation_id,
-            start=start_date,
-            end=end_date,
+            start=start_time,
+            end=end_time,
             whitelisted_users=whitelisted_users)
 
     def list_reservations(
             self,
-            from_date: datetime.datetime = datetime.datetime.now(),
-            to_date: datetime.datetime = datetime.datetime.now() +
+            from_time: datetime.datetime = datetime.datetime.now(),
+            to_time: datetime.datetime = datetime.datetime.now() +
             datetime.timedelta(weeks=2)) -> List[EngineTimeSlot]:
         """Retrieves the reservations from a processor.
 
@@ -247,18 +263,18 @@ class EngineProcessor:
         returned.  The schedule may be filtered by starting and ending time.
         """
         filters = []
-        if from_date:
-            filters.append(f'start_time >= {int(from_date.timestamp())}')
-        if to_date:
-            filters.append(f'start_time <= {int(to_date.timestamp())}')
+        if from_time:
+            filters.append(f'start_time >= {int(from_time.timestamp())}')
+        if to_time:
+            filters.append(f'start_time <= {int(to_time.timestamp())}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_reservations(self.project_id,
                                                      self.processor_id,
                                                      filter_str)
 
     def get_schedule(self,
-                     from_date: datetime.datetime = datetime.datetime.now(),
-                     to_date: datetime.datetime = datetime.datetime.now() +
+                     from_time: datetime.datetime = datetime.datetime.now(),
+                     to_time: datetime.datetime = datetime.datetime.now() +
                      datetime.timedelta(weeks=2),
                      time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
                     ) -> List[EngineTimeSlot]:
@@ -269,10 +285,10 @@ class EngineProcessor:
         Time slot type will be supported in the future.
         """
         filters = []
-        if from_date:
-            filters.append(f'start_time >= {int(from_date.timestamp())}')
-        if to_date:
-            filters.append(f'start_time <= {int(to_date.timestamp())}')
+        if from_time:
+            filters.append(f'start_time >= {int(from_time.timestamp())}')
+        if to_time:
+            filters.append(f'start_time <= {int(to_time.timestamp())}')
         if time_slot_type:
             raise ValueError('Filtering by time_slot_type not yet supported')
         filter_str = ' AND '.join(filters)

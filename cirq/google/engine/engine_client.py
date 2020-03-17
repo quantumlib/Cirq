@@ -615,7 +615,7 @@ class EngineClient:
                            processor_id: str,
                            start: datetime.datetime,
                            end: datetime.datetime,
-                           whitelisted_users: Optional[List[str]] = []):
+                           whitelisted_users: Optional[List[str]] = None):
         """Creates a quantum reservation and returns the created object.
 
         Params:
@@ -628,13 +628,13 @@ class EngineClient:
             whitelisted_users: a list of emails that can use the reservation.
         """
         parent = self._processor_name_from_ids(project_id, processor_id)
-
         reservation = qtypes.QuantumReservation(
             name='',
             start_time=Timestamp(seconds=int(start.timestamp())),
             end_time=Timestamp(seconds=int(end.timestamp())),
-            whitelisted_users=whitelisted_users,
         )
+        if whitelisted_users:
+            reservation.whitelisted_users.extend(whitelisted_users)
         return self._make_request(
             lambda: self.grpc_client.create_quantum_reservation(
                 parent=parent, quantum_reservation=reservation))
