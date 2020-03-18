@@ -170,9 +170,10 @@ class EngineProcessor:
         else:
             return None
 
-    def create_reservation(self, start_time: datetime.datetime,
+    def create_reservation(self,
+                           start_time: datetime.datetime,
                            end_time: datetime.datetime,
-                           whitelisted_users: List[str]):
+                           whitelisted_users: Optional[List[str]] = None):
         """Creates a reservation on this processor.
 
         Args:
@@ -213,8 +214,9 @@ class EngineProcessor:
         reservation = self.get_reservation(reservation_id)
         if reservation is None:
             raise ValueError(f'Reservation id {reservation_id} not found.')
-        if self._processor:
-            freeze = self._processor.schedule_frozen_period.seconds
+        proc = self._inner_processor()
+        if proc:
+            freeze = proc.schedule_frozen_period.seconds
         else:
             freeze = None
         if not freeze:

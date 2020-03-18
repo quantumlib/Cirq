@@ -361,8 +361,9 @@ def test_remove_reservation_not_found(get_reservation):
         processor.remove_reservation('rid')
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
-def test_remove_reservation_failures(get_reservation):
+def test_remove_reservation_failures(get_reservation, get_processor):
     name = 'projects/proj/processors/p0/reservations/rid'
     now = int(datetime.datetime.now().timestamp())
     result = qtypes.QuantumReservation(
@@ -372,6 +373,7 @@ def test_remove_reservation_failures(get_reservation):
         whitelisted_users=['dstrain@google.com'],
     )
     get_reservation.return_value = result
+    get_processor.return_value = None
 
     # no processor
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
