@@ -418,6 +418,94 @@ SQRT_ISWAP_DESERIALIZERS = [
         args=[]),
 ]
 
+
+#
+# FSim serializer
+# Only allows sqrt_iswap, its inverse, identity, and sycamore
+#
+def _can_serialize_limited_fsim(theta: float, phi: float):
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if _near_mod_2pi(phi, 0) or isinstance(phi, sympy.Symbol):
+        if isinstance(theta, sympy.Symbol):
+            return True
+        # Identity
+        if _near_mod_2pi(theta, 0):
+            return True
+        # sqrt ISWAP
+        if _near_mod_2pi(theta, -np.pi / 4):
+            return True
+        # inverse sqrt ISWAP
+        if _near_mod_2pi(theta, np.pi / 4):
+            return True
+    # Sycamore
+    if ((_near_mod_2pi(theta, np.pi / 2) or isinstance(theta, sympy.Symbol)) and
+        (_near_mod_2pi(phi, np.pi / 6)) or isinstance(phi, sympy.Symbol)):
+        return True
+    return False
+
+
+def _can_serialize_limited_iswap(exponent: float):
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if isinstance(exponent, sympy.Symbol):
+        return True
+    # Sqrt ISWAP
+    if _near_mod_n(exponent, 0.5, 4):
+        return True
+    # Inverse Sqrt ISWAP
+    if _near_mod_n(exponent, -0.5, 4):
+        return True
+    # Identity
+    if _near_mod_n(exponent, 0.0, 4):
+        return True
+    return False
+
+
+LIMITED_FSIM_SERIALIZERS = [
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(serialized_name='theta',
+                                         serialized_type=float,
+                                         op_getter='theta'),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter='phi')
+        ],
+        can_serialize_predicate=(lambda op: _can_serialize_limited_fsim(
+            cast(ops.FSimGate, op.gate).theta,
+            cast(ops.FSimGate, op.gate).phi))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(
+                serialized_name='theta',
+                serialized_type=float,
+                # Note that ISWAP ** 0.5 is Fsim(-pi/4,0)
+                op_getter=(lambda op: cast(ops.ISwapPowGate, op.gate).exponent *
+                           -np.pi / 2)),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter=lambda e: 0)
+        ],
+        can_serialize_predicate=(lambda op: _can_serialize_limited_iswap(
+            cast(ops.ISwapPowGate, op.gate).exponent))),
+]
+
+LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='fsim',
+    gate_constructor=ops.FSimGate,
+    args=[
+        op_deserializer.DeserializingArg(serialized_name='theta',
+                                         constructor_arg_name='theta'),
+        op_deserializer.DeserializingArg(serialized_name='phi',
+                                         constructor_arg_name='phi'),
+    ])
+
+
 #
 # WaitGate serializer and deserializer
 #

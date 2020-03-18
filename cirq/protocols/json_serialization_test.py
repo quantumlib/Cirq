@@ -195,6 +195,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineJob',
     'EngineProcessor',
     'EngineProgram',
+    'EngineTimeSlot',
     'QuantumEngineSampler',
 
     # enums
@@ -276,6 +277,7 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixStepResult',
     'DensityMatrixTrialResult',
     'ExpressionMap',
+    'FSIM_GATESET',
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
