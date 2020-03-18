@@ -323,6 +323,7 @@ class CliffordState():
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
         assert op.gate is not None
         qubit = self.qubit_map[op.qubits[0]]
+        # Handle H natively as optimization.
         if op.gate == cirq.H:
             self._apply_H(qubit)
             return
