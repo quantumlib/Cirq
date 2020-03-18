@@ -92,32 +92,42 @@ error can exceed the average error by small amounts.
 Each metric can be referenced by its key in the calibration object, e.g.
 ```latest_calibration['single_qubit_idle_t1_micros']```.
 
-Note that the metric names below are subject to change without notice.
+**Note that the metric names below are subject to change without notice.**
 
 ### P_00 readout error
-*   Metric key: single_qubit_readout_p00_error
+*   Metric key: single_qubit_p00_error
+*   Metric key: parallel_p00_error
 
 The p_00 is defined as the probability that the state is measured as |0⟩ after
 being prepared in the |0⟩ state.  The p_00 error is defined as one minus this
-result.  
+result.
 
 There are several sources of error in this model.  This error is primarily
 composed of error in measurement (readout) of the qubit while in the ground
 state.  However, this probability also contains the error than the qubit was not
-reset into the |0⟩ ground state properly.  This is often called the SPAM (state 
+reset into the |0⟩ ground state properly.  This is often called the SPAM (state
 preparation and measurement) error.
 
+The single qubit error is when the readout is measured in isolation (only one
+qubit is measured at a time), while the parallel error is taken for all qubits
+at the same time.
+
 ### P_11 readout error
-*   Metric key: single_qubit_readout_p11_error
+*   Metric key: single_qubit_p11_error
+*   Metric key: parallel_p11_error
 
 The p_11 is defined as the probability that the state is measured as |1⟩ after
 being prepared in the |1⟩ state.  The p_11 error is defined as one minus this
-result.  
+result.
 
 This is dominated by the error in measurement (readout) of the qubit, but it
 implicitly contains several different types of error.  Also possible is that the
 excited state |1⟩ was not prepared correctly or that the state decayed before
 measurement.  This error is generally expected to be higher than the P_00 error.
+
+The single qubit error is when the readout is measured in isolation (only one
+qubit is measured at a time), while the parallel error is taken for all qubits
+at the same time.
 
 ### Readout separation error
 *   Metric key: single_qubit_readout_separation_error
@@ -132,9 +142,9 @@ calculated by fitting Gaussian distributions to the signals prepared in the
 distributions.
 
 ### Isolated 1 qubit randomized benchmark error: 
-*   Metric key: single_qubit_rb_average_error
-*   Metric key: single_qubit_rb_pauli_error
-*   Metric key: single_qubit_rb_incoherent_error
+*   Metric key: single_qubit_rb_average_error_per_gate
+*   Metric key: single_qubit_rb_pauli_error_per_gate
+*   Metric key: single_qubit_rb_incoherent_error_per_gate
 
 Single qubit gate error is estimated using randomized benchmarking by taking
 sequences of varying length of the 24 gates within the Clifford group
@@ -162,12 +172,12 @@ An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
 
 ### 2-qubit Isolated XEB error
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error_per_cycle
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
 
 Two qubit error is primarily characterized by applying cross-entropy
 benchmarking (XEB).  This procedure consists of performing a "cycle" of a
@@ -181,12 +191,18 @@ These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
 
 ### 2-qubit Parallel XEB error
-*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_average_error
-*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_incoherent_error
-*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_average_error
-*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_pauli_error
-*   Metric key: two_qubit_parallel_sycamore_gate_xeb_cycle_incoherent_error
+*   Metric key:
+    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_average_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_pauli_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_incoherent_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_sycamore_gate_xeb_cycle_average_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_sycamore_gate_xeb_cycle_pauli_error_per_cycle
+*   Metric key:
+    two_qubit_parallel_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
 
 These metrics are calculated the same way as the 2-qubit isolated XEB error
 metrics.  However, this metric calculates the error of multiple 2-qubit cycles
