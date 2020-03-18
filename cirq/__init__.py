@@ -490,5 +490,6 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    pasqal,
     testing,
 )
