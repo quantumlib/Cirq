@@ -149,7 +149,7 @@ def final_wavefunction(
         raise ValueError(
             "Program doesn't have a single well defined final wavefunction "
             "because it is not unitary. "
-            "Maybe you wanted `cirq.sample_wavefunction`?\n"
+            "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
             "Program: {!r}".format(circuit_like))
 
