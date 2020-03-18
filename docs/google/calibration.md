@@ -72,11 +72,12 @@ See Table 1 on page 11 of the
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
-The incoherent error is defined as the decay rate of the
-[Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics)) 
-when fit to an exponential curve.  This rate is scaled to estimate
-the incoherent error per Clifford gate.  For more about purity benchmarking,
-see Section 6.3 of this
+The incoherent error is the "unitarity" of the gate or cycle.
+This is defined as the decay rate per gate (or cycle) of the
+[Purity](https://en.wikipedia.org/wiki/Purity_(quantum_mechanics))
+when fit to an exponential curve.  This rate has been scaled to match the
+average error per Clifford gate (or per 2-qubit cycle).
+For more about purity benchmarking, see Section 6.3 of this
 [thesis](https://web.physics.ucsb.edu/~martinisgroup/theses/Chen2018.pdf).
 
 The purity error can be interpreted as a measure of the incoherent error,
@@ -183,9 +184,10 @@ Two qubit error is primarily characterized by applying cross-entropy
 benchmarking (XEB).  This procedure consists of performing a "cycle" of a
 random one-qubit gate on each qubit followed by the two qubit entangling gate.
 The resulting distribution is analyzed and compared to the expected distribution
-using cross entropy.
+using cross entropy.  The value reported is the error rate per cycle (both
+the 1 qubit gates as well as the 2 qubit gate) is incorrect.
 
-See the above section for descriptions of total versus purity error.
+See the above section for descriptions of average, puali, and incoherent error.
 
 These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
