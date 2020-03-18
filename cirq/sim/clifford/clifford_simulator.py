@@ -322,6 +322,11 @@ class CliffordState():
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
         assert op.gate is not None
+        qubit = self.qubit_map[op.qubits[0]]
+        if op.gate == cirq.H:
+            self._apply_H(qubit)
+            return
+
         u = unitary(op.gate)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is None:
@@ -334,31 +339,31 @@ class CliffordState():
         for axis, quarter_turns in clifford_gate.decompose_rotation():
             for _ in range(quarter_turns % 4):
                 if axis == pauli_gates.X:
-                    self._apply_H(self.qubit_map[op.qubits[0]])
-                    self._apply_S(self.qubit_map[op.qubits[0]])
-                    self._apply_H(self.qubit_map[op.qubits[0]])
+                    self._apply_H(qubit)
+                    self._apply_S(qubit)
+                    self._apply_H(qubit)
                     applied_unitary = h @ s @ h @ applied_unitary
                 elif axis == pauli_gates.Y:
-                    self._apply_S(self.qubit_map[op.qubits[0]])
-                    self._apply_S(self.qubit_map[op.qubits[0]])
-                    self._apply_H(self.qubit_map[op.qubits[0]])
+                    self._apply_S(qubit)
+                    self._apply_S(qubit)
+                    self._apply_H(qubit)
                     applied_unitary = h @ s @ s @ applied_unitary
                 else:
                     assert axis == pauli_gates.Z
-                    self._apply_S(self.qubit_map[op.qubits[0]])
+                    self._apply_S(qubit)
                     applied_unitary = s @ applied_unitary
 
         max_idx = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
         phase_shift = u[max_idx] / applied_unitary[max_idx]
         self.ch_form.omega *= phase_shift
 
-    def _apply_H(self, q):
-        self.tableau._H(q)
-        self.ch_form._H(q)
+    def _apply_H(self, qubit: ops.Qid):
+        self.tableau._H(qubit)
+        self.ch_form._H(qubit)
 
-    def _apply_S(self, q):
-        self.tableau._S(q)
-        self.ch_form._S(q)
+    def _apply_S(self, qubit: ops.Qid):
+        self.tableau._S(qubit)
+        self.ch_form._S(qubit)
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
