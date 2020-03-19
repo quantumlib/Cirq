@@ -449,7 +449,7 @@ def test_list_reservation(list_reservations):
         datetime.datetime.fromtimestamp(1000000000),
         datetime.datetime.fromtimestamp(1000010000)) == results
     list_reservations.assert_called_once_with(
-        'proj', 'p0', 'start_time >= 1000000000 AND start_time <= 1000010000')
+        'proj', 'p0', 'start_time < 1000010000 AND end_time > 1000000000')
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
@@ -480,7 +480,7 @@ def test_get_schedule(list_time_slots):
         datetime.datetime.fromtimestamp(1000000000),
         datetime.datetime.fromtimestamp(1000050000)) == results
     list_time_slots.assert_called_once_with(
-        'proj', 'p0', 'start_time >= 1000000000 AND start_time <= 1000050000')
+        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000')
 
 
 def test_get_schedule_filter_by_time_slot():
