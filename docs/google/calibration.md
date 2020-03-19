@@ -1,8 +1,8 @@
 # Calibration Metrics
 
-Processors that are quantum computers periodically undergo calibrations to
-maintain the quality of the programs that can be run on these processors.
-During this calibration metrics about the performance of the quantum computer 
+Quantum processors periodically undergo calibrations to maintain the
+quality of the programs that can be run on them.
+During this calibration metrics about the performance of the quantum computer
 are collected.  This calibration data is stored by Quantum Engine and users can
 then query for the current or previous state of the calibration.
 Calibrations are also available for past jobs.
@@ -45,17 +45,17 @@ for metric_name in latest_calibration:
   print('------')
   for qubit_or_pair in latest_calibration[metric_name]:
      # Note that although the value is often singular,
-     # the metric_value is of the type list and can have multiple values     
+     # the metric_value is of the type list and can have multiple values.
      metric_value = latest_calibration[metric_name][qubit_or_pair]
      print(f'{qubit_or_pair} = {metric_value}')
 ```
 
-Calibration metrics will also soon be available from the 
+Calibration metrics will also soon be available from the
 [Google Cloud Platform Console](https://console.cloud.google.com).
 
 ## Average, Pauli and Incoherent Error
 
-Several metrics below define average error, pauli error and incoherent error.
+Several metrics below define average error, Pauli error and incoherent error.
 This section explains the difference between each of those metrics.
 
 The average error is equal to one minus fidelity averaged over all possible
@@ -68,7 +68,7 @@ be the Pauli error divided by three.  The Pauli error and average error are
 related by a multiplicative factor based on the number of qubits.
 
 See Table 1 on page 11 of the
-[https://arxiv.org/abs/1910.11333](Supplementry Information)
+[Supplementry Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 
@@ -140,7 +140,8 @@ some statistical overlap in the two distributions that would be theoretically
 impossible to distinguish.  This is classified as the separation error, and is
 calculated by fitting Gaussian distributions to the signals prepared in the
 |0⟩ state and |1⟩ state and calculating the overlap between the two
-distributions.
+distributions.  Note that this is a component of both the p_00 and p_11 errors
+and is included within those metrics.
 
 ### Isolated 1 qubit randomized benchmark error: 
 *   Metric key: single_qubit_rb_average_error_per_gate
@@ -185,9 +186,9 @@ benchmarking (XEB).  This procedure consists of performing a "cycle" of a
 random one-qubit gate on each qubit followed by the two qubit entangling gate.
 The resulting distribution is analyzed and compared to the expected distribution
 using cross entropy.  The value reported is the error rate per cycle (both
-the 1 qubit gates as well as the 2 qubit gate) is incorrect.
+the 1 qubit gates as well as the 2 qubit gate).
 
-See the above section for descriptions of average, puali, and incoherent error.
+See the above section for descriptions of average, Pauli, and incoherent error.
 
 These errors are isolated, meaning that, during the metric measurement, only the
 pair of qubits being considered is active.  All other qubits are idle.
@@ -207,9 +208,9 @@ pair of qubits being considered is active.  All other qubits are idle.
     two_qubit_parallel_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
 
 These metrics are calculated the same way as the 2-qubit isolated XEB error
-metrics.  However, this metric calculates the error of multiple 2-qubit cycles
-at a time.  Four different discrete patterns of 2-qubits are calculated, with
-each pair of qubits in only one pattern.
+metrics.  However, this metric quantifies the error of multiple parallel 2-qubit
+cycles at a time.  Four different discrete patterns of 2-qubits are used,
+with each pair of qubits in only one pattern.
 
 Since there are many different possible layouts of parallel two-qubit gates
 and each layout may have different cross-talk effects, users may want to perform
