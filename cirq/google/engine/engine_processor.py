@@ -266,9 +266,9 @@ class EngineProcessor:
         """
         filters = []
         if from_time:
-            filters.append(f'start_time >= {int(from_time.timestamp())}')
+            filters.append(f'start_time < {int(to_time.timestamp())}')
         if to_time:
-            filters.append(f'start_time <= {int(to_time.timestamp())}')
+            filters.append(f'end_time > {int(from_time.timestamp())}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_reservations(self.project_id,
                                                      self.processor_id,
@@ -288,9 +288,9 @@ class EngineProcessor:
         """
         filters = []
         if from_time:
-            filters.append(f'start_time >= {int(from_time.timestamp())}')
+            filters.append(f'start_time < {int(to_time.timestamp())}')
         if to_time:
-            filters.append(f'start_time <= {int(to_time.timestamp())}')
+            filters.append(f'end_time > {int(from_time.timestamp())}')
         if time_slot_type:
             raise ValueError('Filtering by time_slot_type not yet supported')
         filter_str = ' AND '.join(filters)
