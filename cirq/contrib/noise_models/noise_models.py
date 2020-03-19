@@ -212,6 +212,8 @@ class DepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             ]
 
 
+# TODO: move this to cirq.google with simple_noise_from_calibration_metrics.
+# Related issue: https://github.com/quantumlib/Cirq/issues/2832
 class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
     """NoiseModel with T1 decay on gates and damping/bitflip on measurement.
 
@@ -284,6 +286,8 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
             return moments
 
 
+# TODO: move this to cirq.google since it's Google-specific code.
+# Related issue: https://github.com/quantumlib/Cirq/issues/2832
 def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
                                           depol_noise: bool = False,
                                           damping_noise: bool = False,
