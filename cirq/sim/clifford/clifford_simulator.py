@@ -55,14 +55,12 @@ class CliffordSimulator(simulator.SimulatesSamples,
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         if protocols.is_measurement(op): return True
-        gate = op.gate
-        if gate is None: return False
-        if not protocols.has_unitary(gate): return False
-        u = cirq.unitary(gate)
+        if not protocols.has_unitary(op): return False
+        u = cirq.unitary(op)
         if u.shape == (2, 2):
             return not SingleQubitCliffordGate.from_unitary(u) is None
         else:
-            return gate in [cirq.CNOT, cirq.CZ]
+            return op.gate in [cirq.CNOT, cirq.CZ]
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -321,14 +319,13 @@ class CliffordState():
                              str(op.gate))  # type: ignore
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
-        assert op.gate is not None
         qubit = self.qubit_map[op.qubits[0]]
         # Handle H natively as optimization.
         if op.gate == cirq.H:
             self._apply_H(qubit)
             return
 
-        u = unitary(op.gate)
+        u = unitary(op)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is None:
             raise ValueError('%s cannot be run with Clifford simulator.' %

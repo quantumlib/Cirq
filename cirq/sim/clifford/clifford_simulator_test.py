@@ -413,3 +413,23 @@ def test_is_supported_operation():
     assert cirq.CliffordSimulator.is_supported_operation(cirq.measure(q1))
 
     assert not cirq.CliffordSimulator.is_supported_operation(cirq.T(q1))
+
+
+def test_simulate_pauli_string():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit([cirq.PauliString({q: 'X'}), cirq.PauliString({q: 'Z'})])
+    simulator = cirq.CliffordSimulator()
+
+    result = simulator.simulate(circuit).final_state.wave_function()
+
+    assert np.allclose(result, [0, -1])
+
+
+def test_simulate_global_phase_operation():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit([cirq.I(q), cirq.GlobalPhaseOperation(1j)])
+    simulator = cirq.CliffordSimulator()
+
+    result = simulator.simulate(circuit).final_state.wave_function()
+
+    assert np.allclose(result, [1j, 0])

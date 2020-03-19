@@ -217,19 +217,18 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
         return {frm: PauliTransform(to, flip)
                 for frm, (to, flip) in pauli_map_to.items()}
 
-    """Creates Clifford gate with given unitary (up to global phase).
-    
-    Args:
-        u: 2x2 unitary matrix of a Clifford gate.
-    
-    Returns:
-        SingleQubitCliffordGate, whose matrix is equal to given matrix (up to
-        global phase), or `None` if `u` is not a matrix of a single-qubit 
-        Clifford gate.
-    """
-
     @staticmethod
     def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
+        """Creates Clifford gate with given unitary (up to global phase).
+
+        Args:
+            u: 2x2 unitary matrix of a Clifford gate.
+
+        Returns:
+            SingleQubitCliffordGate, whose matrix is equal to given matrix (up
+            to global phase), or `None` if `u` is not a matrix of a single-qubit
+            Clifford gate.
+        """
         if u.shape != (2, 2) or not linalg.is_unitary(u):
             return None
         x = protocols.unitary(pauli_gates.X)
