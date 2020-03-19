@@ -33,6 +33,7 @@ import collections
 from typing import Dict, List, Iterator, Sequence
 
 import numpy as np
+from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
@@ -55,6 +56,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
         if protocols.is_measurement(op): return True
+        if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
         u = cirq.unitary(op)
         if u.shape == (2, 2):
@@ -304,6 +306,8 @@ class CliffordState():
     def apply_unitary(self, op: 'cirq.Operation'):
         if len(op.qubits) == 1:
             self.apply_single_qubit_unitary(op)
+        elif isinstance(op, GlobalPhaseOperation):
+            self.ch_form.omega *= op.coefficient
         elif op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
