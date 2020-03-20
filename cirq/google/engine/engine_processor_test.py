@@ -482,6 +482,7 @@ def test_get_schedule(list_time_slots):
     list_time_slots.assert_called_once_with(
         'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000')
 
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
 def test_get_schedule_filter_by_time_slot(list_time_slots):
     results = [
@@ -499,11 +500,14 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     list_time_slots.return_value = results
     processor = cg.EngineProcessor('proj', 'p0', EngineContext())
 
-    assert processor.get_schedule(datetime.datetime.fromtimestamp(1000000000),
-                               datetime.datetime.fromtimestamp(1000050000),
-                               qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE) == results
+    assert processor.get_schedule(
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000050000),
+        qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE) == results
     list_time_slots.assert_called_once_with(
-        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000 AND time_slot_type = MAINTENANCE')
+        'proj', 'p0',
+        'start_time < 1000050000 AND end_time > 1000000000 AND time_slot_type = MAINTENANCE'
+    )
 
 
 def test_str():
