@@ -25,13 +25,13 @@ User Documentation
     :maxdepth: 2
 
     install
-    tutorial
-    circuits
-    gates
-    noise
-    simulation
+    tutorial.ipynb
+    circuits.ipynb
+    gates.ipynb
+    noise.ipynb
+    simulation.ipynb
     devices
-    qudits
+    qudits.ipynb
     development
     examples
     api
@@ -42,6 +42,11 @@ User Documentation
     :caption: Developer Documentation
 
     dev/index.rst
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Notebook sphinx generation
 
 
 .. toctree::
