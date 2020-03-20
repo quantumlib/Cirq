@@ -51,4 +51,5 @@ User Documentation
     google/devices
     google/engine
     google/specification
+    google/calibration
     google/best_practices
