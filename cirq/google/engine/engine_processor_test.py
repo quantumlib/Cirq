@@ -505,9 +505,8 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
         datetime.datetime.fromtimestamp(1000050000),
         qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE) == results
     list_time_slots.assert_called_once_with(
-        'proj', 'p0',
-        'start_time < 1000050000 AND end_time > 1000000000 AND time_slot_type = MAINTENANCE'
-    )
+        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000 AND ' +
+        'time_slot_type = MAINTENANCE')
 
 
 def test_str():
