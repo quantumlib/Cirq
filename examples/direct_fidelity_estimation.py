@@ -96,7 +96,7 @@ async def estimate_characteristic_function(
 
 def _estimate_pauli_traces_clifford(n_qubits: int,
                                     clifford_state: cirq.CliffordState,
-                                    n_clifford_trials: int):
+                                    n_clifford_trials: Optional[int]):
     """
     Estimates the Pauli traces in case the circuit is Clifford. When we have a
     Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
@@ -109,7 +109,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         n_qubits: An integer that is the number of qubits.
         clifford_state: The basis of the Pauli states with non-zero probability.
         n_clifford_trials: An integer that is the number of Pauli states to
-            sample. If set to sys.maxsize, we do an exhaustive search.
+            sample. If set to None, we do an exhaustive search.
 
     Returns:
         A list of Pauli states (represented as tuples of Pauli string, rho_i,
@@ -129,7 +129,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     stabilizer_basis = clifford_state.stabilizers()
 
     dense_pauli_strings = []
-    if n_clifford_trials != sys.maxsize:
+    if n_clifford_trials is not None:
         # Randomly sample the trials
         for _ in range(n_clifford_trials):
             # Build the Pauli string as a random sample of the basis elements.
@@ -210,7 +210,8 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                noise: cirq.NoiseModel, n_trials: int,
-                               n_clifford_trials: int, samples_per_term: int):
+                               n_clifford_trials: Optional[int],
+                               samples_per_term: int):
     """
     Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
@@ -252,13 +253,11 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     if clifford_circuit:
-        print('Circuit is Clifford')
         assert clifford_state is not None
         pauli_traces = _estimate_pauli_traces_clifford(
             n_qubits, cast(cirq.CliffordState, clifford_state),
             n_clifford_trials)
     else:
-        print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
 
     p = np.asarray([x['Pr_i'] for x in pauli_traces])
@@ -325,7 +324,7 @@ def parse_arguments(args):
                         'non-zero probabilities. The higher the number, '
                         'the more accurate the overall fidelity '
                         'estimation, at the cost of extra computing and '
-                        'measurements. If set to sys.maxsize, we exhaustively '
+                        'measurements. If set to None, we exhaustively '
                         'enumerate all the Pauli traces.')
 
     parser.add_argument('--samples_per_term',
@@ -336,7 +335,8 @@ def parse_arguments(args):
     return vars(parser.parse_args(args))
 
 
-def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int):
+def main(*, n_trials: int, n_clifford_trials: Optional[int],
+         samples_per_term: int):
     circuit, qubits = build_circuit()
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
