@@ -56,16 +56,16 @@ Calibration metrics will also soon be available from the
 ## Average, Pauli and Incoherent Error
 
 Several metrics below define average error, Pauli error and incoherent error.
-This section explains the difference between each of those metrics.
+This section explains the difference between each of these metrics.
 
 The average error is equal to one minus fidelity averaged over all possible
 input states.
 
 Pauli error defines decoherence of a single qubit in one of the Pauli channels
-X, Y, or Z.  If the errors are distributed in a uniform distribution across all
+X, Y, or Z.  If the errors are distributed in the uniform distribution over all
 three axes, the probability of applying an erroneous Pauli gate X, Y, or Z will
 be the Pauli error divided by three.  The Pauli error and average error are
-related by a multiplicative factor based on the number of qubits.
+related by a multiplicative factor dependent on the number of qubits.
 
 See Table 1 on page 11 of the
 [Supplementry Information](https://arxiv.org/abs/1910.11333)
@@ -150,13 +150,13 @@ and is included within those metrics.
 
 Single qubit gate error is estimated using randomized benchmarking by taking
 sequences of varying length of the 24 gates within the Clifford group
-(those that preserve the Pauli group under conjugation) then applying then
+(those that preserve the Pauli group under conjugation) then
 applying the inverse of the unitary equivalent to the executed gate sequence.
 The result of the total sequence should always be the identity (|0⟩ state).
-The final error is measured and compared against this
-state to produce the total error.  This error is calculated for one qubit at a
-time while all other qubits on the device are idle (isolated).  See the
-above section for descriptions of total versus purity error.
+The final error is measured and compared against this state to produce the
+total error.  This error is calculated for one qubit at a time while all
+other qubits on the device are idle (isolated).  See the above section for
+descriptions of total versus purity error.
 
 More information about randomized benchmarking can be found in section 6.3
 (page 120) of this
@@ -166,9 +166,9 @@ More information about randomized benchmarking can be found in section 6.3
 *   Metric key: single_qubit_idle_t1_micros
 
 The T1 of a qubit represents the time constant of the exponential decay of a
-qubit in the excited |1⟩ state to naturally decay into the ground |0⟩ state.
-This is calculated by preparing an excited state with a microwave pulse
-(a.k.a. an X gate), measured after a variety of decay times.
+qubit in the excited |1⟩ state into the ground |0⟩ state.  This is calculated
+by preparing the excited state with a microwave pulse (a.k.a. an X gate),
+measured after a variety of decay times.
 
 An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
@@ -176,13 +176,13 @@ which is reported in microseconds.
 ### 2-qubit Isolated XEB error
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error_per_cycle
 *   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_incoherent_error_per_cycle
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error_per_cycle
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error_per_cycle
 *   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
 
 Two qubit error is primarily characterized by applying cross-entropy
-benchmarking (XEB).  This procedure consists of performing a "cycle" of a
+benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a
 random one-qubit gate on each qubit followed by the two qubit entangling gate.
 The resulting distribution is analyzed and compared to the expected distribution
 using cross entropy.  The value reported is the error rate per cycle (both
