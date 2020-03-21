@@ -17,6 +17,8 @@
 from cirq.sim.density_matrix_utils import (
     measure_density_matrix,
     sample_density_matrix,
+    to_valid_density_matrix,
+    von_neumann_entropy,
 )
 
 from cirq.sim.density_matrix_simulator import (
@@ -56,9 +58,15 @@ from cirq.sim.wave_function_simulator import (
 )
 
 from cirq.sim.wave_function import (
+    bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
+    dirac_notation,
     measure_state_vector,
     sample_state_vector,
+    STATE_VECTOR_LIKE,
     StateVectorMixin,
+    to_valid_state_vector,
+    validate_normalized_state,
 )
 
 from cirq.sim.clifford import (

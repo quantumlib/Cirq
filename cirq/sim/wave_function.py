@@ -24,12 +24,30 @@ from typing import (
 import abc
 import numpy as np
 
-from cirq import linalg, ops, value
-from cirq.linalg import states
+from cirq import linalg, ops, qis, value
+from cirq.qis import states
 from cirq.sim import simulator
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
+
+bloch_vector_from_state_vector = deprecated(
+    deadline='v0.9', fix='Use cirq.bloch_vector_from_state_vector instead.')(
+        qis.bloch_vector_from_state_vector)
+density_matrix_from_state_vector = deprecated(
+    deadline='v0.9', fix='Use cirq.density_matrix_from_state_vector instead.')(
+        qis.density_matrix_from_state_vector)
+dirac_notation = deprecated(deadline='v0.9',
+                            fix='Use cirq.dirac_notation instead.')(
+                                qis.dirac_notation)
+to_valid_state_vector = deprecated(
+    deadline='v0.9',
+    fix='Use cirq.to_valid_state_vector instead.')(qis.to_valid_state_vector)
+validate_normalized_state = deprecated(
+    deadline='v0.9', fix='Use cirq.validate_normalized_state instead.')(
+        qis.validate_normalized_state)
+STATE_VECTOR_LIKE = qis.STATE_VECTOR_LIKE
 
 
 class StateVectorMixin():
@@ -98,9 +116,9 @@ class StateVectorMixin():
         Returns:
             A pretty string consisting of a sum of computational basis kets
             and non-zero floats of the specified accuracy."""
-        return linalg.dirac_notation(self.state_vector(),
-                                     decimals,
-                                     qid_shape=self._qid_shape)
+        return qis.dirac_notation(self.state_vector(),
+                                  decimals,
+                                  qid_shape=self._qid_shape)
 
     def density_matrix_of(self, qubits: List[ops.Qid] = None) -> np.ndarray:
         r"""Returns the density matrix of the state.
@@ -136,7 +154,7 @@ class StateVectorMixin():
             IndexError: if the indices are out of range for the number of qubits
                 corresponding to the state.
         """
-        return linalg.density_matrix_from_state_vector(
+        return qis.density_matrix_from_state_vector(
             self.state_vector(),
             [self.qubit_map[q] for q in qubits] if qubits is not None else None,
             qid_shape=self._qid_shape)
@@ -160,9 +178,9 @@ class StateVectorMixin():
             IndexError: if index is out of range for the number of qubits
                 corresponding to the state.
         """
-        return linalg.bloch_vector_from_state_vector(self.state_vector(),
-                                                     self.qubit_map[qubit],
-                                                     qid_shape=self._qid_shape)
+        return qis.bloch_vector_from_state_vector(self.state_vector(),
+                                                  self.qubit_map[qubit],
+                                                  qid_shape=self._qid_shape)
 
 
 def sample_state_vector(

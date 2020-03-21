@@ -23,7 +23,7 @@ import numbers
 
 import numpy as np
 
-from cirq import value, protocols, linalg
+from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,
@@ -399,10 +399,10 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            linalg.validate_normalized_state(state=state,
-                                             qid_shape=(2,) * num_qubits,
-                                             dtype=state.dtype,
-                                             atol=atol)
+            qis.validate_normalized_state(state=state,
+                                          qid_shape=(2,) * num_qubits,
+                                          dtype=state.dtype,
+                                          atol=atol)
         return self._expectation_from_wavefunction_no_validation(
             state, qubit_map)
 
@@ -498,11 +498,11 @@ class PauliString(raw_types.Operation):
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
             # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = linalg.to_valid_density_matrix(density_matrix_rep=state.reshape(
+            _ = qis.to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
-                                               num_qubits=num_qubits,
-                                               dtype=state.dtype,
-                                               atol=atol)
+                                            num_qubits=num_qubits,
+                                            dtype=state.dtype,
+                                            atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 

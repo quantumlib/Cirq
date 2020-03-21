@@ -17,7 +17,15 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 
-from cirq import linalg, value
+from cirq import linalg, qis, value
+from cirq._compat import deprecated
+
+to_valid_density_matrix = deprecated(
+    deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')(
+        qis.to_valid_density_matrix)
+von_neumann_entropy = deprecated(deadline='v0.9',
+                                 fix='Use cirq.von_neumann_entropy instead.')(
+                                     qis.von_neumann_entropy)
 
 
 def sample_density_matrix(

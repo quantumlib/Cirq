@@ -42,16 +42,8 @@ from cirq.linalg.decompositions import (
 )
 
 from cirq.linalg.states import (
-    bloch_vector_from_state_vector,
-    density_matrix_from_state_vector,
-    dirac_notation,
-    eye_tensor,
     one_hot,
-    STATE_VECTOR_LIKE,
-    to_valid_density_matrix,
-    to_valid_state_vector,
-    validate_normalized_state,
-    von_neumann_entropy,
+    eye_tensor,
 )
 
 from cirq.linalg.diagonalize import (

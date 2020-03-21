@@ -38,6 +38,7 @@ with _import.delay_import('cirq.protocols'):
 from cirq import (
     # Core
     circuits,
+    qis,
     # Optimize and run
     optimizers,
     work,
@@ -112,17 +113,13 @@ from cirq.linalg import (
     AxisAngleDecomposition,
     bidiagonalize_real_matrix_pair_with_symmetric_products,
     bidiagonalize_unitary_with_special_orthogonals,
-    bloch_vector_from_state_vector,
     block_diag,
     CONTROL_TAG,
-    density_matrix_from_state_vector,
     diagonalize_real_symmetric_and_sorted_diagonal_matrices,
     diagonalize_real_symmetric_matrix,
-    dirac_notation,
     dot,
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
-    eye_tensor,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -142,22 +139,16 @@ from cirq.linalg import (
     map_eigenvalues,
     match_global_phase,
     matrix_from_basis_coefficients,
-    one_hot,
     partial_trace,
     PAULI_BASIS,
     scatter_plot_normalized_kak_interaction_coefficients,
-    STATE_VECTOR_LIKE,
     pow_pauli_combination,
     reflection_matrix_pow,
     slice_for_qubits_equal_to,
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
-    to_valid_density_matrix,
-    to_valid_state_vector,
     unitary_eig,
-    validate_normalized_state,
-    von_neumann_entropy,
     wavefunction_partial_trace_as_mixture,
 )
 
@@ -308,6 +299,19 @@ from cirq.optimizers import (
     single_qubit_op_to_framed_phase_form,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
+)
+
+from cirq.qis import (
+    bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
+    dirac_notation,
+    eye_tensor,
+    one_hot,
+    STATE_VECTOR_LIKE,
+    to_valid_density_matrix,
+    to_valid_state_vector,
+    validate_normalized_state,
+    von_neumann_entropy,
 )
 
 from cirq.sim import (

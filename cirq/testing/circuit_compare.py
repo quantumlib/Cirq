@@ -20,7 +20,7 @@ import random
 import numpy as np
 import sympy
 
-from cirq import circuits, ops, linalg, protocols
+from cirq import circuits, ops, linalg, protocols, qis
 from cirq.testing import lin_alg_utils
 
 
@@ -268,7 +268,7 @@ def assert_has_consistent_apply_unitary(val: Any, *,
 
     qid_shape = protocols.qid_shape(val)
 
-    eye = linalg.eye_tensor((2,) + qid_shape, dtype=np.complex128)
+    eye = qis.eye_tensor((2,) + qid_shape, dtype=np.complex128)
     actual = protocols.apply_unitary(
         unitary_value=val,
         args=protocols.ApplyUnitaryArgs(target_tensor=eye,

@@ -30,7 +30,7 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, protocols
+from cirq import devices, ops, protocols, qis
 from cirq._compat import deprecated, deprecated_parameter
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -1522,7 +1522,7 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.eye_tensor(qid_shape, dtype=dtype)
+        state = qis.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
@@ -1602,9 +1602,9 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.to_valid_state_vector(initial_state,
-                                             qid_shape=qid_shape,
-                                             dtype=dtype).reshape(qid_shape)
+        state = qis.to_valid_state_vector(initial_state,
+                                          qid_shape=qid_shape,
+                                          dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
 

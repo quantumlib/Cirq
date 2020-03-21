@@ -19,6 +19,41 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq._compat_test import capture_logging
+
+
+def test_deprecated():
+    with capture_logging() as log:
+        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
+    assert len(log) == 1
+    assert "cirq.bloch_vector_from_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
+    assert len(log) == 1
+    assert "cirq.density_matrix_from_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.dirac_notation(np.array([1, 0]))
+    assert len(log) == 1
+    assert "cirq.dirac_notation" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.to_valid_state_vector(0, 1)
+    assert len(log) == 1
+    assert "cirq.to_valid_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.validate_normalized_state(np.array([1, 0],
+                                                        dtype=np.complex64),
+                                               qid_shape=(2,))
+    assert len(log) == 1
+    assert "cirq.validate_normalized_state" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
 
 
 def test_state_mixin():
