@@ -25,7 +25,6 @@ import abc
 import numpy as np
 
 from cirq import linalg, ops, qis, value
-from cirq.qis import states
 from cirq.sim import simulator
 from cirq._compat import deprecated
 
@@ -222,9 +221,9 @@ def sample_state_vector(
     if repetitions < 0:
         raise ValueError('Number of repetitions cannot be negative. Was {}'
                          .format(repetitions))
-    qid_shape = states.validate_qid_shape(state, qid_shape)
+    qid_shape = qis.validate_qid_shape(state, qid_shape)
     num_qubits = len(qid_shape)
-    states.validate_indices(num_qubits, indices)
+    qis.validate_indices(num_qubits, indices)
 
     if repetitions == 0 or len(indices) == 0:
         return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
@@ -287,9 +286,9 @@ def measure_state_vector(
         IndexError if the indices are out of range for the number of qubits
             corresponding to the state.
     """
-    qid_shape = states.validate_qid_shape(state, qid_shape)
+    qid_shape = qis.validate_qid_shape(state, qid_shape)
     num_qubits = len(qid_shape)
-    states.validate_indices(num_qubits, indices)
+    qis.validate_indices(num_qubits, indices)
 
     if len(indices) == 0:
         if out is None:
