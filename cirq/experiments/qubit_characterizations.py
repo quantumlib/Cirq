@@ -545,19 +545,16 @@ def _two_qubit_clifford_matrices(q_0: devices.GridQubit, q_1: devices.GridQubit,
             subset.append(protocols.unitary(circuit))
         starters.append(subset)
     mixers = []
-    for idx_2 in range(20):
+    # Add the identity for the case where there is no mixer.
+    mixers.append(np.eye(4))
+    for idx_2 in range(1, 20):
         circuit = circuits.Circuit(
             _two_qubit_clifford_mixers(q_0, q_1, idx_2, cliffords))
         mixers.append(protocols.unitary(circuit))
 
     for i in range(clifford_group_size):
         idx_0, idx_1, idx_2 = _split_two_q_clifford_idx(i)
-        if mixers[idx_2].shape == (1, 1):
-            mats.append(starters[idx_0][idx_1])
-        elif starters[idx_0][idx_1].shape == (1, 1):
-            mats.append(mixers[idx_2])
-        else:
-            mats.append(np.matmul(mixers[idx_2], starters[idx_0][idx_1]))
+        mats.append(np.matmul(mixers[idx_2], starters[idx_0][idx_1]))
 
     return np.array(mats)
 
