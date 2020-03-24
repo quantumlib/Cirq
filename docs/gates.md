@@ -1,10 +1,13 @@
 # Gates
 
-A ``Gate`` is an operation that can be applied to a collection of
-qubits (objects with a ``Qid``).  ``Gates`` can be applied
+A `Gate` is an effect that can be applied to a collection of
+qubits (objects with a ``Qid``).  `Gates` can be applied
 to qubits by calling their ``on`` method, or, alternatively
 calling the gate on the qubits.  The object created by such calls
-is an ``Operation``.
+is an ``Operation``.  Alternatively, a `Gate` can be thought of
+as a [factory](https://en.wikipedia.org/wiki/Factory_method_pattern)
+that, given input qubits, generates an associated
+`GateOperation` object.
 
 ## Gates versus Operations
 
@@ -84,6 +87,9 @@ qubit.  This functionality depends on the "magic methods" of the gate
 being defined (see below for details).
 
 Gates can be converted to a controlled version by using `Gate.controlled()`.
+In general, this returns an instance of a `ControlledGate`.  However, for
+certain special cases where the controlled version of the gate is also a
+known gate, this returns the instance of that gate.
 For instance, `cirq.X.controlled()` returns a `cirq.CNOT` gate.
 Operations have similar functionality `Operation.controlled_by()`, such as
 `cirq.X(q0).controlled_by(q1)`.
@@ -117,13 +123,13 @@ to the qubits.
 
 **cirq.Y / cirq.YPowGate / cirq.ry** Rotations about the Pauli ``Y`` axis.
 The gate `cirq.Y**t` and the equivalent representation
-`cirq.YPowGate(exponent=t)` are measured in terms of 180 degree turns (half turns), while
-the function `cirq.ry(θ)` uses a radian angle of rotation.
+`cirq.YPowGate(exponent=t)` are measured in terms of 180 degree turns
+(half turns), while the function `cirq.ry(θ)` uses a radian angle of rotation.
 
 **cirq.X / cirq.XPowGate / cirq.rx** Rotations about the Pauli ``X`` axis.
 The gate `cirq.X**t` and the equivalent representation
-`cirq.XPowGate(exponent=t)` are measured in terms of 180 degree turns, while
-the function `cirq.rx(θ)` uses a radian angle of rotation.
+`cirq.XPowGate(exponent=t)` are measured in terms of 180 degree turns
+(half turns), while the function `cirq.rx(θ)` uses a radian angle of rotation.
 
 **cirq.PhasedXPowGate**
 This gate is a rotation about an axis in the XY plane of the Bloch sphere.
