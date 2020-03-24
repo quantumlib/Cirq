@@ -117,7 +117,7 @@ to the qubits.
 
 **cirq.Y / cirq.YPowGate / cirq.ry** Rotations about the Pauli ``Y`` axis.
 The gate `cirq.Y**t` and the equivalent representation
-`cirq.YPowGate(exponent=t)` are measured in terms of 180 degree turns, while
+`cirq.YPowGate(exponent=t)` are measured in terms of 180 degree turns (half turns), while
 the function `cirq.ry(θ)` uses a radian angle of rotation.
 
 **cirq.X / cirq.XPowGate / cirq.rx** Rotations about the Pauli ``X`` axis.
