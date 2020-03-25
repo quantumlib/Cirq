@@ -31,6 +31,7 @@ with _import.delay_import('cirq.protocols'):
         protocols,
         value,
         linalg,
+        qis,
         ops,
         devices,
         study,
@@ -38,7 +39,6 @@ with _import.delay_import('cirq.protocols'):
 from cirq import (
     # Core
     circuits,
-    qis,
     # Optimize and run
     optimizers,
     work,
