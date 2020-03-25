@@ -13,6 +13,7 @@
 # limitations under the License.
 import datetime
 
+from pytz import utc
 from typing import List, Optional, TYPE_CHECKING
 
 from cirq.google.engine.client.quantum import types as qtypes
@@ -223,7 +224,7 @@ class EngineProcessor:
             raise ValueError('Cannot determine freeze_schedule from processor.'
                              'Call _cancel_reservation or _delete_reservation.')
         secs_until = (reservation.start_time.seconds -
-                      int(datetime.datetime.now().timestamp()))
+                      int(datetime.datetime.now(tz=utc).timestamp().timestamp()))
         if secs_until > freeze:
             return self._delete_reservation(reservation_id)
         else:
@@ -256,8 +257,8 @@ class EngineProcessor:
 
     def list_reservations(
             self,
-            from_time: datetime.datetime = datetime.datetime.now(),
-            to_time: datetime.datetime = datetime.datetime.now() +
+            from_time: datetime.datetime = datetime.datetime.now(tz=utc),
+            to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
             datetime.timedelta(weeks=2)) -> List[EngineTimeSlot]:
         """Retrieves the reservations from a processor.
 
@@ -275,8 +276,8 @@ class EngineProcessor:
                                                      filter_str)
 
     def get_schedule(self,
-                     from_time: datetime.datetime = datetime.datetime.now(),
-                     to_time: datetime.datetime = datetime.datetime.now() +
+                     from_time: datetime.datetime = datetime.datetime.now(tz=utc),
+                     to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
                      datetime.timedelta(weeks=2),
                      time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
                     ) -> List[EngineTimeSlot]:
