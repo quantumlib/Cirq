@@ -61,7 +61,7 @@ User Documentation
 
 	
 .. toctree::
-	:maxdepth: 1
-	:caption: Case Studies
+    :maxdepth: 1
+    :caption: Case Studies
 
     studies/hidden_linear_function.ipynb
