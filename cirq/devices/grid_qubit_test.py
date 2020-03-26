@@ -44,7 +44,7 @@ def test_str():
 
 def test_repr():
     cirq.testing.assert_equivalent_repr(cirq.GridQubit(0, 1))
-    cirq.testing.assert_equivalent_repr(cirq.LineQid(5, dimension=3))
+    cirq.testing.assert_equivalent_repr(cirq.GridQid(5, dimension=3))
 
 
 def test_cmp():
@@ -241,7 +241,7 @@ def test_to_json():
         'col': 6,
     }
 
-    assert cirq.LineQid(5, 3, dimension=3)._json_dict_() == {
+    assert cirq.GridQid(5, 3, dimension=3)._json_dict_() == {
         'cirq_type': 'GridQid',
         'row': 5,
         'col': 6,
