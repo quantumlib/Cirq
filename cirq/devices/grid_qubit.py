@@ -45,7 +45,7 @@ class _BaseGridQid(ops.Qid):
         return self._col
 
     def with_dimension(self, dimension: int) -> 'GridQid':
-        return GridQid(self.row, self.col, dimension)
+        return GridQid(self.row, self.col, dimension=dimension)
 
     def is_adjacent(self, other: 'cirq.Qid') -> bool:
         """Determines if two qubits are adjacent qubits."""

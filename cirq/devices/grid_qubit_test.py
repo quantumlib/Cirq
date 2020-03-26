@@ -43,8 +43,8 @@ def test_str():
 
 
 def test_repr():
-    cirq.testing.assert_equivalent_repr(cirq.GridQubit(0, 1))
-    cirq.testing.assert_equivalent_repr(cirq.GridQid(5, dimension=3))
+    cirq.testing.assert_equivalent_repr(cirq.GridQubit(5, 2))
+    cirq.testing.assert_equivalent_repr(cirq.GridQid(5, 2, dimension=3))
 
 
 def test_cmp():
@@ -233,15 +233,13 @@ def test_neg():
 
 
 def test_to_json():
-    q = cirq.GridQubit(5, 6)
-    d = q._json_dict_()
-    assert d == {
+    assert cirq.GridQubit(5, 6)._json_dict_() == {
         'cirq_type': 'GridQubit',
         'row': 5,
         'col': 6,
     }
 
-    assert cirq.GridQid(5, 3, dimension=3)._json_dict_() == {
+    assert cirq.GridQid(5, 6, dimension=3)._json_dict_() == {
         'cirq_type': 'GridQid',
         'row': 5,
         'col': 6,
@@ -259,9 +257,13 @@ def test_immutable():
         q.row = 3
 
     with pytest.raises(AttributeError, match="can't set attribute"):
-        q = cirq.GridQid(1, 2)
+        q = cirq.GridQid(1, 2, dimension=3)
         q.col = 3
 
     with pytest.raises(AttributeError, match="can't set attribute"):
-        q = cirq.GridQid(1, 2)
+        q = cirq.GridQid(1, 2, dimension=3)
         q.row = 3
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        q = cirq.GridQid(1, 2, dimension=3)
+        q.dimension = 3
