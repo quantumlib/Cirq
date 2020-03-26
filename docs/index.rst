@@ -26,7 +26,7 @@ User Documentation
 
     install
     tutorial.ipynb
-    circuits
+    circuits.ipynb
     gates.ipynb
     noise.ipynb
     simulation.ipynb
