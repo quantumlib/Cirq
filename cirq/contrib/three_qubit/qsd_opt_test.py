@@ -4,27 +4,33 @@ import numpy as np
 
 import pytest
 from numpy.testing import assert_almost_equal
+from scipy.linalg import block_diag
 
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
-    _cs_to_circuit
+    _cs_to_circuit, _middle_multiplexor, \
+    _two_qubit_matrix_to_diagonal_and_circuit
 
 
-@pytest.mark.parametrize("theta", [
-    np.array([0.5, 0.6, 0.7, 0.8]),
-    np.array([0., 0., np.pi / 2, np.pi / 2]),
-    np.array([0., 0., 0., 0.]),
-    np.repeat(np.pi / 4, repeats=4),
+@pytest.mark.parametrize(["theta", "num_czs"], [
+    (np.array([0.5, 0.6, 0.7, 0.8]), 4),
+    (np.array([0., 0., np.pi / 2, np.pi / 2]), 4),
+    (np.zeros(4), 0),
+    (np.repeat(0.000015, repeats=4), 0),
+    (np.repeat(np.pi / 4, repeats=4), 0),
 ])
-def test_cs_to_circuit(theta):
+def test_cs_to_circuit(theta, num_czs):
     a, b, c = cirq.LineQubit.range(3)
     CS = _theta_to_CS(theta)
     circuit_CS = _cs_to_circuit(a, b, c, theta)
-    rightmost_CZ = cirq.Circuit(cirq.CZ(c, a)).unitary(
-        qubits_that_should_be_present=[a, b, c])
-    assert_almost_equal(
-        rightmost_CZ @ circuit_CS.unitary(
-            qubits_that_should_be_present=[a, b, c]), CS, 15)
+
+    assert_almost_equal(circuit_CS.unitary(
+        qubits_that_should_be_present=[a, b, c]), CS, 15)
+
+    assert (len([cz for cz in list(circuit_CS.all_operations())
+                 if isinstance(cz.gate, cirq.CZPowGate)]) == num_czs), \
+        "expected {} CZs got \n {} \n {}".format(num_czs, circuit_CS,
+                                                 circuit_CS.unitary())
 
 
 def _theta_to_CS(theta):
@@ -88,3 +94,34 @@ def test_multiplexed_angles():
     # ------------------@----------------@
     assert np.isclose(theta[3],
                       (angles[0] - angles[1] + angles[2] - angles[3]))
+
+
+def test_middle_multiplexor():
+    a, b, c = cirq.LineQubit.range(3)
+    eigvals = np.exp([-0.2312j, 0.2312j, 1.43j, -2.2322j])
+    d = np.diag(np.sqrt(eigvals))
+    mid = block_diag(d, d.conj().T)
+    circuit_u1u2_mid = _middle_multiplexor(a, b, c, eigvals)
+    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
+        qubits_that_should_be_present=[a, b, c]))
+
+
+def test_two_qubit_matrix_to_diagonal_and_circuit():
+    b, c = cirq.LineQubit.range(2)
+    V = cirq.unitary(_two_qubit_circuit_with_cnots(3))
+    circ, diagonal = _two_qubit_matrix_to_diagonal_and_circuit(V, b, c)
+    cirq.testing.assert_allclose_up_to_global_phase(
+        circ.unitary(qubits_that_should_be_present=[b, c]) @
+        diagonal.conj().T, V, atol=1e-14)
+    # TODO test diagonal branch
+    # TODO test less than two qubit branch
+
+
+def _two_qubit_circuit_with_cnots(num_cnots=3):
+    a, b = cirq.LineQubit.range(2)
+    random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
+                                                        exponent=random())
+    one_cz = lambda: [random_one_qubit_gate().on(a),
+              random_one_qubit_gate().on(b),
+              cirq.CZ.on(a, b)]
+    return cirq.Circuit([one_cz() for _ in range(num_cnots)])

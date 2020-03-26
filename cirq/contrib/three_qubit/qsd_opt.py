@@ -9,12 +9,10 @@ def three_qubit_unitary_to_operations(U):
     assert np.shape(U) == (8, 8)
     (u1, u2), theta, (v1h, v2h) = cossin(U, 4, 4, separate=True)
 
-    UD = block_diag(u1, u2)
-    VDH = block_diag(v1h, v2h)
-
     a, b, c = cirq.LineQubit.range(3)
 
     circuit_CS = _cs_to_circuit(a, b, c, theta)
+
 
     # optimization A.1 - merging the CZ(c,a) from the end of CS into UD
     # now, CZ(c,a) = CZ(a,c) as CZ is symmetric
@@ -29,6 +27,8 @@ def three_qubit_unitary_to_operations(U):
 
     rightmost_CZ = cirq.Circuit(cirq.CZ(c, a)).unitary(
         qubits_that_should_be_present=[a, b, c])
+
+    UD = block_diag(u1, u2)
     UD = UD @ rightmost_CZ
     cirq.testing.assert_allclose_up_to_global_phase(UD,
                                                     c_UD.unitary(
@@ -41,6 +41,7 @@ def three_qubit_unitary_to_operations(U):
                                                     shiftLeft=False,
                                                     diagonal=dUD)
 
+    VDH = block_diag(v1h, v2h)
     cirq.testing.assert_allclose_up_to_global_phase(
         np.kron(np.eye(2), dUD) @ VDH,
         c_VDH.unitary(qubits_that_should_be_present=[a, b, c]),
@@ -68,25 +69,25 @@ def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
     # Note: we are using *2 as the thetas are already half angles from the
     # CSD decomposition, but ry takes full angles.
     angles = _multiplexed_angles(theta * 2)
-    rys = [cirq.ry(angle).on(a) if angle != 0 else []
-           for angle in angles]
+    rys = [cirq.ry(angle).on(a) for angle in angles]
+    ops = [rys[0],
+           cirq.CZ(b, a),
+           rys[1],
+           cirq.CZ(c, a),
+           rys[2],
+           cirq.CZ(b, a),
+           rys[3],
+           cirq.CZ(c, a)]
+    circuit = cirq.Circuit(ops)
 
-    # we are using CZ's as an optimization as per Appendix A.1
-    if rys[1] == [] and rys[2] == []:
-        ops = [
-            rys[0],
-            cirq.CZ(c, a),
-            rys[3]]
-    else:
-        ops = [rys[0],
-               cirq.CZ(b, a),
-               rys[1],
-               cirq.CZ(c, a),
-               rys[2],
-               cirq.CZ(b, a),
-               rys[3]]
+    cirq.optimizers.DropNegligible().optimize_circuit(circuit)
+    cirq.optimizers.MergeInteractions().optimize_circuit(circuit)
 
-    return cirq.Circuit(ops)
+    if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
+        return cirq.Circuit([])
+
+
+    return list(circuit.all_operations())
 
 
 def _special(u):
@@ -122,10 +123,8 @@ def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
 
     W = d @ V.conj().T @ u2
 
-    mid = block_diag(d, d.conj().T)
     circuit_u1u2_mid = _middle_multiplexor(a, b, c, eigvals)
-    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
-        qubits_that_should_be_present=[a, b, c]))
+
 
     V = diagonal @ V
 
