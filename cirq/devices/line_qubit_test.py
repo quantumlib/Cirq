@@ -194,7 +194,7 @@ def test_addition_subtraction():
     assert cirq.LineQid(1, dimension=3) + cirq.LineQid(
         3, dimension=3) == cirq.LineQid(4, dimension=3)
     assert cirq.LineQid(3, dimension=3) - cirq.LineQid(
-        2, dimension=3) == cirq.LineQid(1, LineQid=3)
+        2, dimension=3) == cirq.LineQid(1, dimension=3)
 
 
 def test_addition_subtraction_type_error():
