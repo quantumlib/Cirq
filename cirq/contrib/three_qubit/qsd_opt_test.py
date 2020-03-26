@@ -9,7 +9,7 @@ from scipy.linalg import block_diag
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     _cs_to_circuit, _middle_multiplexor, \
-    _two_qubit_matrix_to_diagonal_and_circuit
+    _two_qubit_matrix_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary
 
 
 @pytest.mark.parametrize(["theta", "num_czs"], [
@@ -117,11 +117,22 @@ def test_two_qubit_matrix_to_diagonal_and_circuit():
     # TODO test less than two qubit branch
 
 
+def test_is_three_cnot_two_qubit_unitary():
+    assert _is_three_cnot_two_qubit_unitary(
+        _two_qubit_circuit_with_cnots(3)._unitary_())
+    assert not _is_three_cnot_two_qubit_unitary(
+        _two_qubit_circuit_with_cnots(2)._unitary_())
+    assert not _is_three_cnot_two_qubit_unitary(
+        _two_qubit_circuit_with_cnots(1)._unitary_())
+    assert not _is_three_cnot_two_qubit_unitary(
+        np.eye(4))
+
+
 def _two_qubit_circuit_with_cnots(num_cnots=3):
     a, b = cirq.LineQubit.range(2)
     random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
                                                         exponent=random())
     one_cz = lambda: [random_one_qubit_gate().on(a),
-              random_one_qubit_gate().on(b),
-              cirq.CZ.on(a, b)]
+                      random_one_qubit_gate().on(b),
+                      cirq.CZ.on(a, b)]
     return cirq.Circuit([one_cz() for _ in range(num_cnots)])
