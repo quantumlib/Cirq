@@ -63,22 +63,30 @@ class _BaseLineQid(ops.Qid):
 
     @abc.abstractmethod
     def _with_x(self: TSelf, x: int) -> TSelf:
-        '''Returns a qubit with the same type but a different value of `x`.'''
+        """Returns a qubit with the same type but a different value of `x`."""
 
     def __add__(self: TSelf, other: int) -> TSelf:
         if isinstance(other, _BaseLineQid):
+            if self.dimension != other.dimension:
+                raise TypeError(
+                    "Can only add LineQids with identical dimension. "
+                    f"Got {self.dimension} and {other.dimension}")
             return self._with_x(x=self.x + other.x)
         if not isinstance(other, int):
-            raise TypeError('Can only add ints and {}. Instead was {}'.format(
-                type(self).__name__, other))
+            raise TypeError(f"Can only add ints and {type(self).__name__}. "
+                            f"Instead was {other}")
         return self._with_x(self.x + other)
 
     def __sub__(self: TSelf, other: int) -> TSelf:
         if isinstance(other, _BaseLineQid):
+            if self.dimension != other.dimension:
+                raise TypeError(
+                    "Can only subtract LineQids with identical dimension. "
+                    f"Got {self.dimension} and {other.dimension}")
             return self._with_x(x=self.x - other.x)
         if not isinstance(other, int):
-            raise TypeError('Can only subtract ints and {}. Instead was {}'
-                            ''.format(type(self).__name__, other))
+            raise TypeError(f"Can only subtract ints and {type(self).__name__}. "
+                            f"Instead was {other}")
         return self._with_x(self.x - other)
 
     def __radd__(self: TSelf, other: int) -> TSelf:

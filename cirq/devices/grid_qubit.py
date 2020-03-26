@@ -66,27 +66,35 @@ class _BaseGridQid(ops.Qid):
 
     @abc.abstractmethod
     def _with_row_col(self: TSelf, row: int, col: int) -> TSelf:
-        '''Returns a qid with the same type but a different coordinate.'''
+        """Returns a qid with the same type but a different coordinate."""
 
     def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
+            if self.dimension != other.dimension:
+                raise TypeError(
+                    "Can only add GridQids with identical dimension. "
+                    f"Got {self.dimension} and {other.dimension}")
             return self._with_row_col(row=self.row + other.row, col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                'Can only add integer tuples of length 2 to {}. Instead was {}'.format(
-                    type(self).__name__, other))
-        return self._with_col_row(row=self.row + other[0], col=self.col + other[1])
+                f'Can only add integer tuples of length 2 to {type(self).__name__}. '
+                f'Instead was {other}')
+        return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, GridQubit):
-            return self._with_col_row(row=self.row - other.row, col=self.col - other.col)
+            if self.dimension != other.dimension:
+                raise TypeError(
+                    "Can only subtract GridQids with identical dimension. "
+                    f"Got {self.dimension} and {other.dimension}")
+            return self._with_row_col(row=self.row - other.row, col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                'Can only subtract tuples of length 2 to GridQubits. Was {}'.
-                format(other))
-        return self._with_col_row(row=self.row - other[0], col=self.col - other[1])
+                f"Can only subtract integer tuples of length 2 to {type(self).__name__}. "
+                f"Instead was {other}")
+        return self._with_row_col(row=self.row - other[0], col=self.col - other[1])
 
     def __radd__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         return self + other
@@ -95,7 +103,7 @@ class _BaseGridQid(ops.Qid):
         return -self + other
 
     def __neg__(self: TSelf) -> 'TSelf':
-        return self._with_col_row(row=-self.row, col=-self.col)
+        return self._with_row_col(row=-self.row, col=-self.col)
 
 
 class GridQid(_BaseGridQid):
@@ -115,7 +123,7 @@ class GridQid(_BaseGridQid):
         cirq.GridQubit(1, 1, dimension=2)
     """
 
-    def __init__(self, row: int, col: int, dimension: int) -> None:
+    def __init__(self, row: int, col: int, *, dimension: int) -> None:
         """Initializes a grid qid at the given row, col coordinate
 
         Args:
@@ -137,7 +145,7 @@ class GridQid(_BaseGridQid):
 
     @staticmethod
     def square(diameter: int, top: int = 0, left: int = 0, *, dimension: int) -> List['GridQid']:
-        """Returns a square of GridQubits.
+        """Returns a square of GridQid.
 
         Args:
             diameter: Length of a side of the square
@@ -147,13 +155,13 @@ class GridQid(_BaseGridQid):
                 levels.
 
         Returns:
-            A list of GridQubits filling in a square grid
+            A list of GridQid filling in a square grid
         """
         return GridQid.rect(diameter, diameter, top=top, left=left, dimension=dimension)
 
     @staticmethod
     def rect(rows: int, cols: int, top: int = 0, left: int = 0,  *, dimension: int) -> List['GridQid']:
-        """Returns a rectangle of GridQubits.
+        """Returns a rectangle of GridQid.
 
         Args:
             rows: Number of rows in the rectangle
@@ -164,7 +172,7 @@ class GridQid(_BaseGridQid):
                 levels.
 
         Returns:
-            A list of GridQubits filling in a rectangular grid
+            A list of GridQid filling in a rectangular grid
         """
         return [
             GridQid(row, col, dimension=dimension)
@@ -218,13 +226,13 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self):
-        return 'cirq.GridQid({}, dimension={})'.format(self.x, self.dimension)
+        return f"cirq.GridQid({self.row}, {self.col})"
 
     def __str__(self):
-        return '({}, {}) (d={})'.format(self.row, self.col, self.dimension)
+        return f"({self.row}, {self.col}) (d={self.dimension})"
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
+        return protocols.obj_to_dict_helper(self, ['row', 'col', 'dimension'])
 
 
 class GridQubit(_BaseGridQid):
@@ -335,10 +343,10 @@ class GridQubit(_BaseGridQid):
         return [GridQubit(*c) for c in coords]
 
     def __repr__(self):
-        return 'cirq.GridQubit({}, {})'.format(self.row, self.col)
+        return f"cirq.GridQubit({self.row}, {self.col})"
 
     def __str__(self):
-        return '({}, {})'.format(self.row, self.col)
+        return f"({self.row}, {self.col})"
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
