@@ -66,12 +66,16 @@ class _BaseLineQid(ops.Qid):
         '''Returns a qubit with the same type but a different value of `x`.'''
 
     def __add__(self: TSelf, other: int) -> TSelf:
+        if isinstance(other, _BaseLineQid):
+            return self._with_x(x=self.x + other.x)
         if not isinstance(other, int):
             raise TypeError('Can only add ints and {}. Instead was {}'.format(
                 type(self).__name__, other))
         return self._with_x(self.x + other)
 
     def __sub__(self: TSelf, other: int) -> TSelf:
+        if isinstance(other, _BaseLineQid):
+            return self._with_x(x=self.x - other.x)
         if not isinstance(other, int):
             raise TypeError('Can only subtract ints and {}. Instead was {}'
                             ''.format(type(self).__name__, other))
