@@ -191,6 +191,11 @@ def test_addition_subtraction():
     assert 1 + cirq.LineQid(4, 3) == cirq.LineQid(5, 3)
     assert 5 - cirq.LineQid(3, 3) == cirq.LineQid(2, 3)
 
+    assert cirq.LineQid(1, dimension=3) + cirq.LineQid(
+        3, dimension=3) == cirq.LineQid(4, dimension=3)
+    assert cirq.LineQid(3, dimension=3) - cirq.LineQid(
+        2, dimension=3) == cirq.LineQid(1, LineQid=3)
+
 
 def test_addition_subtraction_type_error():
     with pytest.raises(TypeError, match='dave'):
@@ -202,6 +207,18 @@ def test_addition_subtraction_type_error():
         _ = cirq.LineQid(1, 3) + 'dave'
     with pytest.raises(TypeError, match='dave'):
         _ = cirq.LineQid(1, 3) - 'dave'
+
+    with pytest.raises(
+            TypeError,
+            match="Can only add LineQids with identical dimension."
+    ):
+        _ = cirq.LineQid(5, dimension=3) + cirq.LineQid(3, dimension=4)
+
+    with pytest.raises(
+            TypeError,
+            match="Can only subtract LineQids with identical dimension."
+    ):
+        _ = cirq.LineQid(5, dimension=3) - cirq.LineQid(3, dimension=4)
 
 
 def test_neg():

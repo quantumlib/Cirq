@@ -80,8 +80,8 @@ class _BaseGridQid(ops.Qid):
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                f'Can only add integer tuples of length 2 to {type(self).__name__}. '
-                f'Instead was {other}')
+                'Can only add integer tuples of length 2 to '
+                f'{type(self).__name__}. Instead was {other}')
         return self._with_row_col(row=self.row + other[0],
                                   col=self.col + other[1])
 
@@ -96,8 +96,8 @@ class _BaseGridQid(ops.Qid):
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
             raise TypeError(
-                f"Can only subtract integer tuples of length 2 to {type(self).__name__}. "
-                f"Instead was {other}")
+                "Can only subtract integer tuples of length 2 to "
+                f"{type(self).__name__}. Instead was {other}")
         return self._with_row_col(row=self.row - other[0],
                                   col=self.col - other[1])
 
@@ -121,11 +121,11 @@ class GridQid(_BaseGridQid):
 
     New GridQid can be constructed by adding or subtracting tuples
 
-        >>> cirq.GridQubit(2, 3, dimension=2) + (3, 1)
-        cirq.GridQubit(5, 4, dimension=2)
+        >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
+        cirq.GridQid(5, 4, dimension=2)
 
-        >>> cirq.GridQubit(2, 3, dimension=2) - (1, 2)
-        cirq.GridQubit(1, 1, dimension=2)
+        >>> cirq.GridQid(2, 3, dimension=2) - (1, 2)
+        cirq.GridQid(1, 1, dimension=2)
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
@@ -241,7 +241,8 @@ class GridQid(_BaseGridQid):
         return [GridQid(*c, dimension=dimension) for c in coords]
 
     def __repr__(self):
-        return f"cirq.GridQid({self.row}, {self.col}, dimension={self.dimension})"
+        return f"cirq.GridQid({self.row}, {self.col}, " \
+               f"dimension={self.dimension})"
 
     def __str__(self):
         return f"({self.row}, {self.col}) (d={self.dimension})"
