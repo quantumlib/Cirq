@@ -58,3 +58,10 @@ User Documentation
     google/specification
     google/calibration
     google/best_practices
+
+	
+.. toctree::
+	:maxdepth: 1
+	:caption: Case Studies
+
+    studies/hidden_linear_function.ipynb
