@@ -83,7 +83,7 @@ class _BaseGridQid(ops.Qid):
         return self._with_row_col(row=self.row + other[0], col=self.col + other[1])
 
     def __sub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
-        if isinstance(other, GridQubit):
+        if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
                 raise TypeError(
                     "Can only subtract GridQids with identical dimension. "
