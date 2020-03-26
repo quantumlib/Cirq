@@ -104,7 +104,7 @@ class _BaseGridQid(ops.Qid):
     def __radd__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         return self + other
 
-    def __rsub__(self, other: Tuple[int, int]) -> 'TSelf':
+    def __rsub__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         return -self + other
 
     def __neg__(self: TSelf) -> 'TSelf':
