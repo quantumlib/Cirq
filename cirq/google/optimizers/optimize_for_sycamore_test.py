@@ -57,7 +57,7 @@ def test_tabulation():
     cirq.testing.assert_allclose_up_to_global_phase(u,
                                                     cirq.unitary(circuit2),
                                                     atol=1e-5)
-    assert len(circuit2) == 14
+    assert len(circuit2) == 13
 
     # Note this is run on every commit, so it needs to be relatively quick.
     # This requires us to use relatively loose tolerances
@@ -68,7 +68,7 @@ def test_tabulation():
                                                     cirq.unitary(circuit3),
                                                     rtol=1e-1,
                                                     atol=1e-1)
-    assert len(circuit3) == 8
+    assert len(circuit3) == 7
 
 
 def test_no_tabulation():
@@ -96,7 +96,7 @@ def test_one_q_matrix_gate():
     assert len(circuit0) == 1
     circuit_iswap = cg.optimized_for_sycamore(circuit0,
                                               optimizer_type='sqrt_iswap')
-    assert len(circuit_iswap) == 2
+    assert len(circuit_iswap) == 1
     for moment in circuit_iswap:
         for op in moment:
             assert cg.SQRT_ISWAP_GATESET.is_supported_operation(op)
@@ -104,7 +104,7 @@ def test_one_q_matrix_gate():
             assert cg.SYC_GATESET.is_supported_operation(op)
 
     circuit_syc = cg.optimized_for_sycamore(circuit0, optimizer_type='sycamore')
-    assert len(circuit_syc) == 2
+    assert len(circuit_syc) == 1
     for moment in circuit_iswap:
         for op in moment:
             assert cg.SYC_GATESET.is_supported_operation(op)
