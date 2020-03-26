@@ -79,9 +79,8 @@ class _BaseGridQid(ops.Qid):
                                       col=self.col + other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
-            raise TypeError(
-                'Can only add integer tuples of length 2 to '
-                f'{type(self).__name__}. Instead was {other}')
+            raise TypeError('Can only add integer tuples of length 2 to '
+                            f'{type(self).__name__}. Instead was {other}')
         return self._with_row_col(row=self.row + other[0],
                                   col=self.col + other[1])
 
@@ -95,9 +94,8 @@ class _BaseGridQid(ops.Qid):
                                       col=self.col - other.col)
         if not (isinstance(other, tuple) and len(other) == 2 and
                 all(isinstance(x, int) for x in other)):
-            raise TypeError(
-                "Can only subtract integer tuples of length 2 to "
-                f"{type(self).__name__}. Instead was {other}")
+            raise TypeError("Can only subtract integer tuples of length 2 to "
+                            f"{type(self).__name__}. Instead was {other}")
         return self._with_row_col(row=self.row - other[0],
                                   col=self.col - other[1])
 

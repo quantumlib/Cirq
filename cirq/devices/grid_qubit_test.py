@@ -151,9 +151,7 @@ def test_rect():
         cirq.GridQubit(1, 1)
     ]
 
-    assert cirq.GridQid.rect(
-        1, 2, top=5, left=6, dimension=3
-    ) == [
+    assert cirq.GridQid.rect(1, 2, top=5, left=6, dimension=3) == [
         cirq.GridQid(5, 6, dimension=3),
         cirq.GridQid(5, 7, dimension=3)
     ]
@@ -198,7 +196,6 @@ BA"""
         cirq.GridQid(1, 1, dimension=3)
     ]
 
-
     with pytest.raises(ValueError, match="Input string has invalid character"):
         cirq.GridQubit.from_diagram('@')
 
@@ -220,23 +217,29 @@ def test_addition_subtraction():
     assert cirq.GridQubit(1, -2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 3)
 
     # GridQids
-    assert cirq.GridQid(1, 2, dimension=3) + (2, 5) == cirq.GridQid(
-        3, 7, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) + (0, 0) == cirq.GridQid(
-        1, 2, dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + (2, 5) == cirq.GridQid(3,
+                                                                    7,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + (0, 0) == cirq.GridQid(1,
+                                                                    2,
+                                                                    dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) + (-1, 0) == cirq.GridQid(
         0, 2, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) - (2, 5) == cirq.GridQid(
-        -1, -3, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) - (0, 0) == cirq.GridQid(
-        1, 2, dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) - (2, 5) == cirq.GridQid(-1,
+                                                                    -3,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) - (0, 0) == cirq.GridQid(1,
+                                                                    2,
+                                                                    dimension=3)
     assert cirq.GridQid(1, 2, dimension=3) - (-1, 0) == cirq.GridQid(
         2, 2, dimension=3)
 
-    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(
-        3, 7, dimension=3)
-    assert (2, 5) - cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(
-        1, 3, dimension=3)
+    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(3,
+                                                                    7,
+                                                                    dimension=3)
+    assert (2, 5) - cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(1,
+                                                                    3,
+                                                                    dimension=3)
 
     assert cirq.GridQid(1, 2, dimension=3) + cirq.GridQid(
         3, 5, dimension=3) == cirq.GridQid(4, 7, dimension=3)
