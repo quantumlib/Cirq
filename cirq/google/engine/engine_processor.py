@@ -292,7 +292,7 @@ class EngineProcessor:
         if to_time:
             filters.append(f'end_time > {int(from_time.timestamp())}')
         if time_slot_type:
-            raise ValueError('Filtering by time_slot_type not yet supported')
+            filters.append(f'time_slot_type = {time_slot_type.name}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id,
                                                    self.processor_id,
