@@ -179,10 +179,10 @@ class LineQid(_BaseLineQid):
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
 
     def __repr__(self):
-        return 'cirq.LineQid({}, dimension={})'.format(self.x, self.dimension)
+        return f"cirq.LineQid({self.x}, dimension={self.dimension})"
 
     def __str__(self):
-        return '{!s} (d={})'.format(self.x, self.dimension)
+        return f"{self.x} (d={self.dimension})"
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
@@ -230,10 +230,10 @@ class LineQubit(_BaseLineQid):
         return [LineQubit(i) for i in range(*range_args)]
 
     def __repr__(self):
-        return 'cirq.LineQubit({})'.format(self.x)
+        return f"cirq.LineQubit({self.x})"
 
     def __str__(self):
-        return '{}'.format(self.x)
+        return f"{self.x}"
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['x'])
