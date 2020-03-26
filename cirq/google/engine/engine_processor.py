@@ -224,7 +224,7 @@ class EngineProcessor:
             raise ValueError('Cannot determine freeze_schedule from processor.'
                              'Call _cancel_reservation or _delete_reservation.')
         secs_until = (reservation.start_time.seconds -
-                      int(datetime.datetime.now(tz=utc).timestamp().timestamp()))
+                      int(datetime.datetime.now(tz=utc).timestamp()))
         if secs_until > freeze:
             return self._delete_reservation(reservation_id)
         else:
