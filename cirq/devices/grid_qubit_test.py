@@ -31,9 +31,12 @@ def test_init():
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
-    eq.make_equality_group(lambda: cirq.GridQubit(0, 0), lambda: cirq.GridQid(0, 0, dimension=2))
-    eq.make_equality_group(lambda: cirq.GridQubit(1, 0), lambda: cirq.GridQid(1, 0, dimension=2))
-    eq.make_equality_group(lambda: cirq.GridQubit(0, 1), lambda: cirq.GridQid(0, 1, dimension=2))
+    eq.make_equality_group(lambda: cirq.GridQubit(0, 0), lambda: cirq.GridQid(
+        0, 0, dimension=2))
+    eq.make_equality_group(lambda: cirq.GridQubit(1, 0), lambda: cirq.GridQid(
+        1, 0, dimension=2))
+    eq.make_equality_group(lambda: cirq.GridQubit(0, 1), lambda: cirq.GridQid(
+        0, 1, dimension=2))
     eq.make_equality_group(lambda: cirq.GridQid(0, 0, dimension=3))
 
 
@@ -105,7 +108,8 @@ def test_neighbors():
 
     # Restrict to a list of qubits
     restricted_qubits = [cirq.GridQubit(2, 1), cirq.GridQubit(2, 2)]
-    assert cirq.GridQubit(1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
+    assert cirq.GridQubit(
+        1, 1).neighbors(restricted_qubits) == {cirq.GridQubit(2, 1)}
 
 
 def test_square():
@@ -181,19 +185,36 @@ def test_addition_subtraction():
     assert cirq.GridQubit(1, -2) + cirq.GridQubit(3, 5) == cirq.GridQubit(4, 3)
 
     # GridQids
-    assert cirq.GridQid(1, 2, dimension=3) + (2, 5) == cirq.GridQid(3, 7, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) + (0, 0) == cirq.GridQid(1, 2, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) + (-1, 0) == cirq.GridQid(0, 2, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) - (2, 5) == cirq.GridQid(-1, -3, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) - (0, 0) == cirq.GridQid(1, 2, dimension=3)
-    assert cirq.GridQid(1, 2, dimension=3) - (-1, 0) == cirq.GridQid(2, 2, dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + (2, 5) == cirq.GridQid(3,
+                                                                    7,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + (0, 0) == cirq.GridQid(1,
+                                                                    2,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + (-1, 0) == cirq.GridQid(
+        0, 2, dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) - (2, 5) == cirq.GridQid(-1,
+                                                                    -3,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) - (0, 0) == cirq.GridQid(1,
+                                                                    2,
+                                                                    dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) - (-1, 0) == cirq.GridQid(
+        2, 2, dimension=3)
 
-    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(3, 7, dimension=3)
-    assert (2, 5) - cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(1, 3, dimension=3)
+    assert (2, 5) + cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(3,
+                                                                    7,
+                                                                    dimension=3)
+    assert (2, 5) - cirq.GridQid(1, 2, dimension=3) == cirq.GridQid(1,
+                                                                    3,
+                                                                    dimension=3)
 
-    assert cirq.GridQid(1, 2, dimension=3) + cirq.GridQid(3, 5, dimension=3) == cirq.GridQid(4, 7, dimension=3)
-    assert cirq.GridQid(3, 5, dimension=3) - cirq.GridQid(2, 1, dimension=3) == cirq.GridQid(1, 4, dimension=3)
-    assert cirq.GridQid(1, -2, dimension=3) + cirq.GridQid(3, 5, dimension=3) == cirq.GridQid(4, 3, dimension=3)
+    assert cirq.GridQid(1, 2, dimension=3) + cirq.GridQid(
+        3, 5, dimension=3) == cirq.GridQid(4, 7, dimension=3)
+    assert cirq.GridQid(3, 5, dimension=3) - cirq.GridQid(
+        2, 1, dimension=3) == cirq.GridQid(1, 4, dimension=3)
+    assert cirq.GridQid(1, -2, dimension=3) + cirq.GridQid(
+        3, 5, dimension=3) == cirq.GridQid(4, 3, dimension=3)
 
 
 def test_unsupported_add():
@@ -221,9 +242,12 @@ def test_addition_subtraction_type_error():
     with pytest.raises(TypeError, match="bort"):
         _ = cirq.GridQid(5, 3, dimension=3) - "bort"
 
-    with pytest.raises(TypeError, match="Can only add GridQids with identical dimension."):
+    with pytest.raises(TypeError,
+                       match="Can only add GridQids with identical dimension."):
         _ = cirq.GridQid(5, 3, dimension=3) + cirq.GridQid(3, 5, dimension=4)
-    with pytest.raises(TypeError, match="Can only subtract GridQids with identical dimension."):
+    with pytest.raises(
+            TypeError,
+            match="Can only subtract GridQids with identical dimension."):
         _ = cirq.GridQid(5, 3, dimension=3) - cirq.GridQid(3, 5, dimension=4)
 
 
