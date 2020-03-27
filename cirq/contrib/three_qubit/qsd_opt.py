@@ -11,25 +11,22 @@ def three_qubit_unitary_to_operations(U):
 
     a, b, c = cirq.LineQubit.range(3)
 
-    circuit_CS = _cs_to_circuit(a, b, c, theta)
+    CS_ops = _cs_to_circuit(a, b, c, theta)
 
-
-    # optimization A.1 - merging the CZ(c,a) from the end of CS into UD
-    # now, CZ(c,a) = CZ(a,c) as CZ is symmetric
-    # for the u1⊕u2 multiplexor operator:
-    # as u1(b,c) is the operator in case a = \0>,
-    # and u2(b,c) is the operator for (b,c) in case a = |1>
-    # we can represent the merge by phasing u2 with I ⊗ Z
-    u2 = u2 @ np.kron(np.eye(2), np.array([[1, 0], [0, -1]]))
+    if len(CS_ops) > 0 and isinstance(CS_ops[-1].gate, cirq.CZPowGate):
+        # optimization A.1 - merging the CZ(c,a) from the end of CS into UD
+        # CZ(c,a) = CZ(a,c) as CZ is symmetric
+        CS_ops = CS_ops[:-1]
+        # for the u1⊕u2 multiplexor operator:
+        # as u1(b,c) is the operator in case a = \0>,
+        # and u2(b,c) is the operator for (b,c) in case a = |1>
+        # we can represent the merge by phasing u2 with I ⊗ Z
+        u2 = u2 @ np.kron(np.eye(2), np.array([[1, 0], [0, -1]]))
 
     dUD, c_UD = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2,
                                                   shiftLeft=True)
 
-    rightmost_CZ = cirq.Circuit(cirq.CZ(c, a)).unitary(
-        qubits_that_should_be_present=[a, b, c])
-
     UD = block_diag(u1, u2)
-    UD = UD @ rightmost_CZ
     cirq.testing.assert_allclose_up_to_global_phase(UD,
                                                     c_UD.unitary(
                                                         qubits_that_should_be_present=[
@@ -47,7 +44,7 @@ def three_qubit_unitary_to_operations(U):
         c_VDH.unitary(qubits_that_should_be_present=[a, b, c]),
         atol=1e-8)
 
-    final_circuit = cirq.Circuit([c_VDH, circuit_CS, c_UD])
+    final_circuit = cirq.Circuit([c_VDH, CS_ops, c_UD])
     cirq.testing.assert_allclose_up_to_global_phase(U,
                                                     final_circuit.unitary(
                                                         qubits_that_should_be_present=[
@@ -81,7 +78,6 @@ def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
     circuit = cirq.Circuit(ops)
 
     cirq.optimizers.DropNegligible().optimize_circuit(circuit)
-    cirq.optimizers.MergeInteractions().optimize_circuit(circuit)
 
     if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
         return cirq.Circuit([])
@@ -90,7 +86,7 @@ def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
     return list(circuit.all_operations())
 
 
-def _special(u):
+def _to_special(u):
     return u / (np.linalg.det(u) ** (1 / 4))
 
 
@@ -100,7 +96,7 @@ def _gamma(u):
 
 
 def _extract_right_diag(a, b, U):
-    u = _special(U)
+    u = _to_special(U)
     t = _gamma(u.T).T.diagonal()
     psi = np.arctan(np.imag(np.sum(t)) / np.real(t[0] + t[3] - t[1] - t[2]))
     if np.real(t[0] + t[3] - t[1] - t[2]) == 0:
@@ -111,7 +107,7 @@ def _extract_right_diag(a, b, U):
 
 def _is_three_cnot_two_qubit_unitary(U):
     assert np.shape(U) == (4, 4)
-    poly = np.poly(_gamma(_special(U)))
+    poly = np.poly(_gamma(_to_special(U)))
     return not np.alltrue(np.isclose(0, np.imag(poly)))
 
 
@@ -219,42 +215,3 @@ def _two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
                                                            allow_partial_czs=False))
     return circuit_u1u2_R, dV
 
-
-def _decompose_unitary(U):
-    np.set_printoptions(precision=16, suppress=False, linewidth=300,
-                        floatmode='maxprec_equal')
-    print(U)
-    final_circuit = three_qubit_unitary_to_operations(U)
-    print("result: ")
-    print(final_circuit)
-    num_two_qubits = sum([1 for op in final_circuit.all_operations() if
-                          op.gate.num_qubits() == 2])
-    print("CNOT/CZs: {}, All gates: {}".format(
-        num_two_qubits,
-        len(list(final_circuit.all_operations()))))
-    if num_two_qubits > 20: exit(1)
-    print("cirq.Circuit({})".format(list(final_circuit.all_operations())))
-    print("XMON optimized: ")
-    final_circuit = cirq.google.optimizers.optimized_for_xmon(final_circuit)
-    print(final_circuit)
-    num_two_qubits = sum([1 for op in final_circuit.all_operations() if
-                          op.gate.num_qubits() == 2])
-    print("CNOT/CZs: {}, All gates: {}".format(
-        num_two_qubits,
-        len(list(final_circuit.all_operations()))))
-
-    print(cirq.contrib.quirk.circuit_to_quirk_url((final_circuit)))
-
-
-if __name__ == '__main__':
-    a, b, c = cirq.LineQubit.range(3)
-    _decompose_unitary(
-        cirq.Circuit(cirq.ControlledGate(cirq.ISWAP).on(a, b, c))._unitary_())
-
-    U = cirq.testing.random_unitary(8)
-    _decompose_unitary(U)
-    for i in range(1000):
-        a, b, c = cirq.LineQubit.range(3)
-        circuit = cirq.testing.random_circuit([a, b, c], 10, 0.75)
-        _decompose_unitary(
-            circuit.unitary(qubits_that_should_be_present=[a, b, c]))
