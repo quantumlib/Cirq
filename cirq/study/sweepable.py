@@ -56,8 +56,8 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        #change dictionary of lists to list of dictionaries
-        #of single values using Cartesian product.
+        # change dictionary of lists to list of dictionaries
+        # of single values using Cartesian product.
         newsweepable = {}
         for key, value in sweepable.items():
             if isinstance(value, Iterable):
