@@ -52,7 +52,6 @@ def three_qubit_unitary_to_operations(U):
                                                     atol=1e-9)
     return final_circuit
 
-
 def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
     """ Converts theta angles based Cosine Sine matrix to circuit.
 
@@ -84,32 +83,6 @@ def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
 
 
     return list(circuit.all_operations())
-
-
-def _to_special(u):
-    return u / (np.linalg.det(u) ** (1 / 4))
-
-
-def _gamma(u):
-    yy = np.kron(cirq.Y._unitary_(), cirq.Y._unitary_())
-    return u @ yy @ u.T @ yy
-
-
-def _extract_right_diag(a, b, U):
-    u = _to_special(U)
-    t = _gamma(u.T).T.diagonal()
-    psi = np.arctan(np.imag(np.sum(t)) / np.real(t[0] + t[3] - t[1] - t[2]))
-    if np.real(t[0] + t[3] - t[1] - t[2]) == 0:
-        psi = np.pi / 2
-    c_d = cirq.Circuit([cirq.CNOT(a, b), cirq.rz(psi)(b), cirq.CNOT(a, b)])
-    return c_d._unitary_()
-
-
-def _is_three_cnot_two_qubit_unitary(U):
-    assert np.shape(U) == (4, 4)
-    poly = np.poly(_gamma(_to_special(U)))
-    return not np.alltrue(np.isclose(0, np.imag(poly)))
-
 
 def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
                                       diagonal=np.eye(4)):
@@ -143,7 +116,6 @@ def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
          circuit_u1u2_mid,
          circuit_u1u2_R])
 
-
 def _middle_multiplexor(a, b, c, eigvals):
     theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
     angles = _multiplexed_angles(theta)
@@ -171,6 +143,26 @@ def _middle_multiplexor(a, b, c, eigvals):
                cirq.CNOT(c, a)]
     return cirq.Circuit(ops)
 
+def _to_special(u):
+    return u / (np.linalg.det(u) ** (1 / 4))
+
+def _gamma(u):
+    yy = np.kron(cirq.Y._unitary_(), cirq.Y._unitary_())
+    return u @ yy @ u.T @ yy
+
+def _extract_right_diag(a, b, U):
+    u = _to_special(U)
+    t = _gamma(u.T).T.diagonal()
+    psi = np.arctan(np.imag(np.sum(t)) / np.real(t[0] + t[3] - t[1] - t[2]))
+    if np.real(t[0] + t[3] - t[1] - t[2]) == 0:
+        psi = np.pi / 2
+    c_d = cirq.Circuit([cirq.CNOT(a, b), cirq.rz(psi)(b), cirq.CNOT(a, b)])
+    return c_d._unitary_()
+
+def _is_three_cnot_two_qubit_unitary(U):
+    assert np.shape(U) == (4, 4)
+    poly = np.poly(_gamma(_to_special(U)))
+    return not np.alltrue(np.isclose(0, np.imag(poly)))
 
 def _multiplexed_angles(theta):
     """
@@ -196,7 +188,6 @@ def _multiplexed_angles(theta):
          (theta[0] - theta[1] - theta[2] + theta[3]),
          (theta[0] - theta[1] + theta[2] - theta[3])
          ]) / 4
-
 
 def _two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
     if cirq.is_diagonal(V, atol=1e-15):
