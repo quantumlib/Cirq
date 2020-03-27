@@ -275,12 +275,13 @@ class EngineProcessor:
                                                      self.processor_id,
                                                      filter_str)
 
-    def get_schedule(self,
-                     from_time: datetime.datetime = datetime.datetime.now(tz=utc),
-                     to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
-                     datetime.timedelta(weeks=2),
-                     time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
-                    ) -> List[EngineTimeSlot]:
+    def get_schedule(
+            self,
+            from_time: datetime.datetime = datetime.datetime.now(tz=utc),
+            to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
+            datetime.timedelta(weeks=2),
+            time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
+    ) -> List[EngineTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
