@@ -3,12 +3,13 @@ from random import random
 import numpy as np
 
 import pytest
+import scipy
 from numpy.testing import assert_almost_equal
 from scipy.linalg import block_diag
 
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
-    _cs_to_circuit, _middle_multiplexor, \
+    _cs_to_ops, _middle_multiplexor, \
     _two_qubit_matrix_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
     _to_special
 
@@ -17,27 +18,28 @@ from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     (np.array([0.5, 0.6, 0.7, 0.8]), 4),
     (np.array([0., 0., np.pi / 2, np.pi / 2]), 4),
     (np.zeros(4), 0),
-    (np.repeat(0.000015, repeats=4), 0),
     (np.repeat(np.pi / 4, repeats=4), 0),
+    (np.array([0.5 * np.pi, -0.5 * np.pi, 0.7 * np.pi, -0.7 * np.pi]), 4),
 ])
-def test_cs_to_circuit(theta, num_czs):
+def test_cs_to_ops(theta, num_czs):
     a, b, c = cirq.LineQubit.range(3)
     CS = _theta_to_CS(theta)
-    circuit_CS = cirq.Circuit(_cs_to_circuit(a, b, c, theta))
+    circuit_CS = cirq.Circuit(_cs_to_ops(a, b, c, theta))
 
     assert_almost_equal(circuit_CS.unitary(
         qubits_that_should_be_present=[a, b, c]), CS, 10)
 
-    # assert (len([cz for cz in list(circuit_CS.all_operations())
-    #              if isinstance(cz.gate, cirq.CZPowGate)]) == num_czs), \
-    #     "expected {} CZs got \n {} \n {}".format(num_czs, circuit_CS,
-    #                                              circuit_CS.unitary())
+    assert (len([cz for cz in list(circuit_CS.all_operations())
+                 if isinstance(cz.gate, cirq.CZPowGate)]) == num_czs), \
+        "expected {} CZs got \n {} \n {}".format(num_czs, circuit_CS,
+                                                 circuit_CS.unitary())
 
 
 def _theta_to_CS(theta):
     C = np.diag(np.cos(theta))
     S = np.diag(np.sin(theta))
-    return np.vstack((np.hstack((C, -S)), np.hstack((S, C))))
+    return np.block([[C, -S],
+                     [S, C]])
 
 
 def test_multiplexed_angles():
@@ -140,9 +142,7 @@ def _two_qubit_circuit_with_cnots(num_cnots=3):
 
 
 def test_to_special():
-
     u = cirq.testing.random_unitary(4)
     su = _to_special(u)
     assert not cirq.is_special_unitary(u)
     assert cirq.is_special_unitary(su)
-

@@ -11,7 +11,7 @@ def three_qubit_unitary_to_operations(U):
 
     a, b, c = cirq.LineQubit.range(3)
 
-    CS_ops = _cs_to_circuit(a, b, c, theta)
+    CS_ops = _cs_to_ops(a, b, c, theta)
 
     if len(CS_ops) > 0 and isinstance(CS_ops[-1].gate, cirq.CZPowGate):
         # optimization A.1 - merging the CZ(c,a) from the end of CS into UD
@@ -52,7 +52,7 @@ def three_qubit_unitary_to_operations(U):
                                                     atol=1e-9)
     return final_circuit
 
-def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
+def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
     """ Converts theta angles based Cosine Sine matrix to circuit.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
@@ -81,8 +81,22 @@ def _cs_to_circuit(a, b, c: cirq.Qid, theta: np.ndarray):
     if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
         return cirq.Circuit([])
 
-
-    return list(circuit.all_operations())
+    # the only way we can get identity here is if all four CZs are
+    # next to each other
+    ops = list(circuit.all_operations())
+    conseq_czs = 0
+    i = 0
+    while i < len(ops)-1:
+        if ops[i].gate.num_qubits() == 2 and  ops[i+1].gate.num_qubits() == 2:
+            conseq_czs+=2
+            i += 2
+        elif conseq_czs > 0:
+            break
+        else:
+            i += 1
+    if conseq_czs == 4:
+        ops = ops[:1]
+    return ops
 
 def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
                                       diagonal=np.eye(4)):
