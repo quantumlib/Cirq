@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Wrappers for protocol buffer enum types."""
 
 import enum
@@ -102,11 +103,11 @@ class QuantumTimeSlot(object):
         -
 
         Attributes:
-        TIME_SLOT_TYPE_UNSPECIFIED (int): Default value for compatibility.
-        MAINTENANCE (int): Reserved to run calibration or make changes.
-        OPEN_SWIM (int): Time for anyone to create jobs.
-        RESERVATION (int): One project has exclusive hold to create jobs.
-        UNALLOCATED (int):  Available for reservations to be made
+          TIME_SLOT_TYPE_UNSPECIFIED (int): -
+          MAINTENANCE (int): -
+          OPEN_SWIM (int): -
+          RESERVATION (int): -
+          UNALLOCATED (int): -
         """
         TIME_SLOT_TYPE_UNSPECIFIED = 0
         MAINTENANCE = 1
