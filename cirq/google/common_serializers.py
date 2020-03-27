@@ -341,6 +341,20 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
 #
 # CZ Serializer and deserializer
 #
+
+# Only CZ
+CZ_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.CZPowGate,
+    serialized_gate_id='cz',
+    args=[
+        op_serializer.SerializingArg(serialized_name='half_turns',
+                                     serialized_type=float,
+                                     op_getter='exponent')
+    ],
+    can_serialize_predicate=lambda op: _near_mod_2(
+        cast(ops.CZPowGate, op.gate).exponent, 1.0))
+
+# CZ to any power
 CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.CZPowGate,
     serialized_gate_id='cz',
