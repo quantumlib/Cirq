@@ -56,16 +56,17 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        """
-        change dictionary of lists to list of dictionaries
-        of single values using Cartesian product.
-        """
+        #change dictionary of lists to list of dictionaries
+        #of single values using Cartesian product.
+        newsweepable = {}
         for key, value in sweepable.items():
-            if not isinstance(value, Iterable):
-                sweepable[key] = [value]
+            if isinstance(value, Iterable):
+                newsweepable[key] = value
+            else:
+                newsweepable[key] = [value]
         expandsweepable = [
-            dict(zip(sweepable.keys(), v))
-            for v in itertools.product(*sweepable.values())
+            dict(zip(newsweepable.keys(), v))
+            for v in itertools.product(*newsweepable.values())
         ]
         return [
             _resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
