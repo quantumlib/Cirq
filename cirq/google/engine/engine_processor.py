@@ -13,8 +13,8 @@
 # limitations under the License.
 import datetime
 
-from pytz import utc
 from typing import List, Optional, TYPE_CHECKING
+from pytz import utc
 
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google.engine.client.quantum import enums as qenums
