@@ -9,17 +9,19 @@ from scipy.linalg import block_diag
 
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
-    _cs_to_ops, _middle_multiplexor, \
+    _cs_to_ops, _middle_multiplexor_to_ops, \
     _two_qubit_matrix_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
     _to_special
 
 
 @pytest.mark.parametrize(["theta", "num_czs"], [
     (np.array([0.5, 0.6, 0.7, 0.8]), 4),
-    (np.array([0., 0., np.pi / 2, np.pi / 2]), 4),
+    (np.array([0., 0., np.pi / 2, np.pi / 2]), 2),
     (np.zeros(4), 0),
     (np.repeat(np.pi / 4, repeats=4), 0),
     (np.array([0.5 * np.pi, -0.5 * np.pi, 0.7 * np.pi, -0.7 * np.pi]), 4),
+    (np.array([0.3, -0.3, 0.3, -0.3]), 2),
+    (np.array([0.3, 0.3, -0.3, -0.3]), 2),
 ])
 def test_cs_to_ops(theta, num_czs):
     a, b, c = cirq.LineQubit.range(3)
@@ -99,14 +101,30 @@ def test_multiplexed_angles():
                       (angles[0] - angles[1] + angles[2] - angles[3]))
 
 
-def test_middle_multiplexor():
+@pytest.mark.parametrize(["angles", "num_cnots"],
+                         [
+                             [([-0.2312, 0.2312, 1.43, -2.2322]), 4],
+                             [([0, 0, 0, 0]), 0],
+                             [([0.3, 0.3, 0.3, 0.3]), 0],
+                             [([0.3, -0.3, 0.3, -0.3]), 2],
+                             [([0.3, 0.3, -0.3, -0.3]), 2],
+                             [([-0.3, 0.3, 0.3, -0.3]), 4],
+                             [([-0.3, 0.3, -0.3, 0.3]), 2],
+                             [([0.3, -0.3, -0.3, -0.3]), 4],
+                             [([-0.3, 0.3, -0.3, -0.3]), 4],
+                         ])
+def test_middle_multiplexor(angles, num_cnots):
     a, b, c = cirq.LineQubit.range(3)
-    eigvals = np.exp([-0.2312j, 0.2312j, 1.43j, -2.2322j])
+    eigvals = np.exp(np.array(angles) * np.pi * 1j)
     d = np.diag(np.sqrt(eigvals))
     mid = block_diag(d, d.conj().T)
-    circuit_u1u2_mid = _middle_multiplexor(a, b, c, eigvals)
+    circuit_u1u2_mid = cirq.Circuit(_middle_multiplexor_to_ops(a, b, c, eigvals))
     np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
         qubits_that_should_be_present=[a, b, c]))
+    assert (len([cnot for cnot in list(circuit_u1u2_mid.all_operations())
+                 if isinstance(cnot.gate, cirq.CNotPowGate)]) == num_cnots), \
+        "expected {} CNOTs got \n {} \n {}".format(num_cnots, circuit_u1u2_mid,
+                                                   circuit_u1u2_mid.unitary())
 
 
 def test_two_qubit_matrix_to_diagonal_and_circuit():
