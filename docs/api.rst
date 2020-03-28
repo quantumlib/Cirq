@@ -12,6 +12,7 @@ Classes for identifying the qubits and hardware you want to operate on.
 
     cirq.UNCONSTRAINED_DEVICE
     cirq.Device
+    cirq.GridQid
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
