@@ -43,12 +43,14 @@ class CliffordSimulator(simulator.SimulatesSamples,
                         simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self):
-        self.init = True
+    def __init__(self, seed: value.RANDOM_STATE_LIKE = None):
+        """Creates instance of `CliffordSimulator`.
 
-    @staticmethod
-    def get_supported_gates() -> List['cirq.Gate']:
-        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+        Args:
+            seed: The random seed to use for this simulator.
+        """
+        self.init = True
+        self._prng = value.parse_random_state(seed)
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -89,7 +91,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     elif protocols.is_measurement(op):
                         key = protocols.measurement_key(op)
                         measurements[key].extend(
-                            state.perform_measurement(op.qubits))
+                            state.perform_measurement(op.qubits, self._prng))
 
                 yield CliffordSimulatorStepResult(measurements=measurements,
                                                   state=state)
@@ -234,6 +236,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         for _ in range(repetitions):
             measurements.append(
                 self.state.perform_measurement(qubits,
+                                               value.parse_random_state(seed),
                                                collapse_wavefunction=False))
 
         return np.array(measurements, dtype=bool)
@@ -321,6 +324,7 @@ class CliffordState():
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
+                            prng: np.random.RandomState,
                             collapse_wavefunction=True):
         results = []
 
@@ -330,7 +334,7 @@ class CliffordState():
             state = self.copy()
 
         for qubit in qubits:
-            result = state.tableau._measure(self.qubit_map[qubit])
+            result = state.tableau._measure(self.qubit_map[qubit], prng)
             state.ch_form.project_Z(self.qubit_map[qubit], result)
             results.append(result)
 

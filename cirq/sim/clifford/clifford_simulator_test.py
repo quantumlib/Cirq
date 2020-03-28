@@ -364,3 +364,13 @@ def test_non_clifford_circuit():
     with pytest.raises(ValueError,
                        match="T cannot be run with Clifford simulator"):
         cirq.CliffordSimulator().simulate(circuit)
+
+
+def test_sample_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+    simulator = cirq.CliffordSimulator(seed=1234)
+    result = simulator.run(circuit, repetitions=20)
+    measured = result.measurements['q']
+    result_string = ''.join(map(lambda x: str(int(x[0])), measured))
+    assert result_string == '11010001111100100000'
