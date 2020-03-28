@@ -14,6 +14,7 @@
 import datetime
 
 from typing import List, Optional, TYPE_CHECKING
+from pytz import utc
 
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google.engine.client.quantum import enums as qenums
@@ -223,7 +224,7 @@ class EngineProcessor:
             raise ValueError('Cannot determine freeze_schedule from processor.'
                              'Call _cancel_reservation or _delete_reservation.')
         secs_until = (reservation.start_time.seconds -
-                      int(datetime.datetime.now().timestamp()))
+                      int(datetime.datetime.now(tz=utc).timestamp()))
         if secs_until > freeze:
             return self._delete_reservation(reservation_id)
         else:
@@ -256,8 +257,8 @@ class EngineProcessor:
 
     def list_reservations(
             self,
-            from_time: datetime.datetime = datetime.datetime.now(),
-            to_time: datetime.datetime = datetime.datetime.now() +
+            from_time: datetime.datetime = datetime.datetime.now(tz=utc),
+            to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
             datetime.timedelta(weeks=2)) -> List[EngineTimeSlot]:
         """Retrieves the reservations from a processor.
 
@@ -274,12 +275,13 @@ class EngineProcessor:
                                                      self.processor_id,
                                                      filter_str)
 
-    def get_schedule(self,
-                     from_time: datetime.datetime = datetime.datetime.now(),
-                     to_time: datetime.datetime = datetime.datetime.now() +
-                     datetime.timedelta(weeks=2),
-                     time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
-                    ) -> List[EngineTimeSlot]:
+    def get_schedule(
+            self,
+            from_time: datetime.datetime = datetime.datetime.now(tz=utc),
+            to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
+            datetime.timedelta(weeks=2),
+            time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
+    ) -> List[EngineTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
@@ -292,7 +294,7 @@ class EngineProcessor:
         if to_time:
             filters.append(f'end_time > {int(from_time.timestamp())}')
         if time_slot_type:
-            raise ValueError('Filtering by time_slot_type not yet supported')
+            filters.append(f'time_slot_type = {time_slot_type.name}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id,
                                                    self.processor_id,
