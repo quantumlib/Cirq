@@ -42,7 +42,6 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
-
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
@@ -54,7 +53,8 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
-            from cirq.experiments import CrossEntropyResult
+            from cirq.experiments import (CrossEntropyResult,
+                                          GridInteractionLayer)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -95,6 +95,8 @@ class _ResolverCache:
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GridInteractionLayer': GridInteractionLayer,
+                'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
@@ -112,6 +114,7 @@ class _ResolverCache:
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
+                'PasqalDevice': cirq.pasqal.PasqalDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -130,6 +133,7 @@ class _ResolverCache:
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
+                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':

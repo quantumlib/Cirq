@@ -76,6 +76,7 @@ from cirq.circuits import (
 from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
+    GridQid,
     GridQubit,
     LineQid,
     LineQubit,
@@ -122,6 +123,7 @@ from cirq.linalg import (
     eye_tensor,
     is_diagonal,
     is_hermitian,
+    is_normal,
     is_orthogonal,
     is_special_orthogonal,
     is_special_unitary,
@@ -148,6 +150,7 @@ from cirq.linalg import (
     so4_to_magic_su2s,
     targeted_conjugate_about,
     targeted_left_multiply,
+    unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
 
@@ -288,11 +291,13 @@ from cirq.optimizers import (
     ExpandComposite,
     is_negligible_turn,
     merge_single_qubit_gates_into_phased_x_z,
+    merge_single_qubit_gates_into_phxz,
     MergeInteractions,
     MergeSingleQubitGates,
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
+    single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
@@ -487,5 +492,6 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    pasqal,
     testing,
 )

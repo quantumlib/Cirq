@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -85,6 +84,13 @@ class Circuit:
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
             followed by the moments in circuit2;
@@ -211,15 +217,50 @@ class Circuit:
     def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
 
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
+        pass
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if hasattr(key, '__index__'):
             return self._moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
+                if isinstance(qubit_idx, cirq.Qid):
+                    qubit_idx = [qubit_idx]
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return new_circuit
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type slice or int.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
@@ -784,19 +825,6 @@ class Circuit:
             if q in start_frontier), default=0)
         2) set(operation.qubits).intersection(start_frontier)
 
-        Args:
-            start_frontier: A starting set of reachable locations.
-            is_blocker: A predicate that determines if operations block
-                reachability. Any location covered by an operation that causes
-                `is_blocker` to return True is considered to be an unreachable
-                location.
-
-        Returns:
-            A list of tuples. Each tuple describes an operation found between
-            the start frontier and a blocking operation. The first item of
-            each tuple is the index of the moment containing the operation,
-            and the second item is the operation itself.
-
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
         their moment indices) in the output. `F` and `T` indicate that
@@ -841,6 +869,19 @@ class Circuit:
         ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                    │                  │
         ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
 
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]
@@ -1573,6 +1614,7 @@ class Circuit:
             *,
             use_unicode_characters: bool = True,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
     ) -> str:
@@ -1582,6 +1624,7 @@ class Circuit:
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether tags on TaggedOperations should be printed
             precision: Number of digits to display in text diagram
             qubit_order: Determines how qubits are ordered in the diagram.
 
@@ -1590,6 +1633,7 @@ class Circuit:
         """
         diagram = self.to_text_diagram_drawer(
             use_unicode_characters=use_unicode_characters,
+            include_tags=include_tags,
             precision=precision,
             qubit_order=qubit_order,
             transpose=transpose)
@@ -1607,6 +1651,7 @@ class Circuit:
             use_unicode_characters: bool = True,
             qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
             transpose: bool = False,
+            include_tags: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info: Optional[
@@ -1638,8 +1683,9 @@ class Circuit:
         diagram.write(0, 0, '')
         for q, i in qubit_map.items():
             diagram.write(0, i, qubit_namer(q))
+
         if any(
-                isinstance(op, cirq.GlobalPhaseOperation)
+                isinstance(op.untagged, cirq.GlobalPhaseOperation)
                 for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
@@ -1647,13 +1693,9 @@ class Circuit:
 
         moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
-            _draw_moment_in_diagram(moment,
-                                    use_unicode_characters,
-                                    qubit_map,
-                                    diagram,
-                                    precision,
-                                    moment_groups,
-                                    get_circuit_diagram_info)
+            _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
+                                    diagram, precision, moment_groups,
+                                    get_circuit_diagram_info, include_tags)
 
         w = diagram.width()
         for i in qubit_map.values():
@@ -1806,14 +1848,18 @@ def _get_operation_circuit_diagram_info_with_fallback(
                     info))
         return info
 
-    # Fallback to a default representation using the operation's __str__.
-    name = str(op)
+    # Use the untagged operation's __str__.
+    name = str(op.untagged)
 
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
     redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
     if name.endswith(redundant_tail):
         name = name[:-len(redundant_tail)]
+
+    # Add tags onto the representation, if they exist
+    if op.tags:
+        name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
     symbols = (name,) + tuple('#{}'.format(i + 1)
@@ -1876,7 +1922,8 @@ def _draw_moment_in_diagram(
         moment_groups: List[Tuple[int, int]],
         get_circuit_diagram_info: Optional[
             Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                     'cirq.CircuitDiagramInfo']] = None):
+                     'cirq.CircuitDiagramInfo']] = None,
+        include_tags: bool = True):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
                 _get_operation_circuit_diagram_info_with_fallback)
@@ -1902,7 +1949,8 @@ def _draw_moment_in_diagram(
             known_qubit_count=len(op.qubits),
             use_unicode_characters=use_unicode_characters,
             qubit_map=qubit_map,
-            precision=precision)
+            precision=precision,
+            include_tags=include_tags)
         info = get_circuit_diagram_info(op, args)
 
         # Draw vertical line linking the gate's qubits.
@@ -1929,15 +1977,22 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = np.product([
-        complex(e.coefficient)
-        for e in moment
-        if isinstance(e, ops.GlobalPhaseOperation)
-    ])
-    if global_phase != 1:
+    global_phase: Optional[complex] = None
+    tags: List[Any] = []
+    for op in moment:
+        if isinstance(op.untagged, ops.GlobalPhaseOperation):
+            tags.extend(op.tags)
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= complex(op.untagged.coefficient)
+
+    # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
+    if global_phase and (global_phase != 1 or not non_global_ops):
         desc = _formatted_phase(global_phase, use_unicode_characters, precision)
         if desc:
             y = max(qubit_map.values(), default=0) + 1
+            if tags and include_tags:
+                desc = desc + str(tags)
             out_diagram.write(x0, y, desc)
 
     if not non_global_ops:

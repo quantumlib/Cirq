@@ -90,6 +90,12 @@ def test_random_rotations_between_grid_interaction_layers(
         pattern)
 
 
+def test_grid_interaction_layer_repr():
+    layer = GridInteractionLayer(col_offset=0, vertical=True, stagger=False)
+    assert repr(layer) == ('cirq.experiments.GridInteractionLayer('
+                           'col_offset=0, vertical=True, stagger=False)')
+
+
 def _validate_single_qubit_layers(qubits: Set[cirq.GridQubit],
                                   moments: Sequence[cirq.Moment],
                                   non_repeating_layers: bool = True) -> None:
