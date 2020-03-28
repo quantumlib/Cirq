@@ -39,11 +39,9 @@ document(
 
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
-    supported_ops = clifford_simulator.CliffordSimulator.get_supported_gates()
-    # TODO: Have this method check the decomposition of the circuit into
-    #  clifford operations.
-    return all(op.gate in supported_ops or protocols.is_measurement(op)
-               for op in program.all_operations())
+    return all(
+        protocols.has_stabilizer_effect(op) or protocols.is_measurement(op)
+        for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',
