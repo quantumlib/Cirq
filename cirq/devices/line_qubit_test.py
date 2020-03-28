@@ -29,10 +29,10 @@ def test_init():
 def test_eq():
     eq = cirq.testing.EqualsTester()
     eq.make_equality_group(lambda: cirq.LineQubit(1), lambda: cirq.LineQid(
-        1, 2))
+        1, dimension=2))
     eq.add_equality_group(cirq.LineQubit(2))
     eq.add_equality_group(cirq.LineQubit(0))
-    eq.add_equality_group(cirq.LineQid(1, 3))
+    eq.add_equality_group(cirq.LineQid(1, dimension=3))
 
 
 def test_str():
@@ -52,11 +52,11 @@ def test_cmp():
         cirq.LineQid(0, 2),
     )
     order.add_ascending(
-        cirq.LineQid(0, 3),
-        cirq.LineQid(1, 1),
+        cirq.LineQid(0, dimension=3),
+        cirq.LineQid(1, dimension=1),
         cirq.LineQubit(1),
-        cirq.LineQid(1, 3),
-        cirq.LineQid(2, 1),
+        cirq.LineQid(1, dimension=3),
+        cirq.LineQid(2, dimension=1),
     )
 
 
@@ -152,47 +152,6 @@ def test_qid_range():
     ]
 
 
-def test_addition_subtraction():
-    assert cirq.LineQubit(1) + 2 == cirq.LineQubit(3)
-    assert cirq.LineQubit(3) - 1 == cirq.LineQubit(2)
-    assert 1 + cirq.LineQubit(4) == cirq.LineQubit(5)
-    assert 5 - cirq.LineQubit(3) == cirq.LineQubit(2)
-
-    assert cirq.LineQid(1, 3) + 2 == cirq.LineQid(3, 3)
-    assert cirq.LineQid(3, 3) - 1 == cirq.LineQid(2, 3)
-    assert 1 + cirq.LineQid(4, 3) == cirq.LineQid(5, 3)
-    assert 5 - cirq.LineQid(3, 3) == cirq.LineQid(2, 3)
-
-
-def test_addition_subtraction_type_error():
-    with pytest.raises(TypeError, match='dave'):
-        _ = cirq.LineQubit(1) + 'dave'
-    with pytest.raises(TypeError, match='dave'):
-        _ = cirq.LineQubit(1) - 'dave'
-
-    with pytest.raises(TypeError, match='dave'):
-        _ = cirq.LineQid(1, 3) + 'dave'
-    with pytest.raises(TypeError, match='dave'):
-        _ = cirq.LineQid(1, 3) - 'dave'
-
-
-def test_neg():
-    assert -cirq.LineQubit(1) == cirq.LineQubit(-1)
-    assert -cirq.LineQid(1, 3) == cirq.LineQid(-1, 3)
-
-
-def test_json_dict():
-    assert cirq.LineQubit(5)._json_dict_() == {
-        'cirq_type': 'LineQubit',
-        'x': 5,
-    }
-    assert cirq.LineQid(5, 3)._json_dict_() == {
-        'cirq_type': 'LineQid',
-        'x': 5,
-        'dimension': 3,
-    }
-
-
 def test_for_qid_shape():
     assert cirq.LineQid.for_qid_shape(()) == []
     assert cirq.LineQid.for_qid_shape((4, 2, 3, 1)) == [
@@ -219,6 +178,61 @@ def test_for_qid_shape():
         cirq.LineQid(3, 3),
         cirq.LineQid(2, 1),
     ]
+
+
+def test_addition_subtraction():
+    assert cirq.LineQubit(1) + 2 == cirq.LineQubit(3)
+    assert cirq.LineQubit(3) - 1 == cirq.LineQubit(2)
+    assert 1 + cirq.LineQubit(4) == cirq.LineQubit(5)
+    assert 5 - cirq.LineQubit(3) == cirq.LineQubit(2)
+
+    assert cirq.LineQid(1, 3) + 2 == cirq.LineQid(3, 3)
+    assert cirq.LineQid(3, 3) - 1 == cirq.LineQid(2, 3)
+    assert 1 + cirq.LineQid(4, 3) == cirq.LineQid(5, 3)
+    assert 5 - cirq.LineQid(3, 3) == cirq.LineQid(2, 3)
+
+    assert cirq.LineQid(1, dimension=3) + cirq.LineQid(
+        3, dimension=3) == cirq.LineQid(4, dimension=3)
+    assert cirq.LineQid(3, dimension=3) - cirq.LineQid(
+        2, dimension=3) == cirq.LineQid(1, dimension=3)
+
+
+def test_addition_subtraction_type_error():
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQubit(1) + 'dave'
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQubit(1) - 'dave'
+
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQid(1, 3) + 'dave'
+    with pytest.raises(TypeError, match='dave'):
+        _ = cirq.LineQid(1, 3) - 'dave'
+
+    with pytest.raises(TypeError,
+                       match="Can only add LineQids with identical dimension."):
+        _ = cirq.LineQid(5, dimension=3) + cirq.LineQid(3, dimension=4)
+
+    with pytest.raises(
+            TypeError,
+            match="Can only subtract LineQids with identical dimension."):
+        _ = cirq.LineQid(5, dimension=3) - cirq.LineQid(3, dimension=4)
+
+
+def test_neg():
+    assert -cirq.LineQubit(1) == cirq.LineQubit(-1)
+    assert -cirq.LineQid(1, dimension=3) == cirq.LineQid(-1, dimension=3)
+
+
+def test_json_dict():
+    assert cirq.LineQubit(5)._json_dict_() == {
+        'cirq_type': 'LineQubit',
+        'x': 5,
+    }
+    assert cirq.LineQid(5, 3)._json_dict_() == {
+        'cirq_type': 'LineQid',
+        'x': 5,
+        'dimension': 3,
+    }
 
 
 def test_for_gate():

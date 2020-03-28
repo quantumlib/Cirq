@@ -586,6 +586,51 @@ def test_deserialize_z_parameterized():
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
 
+@pytest.mark.parametrize(('gate', 'exponent'), [
+    (cirq.CZ, 1.0),
+    (cirq.CZ**3.0, 3.0),
+    (cirq.CZ**-1.0, -1.0),
+])
+def test_serialize_deserialize_cz_gate(gate, exponent):
+    gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER],
+                                      [cgc.CZ_POW_DESERIALIZER])
+    proto = op_proto({
+        'gate': {
+            'id': 'cz'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': exponent
+                }
+            }
+        },
+        'qubits': [{
+            'id': '5_4'
+        }, {
+            'id': '5_5'
+        }]
+    })
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    op = cirq.CZPowGate(exponent=exponent)
+    assert gate_set.serialize_op(gate(q1, q2)) == proto
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(gate_set.deserialize_op(proto)),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
+
+
+def test_cz_pow_non_integer_does_not_serialize():
+    gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER],
+                                      [cgc.CZ_POW_DESERIALIZER])
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    with pytest.raises(ValueError):
+        gate_set.serialize_op(cirq.CZ(q1, q2)**0.5)
+
+
 def test_wait_gate():
     gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
                                       [cgc.WAIT_GATE_DESERIALIZER])

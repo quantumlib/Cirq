@@ -460,7 +460,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
                 f"To get this to work you likely need "
                 f"to add {cirq_obj_name} to the "
                 f"`cirq_class_resolver_dictionary` method in "
-                f"the cirq/protocols/json.py source file. "
+                f"the cirq/protocols/json_serialization.py source file. "
                 f"You may also need to add a _json_dict_ method to "
                 f"{cirq_obj_name}. In some cases you will also need to add a "
                 f"_from_json_dict_ method to {cirq_obj_name}."

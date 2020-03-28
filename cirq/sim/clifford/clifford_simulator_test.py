@@ -405,6 +405,16 @@ def test_gate_not_supported():
         cirq.CliffordSimulator().simulate(circuit)
 
 
+def test_sample_seed():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit(cirq.H(q), cirq.measure(q))
+    simulator = cirq.CliffordSimulator(seed=1234)
+    result = simulator.run(circuit, repetitions=20)
+    measured = result.measurements['q']
+    result_string = ''.join(map(lambda x: str(int(x[0])), measured))
+    assert result_string == '11010001111100100000'
+
+
 def test_is_supported_operation():
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))

@@ -530,6 +530,78 @@ def test_rz_unitary():
                                np.array([[1j, 0], [0, -1j]]))
 
 
+def test_x_stabilizer():
+    gate = cirq.X
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_y_stabilizer():
+    gate = cirq.Y
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_z_stabilizer():
+    gate = cirq.Z
+    assert cirq.has_stabilizer_effect(gate)
+    assert cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_h_stabilizer():
+    gate = cirq.H
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_cz_stabilizer():
+    gate = cirq.CZ
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_cnot_stabilizer():
+    gate = cirq.CNOT
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
 @pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))
 def test_deprecated_rxyz_rotations(rads):
     with capture_logging():
