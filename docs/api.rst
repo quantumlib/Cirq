@@ -327,6 +327,7 @@ the magic methods that can be implemented.
     cirq.has_channel
     cirq.has_mixture
     cirq.has_mixture_channel
+    cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
     cirq.is_measurement
