@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+
 import google.api_core.grpc_helpers
 
 from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
@@ -21,7 +22,7 @@ from cirq.google.engine.client.quantum_v1alpha1.proto import engine_pb2_grpc
 
 class QuantumEngineServiceGrpcTransport(object):
     """gRPC transport class providing stubs for
-    cirq.google.engine.client.quantum.v1alpha1 QuantumEngineService API.
+    google.cloud.quantum.v1alpha1 QuantumEngineService API.
 
     The transport provides access to the raw gRPC stubs,
     which can be used to take advantage of advanced
@@ -74,6 +75,7 @@ class QuantumEngineServiceGrpcTransport(object):
             'quantum_engine_service_stub':
             engine_pb2_grpc.QuantumEngineServiceStub(channel),
         }
+
 
     @classmethod
     def create_channel(cls,
@@ -154,8 +156,8 @@ class QuantumEngineServiceGrpcTransport(object):
 
     @property
     def delete_quantum_program(self):
-        """Return the gRPC stub for
-         meth:`QuantumEngineServiceClient.delete_quantum_program`.
+        """Return the gRPC stub
+        for :meth:`QuantumEngineServiceClient.delete_quantum_program`.
 
         -
 
@@ -350,6 +352,95 @@ class QuantumEngineServiceGrpcTransport(object):
         return self._stubs['quantum_engine_service_stub'].GetQuantumCalibration
 
     @property
+    def create_quantum_reservation(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.create_quantum_reservation`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].CreateQuantumReservation
+
+    @property
+    def cancel_quantum_reservation(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.cancel_quantum_reservation`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].CancelQuantumReservation
+
+    @property
+    def delete_quantum_reservation(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.delete_quantum_reservation`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].DeleteQuantumReservation
+
+    @property
+    def get_quantum_reservation(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.get_quantum_reservation`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs['quantum_engine_service_stub'].GetQuantumReservation
+
+    @property
+    def list_quantum_reservations(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservations`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservations
+
+    @property
+    def update_quantum_reservation(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.update_quantum_reservation`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].UpdateQuantumReservation
+
+    @property
     def quantum_run_stream(self):
         """Return the gRPC stub for
         :meth:`QuantumEngineServiceClient.quantum_run_stream`.
@@ -362,3 +453,62 @@ class QuantumEngineServiceGrpcTransport(object):
                 deserialized response object.
         """
         return self._stubs['quantum_engine_service_stub'].QuantumRunStream
+
+    @property
+    def list_quantum_reservation_grants(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservation_grants`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservationGrants
+
+    @property
+    def reallocate_quantum_reservation_grant(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.reallocate_quantum_reservation_grant`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].ReallocateQuantumReservationGrant
+
+    @property
+    def list_quantum_reservation_budgets(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_reservation_budgets`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs[
+            'quantum_engine_service_stub'].ListQuantumReservationBudgets
+
+    @property
+    def list_quantum_time_slots(self):
+        """Return the gRPC stub for
+        :meth:`QuantumEngineServiceClient.list_quantum_time_slots`.
+
+        -
+
+        Returns:
+            Callable: A callable which accepts the appropriate
+                deserialized request object and returns a
+                deserialized response object.
+        """
+        return self._stubs['quantum_engine_service_stub'].ListQuantumTimeSlots

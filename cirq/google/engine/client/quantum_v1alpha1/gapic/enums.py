@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright 2019 Google LLC
+# Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 """Wrappers for protocol buffer enum types."""
 
 import enum
@@ -93,6 +94,26 @@ class QuantumProcessor(object):
         OK = 1
         DOWN = 2
         UNAVAILABLE = 3
+
+
+class QuantumTimeSlot(object):
+
+    class TimeSlotType(enum.IntEnum):
+        """
+        -
+
+        Attributes:
+          TIME_SLOT_TYPE_UNSPECIFIED (int): -
+          MAINTENANCE (int): -
+          OPEN_SWIM (int): -
+          RESERVATION (int): -
+          UNALLOCATED (int): -
+        """
+        TIME_SLOT_TYPE_UNSPECIFIED = 0
+        MAINTENANCE = 1
+        OPEN_SWIM = 2
+        RESERVATION = 3
+        UNALLOCATED = 4
 
 
 class StreamError(object):

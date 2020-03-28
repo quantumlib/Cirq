@@ -15,7 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
-                    FrozenSet, TYPE_CHECKING, Iterator)
+                    FrozenSet, TYPE_CHECKING, Iterator, overload)
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -33,6 +33,13 @@ class Moment:
     moment should execute at the same time (to the extent possible; not all
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
+
+    Moment can be indexed by qubit or list of qubits:
+        moment[qubit] returns the Operation in the moment which touches the
+            given qubit, or throws KeyError if there is no such operation.
+        moment[qubits] returns another Moment which consists only of those
+            operations which touch at least one of the given qubits. If there
+            are no such operations, returns an empty Moment.
     """
 
     def __init__(self, operations: Iterable[raw_types.Operation] = ()) -> None:
@@ -117,6 +124,18 @@ class Moment:
             operation for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits)))
 
+    def _operation_touching(self, qubit: raw_types.Qid) -> 'cirq.Operation':
+        """Returns the operation touching given qubit.
+        Args:
+            qubit: Operations that touch this qubit will be returned.
+        Returns:
+            The operation which touches `qubit`.
+        """
+        for op in self.operations:
+            if qubit in op.qubits:
+                return op
+        raise KeyError("Moment doesn't act on given qubit")
+
     def __copy__(self):
         return type(self)(self.operations)
 
@@ -197,6 +216,25 @@ class Moment:
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
         return NotImplemented
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
+        pass
+
+    def __getitem__(self, key):
+        if isinstance(key, raw_types.Qid):
+            return self._operation_touching(key)
+        elif isinstance(key, Iterable):
+            qubits_to_keep = frozenset(key)
+            ops_to_keep = tuple(
+                op for op in self.operations
+                if not qubits_to_keep.isdisjoint(frozenset(op.qubits)))
+            return Moment(ops_to_keep)
 
 
 def _list_repr_with_indented_item_lines(items: Sequence[Any]) -> str:
