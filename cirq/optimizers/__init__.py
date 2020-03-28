@@ -54,8 +54,7 @@ from cirq.optimizers.decompositions import (
 )
 
 from cirq.optimizers.stratify import (
-    stratified_circuit,
-)
+    stratified_circuit,)
 from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,)
 

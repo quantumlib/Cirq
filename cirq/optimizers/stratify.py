@@ -20,16 +20,10 @@ if TYPE_CHECKING:
     import cirq
 
 
-def stratified_circuit(
-        circuit: 'cirq.Circuit',
-        *,
-        categories: Iterable[Union[
-            'cirq.Gate',
-            'cirq.Operation',
-            Type['cirq.Gate'],
-            Type['cirq.Operation'],
-            Callable[['cirq.Operation'], bool]
-        ]]) -> 'cirq.Circuit':
+def stratified_circuit(circuit: 'cirq.Circuit', *, categories: Iterable[
+        Union['cirq.Gate', 'cirq.Operation', Type['cirq.Gate'],
+              Type['cirq.Operation'], Callable[['cirq.Operation'], bool]]]
+                      ) -> 'cirq.Circuit':
     """Repacks avoiding simultaneous operations with different classes.
 
     Sometimes, certain operations should not be done at the same time. For
@@ -61,10 +55,8 @@ def stratified_circuit(
     """
 
     # Convert classifiers into arguments for `reachable_frontier_from`.
-    blockers = [_category_to_blocker(classifier)
-                for classifier in categories]
-    and_the_rest = lambda op: not all(blocker(op)
-                                      for blocker in blockers)
+    blockers = [_category_to_blocker(classifier) for classifier in categories]
+    and_the_rest = lambda op: not all(blocker(op) for blocker in blockers)
     blockers_and_the_rest = [*blockers, and_the_rest]
 
     # Identify transition frontiers between categories.
@@ -76,9 +68,7 @@ def stratified_circuit(
         # Attempt to advance the frontier using each possible category.
         for b in blockers_and_the_rest:
             next_frontier = circuit.reachable_frontier_from(
-                start_frontier=cur_frontier,
-                is_blocker=b
-            )
+                start_frontier=cur_frontier, is_blocker=b)
             if next_frontier == cur_frontier:
                 continue  # No operations from this category at frontier.
             frontiers.append(next_frontier)
@@ -94,8 +84,7 @@ def stratified_circuit(
     result = circuits.Circuit()
     for f1, f2 in zip(frontiers, frontiers[1:]):
         result += circuits.Circuit(
-            op for _, op in circuit.findall_operations_between(f1, f2)
-        )
+            op for _, op in circuit.findall_operations_between(f1, f2))
 
     return result
 
@@ -105,18 +94,15 @@ def _category_to_blocker(classifier):
         return lambda op: op.gate != classifier
     if isinstance(classifier, ops.Operation):
         return lambda op: op != classifier
-    elif isinstance(classifier, type) and issubclass(classifier,
-                                                     ops.Gate):
+    elif isinstance(classifier, type) and issubclass(classifier, ops.Gate):
         return lambda op: not isinstance(op.gate, classifier)
-    elif isinstance(classifier, type) and issubclass(classifier,
-                                                     ops.Operation):
+    elif isinstance(classifier, type) and issubclass(classifier, ops.Operation):
         return lambda op: not isinstance(op, classifier)
     elif callable(classifier):
         return lambda op: not classifier(op)
     else:
-        raise TypeError(
-            f'Unrecognized classifier type '
-            f'{type(classifier)} ({classifier!r}).\n'
-            f'Expected a cirq.Gate, cirq.Operation, '
-            f'Type[cirq.Gate], Type[cirq.Operation], '
-            f'or Callable[[cirq.Operation], bool].')
+        raise TypeError(f'Unrecognized classifier type '
+                        f'{type(classifier)} ({classifier!r}).\n'
+                        f'Expected a cirq.Gate, cirq.Operation, '
+                        f'Type[cirq.Gate], Type[cirq.Operation], '
+                        f'or Callable[[cirq.Operation], bool].')
