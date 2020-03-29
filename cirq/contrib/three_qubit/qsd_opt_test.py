@@ -194,6 +194,7 @@ def _num_two_qubit_gates_in_two_qubit_unitary(U):
     :return: the number of two-qubit gates required to implement the unitary
     """
     assert np.shape(U) == (4, 4)
+    assert cirq.is_unitary(U)
     poly = np.poly(_gamma(_to_special(U)))
     # characteristic polynomial = (x+1)^4 or (x-1)^4
     if np.allclose(poly, [1, 4, 6, 4, 1]) or np.allclose(poly,

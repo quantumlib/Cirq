@@ -226,7 +226,9 @@ def _extract_right_diag(U):
     k = np.real(t[0] + t[3] - t[1] - t[2])
 
     if k == 0:
-        # TODO: why does this work?
+        # in the end we have to pick a psi that makes sure that
+        # exp(-i*psi) (t[0]+t[3]) + exp(i*psi) (t[1]+t[2]) is real
+        # both pi/2 or 3pi/2 can work
         psi = np.pi/2
     else:
         psi = np.arctan(np.imag(np.sum(t)) / k)
