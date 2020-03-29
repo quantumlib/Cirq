@@ -54,7 +54,7 @@ def three_qubit_unitary_to_operations(U):
 
 
 def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
-    """ Converts theta angles based Cosine Sine matrix to circuit.
+    """ Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
     CNOT gates and returns a circuit that skips the terminal CZ gate.
@@ -64,7 +64,7 @@ def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
     :return: the circuit
     """
     # Note: we are using *2 as the thetas are already half angles from the
-    # CSD decomposition, but ry takes full angles.
+    # CSD decomposition, but cirq.ry takes full angles.
     angles = _multiplexed_angles(theta * 2)
     rys = [cirq.ry(angle).on(a) for angle in angles]
     ops = [rys[0],
@@ -156,20 +156,52 @@ def _middle_multiplexor_to_ops(a, b, c, eigvals):
 
 
 def _to_special(u):
-    return u / (np.linalg.det(u) ** (1 / 4))
+    """Converts a unitary matrix to a special unitary operator.
+    All unitary matrix u have |det(u)| = 1.
+    Also for all d dimensional unitary matrix u, and scalar s:
+        det(u * s) = det(u) * s^(d)
+    To find a special unitary matrix from u:
+        u * det(u)^{-1/d}
+    :param u: the unitary matrix
+    :return: the special unitary matrix
+    """
+    return u * (np.linalg.det(u) ** (-1 / len(u)))
 
 
-def _gamma(u):
+def _gamma(g):
+    """Gamma function to convert u to the magic basis.
+
+    See Definition IV.1 in Minimal Universal Two-Qubit CNOT-based Circuits.
+    https://arxiv.org/abs/quant-ph/0308033
+    :param g:
+    :return:
+    """
     yy = np.kron(cirq.Y._unitary_(), cirq.Y._unitary_())
-    return u @ yy @ u.T @ yy
+    return g @ yy @ g.T @ yy
 
 
-def _extract_right_diag(a, b, U):
-    u = _to_special(U)
-    t = _gamma(u.T).T.diagonal()
-    psi = np.arctan(np.imag(np.sum(t)) / np.real(t[0] + t[3] - t[1] - t[2]))
-    if np.real(t[0] + t[3] - t[1] - t[2]) == 0:
-        psi = np.pi / 2
+def _extract_right_diag(U):
+    """ Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
+
+    Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
+    two CNOT gates.
+
+    See Proposition V.2 in Minimal Universal Two-Qubit CNOT-based Circuits.
+    https://arxiv.org/abs/quant-ph/0308033
+
+    :param U: three-CNOT two-qubit unitary
+    :return: diagonal extarcted from U
+    """
+    t = _gamma(_to_special(U).T).T.diagonal()
+    k = np.real(t[0] + t[3] - t[1] - t[2])
+
+    if k == 0:
+        # TODO: why does this work?
+        psi = np.pi/2
+    else:
+        psi = np.arctan(np.imag(np.sum(t)) / k)
+
+    a, b = cirq.LineQubit.range(2)
     c_d = cirq.Circuit([cirq.CNOT(a, b), cirq.rz(psi)(b), cirq.CNOT(a, b)])
     return c_d._unitary_()
 
@@ -211,7 +243,7 @@ def _two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
         circuit_u1u2_R = []
         dV = V.conj().T
     elif _is_three_cnot_two_qubit_unitary(V):
-        dV = _extract_right_diag(b, c, V)
+        dV = _extract_right_diag(V)
         V = V @ dV
         circuit_u1u2_R = cirq.Circuit(
             cirq.optimizers.two_qubit_matrix_to_operations(b, c, V,
