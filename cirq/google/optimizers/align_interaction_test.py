@@ -11,40 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from enum import Enum
 from typing import Callable, List, Dict
 
 import cirq
 import cirq.google.optimizers.align_interactions as cgoai
 
 
-class OperationKind(Enum):
-    """The different kinds of operations that we want to separate out."""
-    Z = 1
-    SINGLE_QUBIT = 2
-    TWO_QUBIT = 3
-
-
-def operation_kind(op: cirq.Operation) -> OperationKind:
-    """Returns the kind of operation for use in sorting it into the correct
-    moment."""
-    if cgoai.is_two_qubit_op(op):
-        return OperationKind.TWO_QUBIT
-    if cgoai.is_z_op(op):
-        return OperationKind.Z
-    return OperationKind.SINGLE_QUBIT
-
-
 def assert_all_homogeneous(circuit: cirq.Circuit):
     """Check that the given circuit has only homogeneous moments."""
     for moment in circuit:
-        kinds = set([operation_kind(op) for op in moment])
+        kinds = set([len(op.qubits) for op in moment])
         assert len(kinds) <= 1, f"Moment {moment} was not homogeneous: had " \
                                 f"{len(kinds)} different types of operations"
 
 
-def get_qubit_to_operations(
-        circuit: cirq.Circuit) -> Dict[cirq.Qid, List[cirq.Operation]]:
+def get_qubit_to_operations(circuit: cirq.Circuit
+                           ) -> Dict[cirq.Qid, List[cirq.Operation]]:
     """Creates a dictionary from qubit to all the operations that operate on
     that qubit, in order."""
     qubit_to_operations: Dict[cirq.Qid, List[cirq.Operation]] = {}
@@ -71,8 +53,12 @@ def assert_optimizes(circuit: cirq.Circuit, num_moments: int):
     """Check that the given circuit has no heterogeneous moments and that the
     unitary matrix for the input circuit is the same (up to global phase and
     rounding error) as the unitary matrix for the optimized circuit.
-    Additionally, check that the number of X, Z, and two-qubit moments is
+    Additionally, check that the number of 1-qubit and two-qubit moments is
     correct, and that no gates jumped over any two-qubit gates."""
+
+    # Run a pre-optimization on the circuit.
+    cirq.MergeSingleQubitGates().optimize_circuit(circuit)
+
     # Store a map from the Qubit ID to the order of the operations for that
     # qubit.
     before_qubit_to_operations = get_qubit_to_operations(circuit)
@@ -107,8 +93,8 @@ def assert_optimizes(circuit: cirq.Circuit, num_moments: int):
         atol=1e-8,
         err_msg=f"The following circuits do not match. Initial: \n"
         f"{circuit_before}\nAfter: \n{circuit}")
-    assert len(circuit) <= num_moments, \
-        f"Expected the following circuit to have {num_moments} or fewer " \
+    assert len(circuit) == num_moments, \
+        f"Expected the following circuit to have {num_moments} " \
         f"moments, but had {len(circuit)} moments:\n {circuit}"
 
 
@@ -141,7 +127,7 @@ def test_simple():
     circuit = cirq.Circuit(cirq.Moment([cirq.X(q1),
                                         cirq.Y(q2),
                                         cirq.X(q3)]), cirq.Moment([cirq.X(q1)]))
-    assert_optimizes(circuit, 2)
+    assert_optimizes(circuit, 1)
 
 
 def test_move_adjacent_gates():
@@ -163,7 +149,7 @@ def test_eject_z():
                            cirq.Moment([cirq.Z(q1), cirq.X(q2)]),
                            cirq.Moment([cirq.X(q1)]))
     # The circuit should have a moment of SWAPs, Xs, and Zs.
-    assert_optimizes(circuit, 3)
+    assert_optimizes(circuit, 2)
 
 
 def test_sparse_circuit():
@@ -175,8 +161,8 @@ def test_sparse_circuit():
                            cirq.Moment([cirq.Z(q1),
                                         cirq.X(q2)]), cirq.Moment([]),
                            cirq.Moment([]), cirq.Moment([cirq.X(q1)]))
-    # The circuit should have a moment of SWAPs, Xs, and Zs.
-    assert_optimizes(circuit, 3)
+    # The circuit should have a moment of SWAPs and merged moment of Xs and Zs.
+    assert_optimizes(circuit, 2)
 
 
 def test_x_gates_pushed_back():
@@ -187,17 +173,6 @@ def test_x_gates_pushed_back():
                            cirq.Moment([cirq.ISWAP(q3, q4)]),
                            cirq.Moment([cirq.X(q1), cirq.X(q2)]))
     # This circuit should have a moment of SWAPs and a moment of Xs.
-    assert_optimizes(circuit, 2)
-
-
-def test_z_gates_pushed_back():
-    """Tests that z gates are pushed back to the end if necessary."""
-    q1, q2, q3, q4, q5 = cirq.LineQubit.range(5)
-    circuit = cirq.Circuit(cirq.Moment([cirq.ISWAP(q1, q2),
-                                        cirq.Z(q5)]),
-                           cirq.Moment([cirq.ISWAP(q3, q4)]),
-                           cirq.Moment([cirq.Z(q1), cirq.Z(q2)]))
-    # This circuit should have a moment of SWAPs and a moment of Zs.
     assert_optimizes(circuit, 2)
 
 
@@ -212,8 +187,8 @@ def test_two_qubit_gates_pushed_back():
                                                 cirq.X(q2)]),
         cirq.Moment([cirq.ISWAP(q1, q2)]))
     # This circuit should have the SWAP gate pushed to the end of the circuit,
-    # and start with two X moments.
-    assert_optimizes(circuit, 3)
+    # and start with one merged X moment.
+    assert_optimizes(circuit, 2)
 
 
 def test_offset_swaps():
@@ -261,7 +236,7 @@ def test_complex_circuit():
                      cirq.Z(q5)]), cirq.Moment([cirq.X(q1),
                                                 cirq.ISWAP(q4, q5)]),
         cirq.Moment([cirq.ISWAP(q1, q2), cirq.X(q4)]))
-    assert_optimizes(circuit, 5)
+    assert_optimizes(circuit, 4)
 
 
 def test_heterogeneous_circuit():
@@ -286,7 +261,7 @@ def test_heterogeneous_circuit():
             cirq.X(q5),
             cirq.Z(q6)
         ]))
-    assert_optimizes(circuit, 5)
+    assert_optimizes(circuit, 4)
 
 
 def test_trapped_single_qubit_circuit():
@@ -298,7 +273,7 @@ def test_trapped_single_qubit_circuit():
         cirq.Moment([cirq.X(q1), cirq.Z(q2),
                      cirq.X(q3), cirq.Z(q4)]),
         cirq.Moment([cirq.ISWAP(q1, q2), cirq.ISWAP(q3, q4)]))
-    assert_optimizes(circuit, 4)
+    assert_optimizes(circuit, 3)
 
 
 def test_large_circuit():
@@ -344,4 +319,4 @@ def test_large_circuit():
             cirq.Z(q6),
             cirq.ISWAP(q7, q8)
         ]))
-    assert_optimizes(circuit, 11)
+    assert_optimizes(circuit, 7)
