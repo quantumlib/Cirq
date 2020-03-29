@@ -110,6 +110,36 @@ def _optimize_multiplexed_angles_circuit(ops):
 
 def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
                                       diagonal=np.eye(4)):
+    """Converts a two qubit double multiplexor to circuit.
+    Input: u1 ⊕ u2, with select qubit a (i.e. a = |0> => u1(b,c),
+    a = |1> => u2(b,c).
+
+    We want this:
+
+        u1 ⊕ u2 = V ⊕ V @ D ⊕ D^{adj} @ W ⊕ W
+
+    We can get it via:
+
+        u1 = V @ D @ W       (1)
+        u2 = V @ D^{adj} @ W (2)
+
+    We can derive
+        u1u2^{adj}= V @ D^2 @ V^{adj}, (3)
+
+    i.e the eigendecomposition of u1u2^{adj} will give us D and V.
+    W is easy to derive from (2).
+
+    This function, after calculating V, D and W, also returns the circuit that
+    implements these unitaries: V, W on qubits b, c and the middle diagonal
+    multiplexer on a,b,c qubits. Also implements the
+
+    :param a,b,c: qubits
+    :param u1: two-qubit operation on b,c for a = |0>
+    :param u2: two-qubit operation on b,c for a = |1>
+    :param shiftLeft: return the extracted diagonal or not
+    :param diagonal: an incoming diagonal to be merged with
+    :return: circuit
+    """
     u1u2 = u1 @ u2.conj().T
     eigvals, V = cirq.unitary_eig(u1u2)
     d = np.diag(np.sqrt(eigvals))

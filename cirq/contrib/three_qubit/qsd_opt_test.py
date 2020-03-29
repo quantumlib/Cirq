@@ -171,10 +171,12 @@ def test_to_special():
 @pytest.mark.parametrize("U", [
     _two_qubit_circuit_with_cnots(3).unitary(),
     # an example where gamma(special(u))=I, so the denominator becomes 0
-    np.array([[1,0,0,1],
-              [0,0,1,0],
-              [0,1,0,0],
-              [0,0,0,1]], dtype=np.complex128)
+    1 / np.sqrt(2) * np.array(
+        [[(1 - 1j) * 2 / np.sqrt(5), 0, 0, (1 - 1j) * 1 / np.sqrt(5)],
+         [0, 0, 1 - 1j, 0],
+         [0, 1 - 1j, 0, 0],
+         [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
+        dtype=np.complex128)
 ])
 def test_extract_right_diag(U):
     assert _num_two_qubit_gates_in_two_qubit_unitary(U) == 3
