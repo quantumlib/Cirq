@@ -9,14 +9,16 @@ def test_direct_fidelity_estimation_no_noise_clifford():
                            cirq.X(qubits[2]))
 
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
+    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        no_noise,
+        no_noise_simulator,
         n_trials=100,
         n_clifford_trials=3,
-        samples_per_term=0)
+        samples_per_term=0,
+        log_output_filename='')
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -26,14 +28,16 @@ def test_direct_fidelity_estimation_no_noise_non_clifford():
         cirq.Z(qubits[0])**0.123, cirq.X(qubits[1]), cirq.X(qubits[2]))
 
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
+    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        no_noise,
+        no_noise_simulator,
         n_trials=100,
         n_clifford_trials=3,
-        samples_per_term=0)
+        samples_per_term=0,
+        log_output_filename='')
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -45,14 +49,16 @@ def test_direct_fidelity_estimation_with_noise():
         cirq.X(qubits[2])**0.456)
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
+    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        noise,
+        noisy_simulator,
         n_trials=10,
         n_clifford_trials=3,
-        samples_per_term=10)
+        samples_per_term=10,
+        log_output_filename='')
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
@@ -104,7 +110,9 @@ def test_parsing_args():
 def test_calling_main():
     direct_fidelity_estimation.main(n_trials=10,
                                     n_clifford_trials=3,
-                                    samples_per_term=0)
+                                    samples_per_term=0,
+                                    log_output_filename='')
     direct_fidelity_estimation.main(n_trials=10,
                                     n_clifford_trials=3,
-                                    samples_per_term=10)
+                                    samples_per_term=10,
+                                    log_output_filename='')

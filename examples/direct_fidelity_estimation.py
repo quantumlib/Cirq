@@ -39,8 +39,6 @@ def build_circuit() -> Tuple[cirq.Circuit, List[cirq.Qid]]:
                                          cirq.CNOT(qubits[2], qubits[1]),
                                          cirq.X(qubits[0]), cirq.X(qubits[1]),
                                          cirq.CNOT(qubits[0], qubits[2]))
-    print('Circuit used:')
-    print(circuit)
     return circuit, qubits
 
 
@@ -63,10 +61,11 @@ def compute_characteristic_function(circuit: cirq.Circuit,
     return trace, prob
 
 
-async def estimate_characteristic_function(
-        circuit: cirq.Circuit, pauli_string: cirq.PauliString,
-        qubits: List[cirq.Qid], simulator: cirq.DensityMatrixSimulator,
-        samples_per_term: int):
+async def estimate_characteristic_function(circuit: cirq.Circuit,
+                                           pauli_string: cirq.PauliString,
+                                           qubits: List[cirq.Qid],
+                                           sampler: cirq.Sampler,
+                                           samples_per_term: int):
     """
     Estimates the characteristic function using a (noisy) circuit simulator by
     sampling the results.
@@ -85,7 +84,7 @@ async def estimate_characteristic_function(
                                observable=pauli_string,
                                samples_per_term=samples_per_term)
 
-    await p.collect_async(sampler=simulator)
+    await p.collect_async(sampler=sampler)
 
     sigma_i = p.estimated_energy()
     assert np.isclose(sigma_i.imag, 0.0, atol=1e-6)
@@ -196,8 +195,9 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               noise: cirq.NoiseModel, n_trials: int,
-                               n_clifford_trials: int, samples_per_term: int):
+                               sampler: cirq.Sampler, n_trials: int,
+                               n_clifford_trials: int, samples_per_term: int,
+                               log_output_filename: str):
     """
     Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
@@ -207,7 +207,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     Args:
         circuit: The circuit to run the simulation on.
         qubits: The list of qubits.
-        noise: The noise model when doing a simulation.
+        sampler: Either a noisy simulator or an engine.
         n_trial: The total number of Pauli measurements.
         n_clifford_trials: In case the circuit is Clifford, we specify the
             number of trials to estimate the noise-free pauli traces.
@@ -215,11 +215,20 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             simulate noise in the circuit. If greater than 0, we ignore the
             'noise' parameter above and instead run an estimation of the
             characteristic function.
+        log_output_filename: If not empty, the filename where we write the log
+            of the activity. Useful when running experiments and we want to
+            store data.
 
     Returns:
         The estimated fidelity.
     """
     # n_trials is upper-case N in https://arxiv.org/abs/1104.3835
+
+    if log_output_filename:
+        sys.stdout = open(log_output_filename, "w")
+
+    print('Circuit used:')
+    print(circuit)
 
     # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835
     n_qubits = len(qubits)
@@ -247,6 +256,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     else:
         print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
+    print('pauli_traces=%', (pauli_traces))
 
     p = np.asarray([x['Pr_i'] for x in pauli_traces])
 
@@ -260,11 +270,11 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     # above) does bother it, so we re-normalize the probs.
     p /= np.sum(p)
 
-    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
     fidelity = 0.0
 
     if samples_per_term == 0:
         # sigma in https://arxiv.org/abs/1104.3835
+        noisy_simulator = cast(cirq.DensityMatrixSimulator, sampler)
         noisy_density_matrix = cast(
             cirq.DensityMatrixTrialResult,
             noisy_simulator.simulate(circuit)).final_density_matrix
@@ -280,7 +290,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         if samples_per_term > 0:
             sigma_i = asyncio.get_event_loop().run_until_complete(
                 estimate_characteristic_function(circuit, measure_pauli_string,
-                                                 qubits, noisy_simulator,
+                                                 qubits, sampler,
                                                  samples_per_term))
         else:
             sigma_i, _ = compute_characteristic_function(
@@ -288,7 +298,14 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
         fidelity += Pr_i * sigma_i / rho_i
 
-    return fidelity / n_trials * d
+    estimated_fidelity = fidelity / n_trials * d
+    print('Estimated fidelity: %f' % (estimated_fidelity))
+
+    if log_output_filename:
+        sys.stdout.close()
+        sys.stdout = sys.__stdout__
+
+    return estimated_fidelity
 
 
 def parse_arguments(args):
@@ -319,23 +336,31 @@ def parse_arguments(args):
                         type=int,
                         help='Number of samples per trial or 0 if no sampling.')
 
+    parser.add_argument('--log_output_filename',
+                        default='',
+                        type=str,
+                        help='If not empty, the filename where we write the '
+                        'log of the activity. Useful when running experiments '
+                        'and we want to store data.')
+
     return vars(parser.parse_args(args))
 
 
-def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int):
+def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int,
+         log_output_filename: str):
     circuit, qubits = build_circuit()
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
-    print('Noise model: %s' % (noise))
+    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
     estimated_fidelity = direct_fidelity_estimation(
         circuit,
         qubits,
-        noise,
+        noisy_simulator,
         n_trials=n_trials,
         n_clifford_trials=n_clifford_trials,
-        samples_per_term=samples_per_term)
-    print('Estimated fidelity: %f' % (estimated_fidelity))
+        samples_per_term=samples_per_term,
+        log_output_filename=log_output_filename)
 
 
 if __name__ == '__main__':
