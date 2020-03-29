@@ -40,7 +40,7 @@ document(
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
     return all(
-        protocols.has_stabilizer_effect(op) or protocols.is_measurement(op)
+        clifford_simulator.CliffordSimulator.is_supported_operation(op)
         for op in program.all_operations())
 
 
