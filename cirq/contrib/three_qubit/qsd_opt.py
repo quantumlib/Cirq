@@ -62,7 +62,7 @@ def three_qubit_unitary_to_operations(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
 
 def _cs_to_ops(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
                theta: np.ndarray) -> List[cirq.Operation]:
-    """ Converts theta angles based Cosine Sine matrix to operations.
+    """Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
     CNOT gates and returns a circuit that skips the terminal CZ gate.
@@ -243,7 +243,7 @@ def _gamma(g):
 
 
 def _extract_right_diag(U):
-    """ Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
+    """Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
 
     Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
     two CNOT gates.
@@ -278,8 +278,10 @@ def _is_three_cnot_two_qubit_unitary(U):
     See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
     Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
     Controlled-Not Gates”. In: Quant-Ph/0308045 (2003)'
-    :param U: a two-qubit unitary
-    :return: the number of two-qubit gates required to implement the unitary
+    Args:
+        U: a two-qubit unitary
+    Returns:
+        True if U requires 3 CNOT/CZ gates.
     """
     assert np.shape(U) == (4, 4)
     assert cirq.is_unitary(U)
@@ -289,8 +291,7 @@ def _is_three_cnot_two_qubit_unitary(U):
 
 
 def _multiplexed_angles(theta):
-    """
-    Calculates the angles for a 4-way multiplexed rotation.
+    """Calculates the angles for a 4-way multiplexed rotation.
 
     For example, if we want rz(theta[i]) if the select qubits are in state
     |i>, then, multiplexed_angles returns a[i] that can be used in a circuit
@@ -302,9 +303,10 @@ def _multiplexed_angles(theta):
                               |                        |
     --------------------------@------------------------@
 
-    :param theta: the desired angles for each basis state of the select qubits
-    :return: the angles to be used in actual rotations in the
-     circuit implementation
+    Args:
+        theta: the desired angles for each basis state of the select qubits
+    Returns:
+        the angles to be used in actual rotations in the circuit implementation
     """
     return np.array([(theta[0] + theta[1] + theta[2] + theta[3]),
                      (theta[0] + theta[1] - theta[2] - theta[3]),
