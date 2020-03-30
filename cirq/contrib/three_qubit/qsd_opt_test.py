@@ -10,7 +10,8 @@ import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     _cs_to_ops, _middle_multiplexor_to_ops, \
     _decompose_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
-    _to_special, _extract_right_diag, _gamma
+    _to_special, _extract_right_diag, _gamma, _two_qubit_multiplexor_to_circuit, \
+    three_qubit_unitary_to_operations
 
 
 @pytest.mark.parametrize(["theta", "num_czs"], [
@@ -127,7 +128,6 @@ def test_middle_multiplexor(angles, num_cnots):
                                                    circuit_u1u2_mid.unitary())
 
 
-
 def _two_qubit_circuit_with_cnots(num_cnots=3):
     a, b = cirq.LineQubit.range(2)
     random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
@@ -163,7 +163,6 @@ def test_is_three_cnot_two_qubit_unitary():
         _two_qubit_circuit_with_cnots(1)._unitary_())
     assert not _is_three_cnot_two_qubit_unitary(
         np.eye(4))
-
 
 
 def test_to_special():
@@ -212,3 +211,32 @@ def _num_two_qubit_gates_in_two_qubit_unitary(U):
     if np.alltrue(np.isclose(0, np.imag(poly))):
         return 2
     return 3
+
+
+@pytest.mark.parametrize("shiftLeft", [True, False])
+def test_two_qubit_multiplexor_to_circuit(shiftLeft):
+    a, b, c = cirq.LineQubit.range(3)
+    u1 = cirq.testing.random_unitary(4)
+    u2 = cirq.testing.random_unitary(4)
+    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2,
+                                                  shiftLeft=shiftLeft)
+    expected = block_diag(u1, u2)
+    actual = c_UD.unitary(
+        qubits_that_should_be_present=[a, b, c]) @ np.kron(np.eye(2), dUD)
+    cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-8)
+
+
+@pytest.mark.parametrize("U", [
+    cirq.testing.random_unitary(8),
+    np.eye(8),
+    cirq.ControlledGate(cirq.ISWAP)._unitary_(),
+    cirq.CCX._unitary_()
+])
+def test_three_qubit_unitary_to_operations(U):
+    a, b, c = cirq.LineQubit.range(3)
+    final_circuit = three_qubit_unitary_to_operations(a, b, c, U)
+    final_unitary = final_circuit.unitary(qubits_that_should_be_present=
+                                          [a, b, c])
+    cirq.testing.assert_allclose_up_to_global_phase(U,
+                                                    final_unitary,
+                                                    atol=1e-9)

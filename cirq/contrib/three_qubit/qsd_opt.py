@@ -1,19 +1,15 @@
+import numpy as np
 from scipy.linalg import cossin
-from scipy.linalg import block_diag
 
 import cirq
-import numpy as np
-
-from cirq import two_qubit_matrix_to_operations, Circuit
+from cirq import Circuit, two_qubit_matrix_to_operations
 
 
-def three_qubit_unitary_to_operations(U):
+def three_qubit_unitary_to_operations(a, b, c, U):
     assert np.shape(U) == (8, 8)
     assert cirq.is_unitary(U)
 
     (u1, u2), theta, (v1h, v2h) = cossin(U, 4, 4, separate=True)
-
-    a, b, c = cirq.LineQubit.range(3)
 
     CS_ops = _cs_to_ops(a, b, c, theta)
     if len(CS_ops) > 0 and CS_ops[-1] == cirq.CZ(c, a):
@@ -30,31 +26,11 @@ def three_qubit_unitary_to_operations(U):
     dUD, c_UD = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2,
                                                   shiftLeft=True)
 
-    UD = block_diag(u1, u2)
-    cirq.testing.assert_allclose_up_to_global_phase(UD,
-                                                    c_UD.unitary(
-                                                        qubits_that_should_be_present=[
-                                                            a, b, c]) @ np.kron(
-                                                        np.eye(2), dUD),
-                                                    atol=1e-8)
+    _, c_VDH = _two_qubit_multiplexor_to_circuit(a, b, c, v1h, v2h,
+                                                 shiftLeft=False,
+                                                 diagonal=dUD)
 
-    dVDH, c_VDH = _two_qubit_multiplexor_to_circuit(a, b, c, v1h, v2h,
-                                                    shiftLeft=False,
-                                                    diagonal=dUD)
-
-    VDH = block_diag(v1h, v2h)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        np.kron(np.eye(2), dUD) @ VDH,
-        c_VDH.unitary(qubits_that_should_be_present=[a, b, c]),
-        atol=1e-8)
-
-    final_circuit = cirq.Circuit([c_VDH, CS_ops, c_UD])
-    cirq.testing.assert_allclose_up_to_global_phase(U,
-                                                    final_circuit.unitary(
-                                                        qubits_that_should_be_present=[
-                                                            a, b, c]),
-                                                    atol=1e-9)
-    return final_circuit
+    return cirq.Circuit([c_VDH, CS_ops, c_UD])
 
 
 def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
