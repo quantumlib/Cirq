@@ -218,9 +218,8 @@ def _num_two_qubit_gates_in_two_qubit_unitary(U):
 def test_num_two_qubit_gates(n):
     # sanity check for utility method
     a, b = cirq.LineQubit.range(2)
-    u = _two_qubit_circuit_with_cnots(n, a, b).unitary(
-        qubits_that_should_be_present=[a, b]
-    )
+    u = _two_qubit_circuit_with_cnots(
+        n, a, b).unitary(qubits_that_should_be_present=[a, b])
     assert n == _num_two_qubit_gates_in_two_qubit_unitary(u)
 
 
