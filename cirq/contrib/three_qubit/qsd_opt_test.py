@@ -28,8 +28,8 @@ def test_cs_to_ops(theta, num_czs):
     CS = _theta_to_CS(theta)
     circuit_CS = cirq.Circuit(_cs_to_ops(a, b, c, theta))
 
-    assert_almost_equal(circuit_CS.unitary(
-        qubits_that_should_be_present=[a, b, c]), CS, 10)
+    assert_almost_equal(
+        circuit_CS.unitary(qubits_that_should_be_present=[a, b, c]), CS, 10)
 
     assert (len([cz for cz in list(circuit_CS.all_operations())
                  if isinstance(cz.gate, cirq.CZPowGate)]) == num_czs), \
@@ -40,15 +40,16 @@ def test_cs_to_ops(theta, num_czs):
 def _theta_to_CS(theta):
     C = np.diag(np.cos(theta))
     S = np.diag(np.sin(theta))
-    return np.block([[C, -S],
-                     [S, C]])
+    return np.block([[C, -S], [S, C]])
 
 
 def test_multiplexed_angles():
-    theta = [random() * np.pi,
-             random() * np.pi,
-             random() * np.pi,
-             random() * np.pi]
+    theta = [
+        random() * np.pi,
+        random() * np.pi,
+        random() * np.pi,
+        random() * np.pi
+    ]
 
     angles = _multiplexed_angles(theta)
 
@@ -67,8 +68,7 @@ def test_multiplexed_angles():
     # ---------------------------------
     #
     # ---------------------------------
-    assert np.isclose(theta[0],
-                      (angles[0] + angles[1] + angles[2] + angles[3]))
+    assert np.isclose(theta[0], (angles[0] + angles[1] + angles[2] + angles[3]))
 
     # |01> on the select qubits
     #
@@ -77,8 +77,7 @@ def test_multiplexed_angles():
     # -----------------|--------------|
     #                  |              |
     # -----------------@--------------@
-    assert np.isclose(theta[1],
-                      (angles[0] + angles[1] - angles[2] - angles[3]))
+    assert np.isclose(theta[1], (angles[0] + angles[1] - angles[2] - angles[3]))
 
     # |10> on the select qubits
     #
@@ -87,8 +86,7 @@ def test_multiplexed_angles():
     # --------@---------------@------
     #
     # ---------------------------------
-    assert np.isclose(theta[2],
-                      (angles[0] - angles[1] - angles[2] + angles[3]))
+    assert np.isclose(theta[2], (angles[0] - angles[1] - angles[2] + angles[3]))
 
     # |11> on the select qubits
     #
@@ -97,31 +95,29 @@ def test_multiplexed_angles():
     # --------@---------|-------@--------|
     #                   |                |
     # ------------------@----------------@
-    assert np.isclose(theta[3],
-                      (angles[0] - angles[1] + angles[2] - angles[3]))
+    assert np.isclose(theta[3], (angles[0] - angles[1] + angles[2] - angles[3]))
 
 
-@pytest.mark.parametrize(["angles", "num_cnots"],
-                         [
-                             [([-0.2312, 0.2312, 1.43, -2.2322]), 4],
-                             [([0, 0, 0, 0]), 0],
-                             [([0.3, 0.3, 0.3, 0.3]), 0],
-                             [([0.3, -0.3, 0.3, -0.3]), 2],
-                             [([0.3, 0.3, -0.3, -0.3]), 2],
-                             [([-0.3, 0.3, 0.3, -0.3]), 4],
-                             [([-0.3, 0.3, -0.3, 0.3]), 2],
-                             [([0.3, -0.3, -0.3, -0.3]), 4],
-                             [([-0.3, 0.3, -0.3, -0.3]), 4],
-                         ])
+@pytest.mark.parametrize(["angles", "num_cnots"], [
+    [([-0.2312, 0.2312, 1.43, -2.2322]), 4],
+    [([0, 0, 0, 0]), 0],
+    [([0.3, 0.3, 0.3, 0.3]), 0],
+    [([0.3, -0.3, 0.3, -0.3]), 2],
+    [([0.3, 0.3, -0.3, -0.3]), 2],
+    [([-0.3, 0.3, 0.3, -0.3]), 4],
+    [([-0.3, 0.3, -0.3, 0.3]), 2],
+    [([0.3, -0.3, -0.3, -0.3]), 4],
+    [([-0.3, 0.3, -0.3, -0.3]), 4],
+])
 def test_middle_multiplexor(angles, num_cnots):
     a, b, c = cirq.LineQubit.range(3)
     eigvals = np.exp(np.array(angles) * np.pi * 1j)
     d = np.diag(np.sqrt(eigvals))
     mid = block_diag(d, d.conj().T)
-    circuit_u1u2_mid = cirq.Circuit(
-        _middle_multiplexor_to_ops(a, b, c, eigvals))
-    np.testing.assert_almost_equal(mid, circuit_u1u2_mid.unitary(
-        qubits_that_should_be_present=[a, b, c]))
+    circuit_u1u2_mid = cirq.Circuit(_middle_multiplexor_to_ops(
+        a, b, c, eigvals))
+    np.testing.assert_almost_equal(
+        mid, circuit_u1u2_mid.unitary(qubits_that_should_be_present=[a, b, c]))
     assert (len([cnot for cnot in list(circuit_u1u2_mid.all_operations())
                  if isinstance(cnot.gate, cirq.CNotPowGate)]) == num_cnots), \
         "expected {} CNOTs got \n {} \n {}".format(num_cnots, circuit_u1u2_mid,
@@ -132,12 +128,15 @@ def _two_qubit_circuit_with_cnots(num_cnots=3):
     a, b = cirq.LineQubit.range(2)
     random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
                                                         exponent=random())
-    one_cz = lambda: [random_one_qubit_gate().on(a),
-                      random_one_qubit_gate().on(b),
-                      cirq.CZ.on(a, b)]
-    return cirq.Circuit([random_one_qubit_gate().on(a),
-                         random_one_qubit_gate().on(b),
-                         [one_cz() for _ in range(num_cnots)]])
+    one_cz = lambda: [
+        random_one_qubit_gate().on(a),
+        random_one_qubit_gate().on(b),
+        cirq.CZ.on(a, b)
+    ]
+    return cirq.Circuit([
+        random_one_qubit_gate().on(a),
+        random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
+    ])
 
 
 @pytest.mark.parametrize("V", [
@@ -150,8 +149,9 @@ def test_decompose_to_diagonal_and_circuit(V):
     circ, diagonal = _decompose_to_diagonal_and_circuit(b, c, V)
     assert cirq.is_diagonal(diagonal)
     cirq.testing.assert_allclose_up_to_global_phase(
-        circ.unitary(qubits_that_should_be_present=[b, c]) @
-        diagonal, V, atol=1e-14)
+        circ.unitary(qubits_that_should_be_present=[b, c]) @ diagonal,
+        V,
+        atol=1e-14)
 
 
 def test_is_three_cnot_two_qubit_unitary():
@@ -161,8 +161,7 @@ def test_is_three_cnot_two_qubit_unitary():
         _two_qubit_circuit_with_cnots(2)._unitary_())
     assert not _is_three_cnot_two_qubit_unitary(
         _two_qubit_circuit_with_cnots(1)._unitary_())
-    assert not _is_three_cnot_two_qubit_unitary(
-        np.eye(4))
+    assert not _is_three_cnot_two_qubit_unitary(np.eye(4))
 
 
 def test_to_special():
@@ -172,16 +171,17 @@ def test_to_special():
     assert cirq.is_special_unitary(su)
 
 
-@pytest.mark.parametrize("U", [
-    _two_qubit_circuit_with_cnots(3).unitary(),
-    # an example where gamma(special(u))=I, so the denominator becomes 0
-    1 / np.sqrt(2) * np.array(
-        [[(1 - 1j) * 2 / np.sqrt(5), 0, 0, (1 - 1j) * 1 / np.sqrt(5)],
-         [0, 0, 1 - 1j, 0],
-         [0, 1 - 1j, 0, 0],
-         [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
-        dtype=np.complex128)
-])
+@pytest.mark.parametrize(
+    "U",
+    [
+        _two_qubit_circuit_with_cnots(3).unitary(),
+        # an example where gamma(special(u))=I, so the denominator becomes 0
+        1 / np.sqrt(2) * np.array(
+            [[(1 - 1j) * 2 / np.sqrt(5), 0, 0,
+              (1 - 1j) * 1 / np.sqrt(5)], [0, 0, 1 - 1j, 0], [0, 1 - 1j, 0, 0],
+             [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
+            dtype=np.complex128)
+    ])
 def test_extract_right_diag(U):
     assert _num_two_qubit_gates_in_two_qubit_unitary(U) == 3
     diag = _extract_right_diag(U)
@@ -201,8 +201,8 @@ def _num_two_qubit_gates_in_two_qubit_unitary(U):
     assert cirq.is_unitary(U)
     poly = np.poly(_gamma(_to_special(U)))
     # characteristic polynomial = (x+1)^4 or (x-1)^4
-    if np.allclose(poly, [1, 4, 6, 4, 1]) or np.allclose(poly,
-                                                         [1, -4, 6, -4, 1]):
+    if np.allclose(poly, [1, 4, 6, 4, 1]) or np.allclose(
+            poly, [1, -4, 6, -4, 1]):
         return 0
     # characteristic polynomial = (x+i)^2 * (x-i)^2
     if np.allclose(poly, [1, 0, 2, 0, 1]):
@@ -218,11 +218,15 @@ def test_two_qubit_multiplexor_to_circuit(shiftLeft):
     a, b, c = cirq.LineQubit.range(3)
     u1 = cirq.testing.random_unitary(4)
     u2 = cirq.testing.random_unitary(4)
-    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2,
+    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a,
+                                                  b,
+                                                  c,
+                                                  u1,
+                                                  u2,
                                                   shiftLeft=shiftLeft)
     expected = block_diag(u1, u2)
-    actual = c_UD.unitary(
-        qubits_that_should_be_present=[a, b, c]) @ np.kron(np.eye(2), dUD)
+    actual = c_UD.unitary(qubits_that_should_be_present=[a, b, c]) @ np.kron(
+        np.eye(2), dUD)
     cirq.testing.assert_allclose_up_to_global_phase(expected, actual, atol=1e-8)
 
 
@@ -235,8 +239,6 @@ def test_two_qubit_multiplexor_to_circuit(shiftLeft):
 def test_three_qubit_unitary_to_operations(U):
     a, b, c = cirq.LineQubit.range(3)
     final_circuit = cirq.Circuit(three_qubit_unitary_to_operations(a, b, c, U))
-    final_unitary = final_circuit.unitary(qubits_that_should_be_present=
-                                          [a, b, c])
-    cirq.testing.assert_allclose_up_to_global_phase(U,
-                                                    final_unitary,
-                                                    atol=1e-9)
+    final_unitary = final_circuit.unitary(
+        qubits_that_should_be_present=[a, b, c])
+    cirq.testing.assert_allclose_up_to_global_phase(U, final_unitary, atol=1e-9)

@@ -7,9 +7,7 @@ import cirq
 from cirq import Circuit, two_qubit_matrix_to_operations
 
 
-def three_qubit_unitary_to_operations(a: cirq.Qid,
-                                      b: cirq.Qid,
-                                      c: cirq.Qid,
+def three_qubit_unitary_to_operations(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
                                       U: np.ndarray) -> List[cirq.Operation]:
     """Returns operations for a 3 qubit unitary.
 
@@ -44,19 +42,25 @@ def three_qubit_unitary_to_operations(a: cirq.Qid,
         u2 = u2 @ np.kron(np.eye(2), np.array([[1, 0], [0, -1]]))
         CS_ops = CS_ops[:-1]
 
-    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2,
+    dUD, c_UD = _two_qubit_multiplexor_to_circuit(a,
+                                                  b,
+                                                  c,
+                                                  u1,
+                                                  u2,
                                                   shiftLeft=True)
 
-    _, c_VDH = _two_qubit_multiplexor_to_circuit(a, b, c, v1h, v2h,
+    _, c_VDH = _two_qubit_multiplexor_to_circuit(a,
+                                                 b,
+                                                 c,
+                                                 v1h,
+                                                 v2h,
                                                  shiftLeft=False,
                                                  diagonal=dUD)
 
     return list(cirq.Circuit([c_VDH, CS_ops, c_UD]).all_operations())
 
 
-def _cs_to_ops(a: cirq.Qid,
-               b: cirq.Qid,
-               c: cirq.Qid,
+def _cs_to_ops(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
                theta: np.ndarray) -> List[cirq.Operation]:
     """ Converts theta angles based Cosine Sine matrix to operations.
 
@@ -71,14 +75,13 @@ def _cs_to_ops(a: cirq.Qid,
     # CSD decomposition, but cirq.ry takes full angles.
     angles = _multiplexed_angles(theta * 2)
     rys = [cirq.ry(angle).on(a) for angle in angles]
-    ops = [rys[0],
-           cirq.CZ(b, a),
-           rys[1],
-           cirq.CZ(c, a),
-           rys[2],
-           cirq.CZ(b, a),
-           rys[3],
-           cirq.CZ(c, a)]
+    ops = [
+        rys[0],
+        cirq.CZ(b, a), rys[1],
+        cirq.CZ(c, a), rys[2],
+        cirq.CZ(b, a), rys[3],
+        cirq.CZ(c, a)
+    ]
     return _optimize_multiplexed_angles_circuit(ops)
 
 
@@ -112,7 +115,12 @@ def _optimize_multiplexed_angles_circuit(ops):
     return ops
 
 
-def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
+def _two_qubit_multiplexor_to_circuit(a,
+                                      b,
+                                      c,
+                                      u1,
+                                      u2,
+                                      shiftLeft=True,
                                       diagonal=np.eye(4)):
     """Converts a two qubit double multiplexor to circuit.
     Input: u1 ⊕ u2, with select qubit a (i.e. a = |0> => u1(b,c),
@@ -165,27 +173,22 @@ def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
     else:
         dW = np.eye(4)
         circuit_u1u2_L = cirq.Circuit(
-            two_qubit_matrix_to_operations(b, c, W,
-                                           allow_partial_czs=False))
+            two_qubit_matrix_to_operations(b, c, W, allow_partial_czs=False))
 
-    return dW, cirq.Circuit(
-        [circuit_u1u2_L,
-         circuit_u1u2_mid,
-         circuit_u1u2_R])
+    return dW, cirq.Circuit([circuit_u1u2_L, circuit_u1u2_mid, circuit_u1u2_R])
 
 
 def _middle_multiplexor_to_ops(a, b, c, eigvals):
     theta = np.real(np.log(np.sqrt(eigvals)) * 1j * 2)
     angles = _multiplexed_angles(theta)
     rzs = [cirq.rz(angle).on(a) for angle in angles]
-    ops = [rzs[0],
-           cirq.CNOT(b, a),
-           rzs[1],
-           cirq.CNOT(c, a),
-           rzs[2],
-           cirq.CNOT(b, a),
-           rzs[3],
-           cirq.CNOT(c, a)]
+    ops = [
+        rzs[0],
+        cirq.CNOT(b, a), rzs[1],
+        cirq.CNOT(c, a), rzs[2],
+        cirq.CNOT(b, a), rzs[3],
+        cirq.CNOT(c, a)
+    ]
     return _optimize_multiplexed_angles_circuit(ops)
 
 
@@ -199,7 +202,7 @@ def _to_special(u):
     :param u: the unitary matrix
     :return: the special unitary matrix
     """
-    return u * (np.linalg.det(u) ** (-1 / len(u)))
+    return u * (np.linalg.det(u)**(-1 / len(u)))
 
 
 def _gamma(g):
@@ -276,12 +279,10 @@ def _multiplexed_angles(theta):
     :return: the angles to be used in actual rotations in the
      circuit implementation
     """
-    return np.array(
-        [(theta[0] + theta[1] + theta[2] + theta[3]),
-         (theta[0] + theta[1] - theta[2] - theta[3]),
-         (theta[0] - theta[1] - theta[2] + theta[3]),
-         (theta[0] - theta[1] + theta[2] - theta[3])
-         ]) / 4
+    return np.array([(theta[0] + theta[1] + theta[2] + theta[3]),
+                     (theta[0] + theta[1] - theta[2] - theta[3]),
+                     (theta[0] - theta[1] - theta[2] + theta[3]),
+                     (theta[0] - theta[1] + theta[2] - theta[3])]) / 4
 
 
 def _decompose_to_diagonal_and_circuit(b, c, V):
@@ -304,11 +305,12 @@ def _decompose_to_diagonal_and_circuit(b, c, V):
         two_CNOT = V @ right_diag
         d = right_diag.conj().T
         circuit = Circuit(
-            two_qubit_matrix_to_operations(b, c, two_CNOT,
+            two_qubit_matrix_to_operations(b,
+                                           c,
+                                           two_CNOT,
                                            allow_partial_czs=False))
     else:
         d = np.eye(4)
         circuit = Circuit(
-            two_qubit_matrix_to_operations(b, c, V,
-                                           allow_partial_czs=False))
+            two_qubit_matrix_to_operations(b, c, V, allow_partial_czs=False))
     return circuit, d
