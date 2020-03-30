@@ -124,8 +124,9 @@ def test_middle_multiplexor(angles, num_cnots):
                                                    circuit_u1u2_mid.unitary())
 
 
-def _two_qubit_circuit_with_cnots(num_cnots=3):
-    a, b = cirq.LineQubit.range(2)
+def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
+    if a is None or b is None:
+        a, b = cirq.LineQubit.range(2)
     random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
                                                         exponent=random())
     one_cz = lambda: [
@@ -211,6 +212,16 @@ def _num_two_qubit_gates_in_two_qubit_unitary(U):
     if np.alltrue(np.isclose(0, np.imag(poly))):
         return 2
     return 3
+
+
+@pytest.mark.parametrize("n", range(4))
+def test_num_two_qubit_gates(n):
+    # sanity check for utility method
+    a, b = cirq.LineQubit.range(2)
+    u = _two_qubit_circuit_with_cnots(n, a, b).unitary(
+        qubits_that_should_be_present=[a, b]
+    )
+    assert n == _num_two_qubit_gates_in_two_qubit_unitary(u)
 
 
 @pytest.mark.parametrize("shiftLeft", [True, False])
