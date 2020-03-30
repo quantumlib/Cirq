@@ -4,9 +4,13 @@ from scipy.linalg import block_diag
 import cirq
 import numpy as np
 
+from cirq import two_qubit_matrix_to_operations, Circuit
+
 
 def three_qubit_unitary_to_operations(U):
     assert np.shape(U) == (8, 8)
+    assert cirq.is_unitary(U)
+
     (u1, u2), theta, (v1h, v2h) = cossin(U, 4, 4, separate=True)
 
     a, b, c = cirq.LineQubit.range(3)
@@ -150,21 +154,21 @@ def _two_qubit_multiplexor_to_circuit(a, b, c, u1, u2, shiftLeft=True,
 
     V = diagonal @ V
 
-    circuit_u1u2_R, dV = _two_qubit_matrix_to_diagonal_and_circuit(V, b, c)
+    circuit_u1u2_R, dV = _decompose_to_diagonal_and_circuit(b, c, V)
 
-    W = dV.conj().T @ W
+    W = dV @ W
 
     # if it's interesting to extract the diagonal then let's do it
     if shiftLeft:
-        circuit_u1u2_L, dW = _two_qubit_matrix_to_diagonal_and_circuit(W, b, c)
+        circuit_u1u2_L, dW = _decompose_to_diagonal_and_circuit(b, c, W)
     # if we are at the end of the circuit, then just fall back to KAK
     else:
         dW = np.eye(4)
         circuit_u1u2_L = cirq.Circuit(
-            cirq.optimizers.two_qubit_matrix_to_operations(b, c, W,
-                                                           allow_partial_czs=False))
+            two_qubit_matrix_to_operations(b, c, W,
+                                           allow_partial_czs=False))
 
-    return dW.conj().T, cirq.Circuit(
+    return dW, cirq.Circuit(
         [circuit_u1u2_L,
          circuit_u1u2_mid,
          circuit_u1u2_R])
@@ -220,7 +224,7 @@ def _extract_right_diag(U):
     https://arxiv.org/abs/quant-ph/0308033
 
     :param U: three-CNOT two-qubit unitary
-    :return: diagonal extarcted from U
+    :return: diagonal extracted from U
     """
     t = _gamma(_to_special(U).T).T.diagonal()
     k = np.real(t[0] + t[3] - t[1] - t[2])
@@ -229,7 +233,7 @@ def _extract_right_diag(U):
         # in the end we have to pick a psi that makes sure that
         # exp(-i*psi) (t[0]+t[3]) + exp(i*psi) (t[1]+t[2]) is real
         # both pi/2 or 3pi/2 can work
-        psi = np.pi/2
+        psi = np.pi / 2
     else:
         psi = np.arctan(np.imag(np.sum(t)) / k)
 
@@ -239,7 +243,17 @@ def _extract_right_diag(U):
 
 
 def _is_three_cnot_two_qubit_unitary(U):
+    """Returns true if U requires 3 CNOT/CZ gates.
+
+    See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
+    Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
+    Controlled-Not Gates”. In: Quant-Ph/0308045 (2003)'
+    :param U: a two-qubit unitary
+    :return: the number of two-qubit gates required to implement the unitary
+    """
     assert np.shape(U) == (4, 4)
+    assert cirq.is_unitary(U)
+
     poly = np.poly(_gamma(_to_special(U)))
     return not np.alltrue(np.isclose(0, np.imag(poly)))
 
@@ -270,19 +284,31 @@ def _multiplexed_angles(theta):
          ]) / 4
 
 
-def _two_qubit_matrix_to_diagonal_and_circuit(V, b, c):
+def _decompose_to_diagonal_and_circuit(b, c, V):
+    """Returns a circuit and a diagonal for 2-qubit unitary.
+
+    For a 2-qubit unitary V, return c cirq.Circuit and D diagonal unitary,
+    so that:
+        V = c.unitary() @ D
+
+    :param b, c: qubits
+    :param V: the input unitary
+    :return: circuit, D
+    """
     if cirq.is_diagonal(V, atol=1e-15):
-        circuit_u1u2_R = []
-        dV = V.conj().T
+        circuit = cirq.Circuit([])
+        d = V
     elif _is_three_cnot_two_qubit_unitary(V):
-        dV = _extract_right_diag(V)
-        V = V @ dV
-        circuit_u1u2_R = cirq.Circuit(
-            cirq.optimizers.two_qubit_matrix_to_operations(b, c, V,
-                                                           allow_partial_czs=False))
+        right_diag = _extract_right_diag(V)
+        # two-CNOT unitary
+        two_CNOT = V @ right_diag
+        d = right_diag.conj().T
+        circuit = Circuit(
+            two_qubit_matrix_to_operations(b, c, two_CNOT,
+                                           allow_partial_czs=False))
     else:
-        dV = np.eye(4)
-        circuit_u1u2_R = cirq.Circuit(
-            cirq.optimizers.two_qubit_matrix_to_operations(b, c, V,
-                                                           allow_partial_czs=False))
-    return circuit_u1u2_R, dV
+        d = np.eye(4)
+        circuit = Circuit(
+            two_qubit_matrix_to_operations(b, c, V,
+                                           allow_partial_czs=False))
+    return circuit, d

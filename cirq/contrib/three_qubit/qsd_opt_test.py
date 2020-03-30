@@ -9,7 +9,7 @@ from scipy.linalg import block_diag
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     _cs_to_ops, _middle_multiplexor_to_ops, \
-    _two_qubit_matrix_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
+    _decompose_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
     _to_special, _extract_right_diag, _gamma
 
 
@@ -127,15 +127,31 @@ def test_middle_multiplexor(angles, num_cnots):
                                                    circuit_u1u2_mid.unitary())
 
 
-def test_two_qubit_matrix_to_diagonal_and_circuit():
+
+def _two_qubit_circuit_with_cnots(num_cnots=3):
+    a, b = cirq.LineQubit.range(2)
+    random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
+                                                        exponent=random())
+    one_cz = lambda: [random_one_qubit_gate().on(a),
+                      random_one_qubit_gate().on(b),
+                      cirq.CZ.on(a, b)]
+    return cirq.Circuit([random_one_qubit_gate().on(a),
+                         random_one_qubit_gate().on(b),
+                         [one_cz() for _ in range(num_cnots)]])
+
+
+@pytest.mark.parametrize("V", [
+    cirq.unitary(_two_qubit_circuit_with_cnots(3)),
+    cirq.unitary(_two_qubit_circuit_with_cnots(2)),
+    np.diag(np.exp(1j * np.pi * np.random.random(4))),
+])
+def test_decompose_to_diagonal_and_circuit(V):
     b, c = cirq.LineQubit.range(2)
-    V = cirq.unitary(_two_qubit_circuit_with_cnots(3))
-    circ, diagonal = _two_qubit_matrix_to_diagonal_and_circuit(V, b, c)
+    circ, diagonal = _decompose_to_diagonal_and_circuit(b, c, V)
+    assert cirq.is_diagonal(diagonal)
     cirq.testing.assert_allclose_up_to_global_phase(
         circ.unitary(qubits_that_should_be_present=[b, c]) @
-        diagonal.conj().T, V, atol=1e-14)
-    # TODO test diagonal branch
-    # TODO test less than two qubit branch
+        diagonal, V, atol=1e-14)
 
 
 def test_is_three_cnot_two_qubit_unitary():
@@ -148,17 +164,6 @@ def test_is_three_cnot_two_qubit_unitary():
     assert not _is_three_cnot_two_qubit_unitary(
         np.eye(4))
 
-
-def _two_qubit_circuit_with_cnots(num_cnots=3):
-    a, b = cirq.LineQubit.range(2)
-    random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
-                                                        exponent=random())
-    one_cz = lambda: [random_one_qubit_gate().on(a),
-                      random_one_qubit_gate().on(b),
-                      cirq.CZ.on(a, b)]
-    return cirq.Circuit([random_one_qubit_gate().on(a),
-                         random_one_qubit_gate().on(b),
-                         [one_cz() for _ in range(num_cnots)]])
 
 
 def test_to_special():
