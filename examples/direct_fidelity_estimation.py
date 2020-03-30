@@ -76,7 +76,7 @@ async def estimate_characteristic_function(circuit: cirq.Circuit,
         circuit: The circuit to run the simulation on.
         pauli_string: The Pauli string.
         qubits: The list of qubits.
-        simulator: The (noisy) simulator.
+        sampler: Either a noisy simulator or an engine.
         samples_per_term: An integer greater than 0, the number of samples.
 
     Returns:
@@ -289,10 +289,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
         fidelity += Pr_i * sigma_i / rho_i
 
-    estimated_fidelity = fidelity / n_trials * d
-    print('Estimated fidelity: %f' % (estimated_fidelity))
-
-    return estimated_fidelity
+    return fidelity / n_trials * d
 
 
 def parse_arguments(args):
