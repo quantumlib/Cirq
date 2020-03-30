@@ -337,6 +337,7 @@ def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int):
         n_trials=n_trials,
         n_clifford_trials=n_clifford_trials,
         samples_per_term=samples_per_term)
+    print('Estimated fidelity: %f' % (estimated_fidelity))
 
 
 if __name__ == '__main__':
