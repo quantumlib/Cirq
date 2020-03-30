@@ -61,7 +61,7 @@ fi
 cov_changed_python_file_dirs=$(git diff --name-only "${rev}" -- \
     | grep "\.py$" \
     | grep -v "_pb2\.py$" \
-    | xargs -I {} dirname {} \
+    | xargs dirname \
     | perl -ne 'chomp(); if (-e $_) {print "--cov=$_\n"}' \
     | sort \
     | uniq \
