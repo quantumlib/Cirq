@@ -1,4 +1,4 @@
-from typing import Iterable, List
+from typing import List
 
 import numpy as np
 from scipy.linalg import cossin
@@ -22,8 +22,8 @@ def three_qubit_unitary_to_operations(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
         U: unitary matrix
 
     Returns:
-
-
+        The resulting operations will have only known two-qubit and one-qubit
+        gates based operations, namely CZ, CNOT and rx, ry, PhasedXPow gates.
     """
     assert np.shape(U) == (8, 8)
     assert cirq.is_unitary(U)
@@ -67,9 +67,11 @@ def _cs_to_ops(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
     CNOT gates and returns a circuit that skips the terminal CZ gate.
 
-    :param a, b, c: the 3 qubits in order
-    :param theta: theta returned from the Cosine Sine decomposition
-    :return: the operations
+    Args:
+        a, b, c: the 3 qubits in order
+        theta: theta returned from the Cosine Sine decomposition
+    Returns:
+         the operations
     """
     # Note: we are using *2 as the thetas are already half angles from the
     # CSD decomposition, but cirq.ry takes full angles.
@@ -86,6 +88,15 @@ def _cs_to_ops(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
 
 
 def _optimize_multiplexed_angles_circuit(ops):
+    """Removes two qubit gates that amount to identity.
+    Exploiting the specific multiplexed structure, this methods looks ahead
+    to find stripes of 3 or 4 consecutive CZ or CNOT gates and removes them.
+
+    Args:
+        ops: operations to be optimized
+    Returns:
+        the optimized operations
+    """
     circuit = cirq.Circuit(ops)
     cirq.optimizers.DropNegligible().optimize_circuit(circuit)
     if np.allclose(circuit.unitary(), np.eye(8), atol=1e-14):
@@ -143,14 +154,22 @@ def _two_qubit_multiplexor_to_circuit(a,
 
     This function, after calculating V, D and W, also returns the circuit that
     implements these unitaries: V, W on qubits b, c and the middle diagonal
-    multiplexer on a,b,c qubits. Also implements the
+    multiplexer on a,b,c qubits.
 
-    :param a,b,c: qubits
-    :param u1: two-qubit operation on b,c for a = |0>
-    :param u2: two-qubit operation on b,c for a = |1>
-    :param shiftLeft: return the extracted diagonal or not
-    :param diagonal: an incoming diagonal to be merged with
-    :return: circuit
+    The resulting circuit will have only known two-qubit and one-qubit gates,
+    namely CZ, CNOT and rx, ry, PhasedXPow gates.
+
+    Args:
+        a: first qubit
+        b: second qubit
+        c: third qubit
+        u1: two-qubit operation on b,c for a = |0>
+        u2: two-qubit operation on b,c for a = |1>
+        shiftLeft: return the extracted diagonal or not
+        diagonal: an incoming diagonal to be merged with
+    Returns:
+        The circuit implementing the two qubit multiplexor consisting only of
+        known two-qubit and single qubit gates
     """
     u1u2 = u1 @ u2.conj().T
     eigvals, V = cirq.unitary_eig(u1u2)
@@ -199,8 +218,11 @@ def _to_special(u):
         det(u * s) = det(u) * s^(d)
     To find a special unitary matrix from u:
         u * det(u)^{-1/d}
-    :param u: the unitary matrix
-    :return: the special unitary matrix
+
+    Args:
+        u: the unitary matrix
+    Returns:
+         the special unitary matrix
     """
     return u * (np.linalg.det(u)**(-1 / len(u)))
 
@@ -210,8 +232,11 @@ def _gamma(g):
 
     See Definition IV.1 in Minimal Universal Two-Qubit CNOT-based Circuits.
     https://arxiv.org/abs/quant-ph/0308033
-    :param g:
-    :return:
+
+    Args:
+        g: a member of SU(4)
+    Returns:
+        g @ yy @ g.T @ yy, where yy = Y ⊗ Y
     """
     yy = np.kron(cirq.Y._unitary_(), cirq.Y._unitary_())
     return g @ yy @ g.T @ yy
@@ -226,8 +251,10 @@ def _extract_right_diag(U):
     See Proposition V.2 in Minimal Universal Two-Qubit CNOT-based Circuits.
     https://arxiv.org/abs/quant-ph/0308033
 
-    :param U: three-CNOT two-qubit unitary
-    :return: diagonal extracted from U
+    Args:
+        U: three-CNOT two-qubit unitary
+    Returns:
+        diagonal extracted from U
     """
     t = _gamma(_to_special(U).T).T.diagonal()
     k = np.real(t[0] + t[3] - t[1] - t[2])
@@ -292,9 +319,11 @@ def _decompose_to_diagonal_and_circuit(b, c, V):
     so that:
         V = c.unitary() @ D
 
-    :param b, c: qubits
-    :param V: the input unitary
-    :return: circuit, D
+    Args:
+        b, c: qubits
+        V: the input unitary
+    Returns:
+        tuple(c,D): circuit c, and the diagonal D
     """
     if cirq.is_diagonal(V, atol=1e-15):
         circuit = cirq.Circuit([])
@@ -303,6 +332,7 @@ def _decompose_to_diagonal_and_circuit(b, c, V):
         right_diag = _extract_right_diag(V)
         # two-CNOT unitary
         two_CNOT = V @ right_diag
+        # thus, we can see that two_CNOT @ d = V
         d = right_diag.conj().T
         circuit = Circuit(
             two_qubit_matrix_to_operations(b,
