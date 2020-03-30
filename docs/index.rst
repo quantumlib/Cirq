@@ -46,7 +46,11 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Notebook sphinx generation
+    :caption: Case Studies
+
+    studies/QAOA_Demo.ipynb
+    studies/Quantum_Walk.ipynb
+    studies/Rabi_Demo.ipynb
 
 
 .. toctree::
