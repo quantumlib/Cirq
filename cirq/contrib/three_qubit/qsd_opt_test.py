@@ -234,7 +234,7 @@ def test_two_qubit_multiplexor_to_circuit(shiftLeft):
 ])
 def test_three_qubit_unitary_to_operations(U):
     a, b, c = cirq.LineQubit.range(3)
-    final_circuit = three_qubit_unitary_to_operations(a, b, c, U)
+    final_circuit = cirq.Circuit(three_qubit_unitary_to_operations(a, b, c, U))
     final_unitary = final_circuit.unitary(qubits_that_should_be_present=
                                           [a, b, c])
     cirq.testing.assert_allclose_up_to_global_phase(U,

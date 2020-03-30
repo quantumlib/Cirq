@@ -1,3 +1,5 @@
+from typing import Iterable, List
+
 import numpy as np
 from scipy.linalg import cossin
 
@@ -5,7 +7,26 @@ import cirq
 from cirq import Circuit, two_qubit_matrix_to_operations
 
 
-def three_qubit_unitary_to_operations(a, b, c, U):
+def three_qubit_unitary_to_operations(a: cirq.Qid,
+                                      b: cirq.Qid,
+                                      c: cirq.Qid,
+                                      U: np.ndarray) -> List[cirq.Operation]:
+    """Returns operations for a 3 qubit unitary.
+
+    The algorithm is described in Shende et al.:
+    Synthesis of Quantum Logic Circuits. Tech. rep. 2006,
+    https://arxiv.org/abs/quant-ph/0406176
+
+    Args:
+        a: first qubit
+        b: second qubit
+        c: third qubit
+        U: unitary matrix
+
+    Returns:
+
+
+    """
     assert np.shape(U) == (8, 8)
     assert cirq.is_unitary(U)
 
@@ -30,10 +51,13 @@ def three_qubit_unitary_to_operations(a, b, c, U):
                                                  shiftLeft=False,
                                                  diagonal=dUD)
 
-    return cirq.Circuit([c_VDH, CS_ops, c_UD])
+    return list(cirq.Circuit([c_VDH, CS_ops, c_UD]).all_operations())
 
 
-def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
+def _cs_to_ops(a: cirq.Qid,
+               b: cirq.Qid,
+               c: cirq.Qid,
+               theta: np.ndarray) -> List[cirq.Operation]:
     """ Converts theta angles based Cosine Sine matrix to operations.
 
     Using the optimization as per Appendix A.1, it uses CZ gates instead of
@@ -41,7 +65,7 @@ def _cs_to_ops(a, b, c: cirq.Qid, theta: np.ndarray):
 
     :param a, b, c: the 3 qubits in order
     :param theta: theta returned from the Cosine Sine decomposition
-    :return: the circuit
+    :return: the operations
     """
     # Note: we are using *2 as the thetas are already half angles from the
     # CSD decomposition, but cirq.ry takes full angles.
