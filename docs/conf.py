@@ -136,6 +136,7 @@ version = release  # '.'.join(release.split('.')[:2])
 # ones.
 extensions = [
     'recommonmark',
+    'nbsphinx',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.doctest',

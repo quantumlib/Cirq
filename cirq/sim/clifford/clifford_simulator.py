@@ -29,26 +29,46 @@ The quantum state is specified in two forms:
     to wavefunction amplitudes.
 """
 
-from typing import Dict, List, Iterator, Sequence
 import collections
+from typing import Dict, List, Iterator, Sequence
+
 import numpy as np
+from cirq.ops.global_phase_op import GlobalPhaseOperation
+
 import cirq
+from cirq import circuits, study, ops, protocols, value
+from cirq.ops import pauli_gates
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
+from cirq.ops.dense_pauli_string import DensePauliString
+from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
-from cirq.ops.dense_pauli_string import DensePauliString
-from cirq import circuits, study, ops, protocols, value
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
                         simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self):
+    def __init__(self, seed: value.RANDOM_STATE_LIKE = None):
+        """Creates instance of `CliffordSimulator`.
+
+        Args:
+            seed: The random seed to use for this simulator.
+        """
         self.init = True
+        self._prng = value.parse_random_state(seed)
 
     @staticmethod
-    def get_supported_gates() -> List['cirq.Gate']:
-        return [cirq.X, cirq.Y, cirq.Z, cirq.H, cirq.S, cirq.CNOT, cirq.CZ]
+    def is_supported_operation(op: 'cirq.Operation') -> bool:
+        """Checks whether given operation can be simulated by this simulator."""
+        if protocols.is_measurement(op): return True
+        if isinstance(op, GlobalPhaseOperation): return True
+        if not protocols.has_unitary(op): return False
+        u = cirq.unitary(op)
+        if u.shape == (2, 2):
+            return not SingleQubitCliffordGate.from_unitary(u) is None
+        else:
+            return op.gate in [cirq.CNOT, cirq.CZ]
 
     def _base_iterator(self, circuit: circuits.Circuit,
                        qubit_order: ops.QubitOrderOrList, initial_state: int
@@ -89,7 +109,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     elif protocols.is_measurement(op):
                         key = protocols.measurement_key(op)
                         measurements[key].extend(
-                            state.perform_measurement(op.qubits))
+                            state.perform_measurement(op.qubits, self._prng))
 
                 yield CliffordSimulatorStepResult(measurements=measurements,
                                                   state=state)
@@ -234,6 +254,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         for _ in range(repetitions):
             measurements.append(
                 self.state.perform_measurement(qubits,
+                                               value.parse_random_state(seed),
                                                collapse_wavefunction=False))
 
         return np.array(measurements, dtype=bool)
@@ -290,7 +311,11 @@ class CliffordState():
         return self.ch_form.wave_function()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        if op.gate == cirq.CNOT:
+        if len(op.qubits) == 1:
+            self.apply_single_qubit_unitary(op)
+        elif isinstance(op, GlobalPhaseOperation):
+            self.ch_form.omega *= op.coefficient
+        elif op.gate == cirq.CNOT:
             self.tableau._CNOT(self.qubit_map[op.qubits[0]],
                                self.qubit_map[op.qubits[1]])
             self.ch_form._CNOT(self.qubit_map[op.qubits[0]],
@@ -300,27 +325,58 @@ class CliffordState():
                              self.qubit_map[op.qubits[1]])
             self.ch_form._CZ(self.qubit_map[op.qubits[0]],
                              self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.Z:
-            self.tableau._Z(self.qubit_map[op.qubits[0]])
-            self.ch_form._Z(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.X:
-            self.tableau._X(self.qubit_map[op.qubits[0]])
-            self.ch_form._X(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.Y:
-            self.tableau._Y(self.qubit_map[op.qubits[0]])
-            self.ch_form._Y(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.S:
-            self.tableau._S(self.qubit_map[op.qubits[0]])
-            self.ch_form._S(self.qubit_map[op.qubits[0]])
-        elif op.gate == cirq.H:
-            self.tableau._H(self.qubit_map[op.qubits[0]])
-            self.ch_form._H(self.qubit_map[op.qubits[0]])
         else:
-            raise ValueError('%s cannot be run with Clifford simulator' %
+            raise ValueError('%s cannot be run with Clifford simulator.' %
                              str(op.gate))  # type: ignore
+
+    def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
+        qubit = self.qubit_map[op.qubits[0]]
+        # Handle H natively as optimization.
+        if op.gate == cirq.H:
+            self._apply_H(qubit)
+            return
+
+        u = unitary(op)
+        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
+        if clifford_gate is None:
+            raise ValueError('%s cannot be run with Clifford simulator.' %
+                             str(op.gate))
+
+        h = unitary(ops.H)
+        s = unitary(ops.S)
+        applied_unitary = np.eye(2)
+        for axis, quarter_turns in clifford_gate.decompose_rotation():
+            for _ in range(quarter_turns % 4):
+                if axis == pauli_gates.X:
+                    self._apply_H(qubit)
+                    self._apply_S(qubit)
+                    self._apply_H(qubit)
+                    applied_unitary = h @ s @ h @ applied_unitary
+                elif axis == pauli_gates.Y:
+                    self._apply_S(qubit)
+                    self._apply_S(qubit)
+                    self._apply_H(qubit)
+                    applied_unitary = h @ s @ s @ applied_unitary
+                else:
+                    assert axis == pauli_gates.Z
+                    self._apply_S(qubit)
+                    applied_unitary = s @ applied_unitary
+
+        max_idx = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
+        phase_shift = u[max_idx] / applied_unitary[max_idx]
+        self.ch_form.omega *= phase_shift
+
+    def _apply_H(self, qubit: ops.Qid):
+        self.tableau._H(qubit)
+        self.ch_form._H(qubit)
+
+    def _apply_S(self, qubit: ops.Qid):
+        self.tableau._S(qubit)
+        self.ch_form._S(qubit)
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
+                            prng: np.random.RandomState,
                             collapse_wavefunction=True):
         results = []
 
@@ -330,7 +386,7 @@ class CliffordState():
             state = self.copy()
 
         for qubit in qubits:
-            result = state.tableau._measure(self.qubit_map[qubit])
+            result = state.tableau._measure(self.qubit_map[qubit], prng)
             state.ch_form.project_Z(self.qubit_map[qubit], result)
             results.append(result)
 

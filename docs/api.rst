@@ -12,6 +12,7 @@ Classes for identifying the qubits and hardware you want to operate on.
 
     cirq.UNCONSTRAINED_DEVICE
     cirq.Device
+    cirq.GridQid
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
@@ -326,6 +327,7 @@ the magic methods that can be implemented.
     cirq.has_channel
     cirq.has_mixture
     cirq.has_mixture_channel
+    cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
     cirq.is_measurement
@@ -395,6 +397,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phased_x_z
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
+    cirq.stratified_circuit
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
