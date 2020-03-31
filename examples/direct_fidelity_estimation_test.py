@@ -1,9 +1,8 @@
 import numpy as np
+import pytest
 import cirq
 import cirq.google as cg
 import examples.direct_fidelity_estimation as direct_fidelity_estimation
-
-import pytest
 
 
 def test_direct_fidelity_estimation_no_noise_clifford():
@@ -71,7 +70,7 @@ def test_incorrect_sampler_raises_exception():
                                                      gate_set=[])
 
     with pytest.raises(TypeError):
-        estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
+        direct_fidelity_estimation.direct_fidelity_estimation(
             circuit,
             qubits,
             sampler_incorrect_type,
