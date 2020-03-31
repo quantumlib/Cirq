@@ -8,7 +8,7 @@ branches:
   - master
   - /^v\d+\.\d+\.\d+-dev$/
 before_install:
-- pip install --upgrade pip setuptools wheel
+- python -m pip install --upgrade pip setuptools wheel
 stages:
 - quick_test
 - test
@@ -83,6 +83,8 @@ matrix:
     script: dev_tools/build-docs.sh
   - stage: test
     os: osx
+    # this is a hack experiment until SciPy 1.5.0 comes out - my Mac where I built the wheel
+    # locally is 10.14 + xcode 11.3
     osx_image: xcode11.3
     env: NAME=pytest (macOS)
     python: '3.7'
