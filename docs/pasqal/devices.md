@@ -15,7 +15,7 @@ created via the `cirq.pasqal.ThreeDGridQubit` class.
 from cirq.pasqal import ThreeDGridQubit
 
 # An array of 9 Pasqal qubit on a square lattice in 2D
-qubit = [ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
+p_qubits = [ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
 
 ```
 
@@ -28,7 +28,7 @@ may impose some constraints on that value.
 from cirq.pasqal import PasqalDevice
 
 # A PasqalDevice with a control radius of 2.0 times the lattice spacing.
-p_device = PasqalDevice(control_radius=2.0, qubits=[qubit])
+p_device = PasqalDevice(control_radius=2.0, qubits=p_qubits)
 
 ```
 
