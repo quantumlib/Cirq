@@ -2,7 +2,7 @@
 
 This section describes the devices in Cirq for Pasqal hardware devices and their usage.
 While our hardware is currently under development, this information should give a
-better understanding of the capabilities of future Pasqal devices, powered by neutral atoms
+better understanding of the capabilities of Pasqal devices, powered by neutral atoms
 controlled by lasers. Please work contact Pasqal to obtain the latest information
 on devices that you plan to use.
 
