@@ -14,8 +14,7 @@ using your PASQAL_API_ACCESS_TOKEN.
 
 ```python
 import cirq
-from cirq import ops
-from cirq.pasqal import ThreeDGridQubit, PasqalDevice, PasqalNoiseModel, PasqalSampler
+from cirq.pasqal import ThreeDGridQubit, PasqalDevice, PasqalSampler
 
 # A simple sample circuit
 qubit = ThreeDGridQubit(0, 0, 0)
