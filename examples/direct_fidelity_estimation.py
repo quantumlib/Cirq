@@ -266,7 +266,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     if samples_per_term == 0:
         # sigma in https://arxiv.org/abs/1104.3835
         if not isinstance(sampler, cirq.DensityMatrixSimulator):
-            raise TypeError('sampler is not a cirq.DensityMatrixSimulator')
+            raise TypeError('sampler is not a cirq.DensityMatrixSimulator '
+                            'but samples_per_term is zero.')
         noisy_simulator = cast(cirq.DensityMatrixSimulator, sampler)
         noisy_density_matrix = cast(
             cirq.DensityMatrixTrialResult,

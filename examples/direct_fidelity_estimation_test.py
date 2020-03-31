@@ -1,6 +1,9 @@
 import numpy as np
 import cirq
+import cirq.google as cg
 import examples.direct_fidelity_estimation as direct_fidelity_estimation
+
+import pytest
 
 
 def test_direct_fidelity_estimation_no_noise_clifford():
@@ -57,6 +60,24 @@ def test_direct_fidelity_estimation_with_noise():
         n_clifford_trials=3,
         samples_per_term=10)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
+
+
+def test_incorrect_sampler_raises_exception():
+    qubits = cirq.LineQubit.range(1)
+    circuit = cirq.Circuit(cirq.X(qubits[0]))
+
+    sampler_incorrect_type = cg.QuantumEngineSampler(engine=None,
+                                                     processor_id='dummy_id',
+                                                     gate_set=[])
+
+    with pytest.raises(TypeError):
+        estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
+            circuit,
+            qubits,
+            sampler_incorrect_type,
+            n_trials=100,
+            n_clifford_trials=3,
+            samples_per_term=0)
 
 
 def test_same_pauli_traces_clifford():
