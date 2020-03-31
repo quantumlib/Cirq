@@ -212,7 +212,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         n_trial: The total number of Pauli measurements.
         n_clifford_trials: In case the circuit is Clifford, we specify the
             number of trials to estimate the noise-free pauli traces.
-        samples_per_term: is set to 0, we use the 'sampler' parameter above as
+        samples_per_term: if set to 0, we use the 'sampler' parameter above as
             a noise (must be of type cirq.DensityMatrixSimulator) and
             simulate noise in the circuit. If greater than 0, we instead use the
             'sampler' parameter directly to estimate the characteristic
@@ -265,7 +265,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     if samples_per_term == 0:
         # sigma in https://arxiv.org/abs/1104.3835
-        assert type(sampler) == cirq.DensityMatrixSimulator
+        if not isinstance(sampler, cirq.DensityMatrixSimulator):
+            raise TypeError('sampler is not a cirq.DensityMatrixSimulator')
         noisy_simulator = cast(cirq.DensityMatrixSimulator, sampler)
         noisy_density_matrix = cast(
             cirq.DensityMatrixTrialResult,
