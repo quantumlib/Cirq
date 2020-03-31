@@ -46,7 +46,9 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Notebook sphinx generation
+    :caption: Case Studies
+
+    studies/variational_algorithm.ipynb
 
 
 .. toctree::
