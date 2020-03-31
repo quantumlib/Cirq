@@ -8,8 +8,7 @@ branches:
   - master
   - /^v\d+\.\d+\.\d+-dev$/
 before_install:
-- python3 -m pip || wget https://bootstrap.pypa.io/get-pip.py | python3
-- pip install --upgrade pip setuptools wheel
+- pip3 install --upgrade pip setuptools wheel
 stages:
 - quick_test
 - test
