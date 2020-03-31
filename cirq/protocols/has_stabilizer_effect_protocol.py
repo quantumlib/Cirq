@@ -17,17 +17,19 @@ from typing import (
     Optional,
 )
 
+from cirq.ops.clifford_gate import SingleQubitCliffordGate
+
+from cirq import protocols
+
 
 def has_stabilizer_effect(val: Any) -> bool:
     """
-    Returns whether the input has a stabilizer effect. Currently only limits to
-    Pauli, H, S, CNOT and CZ gates and their Operations. Does not attempt to
-    decompose a gate into supported gates. For e.g. iSWAP or X**0.5 gate will
-    return False.
+    Returns whether the input has a stabilizer effect.
     """
     strats = [
         _strat_has_stabilizer_effect_from_has_stabilizer_effect,
-        _strat_has_stabilizer_effect_from_gate
+        _strat_has_stabilizer_effect_from_gate,
+        _strat_has_stabilizer_effect_from_unitary,
     ]
     for strat in strats:
         result = strat(val)
@@ -58,4 +60,17 @@ def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
     """
     if hasattr(val, 'gate'):
         return _strat_has_stabilizer_effect_from_has_stabilizer_effect(val.gate)
+    return None
+
+
+def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
+    """Attempts to infer whether val has stabilizer effect from its unitary.
+
+    Returns whether unitary of `val` normalizes Pauli group.
+    """
+    if not protocols.has_unitary(val):
+        return None
+    unitary = protocols.unitary(val)
+    if unitary.shape == (2, 2):
+        return not SingleQubitCliffordGate.from_unitary(unitary) is None
     return None
