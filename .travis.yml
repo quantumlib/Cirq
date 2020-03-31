@@ -92,7 +92,7 @@ matrix:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
-      - python -m pip install scipy-1.5.0.dev0+e70b1af-cp37-cp37m-manylinux1_x86_64.whl
+      - python -m pip install scipy-1.5.0.dev0+07cb70a-cp37-cp37m-macosx_10_14_x86_64.whl
     script: check/pytest --benchmark-skip
   - stage: test
     os: linux
