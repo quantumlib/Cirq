@@ -83,6 +83,7 @@ matrix:
     script: dev_tools/build-docs.sh
   - stage: test
     os: osx
+    osx_image: xcode11.3
     env: NAME=pytest (macOS)
     python: '3.7'
     language: generic
