@@ -75,6 +75,8 @@ matrix:
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - sudo apt-get install pandoc
+      # this is a hack experiment until SciPy 1.5.0 comes out
+      - python -m pip install scipy-1.5.0.dev0+e70b1af-cp37-cp37m-manylinux1_x86_64.whl
     script: dev_tools/build-docs.sh
   - stage: test
     os: osx
