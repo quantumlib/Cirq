@@ -89,14 +89,9 @@ matrix:
     env: NAME=pytest (macOS)
     python: '3.7'
     language: generic
-    addons:
-      homebrew:
-        packages:
-          - openblas
     install:
       - python3.7 -m venv venv
       - source venv/bin/activate
-      - brew install openblas
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
