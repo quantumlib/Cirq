@@ -33,8 +33,10 @@ p_device = PasqalDevice(control_radius=2.0, qubits=p_qubits)
 ```
 
 
-## Gate durations
+## Gates
 
-We currently specify a unique duration  of 2 micro-seconds for quantum gates in the device.
-Measurement takes much longer than other gates. Currently, the only supported configuration
-is to have terminal measurement in the final moment of a circuit.
+The Pasqal device class currently does not correspond to a specific existing device, and
+therefore accepts a broad set of gates. In the future, we will create specific devices with
+their own limited gate set. We currently specify a unique duration  of 2 micro-seconds for
+quantum gates in the device. Measurement takes much longer than other gates. Currently, the only
+supported configuration is to have terminal measurement in the final moment of a circuit.
