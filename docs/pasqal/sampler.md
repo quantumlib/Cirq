@@ -18,7 +18,7 @@ from cirq.pasqal import ThreeDGridQubit, PasqalDevice, PasqalSampler
 
 # A simple sample circuit
 qubit = ThreeDGridQubit(0, 0, 0)
-p_device = PasqalDevice(control_radius=2.1, qubits=[qubits])
+p_device = PasqalDevice(control_radius=2.1, qubits=[qubit])
 p_circuit = cirq.Circuit(device=p_device)
 p_circuit.append(cirq.X(qubit))                        # NOT gate.
 p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.

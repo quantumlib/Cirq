@@ -8,11 +8,29 @@ on devices that you plan to use.
 
 ## General limitations
 
-Qubits on Pasqal devices are laid out in a grid structure, either in 2D or 3D.
+Qubits on Pasqal devices are laid out in a grid structure, either in 2D or 3D, and can be
+created via the `cirq.pasqal.ThreeDGridQubit` class.
+
+```python
+from cirq.pasqal import ThreeDGridQubit
+
+# An array of 9 Pasqal qubit on a square lattice in 2D
+qubit = [ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
+
+```
+
 Connectivity is limited to qubits that are closer than a control radius. In the current
 version, the control radius can be chosen by the user and passed as a parameter of the
-PasqalDevice class. In the future, specific versions of the devices may impose some
-constraints on that value.
+`cirq.pasqal.PasqalDevice` class class. In the future, specific versions of the devices
+may impose some constraints on that value.
+
+```python
+from cirq.pasqal import PasqalDevice
+
+# A PasqalDevice with a control radius of 2.0 times the lattice spacing.
+p_device = PasqalDevice(control_radius=2.0, qubits=[qubit])
+
+```
 
 
 ## Gate durations
