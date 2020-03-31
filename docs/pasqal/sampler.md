@@ -35,7 +35,7 @@ results = sampler.run(p_circuit, repetitions=1000)
 
 ## Device Specification
 
-Public device specifications will been released.
+Public device specifications are not yet available.
 
 
 ## Calibration Metrics
