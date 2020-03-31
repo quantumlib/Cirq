@@ -456,6 +456,10 @@ def _can_serialize_limited_fsim(theta: float, phi: float):
     if ((_near_mod_2pi(theta, np.pi / 2) or isinstance(theta, sympy.Symbol)) and
         (_near_mod_2pi(phi, np.pi / 6)) or isinstance(phi, sympy.Symbol)):
         return True
+    # CZ
+    if ((_near_mod_2pi(theta, 0) or isinstance(theta, sympy.Symbol)) and
+        (_near_mod_2pi(phi, np.pi)) or isinstance(phi, sympy.Symbol)):
+        return True
     return False
 
 
@@ -507,7 +511,21 @@ LIMITED_FSIM_SERIALIZERS = [
         ],
         can_serialize_predicate=(lambda op: _can_serialize_limited_iswap(
             cast(ops.ISwapPowGate, op.gate).exponent))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.CZPowGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(serialized_name='theta',
+                                         serialized_type=float,
+                                         op_getter=lambda e: 0),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter=lambda e: np.pi)
+        ],
+        can_serialize_predicate=lambda op: _near_mod_2(
+            cast(ops.CZPowGate, op.gate).exponent, 1.0))
 ]
+
 
 LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='fsim',
