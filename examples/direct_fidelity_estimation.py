@@ -214,10 +214,9 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             number of trials to estimate the noise-free pauli traces.
         samples_per_term: is set to 0, we use the 'sampler' parameter above as
             a noise (must be of type cirq.DensityMatrixSimulator) and
-            simulate noise in the circuit. If greater than 0, we ignore the
-            'sampler' parameter above and instead run an estimation of the
-            characteristic function.
-
+            simulate noise in the circuit. If greater than 0, we instead use the
+            'sampler' parameter directly to estimate the characteristic
+            function.
     Returns:
         The estimated fidelity.
     """
