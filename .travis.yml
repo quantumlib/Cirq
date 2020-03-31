@@ -25,11 +25,11 @@ matrix:
   - stage: quick_test
     os: linux
     env: NAME=pytest-changed-files
-    python: '3.7'
+    python: '3.6'
     install:
     - dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
       # this is a hack experiment until SciPy 1.5.0 comes out
-    - python -m pip install scipy-1.5.0.dev0+e70b1af-cp37-cp37m-manylinux1_x86_64.whl
+    - python -m pip install scipy-1.5.0.dev0+e70b1af-cp36-cp36m-manylinux1_x86_64.whl
     script: check/pytest-changed-files
   - stage: quick_test
     os: linux
@@ -67,6 +67,7 @@ matrix:
     - python -m pip install -r requirements.txt
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
     - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+    - python -m pip install scipy-1.5.0.dev0+e70b1af-cp36-cp36m-manylinux1_x86_64.whl
     script: check/pytest-and-incremental-coverage master --actually-quiet
   - stage: test
     os: linux
@@ -91,6 +92,7 @@ matrix:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - python -m pip install scipy-1.5.0.dev0+e70b1af-cp37-cp37m-manylinux1_x86_64.whl
     script: check/pytest --benchmark-skip
   - stage: test
     os: linux
@@ -107,6 +109,7 @@ matrix:
     install:
     - python -m pip install -r requirements.txt
     - python -m pip install -r cirq/contrib/contrib-requirements.txt
+    - python -m pip install scipy-1.5.0.dev0+e70b1af-cp36-cp36m-manylinux1_x86_64.whl
     script: check/doctest -q
   - stage: test
     os: linux
