@@ -49,6 +49,9 @@ User Documentation
     :caption: Case Studies
 
     studies/variational_algorithm.ipynb
+    studies/QAOA_Demo.ipynb
+    studies/Quantum_Walk.ipynb
+    studies/Rabi_Demo.ipynb
 
 
 .. toctree::
