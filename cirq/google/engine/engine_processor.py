@@ -13,7 +13,7 @@
 # limitations under the License.
 import datetime
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Union
 from pytz import utc
 
 from cirq.google.engine.client.quantum import types as qtypes
@@ -277,23 +277,60 @@ class EngineProcessor:
 
     def get_schedule(
             self,
-            from_time: datetime.datetime = datetime.datetime.now(tz=utc),
-            to_time: datetime.datetime = datetime.datetime.now(tz=utc) +
-            datetime.timedelta(weeks=2),
-            time_slot_type: qenums.QuantumTimeSlot.TimeSlotType = None
+            from_time: Union[None, datetime.datetime, datetime.
+                             timedelta] = datetime.timedelta(),
+            to_time: Union[None, datetime.datetime, datetime.
+                           timedelta] = datetime.timedelta(weeks=2),
+            time_slot_type: Optional[qenums.QuantumTimeSlot.TimeSlotType] = None
     ) -> List[EngineTimeSlot]:
         """Retrieves the schedule for a processor.
 
         The schedule may be filtered by time.
 
         Time slot type will be supported in the future.
+
+        Args:
+            from_time: Filters the returned scheduled to only include entries that end no earlier than the given value.
+                Specified either as an absolute time (datetime.datetime) or as a time relative to now
+                (datetime.timedelta). Defaults to now (a relative time of 0). Set to None to omit this filter.
+            to_time: Filters the returned scheduled to only include entries that start no later than the given value.
+                Specified either as an absolute time (datetime.datetime) or as a time relative to now
+                (datetime.timedelta). Defaults to two weeks from now (a relative time of two weeks).
+                Set to None to omit this filter.
+            time_slot_type: Filters the returned schedule to only include entries with a given type (e.g. maintenance,
+                open swim). Defaults to None. Set to None to omit this filter.
+
+        Returns:
+            Schedule time slots.
         """
+        now = datetime.datetime.utcnow()
+
+        if from_time is None:
+            start_time = None
+        elif isinstance(from_time, datetime.timedelta):
+            start_time = now + from_time
+        elif isinstance(from_time, datetime.datetime):
+            start_time = from_time
+        else:
+            raise ValueError(
+                f"Don't understand from_time of type {type(from_time)}.")
+
+        if to_time is None:
+            end_time = None
+        elif isinstance(to_time, datetime.timedelta):
+            end_time = now + to_time
+        elif isinstance(to_time, datetime.datetime):
+            end_time = to_time
+        else:
+            raise ValueError(
+                f"Don't understand to_time of type {type(to_time)}.")
+
         filters = []
-        if from_time:
-            filters.append(f'start_time < {int(to_time.timestamp())}')
-        if to_time:
-            filters.append(f'end_time > {int(from_time.timestamp())}')
-        if time_slot_type:
+        if end_time is not None:
+            filters.append(f'start_time < {int(end_time.timestamp())}')
+        if start_time is not None:
+            filters.append(f'end_time > {int(start_time.timestamp())}')
+        if time_slot_type is not None:
             filters.append(f'time_slot_type = {time_slot_type.name}')
         filter_str = ' AND '.join(filters)
         return self.context.client.list_time_slots(self.project_id,
@@ -301,5 +338,4 @@ class EngineProcessor:
                                                    filter_str)
 
     def __str__(self):
-        return 'EngineProcessor(project_id=\'{}\', processor_id=\'{}\')'.format(
-            self.project_id, self.processor_id)
+        return f"EngineProcessor(project_id={self.project_id!r}, processor_id={self.processor_id!r})"
