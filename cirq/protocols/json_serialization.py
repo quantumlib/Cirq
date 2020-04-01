@@ -138,6 +138,7 @@ class _ResolverCache:
                 'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
+                'TwoQubitDiagonalGate': two_qubit_diagonal_gate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,

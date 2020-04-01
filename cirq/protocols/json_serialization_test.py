@@ -315,6 +315,7 @@ NOT_YET_SERIALIZABLE = [
     'Sycamore23',
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
+    'TwoQubitDiagonalGate'
     'Timestamp',
     'UnitSweep',
     'WaveFunctionSimulatorState',

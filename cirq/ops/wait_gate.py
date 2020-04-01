@@ -81,3 +81,8 @@ class WaitGate(raw_types.Gate):
 
     def _value_equality_values_(self):
         return self.duration
+
+    ## IF THERE IS A wait gate in cirq--> must call a WAIT QUIL object
+    ## NOTE -- Look deeper into a wait gate 
+    def _quil_ (self, formatter: 'cirq.QuilFormatter'):
+        return 'WAIT'

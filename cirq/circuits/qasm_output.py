@@ -265,9 +265,11 @@ class QasmOutput:
                           output_line_gap: Callable[[int], None]) -> None:
 
         def keep(op: 'cirq.Operation') -> bool:
+            print ("Keep: " + str (protocols.qasm(op, args=self.args, default=None)))
             return protocols.qasm(op, args=self.args, default=None) is not None
 
         def fallback(op):
+            print ("fallback called.")
             if len(op.qubits) not in [1, 2]:
                 return NotImplemented
 
