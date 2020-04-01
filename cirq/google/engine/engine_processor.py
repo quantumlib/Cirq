@@ -290,20 +290,24 @@ class EngineProcessor:
         Time slot type will be supported in the future.
 
         Args:
-            from_time: Filters the returned scheduled to only include entries that end no earlier than the given value.
-                Specified either as an absolute time (datetime.datetime) or as a time relative to now
-                (datetime.timedelta). Defaults to now (a relative time of 0). Set to None to omit this filter.
-            to_time: Filters the returned scheduled to only include entries that start no later than the given value.
-                Specified either as an absolute time (datetime.datetime) or as a time relative to now
-                (datetime.timedelta). Defaults to two weeks from now (a relative time of two weeks).
+            from_time: Filters the returned schedule to only include entries
+                that end no earlier than the given value. Specified either as an
+                absolute time (datetime.datetime) or as a time relative to now
+                (datetime.timedelta). Defaults to now (a relative time of 0).
                 Set to None to omit this filter.
-            time_slot_type: Filters the returned schedule to only include entries with a given type (e.g. maintenance,
-                open swim). Defaults to None. Set to None to omit this filter.
+            to_time: Filters the returned schedule to only include entries
+                that start no later than the given value. Specified either as an
+                absolute time (datetime.datetime) or as a time relative to now
+                (datetime.timedelta). Defaults to two weeks from now (a relative
+                time of two weeks). Set to None to omit this filter.
+            time_slot_type: Filters the returned schedule to only include
+                entries with a given type (e.g. maintenance, open swim).
+                Defaults to None. Set to None to omit this filter.
 
         Returns:
             Schedule time slots.
         """
-        now = datetime.datetime.utcnow()
+        now = datetime.datetime.now()
 
         if from_time is None:
             start_time = None
@@ -338,4 +342,5 @@ class EngineProcessor:
                                                    filter_str)
 
     def __str__(self):
-        return f"EngineProcessor(project_id={self.project_id!r}, processor_id={self.processor_id!r})"
+        return (f"EngineProcessor(project_id={self.project_id!r}, "
+                f"processor_id={self.processor_id!r})")
