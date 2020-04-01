@@ -58,6 +58,8 @@ matrix:
       - python -m pip install -r requirements.txt
       - python -m pip install -r cirq/contrib/contrib-requirements.txt
       - python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      # this is a hack experiment until SciPy 1.5.0 comes out
+      - python -m pip install scipy-1.5.0.dev0+eba29d6-cp37-cp37m-win_amd64.whl
     script: check/pytest --benchmark-skip
   - stage: test
     os: linux
