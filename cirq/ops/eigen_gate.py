@@ -102,6 +102,8 @@ class EigenGate(raw_types.Gate):
                 `cirq.rx(t)` uses a `global_shift` of -0.5, which is why
                 `cirq.unitary(cirq.rx(pi))` equals -iX instead of X.
         """
+        if not isinstance(exponent, (int, float, sympy.Basic)):
+            raise TypeError("Gate exponent must be real.")
         self._exponent = exponent
         self._global_shift = global_shift
         self._canonical_exponent_cached = None

@@ -88,6 +88,8 @@ def test_init():
     assert CExpZinGate(sympy.Symbol('a')).exponent == sympy.Symbol('a')
 
     assert ZGateDef(exponent=0.5).exponent == 0.5
+    with pytest.raises(TypeError):
+        assert ZGateDef(exponent=0.5j)
 
 
 def test_eq():
@@ -203,6 +205,8 @@ def test_pow():
                     global_shift=0.5)**2 == ZGateDef(
         exponent=0.5,
         global_shift=0.5)
+    with pytest.raises(TypeError):
+        assert ZGateDef(exponent=0.5)**0.5j
 
 
 def test_inverse():
