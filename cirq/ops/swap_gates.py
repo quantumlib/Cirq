@@ -20,6 +20,7 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
+
 from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
@@ -125,6 +126,17 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
+
+
+    # SwapPowGate in QUIL is equivalent to the PSWAP Gate in QUIL
+    # Might need to change what occurs in the second swap.
+    #angle?
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
+        return formatter.format('PSWAP({0}) {1} {2}\n', self._exponent, qubits[0], qubits[1])
+
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -249,6 +261,12 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return ('cirq.ISwapPowGate(exponent={}, '
                 'global_shift={!r})').format(proper_repr(self._exponent),
                                              self._global_shift)
+
+    def _quil_ (self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
+        return None #ISwapPowGate is not implemented in QUIL
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:

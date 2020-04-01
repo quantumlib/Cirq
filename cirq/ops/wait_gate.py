@@ -81,3 +81,6 @@ class WaitGate(raw_types.Gate):
 
     def _value_equality_values_(self):
         return self.duration
+
+    def _quil_ (self, formatter: 'cirq.QuilFormatter'):
+        return 'WAIT'
