@@ -26,22 +26,14 @@ User Documentation
 
     install
     tutorial.ipynb
-    circuits.ipynb
     gates.ipynb
-    noise.ipynb
+    circuits.ipynb
     simulation.ipynb
+    noise.ipynb
     devices
     qudits.ipynb
-    development
     examples
     api
-
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Developer Documentation
-
-    dev/index.rst
 
 
 .. toctree::
@@ -63,3 +55,11 @@ User Documentation
     google/specification
     google/calibration
     google/best_practices
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Developer Documentation
+
+    dev/index.rst
+    dev/development
