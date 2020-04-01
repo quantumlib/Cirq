@@ -264,7 +264,7 @@ def test_immutable_moment():
 
 
 def test_add():
-    a, b = cirq.LineQubit.range(2)
+    a, b, c = cirq.LineQubit.range(3)
     expected_circuit = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a), cirq.Y(b)])
 
     circuit1 = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a)])
@@ -274,6 +274,14 @@ def test_add():
     circuit2 = cirq.Circuit(cirq.CNOT(a, b), cirq.Y(b))
     circuit2[1] += cirq.X(a)
     assert circuit2 == expected_circuit
+
+    m1 = cirq.Moment([cirq.X(a)])
+    m2 = cirq.Moment([cirq.CNOT(a, b)])
+    m3 = cirq.Moment([cirq.X(c)])
+    assert m1 + m3 == cirq.Moment([cirq.X(a), cirq.X(c)])
+    assert m2 + m3 == cirq.Moment([cirq.CNOT(a, b), cirq.X(c)])
+    with pytest.raises(ValueError, match='Overlap'):
+        _ = m1 + m2
 
 
 def test_indexes_by_qubit():
