@@ -25,13 +25,13 @@ User Documentation
     :maxdepth: 2
 
     install
-    tutorial
-    circuits
-    gates
-    noise
-    simulation
+    tutorial.ipynb
+    circuits.ipynb
+    gates.ipynb
+    noise.ipynb
+    simulation.ipynb
     devices
-    qudits
+    qudits.ipynb
     development
     examples
     api
@@ -46,9 +46,20 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
+    :caption: Case Studies
+
+    studies/variational_algorithm.ipynb
+    studies/QAOA_Demo.ipynb
+    studies/Quantum_Walk.ipynb
+    studies/Rabi_Demo.ipynb
+
+
+.. toctree::
+    :maxdepth: 1
     :caption: Google Documentation
 
     google/devices
     google/engine
     google/specification
+    google/calibration
     google/best_practices

@@ -88,6 +88,7 @@ See the previous section for instructions.
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
     python -m pip install --upgrade pip
     python -m pip install -e .[dev_env]
+    python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
     ```
 
     (When you later open another terminal, you can activate the virtualenv with `workon cirq-py3`.)

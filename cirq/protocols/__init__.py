@@ -60,6 +60,8 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
     equal_up_to_global_phase,
     SupportsEqualUpToGlobalPhase,
 )
+from cirq.protocols.has_stabilizer_effect_protocol import (
+    has_stabilizer_effect,)
 from cirq.protocols.has_unitary_protocol import (
     has_unitary,
     SupportsExplicitHasUnitary,

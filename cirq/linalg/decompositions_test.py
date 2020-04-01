@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 from cirq import value
+from cirq import unitary_eig
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -82,6 +83,45 @@ def test_map_eigenvalues_identity(matrix):
 def test_map_eigenvalues_raise(matrix, exponent, desired):
     exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
     assert np.allclose(desired, exp_mapped)
+
+
+def _random_unitary_with_close_eigenvalues():
+    U = cirq.testing.random_unitary(4)
+    d = np.diag(np.exp([-0.2312j, -0.2312j, -0.2332j, -0.2322j]))
+    return U @ d @ U.conj().T
+
+
+@pytest.mark.parametrize(
+    'matrix',
+    [
+        X,
+        np.eye(4),
+        np.diag(
+            np.exp([-1j * np.pi * 1.23, -1j * np.pi * 1.23, -1j * np.pi * 1.23
+                   ])),
+
+        # a global phase with a tiny perturbation
+        np.diag(np.exp([-0.2312j, -0.2312j, -0.2312j, -0.2312j])) +
+        np.random.random((4, 4)) * 1e-100,
+
+        # also after a similarity transformation, demonstrating
+        # that the effect is due to close eigenvalues, not diagonality
+        _random_unitary_with_close_eigenvalues(),
+    ])
+def test_unitary_eig(matrix):
+    # np.linalg.eig(matrix) won't work for the perturbed matrix
+    d, vecs = unitary_eig(matrix)
+
+    # test both unitarity and correctness of decomposition
+    np.testing.assert_allclose(matrix,
+                               vecs @ np.diag(d) @ vecs.conj().T,
+                               atol=1e-14)
+
+
+def test_non_unitary_eig():
+    with pytest.raises(Exception):
+        unitary_eig(
+            np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 0, 1, 2], [3, 4, 5, 6]]))
 
 
 @pytest.mark.parametrize('f1,f2', [

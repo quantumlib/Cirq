@@ -102,26 +102,32 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         qubit_map: The map from qubits to diagram positions.
+        include_tags: Whether to print tags from TaggedOperations
     """
 
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
-    def __init__(self, known_qubits: Optional[Iterable['cirq.Qid']],
-                 known_qubit_count: Optional[int], use_unicode_characters: bool,
+    def __init__(self,
+                 known_qubits: Optional[Iterable['cirq.Qid']],
+                 known_qubit_count: Optional[int],
+                 use_unicode_characters: bool,
                  precision: Optional[int],
-                 qubit_map: Optional[Dict['cirq.Qid', int]]) -> None:
+                 qubit_map: Optional[Dict['cirq.Qid', int]],
+                 include_tags: bool = True) -> None:
         self.known_qubits = (None
                              if known_qubits is None else tuple(known_qubits))
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.qubit_map = qubit_map
+        self.include_tags = include_tags
 
     def _value_equality_values_(self):
         return (self.known_qubits, self.known_qubit_count,
                 self.use_unicode_characters, self.precision,
                 None if self.qubit_map is None else tuple(
-                    sorted(self.qubit_map.items(), key=lambda e: e[0])))
+                    sorted(self.qubit_map.items(), key=lambda e: e[0])),
+                self.include_tags)
 
     def __repr__(self):
         return ('cirq.CircuitDiagramInfoArgs('
@@ -129,10 +135,12 @@ class CircuitDiagramInfoArgs:
                 'known_qubit_count={!r}, '
                 'use_unicode_characters={!r}, '
                 'precision={!r}, '
-                'qubit_map={!r})'.format(self.known_qubits,
-                                         self.known_qubit_count,
-                                         self.use_unicode_characters,
-                                         self.precision, self.qubit_map))
+                'qubit_map={!r},'
+                'include_tags={!r})'.format(self.known_qubits,
+                                            self.known_qubit_count,
+                                            self.use_unicode_characters,
+                                            self.precision, self.qubit_map,
+                                            self.include_tags))
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):

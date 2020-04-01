@@ -1,0 +1,12 @@
+{
+  "cirq_type": "PasqalDevice",
+  "control_radius": 5,
+  "qubits": [
+    {
+      "cirq_type": "ThreeDGridQubit",
+      "row": 1,
+      "col": 1,
+      "lay": 1
+    }
+  ]
+}
