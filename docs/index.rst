@@ -31,6 +31,7 @@ User Documentation
     simulation.ipynb
     noise.ipynb
     devices
+    interop.ipynb
     qudits.ipynb
     examples
     api
