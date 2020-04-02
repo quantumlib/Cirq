@@ -181,7 +181,7 @@ def cz_to_quirk_op(gate: ops.CZPowGate) -> Optional[QuirkOp]:
     return z_to_quirk_op(ops.Z**gate.exponent).controlled()
 
 
-def cnot_to_quirk_op(gate: ops.CNotPowGate) -> Optional[QuirkOp]:
+def cnot_to_quirk_op(gate: ops.CXPowGate) -> Optional[QuirkOp]:
     return x_to_quirk_op(ops.X**gate.exponent).controlled()
 
 
@@ -230,8 +230,8 @@ _known_gate_conversions = cast(
         ops.XPowGate: x_to_quirk_op,
         ops.YPowGate: y_to_quirk_op,
         ops.ZPowGate: z_to_quirk_op,
+        ops.CXPowGate: cnot_to_quirk_op,
         ops.CZPowGate: cz_to_quirk_op,
-        ops.CNotPowGate: cnot_to_quirk_op,
         ops.SwapPowGate: swap_to_quirk_op,
         ops.HPowGate: h_to_quirk_op,
         ops.MeasurementGate: lambda _: QuirkOp('Measure')

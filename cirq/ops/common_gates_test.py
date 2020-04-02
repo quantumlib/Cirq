@@ -129,8 +129,8 @@ def test_z_init():
      (cirq.CX, cirq.CCX),
      (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5)),
      (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
-     (cirq.XPowGate(exponent=0.5), cirq.CNotPowGate(exponent=0.5)),
-     (cirq.CNotPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5))])
+     (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5)),
+     (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5))])
 def test_specialized_control(input_gate, specialized_output):
     # Single qubit control on the input gate gives the specialized output
     assert input_gate.controlled() == specialized_output
@@ -212,9 +212,8 @@ def test_rot_gates_eq():
                                         global_shift=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
                                         global_shift=-0.1))
-    eq.add_equality_group(cirq.CNotPowGate(),
-                          cirq.CNotPowGate(exponent=1),
-                          cirq.CNOT)
+    eq.add_equality_group(cirq.CNotPowGate(), cirq.CXPowGate(),
+                          cirq.CNotPowGate(exponent=1), cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 

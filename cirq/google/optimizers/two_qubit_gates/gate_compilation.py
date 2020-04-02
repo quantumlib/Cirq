@@ -287,13 +287,13 @@ def _tabulate_kak_vectors(
     return _TabulationStepResult(kept_kaks, kept_cycles)
 
 
-def gate_product_tabulation(
-        base_gate: np.ndarray,
-        max_infidelity: float,
-        *,
-        sample_scaling: int = 50,
-        allow_missed_points: bool = True,
-        random_state: value.RANDOM_STATE_LIKE = None) -> GateTabulation:
+def gate_product_tabulation(base_gate: np.ndarray,
+                            max_infidelity: float,
+                            *,
+                            sample_scaling: int = 50,
+                            allow_missed_points: bool = True,
+                            random_state: value.RANDOM_STATE_LIKE = None
+                           ) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:

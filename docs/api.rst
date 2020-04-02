@@ -69,10 +69,12 @@ Unitary effects that can be applied to one or more qubits.
     cirq.givens
     cirq.identity_each
     cirq.riswap
+    cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
     cirq.CSwapGate
+    cirq.CXPowGate
     cirq.CZPowGate
     cirq.ControlledGate
     cirq.ControlledOperation
@@ -507,6 +509,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
+    cirq.google.GateTabulation
     cirq.google.GreedySequenceSearchStrategy
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag

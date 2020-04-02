@@ -12,8 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import dataclasses
-import networkx as nx
-from networkx.readwrite import json_graph
 import json
 import numbers
 import pathlib
@@ -44,6 +42,7 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
+
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
@@ -59,8 +58,6 @@ class _ResolverCache:
                                           GridInteractionLayer)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
-            from cirq.google.optimizers.two_qubit_gates.gate_compilation import\
-                GateTabulation
 
             def _identity_operation_from_dict(qubits, **kwargs):
                 return cirq.identity_each(*qubits)
@@ -76,170 +73,96 @@ class _ResolverCache:
                 return cirq.MatrixGate(matrix, qid_shape=(2, 2))
 
             self._crd = {
-                'AmplitudeDampingChannel':
-                    cirq.AmplitudeDampingChannel,
+                'AmplitudeDampingChannel': cirq.AmplitudeDampingChannel,
                 'AsymmetricDepolarizingChannel':
-                    cirq.AsymmetricDepolarizingChannel,
-                'BitFlipChannel':
-                    cirq.BitFlipChannel,
-                'CCXPowGate':
-                    cirq.CCXPowGate,
-                'CCZPowGate':
-                    cirq.CCZPowGate,
-                'CNotPowGate':
-                    cirq.CNotPowGate,
-                'ControlledGate':
-                    cirq.ControlledGate,
-                'ControlledOperation':
-                    cirq.ControlledOperation,
-                'CSwapGate':
-                    cirq.CSwapGate,
-                'CZPowGate':
-                    cirq.CZPowGate,
-                'CrossEntropyResult':
-                    CrossEntropyResult,
-                'Circuit':
-                    cirq.Circuit,
-                'DepolarizingChannel':
-                    cirq.DepolarizingChannel,
-                'ConstantQubitNoiseModel':
-                    cirq.ConstantQubitNoiseModel,
-                'Duration':
-                    cirq.Duration,
-                'FSimGate':
-                    cirq.FSimGate,
-                'DensePauliString':
-                    cirq.DensePauliString,
-                'MutableDensePauliString':
-                    cirq.MutableDensePauliString,
-                'GateOperation':
-                    cirq.GateOperation,
-                'GateTabulation':
-                    GateTabulation,
+                cirq.AsymmetricDepolarizingChannel,
+                'BitFlipChannel': cirq.BitFlipChannel,
+                'CCNotPowGate': cirq.CCNotPowGate,
+                'CCXPowGate': cirq.CCXPowGate,
+                'CCZPowGate': cirq.CCZPowGate,
+                'CNotPowGate': cirq.CNotPowGate,
+                'ControlledGate': cirq.ControlledGate,
+                'ControlledOperation': cirq.ControlledOperation,
+                'CSwapGate': cirq.CSwapGate,
+                'CXPowGate': cirq.CXPowGate,
+                'CZPowGate': cirq.CZPowGate,
+                'CrossEntropyResult': CrossEntropyResult,
+                'Circuit': cirq.Circuit,
+                'DepolarizingChannel': cirq.DepolarizingChannel,
+                'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
+                'Duration': cirq.Duration,
+                'FSimGate': cirq.FSimGate,
+                'DensePauliString': cirq.DensePauliString,
+                'MutableDensePauliString': cirq.MutableDensePauliString,
+                'GateOperation': cirq.GateOperation,
+                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
-                    cirq.GeneralizedAmplitudeDampingChannel,
-                'GlobalPhaseOperation':
-                    cirq.GlobalPhaseOperation,
-                'GridInteractionLayer':
-                    GridInteractionLayer,
-                'GridQid':
-                    cirq.GridQid,
-                'GridQubit':
-                    cirq.GridQubit,
-                'HPowGate':
-                    cirq.HPowGate,
-                'ISwapPowGate':
-                    cirq.ISwapPowGate,
-                'IdentityGate':
-                    cirq.IdentityGate,
-                'IdentityOperation':
-                    _identity_operation_from_dict,
-                'LineQubit':
-                    cirq.LineQubit,
-                'LineQid':
-                    cirq.LineQid,
-                'MatrixGate':
-                    cirq.MatrixGate,
-                'MeasurementGate':
-                    cirq.MeasurementGate,
-                'Moment':
-                    cirq.Moment,
-                '_NamedConstantXmonDevice':
-                    _NamedConstantXmonDevice,
-                '_NoNoiseModel':
-                    _NoNoiseModel,
-                'NamedQubit':
-                    cirq.NamedQubit,
-                '_PauliX':
-                    cirq.ops.pauli_gates._PauliX,
-                '_PauliY':
-                    cirq.ops.pauli_gates._PauliY,
-                '_PauliZ':
-                    cirq.ops.pauli_gates._PauliZ,
-                'ParamResolver':
-                    cirq.ParamResolver,
-                'PasqalDevice':
-                    cirq.pasqal.PasqalDevice,
-                'PauliString':
-                    cirq.PauliString,
-                'PhaseDampingChannel':
-                    cirq.PhaseDampingChannel,
-                'PhaseFlipChannel':
-                    cirq.PhaseFlipChannel,
-                'PhaseGradientGate':
-                    cirq.PhaseGradientGate,
-                'PhasedISwapPowGate':
-                    cirq.PhasedISwapPowGate,
-                'PhasedXPowGate':
-                    cirq.PhasedXPowGate,
-                'PhasedXZGate':
-                    cirq.PhasedXZGate,
-                'PhysicalZTag':
-                    cirq.google.PhysicalZTag,
-                'QuantumFourierTransformGate':
-                    cirq.QuantumFourierTransformGate,
-                'ResetChannel':
-                    cirq.ResetChannel,
-                'SingleQubitMatrixGate':
-                    single_qubit_matrix_gate,
+                cirq.GeneralizedAmplitudeDampingChannel,
+                'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GridInteractionLayer': GridInteractionLayer,
+                'GridQid': cirq.GridQid,
+                'GridQubit': cirq.GridQubit,
+                'HPowGate': cirq.HPowGate,
+                'ISwapPowGate': cirq.ISwapPowGate,
+                'IdentityGate': cirq.IdentityGate,
+                'IdentityOperation': _identity_operation_from_dict,
+                'LineQubit': cirq.LineQubit,
+                'LineQid': cirq.LineQid,
+                'MatrixGate': cirq.MatrixGate,
+                'MeasurementGate': cirq.MeasurementGate,
+                'Moment': cirq.Moment,
+                '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
+                '_NoNoiseModel': _NoNoiseModel,
+                'NamedQubit': cirq.NamedQubit,
+                '_PauliX': cirq.ops.pauli_gates._PauliX,
+                '_PauliY': cirq.ops.pauli_gates._PauliY,
+                '_PauliZ': cirq.ops.pauli_gates._PauliZ,
+                'ParamResolver': cirq.ParamResolver,
+                'PasqalDevice': cirq.pasqal.PasqalDevice,
+                'PauliString': cirq.PauliString,
+                'PhaseDampingChannel': cirq.PhaseDampingChannel,
+                'PhaseFlipChannel': cirq.PhaseFlipChannel,
+                'PhaseGradientGate': cirq.PhaseGradientGate,
+                'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
+                'PhasedXPowGate': cirq.PhasedXPowGate,
+                'PhasedXZGate': cirq.PhasedXZGate,
+                'PhysicalZTag': cirq.google.PhysicalZTag,
+                'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
+                'ResetChannel': cirq.ResetChannel,
+                'SingleQubitMatrixGate': single_qubit_matrix_gate,
                 'SingleQubitPauliStringGateOperation':
-                    cirq.SingleQubitPauliStringGateOperation,
+                cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
-                    cirq.experiments.SingleQubitReadoutCalibrationResult,
-                'SwapPowGate':
-                    cirq.SwapPowGate,
-                'SycamoreGate':
-                    cirq.google.SycamoreGate,
-                'TaggedOperation':
-                    cirq.TaggedOperation,
-                'ThreeDGridQubit':
-                    cirq.pasqal.ThreeDGridQubit,
-                'TrialResult':
-                    cirq.TrialResult,
-                'TwoQubitMatrixGate':
-                    two_qubit_matrix_gate,
+                cirq.experiments.SingleQubitReadoutCalibrationResult,
+                'SwapPowGate': cirq.SwapPowGate,
+                'SycamoreGate': cirq.google.SycamoreGate,
+                'TaggedOperation': cirq.TaggedOperation,
+                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
+                'TrialResult': cirq.TrialResult,
+                'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
-                    cirq.devices.unconstrained_device._UnconstrainedDevice,
-                'WaitGate':
-                    cirq.WaitGate,
-                '_QubitAsQid':
-                    raw_types._QubitAsQid,
-                'XPowGate':
-                    cirq.XPowGate,
-                'XXPowGate':
-                    cirq.XXPowGate,
-                'YPowGate':
-                    cirq.YPowGate,
-                'YYPowGate':
-                    cirq.YYPowGate,
-                'ZPowGate':
-                    cirq.ZPowGate,
-                'ZZPowGate':
-                    cirq.ZZPowGate,
+                cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'WaitGate': cirq.WaitGate,
+                '_QubitAsQid': raw_types._QubitAsQid,
+                'XPowGate': cirq.XPowGate,
+                'XXPowGate': cirq.XXPowGate,
+                'YPowGate': cirq.YPowGate,
+                'YYPowGate': cirq.YYPowGate,
+                'ZPowGate': cirq.ZPowGate,
+                'ZZPowGate': cirq.ZZPowGate,
 
                 # not a cirq class, but treated as one:
-                'pandas.DataFrame':
-                    pd.DataFrame,
-                'pandas.Index':
-                    pd.Index,
-                'pandas.MultiIndex':
-                    pd.MultiIndex.from_tuples,
-                'sympy.Symbol':
-                    sympy.Symbol,
-                'sympy.Add':
-                    lambda args: sympy.Add(*args),
-                'sympy.Mul':
-                    lambda args: sympy.Mul(*args),
-                'sympy.Pow':
-                    lambda args: sympy.Pow(*args),
-                'sympy.Float':
-                    lambda approx: sympy.Float(approx),
-                'sympy.Integer':
-                    sympy.Integer,
-                'sympy.Rational':
-                    sympy.Rational,
-                'complex':
-                    complex,
+                'pandas.DataFrame': pd.DataFrame,
+                'pandas.Index': pd.Index,
+                'pandas.MultiIndex': pd.MultiIndex.from_tuples,
+                'sympy.Symbol': sympy.Symbol,
+                'sympy.Add': lambda args: sympy.Add(*args),
+                'sympy.Mul': lambda args: sympy.Mul(*args),
+                'sympy.Pow': lambda args: sympy.Pow(*args),
+                'sympy.Float': lambda approx: sympy.Float(approx),
+                'sympy.Integer': sympy.Integer,
+                'sympy.Rational': sympy.Rational,
+                'complex': complex,
             }
         return self._crd
 
@@ -436,10 +359,6 @@ class CirqEncoder(json.JSONEncoder):
             return bool(o)
         if isinstance(o, np.ndarray):
             return o.tolist()
-
-        # Networkx object?
-        if isinstance(o, nx.Graph):
-            return json_graph.node_link_data(o)
 
         # Pandas object?
         if isinstance(o, pd.MultiIndex):
