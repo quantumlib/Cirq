@@ -124,9 +124,15 @@ def test_via_gate_of_op():
     assert not cirq.has_stabilizer_effect(NoOp3())
 
 
-def test_from_unitary():
+def test_via_unitary():
     op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
     assert cirq.has_stabilizer_effect(op1)
 
     op2 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
     assert not cirq.has_stabilizer_effect(op2)
+
+
+def test_via_unitary_not_supported():
+    # Unitaries larger than 2x2 are not yet supported.
+    op = OpWithUnitary(cirq.unitary(cirq.CNOT))
+    assert not cirq.has_stabilizer_effect(op)
