@@ -92,7 +92,9 @@ class YesOp(EmptyOp):
     def gate(self):
         return Yes()
 
+
 class OpWithUnitary(EmptyOp):
+
     def __init__(self, unitary):
         self.unitary = unitary
 
@@ -120,6 +122,7 @@ def test_via_gate_of_op():
     assert not cirq.has_stabilizer_effect(NoOp1())
     assert not cirq.has_stabilizer_effect(NoOp2())
     assert not cirq.has_stabilizer_effect(NoOp3())
+
 
 def test_from_unitary():
     op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
