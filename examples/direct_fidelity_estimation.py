@@ -21,6 +21,8 @@ import argparse
 import asyncio
 import itertools
 from typing import cast
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Tuple
@@ -218,9 +220,11 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             'sampler' parameter directly to estimate the characteristic
             function.
     Returns:
-        The estimated fidelity.
+        The estimated fidelity and a log of the run.
     """
     # n_trials is upper-case N in https://arxiv.org/abs/1104.3835
+
+    run_log: Dict[str, Any] = {}
 
     # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835
     n_qubits = len(qubits)
@@ -233,6 +237,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             qubit_map={qubits[i]: i for i in range(len(qubits))})
         for gate in circuit.all_operations():
             clifford_state.apply_unitary(gate)
+        run_log['clifford_state'] = clifford_state
     except ValueError:
         clifford_circuit = False
 
@@ -248,6 +253,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     else:
         print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
+
+    run_log['pauli_traces'] = pauli_traces
 
     p = np.asarray([x['Pr_i'] for x in pauli_traces])
 
@@ -273,6 +280,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             cirq.DensityMatrixTrialResult,
             noisy_simulator.simulate(circuit)).final_density_matrix
 
+    run_log['trial_results'] = []
     for _ in range(n_trials):
         # Randomly sample as per probability.
         i = np.random.choice(len(pauli_traces), p=p)
@@ -290,9 +298,14 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
+        run_log['trial_results'].append({'i': i, 'sigma_i': sigma_i})
+
         fidelity += Pr_i * sigma_i / rho_i
 
-    return fidelity / n_trials * d
+    estimated_fidelity = fidelity / n_trials * d
+    run_log['estimated_fidelity'] = estimated_fidelity
+
+    return estimated_fidelity, run_log
 
 
 def parse_arguments(args):
@@ -333,7 +346,7 @@ def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int):
     print('Noise model: %s' % (noise))
     noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
-    estimated_fidelity = direct_fidelity_estimation(
+    estimated_fidelity, _ = direct_fidelity_estimation(
         circuit,
         qubits,
         noisy_simulator,
