@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import numpy as np
+
 import cirq
 
 
@@ -90,6 +92,13 @@ class YesOp(EmptyOp):
     def gate(self):
         return Yes()
 
+class OpWithUnitary(EmptyOp):
+    def __init__(self, unitary):
+        self.unitary = unitary
+
+    def _unitary_(self):
+        return self.unitary
+
 
 def test_inconclusive():
     assert not cirq.has_stabilizer_effect(object())
@@ -111,3 +120,10 @@ def test_via_gate_of_op():
     assert not cirq.has_stabilizer_effect(NoOp1())
     assert not cirq.has_stabilizer_effect(NoOp2())
     assert not cirq.has_stabilizer_effect(NoOp3())
+
+def test_from_unitary():
+    op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
+    assert cirq.has_stabilizer_effect(op1)
+
+    op2 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
+    assert not cirq.has_stabilizer_effect(op2)
