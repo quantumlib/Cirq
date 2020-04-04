@@ -131,7 +131,9 @@ def stratify_circuit(classifiers: Iterable[Classifier],
     return solution
 
 
-def _category_to_classifier(category: Category) -> Classifier:
+# No type for `category` because MyPy does not keep the return type when
+# returning a callback.
+def _category_to_classifier(category) -> Classifier:
     """Normalizes the given category into a classifier function."""
     if isinstance(category, ops.Gate):
         return lambda op: op.gate == category
