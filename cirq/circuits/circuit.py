@@ -210,7 +210,7 @@ class Circuit:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: slice) -> 'Circuit':
+    def __getitem__(self, key: slice) -> 'cirq.Circuit':
         pass
 
     @overload
