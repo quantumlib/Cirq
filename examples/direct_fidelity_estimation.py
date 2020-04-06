@@ -200,7 +200,7 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
 
 
 @dataclass
-class DFEResult:
+class DFEIntermediateResult:
     """
     A container for the various debug and run data from calling the function
     direct_fidelity_estimation(). This is useful when running a long-computation
@@ -214,14 +214,6 @@ class DFEResult:
     pauli_traces: List[Dict[str, Any]]
     # Measurement results from sampling the circuit.
     trial_results: List[Dict[str, Any]]
-    # The final estimation of the fidelity.
-    estimated_fidelity: float
-
-    def _json_dict_(self):
-        return cirq.protocols.obj_to_dict_helper(self, [
-            'clifford_state', 'pauli_traces', 'trial_results',
-            'estimated_fidelity'
-        ])
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
@@ -325,12 +317,12 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     estimated_fidelity = fidelity / n_trials * d
 
-    dfe_result = DFEResult(clifford_state=clifford_state,
-                           pauli_traces=pauli_traces,
-                           trial_results=trial_results,
-                           estimated_fidelity=estimated_fidelity)
+    dfe_intermediate_result = DFEIntermediateResult(
+        clifford_state=clifford_state,
+        pauli_traces=pauli_traces,
+        trial_results=trial_results)
 
-    return estimated_fidelity, dfe_result
+    return estimated_fidelity, dfe_intermediate_result
 
 
 def parse_arguments(args):
