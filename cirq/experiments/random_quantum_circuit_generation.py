@@ -69,7 +69,7 @@ class GridInteractionLayer(
     (0, 0) and (1, 1) in the staggered case. Other variants have the same unit
     cells after transposing and offsetting.
 
-    Attributes:
+    Args:
         col_offset: Number of columns by which to shift the basic lattice.
         vertical: Whether gates should be oriented vertically rather than
             horizontally.

@@ -23,6 +23,10 @@ recommonmark >= 0.4.0
 Sphinx
 sphinx_rtd_theme
 sphinx-markdown-tables
+# For generating notebooks in documentation
+nbsphinx
+ipython
+ipykernel
 
 # Need to pin pylint's parser to 2.1 instead of 2.2 until https://github.com/PyCQA/astroid/issues/650 is fixed
 astroid~=2.1.0

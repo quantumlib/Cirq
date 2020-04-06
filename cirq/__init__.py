@@ -76,6 +76,7 @@ from cirq.circuits import (
 from cirq.devices import (
     ConstantQubitNoiseModel,
     Device,
+    GridQid,
     GridQubit,
     LineQid,
     LineQubit,
@@ -167,6 +168,7 @@ from cirq.ops import (
     CCZ,
     CCZPowGate,
     CCNOT,
+    CCNotPowGate,
     CNOT,
     CNotPowGate,
     ControlledGate,
@@ -174,6 +176,7 @@ from cirq.ops import (
     CSWAP,
     CSwapGate,
     CX,
+    CXPowGate,
     CZ,
     CZPowGate,
     DensePauliString,
@@ -298,6 +301,7 @@ from cirq.optimizers import (
     single_qubit_matrix_to_phased_x_z,
     single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
+    stratified_circuit,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
 )
@@ -411,6 +415,7 @@ from cirq.protocols import (
     has_channel,
     has_mixture,
     has_mixture_channel,
+    has_stabilizer_effect,
     has_unitary,
     inverse,
     is_measurement,
@@ -490,5 +495,6 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    pasqal,
     testing,
 )

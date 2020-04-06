@@ -15,10 +15,13 @@
 from unittest import mock
 import datetime
 import pytest
+from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
+from google.protobuf.timestamp_pb2 import Timestamp
 import cirq.google as cg
 from cirq.google.api import v2
 from cirq.google.engine.engine import EngineContext
+from cirq.google.engine.client.quantum_v1alpha1 import enums as qenums
 from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
 
 
@@ -257,6 +260,253 @@ def test_missing_latest_calibration(get_current_calibration):
     processor = cg.EngineProcessor('a', 'p', EngineContext())
     assert not processor.get_current_calibration()
     get_current_calibration.assert_called_once_with('a', 'p')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.create_reservation')
+def test_create_reservation(create_reservation):
+    name = 'projects/proj/processors/p0/reservations/psherman-wallaby-way'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=1000000000),
+        end_time=Timestamp(seconds=1000003600),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    create_reservation.return_value = result
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor.create_reservation(
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000003600), ['dstrain@google.com'])
+    create_reservation.assert_called_once_with(
+        'proj', 'p0', datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000003600), ['dstrain@google.com'])
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
+def test_delete_reservation(delete_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=1000000000),
+        end_time=Timestamp(seconds=1000003600),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    delete_reservation.return_value = result
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor._delete_reservation('rid') == result
+    delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.cancel_reservation')
+def test_cancel_reservation(cancel_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=1000000000),
+        end_time=Timestamp(seconds=1000003600),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    cancel_reservation.return_value = result
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor._cancel_reservation('rid') == result
+    cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.delete_reservation')
+def test_remove_reservation_delete(delete_reservation, get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 20000),
+        end_time=Timestamp(seconds=now + 23610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    delete_reservation.return_value = result
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    assert processor.remove_reservation('rid') == result
+    delete_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.cancel_reservation')
+def test_remove_reservation_cancel(cancel_reservation, get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 10),
+        end_time=Timestamp(seconds=now + 3610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    cancel_reservation.return_value = result
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    assert processor.remove_reservation('rid') == result
+    cancel_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+def test_remove_reservation_not_found(get_reservation):
+    get_reservation.return_value = None
+    processor = cg.EngineProcessor(
+        'proj', 'p0', EngineContext(),
+        qtypes.QuantumProcessor(schedule_frozen_period=Duration(seconds=10000)))
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+def test_remove_reservation_failures(get_reservation, get_processor):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    now = int(datetime.datetime.now().timestamp())
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=now + 10),
+        end_time=Timestamp(seconds=now + 3610),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    get_processor.return_value = None
+
+    # no processor
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
+
+    # No freeze period defined
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext(),
+                                   qtypes.QuantumProcessor())
+    with pytest.raises(ValueError):
+        processor.remove_reservation('rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_reservation')
+def test_get_reservation(get_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=1000000000),
+        end_time=Timestamp(seconds=1000003600),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    get_reservation.return_value = result
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor.get_reservation('rid') == result
+    get_reservation.assert_called_once_with('proj', 'p0', 'rid')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.update_reservation')
+def test_update_reservation(update_reservation):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    result = qtypes.QuantumReservation(
+        name=name,
+        start_time=Timestamp(seconds=1000000000),
+        end_time=Timestamp(seconds=1000003600),
+        whitelisted_users=['dstrain@google.com'],
+    )
+    start = datetime.datetime.fromtimestamp(1000000000)
+    end = datetime.datetime.fromtimestamp(1000003600)
+    update_reservation.return_value = result
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor.update_reservation('rid', start, end,
+                                        ['dstrain@google.com']) == result
+    update_reservation.assert_called_once_with(
+        'proj',
+        'p0',
+        'rid',
+        start=start,
+        end=end,
+        whitelisted_users=['dstrain@google.com'])
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
+def test_list_reservation(list_reservations):
+    name = 'projects/proj/processors/p0/reservations/rid'
+    results = [
+        qtypes.QuantumReservation(
+            name=name,
+            start_time=Timestamp(seconds=1000000000),
+            end_time=Timestamp(seconds=1000003600),
+            whitelisted_users=['dstrain@google.com'],
+        ),
+        qtypes.QuantumReservation(
+            name=name + '2',
+            start_time=Timestamp(seconds=1000003600),
+            end_time=Timestamp(seconds=1000007200),
+            whitelisted_users=['wcourtney@google.com'],
+        ),
+    ]
+    list_reservations.return_value = results
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor.list_reservations(
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000010000)) == results
+    list_reservations.assert_called_once_with(
+        'proj', 'p0', 'start_time < 1000010000 AND end_time > 1000000000')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+def test_get_schedule(list_time_slots):
+    results = [
+        qtypes.QuantumTimeSlot(
+            processor_name='potofgold',
+            start_time=Timestamp(seconds=1000020000),
+            end_time=Timestamp(seconds=1000040000),
+            slot_type=qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
+                title='Testing',
+                description='Testing some new configuration.',
+            ),
+        ),
+        qtypes.QuantumTimeSlot(
+            processor_name='potofgold',
+            start_time=Timestamp(seconds=1000010000),
+            end_time=Timestamp(seconds=1000020000),
+            slot_type=qenums.QuantumTimeSlot.TimeSlotType.RESERVATION,
+            reservation_config=qtypes.QuantumTimeSlot.ReservationConfig(
+                project_id='super_secret_quantum'),
+        )
+    ]
+    list_time_slots.return_value = results
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+    assert processor.get_schedule(
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000050000)) == results
+    list_time_slots.assert_called_once_with(
+        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+def test_get_schedule_filter_by_time_slot(list_time_slots):
+    results = [
+        qtypes.QuantumTimeSlot(
+            processor_name='potofgold',
+            start_time=Timestamp(seconds=1000020000),
+            end_time=Timestamp(seconds=1000040000),
+            slot_type=qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE,
+            maintenance_config=qtypes.QuantumTimeSlot.MaintenanceConfig(
+                title='Testing',
+                description='Testing some new configuration.',
+            ),
+        )
+    ]
+    list_time_slots.return_value = results
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+
+    assert processor.get_schedule(
+        datetime.datetime.fromtimestamp(1000000000),
+        datetime.datetime.fromtimestamp(1000050000),
+        qenums.QuantumTimeSlot.TimeSlotType.MAINTENANCE) == results
+    list_time_slots.assert_called_once_with(
+        'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000 AND ' +
+        'time_slot_type = MAINTENANCE')
 
 
 def test_str():
