@@ -35,7 +35,7 @@ def _to_special(u: np.ndarray) -> np.ndarray:
     Returns:
         the special unitary matrix
     """
-    return u * (np.linalg.det(u) ** (-1 / len(u)))
+    return u * (np.linalg.det(u)**(-1 / len(u)))
 
 
 def _gamma(u: np.ndarray) -> np.ndarray:
