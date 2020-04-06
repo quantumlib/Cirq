@@ -19,6 +19,7 @@ the function build_circuit()) and a noise (defines in the variable noise).
 
 import argparse
 import asyncio
+from dataclasses import dataclass
 import itertools
 from typing import cast
 from typing import Any
@@ -198,6 +199,31 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
+@dataclass
+class DFEResult:
+    """
+    A container for the various debug and run data from calling the function
+    direct_fidelity_estimation(). This is useful when running a long-computation
+    on an actual computer, which is expensive. This way, runs can be more easily
+    debugged offline.
+    """
+    # If the circuit is Clifford, the list of Clifford basis states. Otherwise
+    # it is None.
+    clifford_state: Optional[cirq.CliffordState]
+    # The list of Pauli traces we can sample from.
+    pauli_traces: List[Dict[str, Any]]
+    # Measurement results from sampling the circuit.
+    trial_results: List[Dict[str, Any]]
+    # The final estimation of the fidelity.
+    estimated_fidelity: float
+
+    def _json_dict_(self):
+        return cirq.protocols.obj_to_dict_helper(self, [
+            'clifford_state', 'pauli_traces', 'trial_results',
+            'estimated_fidelity'
+        ])
+
+
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                sampler: cirq.Sampler, n_trials: int,
                                n_clifford_trials: int, samples_per_term: int):
@@ -224,8 +250,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     """
     # n_trials is upper-case N in https://arxiv.org/abs/1104.3835
 
-    run_log: Dict[str, Any] = {}
-
     # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835
     n_qubits = len(qubits)
     d = 2**n_qubits
@@ -237,7 +261,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             qubit_map={qubits[i]: i for i in range(len(qubits))})
         for gate in circuit.all_operations():
             clifford_state.apply_unitary(gate)
-        run_log['clifford_state'] = clifford_state
     except ValueError:
         clifford_circuit = False
 
@@ -253,8 +276,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     else:
         print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
-
-    run_log['pauli_traces'] = pauli_traces
 
     p = np.asarray([x['Pr_i'] for x in pauli_traces])
 
@@ -280,7 +301,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             cirq.DensityMatrixTrialResult,
             noisy_simulator.simulate(circuit)).final_density_matrix
 
-    run_log['trial_results'] = []
+    trial_results = []
     for _ in range(n_trials):
         # Randomly sample as per probability.
         i = np.random.choice(len(pauli_traces), p=p)
@@ -298,14 +319,18 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
-        run_log['trial_results'].append({'i': i, 'sigma_i': sigma_i})
+        trial_results.append({'i': i, 'sigma_i': sigma_i})
 
         fidelity += Pr_i * sigma_i / rho_i
 
     estimated_fidelity = fidelity / n_trials * d
-    run_log['estimated_fidelity'] = estimated_fidelity
 
-    return estimated_fidelity, run_log
+    dfe_result = DFEResult(clifford_state=clifford_state,
+                           pauli_traces=pauli_traces,
+                           trial_results=trial_results,
+                           estimated_fidelity=estimated_fidelity)
+
+    return estimated_fidelity, dfe_result
 
 
 def parse_arguments(args):
