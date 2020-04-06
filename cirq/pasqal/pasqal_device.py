@@ -67,11 +67,11 @@ class PasqalDevice(cirq.devices.Device):
 
         valid_1q_op = isinstance(
             op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
-                      cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
+                      cirq.ops.HPowGate, cirq.ops.XPowGate,
                       cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
         valid_2q_op = isinstance(op.gate,
-                                 (cirq.ops.CXPowGate, cirq.ops.CZPowGate))
+                                 (cirq.ops.CNotPowGate, cirq.ops.CZPowGate))
 
         valid_2q_op &= (op.gate.exponent == 1) if valid_2q_op else False
         return valid_1q_op or valid_2q_op
