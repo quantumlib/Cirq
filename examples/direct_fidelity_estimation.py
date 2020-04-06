@@ -95,6 +95,57 @@ async def estimate_characteristic_function(circuit: cirq.Circuit,
     return sigma_i
 
 
+def _randomly_sample_from_stabilizer_bases(
+        stabilizer_basis: List[cirq.DensePauliString], n_clifford_trials: int,
+        n_qubits: int):
+    """
+    Given a stabilizer basis, randomly creates Pauli states by including the
+    basis vector or not.
+
+    Args:
+        stabilizer_basis: A list of Pauli strings that is the stabilizer basis
+            to sample from.
+        n_clifford_trials: An integer that is the number of samples to return.
+        n_qubits: An integer that is the number of qubits.
+
+    Returns:
+        A list of Pauli strings that is the Pauli states built.
+    """
+    dense_pauli_strings = []
+    for _ in range(n_clifford_trials):
+        # Build the Pauli string as a random sample of the basis elements.
+        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+        for stabilizer in stabilizer_basis:
+            if np.random.randint(2) == 1:
+                dense_pauli_string *= stabilizer
+        dense_pauli_strings.append(dense_pauli_string)
+    return dense_pauli_strings
+
+
+def _enumerate_all_from_stabilizer_bases(
+        stabilizer_basis: List[cirq.DensePauliString], n_qubits: int):
+    """
+    Given a stabilizer basis, creates the exhaustive list of Pauli states that
+    are spanned by the basis.
+
+    Args:
+        stabilizer_basis: A list of Pauli strings that is the stabilizer basis
+            to build all the Pauli strings.
+        n_qubits: An integer that is the number of qubits.
+
+    Returns:
+        A list of Pauli strings that is the Pauli states built.
+    """
+    dense_pauli_strings = []
+    for coefficients in itertools.product([False, True], repeat=n_qubits):
+        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+        for (keep, stabilizer) in zip(coefficients, stabilizer_basis):
+            if keep:
+                dense_pauli_string *= stabilizer
+        dense_pauli_strings.append(dense_pauli_string)
+    return dense_pauli_strings
+
+
 def _estimate_pauli_traces_clifford(n_qubits: int,
                                     clifford_state: cirq.CliffordState,
                                     n_clifford_trials: Optional[int]):
@@ -127,26 +178,14 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     # example, if we have n=3 qubits, then we should have 2**n=8 Pauli
     # states that we can sample, but the basis will still have 3 entries. We
     # must flip a coin for each, whether or not to include them.
-    stabilizer_basis = clifford_state.stabilizers()
+    stabilizer_basis: List[cirq.DensePauliString] = clifford_state.stabilizers()
 
-    dense_pauli_strings = []
     if n_clifford_trials is not None:
-        # Randomly sample the trials
-        for _ in range(n_clifford_trials):
-            # Build the Pauli string as a random sample of the basis elements.
-            dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
-            for stabilizer in stabilizer_basis:
-                if np.random.randint(2) == 1:
-                    dense_pauli_string *= stabilizer
-            dense_pauli_strings.append(dense_pauli_string)
+        dense_pauli_strings = _randomly_sample_from_stabilizer_bases(
+            stabilizer_basis, n_clifford_trials, n_qubits)
     else:
-        # Enumerate all the Clifford states.
-        for coefficients in itertools.product([False, True], repeat=n_qubits):
-            dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
-            for (keep, stabilizer) in zip(coefficients, stabilizer_basis):
-                if keep:
-                    dense_pauli_string *= stabilizer
-            dense_pauli_strings.append(dense_pauli_string)
+        dense_pauli_strings = _enumerate_all_from_stabilizer_bases(
+            stabilizer_basis, n_qubits)
 
     pauli_traces = []
     for dense_pauli_string in dense_pauli_strings:
