@@ -37,6 +37,9 @@ def test_init_errors():
     with pytest.raises(TypeError, match="Unsupported qubit type"):
         PasqalDevice(qubits=line)
 
+    with pytest.raises(ValueError, match='needs at least one qubit.'):
+        generic_device(0)
+
 
 def test_decompose_error():
     d = generic_device(2)
@@ -75,7 +78,7 @@ def test_validate_operation_errors():
         d.validate_operation((cirq.ops.H**0.2).on(cirq.NamedQubit('q0')))
 
     with pytest.raises(ValueError,
-                       match="is not a named qubit for gate cirq.X"):
+                       match="is not a valid qubit for gate cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))
 
     with pytest.raises(ValueError, match='All qubits have to be measured at '
@@ -103,6 +106,7 @@ def test_repr():
 def test_to_json():
     dev = cirq.pasqal.PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
+    print(d)
     assert d == {
         "cirq_type": "PasqalDevice",
         "qubits": [cirq.NamedQubit('q4')]

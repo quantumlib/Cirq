@@ -34,11 +34,18 @@ class PasqalDevice(cirq.devices.Device):
             TypeError: if the wrong qubit type is provided.
         """
 
+        if len(qubits) == 0:
+            raise ValueError('A PasqalDevice needs at least one qubit.')
+
         for q in qubits:
-            if not isinstance(q, NamedQubit):
+            if not isinstance(q, self.supported_qubit_type):
                 raise TypeError('Unsupported qubit type: {!r}'.format(q))
 
         self.qubits = qubits
+
+    @property
+    def supported_qubit_type(self):
+        return (NamedQubit,)
 
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
@@ -98,8 +105,8 @@ class PasqalDevice(cirq.devices.Device):
 
         all_qubits = self.qubit_list()
         for qub in operation.qubits:
-            if not isinstance(qub, NamedQubit):
-                raise ValueError('{} is not a named qubit '
+            if not isinstance(qub, self.supported_qubit_type):
+                raise ValueError('{} is not a valid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
             try:
                 all_qubits.remove(qub)
@@ -144,53 +151,53 @@ class PasqalVirtualDevice(PasqalDevice):
             ValueError: if the wrong qubit type is provided or if invalid
                 parameter is provided for control_radius. """
 
-        for q in qubits:
-            if not isinstance(q, ThreeDQubit):
-                raise TypeError('Unsupported qubit type: {!r}'.format(q))
-
-
-        self.qubits = qubits
+        super().__init__(qubits)
 
         if not control_radius >= 0:
             raise ValueError('control_radius needs to be a non-negative float')
 
-        # Ask Lucas and Adrien for this number
-        if control_radius >= 5.* self.minimal_distance():
-            raise ValueError('control_radius cannot be larger than 5 times the '
-                             'minimal distance between qubits')
+        if len(self.qubits) > 1:
+            # Ask Lucas and Adrien for this number
+            if control_radius >= 5. * self.minimal_distance():
+                raise ValueError('control_radius cannot be larger than 5 times'
+                                 ' the minimal distance between qubits.')
 
         self.control_radius = control_radius
 
+    @property
+    def supported_qubit_type(self):
+        return (ThreeDQubit,)
 
     def validate_operation(self, operation: cirq.ops.Operation):
-        """
-        Raises an error if the given operation is invalid on this device.
+        """Raises an error if the given operation is invalid on this device.
+
         Args:
             operation: the operation to validate
         Raises:
             ValueError: If the operation is not valid
         """
-        if not isinstance(operation,
-                          (cirq.GateOperation, cirq.ParallelGateOperation)):
-            raise ValueError("Unsupported operation")
-
-        if not self.is_pasqal_device_op(operation):
-            raise ValueError('{!r} is not a supported '
-                             'gate'.format(operation.gate))
-
-        # All qubits the operation acts on must be on the device
-        for q in operation.qubits:
-            if q not in self.qubits:
-                raise ValueError('Qubit not on device: {!r}'.format(q))
-
-        if isinstance(operation.gate,
-                      (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-            return
-
-        for qub in operation.qubits:
-            if not isinstance(qub, ThreeDQubit):
-                raise ValueError('{} is not a 3D qubit '
-                                 'for gate {!r}'.format(qub, operation.gate))
+        super().validate_operation(operation)
+        # if not isinstance(operation,
+        #                   (cirq.GateOperation, cirq.ParallelGateOperation)):
+        #     raise ValueError("Unsupported operation")
+        #
+        # if not self.is_pasqal_device_op(operation):
+        #     raise ValueError('{!r} is not a supported '
+        #                      'gate'.format(operation.gate))
+        #
+        # # All qubits the operation acts on must be on the device
+        # for q in operation.qubits:
+        #     if q not in self.qubits:
+        #         raise ValueError('Qubit not on device: {!r}'.format(q))
+        #
+        # if isinstance(operation.gate,
+        #               (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
+        #     return
+        #
+        # for qub in operation.qubits:
+        #     if not isinstance(qub, ThreeDQubit):
+        #         raise ValueError('{} is not a 3D qubit '
+        #                          'for gate {!r}'.format(qub, operation.gate))
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
@@ -223,6 +230,9 @@ class PasqalVirtualDevice(PasqalDevice):
         Returns:
             The minimal distance between qubits, in spacial coordinate units.
         """
+        if len(self.qubits) <= 1:
+            raise ValueError("There is no minimal distance for a single-qubit.")
+
         return min([self.distance(q1, q2) for q1 in self.qubits
                     for q2 in self.qubits if q1 != q2])
 
