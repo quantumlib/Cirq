@@ -108,6 +108,22 @@ def test_parrallelep():
     ]
 
 
+def test_triangular():
+    assert ThreeDGridQubit.triangular_lattice(1) == [
+        ThreeDGridQubit(0.0, 0.0, 0),
+        ThreeDGridQubit(0.5, 0.8660254037844386, 0),
+        ThreeDGridQubit(1.0, 0.0, 0),
+        ThreeDGridQubit(1.5, 0.8660254037844386, 0)
+    ]
+
+    assert ThreeDGridQubit.triangular_lattice(1, top=5., left=6.1) == [
+        ThreeDGridQubit(5.0, 6.1, 0),
+        ThreeDGridQubit(5.5, 6.966025403784438, 0),
+        ThreeDGridQubit(6.0, 6.1, 0),
+        ThreeDGridQubit(6.5, 6.966025403784438, 0)
+    ]
+
+
 def test_pasqal_qubit_ordering():
 
     for i in range(8):
@@ -131,44 +147,6 @@ def test_distance():
             for z in np.arange(-2, 3):
                 assert ThreeDGridQubit(0, 0, 0).distance(
                     ThreeDGridQubit(x, y, z)) == np.sqrt(x**2 + y**2 + z**2)
-
-
-def test_pasqal_qubit_is_adjacent():
-
-    for ind in range(3):
-        v = [0, 0, 0]
-        for x in [-1, 1]:
-            v[ind] = 1
-            assert ThreeDGridQubit(0, 0, 0).is_adjacent(
-                ThreeDGridQubit(v[0], v[1], v[2]))
-            for u in [[x, y] for y in [-1, 1]]:
-                u.insert(ind, 0)
-                assert not ThreeDGridQubit(0, 0, 0).is_adjacent(
-                    ThreeDGridQubit(u[0], u[1], u[2]))
-
-    assert not ThreeDGridQubit(0, 0, 0).is_adjacent(ThreeDGridQubit(2, 0, 0))
-
-    assert (ThreeDGridQubit(500, 999,
-                            1500).is_adjacent(ThreeDGridQubit(501, 999, 1500)))
-    assert not (ThreeDGridQubit(500, 999, 1500).is_adjacent(
-        ThreeDGridQubit(5034, 999, 1500)))
-
-
-def test_pasqal_qubit_neighbors():
-    expected = {
-        ThreeDGridQubit(1, 1, 2),
-        ThreeDGridQubit(1, 2, 1),
-        ThreeDGridQubit(2, 1, 1),
-        ThreeDGridQubit(0, 1, 1),
-        ThreeDGridQubit(1, 0, 1),
-        ThreeDGridQubit(1, 1, 0)
-    }
-    assert ThreeDGridQubit(1, 1, 1).neighbors() == expected
-
-    # Restrict to a list of qubits
-    restricted_qubits = [ThreeDGridQubit(2, 1, 1), ThreeDGridQubit(2, 2, 1)]
-    expected2 = {ThreeDGridQubit(2, 1, 1)}
-    assert ThreeDGridQubit(1, 1, 1).neighbors(restricted_qubits) == expected2
 
 
 def test_repr():
@@ -211,11 +189,11 @@ def test_pasqal_qubit_unsupported_add():
 
 
 def test_to_json():
-    q = ThreeDGridQubit(1, 1, 1)
+    q = ThreeDGridQubit(1.3, 1, 1)
     d = q._json_dict_()
     assert d == {
         'cirq_type': 'ThreeDGridQubit',
-        'row': 1,
+        'row': 1.3,
         'col': 1,
         'lay': 1,
     }
