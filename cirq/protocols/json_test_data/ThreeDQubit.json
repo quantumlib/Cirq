@@ -1,5 +1,5 @@
 {
-  "cirq_type": "ThreeDGridQubit",
+  "cirq_type": "ThreeDQubit",
   "row": 10,
   "col": 11,
   "lay": 12

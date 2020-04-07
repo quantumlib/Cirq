@@ -43,7 +43,7 @@ def _make_sampler() -> cirq.pasqal.PasqalSampler:
 
 
 def test_pasqal_circuit_init():
-    qs = cirq.pasqal.ThreeDGridQubit.square(3)
+    qs = cirq.pasqal.ThreeDQubit.square(3)
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
                         cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
@@ -65,7 +65,7 @@ def test_run_sweep(mock_post, mock_get):
     """
 
     qs = [
-        cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)
+        cirq.pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)
     ]
 
     par = sympy.Symbol('par')
