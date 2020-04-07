@@ -1,6 +1,6 @@
 {
   "cirq_type": "ThreeDQubit",
-  "row": 10,
-  "col": 11,
-  "lay": 12
+  "x": 10,
+  "y": 11,
+  "z": 12
 }

@@ -34,9 +34,6 @@ class PasqalDevice(cirq.devices.Device):
             TypeError: if the wrong qubit type is provided.
         """
 
-        if len(qubits) == 0:
-            raise ValueError('A PasqalDevice needs at least one qubit.')
-
         for q in qubits:
             if not isinstance(q, self.supported_qubit_type):
                 raise TypeError('Unsupported qubit type: {!r}'.format(q))
@@ -129,8 +126,6 @@ class PasqalDevice(cirq.devices.Device):
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['qubits'])
-
-
 
 
 class PasqalVirtualDevice(PasqalDevice):
