@@ -57,11 +57,11 @@ def test_decompose_error():
     with pytest.raises(TypeError):
         d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
     # It has to be made into one
-    assert PasqalDevice.is_pasqal_device_op(
+    assert d.is_pasqal_device_op(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
                                [cirq.NamedQubit('q0')]))
 
-    assert PasqalDevice.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
+    assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
 
 
 def test_validate_operation_errors():

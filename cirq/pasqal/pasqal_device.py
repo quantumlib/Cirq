@@ -53,14 +53,13 @@ class PasqalDevice(cirq.devices.Device):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
         # Try to decompose the operation into elementary device operations
-        if not PasqalDevice.is_pasqal_device_op(operation):
-            decomposition = PasqalConverter().convert(
-                operation, keep=PasqalDevice.is_pasqal_device_op)
+        if not self.is_pasqal_device_op(operation):
+            decomposition = PasqalConverter().pasqal_convert(
+                operation, keep=self.is_pasqal_device_op)
 
         return decomposition
 
-    @staticmethod
-    def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
 
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
@@ -90,7 +89,7 @@ class PasqalDevice(cirq.devices.Device):
                           (cirq.GateOperation, cirq.ParallelGateOperation)):
             raise ValueError("Unsupported operation")
 
-        if not PasqalDevice.is_pasqal_device_op(operation):
+        if not self.is_pasqal_device_op(operation):
             raise ValueError('{!r} is not a supported '
                              'gate'.format(operation.gate))
 
@@ -98,10 +97,6 @@ class PasqalDevice(cirq.devices.Device):
             if not isinstance(qub, NamedQubit):
                 raise ValueError('{} is not a named qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
-
-        if isinstance(operation.gate,
-                      (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-            return
 
     def __repr__(self):
         return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
@@ -114,10 +109,15 @@ class PasqalDevice(cirq.devices.Device):
 
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
+    """A gate converter for compatibility with Pasqal processors.
 
-    def convert(self, op: cirq.ops.Operation,
-                keep: Callable[[cirq.ops.Operation],
-                               bool]) -> List[cirq.ops.Operation]:
+    Modified version of ConvertToNeutralAtomGates, in which the 'converter'
+    method takes the 'keep' function as an input.
+    """
+
+    def pasqal_convert(self, op: cirq.ops.Operation,
+                       keep: Callable[[cirq.ops.Operation],
+                                      bool]) -> List[cirq.ops.Operation]:
         def on_stuck_raise(bad):
             return TypeError(
                 "Don't know how to work with {!r}. "
