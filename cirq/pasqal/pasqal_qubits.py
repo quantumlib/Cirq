@@ -37,10 +37,10 @@ class ThreeDGridQubit(cirq.ops.Qid):
         pasqal.ThreeDGridQubit(1.4, 1.1, 2.7)
     """
 
-    def __init__(self, row: float, col: float, lay: float):
-        self.x = row
-        self.y = col
-        self.z = lay
+    def __init__(self, x: float, y: float, z: float):
+        self.x = x
+        self.y = y
+        self.z = z
 
     def _comparison_key(self):
         #return round(self.x, 9), round(self.y, 9), round(self.z, 9)
@@ -61,14 +61,15 @@ class ThreeDGridQubit(cirq.ops.Qid):
                     (self.z - other.z)**2)
 
     @staticmethod
-    def cube(diameter: int, top: int = 0, left: int = 0,
-             upper: int = 0) -> List['ThreeDGridQubit']:
+    def cube(diameter: int, x0: float = 0, y0: float = 0,
+             z0: float = 0) -> List['ThreeDGridQubit']:
         """Returns a cube of ThreeDGridQubits.
 
         Args:
             diameter: Length of a side of the square
-            top: x-coordinate of the first qubit
-            left: y-coordinate of the first qubit
+            x0: x-coordinate of the first qubit
+            y0: y-coordinate of the first qubit
+            z0: z-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -84,35 +85,36 @@ class ThreeDGridQubit(cirq.ops.Qid):
     def parallelep(rows: int,
                    cols: int,
                    lays: int,
-                   top: int = 0,
-                   left: int = 0,
-                   upper: int = 0) -> List['ThreeDGridQubit']:
+                   x0: float = 0,
+                   y0: float = 0,
+                   z0: float = 0) -> List['ThreeDGridQubit']:
         """Returns a parallelepiped of ThreeDGridQubits.
 
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: x-coordinate of the first qubit
-            left: y-coordinate of the first qubit
+            x0: x-coordinate of the first qubit
+            y0: y-coordinate of the first qubit
+            z0: z-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDGridQubit(row, col, lay) for row in range(top, top + rows)
-            for col in range(left, left + cols)
-            for lay in range(upper, upper + lays)
+            ThreeDGridQubit(x0+x, y0+y, z0+z) for x in range(rows)
+            for y in range(cols)
+            for z in range(lays)
         ]
 
     @staticmethod
-    def square(diameter: int, top: int = 0,
-               left: int = 0) -> List['ThreeDGridQubit']:
+    def square(diameter: int, x0: float = 0,
+               y0: float = 0) -> List['ThreeDGridQubit']:
         """Returns a square of ThreeDGridQubits.
 
         Args:
             diameter: Length of a side of the square
-            top: x-coordinate of the first qubit
-            left: y-coordinate of the first qubit
+            x0: x-coordinate of the first qubit
+            y0: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -120,23 +122,23 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return ThreeDGridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int, top: int = 0,
-             left: int = 0) -> List['ThreeDGridQubit']:
+    def rect(rows: int, cols: int, x0: float = 0,
+             y0: float = 0) -> List['ThreeDGridQubit']:
         """Returns a rectangle of ThreeDGridQubits.
 
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: x-coordinate of the first qubit
-            left: y-coordinate of the first qubit
+            x0: x-coordinate of the first qubit
+            y0: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDGridQubit(row, col, 0)
-            for row in range(top, top + rows)
-            for col in range(left, left + cols)
+            ThreeDGridQubit(x0+x, y0+y, 0)
+            for x in range(rows)
+            for y in range(cols)
         ]
 
 
