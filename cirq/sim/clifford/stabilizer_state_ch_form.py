@@ -66,7 +66,8 @@ class StabilizerStateChForm():
                 self._X(self.n - i - 1)
 
     def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+        return protocols.obj_to_dict_helper(
+            self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
     def _from_json_dict_(cls, n, initial_state, **kwargs):
