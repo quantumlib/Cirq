@@ -55,17 +55,18 @@ def test_decompose_error():
 
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
-        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=1))
+        d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2))
     # It has to be made into one
     assert d.is_pasqal_device_op(
-        cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
-                               [cirq.NamedQubit('q0')]))
+        cirq.ops.GateOperation(cirq.ops.MeasurementGate(2),
+                               [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]))
 
     assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
 
 
 def test_validate_operation_errors():
     d = generic_device(3)
+    circuit = cirq.Circuit(device=d)
 
     with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.NamedQubit('q0'))
@@ -77,9 +78,15 @@ def test_validate_operation_errors():
                        match="is not a named qubit for gate cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))
 
-    assert d.validate_operation(
-        cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
-                               [cirq.NamedQubit('q0')])) is None
+    with pytest.raises(ValueError, match='All qubits have to be measured at '
+                       'once on a PasqalDevice.'):
+        circuit.append(cirq.measure(cirq.NamedQubit('q0')))
+
+    with pytest.raises(NotImplementedError,
+                       match="Measurements on Pasqal devices "
+                       "don't support invert_mask."):
+        circuit.append(cirq.measure(
+            *d.qubits, invert_mask=(True, False, False)))
 
 
 def test_value_equal():

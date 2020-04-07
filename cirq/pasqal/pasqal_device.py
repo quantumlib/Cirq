@@ -93,10 +93,23 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError('{!r} is not a supported '
                              'gate'.format(operation.gate))
 
+        all_qubits = self.qubit_list()
         for qub in operation.qubits:
             if not isinstance(qub, NamedQubit):
                 raise ValueError('{} is not a named qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
+            try:
+                all_qubits.remove(qub)
+            except ValueError:
+                raise ValueError('{} is not part of the device.'.format(qub))
+
+        if isinstance(operation.gate, cirq.ops.MeasurementGate):
+            if all_qubits:  # We enforce that all qubits are measured at once
+                raise ValueError('All qubits have to be measured at once '
+                                 'on a PasqalDevice.')
+            if operation.gate.invert_mask != ():
+                raise NotImplementedError("Measurements on Pasqal devices "
+                                          "don't support invert_mask.")
 
     def __repr__(self):
         return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
@@ -111,8 +124,8 @@ class PasqalDevice(cirq.devices.Device):
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
     """A gate converter for compatibility with Pasqal processors.
 
-    Modified version of ConvertToNeutralAtomGates, in which the 'converter'
-    method takes the 'keep' function as an input.
+    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method
+    'pasqal_convert' takes the 'keep' function as an input.
     """
 
     def pasqal_convert(self, op: cirq.ops.Operation,
