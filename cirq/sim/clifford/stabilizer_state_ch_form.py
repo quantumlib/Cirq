@@ -70,7 +70,7 @@ class StabilizerStateChForm():
             self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
-    def _from_json_dict_(cls, n, initial_state, **kwargs):
+    def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
         copy = StabilizerStateChForm(n)
 
         copy.G = G.copy()
