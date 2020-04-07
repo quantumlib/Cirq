@@ -56,8 +56,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
             raise TypeError(
                 "Can compute distance to another ThreeDGridQubit, but {}".
                 format(other))
-        return sqrt((self.x - other.row)**2 + (self.y - other.col)**2 +
-                    (self.z - other.lay)**2)
+        return sqrt((self.x - other.x)**2 + (self.y - other.y)**2 +
+                    (self.z - other.z)**2)
 
     @staticmethod
     def cube(diameter: int, top: int = 0, left: int = 0,
