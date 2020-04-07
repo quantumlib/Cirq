@@ -65,16 +65,16 @@ class PasqalDevice(cirq.devices.Device):
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
 
-        valid_1q_op = isinstance(
+        valid_op = isinstance(
             op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
-                      cirq.ops.HPowGate, cirq.ops.XPowGate,
-                      cirq.ops.YPowGate, cirq.ops.ZPowGate))
+                      cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
-        valid_2q_op = isinstance(op.gate,
-                                 (cirq.ops.CNotPowGate, cirq.ops.CZPowGate))
+        if not valid_op:    # To prevent further checking if already passed
+            if isinstance(op.gate, (cirq.ops.HPowGate,
+                                    cirq.ops.CNotPowGate, cirq.ops.CZPowGate)):
+                valid_op = (op.gate.exponent == 1)
 
-        valid_2q_op &= (op.gate.exponent == 1) if valid_2q_op else False
-        return valid_1q_op or valid_2q_op
+        return valid_op
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """

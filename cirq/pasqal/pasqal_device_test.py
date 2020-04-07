@@ -70,8 +70,8 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="Unsupported operation"):
         d.validate_operation(cirq.NamedQubit('q0'))
 
-    # with pytest.raises(ValueError, match="cirq.H is not a supported gate"):
-    #     d.validate_operation(cirq.ops.H.on(cirq.NamedQubit('q0')))
+    with pytest.raises(ValueError, match="is not a supported gate"):
+        d.validate_operation((cirq.ops.H**0.2).on(cirq.NamedQubit('q0')))
 
     with pytest.raises(ValueError,
                        match="is not a named qubit for gate cirq.X"):
@@ -80,7 +80,6 @@ def test_validate_operation_errors():
     assert d.validate_operation(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(1),
                                [cirq.NamedQubit('q0')])) is None
-#
 
 
 def test_value_equal():
