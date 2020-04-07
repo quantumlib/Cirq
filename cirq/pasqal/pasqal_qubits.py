@@ -101,9 +101,9 @@ class ThreeDGridQubit(cirq.ops.Qid):
             A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDGridQubit(x0+x, y0+y, z0+z) for x in range(rows)
+            ThreeDGridQubit(x0+x, y0+y, z0+z) for z in range(lays)
             for y in range(cols)
-            for z in range(lays)
+            for x in range(rows)
         ]
 
     @staticmethod
@@ -136,9 +136,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
             A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDGridQubit(x0+x, y0+y, 0)
+            ThreeDGridQubit(x0+x, y0+y, 0) for y in range(cols)
             for x in range(rows)
-            for y in range(cols)
         ]
 
 
