@@ -43,7 +43,6 @@ class ThreeDQubit(cirq.ops.Qid):
         self.z = z
 
     def _comparison_key(self):
-        #return round(self.x, 9), round(self.y, 9), round(self.z, 9)
         return round(self.z, 9), round(self.y, 9), round(self.x, 9)
 
     @property
