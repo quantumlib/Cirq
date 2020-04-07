@@ -26,7 +26,7 @@ def test_pasqal_qubit_init():
 
 
 def test_comparison_key():
-    assert ThreeDGridQubit(3, 4, 5)._comparison_key() == (3, 4, 5)
+    assert ThreeDGridQubit(3, 4, 5)._comparison_key() == (5, 4, 3)
 
 
 def test_grid_qubit_eq():
@@ -125,7 +125,9 @@ def test_triangular():
 
 
 def test_pasqal_qubit_ordering():
-
+    assert ThreeDGridQubit(0, 0, 1) >= ThreeDGridQubit(1, 0, 0)
+    assert ThreeDGridQubit(0, 0, 1) >= ThreeDGridQubit(0, 1, 0)
+    assert ThreeDGridQubit(0, 1, 0) >= ThreeDGridQubit(1, 0, 0)
     for i in range(8):
         v = [int(x) for x in bin(i)[2:].zfill(3)]
 

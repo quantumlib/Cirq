@@ -21,12 +21,12 @@ import cirq
 class ThreeDGridQubit(cirq.ops.Qid):
     """A qubit in 3d.
 
-    ThreeDGridQubits use x-y-z ordering:
+    ThreeDGridQubits use z-y-x ordering:
 
-        ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
-        < ThreeDGridQubit(0, 1, 0)< ThreeDGridQubit(1, 0, 0)
-        < ThreeDGridQubit(0, 1, 1)< ThreeDGridQubit(1, 0, 1)
-        < ThreeDGridQubit(1, 1, 0)< ThreeDGridQubit(1, 1, 1)
+        ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(1, 0, 0)
+        < ThreeDGridQubit(0, 1, 0) < ThreeDGridQubit(0, 0, 1)
+        < ThreeDGridQubit(1, 1, 0) < ThreeDGridQubit(1, 0, 1)
+        < ThreeDGridQubit(0, 1, 1) < ThreeDGridQubit(1, 1, 1)
 
     New ThreeDGridQubit can be constructed by adding or subtracting tuples
 
@@ -43,7 +43,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         self.z = lay
 
     def _comparison_key(self):
-        return round(self.x, 9), round(self.y, 9), round(self.z, 9)
+        #return round(self.x, 9), round(self.y, 9), round(self.z, 9)
+        return round(self.z, 9), round(self.y, 9), round(self.x, 9)
 
     @property
     def dimension(self) -> int:
@@ -66,9 +67,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
         Args:
             diameter: Length of a side of the square
-            top: Row number of the topmost row
-            top: x-coordinate of the topmost qubit
-            left: y-coordinate of the leftmost qubit
+            top: x-coordinate of the first qubit
+            left: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -92,8 +92,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: x-coordinate of the topmost qubit
-            left: y-coordinate of the leftmost qubit
+            top: x-coordinate of the first qubit
+            left: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
@@ -111,8 +111,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
         Args:
             diameter: Length of a side of the square
-            top: x-coordinate of the topmost qubit
-            left: y-coordinate of the leftmost qubit
+            top: x-coordinate of the first qubit
+            left: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -127,8 +127,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: x-coordinate of the topmost qubit
-            left: y-coordinate of the leftmost qubit
+            top: x-coordinate of the first qubit
+            left: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
@@ -146,8 +146,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
         Args:
             l: Number of qubits along one direction
-            top: first coordinate of the first qubit
-            left: second coordinate of the first qubit
+            top: x-coordinate of the first qubit
+            left: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a triangular lattice
