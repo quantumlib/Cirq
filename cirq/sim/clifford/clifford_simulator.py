@@ -279,6 +279,22 @@ class CliffordState():
         self.ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
             self.n, initial_state)
 
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'qubit_map': dict([(v, k) for k, v in self.qubit_map.items()]),
+            'tableau': self.tableau,
+            'ch_form': self.ch_form,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, qubit_map, tableau, ch_form, **kwargs):
+        state = cls(dict([(v, k) for k, v in qubit_map.items()]))
+        state.tableau = tableau.copy()
+        state.ch_form = ch_form.copy()
+
+        return state
+
     def copy(self):
         state = CliffordState(self.qubit_map)
         state.tableau = self.tableau.copy()

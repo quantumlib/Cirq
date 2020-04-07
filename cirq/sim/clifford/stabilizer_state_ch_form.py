@@ -16,6 +16,7 @@ from typing import Union
 import numpy as np
 
 import cirq
+from cirq import protocols
 
 
 class StabilizerStateChForm():
@@ -63,6 +64,23 @@ class StabilizerStateChForm():
         for (i, val) in enumerate(bits(initial_state)):
             if val:
                 self._X(self.n - i - 1)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+
+    @classmethod
+    def _from_json_dict_(cls, n, initial_state, **kwargs):
+        copy = StabilizerStateChForm(n)
+
+        copy.G = G.copy()
+        copy.F = F.copy()
+        copy.M = M.copy()
+        copy.gamma = gamma.copy()
+        copy.v = v.copy()
+        copy.s = s.copy()
+        copy.omega = omega
+
+        return copy
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)

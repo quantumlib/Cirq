@@ -87,6 +87,8 @@ class _ResolverCache:
                 'CZPowGate': cirq.CZPowGate,
                 'CrossEntropyResult': CrossEntropyResult,
                 'Circuit': cirq.Circuit,
+                'CliffordState': cirq.CliffordState,
+                'CliffordTableau': cirq.CliffordTableau,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
