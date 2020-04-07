@@ -19,9 +19,9 @@ import cirq
 
 
 class ThreeDGridQubit(cirq.ops.Qid):
-    """A qubit on a 3d lattice.
+    """A qubit in 3d.
 
-    ThreeDGridQubits use row-column-layer ordering:
+    ThreeDGridQubits use x-y-z ordering:
 
         ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
         < ThreeDGridQubit(0, 1, 0)< ThreeDGridQubit(1, 0, 0)
@@ -38,12 +38,12 @@ class ThreeDGridQubit(cirq.ops.Qid):
     """
 
     def __init__(self, row: float, col: float, lay: float):
-        self.row = row
-        self.col = col
-        self.lay = lay
+        self.x = row
+        self.y = col
+        self.z = lay
 
     def _comparison_key(self):
-        return round(self.row, 9), round(self.col, 9), round(self.lay, 9)
+        return round(self.x, 9), round(self.y, 9), round(self.z, 9)
 
     @property
     def dimension(self) -> int:
@@ -56,8 +56,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
             raise TypeError(
                 "Can compute distance to another ThreeDGridQubit, but {}".
                 format(other))
-        return sqrt((self.row - other.row)**2 + (self.col - other.col)**2 +
-                    (self.lay - other.lay)**2)
+        return sqrt((self.x - other.row)**2 + (self.y - other.col)**2 +
+                    (self.z - other.lay)**2)
 
     @staticmethod
     def cube(diameter: int, top: int = 0, left: int = 0,
@@ -67,8 +67,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Args:
             diameter: Length of a side of the square
             top: Row number of the topmost row
-            left: Column number of the leftmost row
-            upper: Column number of the uppermost layer
+            top: x-coordinate of the topmost qubit
+            left: y-coordinate of the leftmost qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -92,8 +92,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: Row number of the topmost row
-            left: Column number of the leftmost row
+            top: x-coordinate of the topmost qubit
+            left: y-coordinate of the leftmost qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
@@ -111,8 +111,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
         Args:
             diameter: Length of a side of the square
-            top: Row number of the topmost row
-            left: Column number of the leftmost row
+            top: x-coordinate of the topmost qubit
+            left: y-coordinate of the leftmost qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a square grid
@@ -127,8 +127,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            top: Row number of the topmost row
-            left: Column number of the leftmost row
+            top: x-coordinate of the topmost qubit
+            left: y-coordinate of the leftmost qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a rectangular grid
@@ -165,31 +165,31 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
     def __repr__(self):
         return 'pasqal.ThreeDGridQubit({}, {}, {})'.format(
-            self.row, self.col, self.lay)
+            self.x, self.y, self.z)
 
     def __str__(self):
-        return '({}, {}, {})'.format(self.row, self.col, self.lay)
+        return '({}, {}, {})'.format(self.x, self.y, self.z)
 
     def _json_dict_(self):
-        return cirq.protocols.obj_to_dict_helper(self, ['row', 'col', 'lay'])
+        return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
 
     def __add__(self, other: Tuple[float, float, float]) -> 'ThreeDGridQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and
                 all(isinstance(x, float) or isinstance(x, int) for x in other)):
             raise TypeError(
                 'Can only add tuples of length 3. Was {}'.format(other))
-        return ThreeDGridQubit(row=self.row + other[0],
-                               col=self.col + other[1],
-                               lay=self.lay + other[2])
+        return ThreeDGridQubit(row=self.x + other[0],
+                               col=self.y + other[1],
+                               lay=self.z + other[2])
 
     def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDGridQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and
                 all(isinstance(x, float) or isinstance(x, int) for x in other)):
             raise TypeError(
                 'Can only subtract tuples of length 3. Was {}'.format(other))
-        return ThreeDGridQubit(row=self.row - other[0],
-                               col=self.col - other[1],
-                               lay=self.lay - other[2])
+        return ThreeDGridQubit(row=self.x - other[0],
+                               col=self.y - other[1],
+                               lay=self.z - other[2])
 
     def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDGridQubit':
         return self + other
@@ -198,4 +198,4 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return -self + other
 
     def __neg__(self) -> 'ThreeDGridQubit':
-        return ThreeDGridQubit(row=-self.row, col=-self.col, lay=-self.lay)
+        return ThreeDGridQubit(row=-self.x, col=-self.y, lay=-self.z)

@@ -20,9 +20,9 @@ from cirq.pasqal import ThreeDGridQubit
 
 def test_pasqal_qubit_init():
     q = ThreeDGridQubit(3, 4, 5)
-    assert q.row == 3
-    assert q.col == 4
-    assert q.lay == 5
+    assert q.x == 3
+    assert q.y == 4
+    assert q.z == 5
 
 
 def test_comparison_key():
@@ -193,7 +193,7 @@ def test_to_json():
     d = q._json_dict_()
     assert d == {
         'cirq_type': 'ThreeDGridQubit',
-        'row': 1.3,
-        'col': 1,
-        'lay': 1,
+        'x': 1.3,
+        'y': 1,
+        'z': 1,
     }
