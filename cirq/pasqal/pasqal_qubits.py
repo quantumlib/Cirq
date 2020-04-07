@@ -77,9 +77,9 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return ThreeDGridQubit.parallelep(diameter,
                                           diameter,
                                           diameter,
-                                          top=top,
-                                          left=left,
-                                          upper=upper)
+                                          x0=x0,
+                                          y0=y0,
+                                          z0=z0)
 
     @staticmethod
     def parallelep(rows: int,
@@ -119,7 +119,7 @@ class ThreeDGridQubit(cirq.ops.Qid):
         Returns:
             A list of ThreeDGridQubits filling in a square grid
         """
-        return ThreeDGridQubit.rect(diameter, diameter, top=top, left=left)
+        return ThreeDGridQubit.rect(diameter, diameter, x0=x0, y0=y0)
 
     @staticmethod
     def rect(rows: int, cols: int, x0: float = 0,
@@ -143,13 +143,13 @@ class ThreeDGridQubit(cirq.ops.Qid):
 
 
     @staticmethod
-    def triangular_lattice(l : int, top: float = 0., left: float = 0.):
+    def triangular_lattice(l : int, x0: float = 0., y0: float = 0.):
         """Returns a triangular lattice of ThreeDGridQubits.
 
         Args:
             l: Number of qubits along one direction
-            top: x-coordinate of the first qubit
-            left: y-coordinate of the first qubit
+            x0: x-coordinate of the first qubit
+            y0: y-coordinate of the first qubit
 
         Returns:
             A list of ThreeDGridQubits filling in a triangular lattice
@@ -158,7 +158,7 @@ class ThreeDGridQubit(cirq.ops.Qid):
                            for y in range(l + 1)], dtype=float)
         coords[:, 0] += 0.5 * np.mod(coords[:, 1], 2)
         coords[:, 1] *= np.sqrt(3) / 2
-        coords += [top, left]
+        coords += [x0, y0]
 
         return [
             ThreeDGridQubit(coord[0], coord[1], 0)
@@ -180,18 +180,18 @@ class ThreeDGridQubit(cirq.ops.Qid):
                 all(isinstance(x, float) or isinstance(x, int) for x in other)):
             raise TypeError(
                 'Can only add tuples of length 3. Was {}'.format(other))
-        return ThreeDGridQubit(row=self.x + other[0],
-                               col=self.y + other[1],
-                               lay=self.z + other[2])
+        return ThreeDGridQubit(x=self.x + other[0],
+                               y=self.y + other[1],
+                               z=self.z + other[2])
 
     def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDGridQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and
                 all(isinstance(x, float) or isinstance(x, int) for x in other)):
             raise TypeError(
                 'Can only subtract tuples of length 3. Was {}'.format(other))
-        return ThreeDGridQubit(row=self.x - other[0],
-                               col=self.y - other[1],
-                               lay=self.z - other[2])
+        return ThreeDGridQubit(x=self.x - other[0],
+                               y=self.y - other[1],
+                               z=self.z - other[2])
 
     def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDGridQubit':
         return self + other
@@ -200,4 +200,4 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return -self + other
 
     def __neg__(self) -> 'ThreeDGridQubit':
-        return ThreeDGridQubit(row=-self.x, col=-self.y, lay=-self.z)
+        return ThreeDGridQubit(x=-self.x, y=-self.y, z=-self.z)

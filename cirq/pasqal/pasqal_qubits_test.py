@@ -38,7 +38,7 @@ def test_grid_qubit_eq():
 
 
 def test_square():
-    assert ThreeDGridQubit.square(2, top=1, left=1) == [
+    assert ThreeDGridQubit.square(2, x0=1, y0=1) == [
         ThreeDGridQubit(1, 1, 0),
         ThreeDGridQubit(1, 2, 0),
         ThreeDGridQubit(2, 1, 0),
@@ -53,7 +53,7 @@ def test_square():
 
 
 def test_rec():
-    assert ThreeDGridQubit.rect(1, 2, top=5, left=6) == [
+    assert ThreeDGridQubit.rect(1, 2, x0=5, y0=6) == [
         ThreeDGridQubit(5, 6, 0),
         ThreeDGridQubit(5, 7, 0)
     ]
@@ -66,7 +66,7 @@ def test_rec():
 
 
 def test_cube():
-    assert ThreeDGridQubit.cube(2, top=1, left=1, upper=1) == [
+    assert ThreeDGridQubit.cube(2, x0=1, y0=1, z0=1) == [
         ThreeDGridQubit(1, 1, 1),
         ThreeDGridQubit(1, 1, 2),
         ThreeDGridQubit(1, 2, 1),
@@ -89,7 +89,7 @@ def test_cube():
 
 
 def test_parrallelep():
-    assert ThreeDGridQubit.parallelep(1, 2, 2, top=5, left=6, upper=7) == [
+    assert ThreeDGridQubit.parallelep(1, 2, 2, x0=5, y0=6, z0=7) == [
         ThreeDGridQubit(5, 6, 7),
         ThreeDGridQubit(5, 6, 8),
         ThreeDGridQubit(5, 7, 7),
@@ -116,7 +116,7 @@ def test_triangular():
         ThreeDGridQubit(1.5, 0.8660254037844386, 0)
     ]
 
-    assert ThreeDGridQubit.triangular_lattice(1, top=5., left=6.1) == [
+    assert ThreeDGridQubit.triangular_lattice(1, x0=5., y0=6.1) == [
         ThreeDGridQubit(5.0, 6.1, 0),
         ThreeDGridQubit(5.5, 6.966025403784438, 0),
         ThreeDGridQubit(6.0, 6.1, 0),
