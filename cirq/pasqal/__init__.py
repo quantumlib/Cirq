@@ -16,7 +16,7 @@ from cirq.pasqal.pasqal_qubits import (
     ThreeDQubit,)
 
 from cirq.pasqal.pasqal_device import (
-    PasqalDevice,)
+    PasqalDevice, PasqalVirtualDevice)
 
 from cirq.pasqal.pasqal_noise_model import (
     PasqalNoiseModel,)
