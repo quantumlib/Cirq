@@ -57,7 +57,7 @@ def test_init_errors():
     with pytest.raises(TypeError,
                        match="All qubits must be of same type."):
         PasqalVirtualDevice(control_radius=1.,
-                            qubits=[TwoDQubit(0,0), cirq.GridQubit(1,0)])
+                            qubits=[TwoDQubit(0, 0), cirq.GridQubit(1, 0)])
 
     with pytest.raises(ValueError,
                        match="control_radius needs to be a non-negative float"):
@@ -81,12 +81,37 @@ def test_decompose_error():
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(2),
                                [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]))
 
+
+def test_is_pasqal_device():
+    d = generic_device(2)
+    op = (cirq.ops.CZ).on(*(d.qubit_list()))
+
+    bad_op = cirq.ops.CNotPowGate(exponent=0.5)
     assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
+    assert not d.is_pasqal_device_op(cirq.ops.CCX(cirq.NamedQubit('q0'),
+                                                  cirq.NamedQubit('q1'),
+                                                  cirq.NamedQubit('q2')))
+    assert not d.is_pasqal_device_op(bad_op(cirq.NamedQubit('q0'),
+                                            cirq.NamedQubit('q1')))
+    op1 = cirq.ops.CNotPowGate(exponent=1.)
+    assert d.is_pasqal_device_op(op1(cirq.NamedQubit('q0'),
+                                     cirq.NamedQubit('q1')))
+
+    d2 = square_virtual_device(control_r=1.1, num_qubits=3)
+    assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
 def test_decompose_operation():
-    d = generic_device(3)
-    op = (cirq.ops.CCZ).on(*(d.qubit_list()))
+    p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
+    d = PasqalVirtualDevice(1., p_qubits)
+    op = (cirq.ops.CNOT).on(*(d.qubit_list()))
 
+    assert d.decompose_operation(op) == [
+        cirq.PhasedXPowGate(phase_exponent=-0.5,
+                            exponent=0.5).on(cirq.LineQubit(4)),
+        (cirq.CZ**-1.0).on(cirq.LineQubit(3), cirq.LineQubit(4)),
+        cirq.PhasedXPowGate(phase_exponent=0.4999999999999998,
+                            exponent=0.5).on(cirq.LineQubit(4))
+        ]
 
 def test_validate_operation_errors():
     d = generic_device(3)
