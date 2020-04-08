@@ -128,8 +128,11 @@ def test_via_unitary():
     op1 = OpWithUnitary(np.array([[0, 1], [1, 0]]))
     assert cirq.has_stabilizer_effect(op1)
 
-    op2 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
-    assert not cirq.has_stabilizer_effect(op2)
+    op2 = OpWithUnitary(np.array([[0, 1j], [1j, 0]]))
+    assert cirq.has_stabilizer_effect(op2)
+
+    op3 = OpWithUnitary(np.array([[1, 0], [0, np.sqrt(1j)]]))
+    assert not cirq.has_stabilizer_effect(op3)
 
 
 def test_via_unitary_not_supported():

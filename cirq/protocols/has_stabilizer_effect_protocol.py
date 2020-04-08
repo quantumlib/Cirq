@@ -25,6 +25,9 @@ from cirq import protocols
 def has_stabilizer_effect(val: Any) -> bool:
     """
     Returns whether the input has a stabilizer effect.
+
+    For 1-qubit gates always returns correct result. For other operations relies
+    on the operation to define whether it has stabilizer effect.
     """
     strats = [
         _strat_has_stabilizer_effect_from_has_stabilizer_effect,
@@ -66,7 +69,8 @@ def _strat_has_stabilizer_effect_from_gate(val: Any) -> Optional[bool]:
 def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
     """Attempts to infer whether val has stabilizer effect from its unitary.
 
-    Returns whether unitary of `val` normalizes Pauli group.
+    Returns whether unitary of `val` normalizes the Pauli group. Works only for
+    2x2 unitaries.
     """
     if not protocols.has_unitary(val):
         return None
