@@ -233,7 +233,7 @@ class DFEIntermediateResult:
     debugged offline.
     """
     # If the circuit is Clifford, the Clifford state from which we can extract
-    # a list of Pauli strings that for a basis of the stabilizers.
+    # a list of Pauli strings for a basis of the stabilizers.
     clifford_state: Optional[cirq.CliffordState]
     # The list of Pauli traces we can sample from.
     pauli_traces: List[PauliTrace]
