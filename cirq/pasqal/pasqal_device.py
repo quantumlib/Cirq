@@ -15,6 +15,7 @@ from typing import FrozenSet, Iterable, Callable, List
 from numpy import sqrt
 
 import cirq
+from cirq import GridQubit, LineQubit
 from cirq.ops import NamedQubit
 
 from cirq.pasqal import ThreeDQubit, TwoDQubit
@@ -33,10 +34,14 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             TypeError: if the wrong qubit type is provided.
         """
+        if len(qubits)>0:
+            q_type = type(qubits[0])
 
         for q in qubits:
             if not isinstance(q, self.supported_qubit_type):
                 raise TypeError('Unsupported qubit type: {!r}'.format(q))
+            if not type(q) is q_type:
+                raise TypeError("All qubits must be of same type.")
 
         self.qubits = qubits
 
@@ -161,7 +166,7 @@ class PasqalVirtualDevice(PasqalDevice):
 
     @property
     def supported_qubit_type(self):
-        return (ThreeDQubit, TwoDQubit)
+        return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -172,7 +177,7 @@ class PasqalVirtualDevice(PasqalDevice):
             ValueError: If the operation is not valid
         """
         super().validate_operation(operation)
-        
+
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
             if (len(operation.qubits) > 1 and not
@@ -202,6 +207,8 @@ class PasqalVirtualDevice(PasqalDevice):
         Returns the minimal distance between two qubits in qubits.
         Args:
             qubits: qubit involved in the distance computation
+        Raises:
+            ValueError: If the device has only one qubit
         Returns:
             The minimal distance between qubits, in spacial coordinate units.
         """
@@ -218,12 +225,20 @@ class PasqalVirtualDevice(PasqalDevice):
         Args:
             p: qubit involved in the distance computation
             q: qubit involved in the distance computation
+        Raises:
+            ValueError: If p or q not part of the device
         Returns:
             The distance between qubits p and q.
         """
         all_qubits = self.qubit_list()
         if p not in all_qubits or q not in all_qubits:
             raise ValueError("Qubit not part of the device.")
+
+        if isinstance(p, GridQubit):
+            return sqrt((p.row - q.row)**2 + (p.col - q.col)**2)
+
+        if isinstance(p, LineQubit):
+            return abs(p.x-q.x)
 
         return sqrt((p.x - q.x)**2 + (p.y - q.y)**2 + (p.z - q.z)**2)
 
