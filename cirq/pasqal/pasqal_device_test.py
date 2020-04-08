@@ -15,12 +15,15 @@ import pytest
 
 import cirq
 
-from cirq.pasqal import PasqalDevice
+from cirq.pasqal import PasqalDevice, PasqalVirtualDevice
 
 
 def generic_device(num_qubits) -> PasqalDevice:
     return PasqalDevice(qubits=cirq.NamedQubit.range(num_qubits, prefix='q'))
 
+def square_virtual_device(control_r, num_qubits) -> PasqalVirtualDevice:
+    return PasqalVirtualDevice(control_radius=control_r,
+                        qubits=cirq.pasqal.TwoDQubit.square(num_qubits))
 
 def test_init():
     d = generic_device(3)
@@ -31,12 +34,19 @@ def test_init():
     assert d.qubit_set() == {q0, q1, q2}
     assert d.qubit_list() == [q0, q1, q2]
 
-
 def test_init_errors():
     line = cirq.devices.LineQubit.range(3)
     with pytest.raises(TypeError, match="Unsupported qubit type"):
         PasqalDevice(qubits=line)
 
+    with pytest.raises(ValueError,
+                       match="control_radius needs to be a non-negative float"):
+        square_virtual_device(control_r=-1., num_qubits=2)
+
+    with pytest.raises(ValueError,
+                       match="control_radius cannot be larger than "
+                       "5 times the minimal distance between qubits."):
+        square_virtual_device(control_r=11., num_qubits=2)
     # with pytest.raises(ValueError, match='needs at least one qubit.'):
     #     generic_device(0)
 
@@ -81,8 +91,9 @@ def test_validate_operation_errors():
                        match="is not a valid qubit for gate cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))
 
-    with pytest.raises(ValueError, match='All qubits have to be measured at '
-                       'once on a PasqalDevice.'):
+    with pytest.raises(ValueError,
+                       match="All qubits have to be measured at "
+                       "once on a PasqalDevice."):
         circuit.append(cirq.measure(cirq.NamedQubit('q0')))
 
     with pytest.raises(NotImplementedError,
@@ -91,23 +102,69 @@ def test_validate_operation_errors():
         circuit.append(cirq.measure(
             *d.qubits, invert_mask=(True, False, False)))
 
+    d = square_virtual_device(control_r=1., num_qubits=3)
+
+    with pytest.raises(ValueError, match="are too far away"):
+        d.validate_operation(
+            cirq.CZ.on(cirq.pasqal.TwoDQubit(0, 0),
+                       cirq.pasqal.TwoDQubit(2, 2)))
+
+def test_validate_moment():
+    d = square_virtual_device(control_r=1., num_qubits=2)
+    m = cirq.Moment([cirq.Z.on(cirq.pasqal.TwoDQubit(0, 0)),
+            (cirq.X).on(cirq.pasqal.TwoDQubit(1, 1))])
+
+    with pytest.raises(ValueError, match="Cannot do simultaneous gates"):
+        d.validate_moment(m)
+
+def test_minimal_distance():
+    dev = square_virtual_device(control_r=1., num_qubits=1)
+
+    with pytest.raises(ValueError,
+                       match="There is no minimal distance for a "
+                           "single-qubit."):
+        dev.minimal_distance()
+
+def test_distance():
+    dev = square_virtual_device(control_r=1., num_qubits=2)
+
+    with pytest.raises(ValueError,
+                       match="Qubit not part of the device."):
+        dev.distance(cirq.pasqal.TwoDQubit(0, 0), cirq.pasqal.TwoDQubit(2, 2))
 
 def test_value_equal():
     dev = cirq.pasqal.PasqalDevice(qubits=[cirq.NamedQubit('q1')])
 
     assert cirq.pasqal.PasqalDevice(qubits=[cirq.NamedQubit('q1')]) == dev
 
+    dev = cirq.pasqal.PasqalVirtualDevice(control_radius=1.,
+                                          qubits=[cirq.pasqal.TwoDQubit(0, 0)])
+
+    assert cirq.pasqal.PasqalVirtualDevice(control_radius=1.,
+                                qubits=[cirq.pasqal.TwoDQubit(0, 0)]) == dev
 
 def test_repr():
     assert repr(generic_device(1)) == ("pasqal.PasqalDevice("
                                        "qubits=[cirq.NamedQubit('q0')])")
 
+    dev = cirq.pasqal.PasqalVirtualDevice(control_radius=1.,
+                                          qubits=[cirq.pasqal.TwoDQubit(0, 0)])
+    assert repr(dev) == ("pasqal.PasqalVirtualDevice("
+                         "control_radius=1.0, "
+                         "qubits=[pasqal.TwoDQubit(0, 0)])")
 
 def test_to_json():
     dev = cirq.pasqal.PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
-    print(d)
     assert d == {
         "cirq_type": "PasqalDevice",
         "qubits": [cirq.NamedQubit('q4')]
+    }
+    vdev = cirq.pasqal.PasqalVirtualDevice(control_radius=2,
+        qubits=[cirq.pasqal.TwoDQubit(0, 0)])
+    d = vdev._json_dict_()
+    assert d == {
+        "cirq_type": "PasqalVirtualDevice",
+        "control_radius": 2,
+        "qubits": [cirq.pasqal.TwoDQubit(0, 0)]
     }

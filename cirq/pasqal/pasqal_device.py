@@ -17,7 +17,7 @@ from numpy import sqrt
 import cirq
 from cirq.ops import NamedQubit
 
-from cirq.pasqal import ThreeDQubit
+from cirq.pasqal import ThreeDQubit, TwoDQubit
 
 
 @cirq.value.value_equality
@@ -161,7 +161,7 @@ class PasqalVirtualDevice(PasqalDevice):
 
     @property
     def supported_qubit_type(self):
-        return (ThreeDQubit,)
+        return (ThreeDQubit, TwoDQubit)
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -238,12 +238,12 @@ class PasqalVirtualDevice(PasqalDevice):
             p: qubit involved in the distance computation
             q: qubit involved in the distance computation
         Returns:
-            The distance between qubits p and q, in lattice spacing units.
+            The distance between qubits p and q.
         """
-        if not isinstance(q, ThreeDQubit):
-            raise TypeError('Unsupported qubit type: {!r}'.format(q))
-        if not isinstance(p, ThreeDQubit):
-            raise TypeError('Unsupported qubit type: {!r}'.format(p))
+        all_qubits = self.qubit_list()
+        if p not in all_qubits or q not in all_qubits:
+            raise ValueError("Qubit not part of the device.")
+
         return sqrt((p.x - q.x)**2 + (p.y - q.y)**2 +
                     (p.z - q.z)**2)
 
