@@ -23,9 +23,11 @@ from cirq.pasqal import TwoDQubit, ThreeDQubit
 def generic_device(num_qubits) -> PasqalDevice:
     return PasqalDevice(qubits=cirq.NamedQubit.range(num_qubits, prefix='q'))
 
+
 def square_virtual_device(control_r, num_qubits) -> PasqalVirtualDevice:
     return PasqalVirtualDevice(control_radius=control_r,
-                        qubits=TwoDQubit.square(num_qubits))
+                               qubits=TwoDQubit.square(num_qubits))
+
 
 def test_init():
     d = generic_device(3)
@@ -39,11 +41,12 @@ def test_init():
 
     d = square_virtual_device(control_r=1., num_qubits=1)
 
-    assert d.qubit_set() == {TwoDQubit(0,0)}
-    assert d.qubit_list() == [TwoDQubit(0,0)]
+    assert d.qubit_set() == {TwoDQubit(0, 0)}
+    assert d.qubit_list() == [TwoDQubit(0, 0)]
     assert d.control_radius == 1.
-    assert d.supported_qubit_type == (ThreeDQubit, TwoDQubit, cirq.GridQubit,
-                                        cirq.LineQubit,)
+    assert d.supported_qubit_type == (
+        ThreeDQubit, TwoDQubit, cirq.GridQubit, cirq.LineQubit,)
+
 
 def test_init_errors():
     line = cirq.devices.LineQubit.range(3)
@@ -51,13 +54,12 @@ def test_init_errors():
         PasqalDevice(qubits=line)
 
     with pytest.raises(TypeError, match="Unsupported qubit type"):
-        PasqalVirtualDevice(control_radius=1.,
-                            qubits=[cirq.NamedQubit('q0')])
+        PasqalVirtualDevice(control_radius=1., qubits=[cirq.NamedQubit('q0')])
 
     with pytest.raises(TypeError,
                        match="All qubits must be of same type."):
-        PasqalVirtualDevice(control_radius=1.,
-                            qubits=[TwoDQubit(0, 0), cirq.GridQubit(1, 0)])
+        PasqalVirtualDevice(control_radius=1., qubits=[
+                            TwoDQubit(0, 0), cirq.GridQubit(1, 0)])
 
     with pytest.raises(ValueError,
                        match="control_radius needs to be a non-negative float"):
@@ -67,6 +69,7 @@ def test_init_errors():
                        match="control_radius cannot be larger than "
                        "5 times the minimal distance between qubits."):
         square_virtual_device(control_r=11., num_qubits=2)
+
 
 def test_decompose_error():
     d = generic_device(2)
@@ -100,6 +103,7 @@ def test_is_pasqal_device():
     d2 = square_virtual_device(control_r=1.1, num_qubits=3)
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
+
 def test_decompose_operation():
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1., p_qubits)
@@ -111,7 +115,8 @@ def test_decompose_operation():
         (cirq.CZ**-1.0).on(cirq.LineQubit(3), cirq.LineQubit(4)),
         cirq.PhasedXPowGate(phase_exponent=0.4999999999999998,
                             exponent=0.5).on(cirq.LineQubit(4))
-        ]
+    ]
+
 
 def test_validate_operation_errors():
     d = generic_device(3)
@@ -147,12 +152,14 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
 
+
 def test_validate_moment():
     d = square_virtual_device(control_r=1., num_qubits=2)
     m = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)), (cirq.X).on(TwoDQubit(1, 1))])
 
     with pytest.raises(ValueError, match="Cannot do simultaneous gates"):
         d.validate_moment(m)
+
 
 def test_minimal_distance():
     dev = square_virtual_device(control_r=1., num_qubits=1)
@@ -164,6 +171,7 @@ def test_minimal_distance():
     dev = square_virtual_device(control_r=1., num_qubits=2)
 
     assert np.isclose(dev.minimal_distance(), 1.)
+
 
 def test_distance():
     dev = square_virtual_device(control_r=1., num_qubits=2)
@@ -180,9 +188,11 @@ def test_distance():
     assert np.isclose(dev.distance(cirq.LineQubit(0), cirq.LineQubit(1)), 1.)
 
     dev = PasqalVirtualDevice(control_radius=1.,
-        qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)])
+                              qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)])
 
-    assert np.isclose(dev.distance(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)), 1.)
+    assert np.isclose(dev.distance(
+        cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)), 1.)
+
 
 def test_value_equal():
     dev = PasqalDevice(qubits=[cirq.NamedQubit('q1')])
@@ -194,6 +204,7 @@ def test_value_equal():
     assert PasqalVirtualDevice(control_radius=1.,
                                qubits=[TwoDQubit(0, 0)]) == dev
 
+
 def test_repr():
     assert repr(generic_device(1)) == ("pasqal.PasqalDevice("
                                        "qubits=[cirq.NamedQubit('q0')])")
@@ -203,6 +214,7 @@ def test_repr():
                          "control_radius=1.0, "
                          "qubits=[pasqal.TwoDQubit(0, 0)])")
 
+
 def test_to_json():
     dev = PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
@@ -211,7 +223,7 @@ def test_to_json():
         "qubits": [cirq.NamedQubit('q4')]
     }
     vdev = PasqalVirtualDevice(control_radius=2,
-        qubits=[TwoDQubit(0, 0)])
+                               qubits=[TwoDQubit(0, 0)])
     d = vdev._json_dict_()
     assert d == {
         "cirq_type": "PasqalVirtualDevice",
