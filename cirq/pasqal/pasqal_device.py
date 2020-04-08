@@ -78,12 +78,13 @@ class PasqalDevice(cirq.devices.Device):
 
         valid_op = isinstance(
             op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
-                      cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.ZPowGate))
+                      cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
+                      cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
         if not valid_op:    # To prevent further checking if already passed
             if isinstance(op.gate, (cirq.ops.HPowGate,
                                     cirq.ops.CNotPowGate, cirq.ops.CZPowGate)):
-                valid_op = (op.gate.exponent == 1)
+                valid_op = (op.gate.exponent == 1) or (op.gate.exponent == -1)
 
         return valid_op
 
@@ -168,6 +169,10 @@ class PasqalVirtualDevice(PasqalDevice):
     def supported_qubit_type(self):
         return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
 
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
+        return super().is_pasqal_device_op(op) and not isinstance(op.gate,
+            cirq.ops.CNotPowGate)
+
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
 
@@ -213,7 +218,8 @@ class PasqalVirtualDevice(PasqalDevice):
             The minimal distance between qubits, in spacial coordinate units.
         """
         if len(self.qubits) <= 1:
-            raise ValueError("Two qubits to compute a minimal distance.")
+            raise ValueError(
+                "There is no minimal distance for a single-qubit.")
 
         return min([self.distance(q1, q2) for q1 in self.qubits
                     for q2 in self.qubits if q1 != q2])
