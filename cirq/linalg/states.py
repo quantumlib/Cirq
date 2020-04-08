@@ -19,6 +19,7 @@ import numpy as np
 
 from cirq._compat import deprecated
 
+
 @deprecated(deadline='v0.9', fix='Use cirq.one_hot instead.')
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,

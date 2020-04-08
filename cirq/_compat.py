@@ -199,6 +199,7 @@ def wrap_module(module: ModuleType,
     """
 
     class Wrapped:
+
         def __getattr__(self, name):
             if name in deprecated_attributes:
                 deadline, fix = deprecated_attributes[name]
