@@ -172,28 +172,7 @@ class PasqalVirtualDevice(PasqalDevice):
             ValueError: If the operation is not valid
         """
         super().validate_operation(operation)
-        # if not isinstance(operation,
-        #                   (cirq.GateOperation, cirq.ParallelGateOperation)):
-        #     raise ValueError("Unsupported operation")
-        #
-        # if not self.is_pasqal_device_op(operation):
-        #     raise ValueError('{!r} is not a supported '
-        #                      'gate'.format(operation.gate))
-        #
-        # # All qubits the operation acts on must be on the device
-        # for q in operation.qubits:
-        #     if q not in self.qubits:
-        #         raise ValueError('Qubit not on device: {!r}'.format(q))
-        #
-        # if isinstance(operation.gate,
-        #               (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-        #     return
-        #
-        # for qub in operation.qubits:
-        #     if not isinstance(qub, ThreeDQubit):
-        #         raise ValueError('{} is not a 3D qubit '
-        #                          'for gate {!r}'.format(qub, operation.gate))
-
+        
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
             if (len(operation.qubits) > 1 and not
@@ -246,8 +225,7 @@ class PasqalVirtualDevice(PasqalDevice):
         if p not in all_qubits or q not in all_qubits:
             raise ValueError("Qubit not part of the device.")
 
-        return sqrt((p.x - q.x)**2 + (p.y - q.y)**2 +
-                    (p.z - q.z)**2)
+        return sqrt((p.x - q.x)**2 + (p.y - q.y)**2 + (p.z - q.z)**2)
 
     def __repr__(self):
         return ('pasqal.PasqalVirtualDevice(control_radius={!r}, '
