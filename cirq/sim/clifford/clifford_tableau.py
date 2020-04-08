@@ -65,6 +65,7 @@ class CliffordTableau():
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
+            # coverage: ignore
             return NotImplemented
         return (self.n == other.n and np.array_equal(self.rs, other.rs) and
                 np.array_equal(self.xs, other.xs) and
