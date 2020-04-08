@@ -136,6 +136,7 @@ class _ResolverCache:
                 'TaggedOperation': cirq.TaggedOperation,
                 'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'TrialResult': cirq.TrialResult,
+                'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
