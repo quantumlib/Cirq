@@ -49,7 +49,6 @@ class ThreeDQubit(cirq.ops.Qid):
     def dimension(self) -> int:
         return 2
 
-
     def distance(self, other: cirq.ops.Qid) -> float:
         """Returns the distance between two qubits in 3D"""
         if not isinstance(other, ThreeDQubit):
@@ -74,11 +73,11 @@ class ThreeDQubit(cirq.ops.Qid):
             A list of ThreeDQubits filling in a square grid
         """
         return ThreeDQubit.parallelep(diameter,
-                                          diameter,
-                                          diameter,
-                                          x0=x0,
-                                          y0=y0,
-                                          z0=z0)
+                                      diameter,
+                                      diameter,
+                                      x0=x0,
+                                      y0=y0,
+                                      z0=z0)
 
     @staticmethod
     def parallelep(rows: int,
@@ -100,7 +99,7 @@ class ThreeDQubit(cirq.ops.Qid):
             A list of ThreeDQubits filling in a 3D grid
         """
         return [
-            ThreeDQubit(x0+x, y0+y, z0+z) for z in range(lays)
+            ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
             for y in range(cols)
             for x in range(rows)
         ]
@@ -121,8 +120,8 @@ class ThreeDQubit(cirq.ops.Qid):
             raise TypeError(
                 'Can only add tuples of length 3. Was {}'.format(other))
         return ThreeDQubit(x=self.x + other[0],
-                               y=self.y + other[1],
-                               z=self.z + other[2])
+                           y=self.y + other[1],
+                           z=self.z + other[2])
 
     def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
         if not (isinstance(other, tuple) and len(other) == 3 and
@@ -130,8 +129,8 @@ class ThreeDQubit(cirq.ops.Qid):
             raise TypeError(
                 'Can only subtract tuples of length 3. Was {}'.format(other))
         return ThreeDQubit(x=self.x - other[0],
-                               y=self.y - other[1],
-                               z=self.z - other[2])
+                           y=self.y - other[1],
+                           z=self.z - other[2])
 
     def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
         return self + other
@@ -143,13 +142,11 @@ class ThreeDQubit(cirq.ops.Qid):
         return ThreeDQubit(x=-self.x, y=-self.y, z=-self.z)
 
 
-
 class TwoDQubit(ThreeDQubit):
     """A qubit in 2d."""
 
     def __init__(self, x: float, y: float):
         super().__init__(x, y, z=0)
-
 
     @staticmethod
     def square(diameter: int, x0: float = 0,
@@ -181,13 +178,12 @@ class TwoDQubit(ThreeDQubit):
             A list of TwoDQubits filling in a rectangular grid
         """
         return [
-            TwoDQubit(x0+x, y0+y) for y in range(cols)
+            TwoDQubit(x0 + x, y0 + y) for y in range(cols)
             for x in range(rows)
         ]
 
-
     @staticmethod
-    def triangular_lattice(l : int, x0: float = 0, y0: float = 0):
+    def triangular_lattice(l: int, x0: float = 0, y0: float = 0):
         """Returns a triangular lattice of TwoDQubit.
 
         Args:

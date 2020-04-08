@@ -34,7 +34,7 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             TypeError: if the wrong qubit type is provided.
         """
-        if len(qubits)>0:
+        if len(qubits) > 0:
             q_type = type(qubits[0])
 
         for q in qubits:
@@ -171,7 +171,7 @@ class PasqalVirtualDevice(PasqalDevice):
 
     def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
         return super().is_pasqal_device_op(op) and not isinstance(op.gate,
-            cirq.ops.CNotPowGate)
+                                                                  cirq.ops.CNotPowGate)
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
@@ -243,7 +243,7 @@ class PasqalVirtualDevice(PasqalDevice):
             return sqrt((p.row - q.row)**2 + (p.col - q.col)**2)
 
         if isinstance(p, LineQubit):
-            return abs(p.x-q.x)
+            return abs(p.x - q.x)
 
         return sqrt((p.x - q.x)**2 + (p.y - q.y)**2 + (p.z - q.z)**2)
 

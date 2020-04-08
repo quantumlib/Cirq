@@ -63,6 +63,7 @@ def test_grid_qubit_eq():
     eq.make_equality_group(lambda: ThreeDQubit(0, 1, 0))
     eq.make_equality_group(lambda: ThreeDQubit(50, 25, 25))
 
+
 def test_cube():
     assert ThreeDQubit.cube(2, x0=1, y0=1, z0=1) == [
         ThreeDQubit(1, 1, 1),
@@ -150,16 +151,16 @@ def test_triangular():
     ]
 
 
-
 def test_repr():
     assert repr(ThreeDQubit(4, -25,
-                                109)) == 'pasqal.ThreeDQubit(4, -25, 109)'
+                            109)) == 'pasqal.ThreeDQubit(4, -25, 109)'
     assert repr(TwoDQubit(4, -25)) == 'pasqal.TwoDQubit(4, -25)'
 
 
 def test_str():
     assert str(ThreeDQubit(4, -25, 109)) == '(4, -25, 109)'
     assert str(TwoDQubit(4, -25)) == '(4, -25)'
+
 
 def test_to_json():
     q = ThreeDQubit(1.3, 1, 1)
@@ -177,6 +178,7 @@ def test_to_json():
         'x': 1.3,
         'y': 1,
     }
+
 
 def test_pasqal_qubit_add_subtract():
     assert ThreeDQubit(1, 2, 3) + (2, 5, 7) == ThreeDQubit(3, 7, 10)
