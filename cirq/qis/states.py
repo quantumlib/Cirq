@@ -19,7 +19,6 @@ from typing import (Any, Iterable, List, Optional, Sequence, Union,
 import itertools
 
 import numpy as np
-import scipy.stats
 
 if TYPE_CHECKING:
     import cirq
@@ -528,14 +527,3 @@ def eye_tensor(
     state = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
     state.shape = half_shape * 2
     return state
-
-
-def von_neumann_entropy(density_matrix: np.ndarray) -> float:
-    """Calculates von Neumann entropy of density matrix in bits.
-    Args:
-        density_matrix: The density matrix.
-    Returns:
-        The calculated von Neumann entropy.
-    """
-    eigenvalues = np.linalg.eigvalsh(density_matrix)
-    return scipy.stats.entropy(abs(eigenvalues), base=2)

@@ -1,3 +1,7 @@
+from cirq.qis.measures import (
+    von_neumann_entropy,
+)
+
 from cirq.qis.states import (
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
@@ -10,5 +14,4 @@ from cirq.qis.states import (
     validate_indices,
     validate_qid_shape,
     validate_normalized_state,
-    von_neumann_entropy,
 )
