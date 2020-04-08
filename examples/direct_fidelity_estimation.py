@@ -207,8 +207,8 @@ class DFEIntermediateResult:
     on an actual computer, which is expensive. This way, runs can be more easily
     debugged offline.
     """
-    # If the circuit is Clifford, the list of Clifford basis states. Otherwise
-    # it is None.
+    # If the circuit is Clifford, the Clifford state from which we can extract
+    # a list of Pauli strings that for a basis of the stabilizers.
     clifford_state: Optional[cirq.CliffordState]
     # The list of Pauli traces we can sample from.
     pauli_traces: List[Dict[str, Any]]
