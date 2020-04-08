@@ -134,6 +134,7 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
+                'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,

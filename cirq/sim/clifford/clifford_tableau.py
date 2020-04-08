@@ -63,6 +63,14 @@ class CliffordTableau():
 
         return state
 
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (self.n == other.n and
+                np.array_equal(self.rs, other.rs) and
+                np.array_equal(self.xs, other.xs) and
+                np.array_equal(self.zs, other.zs))
+
     def copy(self):
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()

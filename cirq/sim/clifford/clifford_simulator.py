@@ -260,6 +260,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         return np.array(measurements, dtype=bool)
 
 
+@value.value_equality
 class CliffordState():
     """A state of the Clifford simulation.
 
@@ -289,11 +290,14 @@ class CliffordState():
 
     @classmethod
     def _from_json_dict_(cls, qubit_map, tableau, ch_form, **kwargs):
-        state = cls(dict([(v, k) for k, v in qubit_map.items()]))
+        state = cls(dict([(v, int(k)) for k, v in qubit_map.items()]))
         state.tableau = tableau.copy()
         state.ch_form = ch_form.copy()
 
         return state
+
+    def _value_equality_values_(self):
+        return self.qubit_map, self.tableau, self.ch_form
 
     def copy(self):
         state = CliffordState(self.qubit_map)

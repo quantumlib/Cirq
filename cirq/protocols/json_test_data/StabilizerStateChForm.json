@@ -1,0 +1,30 @@
+{
+  "cirq_type": "StabilizerStateChForm",
+  "n": 1,
+  "initial_state": 0,
+  "G": [
+    [
+      true
+    ]
+  ],
+  "F": [
+    [
+      true
+    ]
+  ],
+  "M": [
+    [
+      false
+    ]
+  ],
+  "gamma": [
+    0
+  ],
+  "v": [
+    false
+  ],
+  "s": [
+    false
+  ],
+  "omega": 1
+}
