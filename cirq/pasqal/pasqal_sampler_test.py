@@ -43,7 +43,7 @@ def _make_sampler() -> cirq.pasqal.PasqalSampler:
 
 
 def test_pasqal_circuit_init():
-    qs = cirq.pasqal.ThreeDQubit.square(3)
+    qs = cirq.pasqal.TwoDQubit.square(3)
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
                         cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
