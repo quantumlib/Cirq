@@ -100,16 +100,15 @@ def test_same_pauli_traces_clifford():
 
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [
-            x for x in pauli_traces_general
-            if x['P_i'] == pauli_trace_clifford['P_i']
+            x for x in pauli_traces_general if x.P_i == pauli_trace_clifford.P_i
         ]
         assert len(pauli_trace_general) == 1
         pauli_trace_general = pauli_trace_general[0]
 
         # The code itself checks that the rho_i is either +1 or -1, so here we
         # simply test that the sign is the same.
-        assert np.isclose(pauli_trace_general['rho_i'],
-                          pauli_trace_clifford['rho_i'],
+        assert np.isclose(pauli_trace_general.rho_i,
+                          pauli_trace_clifford.rho_i,
                           atol=0.01)
 
 
