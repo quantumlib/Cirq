@@ -84,7 +84,7 @@ class PasqalDevice(cirq.devices.Device):
         if not valid_op:    # To prevent further checking if already passed
             if isinstance(op.gate, (cirq.ops.HPowGate,
                                     cirq.ops.CNotPowGate, cirq.ops.CZPowGate)):
-                valid_op = (op.gate.exponent == 1) or (op.gate.exponent == -1)
+                valid_op = op.gate.exponent.is_integer()
 
         return valid_op
 
