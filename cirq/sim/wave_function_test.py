@@ -55,6 +55,12 @@ def test_deprecated():
     assert "cirq.validate_normalized_state" in log[0].getMessage()
     assert "deprecated" in log[0].getMessage()
 
+    with capture_logging() as log:
+        _ = cirq.sim.STATE_VECTOR_LIKE
+    assert len(log) == 1
+    assert "cirq.STATE_VECTOR_LIKE" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
 
 def test_state_mixin():
     class TestClass(cirq.StateVectorMixin):
