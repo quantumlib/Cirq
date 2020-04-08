@@ -198,7 +198,7 @@ def wrap_module(module: ModuleType,
         Wrapped module with deprecated attributes.
     """
 
-    class Wrapped:
+    class Wrapped(ModuleType):
 
         def __getattr__(self, name):
             if name in deprecated_attributes:
@@ -211,4 +211,4 @@ def wrap_module(module: ModuleType,
                     stacklevel=2)
             return getattr(module, name)
 
-    return Wrapped()
+    return Wrapped(module.__name__)
