@@ -1,6 +1,5 @@
 from cirq.qis.measures import (
-    von_neumann_entropy,
-)
+    von_neumann_entropy,)
 
 from cirq.qis.states import (
     bloch_vector_from_state_vector,
