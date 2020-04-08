@@ -1,7 +1,7 @@
 # For testing and analyzing code.
 mypy~=0.701.0
 pylint~=2.3.0
-pytest~=3.8.0
+pytest~=5.4.1
 pytest-asyncio~=0.10.0
 pytest-cov~=2.5.0
 pytest-benchmark~=3.2.0
