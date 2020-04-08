@@ -133,8 +133,7 @@ def test_minimal_distance():
     dev = square_virtual_device(control_r=1., num_qubits=1)
 
     with pytest.raises(ValueError,
-                       match="There is no minimal distance for a "
-                           "single-qubit."):
+                       match="Two qubits to compute a minimal distance."):
         dev.minimal_distance()
 
     dev = square_virtual_device(control_r=1., num_qubits=2)

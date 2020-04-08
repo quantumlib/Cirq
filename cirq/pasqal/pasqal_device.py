@@ -213,8 +213,7 @@ class PasqalVirtualDevice(PasqalDevice):
             The minimal distance between qubits, in spacial coordinate units.
         """
         if len(self.qubits) <= 1:
-            raise ValueError(
-                "There is no minimal distance for a single-qubit.")
+            raise ValueError("Two qubits to compute a minimal distance.")
 
         return min([self.distance(q1, q2) for q1 in self.qubits
                     for q2 in self.qubits if q1 != q2])
