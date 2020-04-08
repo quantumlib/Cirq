@@ -68,10 +68,12 @@ class StabilizerStateChForm():
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(
-            self, ['n', 'initial_state', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+            self,
+            ['n', 'initial_state', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
-    def _from_json_dict_(cls, n, initial_state, G, F, M, gamma, v, s, omega, **kwargs):
+    def _from_json_dict_(cls, n, initial_state, G, F, M, gamma, v, s, omega,
+                         **kwargs):
         copy = StabilizerStateChForm(n, initial_state)
 
         copy.G = G.copy()
