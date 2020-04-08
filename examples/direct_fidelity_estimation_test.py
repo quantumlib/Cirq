@@ -1,5 +1,7 @@
 import numpy as np
+import pytest
 import cirq
+import cirq.google as cg
 import examples.direct_fidelity_estimation as direct_fidelity_estimation
 
 
@@ -9,11 +11,12 @@ def test_direct_fidelity_estimation_no_noise_clifford():
                            cirq.X(qubits[2]))
 
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
+    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        no_noise,
+        no_noise_simulator,
         n_trials=100,
         n_clifford_trials=3,
         samples_per_term=0)
@@ -26,11 +29,12 @@ def test_direct_fidelity_estimation_no_noise_non_clifford():
         cirq.Z(qubits[0])**0.123, cirq.X(qubits[1]), cirq.X(qubits[2]))
 
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
+    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        no_noise,
+        no_noise_simulator,
         n_trials=100,
         n_clifford_trials=3,
         samples_per_term=0)
@@ -45,15 +49,34 @@ def test_direct_fidelity_estimation_with_noise():
         cirq.X(qubits[2])**0.456)
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
+    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
     estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
         circuit,
         qubits,
-        noise,
+        noisy_simulator,
         n_trials=10,
         n_clifford_trials=3,
         samples_per_term=10)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
+
+
+def test_incorrect_sampler_raises_exception():
+    qubits = cirq.LineQubit.range(1)
+    circuit = cirq.Circuit(cirq.X(qubits[0]))
+
+    sampler_incorrect_type = cg.QuantumEngineSampler(engine=None,
+                                                     processor_id='dummy_id',
+                                                     gate_set=[])
+
+    with pytest.raises(TypeError):
+        direct_fidelity_estimation.direct_fidelity_estimation(
+            circuit,
+            qubits,
+            sampler_incorrect_type,
+            n_trials=100,
+            n_clifford_trials=3,
+            samples_per_term=0)
 
 
 def test_same_pauli_traces_clifford():
