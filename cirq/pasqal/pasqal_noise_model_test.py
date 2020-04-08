@@ -61,23 +61,17 @@ def test_noisy_moments():
 
 
 def test_default_noise():
-    p_qubits = [ThreeDQubit(0, 0, 0), ThreeDQubit(0, 0, 1)]
+    p_qubits = [ThreeDQubit(0, 0, 0)]
     p_device = PasqalVirtualDevice(control_radius=2, qubits=p_qubits)
     noise_model = PasqalNoiseModel(p_device)
     circuit = cirq.Circuit()
-    Gate_l = cirq.ops.CZPowGate(exponent=1)
-    circuit.append(Gate_l.on(p_qubits[0], p_qubits[1]))
-    p_circuit = cirq.Circuit(circuit, device=p_device)
+    circuit.append(cirq.ops.I(p_qubits[0]))
     n_mts = []
-    for moment in p_circuit._moments:
+    for moment in circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[
-        cirq.ops.CZPowGate(exponent=1).on(ThreeDQubit(0, 0, 0),
-                                          ThreeDQubit(0, 0, 1)),
-        cirq.depolarize(p=0.03).on(ThreeDQubit(0, 0, 0)),
-        cirq.depolarize(p=0.03).on(ThreeDQubit(0, 0, 1))
-    ]]
+    assert n_mts == [[cirq.ops.I(ThreeDQubit(0, 0, 0)),
+                      cirq.depolarize(p=0.05).on(ThreeDQubit(0, 0, 0))]]
 
 
 def test_get_op_string():
