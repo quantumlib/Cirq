@@ -104,9 +104,11 @@ class PauliTrace:
     """
     # Pauli string.
     P_i: cirq.PauliString
-    # Defined at bottom of left column of page 2.
+    # The pure state for the Pauli string above, formally defined at bottom of
+    # left column of page 2.
     rho_i: float
-    # Define at top of right column of page 2.
+    # A probablity (between 0.0 and 1.0) that is the relevance distribution,
+    # formally defined at top of right column of page 2.
     Pr_i: float
 
 
@@ -216,7 +218,8 @@ class TrialResult:
     """
     # The index in the list of Pauli traces.
     i: int
-    # Defined at bottom of left column of second page of
+    # The measured state for that trial under the Pauli state indexed by i
+    # above, formally defined at bottom of left column of second page of
     # https://arxiv.org/abs/1104.3835
     sigma_i: float
 

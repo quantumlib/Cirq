@@ -112,6 +112,30 @@ def test_same_pauli_traces_clifford():
                           atol=0.01)
 
 
+def test_direct_fidelity_estimation_intermediate_results():
+    qubits = cirq.LineQubit.range(1)
+    circuit = cirq.Circuit(cirq.I(qubits[0]))
+    no_noise_simulator = cirq.DensityMatrixSimulator()
+
+    _, intermediate_result = dfe.direct_fidelity_estimation(circuit,
+                                                            qubits,
+                                                            no_noise_simulator,
+                                                            n_trials=1,
+                                                            n_clifford_trials=1,
+                                                            samples_per_term=0)
+    # We only test a few fields to be sure that they are set properly. In
+    # particular, some of them are random, and so we don't test them.
+    np.testing.assert_allclose(intermediate_result.clifford_state.ch_form.gamma,
+                               [0])
+
+    np.testing.assert_equal(len(intermediate_result.pauli_traces), 1)
+    assert np.isclose(intermediate_result.pauli_traces[0].rho_i, 1.0)
+    assert np.isclose(intermediate_result.pauli_traces[0].Pr_i, 0.5)
+
+    np.testing.assert_equal(len(intermediate_result.trial_results), 1)
+    assert np.isclose(intermediate_result.trial_results[0].sigma_i, 1.0)
+
+
 def test_parsing_args():
     dfe.parse_arguments(['--samples_per_term=10'])
 
