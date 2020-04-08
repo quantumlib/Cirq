@@ -17,10 +17,15 @@ import cirq
 
 
 class PasqalNoiseModel(cirq.devices.NoiseModel):
-    """A noise model for Pasqal neutral atom device """
+    """A noise model for Pasqal neutral atom device."""
 
-    def __init__(self):
+    def __init__(self, device: cirq.devices.Device):
         self.noise_op_dict = self.get_default_noise_dict()
+        if not isinstance(device, cirq.pasqal.PasqalDevice):
+            raise TypeError("The noise model varies between Pasqal's devices. "
+                            "Please specify the one you intend to execute the "
+                            "circuit on.")
+        self.device = device
 
     def get_default_noise_dict(self) -> Dict[str, Any]:
         """Returns the current noise parameters"""
@@ -31,7 +36,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
             cirq.ops.depolarize(1e-2),
             str(cirq.ops.XPowGate()):
             cirq.ops.depolarize(1e-2),
-            str(cirq.ops.PhasedXPowGate(phase_exponent=0)):
+            str(cirq.ops.HPowGate(exponent=1)):
             cirq.ops.depolarize(1e-2),
             str(cirq.ops.CNotPowGate(exponent=1)):
             cirq.ops.depolarize(3e-2),
@@ -46,7 +51,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def noisy_moment(self, moment: cirq.ops.Moment,
                      system_qubits: Sequence[cirq.ops.Qid]
-                    ) -> List[cirq.ops.Operation]:
+                     ) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
         The model includes
         - Depolarizing noise with gate-dependent strength
@@ -58,7 +63,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         """
         noise_list = []
         for op in moment:
-            op_str = get_op_string(op)
+            op_str = self.get_op_string(op)
             try:
                 noise_op = self.noise_op_dict[op_str]
             except KeyError:
@@ -67,16 +72,15 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
                 noise_list.append(noise_op.on(qubit))
         return list(moment) + noise_list
 
+    def get_op_string(self, cirq_op: cirq.ops.Operation) -> str:
+        """Find the string representation for a given operation
+        Args:
+            cirq_op: one cirq operation
+        Returns:
+            String representing the gate operations
+        """
+        if not self.device.is_pasqal_device_op(cirq_op) \
+                or isinstance(cirq_op.gate, cirq.ops.MeasurementGate):
+            raise ValueError('Got unknown operation:', cirq_op)
 
-def get_op_string(cirq_op: cirq.ops.Operation) -> str:
-    """Find the string representation for a given operation
-    Args:
-        cirq_op: one cirq operation
-    Returns:
-        String representing the gate operations
-    """
-    if not cirq.pasqal.PasqalDevice.is_pasqal_device_op(cirq_op) \
-            or isinstance(cirq_op.gate, cirq.ops.MeasurementGate):
-        raise ValueError('Got unknown operation:', cirq_op)
-
-    return str(cirq_op.gate)
+        return str(cirq_op.gate)
