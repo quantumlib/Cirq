@@ -522,9 +522,9 @@ class EngineClient:
         Returns:
             A list of metadata of each processor.
         """
-        response = self._make_request(lambda: self.grpc_client.
-                                      list_quantum_processors(
-                                          self._project_name(project_id), ''))
+        response = self._make_request(
+            lambda: self.grpc_client.list_quantum_processors(
+                self._project_name(project_id), filter_=''))
         return list(response)
 
     def get_processor(self, project_id: str,
