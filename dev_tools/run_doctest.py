@@ -192,9 +192,16 @@ def import_file(file_path: str) -> ModuleType:
 
     Returns: The imported module.
     """
-    mod_name = os.path.basename(file_path)
+    mod_name_components = []
+    head, tail = os.path.split(file_path)
+    while tail:
+        mod_name_components.append(tail)
+        head, tail = os.path.split(head)
+    mod_name = '.'.join(reversed(mod_name_components))
     if mod_name.endswith('.py'):
         mod_name = mod_name[:-3]
+    if mod_name.endswith('.__init__'):
+        mod_name = mod_name[:-9]
     # Find and create the module
     spec = importlib.util.spec_from_file_location(mod_name, file_path)
     mod = importlib.util.module_from_spec(spec)
