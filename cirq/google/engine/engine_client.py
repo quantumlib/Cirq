@@ -524,7 +524,7 @@ class EngineClient:
         """
         response = self._make_request(lambda: self.grpc_client.
                                       list_quantum_processors(
-                                          self._project_name(project_id), ''))
+                                          self._project_name(project_id), filter=''))
         return list(response)
 
     def get_processor(self, project_id: str,
