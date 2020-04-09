@@ -194,12 +194,12 @@ class PasqalVirtualDevice(PasqalDevice):
                                              "far away".format(p, q))
 
     def validate_moment(self, moment: cirq.ops.Moment):
-        """
-        Raises an error if the given moment is invalid on this device
+        """Raises an error if the given moment is invalid on this device.
+
         Args:
-            moment: The moment to validate
+            moment: The moment to validate.
         Raises:
-            ValueError: If the given moment is invalid
+            ValueError: If the given moment is invalid.
         """
 
         super().validate_moment(moment)
