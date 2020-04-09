@@ -138,7 +138,7 @@ class PasqalVirtualDevice(PasqalDevice):
     """A Pasqal virtual device with qubits in 3D."""
 
     def __init__(self, control_radius: float,
-                 qubits: Iterable[ThreeDQubit]) -> None:
+                 qubits: Iterable[cirq.ops.Qid]) -> None:
         """Initializes a device with some qubits.
 
         Args:
@@ -155,19 +155,19 @@ class PasqalVirtualDevice(PasqalDevice):
         super().__init__(qubits)
 
         if not control_radius >= 0:
-            raise ValueError('control_radius needs to be a non-negative float')
+            raise ValueError('Control_radius needs to be a non-negative float')
 
         if len(self.qubits) > 1:
             # Ask Lucas and Adrien for this number
             if control_radius >= 5. * self.minimal_distance():
-                raise ValueError('control_radius cannot be larger than 5 times'
+                raise ValueError('Control_radius cannot be larger than 5 times'
                                  ' the minimal distance between qubits.')
 
         self.control_radius = control_radius
 
     @property
     def supported_qubit_type(self):
-        return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit)
+        return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit,)
 
     def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
         return super().is_pasqal_device_op(op) and not isinstance(op.gate,

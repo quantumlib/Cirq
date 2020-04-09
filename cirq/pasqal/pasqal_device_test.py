@@ -62,11 +62,11 @@ def test_init_errors():
                             TwoDQubit(0, 0), cirq.GridQubit(1, 0)])
 
     with pytest.raises(ValueError,
-                       match="control_radius needs to be a non-negative float"):
+                       match="Control_radius needs to be a non-negative float"):
         square_virtual_device(control_r=-1., num_qubits=2)
 
     with pytest.raises(ValueError,
-                       match="control_radius cannot be larger than "
+                       match="Control_radius cannot be larger than "
                        "5 times the minimal distance between qubits."):
         square_virtual_device(control_r=11., num_qubits=2)
 
@@ -87,9 +87,13 @@ def test_decompose_error():
 
 def test_is_pasqal_device():
     d = generic_device(2)
-    op = (cirq.ops.CZ).on(*(d.qubit_list()))
 
+    with pytest.raises(ValueError, match="Got unknown operation"):
+        d.is_pasqal_device_op(cirq.NamedQubit('q0'))
+
+    op = (cirq.ops.CZ).on(*(d.qubit_list()))
     bad_op = cirq.ops.CNotPowGate(exponent=0.5)
+
     assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
     assert not d.is_pasqal_device_op(cirq.ops.CCX(cirq.NamedQubit('q0'),
                                                   cirq.NamedQubit('q1'),
@@ -101,10 +105,15 @@ def test_is_pasqal_device():
                                      cirq.NamedQubit('q1')))
 
     d2 = square_virtual_device(control_r=1.1, num_qubits=3)
+    assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
     assert not d2.is_pasqal_device_op(op1(TwoDQubit(0, 0), TwoDQubit(0, 1)))
 
 
 def test_decompose_operation():
+    d = generic_device(3)
+    for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
+        d.validate_operation(op)
+
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1., p_qubits)
     op = (cirq.ops.CNOT).on(*(d.qubit_list()))
@@ -116,6 +125,30 @@ def test_decompose_operation():
         cirq.PhasedXPowGate(phase_exponent=0.4999999999999998,
                             exponent=0.5).on(cirq.LineQubit(4))
     ]
+
+
+def test_pasqal_converter():
+    q = cirq.LineQubit.range(2)
+    g = cirq.TwoQubitGate()
+
+    class FakeOperation(cirq.ops.GateOperation):
+
+        def __init__(self, gate, qubits):
+            self._gate = gate
+            self._qubits = qubits
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            return FakeOperation(self._gate, new_qubits)
+
+    op = FakeOperation(g, q).with_qubits(*q)
+    d = PasqalVirtualDevice(1., q)
+
+    with pytest.raises(TypeError, match="Don't know how to work with"):
+        d.decompose_operation(op)
 
 
 def test_validate_operation_errors():
@@ -155,10 +188,13 @@ def test_validate_operation_errors():
 
 def test_validate_moment():
     d = square_virtual_device(control_r=1., num_qubits=2)
-    m = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)), (cirq.X).on(TwoDQubit(1, 1))])
+    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)),
+                      (cirq.X).on(TwoDQubit(1, 1))])
+    m2 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
 
     with pytest.raises(ValueError, match="Cannot do simultaneous gates"):
-        d.validate_moment(m)
+        d.validate_moment(m1)
+    d.validate_moment(m2)
 
 
 def test_minimal_distance():
@@ -230,3 +266,31 @@ def test_to_json():
         "control_radius": 2,
         "qubits": [cirq.pasqal.TwoDQubit(0, 0)]
     }
+
+
+# def test_coverage():
+#    q = cirq.LineQubit.range(3)
+#    g = cirq.ThreeQubitGate()
+
+#    class FakeOperation(cirq.ops.Operation):
+#
+#        def __init__(self, gate, qubits):
+#            self._gate = gate
+#            self._qubits = qubits
+
+#        @property
+#        def qubits(self):
+#            return self._qubits
+
+#        def with_qubits(self, *new_qubits):
+#            return FakeOperation(self._gate, new_qubits)
+
+#    op = FakeOperation(g, q).with_qubits(*q)
+    #c = cirq.Circuit(cirq.X.on(q[0]))
+    # cirq.pasqal.ConvertToNeutralAtomGates().optimize_circuit(c)
+
+    #assert c == cirq.Circuit(cirq.X.on(q[0]))
+    # assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
+    #    cirq.X.on(q[0])) == [cirq.X.on(q[0])])
+#    with pytest.raises(TypeError, match="Don't know how to work with"):
+#        cirq.pasqal.PasqalConverter().pasqal_convert(op)
