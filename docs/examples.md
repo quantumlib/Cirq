@@ -2,7 +2,8 @@
 # Textbook Examples
 
 A significant examples directory attached to cirq contains many useful
-examples that you can use to see how to write different algorithms.
+examples that you can use to see how to write several quantum algorithms.
+
 Most of these can be found in the
 [examples directory](https://github.com/quantumlib/Cirq/tree/master/examples)
 in the Github repository.
@@ -10,59 +11,57 @@ in the Github repository.
 In addition to these examples, you can also find the notebooks that generated
 the cirq docs found here in the
 [docs directory](https://github.com/quantumlib/Cirq/tree/master/docs) as well
-as all the more advanced case studies listed below this page in the table of
-contents.
+as all the more advanced case studies listed below on this page.
 
 Below is a listing of the examples in the repository:
 
 ## Beginning algorithms
 
 *    [Hello Qubit](https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py)
-Simple first program showing how to create a circuit.
+Simple first program showing how to create a quantum circuit.
 
 *    [Deutsch Algorithm](https://github.com/quantumlib/Cirq/blob/master/examples/deutsch.py)
 Textbook example of the simplest quantum advantage.
 
 *    [Bernstein-Vazirani](https://github.com/quantumlib/Cirq/blob/master/examples/bernstein_vazirani.py)
-Textbook algorithm determining properties of a hidden "oracle" function
+Textbook algorithm determining a global property of a function with surprisingly few calls to it.
 
 *    [Bell Inequality](https://github.com/quantumlib/Cirq/blob/master/examples/bell_inequality.py)
-Demonstration of a Bell inequality which shows violation of local hidden variables
+Demonstration of a Bell inequality which shows impossibility of local hidden variable theories.
 
 *    [BB84](https://github.com/quantumlib/Cirq/blob/master/examples/bb84.py)
-Textbook algorithm for Quantum key distribution
+Textbook algorithm for Quantum Key Distribution
 
 *    [Noisy simulation](https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py)
-     How to use a noisy simulator to generate results with amplitiude damping.
+How to use a noisy simulator to generate results with amplitiude damping.
 
 *    [Line placement](https://github.com/quantumlib/Cirq/blob/master/examples/place_on_bristlecone.py)
-How to find a line of adjacent qubits on a device
+How to find a line of adjacent qubits on a device.
 
 *    [Quantum Teleportation](https://github.com/quantumlib/Cirq/blob/master/examples/quantum_teleportation.py)
 A demonstration of using 2 classical bits to transport a quantum state from one
 qubit to another.
 
 *    [Super dense coding](https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py)
-     Transmit 2 classical bits using one quantum bit.
+Transmit 2 classical bits using one quantum bit.
 
 
 # Intermediate Textbook Algorithms
 
 *    [Grover Algorithm](https://github.com/quantumlib/Cirq/blob/master/examples/grover.py)
-Example of applying the textbook Grover algorithm to find a 2-bit oracle
-function.
+Textbook algorithm for finding a single element hidden within a oracle function.
 
 *    [Quantum Fourier Transform](https://github.com/quantumlib/Cirq/blob/master/examples/quantum_fourier_transform.py)
-A demonstration of a 4-qubit quantum fourier transform (QFT)
+A demonstration of a 4-qubit quantum fourier transform (QFT).
 
 *    [Basic Arithmetic](https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py)
-Algorithms for adding and multiplying numbers as represented by qubit states
+Algorithms for adding and multiplying numbers as represented by qubit states.
 
 *    [Phase estimation](https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py)
-     Textbook algorithm for phase estimation
+Textbook algorithm for phase estimation.
 
 *    [Shor](https://github.com/quantumlib/Cirq/blob/master/examples/shor.py)
-Shor's algorithm for factoring.
+Quantum algorithm for integer factoring.
 
 *    [QAOA](https://github.com/quantumlib/Cirq/blob/master/examples/qaoa.py)
 Demonstration of the quantum approximation optimization algorithm (QAOA) on a
@@ -72,28 +71,44 @@ max-cut problem.
 ## Intermediate NISQ techniques
 
 *    [XEB](https://github.com/quantumlib/Cirq/blob/master/examples/cross_entropy_benchmarking_example.py)
-Shows how to use cross-entropy benchmarking (XEB) to distinguish two
-distributions
+Shows how to use cross-entropy benchmarking (XEB) to to estimate fidelity.
 
 *    [Direct fidelity](https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py)
 Shows how to use direct fidelity estimation to distinguish a desired state from
 the actual state.
 
 *    [Qubit Characterization](https://github.com/quantumlib/Cirq/blob/master/examples/qubit_characterizations_example.py)
-     How to characterize a qubit using Rabi oscillations, randomized
-     benchmarking, and tomography
+How to characterize a qubit using Rabi oscillations, randomized
+benchmarking, and tomography.
 
 
 *    [Swap networks](https://github.com/quantumlib/Cirq/blob/master/examples/swap_networks.py)
+Algorithm for efficiently emulating full connectivity on a limited connectivity grid of qubits.
 
 
 ## Advanced algorithms
 
 *     [HHL](https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py)
-Algorithm for solving linear systems using quantum phase estimation
+Algorithm for solving linear systems using quantum phase estimation.
 
 *     [BCS Mean Field](https://github.com/quantumlib/Cirq/blob/master/examples/bcs_mean_field.py)
 Quantum circuit to prepare the BCS ground states for superconductors/superfluids.
 
-For other more advanced algorithms, see the case studies for notebooks that
-demonstrate them.
+
+## Advanced Case Studies
+
+*     [Variational Algorithm](studies/variational_algorithm.ipynb)
+Case study demonstrating construction of an ansatz for a two-dimensional Ising
+model and how to simulate and optimize it.
+
+*     [QAOA](studies/QAOA_Demo.ipynb)
+Demonstration of optimizing cost of a max-cut problem using quantum
+approximation optimization algorithm (QAOA)
+
+*     [Quantum Walk](studies/Quantum_Walk.ipynb)
+Demonstration of both classical and quantum random walks that shows their
+similarities and differences.
+
+*     [Rabi Oscillations](studies/Rabi_Demo.ipynb)
+Example of using sweeps and symbols to show rotation of a qubit by different
+angles.
