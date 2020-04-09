@@ -23,6 +23,7 @@ from cirq.google.engine.client import quantum
 from cirq.google.engine.client.quantum_v1alpha1 import enums as qenums
 from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
 
+
 def setup_mock_(client_constructor):
     grpc_client = mock.Mock()
     client_constructor.return_value = grpc_client
@@ -557,8 +558,11 @@ def test_list_processors(client_constructor):
 
     client = EngineClient()
     assert client.list_processors('proj') == results
-    assert grpc_client.list_quantum_processors.call_args[0] == ('projects/proj',
-                                                                '')
+    assert grpc_client.list_quantum_processors.call_args[0] == (
+        'projects/proj',)
+    assert grpc_client.list_quantum_processors.call_args[1] == {
+        'filter_': '',
+    }
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
