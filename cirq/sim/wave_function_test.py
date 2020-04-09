@@ -56,7 +56,8 @@ def test_deprecated():
     assert "deprecated" in log[0].getMessage()
 
     with capture_logging() as log:
-        _ = cirq.sim.STATE_VECTOR_LIKE
+        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
+        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
     assert len(log) == 1
     assert "cirq.STATE_VECTOR_LIKE" in log[0].getMessage()
     assert "deprecated" in log[0].getMessage()
