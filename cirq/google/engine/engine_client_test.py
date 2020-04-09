@@ -561,7 +561,7 @@ def test_list_processors(client_constructor):
     assert grpc_client.list_quantum_processors.call_args[0] == (
         'projects/proj',)
     assert grpc_client.list_quantum_processors.call_args[1] == {
-        'filter': '',
+        'filter_': '',
     }
 
 
