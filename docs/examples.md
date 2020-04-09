@@ -55,10 +55,10 @@ Textbook algorithm for finding a single element hidden within a oracle function.
 A demonstration of a 4-qubit quantum fourier transform (QFT).
 
 *    [Basic Arithmetic](https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py)
-Algorithms for adding and multiplying numbers as represented by qubit states.
+Algorithms for adding and multiplying numbers as represented by quantum states.
 
 *    [Phase estimation](https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py)
-Textbook algorithm for phase estimation.
+Textbook algorithm for phase estimation, i.e. for finding an eigenvalue of a unitary operator.
 
 *    [Shor](https://github.com/quantumlib/Cirq/blob/master/examples/shor.py)
 Quantum algorithm for integer factoring.
