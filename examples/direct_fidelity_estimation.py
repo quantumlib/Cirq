@@ -146,6 +146,7 @@ def _enumerate_all_from_stabilizer_bases(
         dense_pauli_strings.append(dense_pauli_string)
     return dense_pauli_strings
 
+
 @dataclass
 class PauliTrace:
     """
