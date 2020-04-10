@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import FrozenSet, Iterable, Callable, List
+import numpy as np
 from numpy import sqrt
 
 import cirq
@@ -84,8 +85,8 @@ class PasqalDevice(cirq.devices.Device):
         if not valid_op:    # To prevent further checking if already passed
             if isinstance(op.gate, (cirq.ops.HPowGate,
                                     cirq.ops.CNotPowGate, cirq.ops.CZPowGate)):
-                valid_op = op.gate.exponent.is_integer() or \
-                    isinstance(op.gate.exponent, int)
+                expo = op.gate.exponent
+                valid_op = np.isclose(expo, np.around(expo, decimals=0))
 
         return valid_op
 
