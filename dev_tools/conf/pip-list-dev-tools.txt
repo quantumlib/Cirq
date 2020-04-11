@@ -27,4 +27,3 @@ sphinx-markdown-tables
 nbsphinx
 ipython
 ipykernel
-
