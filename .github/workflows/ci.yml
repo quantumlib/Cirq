@@ -14,19 +14,6 @@ jobs:
           architecture: 'x64'
       - name: Misc
         run: check/misc
-  changed_files:
-    name: Changed files test
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install changed files test dependencies
-        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
-      - name: Changed files test
-        run: check/pytest-changed-files
   format:
     name: Format check
     runs-on: ubuntu-16.04
@@ -53,6 +40,19 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
       - name: Type check
         run: check/mypy
+  changed_files:
+    name: Changed files test
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - name: Install changed files test dependencies
+        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
+      - name: Changed files test
+        run: check/pytest-changed-files
   lint:
     name: Lint check
     runs-on: ubuntu-16.04
