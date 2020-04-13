@@ -3615,3 +3615,112 @@ def test_transform_qubits():
     assert c.transform_qubits(lambda q: q).device is cg.Foxtail
     assert c.transform_qubits(lambda q: q, new_device=cg.Bristlecone
                              ).device is cg.Bristlecone
+
+
+def test_indexing_by_pair():
+    # 0: ───H───@───X───@───
+    #           │       │
+    # 1: ───────H───@───@───
+    #               │   │
+    # 2: ───────────H───X───
+    q = cirq.LineQubit.range(3)
+    c = cirq.Circuit([
+        cirq.H(q[0]),
+        cirq.H(q[1]).controlled_by(q[0]),
+        cirq.H(q[2]).controlled_by(q[1]),
+        cirq.X(q[0]),
+        cirq.CCNOT(*q),
+    ])
+
+    # Indexing by single moment and qubit.
+    assert c[0, q[0]] == c[0][q[0]] == cirq.H(q[0])
+    assert c[1, q[0]] == c[1, q[1]] == cirq.H(q[1]).controlled_by(q[0])
+    assert c[2, q[0]] == c[2][q[0]] == cirq.X(q[0])
+    assert c[2, q[1]] == c[2, q[2]] == cirq.H(q[2]).controlled_by(q[1])
+    assert c[3, q[0]] == c[3, q[1]] == c[3, q[2]] == cirq.CCNOT(*q)
+
+    # Indexing by moment and qubit - throws if there is no operation.
+    with pytest.raises(KeyError, match="Moment doesn't act on given qubit"):
+        _ = c[0, q[1]]
+
+    # Indexing by single moment and multiple qubits.
+    assert c[0, q] == c[0]
+    assert c[1, q] == c[1]
+    assert c[2, q] == c[2]
+    assert c[3, q] == c[3]
+    assert c[0, q[0:2]] == c[0]
+    assert c[0, q[1:3]] == cirq.Moment([])
+    assert c[1, q[1:2]] == c[1]
+    assert c[2, [q[0]]] == cirq.Moment([cirq.X(q[0])])
+    assert c[2, q[1:3]] == cirq.Moment([cirq.H(q[2]).controlled_by(q[1])])
+    assert c[np.int64(2), q[0:2]] == c[2]
+
+    # Indexing by single qubit.
+    assert c[:, q[0]] == cirq.Circuit([
+        cirq.Moment([cirq.H(q[0])]),
+        cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
+        cirq.Moment([cirq.X(q[0])]),
+        cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
+    ])
+    assert c[:, q[1]] == cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
+        cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
+        cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
+    ])
+    assert c[:, q[2]] == cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
+        cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
+    ])
+
+    # Indexing by several qubits.
+    assert c[:, q] == c[:, q[0:2]] == c[:, [q[0], q[2]]] == c
+    assert c[:, q[1:3]] == cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
+        cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
+        cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
+    ])
+
+    # Indexing by several moments and one qubit.
+    assert c[1:3, q[0]] == cirq.Circuit([
+        cirq.H(q[1]).controlled_by(q[0]),
+        cirq.X(q[0]),
+    ])
+    assert c[1::2, q[2]] == cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([cirq.CCNOT(*q)]),
+    ])
+
+    # Indexing by several moments and several qubits.
+    assert c[0:2, q[1:3]] == cirq.Circuit([
+        cirq.Moment([]),
+        cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
+    ])
+    assert c[::2, q[0:2]] == cirq.Circuit([
+        cirq.Moment([cirq.H(q[0])]),
+        cirq.Moment([cirq.H(q[2]).controlled_by(q[1]),
+                     cirq.X(q[0])]),
+    ])
+
+    # Equivalent ways of indexing.
+    assert c[0:2, q[1:3]] == c[0:2][:, q[1:3]] == c[:, q[1:3]][0:2]
+
+    # Passing more than 2 items is forbidden.
+    with pytest.raises(ValueError, match='If key is tuple, it must be a pair.'):
+        _ = c[0, q[1], 0]
+
+    # Can't swap indices.
+    with pytest.raises(TypeError,
+                       match='list indices must be integers or slices'):
+        _ = c[q[1], 0]
+
+
+def test_indexing_by_numpy_integer():
+    q = cirq.NamedQubit('q')
+    c = cirq.Circuit(cirq.X(q), cirq.Y(q))
+
+    assert c[np.int32(1)] == cirq.Moment([cirq.Y(q)])
+    assert c[np.int64(1)] == cirq.Moment([cirq.Y(q)])

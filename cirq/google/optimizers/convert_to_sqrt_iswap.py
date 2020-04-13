@@ -149,8 +149,9 @@ def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
         Returns:
             True if the gate is native to the gate set, false otherwise.
         """
-    return isinstance(gate, (ops.MeasurementGate, ops.PhasedXPowGate,
-                             ops.XPowGate, ops.YPowGate, ops.ZPowGate))
+    return isinstance(
+        gate, (ops.MeasurementGate, ops.PhasedXZGate, ops.PhasedXPowGate,
+               ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
 def cphase_to_sqrt_iswap(a, b, turns):

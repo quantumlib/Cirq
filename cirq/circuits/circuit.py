@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -85,6 +84,13 @@ class Circuit:
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
             followed by the moments in circuit2;
@@ -204,11 +210,29 @@ class Circuit:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: slice) -> 'Circuit':
+    def __getitem__(self, key: slice) -> 'cirq.Circuit':
         pass
 
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
         pass
 
     def __getitem__(self, key):
@@ -216,10 +240,27 @@ class Circuit:
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if hasattr(key, '__index__'):
             return self._moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
+                if isinstance(qubit_idx, cirq.Qid):
+                    qubit_idx = [qubit_idx]
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return new_circuit
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type slice or int.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
@@ -784,19 +825,6 @@ class Circuit:
             if q in start_frontier), default=0)
         2) set(operation.qubits).intersection(start_frontier)
 
-        Args:
-            start_frontier: A starting set of reachable locations.
-            is_blocker: A predicate that determines if operations block
-                reachability. Any location covered by an operation that causes
-                `is_blocker` to return True is considered to be an unreachable
-                location.
-
-        Returns:
-            A list of tuples. Each tuple describes an operation found between
-            the start frontier and a blocking operation. The first item of
-            each tuple is the index of the moment containing the operation,
-            and the second item is the operation itself.
-
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
         their moment indices) in the output. `F` and `T` indicate that
@@ -841,6 +869,19 @@ class Circuit:
         ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                    │                  │
         ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
 
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]

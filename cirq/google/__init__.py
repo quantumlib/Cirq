@@ -37,12 +37,14 @@ from cirq.google.engine import (
     EngineJob,
     EngineProgram,
     EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
     XMON,
+    FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
 )

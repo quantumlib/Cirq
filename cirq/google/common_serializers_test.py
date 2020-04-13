@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from typing import Dict
+import math
 import pytest
 import numpy as np
 import sympy
@@ -585,6 +586,51 @@ def test_deserialize_z_parameterized():
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(serialized_op) == expected
 
 
+@pytest.mark.parametrize(('gate', 'exponent'), [
+    (cirq.CZ, 1.0),
+    (cirq.CZ**3.0, 3.0),
+    (cirq.CZ**-1.0, -1.0),
+])
+def test_serialize_deserialize_cz_gate(gate, exponent):
+    gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER],
+                                      [cgc.CZ_POW_DESERIALIZER])
+    proto = op_proto({
+        'gate': {
+            'id': 'cz'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': exponent
+                }
+            }
+        },
+        'qubits': [{
+            'id': '5_4'
+        }, {
+            'id': '5_5'
+        }]
+    })
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    op = cirq.CZPowGate(exponent=exponent)
+    assert gate_set.serialize_op(gate(q1, q2)) == proto
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(gate_set.deserialize_op(proto)),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
+
+
+def test_cz_pow_non_integer_does_not_serialize():
+    gate_set = cg.SerializableGateSet('test', [cgc.CZ_SERIALIZER],
+                                      [cgc.CZ_POW_DESERIALIZER])
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    with pytest.raises(ValueError):
+        gate_set.serialize_op(cirq.CZ(q1, q2)**0.5)
+
+
 def test_wait_gate():
     gate_set = cg.SerializableGateSet('test', [cgc.WAIT_GATE_SERIALIZER],
                                       [cgc.WAIT_GATE_DESERIALIZER])
@@ -607,3 +653,122 @@ def test_wait_gate():
     op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
     assert gate_set.serialize_op(op) == proto
     assert gate_set.deserialize_op(proto) == op
+
+
+@pytest.mark.parametrize(('gate', 'theta', 'phi'), [
+    (cirq.ISWAP**0.5, -np.pi / 4, 0),
+    (cirq.ISWAP**-0.5, np.pi / 4, 0),
+    (cirq.ISWAP**0.0, 0, 0),
+    (cirq.CZ, 0, np.pi),
+    (cirq.CZ**-1.0, 0, np.pi),
+    (cirq.FSimGate(theta=0, phi=0), 0, 0),
+    (cirq.FSimGate(theta=0, phi=np.pi), 0, np.pi),
+    (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
+    (cirq.FSimGate(theta=7 * np.pi / 4, phi=0), 7 * np.pi / 4, 0),
+    (cirq.FSimGate(theta=-np.pi / 4, phi=0), -np.pi / 4, 0),
+    (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), -7 * np.pi / 4, 0),
+    (cirq.google.SYC, np.pi / 2, np.pi / 6),
+    (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
+])
+def test_serialize_deserialize_fsim_gate(gate, theta, phi):
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    proto = op_proto({
+        'gate': {
+            'id': 'fsim'
+        },
+        'args': {
+            'theta': {
+                'arg_value': {
+                    'float_value': theta
+                }
+            },
+            'phi': {
+                'arg_value': {
+                    'float_value': phi
+                }
+            }
+        },
+        'qubits': [{
+            'id': '5_4'
+        }, {
+            'id': '5_5'
+        }]
+    })
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    op = cirq.FSimGate(theta=theta, phi=phi)
+    assert gate_set.serialize_op(gate(q1, q2)) == proto
+    cirq.testing.assert_allclose_up_to_global_phase(
+        cirq.unitary(gate_set.deserialize_op(proto)),
+        cirq.unitary(op),
+        atol=1e-7,
+    )
+
+
+@pytest.mark.parametrize(('gate', 'theta', 'phi'), [
+    (cirq.FSimGate(theta=sympy.Symbol('t'), phi=0), {
+        'symbol': 't'
+    }, {
+        'arg_value': {
+            'float_value': 0.0
+        }
+    }),
+    (cirq.FSimGate(theta=sympy.Symbol('t'), phi=sympy.Symbol('p')), {
+        'symbol': 't'
+    }, {
+        'symbol': 'p'
+    }),
+])
+def test_serialize_deserialize_fsim_gate_symbols(gate, theta, phi):
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    expected = op_proto({
+        'gate': {
+            'id': 'fsim'
+        },
+        'args': {
+            'theta': theta,
+            'phi': phi
+        },
+        'qubits': [{
+            'id': '5_4'
+        }, {
+            'id': '5_5'
+        }]
+    })
+    proto = gate_set.serialize_op(gate(q1, q2), arg_function_language='linear')
+    actual = gate_set.deserialize_op(proto, arg_function_language='linear')
+    assert proto == expected
+    assert actual == gate(q1, q2)
+
+
+def test_serialize_deserialize_iswap_symbols():
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    op = cirq.ISWAP(q1, q2)**sympy.Symbol('t')
+    proto = gate_set.serialize_op(op, arg_function_language='linear')
+    actual = gate_set.deserialize_op(proto, arg_function_language='linear')
+    assert isinstance(actual.gate, cirq.FSimGate)
+    assert math.isclose(actual.gate.phi, 0)
+    assert math.isclose(actual.gate.theta.subs('t', 2), -np.pi, abs_tol=1e-5)
+
+
+@pytest.mark.parametrize('gate', [
+    cirq.ISWAP**0.25,
+    cirq.ISWAP,
+    cirq.FSimGate(theta=0.1, phi=0),
+    cirq.FSimGate(theta=0, phi=0.1),
+    cirq.FSimGate(theta=sympy.Symbol('t'), phi=0.1),
+])
+def test_fsim_gate_not_allowed(gate):
+    q1 = cirq.GridQubit(5, 4)
+    q2 = cirq.GridQubit(5, 5)
+    gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,
+                                      [cgc.LIMITED_FSIM_DESERIALIZER])
+    with pytest.raises(ValueError):
+        gate_set.serialize_op(gate(q1, q2))

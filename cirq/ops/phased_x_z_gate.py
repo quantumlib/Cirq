@@ -165,6 +165,23 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                             axis_phase_exponent=self._axis_phase_exponent +
                             phase_turns * 2)
 
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        x_angle = np.pi * self._x_exponent / 2
+        z_angle = np.pi * self._z_exponent / 2
+        axis_angle = np.pi * self._axis_phase_exponent
+        phase = np.exp(1j * (x_angle + z_angle))
+
+        cx = np.cos(x_angle)
+        sx = np.sin(x_angle)
+        return value.LinearDict({
+            'I': phase * cx * np.cos(z_angle),
+            'X': -1j * phase * sx * np.cos(z_angle + axis_angle),
+            'Y': -1j * phase * sx * np.sin(z_angle + axis_angle),
+            'Z': -1j * phase * cx * np.sin(z_angle),
+        })  # yapf: disable
+
     def _circuit_diagram_info_(self,
                                args: 'cirq.CircuitDiagramInfoArgs') -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""
