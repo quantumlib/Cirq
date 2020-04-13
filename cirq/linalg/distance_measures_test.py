@@ -18,10 +18,48 @@ import pytest
 
 import cirq
 
+N = 15
+VEC1 = cirq.testing.random_superposition(N)
+VEC2 = cirq.testing.random_superposition(N)
+MAT1 = cirq.testing.random_density_matrix(N)
+MAT2 = cirq.testing.random_density_matrix(N)
+U = cirq.testing.random_unitary(N)
 
-def test_fidelity():
 
-    # Known values
+def test_fidelity_symmetric():
+    np.testing.assert_allclose(cirq.fidelity(VEC1, VEC2),
+                               cirq.fidelity(VEC2, VEC1))
+    np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1),
+                               cirq.fidelity(MAT1, VEC1))
+    np.testing.assert_allclose(cirq.fidelity(MAT1, MAT2),
+                               cirq.fidelity(MAT2, MAT1))
+
+
+def test_fidelity_between_zero_and_one():
+    assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
+    assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1
+    assert 0 <= cirq.fidelity(MAT1, MAT2) <= 1
+
+
+def test_fidelity_invariant_under_unitary_transformation():
+    np.testing.assert_allclose(
+        cirq.fidelity(MAT1, MAT2),
+        cirq.fidelity(U @ MAT1 @ U.T.conj(), U @ MAT2 @ U.T.conj()))
+
+
+def test_fidelity_commuting_matrices():
+    d1 = np.random.uniform(size=N)
+    d1 /= np.sum(d1)
+    d2 = np.random.uniform(size=N)
+    d2 /= np.sum(d2)
+    mat1 = U @ np.diag(d1) @ U.T.conj()
+    mat2 = U @ np.diag(d2) @ U.T.conj()
+
+    np.testing.assert_allclose(cirq.fidelity(mat1, mat2),
+                               np.sum(np.sqrt(d1 * d2))**2)
+
+
+def test_fidelity_known_values():
     vec1 = np.array([1, 1j, -1, -1j]) * 0.5
     vec2 = np.array([1, -1, 1, -1]) * 0.5
     mat1 = np.outer(vec1, vec1.conj())
@@ -40,41 +78,7 @@ def test_fidelity():
     np.testing.assert_allclose(cirq.fidelity(vec1, mat3), 0.3)
     np.testing.assert_allclose(cirq.fidelity(mat3, vec2), 0.7)
 
-    # Generic properties
-    N = 15
-    vec1 = cirq.testing.random_superposition(N)
-    vec2 = cirq.testing.random_superposition(N)
-    mat1 = cirq.testing.random_density_matrix(N)
-    mat2 = cirq.testing.random_density_matrix(N)
-    u = cirq.testing.random_unitary(N)
 
-    # Fidelity is symmetric
-    np.testing.assert_allclose(cirq.fidelity(vec1, vec2),
-                               cirq.fidelity(vec2, vec1))
-    np.testing.assert_allclose(cirq.fidelity(vec1, mat1),
-                               cirq.fidelity(mat1, vec1))
-    np.testing.assert_allclose(cirq.fidelity(mat1, mat2),
-                               cirq.fidelity(mat2, mat1))
-    # Fidelity is between 0 and 1
-    assert 0 <= cirq.fidelity(vec1, vec2) <= 1
-    assert 0 <= cirq.fidelity(vec1, mat1) <= 1
-    assert 0 <= cirq.fidelity(mat1, mat2) <= 1
-    # Fidelity is invariant under unitary transformation
-    np.testing.assert_allclose(
-        cirq.fidelity(mat1, mat2),
-        cirq.fidelity(u @ mat1 @ u.T.conj(), u @ mat2 @ u.T.conj()))
-
-    # Special case of commuting matrices
-    d1 = np.random.uniform(size=N)
-    d1 /= np.sum(d1)
-    d2 = np.random.uniform(size=N)
-    d2 /= np.sum(d2)
-    mat1 = u @ np.diag(d1) @ u.T.conj()
-    mat2 = u @ np.diag(d2) @ u.T.conj()
-
-    np.testing.assert_allclose(cirq.fidelity(mat1, mat2),
-                               np.sum(np.sqrt(d1 * d2))**2)
-
-    # Bad shape
+def test_fidelity_bad_shape():
     with pytest.raises(ValueError, match='dimensional'):
         _ = cirq.fidelity(np.array([[[1.0]]]), np.array([[[1.0]]]))

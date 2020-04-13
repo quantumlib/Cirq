@@ -55,6 +55,5 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
         eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
         trace = np.sum(np.sqrt(eigs))
         return trace**2
-    else:
-        raise ValueError('The given arrays must be one- or two-dimensional. '
-                         f'Got shapes {state1.shape} and {state2.shape}.')
+    raise ValueError('The given arrays must be one- or two-dimensional. '
+                     f'Got shapes {state1.shape} and {state2.shape}.')
