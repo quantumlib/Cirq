@@ -95,9 +95,10 @@ def test_same_pauli_traces_clifford():
 
     # Run both algos
     pauli_traces_clifford = dfe._estimate_pauli_traces_clifford(
-        n_qubits, clifford_state, n_clifford_trials=3)
+        n_qubits, clifford_state, n_clifford_trials=None)
     pauli_traces_general = dfe._estimate_pauli_traces_general(qubits, circuit)
 
+    assert len(pauli_traces_clifford) == 2**n_qubits
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [
             x for x in pauli_traces_general if x.P_i == pauli_trace_clifford.P_i
