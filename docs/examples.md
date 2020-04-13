@@ -1,9 +1,8 @@
 
 # Textbook Examples
 
-A significant examples directory attached to cirq contains many useful
-examples that you can use to see how to write several quantum algorithms.
-
+Cirq comes with a collection of example implementations of well-known quantum
+algorithms that demonstrate the main features of the library.
 Most of these can be found in the
 [examples directory](https://github.com/quantumlib/Cirq/tree/master/examples)
 in the Github repository.
@@ -11,11 +10,11 @@ in the Github repository.
 In addition to these examples, you can also find the notebooks that generated
 the cirq docs found here in the
 [docs directory](https://github.com/quantumlib/Cirq/tree/master/docs) as well
-as all the more advanced case studies listed below on this page.
+as all the more advanced case studies listed further down on this page.
 
 Below is a listing of the examples in the repository:
 
-## Beginning algorithms
+## Introductory algorithms
 
 *    [Hello Qubit](https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py)
 Simple first program showing how to create a quantum circuit.
@@ -30,7 +29,7 @@ Textbook algorithm determining a global property of a function with surprisingly
 Demonstration of a Bell inequality which shows impossibility of local hidden variable theories.
 
 *    [BB84](https://github.com/quantumlib/Cirq/blob/master/examples/bb84.py)
-Textbook algorithm for Quantum Key Distribution
+Textbook algorithm for Quantum Key Distribution.
 
 *    [Noisy simulation](https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py)
 How to use a noisy simulator to generate results with amplitiude damping.
@@ -71,14 +70,14 @@ max-cut problem.
 ## Intermediate NISQ techniques
 
 *    [XEB](https://github.com/quantumlib/Cirq/blob/master/examples/cross_entropy_benchmarking_example.py)
-Shows how to use cross-entropy benchmarking (XEB) to to estimate fidelity.
+Fidelity estimation using cross-entropy benchmarking (XEB).
 
 *    [Direct fidelity](https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py)
-Shows how to use direct fidelity estimation to distinguish a desired state from
-the actual state.
+Direct fideltiy estimation to distinguish a desired state from the actual state
+using few Pauli measurements.
 
 *    [Qubit Characterization](https://github.com/quantumlib/Cirq/blob/master/examples/qubit_characterizations_example.py)
-How to characterize a qubit using Rabi oscillations, randomized
+Qubit characterizations using Rabi oscillations, randomized
 benchmarking, and tomography.
 
 
