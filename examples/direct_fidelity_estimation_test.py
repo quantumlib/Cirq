@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import cirq
 import cirq.google as cg
-import examples.direct_fidelity_estimation as direct_fidelity_estimation
+import examples.direct_fidelity_estimation as dfe
 
 
 def test_direct_fidelity_estimation_no_noise_clifford():
@@ -13,13 +13,12 @@ def test_direct_fidelity_estimation_no_noise_clifford():
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
     no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
-    estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
-        circuit,
-        qubits,
-        no_noise_simulator,
-        n_trials=100,
-        n_clifford_trials=3,
-        samples_per_term=0)
+    estimated_fidelity, _ = dfe.direct_fidelity_estimation(circuit,
+                                                           qubits,
+                                                           no_noise_simulator,
+                                                           n_trials=100,
+                                                           n_clifford_trials=3,
+                                                           samples_per_term=0)
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -31,13 +30,12 @@ def test_direct_fidelity_estimation_no_noise_non_clifford():
     no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
     no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
 
-    estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
-        circuit,
-        qubits,
-        no_noise_simulator,
-        n_trials=100,
-        n_clifford_trials=3,
-        samples_per_term=0)
+    estimated_fidelity, _ = dfe.direct_fidelity_estimation(circuit,
+                                                           qubits,
+                                                           no_noise_simulator,
+                                                           n_trials=100,
+                                                           n_clifford_trials=3,
+                                                           samples_per_term=0)
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -51,13 +49,12 @@ def test_direct_fidelity_estimation_with_noise():
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
     noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
-    estimated_fidelity = direct_fidelity_estimation.direct_fidelity_estimation(
-        circuit,
-        qubits,
-        noisy_simulator,
-        n_trials=10,
-        n_clifford_trials=3,
-        samples_per_term=10)
+    estimated_fidelity, _ = dfe.direct_fidelity_estimation(circuit,
+                                                           qubits,
+                                                           noisy_simulator,
+                                                           n_trials=10,
+                                                           n_clifford_trials=3,
+                                                           samples_per_term=10)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
@@ -70,13 +67,12 @@ def test_incorrect_sampler_raises_exception():
                                                      gate_set=[])
 
     with pytest.raises(TypeError):
-        direct_fidelity_estimation.direct_fidelity_estimation(
-            circuit,
-            qubits,
-            sampler_incorrect_type,
-            n_trials=100,
-            n_clifford_trials=3,
-            samples_per_term=0)
+        dfe.direct_fidelity_estimation(circuit,
+                                       qubits,
+                                       sampler_incorrect_type,
+                                       n_trials=100,
+                                       n_clifford_trials=3,
+                                       samples_per_term=0)
 
 
 def test_same_pauli_traces_clifford():
@@ -98,36 +94,52 @@ def test_same_pauli_traces_clifford():
         clifford_state.apply_unitary(gate)
 
     # Run both algos
-    pauli_traces_clifford = (
-        direct_fidelity_estimation._estimate_pauli_traces_clifford(
-            n_qubits, clifford_state, n_clifford_trials=3))
-    pauli_traces_general = (
-        direct_fidelity_estimation._estimate_pauli_traces_general(
-            qubits, circuit))
+    pauli_traces_clifford = dfe._estimate_pauli_traces_clifford(
+        n_qubits, clifford_state, n_clifford_trials=3)
+    pauli_traces_general = dfe._estimate_pauli_traces_general(qubits, circuit)
 
     for pauli_trace_clifford in pauli_traces_clifford:
         pauli_trace_general = [
-            x for x in pauli_traces_general
-            if x['P_i'] == pauli_trace_clifford['P_i']
+            x for x in pauli_traces_general if x.P_i == pauli_trace_clifford.P_i
         ]
         assert len(pauli_trace_general) == 1
         pauli_trace_general = pauli_trace_general[0]
 
         # The code itself checks that the rho_i is either +1 or -1, so here we
         # simply test that the sign is the same.
-        assert np.isclose(pauli_trace_general['rho_i'],
-                          pauli_trace_clifford['rho_i'],
+        assert np.isclose(pauli_trace_general.rho_i,
+                          pauli_trace_clifford.rho_i,
                           atol=0.01)
 
 
+def test_direct_fidelity_estimation_intermediate_results():
+    qubits = cirq.LineQubit.range(1)
+    circuit = cirq.Circuit(cirq.I(qubits[0]))
+    no_noise_simulator = cirq.DensityMatrixSimulator()
+
+    _, intermediate_result = dfe.direct_fidelity_estimation(circuit,
+                                                            qubits,
+                                                            no_noise_simulator,
+                                                            n_trials=1,
+                                                            n_clifford_trials=1,
+                                                            samples_per_term=0)
+    # We only test a few fields to be sure that they are set properly. In
+    # particular, some of them are random, and so we don't test them.
+    np.testing.assert_allclose(intermediate_result.clifford_state.ch_form.gamma,
+                               [0])
+
+    np.testing.assert_equal(len(intermediate_result.pauli_traces), 1)
+    assert np.isclose(intermediate_result.pauli_traces[0].rho_i, 1.0)
+    assert np.isclose(intermediate_result.pauli_traces[0].Pr_i, 0.5)
+
+    np.testing.assert_equal(len(intermediate_result.trial_results), 1)
+    assert np.isclose(intermediate_result.trial_results[0].sigma_i, 1.0)
+
+
 def test_parsing_args():
-    direct_fidelity_estimation.parse_arguments(['--samples_per_term=10'])
+    dfe.parse_arguments(['--samples_per_term=10'])
 
 
 def test_calling_main():
-    direct_fidelity_estimation.main(n_trials=10,
-                                    n_clifford_trials=3,
-                                    samples_per_term=0)
-    direct_fidelity_estimation.main(n_trials=10,
-                                    n_clifford_trials=3,
-                                    samples_per_term=10)
+    dfe.main(n_trials=10, n_clifford_trials=3, samples_per_term=0)
+    dfe.main(n_trials=10, n_clifford_trials=3, samples_per_term=10)
