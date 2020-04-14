@@ -45,7 +45,7 @@ qubit to another.
 Transmit 2 classical bits using one quantum bit.
 
 
-# Intermediate Textbook Algorithms
+## Intermediate Textbook Algorithms
 
 *    [Grover Algorithm](https://github.com/quantumlib/Cirq/blob/master/examples/grover.py)
 Textbook algorithm for finding a single element hidden within a oracle function.
