@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Iterator, Optional, Sequence, Union, List
+from typing import (Any, Iterable, Iterator, List, Optional, Sequence, Tuple,
+                    Union)
 
 import numpy as np
 
@@ -33,7 +34,7 @@ class InputRotationCell(Cell):
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (
             self.identifier,
             self.register,
@@ -41,7 +42,7 @@ class InputRotationCell(Cell):
             self.exponent_sign,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f'cirq.interop.quirk.cells.input_rotation_cells.InputRotationCell('
             f'\n    {self.identifier!r},'
@@ -99,7 +100,7 @@ class QuirkInputRotationOperation(ops.Operation):
         self.base_operation = base_operation
         self.exponent_sign = exponent_sign
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (
             self.identifier,
             self.register,
@@ -108,7 +109,7 @@ class QuirkInputRotationOperation(ops.Operation):
         )
 
     @property
-    def qubits(self):
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         return tuple(self.base_operation.qubits) + self.register
 
     def with_qubits(self, *new_qubits):
@@ -132,7 +133,7 @@ class QuirkInputRotationOperation(ops.Operation):
             exponent_qubit_index=qubit_index,
             auto_exponent_parens=False)
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return True
 
     def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
@@ -157,7 +158,7 @@ class QuirkInputRotationOperation(ops.Operation):
 
         return args.target_tensor
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.interop.quirk.QuirkInputRotationOperation('
                 f'identifier={self.identifier!r}, '
                 f'register={self.register!r}, '
