@@ -57,9 +57,9 @@ class CliffordTableau():
     @classmethod
     def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
         state = cls(n)
-        state.rs = rs.copy()
-        state.xs = xs.copy()
-        state.zs = zs.copy()
+        state.rs = rs
+        state.xs = xs
+        state.zs = zs
 
         return state
 

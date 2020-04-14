@@ -283,16 +283,16 @@ class CliffordState():
     def _json_dict_(self):
         return {
             'cirq_type': self.__class__.__name__,
-            'qubit_map': dict([(v, k) for k, v in self.qubit_map.items()]),
+            'qubit_map': [(k, v) for k, v in self.qubit_map.items()],
             'tableau': self.tableau,
             'ch_form': self.ch_form,
         }
 
     @classmethod
     def _from_json_dict_(cls, qubit_map, tableau, ch_form, **kwargs):
-        state = cls(dict([(v, int(k)) for k, v in qubit_map.items()]))
-        state.tableau = tableau.copy()
-        state.ch_form = ch_form.copy()
+        state = cls(dict(qubit_map))
+        state.tableau = tableau
+        state.ch_form = ch_form
 
         return state
 

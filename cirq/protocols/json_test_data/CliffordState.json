@@ -1,11 +1,14 @@
 {
   "cirq_type": "CliffordState",
-  "qubit_map": {
-    "0": {
-      "cirq_type": "LineQubit",
-      "x": 0
-    }
-  },
+  "qubit_map": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0
+    ]
+  ],
   "tableau": {
     "cirq_type": "CliffordTableau",
     "n": 1,
