@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A class that can be used to denote a physical Z gate."""
+from typing import Any, Dict
+
 from cirq import protocols
 
 
@@ -29,14 +31,14 @@ class PhysicalZTag:
     (such as PhasedXZGate), this class will have no effect.
     """
 
-    def __str__(self):
+    def __str__(self) -> str:
         return 'PhysicalZTag()'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'cirq.google.PhysicalZTag()'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return isinstance(other, PhysicalZTag)

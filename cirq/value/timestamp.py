@@ -100,11 +100,11 @@ class Timestamp:
     def __le__(self, other):
         return not self > other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((Timestamp, self._picos))
 
-    def __str__(self):
-        return 't={}'.format(self._picos)
+    def __str__(self) -> str:
+        return f't={self._picos}'
 
-    def __repr__(self):
-        return 'cirq.Timestamp(picos={})'.format(repr(self._picos))
+    def __repr__(self) -> str:
+        return f'cirq.Timestamp(picos={self._picos!r})'
