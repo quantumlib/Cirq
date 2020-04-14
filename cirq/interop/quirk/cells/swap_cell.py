@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Iterable, List, TYPE_CHECKING, Iterator
+from typing import Any, Iterable, Iterator, List, Optional, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
@@ -53,10 +53,10 @@ class SwapCell(Cell):
     def controlled_by(self, qubit: 'cirq.Qid'):
         return SwapCell(self._qubits, self._controls + [qubit])
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self._qubits, self._controls
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.interop.quirk.cells.swap_cell.SwapCell('
                 f'\n    {self._qubits!r},'
                 f'\n    {self._controls!r})')
