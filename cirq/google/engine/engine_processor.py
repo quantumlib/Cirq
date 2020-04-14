@@ -300,6 +300,6 @@ class EngineProcessor:
                                                    self.processor_id,
                                                    filter_str)
 
-    def __str__(self):
-        return 'EngineProcessor(project_id=\'{}\', processor_id=\'{}\')'.format(
-            self.project_id, self.processor_id)
+    def __str__(self) -> str:
+        return (f'EngineProcessor(project_id=\'{self.project_id}\', '
+                f'processor_id=\'{self.processor_id}\')')
