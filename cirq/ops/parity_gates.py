@@ -17,6 +17,7 @@
 from typing import Union, Optional, TYPE_CHECKING
 
 import numpy as np
+import sympy
 
 from cirq import protocols
 from cirq._compat import proper_repr
@@ -88,9 +89,11 @@ class XXPowGate(eigen_gate.EigenGate,
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = common_gates._rads_func_symbol(
-                'MS', args,
-                self._diagram_exponent(args, ignore_global_phase=False) / 2)
+            exponent = self._diagram_exponent(args,
+                                              ignore_global_phase=False) / 2
+            pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
+            angle_str = args.format_radians(radians=exponent * pi)
+            symbol = f'MS({angle_str})'
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 
