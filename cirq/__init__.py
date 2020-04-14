@@ -119,6 +119,7 @@ from cirq.linalg import (
     diagonalize_real_symmetric_matrix,
     dot,
     expand_matrix_in_orthogonal_basis,
+    fidelity,
     hilbert_schmidt_inner_product,
     eye_tensor,
     is_diagonal,
