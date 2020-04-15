@@ -37,7 +37,7 @@ class GridQubitLineTuple(tuple):
             raise NotFoundError('No line placement with desired length found.')
         return GridQubitLineTuple(longest[:length])
 
-    def __str__(self):
+    def __str__(self) -> str:
         diagram = TextDiagramDrawer()
         dx = min(q.col for q in self)
         dy = min(q.row for q in self)

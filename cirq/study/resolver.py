@@ -34,7 +34,7 @@ document(
     """Something that can be used to turn parameters into values.""")
 
 
-class ParamResolver(object):
+class ParamResolver:
     """Resolves sympy.Symbols to actual values.
 
     A Symbol is a wrapped parameter name (str). A ParamResolver is an object

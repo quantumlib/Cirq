@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Iterable, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 from numpy import sqrt, isclose
 
 import cirq
@@ -157,14 +157,13 @@ class ThreeDGridQubit(cirq.ops.Qid):
             for col in range(left, left + cols)
         ]
 
-    def __repr__(self):
-        return 'pasqal.ThreeDGridQubit({}, {}, {})'.format(
-            self.row, self.col, self.lay)
+    def __repr__(self) -> str:
+        return f'pasqal.ThreeDGridQubit({self.row}, {self.col}, {self.lay})'
 
-    def __str__(self):
-        return '({}, {}, {})'.format(self.row, self.col, self.lay)
+    def __str__(self) -> str:
+        return f'({self.row}, {self.col}, {self.lay})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self, ['row', 'col', 'lay'])
 
     def __add__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
