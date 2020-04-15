@@ -15,7 +15,7 @@
 
 import time
 
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -343,10 +343,9 @@ class EngineJob:
                     format(name,
                            quantum.types.ExecutionStatus.State.Name(state)))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
 
-    def __str__(self):
-        return str(
-            'EngineJob(project_id=\'{}\', program_id=\'{}\', job_id=\'{}\')'.
-            format(self.project_id, self.program_id, self.job_id))
+    def __str__(self) -> str:
+        return (f'EngineJob(project_id=\'{self.project_id}\', '
+                f'program_id=\'{self.program_id}\', job_id=\'{self.job_id}\')')

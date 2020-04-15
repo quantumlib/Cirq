@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Iterable
+from typing import Any, Dict, FrozenSet, Iterable
 from numpy import sqrt
 
 import cirq
@@ -182,13 +182,13 @@ class PasqalDevice(cirq.devices.Device):
         return sqrt((p.row - q.row)**2 + (p.col - q.col)**2 +
                     (p.lay - q.lay)**2)
 
-    def __repr__(self):
-        return ('pasqal.PasqalDevice(control_radius={!r}, '
-                'qubits={!r})').format(self.control_radius, sorted(self.qubits))
+    def __repr__(self) -> str:
+        return (f'pasqal.PasqalDevice(control_radius={self.control_radius!r}, '
+                f'qubits={sorted(self.qubits)!r})')
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.control_radius, self.qubits)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self,
                                                  ['control_radius', 'qubits'])
