@@ -14,21 +14,6 @@ jobs:
           architecture: 'x64'
       - name: Misc
         run: check/misc
-
-  changed_files:
-    name: Changed files test
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install changed files test dependencies
-        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
-      - name: Changed files test
-        run: check/pytest-changed-files
-
   format:
     name: Format check
     runs-on: ubuntu-16.04
@@ -42,7 +27,6 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep yapf | xargs pip install
       - name: Format
         run: check/format-incremental
-
   mypy:
     name: Type check
     runs-on: ubuntu-16.04
@@ -56,7 +40,19 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep mypy | xargs pip install
       - name: Type check
         run: check/mypy
-
+  changed_files:
+    name: Changed files test
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - name: Install changed files test dependencies
+        run: dev_tools/conf/pip-install-minimal-for-pytest-changed-files.sh
+      - name: Changed files test
+        run: check/pytest-changed-files
   lint:
     name: Lint check
     runs-on: ubuntu-16.04
@@ -70,54 +66,6 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
       - name: Lint
         run: check/pylint
-
-  pytest:
-    name: Pytest Ubuntu
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
-      - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
-  macos:
-    name: Pytest MacOS
-    runs-on: macos-10.15
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
-      - name: Pytest check
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip
-  windows:
-    name: Pytest Windows
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-      - name: Pytest Windows
-        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   doc_test:
     name: Doc test
     runs-on: ubuntu-16.04
@@ -134,9 +82,8 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Doc check
         run: check/doctest -q
-
-  coverage:
-    name: Coverage check
+  pytest:
+    name: Pytest Ubuntu
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v1
@@ -147,12 +94,10 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
-          pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           git config --global user.name ${GITHUB_ACTOR}
-      - name: Coverage check
-        run: check/pytest-and-incremental-coverage --actually-quiet
-
+      - name: Pytest check
+        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
@@ -170,7 +115,6 @@ jobs:
           sudo apt-get install pandoc
       - name: Build docs
         run: dev_tools/build-docs.sh
-
   build_protos:
     name: Build protos
     runs-on: ubuntu-16.04
@@ -187,3 +131,51 @@ jobs:
           sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
       - name: Build protos
         run: check/build-protos
+  coverage:
+    name: Coverage check
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r cirq/contrib/contrib-requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          git config --global user.name ${GITHUB_ACTOR}
+      - name: Coverage check
+        run: check/pytest-and-incremental-coverage --actually-quiet
+  windows:
+    name: Pytest Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - name: Pytest Windows
+        run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+  macos:
+    name: Pytest MacOS
+    runs-on: macos-10.15
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.6'
+          architecture: 'x64'
+      - name: Install requirements
+        run: |
+          pip install -r requirements.txt
+          pip install -r dev_tools/conf/pip-list-dev-tools.txt
+          git config --global user.name ${GITHUB_ACTOR}
+      - name: Pytest check
+        run: check/pytest --ignore=cirq/contrib --benchmark-skip
