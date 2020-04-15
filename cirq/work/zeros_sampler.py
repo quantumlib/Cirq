@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (List, Set, TYPE_CHECKING)
+from typing import (Dict, List, Set, TYPE_CHECKING)
 
 import abc
 import numpy as np
@@ -54,12 +54,3 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
                 params=param_resolver, measurements=measurements)
             for param_resolver in study.to_resolvers(params)
         ]
-
-
-def _all_measurement_keys(circuit: circuits.Circuit) -> Set[str]:
-    result = set()  # type: Set[str]
-    for op in ops.flatten_op_tree(iter(circuit)):
-        key = protocols.measurement_key(op, default=None)
-        if key is not None:
-            result.add(key)
-    return result
