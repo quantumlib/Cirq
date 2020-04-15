@@ -20,7 +20,7 @@ import ply.lex as lex
 from cirq.contrib.qasm_import.exception import QasmException
 
 
-class QasmLexer(object):
+class QasmLexer:
 
     def __init__(self):
         self.lex = lex.lex(object=self, debug=False)
@@ -111,8 +111,8 @@ class QasmLexer(object):
         r"""//.*"""
 
     def t_error(self, t):
-        raise QasmException("Illegal character '{}' at line {}".format(
-            t.value[0], t.lineno))
+        raise QasmException(
+            f"Illegal character '{t.value[0]}' at line {t.lineno}")
 
     def input(self, qasm):
         self.lex.input(qasm)
