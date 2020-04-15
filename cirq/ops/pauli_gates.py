@@ -52,7 +52,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
                    atol: float) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
-        return self is other
+        return self == other
 
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
