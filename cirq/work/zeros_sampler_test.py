@@ -14,9 +14,9 @@
 
 import numpy as np
 import sympy
-from cirq import study
 
 import cirq
+from cirq import study
 
 
 def test_run_sweep():

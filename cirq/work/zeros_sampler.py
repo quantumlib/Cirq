@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Dict, List, Set, TYPE_CHECKING)
-
 import abc
+from typing import (Dict, List, TYPE_CHECKING)
+
 import numpy as np
 
-from cirq import work, study, protocols, ops, circuits
+from cirq import work, study, protocols, ops
 
 if TYPE_CHECKING:
     import cirq
