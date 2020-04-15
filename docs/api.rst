@@ -283,6 +283,7 @@ results.
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
+    cirq.ZerosSampler
     cirq.Zip
 
 
