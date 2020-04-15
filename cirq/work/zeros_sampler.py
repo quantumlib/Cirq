@@ -43,10 +43,12 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        zero_measurement = np.zeros((repetitions, 1), dtype=np.int8)
-        measurements = {
-            key: zero_measurement for key in _all_measurement_keys(program)
-        }
+        measurements = {}  # type: Dict[str, np.ndarray]
+        for op in ops.flatten_op_tree(iter(program)):
+            key = protocols.measurement_key(op, default=None)
+            if key is not None:
+                measurements[key] = np.zeros((repetitions, len(op.qubits)),
+                                             dtype=np.int8)
         return [
             study.TrialResult.from_single_parameter_set(
                 params=param_resolver, measurements=measurements)

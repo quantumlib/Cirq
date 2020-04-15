@@ -20,25 +20,29 @@ import cirq
 
 
 def test_run_sweep():
-    a = cirq.NamedQubit('a')
-    c = cirq.Circuit([cirq.measure(a)])
+    a, b, c = [cirq.NamedQubit(s) for s in ['a', 'b', 'c']]
+    circuit = cirq.Circuit([cirq.measure(a)], [cirq.measure(b, c)])
     sampler = cirq.ZerosSampler()
 
-    result = sampler.run_sweep(c, None, 2)
+    result = sampler.run_sweep(circuit, None, 3)
 
     assert len(result) == 1
-    assert result[0].measurements.keys() == {'a'}
-    assert np.all(result[0].measurements['a'] == [[False], [False]])
+    assert result[0].measurements.keys() == {'a', 'b,c'}
+    assert result[0].measurements['a'].shape == (3, 1)
+    assert np.all(result[0].measurements['a'] == 0)
+    assert result[0].measurements['b,c'].shape == (3, 2)
+    assert np.all(result[0].measurements['b,c'] == 0)
 
 
 def test_sample():
     # Create a circuit whose measurements are always zeros, and check that
     # results of ZeroSampler on this circuit are identical to results of
     # actual simulation.
-    qs = cirq.LineQubit.range(4)
+    qs = cirq.LineQubit.range(6)
     c = cirq.Circuit([cirq.CNOT(qs[0], qs[1]), cirq.X(qs[2]), cirq.X(qs[2])])
     c += cirq.Z(qs[3])**sympy.Symbol('p')
-    c += [cirq.measure(q) for q in qs]
+    c += [cirq.measure(q) for q in qs[0:3]]
+    c += cirq.measure(qs[4], qs[5])
     # Z to even power is an identity.
     params = study.Points(sympy.Symbol('p'), [0, 2, 4, 6])
 
