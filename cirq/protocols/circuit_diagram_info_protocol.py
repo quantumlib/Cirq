@@ -62,7 +62,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (
             self.wire_symbols,
             self.exponent,
@@ -71,17 +71,13 @@ class CircuitDiagramInfo:
             self.auto_exponent_parens,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.CircuitDiagramInfo('
-                'wire_symbols={!r}, '
-                'exponent={!r}, '
-                'connected={!r}, '
-                'exponent_qubit_index={!r}, '
-                'auto_exponent_parens={!r})'.format(self.wire_symbols,
-                                                    self.exponent,
-                                                    self.connected,
-                                                    self.exponent_qubit_index,
-                                                    self.auto_exponent_parens))
+                f'wire_symbols={self.wire_symbols!r}, '
+                f'exponent={self.exponent!r}, '
+                f'connected={self.connected!r}, '
+                f'exponent_qubit_index={self.exponent_qubit_index!r}, '
+                f'auto_exponent_parens={self.auto_exponent_parens!r})')
 
 
 @value.value_equality
@@ -122,25 +118,21 @@ class CircuitDiagramInfoArgs:
         self.qubit_map = qubit_map
         self.include_tags = include_tags
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.known_qubits, self.known_qubit_count,
                 self.use_unicode_characters, self.precision,
                 None if self.qubit_map is None else tuple(
                     sorted(self.qubit_map.items(), key=lambda e: e[0])),
                 self.include_tags)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.CircuitDiagramInfoArgs('
-                'known_qubits={!r}, '
-                'known_qubit_count={!r}, '
-                'use_unicode_characters={!r}, '
-                'precision={!r}, '
-                'qubit_map={!r},'
-                'include_tags={!r})'.format(self.known_qubits,
-                                            self.known_qubit_count,
-                                            self.use_unicode_characters,
-                                            self.precision, self.qubit_map,
-                                            self.include_tags))
+                f'known_qubits={self.known_qubits!r}, '
+                f'known_qubit_count={self.known_qubit_count!r}, '
+                f'use_unicode_characters={self.use_unicode_characters!r}, '
+                f'precision={self.precision!r}, '
+                f'qubit_map={self.qubit_map!r},'
+                f'include_tags={self.include_tags!r})')
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):

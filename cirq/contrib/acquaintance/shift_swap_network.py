@@ -101,7 +101,7 @@ class ShiftSwapNetworkGate(PermutationGate):
             return sum(self.qubit_count(side) for side in self.part_lens)
         return sum(self.part_lens[side])
 
-    def num_qubits(self):
+    def num_qubits(self) -> int:
         return self.qubit_count()
 
     def permutation(self) -> Dict[int, int]:
@@ -127,15 +127,15 @@ class ShiftSwapNetworkGate(PermutationGate):
                             str((i, j, k)) + arrow + str((int(not(i)), j, k)))
         return tuple(wire_symbols)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         args = tuple(repr(self.part_lens[side]) for side in ('left', 'right'))
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
+        args_str = ', '.join(args)
         return ('cirq.contrib.acquaintance.shift_swap_network.'
-                'ShiftSwapNetworkGate' +
-                '({})'.format(', '.join(args)))
+                f'ShiftSwapNetworkGate({args_str})')
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (isinstance(other, self.__class__) and
                 self.part_lens == other.part_lens and
                 self.swap_gate == other.swap_gate)

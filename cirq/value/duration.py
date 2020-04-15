@@ -13,7 +13,7 @@
 # limitations under the License.
 """A typed time delta that supports picosecond accuracy."""
 
-from typing import Union, Tuple, TYPE_CHECKING, Any, Optional
+from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import datetime
 
 import sympy
@@ -220,7 +220,7 @@ class Duration:
 
         return amount * rest, unit, suffix
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._picos == 0:
             return 'Duration(0)'
         amount, _, suffix = self._decompose_into_amount_unit_suffix()
@@ -228,11 +228,11 @@ class Duration:
             amount = f'({amount})'
         return f'{amount} {suffix}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         amount, unit, _ = self._decompose_into_amount_unit_suffix()
         return f'cirq.Duration({unit}={proper_repr(amount)})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'picos': self.total_picos()

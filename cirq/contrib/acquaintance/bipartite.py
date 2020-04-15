@@ -31,7 +31,7 @@ class BipartiteGraphType(enum.Enum):
     MATCHING = 1
     COMPLETE = 2
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.acquaintance.bipartite.BipartiteGraphType.' +
                 self.name)
 
@@ -146,14 +146,15 @@ class BipartiteSwapNetworkGate(PermutationGate):
                 for i, j in permutation.items())
         return wire_symbols
 
-    def __repr__(self):
-        args = (repr(self.subgraph), repr(self.part_size))
+    def __repr__(self) -> str:
+        args: Tuple[str, ...] = (repr(self.subgraph), repr(self.part_size))
         if self.swap_gate != ops.SWAP:
             args += (repr(self.swap_gate),)
+        args_str = ', '.join(args)
         return ('cirq.contrib.acquaintance.bipartite.BipartiteSwapNetworkGate'
-                '({})'.format(', '.join(args)))
+                f'({args_str})')
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         return (isinstance(other, self.__class__) and
                 self.subgraph == other.subgraph and
                 self.part_size == other.part_size and
