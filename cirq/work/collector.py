@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, Any, Iterable, Union, List, TYPE_CHECKING
+from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
 import abc
 import asyncio
 
@@ -49,13 +49,12 @@ class CircuitSampleJob:
         self.repetitions = repetitions
         self.tag = tag
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.circuit, self.repetitions, self.tag
 
-    def __repr__(self):
-        return ('cirq.CircuitSampleJob('
-                'tag={!r}, repetitions={!r}, circuit={!r})').format(
-                    self.tag, self.repetitions, self.circuit)
+    def __repr__(self) -> str:
+        return (f'cirq.CircuitSampleJob(tag={self.tag!r}, '
+                f'repetitions={self.repetitions!r}, circuit={self.circuit!r})')
 
 
 CIRCUIT_SAMPLE_JOB_TREE = Union[CircuitSampleJob, Iterable[Any]]
