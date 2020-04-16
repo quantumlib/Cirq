@@ -188,11 +188,21 @@ class EigenGate(raw_types.Gate):
     def _format_exponent_as_angle(
             self,
             args: 'protocols.CircuitDiagramInfoArgs',
+            order: int = 2,
     ) -> str:
-        """Returns string with exponent expressed as angle in radians."""
+        """Returns string with exponent expressed as angle in radians.
+
+        Args:
+            args: CircuitDiagramInfoArgs describing the desired drawing style.
+            order: Exponent corresponding to full rotation by 2π.
+
+        Returns:
+            Angle in radians corresponding to the exponent of self and
+            formatted according to style described by args.
+        """
         exponent = self._diagram_exponent(args, ignore_global_phase=False)
         pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
-        return args.format_radians(radians=exponent * pi)
+        return args.format_radians(radians=2 * pi * exponent / order)
 
     # virtual method
     def _eigen_shifts(self) -> List[float]:
