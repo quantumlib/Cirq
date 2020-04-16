@@ -185,6 +185,15 @@ class EigenGate(raw_types.Gate):
 
         return result
 
+    def _format_exponent_as_angle(
+            self,
+            args: 'protocols.CircuitDiagramInfoArgs',
+    ) -> str:
+        """Returns string with exponent expressed as angle in radians."""
+        exponent = self._diagram_exponent(args, ignore_global_phase=False)
+        pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
+        return args.format_radians(radians=exponent * pi)
+
     # virtual method
     def _eigen_shifts(self) -> List[float]:
         """Describes the eigenvalues of the gate's matrix.

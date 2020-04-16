@@ -163,9 +163,7 @@ class XPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            exponent = self._diagram_exponent(args, ignore_global_phase=False)
-            pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
-            angle_str = args.format_radians(radians=exponent * pi)
+            angle_str = self._format_exponent_as_angle(args)
             return f'Rx({angle_str})'
 
         return protocols.CircuitDiagramInfo(
@@ -307,9 +305,7 @@ class YPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            exponent = self._diagram_exponent(args, ignore_global_phase=False)
-            pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
-            angle_str = args.format_radians(radians=exponent * pi)
+            angle_str = self._format_exponent_as_angle(args)
             return f'Ry({angle_str})'
 
         return protocols.CircuitDiagramInfo(
@@ -492,9 +488,7 @@ class ZPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            exponent = self._diagram_exponent(args, ignore_global_phase=False)
-            pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
-            angle_str = args.format_radians(radians=exponent * pi)
+            angle_str = self._format_exponent_as_angle(args)
             return f'Rz({angle_str})'
 
         e = self._diagram_exponent(args)
