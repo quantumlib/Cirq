@@ -284,9 +284,8 @@ def _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
     p /= np.sum(p)
 
     if n_trials is None and n_clifford_trials is not None:
-        raise ValueError(
-            'Cannot use exhaustive trials without exhaustive Pauli string enumeration'
-        )
+        raise ValueError('Cannot use exhaustive trials without exhaustive '
+                         'Pauli string enumeration')
     if n_trials is None:
         yield from range(len(pauli_traces))
     else:
