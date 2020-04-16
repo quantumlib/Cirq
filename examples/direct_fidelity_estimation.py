@@ -263,6 +263,26 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
+def _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
+    p = np.asarray([x.Pr_i for x in pauli_traces])
+
+    # The package np.random.choice() is quite sensitive to probabilities not
+    # summing up to 1.0. Even an absolute difference below 1e-6 does bother it,
+    # so we re-normalize the probs.
+    p /= np.sum(p)
+
+    if n_trials is None and n_clifford_trials is not None:
+        raise ValueError(
+            'Cannot use exhaustive trials without exhaustive Pauli string enumeration'
+        )
+    if n_trials is None:
+        yield from range(len(pauli_traces))
+    else:
+        for _ in range(n_trials):
+            # Randomly sample as per probability.
+            yield np.random.choice(len(pauli_traces), p=p)
+
+
 @dataclass
 class TrialResult:
     """
@@ -294,7 +314,7 @@ class DFEIntermediateResult:
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
-                               sampler: cirq.Sampler, n_trials: int,
+                               sampler: cirq.Sampler, n_trials: Optional[int],
                                n_clifford_trials: Optional[int],
                                samples_per_term: int):
     """
@@ -307,7 +327,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         circuit: The circuit to run the simulation on.
         qubits: The list of qubits.
         sampler: Either a noisy simulator or an engine.
-        n_trial: The total number of Pauli measurements.
+        n_trial: The total number of Pauli measurements, or None to explore each
+            Pauli state once.
         n_clifford_trials: In case the circuit is Clifford, we specify the
             number of trials to estimate the noise-free pauli traces.
         samples_per_term: if set to 0, we use the 'sampler' parameter above as
@@ -345,17 +366,12 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     else:
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
 
-    p = np.asarray([x.Pr_i for x in pauli_traces])
-
     if not clifford_circuit:
         # For Clifford circuits, we do a Monte Carlo simulations, and thus there
         # is no guarantee that it adds up to 1.0 (but it should to the limit).
-        assert np.isclose(np.sum(p), 1.0, atol=1e-6)
-
-    # The package np.random.choice() is quite sensitive to probabilities not
-    # summing up to 1.0. Even an absolute difference below 1e-6 (as checked just
-    # above) does bother it, so we re-normalize the probs.
-    p /= np.sum(p)
+        assert np.isclose(np.sum([x.Pr_i for x in pauli_traces]),
+                          1.0,
+                          atol=1e-6)
 
     fidelity = 0.0
 
@@ -370,10 +386,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             noisy_simulator.simulate(circuit)).final_density_matrix
 
     trial_results: List[TrialResult] = []
-    for _ in range(n_trials):
-        # Randomly sample as per probability.
-        i = np.random.choice(len(pauli_traces), p=p)
-
+    for i in _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
         Pr_i = pauli_traces[i].Pr_i
         measure_pauli_string: cirq.PauliString = pauli_traces[i].P_i
         rho_i = pauli_traces[i].rho_i
@@ -391,7 +404,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
         fidelity += Pr_i * sigma_i / rho_i
 
-    estimated_fidelity = fidelity / n_trials * d
+    number_of_trials = n_trials if n_trials is not None else len(pauli_traces)
+    estimated_fidelity = fidelity / number_of_trials * d
 
     dfe_intermediate_result = DFEIntermediateResult(
         clifford_state=clifford_state,
@@ -408,7 +422,8 @@ def parse_arguments(args):
     parser.add_argument('--n_trials',
                         default=10,
                         type=int,
-                        help='Number of trials to run.')
+                        help='Number of trials to run or None to explore every '
+                        'Pauli string.')
 
     # TODO(#2802): Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which

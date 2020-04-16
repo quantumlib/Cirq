@@ -10,8 +10,7 @@ def test_direct_fidelity_estimation_no_noise_clifford():
     circuit = cirq.Circuit(cirq.Z(qubits[0]), cirq.X(qubits[1]),
                            cirq.X(qubits[2]))
 
-    no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
-    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
+    no_noise_simulator = cirq.DensityMatrixSimulator()
 
     estimated_fidelity, _ = dfe.direct_fidelity_estimation(circuit,
                                                            qubits,
@@ -27,8 +26,7 @@ def test_direct_fidelity_estimation_no_noise_non_clifford():
     circuit = cirq.Circuit(
         cirq.Z(qubits[0])**0.123, cirq.X(qubits[1]), cirq.X(qubits[2]))
 
-    no_noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.0))
-    no_noise_simulator = cirq.DensityMatrixSimulator(noise=no_noise)
+    no_noise_simulator = cirq.DensityMatrixSimulator()
 
     estimated_fidelity, _ = dfe.direct_fidelity_estimation(circuit,
                                                            qubits,
@@ -72,6 +70,30 @@ def test_incorrect_sampler_raises_exception():
                                        sampler_incorrect_type,
                                        n_trials=100,
                                        n_clifford_trials=3,
+                                       samples_per_term=0)
+
+
+def test_direct_fidelity_estimation_clifford_all_trials():
+    qubits = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(cirq.Z(qubits[0]), cirq.X(qubits[1]))
+
+    no_noise_simulator = cirq.DensityMatrixSimulator()
+
+    estimated_fidelity, _ = dfe.direct_fidelity_estimation(
+        circuit,
+        qubits,
+        no_noise_simulator,
+        n_trials=None,
+        n_clifford_trials=None,
+        samples_per_term=0)
+    assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
+
+    with pytest.raises(ValueError):
+        dfe.direct_fidelity_estimation(circuit,
+                                       qubits,
+                                       no_noise_simulator,
+                                       n_trials=None,
+                                       n_clifford_trials=1,
                                        samples_per_term=0)
 
 
