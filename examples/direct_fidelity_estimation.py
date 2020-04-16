@@ -264,6 +264,18 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
 
 
 def _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
+    """
+    Either samples the Pauli traces or exhaustively enumerate them.
+
+    Args:
+        pauli_traces: The list of Pauli traces for the circuit.
+        n_trial: The total number of Pauli measurements, or None to explore each
+            Pauli state once.
+        n_clifford_trials: In case the circuit is Clifford, we specify the
+            number of trials to estimate the noise-free pauli traces.
+    Yields:
+        A subset (possibly with repetition) of the input Pauli traces.
+    """
     p = np.asarray([x.Pr_i for x in pauli_traces])
 
     # The package np.random.choice() is quite sensitive to probabilities not
