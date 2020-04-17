@@ -1,5 +1,4 @@
 import datetime
-import re
 import traceback
 from typing import Optional, List, Any, Dict, Set, Union
 
@@ -16,11 +15,6 @@ from dev_tools.github_repository import GithubRepository
 GITHUB_REPO_NAME = 'cirq'
 GITHUB_REPO_ORGANIZATION = 'quantumlib'
 ACCESS_TOKEN_ENV_VARIABLE = 'CIRQ_BOT_GITHUB_ACCESS_TOKEN'
-
-# This is needed for updating forks before merging them, because currently the
-# github API has no equivalent to the 'Update Branch' button on the website.
-# This env variable should be the 'user_session' cookie set by github.
-UPDATE_BRANCH_COOKIE_ENV_VARIABLE = 'CIRQ_BOT_UPDATE_BRANCH_COOKIE'
 
 POLLING_PERIOD = datetime.timedelta(seconds=10)
 USER_AUTO_MERGE_LABEL = 'automerge'
@@ -464,57 +458,38 @@ def delete_comment(repo: GithubRepository, comment_id: int) -> None:
                 response.status_code, response.content))
 
 
-def attempt_update_branch_button(pr: PullRequestDetails
-                                 ) -> Union[bool, CannotAutomergeError]:
-    session_cookie = os.getenv(UPDATE_BRANCH_COOKIE_ENV_VARIABLE)
-    if session_cookie is None:
-        return attempt_sync_with_master(pr)
+def update_branch(pr: PullRequestDetails) -> Union[bool, CannotAutomergeError]:
+    """Equivalent to hitting the 'update branch' button on a PR.
 
-    # Get the pull request page.
-    pr_url = 'https://github.com/{}/{}/pull/{}'.format(
-        pr.repo.organization,
-        pr.repo.name,
-        pr.pull_id)
-    cookies = {'user_session': session_cookie}
-    response = requests.get(pr_url, cookies=cookies)
-    if response.status_code != 200:
-        raise RuntimeError(
-            'Failed to read PR page. Code: {}. Content: {}.'.format(
-                response.status_code, response.content))
+    As of Feb 2020 this API feature is still in beta. Note that currently, if
+    you attempt to update branch when already synced to master, a vacuous merge
+    commit will be created.
 
-    # Find the update branch button and relevant tokens.
-    html = response.content.decode()
-    form_guts = re.match(
-        '.*<form class="branch-action-btn'
-        '.*action=".+/pull/.+/update_branch"'
-        '.*<input name="utf8" type="hidden" value="([^"]+)"'
-        '.*<input type="hidden" name="authenticity_token" value="([^"]+)"'
-        '.*<input type="hidden" name="expected_head_oid" value="([^"]+)"'
-        '.*</form>.*', html, re.DOTALL)
-    if form_guts is None:
-        if '(Logged out)' in html:
-            return CannotAutomergeError('Need a fresh :cookie:.')
-        raise RuntimeError(
-            'Failed to find update branch button. Html: {}.'.format(
-                html))
-
-    # Press the update branch button.
+    References:
+        https://developer.github.com/v3/pulls/#update-a-pull-request-branch
+    """
+    url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
+           f"/pulls/{pr.pull_id}/update-branch"
+           f"?access_token={pr.repo.access_token}")
     data = {
-        'utf8': '✓',
-        'authenticity_token': form_guts.group(2),
-        'expected_head_oid': form_guts.group(3),
+        'expected_head_sha': pr.branch_sha,
     }
-    update_url = 'https://github.com/{}/{}/pull/{}/update_branch'.format(
-        pr.repo.organization,
-        pr.repo.name,
-        pr.pull_id)
-    update_response = requests.post(update_url,
-                                    cookies=dict(response.cookies),
-                                    data=data)
-    if update_response.status_code != 200:
-        raise RuntimeError(
-            'Failed to hit update branch button. Code: {}. Content: {}.'.format(
-                update_response.status_code, update_response.content))
+    response = requests.put(
+        url,
+        json=data,
+        # Opt into BETA feature.
+        headers={'Accept': 'application/vnd.github.lydian-preview+json'},
+    )
+
+    if response.status_code == 422:
+        return CannotAutomergeError(
+            "Failed to update branch (incorrect expected_head_sha).",
+            may_be_temporary=True,
+        )
+    if response.status_code != 202:
+        return CannotAutomergeError(
+            f"Unrecognized update-branch status code ({response.status_code}).",
+        )
 
     return True
 
@@ -917,7 +892,7 @@ def duty_cycle(repo: GithubRepository,
 
     state = classify_pr_synced_state(head_pr)
     if state is False:
-        result = attempt_update_branch_button(head_pr)
+        result = update_branch(head_pr)
     elif state is True:
         result = attempt_squash_merge(head_pr)
         if result is True:

@@ -57,6 +57,7 @@ from cirq.testing.json import (
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
+    random_density_matrix,
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,

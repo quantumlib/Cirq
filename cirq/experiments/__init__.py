@@ -30,6 +30,13 @@ from cirq.experiments.fidelity_estimation import (
     xeb_fidelity,
 )
 
+from cirq.experiments.random_quantum_circuit_generation import (
+    GRID_ALIGNED_PATTERN,
+    GRID_STAGGERED_PATTERN,
+    GridInteractionLayer,
+    random_rotations_between_grid_interaction_layers_circuit,
+)
+
 from cirq.experiments.n_qubit_tomography import (
     get_state_tomography_data,
     state_tomography,

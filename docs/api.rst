@@ -12,6 +12,7 @@ Classes for identifying the qubits and hardware you want to operate on.
 
     cirq.UNCONSTRAINED_DEVICE
     cirq.Device
+    cirq.GridQid
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
@@ -68,10 +69,12 @@ Unitary effects that can be applied to one or more qubits.
     cirq.givens
     cirq.identity_each
     cirq.riswap
+    cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
     cirq.CSwapGate
+    cirq.CXPowGate
     cirq.CZPowGate
     cirq.ControlledGate
     cirq.ControlledOperation
@@ -326,6 +329,7 @@ the magic methods that can be implemented.
     cirq.has_channel
     cirq.has_mixture
     cirq.has_mixture_channel
+    cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
     cirq.is_measurement
@@ -385,12 +389,17 @@ Classes and methods for rewriting circuits.
 .. autosummary::
     :toctree: generated/
 
+    cirq.decompose_multi_controlled_rotation
+    cirq.decompose_multi_controlled_x
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
+    cirq.merge_single_qubit_gates_into_phxz
     cirq.single_qubit_matrix_to_gates
     cirq.single_qubit_matrix_to_pauli_rotations
     cirq.single_qubit_matrix_to_phased_x_z
+    cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
+    cirq.stratified_circuit
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -422,10 +431,13 @@ run experiments.
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
     cirq.log_xeb_fidelity_from_probabilities
+    cirq.experiments.GRID_ALIGNED_PATTERN
+    cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
     cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
+    cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
     cirq.experiments.single_qubit_state_tomography
     cirq.experiments.state_tomography
@@ -434,6 +446,7 @@ run experiments.
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
+    cirq.experiments.GridInteractionLayer
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
     cirq.experiments.SingleQubitReadoutCalibrationResult
@@ -470,6 +483,7 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
+    cirq.google.FSIM_GATESET
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
@@ -491,13 +505,15 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.DeserializingArg
     cirq.google.Engine
     cirq.google.EngineJob
+    cirq.google.EngineProcessor
     cirq.google.EngineProgram
+    cirq.google.EngineTimeSlot
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
     cirq.google.GreedySequenceSearchStrategy
-    cirq.google.JobConfig
     cirq.google.LinePlacementStrategy
+    cirq.google.PhysicalZTag
     cirq.google.ProtoVersion
     cirq.google.QuantumEngineSampler
     cirq.google.SerializableDevice
@@ -567,6 +583,7 @@ operation.
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
     cirq.testing.random_circuit
+    cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
@@ -602,10 +619,12 @@ Algebra and Representation
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
     cirq.eye_tensor
+    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian
     cirq.is_negligible_turn
+    cirq.is_normal
     cirq.is_orthogonal
     cirq.is_special_orthogonal
     cirq.is_special_unitary
@@ -628,6 +647,7 @@ Algebra and Representation
     cirq.subwavefunction
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.unitary_eig
     cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition

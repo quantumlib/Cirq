@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """A testing class with utilities for checking linear algebra."""
 
 from typing import Optional
@@ -42,6 +41,30 @@ def random_superposition(dim: int,
     state_vector += 1j * random_state.randn(dim)
     state_vector /= np.linalg.norm(state_vector)
     return state_vector
+
+
+def random_density_matrix(dim: int,
+                          *,
+                          random_state: value.RANDOM_STATE_LIKE = None
+                         ) -> np.ndarray:
+    """Returns a random density matrix distributed with Hilbert-Schmidt measure.
+
+    Args:
+        dim: The width and height of the matrix.
+        random_state: A seed to use for random number generation.
+
+    Returns:
+        The sampled density matrix.
+
+    Reference:
+        'Random Bures mixed states and the distribution of their purity'
+        https://arxiv.org/abs/0909.5094
+    """
+    random_state = value.parse_random_state(random_state)
+
+    mat = random_state.randn(dim, dim) + 1j * random_state.randn(dim, dim)
+    mat = mat @ mat.T.conj()
+    return mat / np.trace(mat)
 
 
 def random_unitary(dim: int, *,
@@ -163,11 +186,10 @@ def assert_allclose_up_to_global_phase(
     # pylint: enable=unused-variable
 
     actual, desired = linalg.match_global_phase(actual, desired)
-    np.testing.assert_allclose(
-        actual=actual,
-        desired=desired,
-        rtol=rtol,
-        atol=atol,
-        equal_nan=equal_nan,
-        err_msg=err_msg,
-        verbose=verbose)
+    np.testing.assert_allclose(actual=actual,
+                               desired=desired,
+                               rtol=rtol,
+                               atol=atol,
+                               equal_nan=equal_nan,
+                               err_msg=err_msg,
+                               verbose=verbose)

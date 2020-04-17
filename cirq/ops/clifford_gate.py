@@ -17,10 +17,9 @@ from typing import (Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple,
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols, value, linalg
 from cirq._doc import document
-from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates,
-                      raw_types)
+from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates)
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
@@ -29,6 +28,18 @@ if TYPE_CHECKING:
 
 PauliTransform = NamedTuple('PauliTransform', [('to', Pauli), ('flip', bool)])
 document(PauliTransform, """+X, -X, +Y, -Y, +Z, or -Z.""")
+
+
+def _to_pauli_transform(matrix: np.ndarray) -> Optional[PauliTransform]:
+    """Converts matrix to PauliTransform.
+
+    If matrix is not ±Pauli matrix, returns None.
+    """
+    for pauli in Pauli._XYZ:
+        p = protocols.unitary(pauli)
+        if np.allclose(matrix, p): return PauliTransform(pauli, False)
+        if np.allclose(matrix, -p): return PauliTransform(pauli, True)
+    return None
 
 
 def _pretend_initialized() -> 'SingleQubitCliffordGate':
@@ -205,6 +216,31 @@ class SingleQubitCliffordGate(gate_features.SingleQubitGate):
             raise ValueError('A rotation cannot map two Paulis to the same')
         return {frm: PauliTransform(to, flip)
                 for frm, (to, flip) in pauli_map_to.items()}
+
+    @staticmethod
+    def from_unitary(u: np.ndarray) -> Optional['SingleQubitCliffordGate']:
+        """Creates Clifford gate with given unitary (up to global phase).
+
+        Args:
+            u: 2x2 unitary matrix of a Clifford gate.
+
+        Returns:
+            SingleQubitCliffordGate, whose matrix is equal to given matrix (up
+            to global phase), or `None` if `u` is not a matrix of a single-qubit
+            Clifford gate.
+        """
+        if u.shape != (2, 2) or not linalg.is_unitary(u):
+            return None
+        x = protocols.unitary(pauli_gates.X)
+        z = protocols.unitary(pauli_gates.Z)
+        x_to = _to_pauli_transform(u @ x @ u.conj().T)
+        z_to = _to_pauli_transform(u @ z @ u.conj().T)
+        if x_to is None or z_to is None:
+            return None
+        return SingleQubitCliffordGate.from_double_map({
+            pauli_gates.X: x_to,
+            pauli_gates.Z: z_to
+        })
 
     def transform(self, pauli: Pauli) -> PauliTransform:
         return self._rotation_map[pauli]

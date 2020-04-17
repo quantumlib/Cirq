@@ -15,10 +15,11 @@
 from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable)
 
+import numpy as np
 import sympy
 from typing_extensions import Protocol
 
-from cirq import value
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -62,7 +63,7 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (
             self.wire_symbols,
             self.exponent,
@@ -71,17 +72,13 @@ class CircuitDiagramInfo:
             self.auto_exponent_parens,
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.CircuitDiagramInfo('
-                'wire_symbols={!r}, '
-                'exponent={!r}, '
-                'connected={!r}, '
-                'exponent_qubit_index={!r}, '
-                'auto_exponent_parens={!r})'.format(self.wire_symbols,
-                                                    self.exponent,
-                                                    self.connected,
-                                                    self.exponent_qubit_index,
-                                                    self.auto_exponent_parens))
+                f'wire_symbols={self.wire_symbols!r}, '
+                f'exponent={self.exponent!r}, '
+                f'connected={self.connected!r}, '
+                f'exponent_qubit_index={self.exponent_qubit_index!r}, '
+                f'auto_exponent_parens={self.auto_exponent_parens!r})')
 
 
 @value.value_equality
@@ -102,37 +99,41 @@ class CircuitDiagramInfoArgs:
         precision: The number of digits after the decimal to show for numbers in
             the text diagram. None means use full precision.
         qubit_map: The map from qubits to diagram positions.
+        include_tags: Whether to print tags from TaggedOperations
     """
 
     UNINFORMED_DEFAULT = None  # type: CircuitDiagramInfoArgs
 
-    def __init__(self, known_qubits: Optional[Iterable['cirq.Qid']],
-                 known_qubit_count: Optional[int], use_unicode_characters: bool,
+    def __init__(self,
+                 known_qubits: Optional[Iterable['cirq.Qid']],
+                 known_qubit_count: Optional[int],
+                 use_unicode_characters: bool,
                  precision: Optional[int],
-                 qubit_map: Optional[Dict['cirq.Qid', int]]) -> None:
+                 qubit_map: Optional[Dict['cirq.Qid', int]],
+                 include_tags: bool = True) -> None:
         self.known_qubits = (None
                              if known_qubits is None else tuple(known_qubits))
         self.known_qubit_count = known_qubit_count
         self.use_unicode_characters = use_unicode_characters
         self.precision = precision
         self.qubit_map = qubit_map
+        self.include_tags = include_tags
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.known_qubits, self.known_qubit_count,
                 self.use_unicode_characters, self.precision,
                 None if self.qubit_map is None else tuple(
-                    sorted(self.qubit_map.items(), key=lambda e: e[0])))
+                    sorted(self.qubit_map.items(), key=lambda e: e[0])),
+                self.include_tags)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.CircuitDiagramInfoArgs('
-                'known_qubits={!r}, '
-                'known_qubit_count={!r}, '
-                'use_unicode_characters={!r}, '
-                'precision={!r}, '
-                'qubit_map={!r})'.format(self.known_qubits,
-                                         self.known_qubit_count,
-                                         self.use_unicode_characters,
-                                         self.precision, self.qubit_map))
+                f'known_qubits={self.known_qubits!r}, '
+                f'known_qubit_count={self.known_qubit_count!r}, '
+                f'use_unicode_characters={self.use_unicode_characters!r}, '
+                f'precision={self.precision!r}, '
+                f'qubit_map={self.qubit_map!r},'
+                f'include_tags={self.include_tags!r})')
 
     def format_real(self, val: Union[sympy.Basic, int, float]) -> str:
         if isinstance(val, sympy.Basic):
@@ -142,6 +143,22 @@ class CircuitDiagramInfoArgs:
         if self.precision is None:
             return str(val)
         return f'{float(val):.{self.precision}}'
+
+    def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
+        """Returns angle in radians as a human-readable string."""
+        if protocols.is_parameterized(radians):
+            return str(radians)
+        unit = 'π' if self.use_unicode_characters else 'pi'
+        if radians == np.pi:
+            return unit
+        if radians == 0:
+            return '0'
+        if radians == -np.pi:
+            return '-' + unit
+        if self.precision is not None:
+            quantity = self.format_real(radians / np.pi)
+            return quantity + unit
+        return repr(radians)
 
     def copy(self):
         return self.__class__(

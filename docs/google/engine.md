@@ -46,8 +46,6 @@ sampler = engine
 ```python
 import cirq
 import cirq.google as cg
-import random
-import string
 
 # A simple sample circuit
 qubit = cirq.GridQubit(5, 2)
@@ -104,4 +102,4 @@ For example, the key may refer to a two-qubit gate error, and the value may
 be a dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented
 as a float value.
 
-Information about specific metrics will be released at a later date.
+See the [Calibration Metrics](calibration.md) page for more information.
