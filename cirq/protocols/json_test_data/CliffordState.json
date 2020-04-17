@@ -43,7 +43,6 @@
   "ch_form": {
     "cirq_type": "StabilizerStateChForm",
     "n": 1,
-    "initial_state": 0,
     "G": [
       [
         true

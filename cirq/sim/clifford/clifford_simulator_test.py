@@ -188,7 +188,7 @@ def test_clifford_trial_result_repr():
             == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
             "measurements={'m': array([[1]])}, "
             "final_simulator_state=StabilizerStateChForm(num_qubits=1, "
-            "initial_state=0))")
+            "to_state_vector=array([1.+0.j, 0.+0.j])))")
 
 
 def test_clifford_trial_result_str():
@@ -291,7 +291,8 @@ def test_stabilizerStateChForm_H():
 def test_clifford_stabilizerStateChForm_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    assert repr(state) == 'StabilizerStateChForm(num_qubits=2, initial_state=0)'
+    assert repr(state) == ('StabilizerStateChForm(num_qubits=2, to_state_vector'
+                           '=array([1.+0.j, 0.+0.j, 0.+0.j, 0.+0.j]))')
 
 
 def test_clifford_circuit():

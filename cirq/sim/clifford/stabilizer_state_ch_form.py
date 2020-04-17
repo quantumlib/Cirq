@@ -41,7 +41,6 @@ class StabilizerStateChForm():
             If an np.ndarray it is the full initial state.
             """
         self.n = num_qubits
-        self.initial_state = initial_state
 
         # The state is represented by a set of binary matrices and vectors.
         # See Section IVa of Bravyi et al
@@ -68,13 +67,11 @@ class StabilizerStateChForm():
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(
-            self,
-            ['n', 'initial_state', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+            self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
 
     @classmethod
-    def _from_json_dict_(cls, n, initial_state, G, F, M, gamma, v, s, omega,
-                         **kwargs):
-        copy = StabilizerStateChForm(n, initial_state)
+    def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
+        copy = StabilizerStateChForm(n)
 
         copy.G = G.copy()
         copy.F = F.copy()
@@ -87,11 +84,11 @@ class StabilizerStateChForm():
         return copy
 
     def _value_equality_values_(self):
-        return (self.n, self.initial_state, self.G, self.F, self.M, self.gamma,
-                self.v, self.v, self.s, self.omega)
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v,
+                self.s, self.omega)
 
     def copy(self) -> 'cirq.StabilizerStateChForm':
-        copy = StabilizerStateChForm(self.n, self.initial_state)
+        copy = StabilizerStateChForm(self.n)
 
         copy.G = self.G.copy()
         copy.F = self.F.copy()
@@ -110,7 +107,7 @@ class StabilizerStateChForm():
     def __repr__(self):
         """Return the CH form representation of the state. """
         return ('StabilizerStateChForm(num_qubits={!r}, '
-                'initial_state={!r})').format(self.n, self.initial_state)
+                'to_state_vector={!r})').format(self.n, self.to_state_vector())
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
