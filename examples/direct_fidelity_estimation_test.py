@@ -79,22 +79,15 @@ def test_direct_fidelity_estimation_clifford_all_trials():
 
     no_noise_simulator = cirq.DensityMatrixSimulator()
 
-    estimated_fidelity, _ = dfe.direct_fidelity_estimation(
-        circuit,
-        qubits,
-        no_noise_simulator,
-        n_trials=None,
-        n_clifford_trials=None,
-        samples_per_term=0)
-    assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
-
-    with pytest.raises(ValueError):
-        dfe.direct_fidelity_estimation(circuit,
-                                       qubits,
-                                       no_noise_simulator,
-                                       n_trials=None,
-                                       n_clifford_trials=1,
-                                       samples_per_term=0)
+    for n_clifford_trials in [1, None]:
+        estimated_fidelity, _ = dfe.direct_fidelity_estimation(
+            circuit,
+            qubits,
+            no_noise_simulator,
+            n_trials=None,
+            n_clifford_trials=1,
+            samples_per_term=0)
+        assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
 def test_same_pauli_traces_clifford():

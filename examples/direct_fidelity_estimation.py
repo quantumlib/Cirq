@@ -165,7 +165,8 @@ class PauliTrace:
 
 def _estimate_pauli_traces_clifford(n_qubits: int,
                                     clifford_state: cirq.CliffordState,
-                                    n_clifford_trials: Optional[int]):
+                                    n_clifford_trials: Optional[int]
+                                   ) -> List[PauliTrace]:
     """
     Estimates the Pauli traces in case the circuit is Clifford. When we have a
     Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
@@ -227,7 +228,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
 
 
 def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
-                                   circuit: cirq.Circuit):
+                                   circuit: cirq.Circuit) -> List[PauliTrace]:
     """
     Estimates the Pauli traces in case the circuit is not Clifford. In this case
     we cannot use the speedup implemented in the function
@@ -263,18 +264,21 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
-def _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
+def _sample_pauli_traces(pauli_traces: List[PauliTrace],
+                         n_trials: Optional[int],
+                         n_clifford_trials: Optional[int]):
     """
     Either samples the Pauli traces or exhaustively enumerate them.
 
     Args:
         pauli_traces: The list of Pauli traces for the circuit.
-        n_trial: The total number of Pauli measurements, or None to explore each
-            Pauli state once.
+        n_trials: The total number of Pauli measurements, or None to explore
+            each Pauli state once.
         n_clifford_trials: In case the circuit is Clifford, we specify the
             number of trials to estimate the noise-free pauli traces.
     Yields:
-        A subset (possibly with repetition) of the input Pauli traces.
+        A subset (possibly with repetition) of the input Pauli traces, with each
+        element represented by a tuple of (index, pauli_trace)
     """
     p = np.asarray([x.Pr_i for x in pauli_traces])
 
@@ -283,15 +287,13 @@ def _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
     # so we re-normalize the probs.
     p /= np.sum(p)
 
-    if n_trials is None and n_clifford_trials is not None:
-        raise ValueError('Cannot use exhaustive trials without exhaustive '
-                         'Pauli string enumeration')
     if n_trials is None:
-        yield from range(len(pauli_traces))
+        yield from enumerate(pauli_traces)
     else:
         for _ in range(n_trials):
             # Randomly sample as per probability.
-            yield np.random.choice(len(pauli_traces), p=p)
+            i = np.random.choice(len(pauli_traces), p=p)
+            yield (i, pauli_traces[i])
 
 
 @dataclass
@@ -397,10 +399,11 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             noisy_simulator.simulate(circuit)).final_density_matrix
 
     trial_results: List[TrialResult] = []
-    for i in _sample_pauli_traces(pauli_traces, n_trials, n_clifford_trials):
-        Pr_i = pauli_traces[i].Pr_i
-        measure_pauli_string: cirq.PauliString = pauli_traces[i].P_i
-        rho_i = pauli_traces[i].rho_i
+    for i, pauli_trace in _sample_pauli_traces(pauli_traces, n_trials,
+                                               n_clifford_trials):
+        Pr_i = pauli_trace.Pr_i
+        measure_pauli_string: cirq.PauliString = pauli_trace.P_i
+        rho_i = pauli_trace.rho_i
 
         if samples_per_term > 0:
             sigma_i = asyncio.get_event_loop().run_until_complete(
