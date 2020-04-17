@@ -106,8 +106,7 @@ class StabilizerStateChForm():
 
     def __repr__(self):
         """Return the CH form representation of the state. """
-        return ('StabilizerStateChForm(num_qubits={!r}, '
-                'to_state_vector={!r})').format(self.n, self.to_state_vector())
+        return 'StabilizerStateChForm(num_qubits={!r})'.format(self.n)
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
