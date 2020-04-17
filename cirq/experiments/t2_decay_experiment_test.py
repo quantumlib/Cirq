@@ -202,62 +202,6 @@ def test_all_off_results(experiment_type):
     )
 
 
-def test_detuning_results_all_off():
-    results = t2.t2_decay(
-        sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
-        qubit=cirq.GridQubit(0, 0),
-        num_points=4,
-        repetitions=10,
-        min_delay=cirq.Duration(nanos=100),
-        max_delay=cirq.Duration(micros=1),
-        experiment_type=t2.ExperimentType.RAMSEY_WITH_DETUNING,
-        detuning_sweep=cirq.Points('detuning_y', [-0.1, 0.0, 0.1]))
-    assert results == cirq.experiments.T2DecayResult(
-        x_basis_data=pd.DataFrame(columns=['delay_ns', 'detuning_y', 0, 1],
-                                  index=range(12),
-                                  data=[
-                                      [100.0, -0.1, 10, 0],
-                                      [100.0, 0.0, 10, 0],
-                                      [100.0, 0.1, 10, 0],
-                                      [400.0, -0.1, 10, 0],
-                                      [400.0, 0.0, 10, 0],
-                                      [400.0, 0.1, 10, 0],
-                                      [700.0, -0.1, 10, 0],
-                                      [700.0, 0.0, 10, 0],
-                                      [700.0, 0.1, 10, 0],
-                                      [1000.0, -0.1, 10, 0],
-                                      [1000.0, 0.0, 10, 0],
-                                      [1000.0, 0.1, 10, 0],
-                                  ]),
-        y_basis_data=pd.DataFrame(columns=['delay_ns', 'detuning_y', 0, 1],
-                                  index=range(12),
-                                  data=[
-                                      [100.0, -0.1, 10, 0],
-                                      [100.0, 0.0, 10, 0],
-                                      [100.0, 0.1, 10, 0],
-                                      [400.0, -0.1, 10, 0],
-                                      [400.0, 0.0, 10, 0],
-                                      [400.0, 0.1, 10, 0],
-                                      [700.0, -0.1, 10, 0],
-                                      [700.0, 0.0, 10, 0],
-                                      [700.0, 0.1, 10, 0],
-                                      [1000.0, -0.1, 10, 0],
-                                      [1000.0, 0.0, 10, 0],
-                                      [1000.0, 0.1, 10, 0],
-                                  ]),
-    )
-    results = t2.t2_decay(
-        sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
-        qubit=cirq.GridQubit(0, 0),
-        num_points=4,
-        repetitions=10,
-        min_delay=cirq.Duration(nanos=100),
-        max_delay=cirq.Duration(micros=1),
-        experiment_type=t2.ExperimentType.RAMSEY_WITH_DETUNING)
-    assert len(results.expectation_pauli_x) == 80
-    assert len(results.expectation_pauli_y) == 80
-
-
 @pytest.mark.parametrize(
     'experiment_type', [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO])
 def test_custom_delay_sweep(experiment_type):
@@ -351,16 +295,6 @@ def test_bad_args():
                                       max_delay=cirq.Duration(micros=10),
                                       min_delay=cirq.Duration(micros=1),
                                       delay_sweep=product)
-    with pytest.raises(ValueError, match='detuning_y'):
-        _ = cirq.experiments.t2_decay(
-            sampler=cirq.Simulator(),
-            qubit=cirq.GridQubit(0, 0),
-            num_points=4,
-            repetitions=10,
-            max_delay=cirq.Duration(micros=10),
-            min_delay=cirq.Duration(micros=1),
-            experiment_type=t2.ExperimentType.RAMSEY_WITH_DETUNING,
-            detuning_sweep=product)
 
 
 def test_str():

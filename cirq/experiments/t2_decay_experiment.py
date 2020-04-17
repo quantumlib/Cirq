@@ -15,7 +15,6 @@ import enum
 
 from typing import Any, Optional, TYPE_CHECKING
 
-import numpy as np
 import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
@@ -29,13 +28,11 @@ if TYPE_CHECKING:
 
 class ExperimentType(enum.Enum):
     RAMSEY = 1  # Often denoted as t2*
-    RAMSEY_WITH_DETUNING = 2  # t2* experiment adjusting for off resonances
-    HAHN_ECHO = 3  # Spin echo or t2
-    CPMG = 4  # Carr-Purcell-Meiboom-Gill sequence
+    HAHN_ECHO = 2  # Spin echo or t2
+    CPMG = 3  # Carr-Purcell-Meiboom-Gill sequence
 
 
 _T2_COLUMNS = ['delay_ns', 0, 1]
-_NUM_DETUNING_POINTS = 20
 
 
 def t2_decay(
@@ -48,7 +45,6 @@ def t2_decay(
         min_delay: 'cirq.DURATION_LIKE' = None,
         repetitions: int = 1000,
         delay_sweep: Optional[study.Sweep] = None,
-        detuning_sweep: Optional[study.Sweep] = None,
 ) -> 'cirq.experiments.T2DecayResult':
     """Runs a t2 transverse relaxation experiment.
 
@@ -91,10 +87,6 @@ def t2_decay(
              of nanoseconds.  If specified, this will override the max_delay and
              min_delay parameters.  If not specified, the experiment will sweep
              from min_delay to max_delay with linear steps.
-        detuning_sweep: Used in RAMSEY_DETUNING only.  This is a range of
-             detuning values that will be applied around the y-axis before
-             applying a pi/2 pulse.  This should be a SingleSweep using the
-             'detuning_y' parameter.
     Returns:
         A T2DecayResult object that stores and can plot the data.
     """
@@ -111,7 +103,6 @@ def t2_decay(
 
     # Initialize values used in sweeps
     delay_var = sympy.Symbol('delay_ns')
-    detuning_var = sympy.Symbol('detuning_y')
     inv_x_var = sympy.Symbol('inv_x')
     inv_y_var = sympy.Symbol('inv_y')
 
@@ -142,34 +133,6 @@ def t2_decay(
             study.Points('inv_y', [-0.5, 0.0]),
         )
         sweep = study.Product(delay_sweep, tomography_sweep)
-    elif experiment_type == ExperimentType.RAMSEY_WITH_DETUNING:
-        # Ramsey T2* experiment
-        # Use sqrt(Y) to flip to the equator.
-        # Evolve the state for a given amount of delay time
-        # Then measure the state in both X and Y bases.
-
-        circuit = circuits.Circuit(
-            ops.Y(qubit)**0.5,
-            ops.WaitGate(value.Duration(nanos=delay_var))(qubit),
-            ops.Y(qubit)**detuning_var,
-            ops.X(qubit)**inv_x_var,
-            ops.Y(qubit)**inv_y_var,
-            ops.measure(qubit, key='output'),
-        )
-
-        if not detuning_sweep:
-            detuning_sweep = study.Linspace(detuning_var,
-                                            start=-np.pi / 4,
-                                            stop=np.pi / 4,
-                                            length=_NUM_DETUNING_POINTS)
-        if detuning_sweep.keys != ['detuning_y']:
-            raise ValueError('detuning_sweep must be a SingleSweep '
-                             'with detuning_y parameter')
-        tomography_sweep = study.Zip(
-            study.Points('inv_x', [0.0, -0.5]),
-            study.Points('inv_y', [-0.5, 0.0]),
-        )
-        sweep = study.Product(delay_sweep, tomography_sweep, detuning_sweep)
     elif experiment_type == ExperimentType.HAHN_ECHO:
         # Hahn / Spin Echo T2 experiment
         # Use sqrt(Y) to flip to the equator.
@@ -200,20 +163,10 @@ def t2_decay(
 
     y_basis_measurements = results[abs(results.inv_y) > 0]
     x_basis_measurements = results[abs(results.inv_x) > 0]
-    if experiment_type == ExperimentType.RAMSEY_WITH_DETUNING:
-        x_basis_tabulation = pd.crosstab(
-            [x_basis_measurements.delay_ns, x_basis_measurements.detuning_y],
-            x_basis_measurements.output).reset_index()
-        y_basis_tabulation = pd.crosstab(
-            [y_basis_measurements.delay_ns, y_basis_measurements.detuning_y],
-            y_basis_measurements.output).reset_index()
-    else:
-        x_basis_tabulation = pd.crosstab(
-            x_basis_measurements.delay_ns,
-            x_basis_measurements.output).reset_index()
-        y_basis_tabulation = pd.crosstab(
-            y_basis_measurements.delay_ns,
-            y_basis_measurements.output).reset_index()
+    x_basis_tabulation = pd.crosstab(x_basis_measurements.delay_ns,
+                                     x_basis_measurements.output).reset_index()
+    y_basis_tabulation = pd.crosstab(y_basis_measurements.delay_ns,
+                                     y_basis_measurements.output).reset_index()
 
     # If all measurements are 1 or 0, fill in the missing column with all zeros.
     for tab in [x_basis_tabulation, y_basis_tabulation]:
