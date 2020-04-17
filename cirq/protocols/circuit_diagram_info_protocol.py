@@ -15,10 +15,11 @@
 from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable)
 
+import numpy as np
 import sympy
 from typing_extensions import Protocol
 
-from cirq import value
+from cirq import protocols, value
 
 if TYPE_CHECKING:
     import cirq
@@ -142,6 +143,22 @@ class CircuitDiagramInfoArgs:
         if self.precision is None:
             return str(val)
         return f'{float(val):.{self.precision}}'
+
+    def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
+        """Returns angle in radians as a human-readable string."""
+        if protocols.is_parameterized(radians):
+            return str(radians)
+        unit = 'π' if self.use_unicode_characters else 'pi'
+        if radians == np.pi:
+            return unit
+        if radians == 0:
+            return '0'
+        if radians == -np.pi:
+            return '-' + unit
+        if self.precision is not None:
+            quantity = self.format_real(radians / np.pi)
+            return quantity + unit
+        return repr(radians)
 
     def copy(self):
         return self.__class__(
