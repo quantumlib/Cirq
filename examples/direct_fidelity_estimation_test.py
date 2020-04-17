@@ -85,7 +85,7 @@ def test_direct_fidelity_estimation_clifford_all_trials():
             qubits,
             no_noise_simulator,
             n_trials=None,
-            n_clifford_trials=1,
+            n_clifford_trials=n_clifford_trials,
             samples_per_term=0)
         assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
