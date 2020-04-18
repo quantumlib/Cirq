@@ -15,7 +15,7 @@
 """Hard-coded options for adding multiple operations to a circuit."""
 
 
-class InsertStrategy(object):
+class InsertStrategy:
     """Indicates preferences on how to add multiple operations to a circuit."""
 
     NEW = None  # type: InsertStrategy

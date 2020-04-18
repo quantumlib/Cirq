@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Optional, List, Iterable, TYPE_CHECKING, Union, Iterator
+from typing import Any, Iterable, Iterator, List, Optional, TYPE_CHECKING, Union
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import Cell, CellMaker
@@ -30,10 +30,10 @@ class ControlCell(Cell):
         self.qubit = qubit
         self._basis_change = tuple(basis_change)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.qubit, self._basis_change
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.interop.quirk.cells.control_cells.ControlCell('
                 f'\n    {self.qubit!r},'
                 f'\n    {self._basis_change!r})')
@@ -71,10 +71,10 @@ class ParityControlCell(Cell):
         self.qubits = list(qubits)
         self._basis_change = list(basis_change)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.qubits, self._basis_change
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.interop.quirk.cells.control_cells.ParityControlCell('
                 f'\n    {self.qubits!r},'
                 f'\n    {self._basis_change!r})')
