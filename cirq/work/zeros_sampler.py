@@ -17,7 +17,7 @@ from typing import (Dict, List, TYPE_CHECKING)
 
 import numpy as np
 
-from cirq import work, study, protocols, ops
+from cirq import work, study, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -44,7 +44,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             resolver.
         """
         measurements = {}  # type: Dict[str, np.ndarray]
-        for op in ops.flatten_op_tree(iter(program)):
+        for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)
             if key is not None:
                 measurements[key] = np.zeros((repetitions, len(op.qubits)),
