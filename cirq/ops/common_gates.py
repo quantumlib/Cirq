@@ -84,6 +84,26 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState', qubits: Tuple['cirq.Qid', ...]) -> Optional['CliffordState']:
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        qubit = qubits[0]
+        if self._exponent % 0.5 != 0:
+            return NotImplemented
+        effective_exponent = self._exponent % 2
+        if effective_exponent == 0.5:
+            state._apply_H(qubit)
+            state._apply_S(qubit)
+            state._apply_H(qubit)
+        elif effective_exponent == 1:
+            state._apply_X(qubit)
+        elif effective_exponent == 1.5:
+            state._apply_X(qubit)
+            state._apply_H(qubit)
+            state._apply_S(qubit)
+            state._apply_H(qubit)
+        return state
+
     def in_su2(self) -> 'XPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return XPowGate(exponent=self._exponent, global_shift=-0.5)

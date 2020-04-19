@@ -395,6 +395,7 @@ from cirq.value import (
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
     apply_channel,
+    apply_clifford_tableau,
     apply_mixture,
     apply_unitaries,
     apply_unitary,
