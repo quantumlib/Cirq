@@ -16,8 +16,8 @@ import functools
 import itertools
 import math
 import operator
-from typing import Sequence, Dict, Tuple, List, NamedTuple, Optional, \
-    TYPE_CHECKING
+from typing import (Dict, Iterable, List, NamedTuple, Optional, Sequence, Tuple,
+                    TYPE_CHECKING)
 
 from cirq import ops, protocols, value
 
@@ -57,11 +57,12 @@ class AcquaintanceOpportunityGate(
     def __init__(self, num_qubits: int):
         self._num_qubits = num_qubits
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.acquaintance.AcquaintanceOpportunityGate('
-                'num_qubits={!r})'.format(self.num_qubits()))
+                f'num_qubits={self.num_qubits()!r})')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Iterable[str]:
         wire_symbol = '█' if args.use_unicode_characters else 'Acq'
         wire_symbols = (wire_symbol,) * self.num_qubits()
         return wire_symbols
@@ -309,7 +310,8 @@ class SwapNetworkGate(PermutationGate):
         if final_gate:
             yield final_gate(*qubits)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         wire_symbol = ('×' if args.use_unicode_characters else 'swap')
         wire_symbols = tuple(
             wire_symbol + '({},{})'.format(part_index, qubit_index)
@@ -330,7 +332,7 @@ class SwapNetworkGate(PermutationGate):
         return {i: j for i, j in
                 enumerate(reversed(range(sum(self.part_lens))))}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.acquaintance.SwapNetworkGate('
                 '{!r}, {!r})'.format(self.part_lens, self.acquaintance_size))
 

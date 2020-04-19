@@ -19,6 +19,7 @@ the function build_circuit()) and a noise (defines in the variable noise).
 
 import argparse
 import asyncio
+from dataclasses import dataclass
 import itertools
 from typing import cast
 from typing import List
@@ -95,9 +96,76 @@ async def estimate_characteristic_function(circuit: cirq.Circuit,
     return sigma_i
 
 
+def _randomly_sample_from_stabilizer_bases(
+        stabilizer_basis: List[cirq.DensePauliString], n_clifford_trials: int,
+        n_qubits: int):
+    """
+    Given a stabilizer basis, randomly creates Pauli states by including the
+    basis vector or not.
+
+    Args:
+        stabilizer_basis: A list of Pauli strings that is the stabilizer basis
+            to sample from.
+        n_clifford_trials: An integer that is the number of samples to return.
+        n_qubits: An integer that is the number of qubits.
+
+    Returns:
+        A list of Pauli strings that is the Pauli states built.
+    """
+    dense_pauli_strings = []
+    for _ in range(n_clifford_trials):
+        # Build the Pauli string as a random sample of the basis elements.
+        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+        for stabilizer in stabilizer_basis:
+            if np.random.randint(2) == 1:
+                dense_pauli_string *= stabilizer
+        dense_pauli_strings.append(dense_pauli_string)
+    return dense_pauli_strings
+
+
+def _enumerate_all_from_stabilizer_bases(
+        stabilizer_basis: List[cirq.DensePauliString], n_qubits: int):
+    """
+    Given a stabilizer basis, creates the exhaustive list of Pauli states that
+    are spanned by the basis.
+
+    Args:
+        stabilizer_basis: A list of Pauli strings that is the stabilizer basis
+            to build all the Pauli strings.
+        n_qubits: An integer that is the number of qubits.
+
+    Returns:
+        A list of Pauli strings that is the Pauli states built.
+    """
+    dense_pauli_strings = []
+    for coefficients in itertools.product([False, True], repeat=n_qubits):
+        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
+        for (keep, stabilizer) in zip(coefficients, stabilizer_basis):
+            if keep:
+                dense_pauli_string *= stabilizer
+        dense_pauli_strings.append(dense_pauli_string)
+    return dense_pauli_strings
+
+
+@dataclass
+class PauliTrace:
+    """
+    A class that contains the Pauli states as described on page 2 of:
+    https://arxiv.org/abs/1104.3835
+    """
+    # Pauli string.
+    P_i: cirq.PauliString
+    # Coefficient of the ideal pure state expanded in the Pauli basis scaled by
+    # sqrt(dim H), formally defined at bottom of left column of page 2.
+    rho_i: float
+    # A probablity (between 0.0 and 1.0) that is the relevance distribution,
+    # formally defined at top of right column of page 2.
+    Pr_i: float
+
+
 def _estimate_pauli_traces_clifford(n_qubits: int,
                                     clifford_state: cirq.CliffordState,
-                                    n_clifford_trials: int):
+                                    n_clifford_trials: Optional[int]):
     """
     Estimates the Pauli traces in case the circuit is Clifford. When we have a
     Clifford circuit, there are 2**n Pauli traces that have probability 1/2**n
@@ -110,7 +178,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         n_qubits: An integer that is the number of qubits.
         clifford_state: The basis of the Pauli states with non-zero probability.
         n_clifford_trials: An integer that is the number of Pauli states to
-            sample.
+            sample. If set to None, we do an exhaustive search.
 
     Returns:
         A list of Pauli states (represented as tuples of Pauli string, rho_i,
@@ -127,16 +195,17 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     # example, if we have n=3 qubits, then we should have 2**n=8 Pauli
     # states that we can sample, but the basis will still have 3 entries. We
     # must flip a coin for each, whether or not to include them.
-    stabilizer_basis = clifford_state.stabilizers()
+    stabilizer_basis: List[cirq.DensePauliString] = clifford_state.stabilizers()
 
-    pauli_traces = []
-    for _ in range(n_clifford_trials):
-        # Build the Pauli string as a random sample of the basis elements.
-        dense_pauli_string = cirq.DensePauliString.eye(n_qubits)
-        for stabilizer in stabilizer_basis:
-            if np.random.randint(2) == 1:
-                dense_pauli_string *= stabilizer
+    if n_clifford_trials is not None:
+        dense_pauli_strings = _randomly_sample_from_stabilizer_bases(
+            stabilizer_basis, n_clifford_trials, n_qubits)
+    else:
+        dense_pauli_strings = _enumerate_all_from_stabilizer_bases(
+            stabilizer_basis, n_qubits)
 
+    pauli_traces: List[PauliTrace] = []
+    for dense_pauli_string in dense_pauli_strings:
         # The code below is equivalent to calling
         # clifford_state.wave_function() and then calling
         # compute_characteristic_function() on the results (albeit with a
@@ -152,11 +221,8 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         assert np.isclose(abs(rho_i), 1.0, atol=1e-6)
         Pr_i = 1.0 / d
 
-        pauli_traces.append({
-            'P_i': dense_pauli_string.sparse(),
-            'rho_i': rho_i,
-            'Pr_i': Pr_i
-        })
+        pauli_traces.append(
+            PauliTrace(P_i=dense_pauli_string.sparse(), rho_i=rho_i, Pr_i=Pr_i))
     return pauli_traces
 
 
@@ -185,20 +251,52 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
         cirq.DensityMatrixTrialResult,
         dense_simulator.simulate(circuit)).final_density_matrix
 
-    pauli_traces = []
+    pauli_traces: List[PauliTrace] = []
     for P_i in itertools.product([cirq.I, cirq.X, cirq.Y, cirq.Z],
                                  repeat=n_qubits):
         pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
         rho_i, Pr_i = compute_characteristic_function(circuit, pauli_string,
                                                       qubits,
                                                       clean_density_matrix)
-        pauli_traces.append({'P_i': pauli_string, 'rho_i': rho_i, 'Pr_i': Pr_i})
+        pauli_traces.append(PauliTrace(P_i=pauli_string, rho_i=rho_i,
+                                       Pr_i=Pr_i))
     return pauli_traces
+
+
+@dataclass
+class TrialResult:
+    """
+    Contains the results of a trial, either by simulator or actual run
+    """
+    # The index in the list of Pauli traces.
+    i: int
+    # Coefficient of the measured/simulated pure state expanded in the Pauli
+    # basis scaled by sqrt(dim H), formally defined at bottom of left column of
+    # second page of https://arxiv.org/abs/1104.3835
+    sigma_i: float
+
+
+@dataclass
+class DFEIntermediateResult:
+    """
+    A container for the various debug and run data from calling the function
+    direct_fidelity_estimation(). This is useful when running a long-computation
+    on an actual computer, which is expensive. This way, runs can be more easily
+    debugged offline.
+    """
+    # If the circuit is Clifford, the Clifford state from which we can extract
+    # a list of Pauli strings for a basis of the stabilizers.
+    clifford_state: Optional[cirq.CliffordState]
+    # The list of Pauli traces we can sample from.
+    pauli_traces: List[PauliTrace]
+    # Measurement results from sampling the circuit.
+    trial_results: List[TrialResult]
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                sampler: cirq.Sampler, n_trials: int,
-                               n_clifford_trials: int, samples_per_term: int):
+                               n_clifford_trials: Optional[int],
+                               samples_per_term: int):
     """
     Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
@@ -218,7 +316,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             'sampler' parameter directly to estimate the characteristic
             function.
     Returns:
-        The estimated fidelity.
+        The estimated fidelity and a log of the run.
     """
     # n_trials is upper-case N in https://arxiv.org/abs/1104.3835
 
@@ -240,16 +338,14 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
     # estimate rho_i and Pr(i). We then collect tuples (rho_i, Pr(i), \hat{Pi})
     # inside the variable 'pauli_traces'.
     if clifford_circuit:
-        print('Circuit is Clifford')
         assert clifford_state is not None
         pauli_traces = _estimate_pauli_traces_clifford(
             n_qubits, cast(cirq.CliffordState, clifford_state),
             n_clifford_trials)
     else:
-        print('Circuit is not Clifford')
         pauli_traces = _estimate_pauli_traces_general(qubits, circuit)
 
-    p = np.asarray([x['Pr_i'] for x in pauli_traces])
+    p = np.asarray([x.Pr_i for x in pauli_traces])
 
     if not clifford_circuit:
         # For Clifford circuits, we do a Monte Carlo simulations, and thus there
@@ -273,13 +369,14 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             cirq.DensityMatrixTrialResult,
             noisy_simulator.simulate(circuit)).final_density_matrix
 
+    trial_results: List[TrialResult] = []
     for _ in range(n_trials):
         # Randomly sample as per probability.
         i = np.random.choice(len(pauli_traces), p=p)
 
-        Pr_i = pauli_traces[i]['Pr_i']
-        measure_pauli_string: cirq.PauliString = pauli_traces[i]['P_i']
-        rho_i = pauli_traces[i]['rho_i']
+        Pr_i = pauli_traces[i].Pr_i
+        measure_pauli_string: cirq.PauliString = pauli_traces[i].P_i
+        rho_i = pauli_traces[i].rho_i
 
         if samples_per_term > 0:
             sigma_i = asyncio.get_event_loop().run_until_complete(
@@ -290,9 +387,18 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
+        trial_results.append(TrialResult(i=i, sigma_i=sigma_i))
+
         fidelity += Pr_i * sigma_i / rho_i
 
-    return fidelity / n_trials * d
+    estimated_fidelity = fidelity / n_trials * d
+
+    dfe_intermediate_result = DFEIntermediateResult(
+        clifford_state=clifford_state,
+        pauli_traces=pauli_traces,
+        trial_results=trial_results)
+
+    return estimated_fidelity, dfe_intermediate_result
 
 
 def parse_arguments(args):
@@ -316,7 +422,8 @@ def parse_arguments(args):
                         'non-zero probabilities. The higher the number, '
                         'the more accurate the overall fidelity '
                         'estimation, at the cost of extra computing and '
-                        'measurements.')
+                        'measurements. If set to None, we exhaustively '
+                        'enumerate all the Pauli traces.')
 
     parser.add_argument('--samples_per_term',
                         default=0,
@@ -326,14 +433,15 @@ def parse_arguments(args):
     return vars(parser.parse_args(args))
 
 
-def main(*, n_trials: int, n_clifford_trials: int, samples_per_term: int):
+def main(*, n_trials: int, n_clifford_trials: Optional[int],
+         samples_per_term: int):
     circuit, qubits = build_circuit()
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
     print('Noise model: %s' % (noise))
     noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
 
-    estimated_fidelity = direct_fidelity_estimation(
+    estimated_fidelity, _ = direct_fidelity_estimation(
         circuit,
         qubits,
         noisy_simulator,
