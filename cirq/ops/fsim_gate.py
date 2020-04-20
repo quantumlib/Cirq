@@ -143,9 +143,9 @@ class FSimGate(gate_features.TwoQubitGate,
         yield cirq.CZ(a, b)**(-self.phi / np.pi)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
-        t = _format_rads(args, self.theta)
-        p = _format_rads(args, self.phi)
-        return 'fsim({}, {})'.format(t, p), '#2'
+        t = args.format_radians(self.theta)
+        p = args.format_radians(self.phi)
+        return f'fsim({t}, {p})', '#2'
 
     def __pow__(self, power):
         return FSimGate(cirq.mul(self.theta, power), cirq.mul(self.phi, power))
@@ -156,19 +156,3 @@ class FSimGate(gate_features.TwoQubitGate,
 
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['theta', 'phi'])
-
-
-def _format_rads(args: 'cirq.CircuitDiagramInfoArgs', radians: float) -> str:
-    if cirq.is_parameterized(radians):
-        return str(radians)
-    unit = 'π' if args.use_unicode_characters else 'pi'
-    if radians == np.pi:
-        return unit
-    if radians == 0:
-        return '0'
-    if radians == -np.pi:
-        return '-' + unit
-    if args.precision is not None:
-        quantity = args.format_real(radians / np.pi)
-        return quantity + unit
-    return repr(radians)
