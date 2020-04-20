@@ -89,7 +89,7 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def with_operation(self, operation: 'cirq.Operation'):
+    def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
         Args:
@@ -108,7 +108,8 @@ class Moment:
 
         return m
 
-    def without_operations_touching(self, qubits: Iterable[raw_types.Qid]):
+    def without_operations_touching(self, qubits: Iterable['cirq.Qid']
+                                   ) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -194,8 +195,8 @@ class Moment:
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
-                         func: Callable[[raw_types.Qid], raw_types.Qid]
-                         ) -> TSelf_Moment:
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']
+                        ) -> TSelf_Moment:
         """Returns the same moment, but with different qubits.
 
         Args:
@@ -212,9 +213,12 @@ class Moment:
     def _json_dict_(self):
         return protocols.obj_to_dict_helper(self, ['operations'])
 
-    def __add__(self, other):
+    def __add__(self,
+                other: Union['cirq.Operation', 'cirq.Moment']) -> 'cirq.Moment':
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
+        if isinstance(other, Moment):
+            return Moment(self.operations + other.operations)
         return NotImplemented
 
     # pylint: disable=function-redefined

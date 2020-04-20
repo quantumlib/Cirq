@@ -7,7 +7,7 @@ Choose your operating system:
 - [Installing on Windows](#installing-on-windows)
 - [Installing on Docker](#installing-on-docker)
 
-If you want to create a development environment, see [development.md](development.md).
+If you want to create a development environment, see the [development page](dev/development.md).
 
 ---
 

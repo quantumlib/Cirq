@@ -617,6 +617,7 @@ Algebra and Representation
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
     cirq.eye_tensor
+    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian

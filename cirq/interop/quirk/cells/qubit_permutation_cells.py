@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Iterator, Tuple, Sequence, TYPE_CHECKING
+from typing import Callable, Iterator, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.interop.quirk.cells.cell import (
@@ -64,11 +64,12 @@ class QuirkQubitPermutationGate(ops.Gate):
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         return tuple(f'{self.name}[{i}>{self.permutation[i]}]'
                      for i in range(len(self.permutation)))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.interop.quirk.QuirkQubitPermutationGate('
                 f'identifier={repr(self.identifier)},'
                 f'name={repr(self.name)},'
