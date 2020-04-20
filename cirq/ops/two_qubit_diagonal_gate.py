@@ -11,9 +11,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Creates the Gate instrance for a two qubit diagonal gate.
+"""Creates the gate instrance for a two qubit diagonal gate.
 
-The Gate is used to create a 4x4 matrix with the diagonal elements
+The gate is used to create a 4\\times 4 matrix with the diagonal elements
 passed as a list.
 """
 
@@ -32,7 +32,7 @@ if TYPE_CHECKING:
 
 @value.value_equality()
 class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
-    """A gate given by a diagonal 4x4 matrix."""
+    """A gate given by a diagonal 4\\times 4 matrix."""
 
     def __init__(self, diag_angles_radians: List[value.TParamVal]) -> None:
         r"""A two qubit gate with only diagonal elements.

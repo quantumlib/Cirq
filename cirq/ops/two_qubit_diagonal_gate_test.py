@@ -64,9 +64,8 @@ def test_diagonal_exponent():
     sqrt_diagonal_gate = diagonal_gate**.5
 
     expected_angles = [prime / 2 for prime in diagonal_angles]
-    np.testing.assert_allclose(expected_angles,
-                               sqrt_diagonal_gate._diag_angles_radians,
-                               atol=1e-8)
+    assert cirq.approx_eq(sqrt_diagonal_gate,
+                          cirq.TwoQubitDiagonalGate(expected_angles))
 
     assert cirq.pow(cirq.TwoQubitDiagonalGate(diagonal_angles), "test",
                     None) is None
