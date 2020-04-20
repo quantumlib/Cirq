@@ -46,6 +46,7 @@ User Documentation
     :caption: Case Studies
 
     examples
+    studies/hidden_linear_function.ipynb
     studies/variational_algorithm.ipynb
     studies/QAOA_Demo.ipynb
     studies/Quantum_Walk.ipynb
