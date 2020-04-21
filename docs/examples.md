@@ -87,27 +87,27 @@ Algorithm for efficiently emulating full connectivity on a limited connectivity 
 
 ## Advanced algorithms
 
-*     [HHL](https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py)
+*    [HHL](https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py)
 Algorithm for solving linear systems using quantum phase estimation.
 
-*     [BCS Mean Field](https://github.com/quantumlib/Cirq/blob/master/examples/bcs_mean_field.py)
+*    [BCS Mean Field](https://github.com/quantumlib/Cirq/blob/master/examples/bcs_mean_field.py)
 Quantum circuit to prepare the BCS ground states for superconductors/superfluids.
 
 
 ## Advanced Case Studies
 
-*     [Variational Algorithm](studies/variational_algorithm.ipynb)
+*    [Variational Algorithm](studies/variational_algorithm.ipynb)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*     [QAOA](studies/QAOA_Demo.ipynb)
+*    [QAOA](studies/QAOA_Demo.ipynb)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
-*     [Quantum Walk](studies/Quantum_Walk.ipynb)
+*    [Quantum Walk](studies/Quantum_Walk.ipynb)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*     [Rabi Oscillations](studies/Rabi_Demo.ipynb)
+*    [Rabi Oscillations](studies/Rabi_Demo.ipynb)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.
