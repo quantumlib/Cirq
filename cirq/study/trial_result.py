@@ -248,7 +248,7 @@ class TrialResult:
         return self.multi_measurement_histogram(
             keys=[key], fold_func=lambda e: fold_func(e[0]))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
 
         def item_repr(entry):
             key, val = entry
@@ -258,8 +258,8 @@ class TrialResult:
             '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) +
             '}')
 
-        return 'cirq.TrialResult(params={!r}, measurements={})'.format(
-            self.params, measurement_dict_repr)
+        return (f'cirq.TrialResult(params={self.params!r}, '
+                f'measurements={measurement_dict_repr})')
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
@@ -269,7 +269,7 @@ class TrialResult:
         else:
             p.text(str(self))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return _keyed_repeated_bitstrings(self.measurements)
 
     def __eq__(self, other):
