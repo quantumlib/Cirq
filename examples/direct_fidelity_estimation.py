@@ -266,7 +266,7 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
         dense_operators = random.sample(tuple(all_operators),
                                         n_measured_operators)
     else:
-        dense_operators = all_operators
+        dense_operators = list(all_operators)
 
     pauli_traces: List[PauliTrace] = []
     for P_i in dense_operators:
