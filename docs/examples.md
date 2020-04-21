@@ -96,18 +96,18 @@ Quantum circuit to prepare the BCS ground states for superconductors/superfluids
 
 ## Advanced Case Studies
 
-*    [Variational Algorithm](studies/variational_algorithm.ipynb)
+*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/studies/variational_algorithms.html)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*    [QAOA](studies/QAOA_Demo.ipynb)
+*    [QAOA](https://cirq.readthedocs.io/en/latest/studies/QAOA_Demo.html)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
-*    [Quantum Walk](studies/Quantum_Walk.ipynb)
+*    [Quantum Walk](https://cirq.readthedocs.io/en/latest/studies/Quantum_Walk.html)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*    [Rabi Oscillations](studies/Rabi_Demo.ipynb)
+*    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/studies/Rabi_Demo.html)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.
