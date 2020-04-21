@@ -255,12 +255,12 @@ class PerQubitDepolarizingWithDampedReadoutNoiseModel(devices.NoiseModel):
 
     @property
     def qubits(self) -> Sequence['cirq.Qid']:
-        if self.depol_prob_map:
-            return [q for q in self.depol_prob_map]
-        elif self.bitflip_prob_map:
-            return [q for q in self.bitflip_prob_map]
-        elif self.decay_prob_map:
-            return [q for q in self.decay_prob_map]
+        if self.depol_probs:
+            return [q for q in self.depol_probs]
+        elif self.bitflip_probs:
+            return [q for q in self.bitflip_probs]
+        elif self.decay_probs:
+            return [q for q in self.decay_probs]
 
     def noisy_moment(self, moment: 'cirq.Moment',
                      system_qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
