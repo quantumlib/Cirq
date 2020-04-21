@@ -166,7 +166,7 @@ class BucketPriorityQueue(Generic[TItem]):
     def __repr__(self) -> str:
         entries = list(self)
         drop_duplicate_entries = self._drop_set is not None
-        return (f'cirq.circuits._bucket_priority_queue.BucketPriorityQueue('
+        return ('cirq.circuits._bucket_priority_queue.BucketPriorityQueue('
                 f'entries={entries!r}, '
                 f'drop_duplicate_entries={drop_duplicate_entries})')
 
