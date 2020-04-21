@@ -14,7 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 
-from typing import Dict, Union, TYPE_CHECKING, cast
+from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -57,7 +57,7 @@ class ParamResolver:
         if hasattr(self, 'param_dict'):
             return  # Already initialized. Got wrapped as part of the __new__.
 
-        self._param_hash = None
+        self._param_hash: Optional[int] = None
         self.param_dict = cast(ParamDictType,
                                {} if param_dict is None else param_dict)
 
@@ -129,16 +129,17 @@ class ParamResolver:
         # No known way to resolve this variable, return unchanged.
         return value
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Union[str, sympy.Symbol]]:
         return iter(self.param_dict)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(self.param_dict)
 
-    def __getitem__(self, key):
+    def __getitem__(self,
+                    key: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
         return self.value_of(key)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         if self._param_hash is None:
             self._param_hash = hash(frozenset(self.param_dict.items()))
         return self._param_hash
@@ -151,14 +152,14 @@ class ParamResolver:
     def __ne__(self, other):
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         param_dict_repr = ('{' + ', '.join([
             f'{proper_repr(k)}: {proper_repr(v)}'
             for k, v in self.param_dict.items()
         ]) + '}')
-        return 'cirq.ParamResolver({})'.format(param_dict_repr)
+        return f'cirq.ParamResolver({param_dict_repr})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have keys of basic types.
