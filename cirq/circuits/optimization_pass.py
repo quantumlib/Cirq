@@ -68,17 +68,15 @@ class PointOptimizationSummary:
     def __ne__(self, other):
         return not self == other
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((PointOptimizationSummary,
                      self.clear_span,
                      self.clear_qubits,
                      self.new_operations))
 
-    def __repr__(self):
-        return 'cirq.PointOptimizationSummary({!r}, {!r}, {!r})'.format(
-            self.clear_span,
-            self.clear_qubits,
-            self.new_operations)
+    def __repr__(self) -> str:
+        return (f'cirq.PointOptimizationSummary({self.clear_span!r}, '
+                f'{self.clear_qubits!r}, {self.new_operations!r})')
 
 
 class PointOptimizer:
