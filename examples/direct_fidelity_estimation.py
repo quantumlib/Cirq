@@ -380,12 +380,12 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             noisy_simulator.simulate(circuit)).final_density_matrix
 
     trial_results: List[TrialResult] = []
-    for iter in range(len(pauli_traces)):
+    for i_seq in range(len(pauli_traces)):
         if clifford_circuit and n_measured_operators is None:
             # In case the circuit is Clifford and we compute an exhaustive list
             # of Pauli traces, instead of sampling we can simply enumerate them
             # because they all have the same probability.
-            i = iter
+            i = i_seq
         else:
             # Otherwise, randomly sample as per probability.
             i = np.random.choice(len(pauli_traces), p=p)
