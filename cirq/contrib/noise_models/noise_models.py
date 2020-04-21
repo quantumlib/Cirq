@@ -322,7 +322,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
 
     if depol_noise:
         depol_probs = {
-            qubit[0]: depol_prob[0] for qubit, depol_prob in
+            qubit[0]: pauli_err[0] * 4 / 3 for qubit, pauli_err in
             calibration['single_qubit_rb_pauli_error_per_gate'].items()
         }
     if damping_noise:
