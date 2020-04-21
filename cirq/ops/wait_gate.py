@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Tuple
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -82,5 +82,6 @@ class WaitGate(raw_types.Gate):
     def _value_equality_values_(self):
         return self.duration
 
-    def _quil_ (self, formatter: 'cirq.QuilFormatter'):
-        return 'WAIT'
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter'):
+        return 'WAIT\n'

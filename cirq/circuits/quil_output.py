@@ -12,83 +12,98 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union
+import numpy as np
 import cirq
 from cirq import protocols, value, ops
-from typing import (Callable, Dict, Optional, Sequence, Set, Tuple, Union,
-                    TYPE_CHECKING)
-import numpy as np
 
-def to_quil_complex_format(num):
-        cnum = complex(str(num))
-        return "{0}+{1}i".format(cnum.real, cnum.imag)
+
+def to_quil_complex_format(num) -> str:
+    """A function for outputting a number to a complex string in QUIL format."""
+    cnum = complex(str(num))
+    return "{0}+{1}i".format(cnum.real, cnum.imag)
+
 
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.SingleQubitGate):
+    """A QUIL gate representing any single qubit unitary with a DEFGATE and
+        2\\times 2 matrix in QUIL.
+    """
 
     def __init__(self, matrix: np.ndarray) -> None:
-        """A QUIL gate representing any single qubit unitary with a DEFGATE and 2x2 matrix in QUIL.
-
+        """
         Args:
-            matrix: The 2x2 unitary matrix for this gate.
+            matrix: The 2\\times 2 unitary matrix for this gate.
         """
         self.matrix = matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...]) -> str:
-        return "DEFGATE USERGATE:\n\t{0}, {1}\n\t{2}, {3}\nUSERGATE {4}\n".format(to_quil_complex_format(self.matrix[0,0]),
-                                                                                to_quil_complex_format(self.matrix[0,1]),
-                                                                                to_quil_complex_format(self.matrix[1,0]),
-                                                                                to_quil_complex_format(self.matrix[1,1]),
-                                                                                qubits[0])
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> str:
+        return (f'DEFGATE USERGATE:\n\t'
+                f'{to_quil_complex_format(self.matrix[0, 0])}, '
+                f'{to_quil_complex_format(self.matrix[0, 1])}\n\t'
+                f'{to_quil_complex_format(self.matrix[1, 0])}, '
+                f'{to_quil_complex_format(self.matrix[1, 1])}\n'
+                f'{formatter.format("USERGATE {0}", qubits[0])}\n')
 
     def __repr__(self) -> str:
-        return 'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n{0}\n)'.format(self.matrix)
+        return (f'cirq.circuits.quil_output.QuilOneQubitGate(matrix=\n'
+                f'{self.matrix}\n)')
 
     def _value_equality_values_(self):
         return self.matrix
 
-@value.value_equality
+
+@value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.TwoQubitGate):
-    def __init__(self, matrix: np.ndarray) -> None:
-        """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4 unitary matrix.
+    """A two qubit gate represented in QUIL with a DEFGATE and it's 4\\times 4
+    unitary matrix.
+    """
 
+    def __init__(self, matrix: np.ndarray) -> None:
+        """
         Args:
-            matrix: The 4x4 unitary matrix for this gate.
+            matrix: The 4\\times 4 unitary matrix for this gate.
         """
         self.matrix = matrix
 
     def _value_equality_values_(self):
         return self.matrix
 
-    def _quil_(self, qubits: Tuple['cirq.Qid', ...]) -> str:
-        return "DEFGATE USERGATE:\n\t{0}, {1}, {2}, {3}\n\t{4}, {5}, {6}, {7}\n\t{8}, {9}, {10}, {11}\n\t{12}, {13}, {14}, {15}\nUSERGATE {16} {17}\n".format(to_quil_complex_format(self.matrix[0,0]),
-                                                                                to_quil_complex_format(self.matrix[0,1]),
-                                                                                to_quil_complex_format(self.matrix[0,2]),
-                                                                                to_quil_complex_format(self.matrix[0,3]),
-                                                                                to_quil_complex_format(self.matrix[1,0]),
-                                                                                to_quil_complex_format(self.matrix[1,1]),
-                                                                                to_quil_complex_format(self.matrix[1,2]),
-                                                                                to_quil_complex_format(self.matrix[1,3]),
-                                                                                to_quil_complex_format(self.matrix[2,0]),
-                                                                                to_quil_complex_format(self.matrix[2,1]),
-                                                                                to_quil_complex_format(self.matrix[2,2]),
-                                                                                to_quil_complex_format(self.matrix[2,3]),
-                                                                                to_quil_complex_format(self.matrix[3,0]),
-                                                                                to_quil_complex_format(self.matrix[3,1]),
-                                                                                to_quil_complex_format(self.matrix[3,2]),
-                                                                                to_quil_complex_format(self.matrix[3,3]),
-                                                                                qubits[0], qubits[1])
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> str:
+        return (
+            f'DEFGATE USERGATE:\n\t'
+            f'{to_quil_complex_format(self.matrix[0, 0])}, '
+            f'{to_quil_complex_format(self.matrix[0, 1])}, '
+            f'{to_quil_complex_format(self.matrix[0, 2])}, '
+            f'{to_quil_complex_format(self.matrix[0, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[1, 0])}, '
+            f'{to_quil_complex_format(self.matrix[1, 1])}, '
+            f'{to_quil_complex_format(self.matrix[1, 2])}, '
+            f'{to_quil_complex_format(self.matrix[1, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[2, 0])}, '
+            f'{to_quil_complex_format(self.matrix[2, 1])}, '
+            f'{to_quil_complex_format(self.matrix[2, 2])}, '
+            f'{to_quil_complex_format(self.matrix[2, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[3, 0])}, '
+            f'{to_quil_complex_format(self.matrix[3, 1])}, '
+            f'{to_quil_complex_format(self.matrix[3, 2])}, '
+            f'{to_quil_complex_format(self.matrix[3, 3])}\n'
+            f'{formatter.format("USERGATE {0} {1}", qubits[0], qubits[1])}\n')
 
     def __repr__(self) -> str:
-        return 'cirq.circuits.quil_output.QuilTwoQubitGate({0})'.format(self.matrix)
+        return (f'cirq.circuits.quil_output.QuilTwoQubitGate(matrix=\n'
+                f'{self.matrix}\n)')
+
 
 class QuilOutput:
     """An object for passing operations and qubits then outputting them to
-        QUIL format. The string representation returns the QUIL output for the
-        circuit.
+    QUIL format. The string representation returns the QUIL output for the
+    circuit.
     """
 
-    def __init__(self,
-                 operations: 'cirq.OP_TREE',
+    def __init__(self, operations: 'cirq.OP_TREE',
                  qubits: Tuple['cirq.Qid', ...]) -> None:
         """
         Args:
@@ -103,15 +118,14 @@ class QuilOutput:
         self.measurement_id_map = self._generate_measurement_ids()
         self.formatter = protocols.QuilFormatter(
             qubit_id_map=self.qubit_id_map,
-            measurement_id_map=self.measurement_id_map
-        )
-    
+            measurement_id_map=self.measurement_id_map)
+
     def _generate_qubit_ids(self) -> Dict['cirq.Qid', str]:
         return {qubit: str(i) for i, qubit in enumerate(self.qubits)}
-    
+
     def _generate_measurement_ids(self) -> Dict[str, str]:
         index = 0
-        measurement_id_map = {}
+        measurement_id_map: Dict[str, str] = {}
         for op in self.operations:
             if isinstance(op.gate, ops.MeasurementGate):
                 key = protocols.measurement_key(op)
@@ -124,30 +138,32 @@ class QuilOutput:
     def save_to_file(self, path: Union[str, bytes, int]) -> None:
         """Write QUIL output to a file specified by path."""
         with open(path, 'w') as f:
+
             def write(s: str) -> None:
                 f.write(s)
 
             self._write_quil(write)
 
-    def __str__(self):
+    def __str__(self) -> str:
         output = []
         self._write_quil(lambda s: output.append(s))
-        return QuilOutput.rename_defgates(''.join(output))
+        return self.rename_defgates(''.join(output))
 
     def _write_quil(self, output_func: Callable[[str], None]) -> None:
         output_func('# Created using Cirq.\n\n')
         if len(self.measurements) > 0:
-            measurements_declared = set()
+            measurements_declared: Set[str] = set()
             for m in self.measurements:
                 key = protocols.measurement_key(m)
                 if key in measurements_declared:
                     continue
                 measurements_declared.add(key)
-                output_func('DECLARE {} BIT[{}]\n'.format(self.measurement_id_map[key],
-                            len(m.qubits)))
+                output_func('DECLARE {} BIT[{}]\n'.format(
+                    self.measurement_id_map[key], len(m.qubits)))
             output_func('\n')
 
         def keep(op: 'cirq.Operation') -> bool:
+            print("I'm keeping")
             return protocols.quil(op, formatter=self.formatter) is not None
 
         def fallback(op):
@@ -167,16 +183,20 @@ class QuilOutput:
                 'Cannot output operation as QUIL: {!r}'.format(bad_op))
 
         for main_op in self.operations:
-            decomposed = protocols.decompose(
-                main_op,
-                keep=keep,
-                fallback_decomposer=fallback,
-                on_stuck_raise=on_stuck)
+            decomposed = protocols.decompose(main_op,
+                                             keep=keep,
+                                             fallback_decomposer=fallback,
+                                             on_stuck_raise=on_stuck)
 
             for decomposed_op in decomposed:
-                output_func(protocols.quil(decomposed_op, formatter=self.formatter))
+                output_func(
+                    protocols.quil(decomposed_op, formatter=self.formatter))
 
-    def rename_defgates(output: str):
+    def rename_defgates(self, output: str) -> str:
+        """A function for renaming the DEFGATEs within the QUIL output. This
+        utilizes a second pass to find each DEFGATE and rename it based on
+        a counter.
+        """
         result = output
         defString = "DEFGATE"
         nameString = "USERGATE"
@@ -197,7 +217,7 @@ class QuilOutput:
                 gateNum += 1
                 defIdx = 0
             if nameIdx == len(nameString):
-                result = result[:i+1] + str(gateNum) + result[i+1:]
+                result = result[:i + 1] + str(gateNum) + result[i + 1:]
                 nameIdx = 0
                 i += 1
             i += 1

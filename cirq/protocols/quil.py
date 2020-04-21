@@ -13,14 +13,15 @@
 # limitations under the License.
 
 import string
-from typing import TYPE_CHECKING, Any, Optional, Dict, Iterable
-from cirq import ops
+from typing import Any, Optional, Dict, Iterable
+import cirq
+
 
 class QuilFormatter(string.Formatter):
     """A unique formatter to correctly output values to QUIL."""
-    def __init__(self,
-                 qubit_id_map: Dict['cirq.Qid', str] = {},
-                 measurement_id_map: Dict[str, str] = {}) -> None:
+
+    def __init__(self, qubit_id_map: Dict['cirq.Qid', str],
+                 measurement_id_map: Dict[str, str]) -> None:
         """
         Args:
             qubit_id_map: A dictionary {qubit, quil_output_string} for
@@ -29,23 +30,25 @@ class QuilFormatter(string.Formatter):
             quil_output_string} for the proper QUIL output for each
             measurement key.
         """
-        self.qubit_id_map = qubit_id_map
-        self.measurement_id_map = measurement_id_map
-    
+        self.qubit_id_map = {} if qubit_id_map is None else qubit_id_map
+        self.measurement_id_map = {} if measurement_id_map is None \
+            else measurement_id_map
+
     def format_field(self, value: Any, spec: str) -> str:
-        if isinstance(value, ops.Qid):
+        if isinstance(value, cirq.ops.Qid):
             value = self.qubit_id_map[value]
         if isinstance(value, str) and spec == 'meas':
             value = self.measurement_id_map[value]
-            spec =''
+            spec = ''
         return super().format_field(value, spec)
+
 
 def quil(val: Any,
          *,
          qubits: Optional[Iterable['cirq.Qid']] = None,
          formatter: Optional[QuilFormatter] = None):
     """Returns the QUIL code for the given value.
-    
+
     Args:
         val: The value to turn into QUIL code.
         qubits: A list of qubits that the value is being applied to. This is

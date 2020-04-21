@@ -181,7 +181,7 @@ class XPowGate(eigen_gate.EigenGate,
         return args.format('rx({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
 
-    def _quil_(self, qubits: Tuple['cirq.QID', ...],
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\n', qubits[0])
@@ -331,7 +331,7 @@ class YPowGate(eigen_gate.EigenGate,
         return args.format('ry({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
 
-    def _quil_(self, qubits: Tuple['cirq.QID', ...],
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Y {0}\n', qubits[0])
@@ -533,7 +533,7 @@ class ZPowGate(eigen_gate.EigenGate,
         return args.format('rz({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
 
-    def _quil_(self, qubits: Tuple['cirq.QID', ...],
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Z {0}\n', qubits[0])
@@ -685,11 +685,6 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             wire_symbols=('H',),
             exponent=self._diagram_exponent(args))
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
-            return None
-        return self.exponent % 1 == 0
-
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
@@ -701,11 +696,17 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'rx({1:half_turns}) {3};\n'
             'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
-    def _quil_(self, qubits: Tuple['cirq.QID', ...],
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('H {0}\n', qubits[0])
-        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25, self._exponent, -0.25, qubits[0])
+        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25,
+                                self._exponent, -0.25, qubits[0])
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
 
     def __str__(self):
         if self._exponent == 1:
@@ -832,11 +833,6 @@ class CZPowGate(eigen_gate.EigenGate,
                 wire_symbols=('@', '@'),
                 exponent=self._diagram_exponent(args))
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
-            return None
-        return self.exponent % 1 == 0
-
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
@@ -848,7 +844,13 @@ class CZPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent, qubits[0], qubits[1])
+        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent,
+                                qubits[0], qubits[1])
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -1003,11 +1005,6 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                                        result.control_qid_shape[:-1])
         return result
 
-    def _has_stabilizer_effect_(self) -> Optional[bool]:
-        if self._is_parameterized_():
-            return None
-        return self.exponent % 1 == 0
-
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         if self._exponent != 1:
@@ -1020,6 +1017,11 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if self._exponent == 1:
             return formatter.format('CNOT {0} {1}\n', qubits[0], qubits[1])
         return None
+
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        if self._is_parameterized_():
+            return None
+        return self.exponent % 1 == 0
 
     def __str__(self) -> str:
         if self._exponent == 1:

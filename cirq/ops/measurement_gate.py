@@ -161,8 +161,12 @@ class MeasurementGate(raw_types.Gate):
         lines = []
         for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
             if inv:
-                lines.append(formatter.format('X {0} # Inverting for following measurement\n', qubit))
-            lines.append(formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key, i))
+                lines.append(
+                    formatter.format(
+                        'X {0} # Inverting for following measurement\n', qubit))
+            lines.append(
+                formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key,
+                                 i))
         return ''.join(lines)
 
     def __repr__(self):
