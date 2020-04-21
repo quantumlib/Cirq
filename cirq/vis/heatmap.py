@@ -142,6 +142,7 @@ class Heatmap:
                      position: str = 'right',
                      size: str = '5%',
                      pad: str = '2%',
+                     label: str = '',
                      **colorbar_options: Any) -> 'Heatmap':
         """Sets location and style of colorbar.
 
@@ -151,6 +152,7 @@ class Heatmap:
                 Nominally, '100%' means the same width as the heatmap.
             pad: a string ending in '%' to specify the space between the
                 colorbar and the heatmap.
+            lable: colorbal label, shown if not empty.
             colorbar_options: keyword arguments passed to
                 matplotlib.Figure.colorbar().
         """
@@ -160,6 +162,7 @@ class Heatmap:
             'size': size,
             'pad': pad
         }
+        self.colorbar_ylabel = label
         self.colorbar_options = colorbar_options
         return self
 
@@ -274,6 +277,8 @@ class Heatmap:
                                       orientation=orien,
                                       **self.colorbar_options)
         colorbar_ax.tick_params(axis='y', direction='out')
+        if self.colorbar_ylabel:
+            colorbar_ax.set_ylabel(self.colorbar_ylabel)
         return colorbar
 
     def _write_annotations(self, mesh: mpl_collections.Collection,

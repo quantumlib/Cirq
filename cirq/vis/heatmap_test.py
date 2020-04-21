@@ -242,4 +242,4 @@ def test_colorbar(ax):
     assert len(fig2.get_children()) == len(fig1.get_children()) + 1
 
     # TODO: Make this is a more thorough test, e.g., we should test that the
-    # position, size and pad arguments are respected.
+    # position, size, pad and label arguments are respected.
