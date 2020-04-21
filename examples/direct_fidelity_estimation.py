@@ -337,7 +337,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835
     n_qubits = len(qubits)
-    d = 2**n_qubits
 
     clifford_circuit = True
     clifford_state: Optional[cirq.CliffordState] = None
@@ -385,7 +384,6 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
         # Randomly sample as per probability.
         i = np.random.choice(len(pauli_traces), p=p)
 
-        Pr_i = pauli_traces[i].Pr_i
         measure_pauli_string: cirq.PauliString = pauli_traces[i].P_i
         rho_i = pauli_traces[i].rho_i
 
