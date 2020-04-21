@@ -129,8 +129,8 @@ def test_z_init():
      (cirq.CX, cirq.CCX),
      (cirq.ZPowGate(exponent=0.5), cirq.CZPowGate(exponent=0.5)),
      (cirq.CZPowGate(exponent=0.5), cirq.CCZPowGate(exponent=0.5)),
-     (cirq.XPowGate(exponent=0.5), cirq.CNotPowGate(exponent=0.5)),
-     (cirq.CNotPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5))])
+     (cirq.XPowGate(exponent=0.5), cirq.CXPowGate(exponent=0.5)),
+     (cirq.CXPowGate(exponent=0.5), cirq.CCXPowGate(exponent=0.5))])
 def test_specialized_control(input_gate, specialized_output):
     # Single qubit control on the input gate gives the specialized output
     assert input_gate.controlled() == specialized_output
@@ -212,9 +212,8 @@ def test_rot_gates_eq():
                                         global_shift=-0.1))
     eq.add_equality_group(cirq.ZPowGate(exponent=5,
                                         global_shift=-0.1))
-    eq.add_equality_group(cirq.CNotPowGate(),
-                          cirq.CNotPowGate(exponent=1),
-                          cirq.CNOT)
+    eq.add_equality_group(cirq.CNotPowGate(), cirq.CXPowGate(),
+                          cirq.CNotPowGate(exponent=1), cirq.CNOT)
     eq.add_equality_group(cirq.CZPowGate(),
                           cirq.CZPowGate(exponent=1), cirq.CZ)
 
@@ -528,6 +527,78 @@ def test_rz_unitary():
 
     np.testing.assert_allclose(cirq.unitary(cirq.rz(-np.pi)),
                                np.array([[1j, 0], [0, -1j]]))
+
+
+def test_x_stabilizer():
+    gate = cirq.X
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_y_stabilizer():
+    gate = cirq.Y
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_z_stabilizer():
+    gate = cirq.Z
+    assert cirq.has_stabilizer_effect(gate)
+    assert cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_h_stabilizer():
+    gate = cirq.H
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_cz_stabilizer():
+    gate = cirq.CZ
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
+
+
+def test_cnot_stabilizer():
+    gate = cirq.CNOT
+    assert cirq.has_stabilizer_effect(gate)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
+    foo = sympy.Symbol('foo')
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 @pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))

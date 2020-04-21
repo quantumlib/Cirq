@@ -26,27 +26,31 @@ User Documentation
 
     install
     tutorial.ipynb
-    circuits.ipynb
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Concepts
+
     gates.ipynb
-    noise.ipynb
+    circuits.ipynb
     simulation.ipynb
+    noise.ipynb
     devices
+    interop.ipynb
     qudits.ipynb
-    development
-    examples
     api
 
 
 .. toctree::
     :maxdepth: 1
-    :caption: Developer Documentation
+    :caption: Case Studies
 
-    dev/index.rst
-
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Notebook sphinx generation
+    examples
+    studies/hidden_linear_function.ipynb
+    studies/variational_algorithm.ipynb
+    studies/QAOA_Demo.ipynb
+    studies/Quantum_Walk.ipynb
+    studies/Rabi_Demo.ipynb
 
 
 .. toctree::
@@ -58,3 +62,11 @@ User Documentation
     google/specification
     google/calibration
     google/best_practices
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Developer Documentation
+
+    dev/index.rst
+    dev/development

@@ -14,7 +14,7 @@
 
 import itertools
 import collections
-from typing import Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
+from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
 from numpy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
@@ -316,7 +316,7 @@ class NeutralAtomDevice(devices.Device):
                 if isinstance(operation.gate, ops.MeasurementGate):
                     has_measurement_occurred = True
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self._measurement_duration,
                 self._gate_duration,
                 self._max_parallel_z,
@@ -325,22 +325,18 @@ class NeutralAtomDevice(devices.Device):
                 self._control_radius,
                 self.qubits)
 
-    def __repr__(self):
-        return ('cirq.NeutralAtomDevice(measurement_duration={!r}, '
-                'gate_duration={!r}, '
-                'max_parallel_z={!r}, '
-                'max_parallel_xy={!r}, '
-                'max_parallel_c={!r}, '
-                'control_radius={!r}, '
-                'qubits={!r})').format(self._measurement_duration,
-                                       self._gate_duration,
-                                       self._max_parallel_z,
-                                       self._max_parallel_xy,
-                                       self._max_parallel_c,
-                                       self._control_radius,
-                                       sorted(self.qubits))
+    def __repr__(self) -> str:
+        return ('cirq.NeutralAtomDevice('
+                f'measurement_duration={self._measurement_duration!r}, '
+                f'gate_duration={self._gate_duration!r}, '
+                f'max_parallel_z={self._max_parallel_z!r}, '
+                f'max_parallel_xy={self._max_parallel_xy!r}, '
+                f'max_parallel_c={self._max_parallel_c!r}, '
+                f'control_radius={self._control_radius!r}, '
+                f'qubits={sorted(self.qubits)!r})')
 
-    def neighbors_of(self, qubit: GridQubit):
+    def neighbors_of(self,
+                     qubit: 'cirq.GridQubit') -> Iterable['cirq.GridQubit']:
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
             GridQubit(qubit.row + 1, qubit.col),
@@ -355,7 +351,7 @@ class NeutralAtomDevice(devices.Device):
         q = cast(GridQubit, q)
         return sqrt((p.row - q.row) ** 2 + (p.col - q.col) ** 2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         diagram = circuits.TextDiagramDrawer()
 
         for q in self.qubits:

@@ -299,19 +299,19 @@ _CALIBRATION_DATA = Merge(
             double_val: .9998
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q0_0'],
         values: [{
             double_val: .001
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q0_1'],
         values: [{
             double_val: .002
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q1_0'],
         values: [{
             double_val: .003

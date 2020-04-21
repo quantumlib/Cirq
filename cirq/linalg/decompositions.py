@@ -15,8 +15,8 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
-                    Optional, TYPE_CHECKING, Sequence)
+from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
+                    Tuple, TYPE_CHECKING, TypeVar, Union)
 
 import math
 import cmath
@@ -310,12 +310,12 @@ class AxisAngleDecomposition:
                                       angle=angle,
                                       global_phase=p)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         v = self.canonicalize(atol=0)
         return (value.PeriodicValue(v.angle,
                                     period=math.pi * 2), v.axis, v.global_phase)
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         x, y, z = self.axis
         xm = np.array([[0, 1], [1, 0]])
         ym = np.array([[0, -1j], [1j, 0]])
@@ -325,19 +325,16 @@ class AxisAngleDecomposition:
         s = math.sin(-self.angle / 2)
         return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
 
-    def __str__(self):
+    def __str__(self) -> str:
         axis_terms = '+'.join('{:.3g}*{}'.format(e, a) if e < 0.9999 else a
                               for e, a in zip(self.axis, ['X', 'Y', 'Z'])
                               if abs(e) >= 1e-8).replace('+-', '-')
-        return '{:.3g}*π around {}'.format(
-            self.angle / np.pi,
-            axis_terms,
-        )
+        half_turns = self.angle / np.pi
+        return f'{half_turns:.3g}*π around {axis_terms}'
 
-    def __repr__(self):
-        return ('cirq.AxisAngleDecomposition('
-                'angle={!r}, axis={!r}, global_phase={!r})'.format(
-                    self.angle, self.axis, self.global_phase))
+    def __repr__(self) -> str:
+        return (f'cirq.AxisAngleDecomposition(angle={self.angle!r}, '
+                f'axis={self.axis!r}, global_phase={self.global_phase!r})')
 
 
 def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
@@ -438,7 +435,8 @@ class KakDecomposition:
                 np.eye(2, dtype=np.complex64),
             ))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
+
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
 
@@ -446,42 +444,39 @@ class KakDecomposition:
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
 
-    def __str__(self):
-        return ('KAK {{\n'
-                '    xyz*(4/π): {:.3g}, {:.3g}, {:.3g}\n'
-                '    before: ({}) ⊗ ({})\n'
-                '    after: ({}) ⊗ ({})\n'
-                '}}').format(self.interaction_coefficients[0] * 4 / np.pi,
-                             self.interaction_coefficients[1] * 4 / np.pi,
-                             self.interaction_coefficients[2] * 4 / np.pi,
-                             axis_angle(self.single_qubit_operations_before[0]),
-                             axis_angle(self.single_qubit_operations_before[1]),
-                             axis_angle(self.single_qubit_operations_after[0]),
-                             axis_angle(self.single_qubit_operations_after[1]))
+    def __str__(self) -> str:
+        xx = self.interaction_coefficients[0] * 4 / np.pi
+        yy = self.interaction_coefficients[1] * 4 / np.pi
+        zz = self.interaction_coefficients[2] * 4 / np.pi
+        before0 = axis_angle(self.single_qubit_operations_before[0])
+        before1 = axis_angle(self.single_qubit_operations_before[1])
+        after0 = axis_angle(self.single_qubit_operations_after[0])
+        after1 = axis_angle(self.single_qubit_operations_after[1])
+        return ('KAK {\n'
+                f'    xyz*(4/π): {xx:.3g}, {yy:.3g}, {zz:.3g}\n'
+                f'    before: ({before0}) ⊗ ({before1})\n'
+                f'    after: ({after0}) ⊗ ({after1})\n'
+                '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        before0 = proper_repr(self.single_qubit_operations_before[0])
+        before1 = proper_repr(self.single_qubit_operations_before[1])
+        after0 = proper_repr(self.single_qubit_operations_after[0])
+        after1 = proper_repr(self.single_qubit_operations_after[1])
         return (
             'cirq.KakDecomposition(\n'
-            '    interaction_coefficients={!r},\n'
+            f'    interaction_coefficients={self.interaction_coefficients!r},\n'
             '    single_qubit_operations_before=(\n'
-            '        {},\n'
-            '        {},\n'
+            f'        {before0},\n'
+            f'        {before1},\n'
             '    ),\n'
             '    single_qubit_operations_after=(\n'
-            '        {},\n'
-            '        {},\n'
+            f'        {after0},\n'
+            f'        {after1},\n'
             '    ),\n'
-            '    global_phase={!r})'
-        ).format(
-            self.interaction_coefficients,
-            proper_repr(self.single_qubit_operations_before[0]),
-            proper_repr(self.single_qubit_operations_before[1]),
-            proper_repr(self.single_qubit_operations_after[0]),
-            proper_repr(self.single_qubit_operations_after[1]),
-            self.global_phase,
-        )
+            f'    global_phase={self.global_phase!r})')
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         """Returns the decomposition's two-qubit unitary matrix.
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)

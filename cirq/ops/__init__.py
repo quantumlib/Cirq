@@ -51,6 +51,7 @@ from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
     CX,
+    CXPowGate,
     CZ,
     CZPowGate,
     H,
@@ -218,6 +219,7 @@ from cirq.ops.tags import (
 
 from cirq.ops.three_qubit_gates import (
     CCNOT,
+    CCNotPowGate,
     CCX,
     CCXPowGate,
     CCZ,
