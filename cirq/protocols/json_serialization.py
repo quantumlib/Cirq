@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
+
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
@@ -94,6 +95,7 @@ class _ResolverCache:
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
