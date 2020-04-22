@@ -45,7 +45,7 @@ def test_direct_fidelity_estimation_with_noise_clifford():
                            cirq.X(qubits[2]))
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
-    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
+    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise, seed=19950610)
 
     estimated_fidelity, _ = dfe.direct_fidelity_estimation(
         circuit,
@@ -65,7 +65,7 @@ def test_direct_fidelity_estimation_with_noise_non_clifford():
         cirq.X(qubits[2])**0.456)
 
     noise = cirq.ConstantQubitNoiseModel(cirq.depolarize(0.1))
-    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise)
+    noisy_simulator = cirq.DensityMatrixSimulator(noise=noise, seed=1105)
 
     estimated_fidelity, _ = dfe.direct_fidelity_estimation(
         circuit,
