@@ -284,8 +284,8 @@ class TrialResult:
     """
     Contains the results of a trial, either by simulator or actual run
     """
-    # The index in the list of Pauli traces.
-    i: int
+    # The Pauli trace that was measured
+    pauli_trace: PauliTrace
     # Coefficient of the measured/simulated pure state expanded in the Pauli
     # basis scaled by sqrt(dim H), formally defined at bottom of left column of
     # second page of https://arxiv.org/abs/1104.3835
@@ -379,19 +379,21 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             cirq.DensityMatrixTrialResult,
             noisy_simulator.simulate(circuit)).final_density_matrix
 
-    trial_results: List[TrialResult] = []
-    for i_seq in range(len(pauli_traces)):
-        if clifford_circuit and n_measured_operators is None:
-            # In case the circuit is Clifford and we compute an exhaustive list
-            # of Pauli traces, instead of sampling we can simply enumerate them
-            # because they all have the same probability.
-            i = i_seq
-        else:
-            # Otherwise, randomly sample as per probability.
-            i = np.random.choice(len(pauli_traces), p=p)
+    if clifford_circuit and n_measured_operators is None:
+        # In case the circuit is Clifford and we compute an exhaustive list of
+        # Pauli traces, instead of sampling we can simply enumerate them because
+        # they all have the same probability.
+        measured_pauli_traces = pauli_traces
+    else:
+        # Otherwise, randomly sample as per probability.
+        measured_pauli_traces = np.random.choice(pauli_traces,
+                                                 size=len(pauli_traces),
+                                                 p=p)
 
-        measure_pauli_string: cirq.PauliString = pauli_traces[i].P_i
-        rho_i = pauli_traces[i].rho_i
+    trial_results: List[TrialResult] = []
+    for pauli_trace in measured_pauli_traces:
+        measure_pauli_string: cirq.PauliString = pauli_trace.P_i
+        rho_i = pauli_trace.rho_i
 
         if samples_per_term > 0:
             sigma_i = asyncio.get_event_loop().run_until_complete(
@@ -402,7 +404,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
-        trial_results.append(TrialResult(i=i, sigma_i=sigma_i))
+        trial_results.append(
+            TrialResult(pauli_trace=pauli_trace, sigma_i=sigma_i))
 
         fidelity += sigma_i / rho_i
 

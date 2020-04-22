@@ -49,8 +49,8 @@ def test_direct_fidelity_estimation_with_noise_clifford():
         circuit,
         qubits,
         noisy_simulator,
-        n_measured_operators=10,
-        samples_per_term=10)
+        n_measured_operators=None,
+        samples_per_term=100)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
@@ -68,8 +68,8 @@ def test_direct_fidelity_estimation_with_noise_non_clifford():
         circuit,
         qubits,
         noisy_simulator,
-        n_measured_operators=10,
-        samples_per_term=10)
+        n_measured_operators=None,
+        samples_per_term=100)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
