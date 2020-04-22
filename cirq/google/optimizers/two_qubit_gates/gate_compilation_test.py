@@ -4,10 +4,10 @@ import pytest
 
 from cirq import unitary, FSimGate, value
 from cirq.google.optimizers.two_qubit_gates.gate_compilation import (
-    gate_product_tabulation)
+    gate_product_tabulation, GateTabulation)
 from cirq.google.optimizers.two_qubit_gates.math_utils import (
     unitary_entanglement_fidelity)
-from cirq.testing import random_special_unitary
+from cirq.testing import random_special_unitary, assert_equivalent_repr
 
 _rng = value.parse_random_state(11)  # for determinism
 
@@ -79,3 +79,17 @@ def test_sycamore_gate_tabulation(seed):
                                   random_state=np.random.RandomState(seed))
     result = tab.compile_two_qubit_gate(base_gate)
     assert result.success
+
+
+def test_sycamore_gate_tabulation_repr():
+    simple_tabulation = GateTabulation(
+        np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128),
+        np.array([[(1 + 0j), 0j, 0j, 0j]], dtype=np.complex128), [[]], 0.49,
+        'Sample string', ())
+    assert_equivalent_repr(simple_tabulation)
+
+
+def test_sycamore_gate_tabulation_eq():
+    assert sycamore_tabulation == sycamore_tabulation
+    assert sycamore_tabulation != sqrt_iswap_tabulation
+    assert sycamore_tabulation != 1
