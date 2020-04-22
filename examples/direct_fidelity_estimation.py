@@ -309,10 +309,12 @@ class DFEIntermediateResult:
     trial_results: List[TrialResult]
 
 
-def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
+def direct_fidelity_estimation(circuit: cirq.Circuit,
+                               qubits: List[cirq.Qid],
                                sampler: cirq.Sampler,
                                n_measured_operators: Optional[int],
-                               samples_per_term: int):
+                               samples_per_term: int,
+                               seed: cirq.value.RANDOM_STATE_LIKE = None):
     """
     Implementation of direct fidelity estimation, as per 'Direct Fidelity
     Estimation from Few Pauli Measurements' https://arxiv.org/abs/1104.4695 and
@@ -330,9 +332,12 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             simulate noise in the circuit. If greater than 0, we instead use the
             'sampler' parameter directly to estimate the characteristic
             function.
+        seed: The random seed to use for this DFE computation.
     Returns:
         The estimated fidelity and a log of the run.
     """
+    np.random.seed(seed)
+
     # n_measured_operators is upper-case N in https://arxiv.org/abs/1104.3835
 
     # Number of qubits, lower-case n in https://arxiv.org/abs/1104.3835

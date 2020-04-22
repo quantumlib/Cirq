@@ -17,7 +17,8 @@ def test_direct_fidelity_estimation_no_noise_clifford():
         qubits,
         no_noise_simulator,
         n_measured_operators=3,
-        samples_per_term=0)
+        samples_per_term=0,
+        seed=20160913)
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -33,7 +34,8 @@ def test_direct_fidelity_estimation_no_noise_non_clifford():
         qubits,
         no_noise_simulator,
         n_measured_operators=64,
-        samples_per_term=0)
+        samples_per_term=0,
+        seed=1729)
     assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -50,7 +52,8 @@ def test_direct_fidelity_estimation_with_noise_clifford():
         qubits,
         noisy_simulator,
         n_measured_operators=None,
-        samples_per_term=100)
+        samples_per_term=100,
+        seed=87539319)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
@@ -69,7 +72,8 @@ def test_direct_fidelity_estimation_with_noise_non_clifford():
         qubits,
         noisy_simulator,
         n_measured_operators=None,
-        samples_per_term=100)
+        samples_per_term=100,
+        seed=561)
     assert estimated_fidelity >= -1.0 and estimated_fidelity <= 1.0
 
 
@@ -86,7 +90,8 @@ def test_incorrect_sampler_raises_exception():
                                        qubits,
                                        sampler_incorrect_type,
                                        n_measured_operators=3,
-                                       samples_per_term=0)
+                                       samples_per_term=0,
+                                       seed=20160913)
 
 
 def test_direct_fidelity_estimation_clifford_all_trials():
@@ -101,7 +106,8 @@ def test_direct_fidelity_estimation_clifford_all_trials():
             qubits,
             no_noise_simulator,
             n_measured_operators=n_measured_operators,
-            samples_per_term=0)
+            samples_per_term=0,
+            seed=41041)
         assert np.isclose(estimated_fidelity, 1.0, atol=0.01)
 
 
@@ -154,7 +160,8 @@ def test_direct_fidelity_estimation_intermediate_results():
         qubits,
         no_noise_simulator,
         n_measured_operators=1,
-        samples_per_term=0)
+        samples_per_term=0,
+        seed=1776)
     # We only test a few fields to be sure that they are set properly. In
     # particular, some of them are random, and so we don't test them.
     np.testing.assert_allclose(intermediate_result.clifford_state.ch_form.gamma,
