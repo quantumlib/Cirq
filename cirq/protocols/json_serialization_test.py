@@ -269,7 +269,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
-    'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
@@ -308,7 +307,6 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
-    'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
     'Sycamore',
@@ -547,6 +545,7 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
         json_from_cirq = cirq.to_json(repr_obj)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
+
         assert json_from_cirq_obj == json_from_file_obj, (
             f'The json produced by cirq no longer agrees with the json in the '
             f'{rel_json_path} test data file.\n'
