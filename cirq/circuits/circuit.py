@@ -359,20 +359,20 @@ class Circuit:
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
-            return 'cirq.Circuit(device={!r})'.format(self._device)
+            return f'cirq.Circuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit({})'.format(moment_str)
+            return f'cirq.Circuit({moment_str})'
 
-        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
+        return f'cirq.Circuit({moment_str}, device={self._device!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore

@@ -16,6 +16,7 @@ from typing import List
 import numpy as np
 
 import cirq
+from cirq import protocols
 from cirq.ops.dense_pauli_string import DensePauliString
 
 
@@ -49,6 +50,26 @@ class CliffordTableau():
         for i in range(self.n):
             self.xs[i, i] = True
             self.zs[self.n + i, i] = True
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
+
+    @classmethod
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        state = cls(n)
+        state.rs = rs
+        state.xs = xs
+        state.zs = zs
+
+        return state
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            # coverage: ignore
+            return NotImplemented
+        return (self.n == other.n and np.array_equal(self.rs, other.rs) and
+                np.array_equal(self.xs, other.xs) and
+                np.array_equal(self.zs, other.zs))
 
     def copy(self):
         state = CliffordTableau(self.n)
