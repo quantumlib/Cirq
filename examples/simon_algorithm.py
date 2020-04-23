@@ -89,7 +89,7 @@ def main(qubit_count=6):
 
             # Classical Post-Processing:
             flag = post_processing(data, results)
-            
+
     freqs = Counter(data)
     print('Circuit:')
     print(circuit)
@@ -153,7 +153,7 @@ def post_processing(data, results):
     sing_values = sp.linalg.svdvals(results)
     tolerance = 1e-5
     if sum(sing_values < tolerance
-            ) == 0:  # check if measurements are linearly dependent
+          ) == 0:  # check if measurements are linearly dependent
         flag = True
         null_space = sp.linalg.null_space(results).T[0]
         solution = np.around(null_space, 3)  # chop very small values
