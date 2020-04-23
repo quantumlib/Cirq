@@ -84,8 +84,8 @@ def create_device_proto_from_diagram(
     qubit_set = frozenset(qubits)
     pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
     for qubit in qubits:
-        for neighbor in [qubit + (0, 1), qubit + (1, 0)]:
-            if neighbor in qubit_set:
+        for neighbor in sorted(qubit.neighbors()):
+            if neighbor > qubit and neighbor in qubit_set:
                 pairs.append((qubit, neighbor))
 
     return create_device_proto_for_qubits(qubits, pairs, gate_sets,
