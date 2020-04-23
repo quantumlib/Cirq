@@ -64,13 +64,13 @@ def create_device_proto_from_diagram(
         ascii_grid: str,
         gate_sets: Optional[Iterable[
             serializable_gate_set.SerializableGateSet]] = None,
-        durations_picos: Dict[str, int] = None,
+        durations_picos: Optional[Dict[str, int]] = None,
         out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
     """Parse ASCIIart device layout into DeviceSpecification proto.
 
-    This function also assumes that all pairs of adjacent qubits are valid
-    targets for two-qubit gates.
+    This function assumes that all pairs of adjacent qubits are valid targets
+    for two-qubit gates.
 
     Args:
         ascii_grid: ASCII version of the grid (see _parse_device for details).
@@ -84,8 +84,7 @@ def create_device_proto_from_diagram(
     qubit_set = frozenset(qubits)
     pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
     for qubit in qubits:
-        for offset in [(0, 1), (1, 0)]:
-            neighbor = qubit + offset
+        for neighbor in [qubit + (0, 1), qubit + (1, 0)]:
             if neighbor in qubit_set:
                 pairs.append((qubit, neighbor))
 
@@ -98,7 +97,7 @@ def create_device_proto_for_qubits(
         pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
         gate_sets: Optional[Iterable[
             serializable_gate_set.SerializableGateSet]] = None,
-        durations_picos: Dict[str, int] = None,
+        durations_picos: Optional[Dict[str, int]] = None,
         out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
     """Create device spec for the given qubits and coupled pairs.
