@@ -9,7 +9,7 @@ Simon's Algorithm solves the following problem:
 
 Given a function  f:{0,1}^n -> {0,1}^n, such that for some s ∈ {0,1}^n,  
 
-f(x) = f(y) iff  x+y ∈ {0^n, s}, 
+f(x) = f(y) iff  x ⨁ y ∈ {0^n, s}, 
 
 find the n-bit string s. 
 
@@ -58,21 +58,21 @@ def main(qubit_count=6):
 
     data = []  # we'll store here the results
 
-    #define a secret string:
+    # define a secret string:
     secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
 
     print(f'Secret string = {secret_string}')
 
     n_samples = 100
     for _ in range(n_samples):
-        flag = False  #check if we have a linearly independent set of measures
+        flag = False  # check if we have a linearly independent set of measures
         while not flag:
             # Choose qubits to use.
             input_qubits = [cirq.GridQubit(i, 0) for i in range(qubit_count)
-                           ]  #input x
+                           ]  # input x
             output_qubits = [
                 cirq.GridQubit(i + qubit_count, 0) for i in range(qubit_count)
-            ]  #output f(x)
+            ]  # output f(x)
 
             # Pick coefficients for the oracle and create a circuit to query it.
             oracle = make_oracle(input_qubits, output_qubits, secret_string)
@@ -88,22 +88,13 @@ def main(qubit_count=6):
             ]
 
             # Classical Post-Processing:
-            sing_values = sp.linalg.svdvals(results)
-            tolerance = 1e-5
-            if sum(sing_values < tolerance
-                  ) == 0:  # check if measurements are linearly dependent
-                flag = True
-                null_space = sp.linalg.null_space(results).T[0]
-                solution = np.around(null_space, 3)  # chop very small values
-                minval = abs(min(solution[np.nonzero(solution)], key=abs))
-                solution = (solution / minval % 2).astype(
-                    int)  # renormalize vector mod 2
-                data.append(str(solution))
+            flag = post_processing(data, results)
+            
     freqs = Counter(data)
     print('Circuit:')
     print(circuit)
     if freqs.most_common(1)[0][
-            1] < 0.15 * n_samples:  #forcing at least 15% of samples to coincide
+            1] < 0.25 * n_samples:  # forcing at least 25% of samples to coincide
         print(
             f'No significant answers obtained. Secret Sequence is probably {np.zeros(qubit_count)}'
         )
@@ -114,7 +105,7 @@ def main(qubit_count=6):
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
-    """Gates implementing the function f(a) = f(b) iff a+b=s"""
+    """Gates implementing the function f(a) = f(b) iff a ⨁ b = s"""
     # Copy contents to output qubits:
     for control_qubit, target_qubit in zip(input_qubits, output_qubits):
         yield cirq.CNOT(control_qubit, target_qubit)
@@ -130,8 +121,8 @@ def make_oracle(input_qubits, output_qubits, secret_string):
                 yield cirq.CNOT(input_qubits[significant], output_qubits[j])
     # Apply a random permutation:
     pos = [
-        0, 3
-    ]  # Choose any combination of qubits to swap to define the oracle. Here we choose 0 and 3:
+        0, len(secret_string)-1
+    ]  # Choose any combination of qubits to swap to define the oracle. Here we choose the first and last qubits:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
 
@@ -155,6 +146,21 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
     ])
 
     return c
+
+def post_processing(data, results):
+    """Solves a system of equations with modulo 2 numbers"""
+    sing_values = sp.linalg.svdvals(results)
+    tolerance = 1e-5
+    if sum(sing_values < tolerance
+            ) == 0:  # check if measurements are linearly dependent
+        flag = True
+        null_space = sp.linalg.null_space(results).T[0]
+        solution = np.around(null_space, 3)  # chop very small values
+        minval = abs(min(solution[np.nonzero(solution)], key=abs))
+        solution = (solution / minval % 2).astype(
+            int)  # renormalize vector mod 2
+        data.append(str(solution))
+        return flag
 
 
 if __name__ == '__main__':
