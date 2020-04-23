@@ -37,17 +37,25 @@ PHYSICAL_Z = 'physical'
 VIRTUAL_Z = 'virtual_propagates_forward'
 
 
-def _near_mod_n(e, t, n, atol=1e-8):
+# Default tolerance for differences in floating point
+# Note that Google protocol buffers use floats
+# which trigger a conversion from double precision to single precision
+# This results in errors possibly up to 1e-6
+# (23 bits for mantissa in single precision)
+_DEFAULT_ATOL = 1e-6
+
+
+def _near_mod_n(e, t, n, atol=_DEFAULT_ATOL):
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
-def _near_mod_2pi(e, t, atol=1e-8):
+def _near_mod_2pi(e, t, atol=_DEFAULT_ATOL):
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
-def _near_mod_2(e, t, atol=1e-8):
+def _near_mod_2(e, t, atol=_DEFAULT_ATOL):
     return _near_mod_n(e, t, n=2, atol=atol)
 
 
@@ -341,6 +349,20 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
 #
 # CZ Serializer and deserializer
 #
+
+# Only CZ
+CZ_SERIALIZER = op_serializer.GateOpSerializer(
+    gate_type=ops.CZPowGate,
+    serialized_gate_id='cz',
+    args=[
+        op_serializer.SerializingArg(serialized_name='half_turns',
+                                     serialized_type=float,
+                                     op_getter='exponent')
+    ],
+    can_serialize_predicate=lambda op: _near_mod_2(
+        cast(ops.CZPowGate, op.gate).exponent, 1.0))
+
+# CZ to any power
 CZ_POW_SERIALIZER = op_serializer.GateOpSerializer(
     gate_type=ops.CZPowGate,
     serialized_gate_id='cz',
@@ -417,6 +439,111 @@ SQRT_ISWAP_DESERIALIZERS = [
         gate_constructor=lambda: ops.FSimGate(theta=-np.pi / 4, phi=0),
         args=[]),
 ]
+
+
+#
+# FSim serializer
+# Only allows sqrt_iswap, its inverse, identity, and sycamore
+#
+def _can_serialize_limited_fsim(theta: float, phi: float):
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if _near_mod_2pi(phi, 0) or isinstance(phi, sympy.Symbol):
+        if isinstance(theta, sympy.Symbol):
+            return True
+        # Identity
+        if _near_mod_2pi(theta, 0):
+            return True
+        # sqrt ISWAP
+        if _near_mod_2pi(theta, -np.pi / 4):
+            return True
+        # inverse sqrt ISWAP
+        if _near_mod_2pi(theta, np.pi / 4):
+            return True
+    # Sycamore
+    if ((_near_mod_2pi(theta, np.pi / 2) or isinstance(theta, sympy.Symbol)) and
+        (_near_mod_2pi(phi, np.pi / 6)) or isinstance(phi, sympy.Symbol)):
+        return True
+    # CZ
+    if ((_near_mod_2pi(theta, 0) or isinstance(theta, sympy.Symbol)) and
+        (_near_mod_2pi(phi, np.pi)) or isinstance(phi, sympy.Symbol)):
+        return True
+    return False
+
+
+def _can_serialize_limited_iswap(exponent: float):
+    # Symbols for LIMITED_FSIM are allowed, but may fail server-side
+    # if an incorrect run context is specified
+    if isinstance(exponent, sympy.Symbol):
+        return True
+    # Sqrt ISWAP
+    if _near_mod_n(exponent, 0.5, 4):
+        return True
+    # Inverse Sqrt ISWAP
+    if _near_mod_n(exponent, -0.5, 4):
+        return True
+    # Identity
+    if _near_mod_n(exponent, 0.0, 4):
+        return True
+    return False
+
+
+LIMITED_FSIM_SERIALIZERS = [
+    op_serializer.GateOpSerializer(
+        gate_type=ops.FSimGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(serialized_name='theta',
+                                         serialized_type=float,
+                                         op_getter='theta'),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter='phi')
+        ],
+        can_serialize_predicate=(lambda op: _can_serialize_limited_fsim(
+            cast(ops.FSimGate, op.gate).theta,
+            cast(ops.FSimGate, op.gate).phi))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.ISwapPowGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(
+                serialized_name='theta',
+                serialized_type=float,
+                # Note that ISWAP ** 0.5 is Fsim(-pi/4,0)
+                op_getter=(lambda op: cast(ops.ISwapPowGate, op.gate).exponent *
+                           -np.pi / 2)),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter=lambda e: 0)
+        ],
+        can_serialize_predicate=(lambda op: _can_serialize_limited_iswap(
+            cast(ops.ISwapPowGate, op.gate).exponent))),
+    op_serializer.GateOpSerializer(
+        gate_type=ops.CZPowGate,
+        serialized_gate_id='fsim',
+        args=[
+            op_serializer.SerializingArg(serialized_name='theta',
+                                         serialized_type=float,
+                                         op_getter=lambda e: 0),
+            op_serializer.SerializingArg(serialized_name='phi',
+                                         serialized_type=float,
+                                         op_getter=lambda e: np.pi)
+        ],
+        can_serialize_predicate=lambda op: _near_mod_2(
+            cast(ops.CZPowGate, op.gate).exponent, 1.0))
+]
+
+LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
+    serialized_gate_id='fsim',
+    gate_constructor=ops.FSimGate,
+    args=[
+        op_deserializer.DeserializingArg(serialized_name='theta',
+                                         constructor_arg_name='theta'),
+        op_deserializer.DeserializingArg(serialized_name='phi',
+                                         constructor_arg_name='phi'),
+    ])
+
 
 #
 # WaitGate serializer and deserializer

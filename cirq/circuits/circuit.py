@@ -210,7 +210,7 @@ class Circuit:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: slice) -> 'Circuit':
+    def __getitem__(self, key: slice) -> 'cirq.Circuit':
         pass
 
     @overload
@@ -359,20 +359,20 @@ class Circuit:
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
-            return 'cirq.Circuit(device={!r})'.format(self._device)
+            return f'cirq.Circuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit({})'.format(moment_str)
+            return f'cirq.Circuit({moment_str})'
 
-        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
+        return f'cirq.Circuit({moment_str}, device={self._device!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
@@ -825,19 +825,6 @@ class Circuit:
             if q in start_frontier), default=0)
         2) set(operation.qubits).intersection(start_frontier)
 
-        Args:
-            start_frontier: A starting set of reachable locations.
-            is_blocker: A predicate that determines if operations block
-                reachability. Any location covered by an operation that causes
-                `is_blocker` to return True is considered to be an unreachable
-                location.
-
-        Returns:
-            A list of tuples. Each tuple describes an operation found between
-            the start frontier and a blocking operation. The first item of
-            each tuple is the index of the moment containing the operation,
-            and the second item is the operation itself.
-
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
         their moment indices) in the output. `F` and `T` indicate that
@@ -882,6 +869,19 @@ class Circuit:
         ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                    │                  │
         ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
 
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]

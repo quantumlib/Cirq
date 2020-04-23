@@ -85,6 +85,21 @@ def test_cross_entropy_benchmarking():
     results_1.plot(ax)
 
 
+def test_cross_entropy_result_depolarizing_model():
+    prng = np.random.RandomState(59566)
+    S = 0.8
+    p = 0.99
+    data = [
+        CrossEntropyPair(num_cycle=d,
+                         xeb_fidelity=S * p**d + prng.normal(scale=0.01))
+        for d in range(10, 411, 20)
+    ]
+    result = CrossEntropyResult(data=data, repetitions=1000)
+    model = result.depolarizing_model()
+    np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
+    np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
+
+
 def test_cross_entropy_result_repr():
     result = CrossEntropyResult(
         data=[CrossEntropyPair(2, 0.9),

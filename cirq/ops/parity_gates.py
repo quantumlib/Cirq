@@ -88,9 +88,8 @@ class XXPowGate(eigen_gate.EigenGate,
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = common_gates._rads_func_symbol(
-                'MS', args,
-                self._diagram_exponent(args, ignore_global_phase=False) / 2)
+            angle_str = self._format_exponent_as_angle(args, order=4)
+            symbol = f'MS({angle_str})'
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 

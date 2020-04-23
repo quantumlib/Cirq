@@ -16,6 +16,7 @@ from typing import List
 import numpy as np
 
 import cirq
+from cirq import protocols
 from cirq.ops.dense_pauli_string import DensePauliString
 
 
@@ -49,6 +50,26 @@ class CliffordTableau():
         for i in range(self.n):
             self.xs[i, i] = True
             self.zs[self.n + i, i] = True
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
+
+    @classmethod
+    def _from_json_dict_(cls, n, rs, xs, zs, **kwargs):
+        state = cls(n)
+        state.rs = rs
+        state.xs = xs
+        state.zs = zs
+
+        return state
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            # coverage: ignore
+            return NotImplemented
+        return (self.n == other.n and np.array_equal(self.rs, other.rs) and
+                np.array_equal(self.xs, other.xs) and
+                np.array_equal(self.zs, other.zs))
 
     def copy(self):
         state = CliffordTableau(self.n)
@@ -203,7 +224,7 @@ class CliffordTableau():
         generators above generate the full Pauli group on n qubits."""
         return [self._row_to_dense_pauli(i) for i in range(0, self.n)]
 
-    def _measure(self, q):
+    def _measure(self, q, prng: np.random.RandomState):
         """ Performs a projective measurement on the q'th qubit.
 
         Returns: the result (0 or 1) of the measurement.
@@ -239,6 +260,6 @@ class CliffordTableau():
 
             self.zs[p, q] = True
 
-            self.rs[p] = bool(np.random.randint(2))
+            self.rs[p] = bool(prng.randint(2))
 
             return int(self.rs[p])

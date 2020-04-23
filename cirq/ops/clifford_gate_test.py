@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools, functools
+import functools
+import itertools
+
+import numpy as np
 import pytest
+
+import cirq
 from cirq.testing import (
     EqualsTester,
     assert_allclose_up_to_global_phase,
 )
-
-import cirq
-
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)
@@ -457,3 +459,39 @@ def test_text_diagram_info(gate, sym, exp):
     assert cirq.circuit_diagram_info(gate) == cirq.CircuitDiagramInfo(
         wire_symbols=(sym,),
         exponent=exp)
+
+
+def test_from_unitary():
+
+    def _test(clifford_gate):
+        u = cirq.unitary(clifford_gate)
+        result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
+        assert result_gate == clifford_gate
+
+    _test(cirq.SingleQubitCliffordGate.I)
+    _test(cirq.SingleQubitCliffordGate.H)
+    _test(cirq.SingleQubitCliffordGate.X)
+    _test(cirq.SingleQubitCliffordGate.Y)
+    _test(cirq.SingleQubitCliffordGate.Z)
+    _test(cirq.SingleQubitCliffordGate.X_nsqrt)
+
+
+def test_from_untary_with_phase_shift():
+    u = np.exp(0.42j) * cirq.unitary(cirq.SingleQubitCliffordGate.Y_sqrt)
+    gate = cirq.SingleQubitCliffordGate.from_unitary(u)
+
+    assert gate == cirq.SingleQubitCliffordGate.Y_sqrt
+
+
+def test_from_unitary_not_clifford():
+    # Not a single-qubit gate.
+    u = cirq.unitary(cirq.CNOT)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+    # Not an unitary matrix.
+    u = 2 * cirq.unitary(cirq.X)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+    # Not a Clifford gate.
+    u = cirq.unitary(cirq.T)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None

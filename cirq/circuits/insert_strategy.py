@@ -15,7 +15,7 @@
 """Hard-coded options for adding multiple operations to a circuit."""
 
 
-class InsertStrategy(object):
+class InsertStrategy:
     """Indicates preferences on how to add multiple operations to a circuit."""
 
     NEW = None  # type: InsertStrategy
@@ -23,15 +23,15 @@ class InsertStrategy(object):
     INLINE = None  # type: InsertStrategy
     EARLIEST = None  # type: InsertStrategy
 
-    def __init__(self, name, doc):
+    def __init__(self, name: str, doc: str):
         self.name = name
         self.__doc__ = doc
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __repr__(self):
-        return 'cirq.InsertStrategy.{}'.format(self.name)
+    def __repr__(self) -> str:
+        return f'cirq.InsertStrategy.{self.name}'
 
 
 InsertStrategy.NEW = InsertStrategy(

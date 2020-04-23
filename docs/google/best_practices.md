@@ -21,7 +21,7 @@ import cirq.google as cg
 my_circuit = cirq.Circuit()
 
 # Convert the circuit onto a Google device.
-# Specifying a device will verify that the circuit satisifies constraints of the device
+# Specifying a device will verify that the circuit satisfies constraints of the device
 # The optimizer type (e.g. 'sqrt_iswap' or 'sycamore') specifies which gate set
 # to convert into and which optimization routines are appropriate.
 # This can include combining successive one-qubit gates and ejecting virtual Z gates. 

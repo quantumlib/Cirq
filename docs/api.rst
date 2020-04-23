@@ -12,6 +12,7 @@ Classes for identifying the qubits and hardware you want to operate on.
 
     cirq.UNCONSTRAINED_DEVICE
     cirq.Device
+    cirq.GridQid
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
@@ -68,10 +69,12 @@ Unitary effects that can be applied to one or more qubits.
     cirq.givens
     cirq.identity_each
     cirq.riswap
+    cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
     cirq.CSwapGate
+    cirq.CXPowGate
     cirq.CZPowGate
     cirq.ControlledGate
     cirq.ControlledOperation
@@ -326,6 +329,7 @@ the magic methods that can be implemented.
     cirq.has_channel
     cirq.has_mixture
     cirq.has_mixture_channel
+    cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
     cirq.is_measurement
@@ -395,6 +399,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phased_x_z
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
+    cirq.stratified_circuit
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -476,6 +481,7 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
+    cirq.google.FSIM_GATESET
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
@@ -499,9 +505,11 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.EngineJob
     cirq.google.EngineProcessor
     cirq.google.EngineProgram
+    cirq.google.EngineTimeSlot
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
+    cirq.google.GateTabulation
     cirq.google.GreedySequenceSearchStrategy
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag
@@ -610,6 +618,7 @@ Algebra and Representation
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
     cirq.eye_tensor
+    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian

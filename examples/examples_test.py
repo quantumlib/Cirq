@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
+import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
@@ -32,10 +33,9 @@ def test_example_runs_bernstein_vazirani():
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [],
+                                                        True)) == [cirq.X(a)]
 
 
 def test_example_runs_deutsch():
@@ -52,6 +52,10 @@ def test_example_runs_hello_qubit():
 
 def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
+
+
+def test_example_runs_bb84():
+    examples.bb84.main()
 
 
 def test_example_runs_quantum_fourier_transform():

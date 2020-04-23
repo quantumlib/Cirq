@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Collection, Dict, Optional, Iterable, List, Set, Tuple,
+from typing import (Any, Collection, Dict, Optional, Iterable, List, Set, Tuple,
                     TYPE_CHECKING)
 
 from cirq._doc import document
@@ -197,7 +197,7 @@ class _NamedConstantXmonDevice(XmonDevice):
         super().__init__(**kwargs)
         self._repr = constant
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self._repr
 
     @classmethod
@@ -208,7 +208,7 @@ class _NamedConstantXmonDevice(XmonDevice):
             return Bristlecone
         raise ValueError(f'Unrecognized xmon device name: {constant!r}')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'constant': self._repr,

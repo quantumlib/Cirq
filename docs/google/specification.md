@@ -72,7 +72,7 @@ a target is a pair of qubits.
 The type of a target set defines how the targets are interpreted.  If the
 target set is set to SYMMETRIC, the order of each target does not matter (e.g.
 if `gate.on(q1, q2)` is valid, then so is `gate.on(q2, q1)`).  If the target
-type is set to ASSYMMETRIC, then the order of qubits does matter, and other
+type is set to ASYMMETRIC, then the order of qubits does matter, and other
 orderings of the qubits that are not specified in the definition cannot be
 assumed to be valid.
 

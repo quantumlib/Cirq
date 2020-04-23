@@ -280,15 +280,15 @@ class _ParamFlattener(resolver.ParamResolver):
     __ne__ = object.__ne__
     __hash__ = object.__hash__
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.get_param_name == self.default_get_param_name:
-            return '_ParamFlattener({!r})'.format(self.param_dict)
+            return f'_ParamFlattener({self.param_dict!r})'
         else:
-            return ('_ParamFlattener({!r}, get_param_name={!r})'.format(
-                self.param_dict, self.get_param_name))
+            return (f'_ParamFlattener({self.param_dict!r}, '
+                    f'get_param_name={self.get_param_name!r})')
 
     def flatten(self, val: Any) -> Any:
         """Returns a copy of `val` with any symbols or expressions replaced with
@@ -368,8 +368,9 @@ class ExpressionMap(dict):
         }
         return param_dict
 
-    def __repr__(self):
-        return 'cirq.ExpressionMap({})'.format(super().__repr__())
+    def __repr__(self) -> str:
+        super_repr = super().__repr__()
+        return f'cirq.ExpressionMap({super_repr})'
 
 
 @overload

@@ -17,9 +17,9 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq import X, Y, Z, XX, ZZ, Circuit, study
+from cirq import X, Z, XX, CNOT, PhasedXPowGate, Circuit, study, LineQubit
 from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
-from cirq.aqt.aqt_device import get_aqt_device
+from cirq.aqt.aqt_device import get_aqt_device, get_op_string
 
 
 class EngineReturn:
@@ -185,6 +185,10 @@ def test_aqt_sampler_sim():
     sampler = AQTSamplerLocalSimulator()
     sampler.simulate_ideal = True
     circuit = Circuit(X(qubits[3])**theta, device=device)
+    circuit.append(
+        PhasedXPowGate(phase_exponent=0.5, exponent=-0.5).on(qubits[0]))
+    circuit.append(
+        PhasedXPowGate(phase_exponent=0.5, exponent=0.5).on(qubits[0]))
     sweep = study.Linspace(key='theta',
                            start=0.1,
                            stop=max_angle / np.pi,
@@ -227,13 +231,10 @@ def test_aqt_sampler_ms():
     assert hist[0] > repetitions / 3
 
 
-def test_aqt_sampler_wrong_gate():
-    repetitions = 100
-    num_qubits = 4
-    device, qubits = get_aqt_device(num_qubits)
-    sampler = AQTSamplerLocalSimulator()
-    circuit = Circuit(device=device)
-    circuit.append(Y(qubits[0])**0.5)
-    circuit.append(ZZ(qubits[0], qubits[1])**0.5)
-    with pytest.raises(ValueError):
-        _results = sampler.run(circuit, repetitions=repetitions)
+def test_aqt_device_wrong_op_str():
+    circuit = Circuit()
+    q0, q1 = LineQubit.range(2)
+    circuit.append(CNOT(q0, q1)**1.0)
+    for op in circuit.all_operations():
+        with pytest.raises(ValueError):
+            _result = get_op_string(op)
