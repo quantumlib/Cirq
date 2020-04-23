@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import functools
-from typing import Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
+from typing import (Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar,
+                    TYPE_CHECKING)
 
 import abc
 
@@ -238,14 +239,14 @@ class GridQid(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQid(*c, dimension=dimension) for c in coords]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.GridQid({self.row}, {self.col}, " \
                f"dimension={self.dimension})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.row}, {self.col}) (d={self.dimension})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col', 'dimension'])
 
 
@@ -356,13 +357,13 @@ class GridQubit(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQubit(*c) for c in coords]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.GridQubit({self.row}, {self.col})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.row}, {self.col})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
 

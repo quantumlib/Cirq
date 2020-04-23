@@ -5,6 +5,7 @@ from typing import Tuple, Sequence, List, NamedTuple
 
 from dataclasses import dataclass
 import numpy as np
+from cirq._compat import proper_repr, proper_eq
 
 from cirq import linalg, value
 from cirq.google.optimizers.two_qubit_gates.math_utils import (
@@ -109,6 +110,65 @@ class GateTabulation:
 
         return TwoQubitGateCompilation(self.base_gate, unitary, tuple(out),
                                        actual, success)
+
+    def _json_dict_(self):
+        return {
+            'cirq_type': self.__class__.__name__,
+            'base_gate': self.base_gate.tolist(),
+            'kak_vecs': self.kak_vecs.tolist(),
+            'single_qubit_gates': self.single_qubit_gates,
+            'max_expected_infidelity': self.max_expected_infidelity,
+            'summary': self.summary,
+            'missed_points': self.missed_points,
+        }
+
+    def __repr__(self) -> str:
+        # Construct the repr for single_qubit_gates, which is a sequence of
+        # sequences of tuples of NumPy arrays, which needs to be encoded with
+        # proper_repr.
+        numpy_single_qubit_gates = []
+        for single_qubit_gate in self.single_qubit_gates:
+            gate_repr = [f"({proper_repr(pair[0])}, " \
+                         f"{proper_repr(pair[1])})" for pair in
+                         single_qubit_gate]
+            numpy_single_qubit_gates.append(f"[{','.join(gate_repr)}]")
+
+        return f'cirq.google.optimizers.two_qubit_gates.gate_compilation' \
+               f'.GateTabulation({proper_repr(self.base_gate)}, ' \
+               f'{proper_repr(self.kak_vecs)}, ' \
+               f'[{",".join(numpy_single_qubit_gates)}], ' \
+               f' {proper_repr(self.max_expected_infidelity)}, ' \
+               f'{proper_repr(self.summary)}, ' \
+               f'{proper_repr(self.missed_points)})'
+
+    def __eq__(self, other):
+        if not isinstance(other, type(self)):
+            return NotImplemented
+        return (np.array_equal(self.base_gate, other.base_gate) and
+                np.array_equal(self.kak_vecs, other.kak_vecs) and
+                proper_eq(self.single_qubit_gates, other.single_qubit_gates) and
+                self.max_expected_infidelity == other.max_expected_infidelity
+                and self.summary == other.summary and
+                np.array_equal(self.missed_points, other.missed_points))
+
+    @classmethod
+    def _from_json_dict_(cls, base_gate, kak_vecs, single_qubit_gates,
+                         max_expected_infidelity, summary, missed_points,
+                         **kwargs):
+        numpy_single_qubit_gates = []
+        for single_qubit_gate in single_qubit_gates:
+            numpy_single_qubit_gate = []
+            for pair in single_qubit_gate:
+                numpy_tuple = (np.array(pair[0]), np.array(pair[1]))
+                numpy_single_qubit_gate.append(numpy_tuple)
+            numpy_single_qubit_gates.append(numpy_single_qubit_gate)
+
+        return cls(base_gate=np.array(base_gate),
+                   kak_vecs=np.array(kak_vecs),
+                   single_qubit_gates=numpy_single_qubit_gates,
+                   max_expected_infidelity=max_expected_infidelity,
+                   summary=summary,
+                   missed_points=missed_points)
 
 
 def _outer_locals_for_unitary(
