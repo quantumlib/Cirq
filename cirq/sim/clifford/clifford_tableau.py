@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import Any, Dict, List
 import numpy as np
 
 import cirq
@@ -51,7 +51,7 @@ class CliffordTableau():
             self.xs[i, i] = True
             self.zs[self.n + i, i] = True
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
 
     @classmethod
@@ -60,7 +60,6 @@ class CliffordTableau():
         state.rs = rs
         state.xs = xs
         state.zs = zs
-
         return state
 
     def __eq__(self, other):
@@ -71,19 +70,18 @@ class CliffordTableau():
                 np.array_equal(self.xs, other.xs) and
                 np.array_equal(self.zs, other.zs))
 
-    def copy(self):
+    def copy(self) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
         state.zs = self.zs.copy()
-
         return state
 
-    def __repr__(self):
-        return "stabilizers: [{}]".format(", ".join(
-            [repr(stab) for stab in self.stabilizers()]))
+    def __repr__(self) -> str:
+        stabilizers = ", ".join([repr(stab) for stab in self.stabilizers()])
+        return f"stabilizers: [{stabilizers}]"
 
-    def __str__(self):
+    def __str__(self) -> str:
         string = ""
 
         for i in range(self.n, 2 * self.n):
@@ -104,7 +102,7 @@ class CliffordTableau():
 
         return string
 
-    def _str_full_(self):
+    def _str_full_(self) -> str:
         string = ""
 
         string += "stable" + " " * max(self.n * 2 - 3, 1)
