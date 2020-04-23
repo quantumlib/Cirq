@@ -477,9 +477,9 @@ class DensityMatrixSimulatorState():
         return (self.density_matrix.tolist(), self.qubit_map)
 
     def __repr__(self) -> str:
-        return ("cirq.DensityMatrixSimulatorState("
-                f"density_matrix=np.array({self.density_matrix.tolist()!r}), "
-                f"qubit_map={self.qubit_map!r})")
+        return ('cirq.DensityMatrixSimulatorState('
+                f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
+                f'qubit_map={self.qubit_map!r})')
 
 
 @value.value_equality(unhashable=True)
@@ -544,6 +544,6 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
                 f'final density matrix:\n{self.final_density_matrix}')
 
     def __repr__(self) -> str:
-        return ("cirq.DensityMatrixTrialResult("
-                f"params={self.params!r}, measurements={self.measurements!r}, "
-                f"final_simulator_state={self._final_simulator_state!r})")
+        return ('cirq.DensityMatrixTrialResult('
+                f'params={self.params!r}, measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')
