@@ -125,10 +125,9 @@ class WaveFunctionSimulatorState:
         return self._qid_shape
 
     def __repr__(self) -> str:
-        return (
-            'cirq.WaveFunctionSimulatorState('
-            f'state_vector=np.{self.state_vector!r}, qubit_map={self.qubit_map!r})'
-        )
+        return ('cirq.WaveFunctionSimulatorState('
+                f'state_vector=np.{self.state_vector!r}, '
+                f'qubit_map={self.qubit_map!r})')
 
     def _value_equality_values_(self) -> Any:
         return (self.state_vector.tolist(), self.qubit_map)
