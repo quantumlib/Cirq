@@ -30,7 +30,7 @@ The quantum state is specified in two forms:
 """
 
 import collections
-from typing import Dict, List, Iterator, Sequence
+from typing import Any, Dict, List, Iterator, Sequence
 
 import numpy as np
 from cirq.ops.global_phase_op import GlobalPhaseOperation
@@ -188,21 +188,16 @@ class CliffordTrialResult(simulator.SimulationTrialResult):
     def __init__(self, params: study.ParamResolver,
                  measurements: Dict[str, np.ndarray],
                  final_simulator_state: 'CliffordState') -> None:
-
         super().__init__(params=params,
                          measurements=measurements,
                          final_simulator_state=final_simulator_state)
 
         self.final_state = final_simulator_state
 
-    def __str__(self):
+    def __str__(self) -> str:
         samples = super().__str__()
         final = self._final_simulator_state
-
-        return 'measurements: {}\noutput state: {}'.format(samples, final)
-
-    def __repr__(self):
-        return super().__repr__()
+        return f'measurements: {samples}\noutput state: {final}'
 
 
 class CliffordSimulatorStepResult(simulator.StepResult):
@@ -222,7 +217,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         self.measurements = measurements
         self.state = state
 
-    def __str__(self):
+    def __str__(self) -> str:
 
         def bitstring(vals):
             return ''.join('1' if v else '0' for v in vals)
@@ -234,12 +229,12 @@ class CliffordSimulatorStepResult(simulator.StepResult):
         if len(results) == 0:
             measurements = ''
         else:
-            measurements = ' '.join(
-                ['{}={}'.format(key, val) for key, val in results]) + '\n'
+            measurements = ' '.join([f'{key}={val}' for key, val in results
+                                    ]) + '\n'
 
         final = self.state
 
-        return '{}{}'.format(measurements, final)
+        return f'{measurements}{final}'
 
     def _simulator_state(self):
         return self.state
@@ -296,24 +291,24 @@ class CliffordState():
 
         return state
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.qubit_map, self.tableau, self.ch_form
 
-    def copy(self):
+    def copy(self) -> 'CliffordState':
         state = CliffordState(self.qubit_map)
         state.tableau = self.tableau.copy()
         state.ch_form = self.ch_form.copy()
 
         return state
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return repr(self.ch_form)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the wavefunction string representation of the state."""
         return str(self.ch_form)
 
-    def to_numpy(self):
+    def to_numpy(self) -> np.ndarray:
         return self.ch_form.to_state_vector()
 
     def stabilizers(self) -> List[DensePauliString]:

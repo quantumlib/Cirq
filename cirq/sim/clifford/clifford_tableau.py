@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List
+from typing import Any, Dict, List
 import numpy as np
 
 import cirq
@@ -51,7 +51,7 @@ class CliffordTableau():
             self.xs[i, i] = True
             self.zs[self.n + i, i] = True
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['n', 'rs', 'xs', 'zs'])
 
     @classmethod
@@ -60,7 +60,6 @@ class CliffordTableau():
         state.rs = rs
         state.xs = xs
         state.zs = zs
-
         return state
 
     def __eq__(self, other):
@@ -71,65 +70,64 @@ class CliffordTableau():
                 np.array_equal(self.xs, other.xs) and
                 np.array_equal(self.zs, other.zs))
 
-    def copy(self):
+    def copy(self) -> 'CliffordTableau':
         state = CliffordTableau(self.n)
         state.rs = self.rs.copy()
         state.xs = self.xs.copy()
         state.zs = self.zs.copy()
-
         return state
 
-    def __repr__(self):
-        return "stabilizers: [{}]".format(", ".join(
-            [repr(stab) for stab in self.stabilizers()]))
+    def __repr__(self) -> str:
+        stabilizers = ", ".join([repr(stab) for stab in self.stabilizers()])
+        return f'stabilizers: [{stabilizers}]'
 
-    def __str__(self):
-        string = ""
+    def __str__(self) -> str:
+        string = ''
 
         for i in range(self.n, 2 * self.n):
-            string += "- " if self.rs[i] else "+ "
+            string += '- ' if self.rs[i] else '+ '
 
             for k in range(0, self.n):
                 if self.xs[i, k] & (not self.zs[i, k]):
-                    string += "X "
+                    string += 'X '
                 elif (not self.xs[i, k]) & self.zs[i, k]:
-                    string += "Z "
+                    string += 'Z '
                 elif self.xs[i, k] & self.zs[i, k]:
-                    string += "Y "
+                    string += 'Y '
                 else:
-                    string += "I "
+                    string += 'I '
 
             if i < 2 * self.n - 1:
-                string += "\n"
+                string += '\n'
 
         return string
 
-    def _str_full_(self):
-        string = ""
+    def _str_full_(self) -> str:
+        string = ''
 
-        string += "stable" + " " * max(self.n * 2 - 3, 1)
-        string += "| destable\n"
-        string += "-" * max(7, self.n * 2 + 3) + "+" + "-" * max(
-            10, self.n * 2 + 4) + "\n"
+        string += 'stable' + ' ' * max(self.n * 2 - 3, 1)
+        string += '| destable\n'
+        string += '-' * max(7, self.n * 2 + 3) + '+' + '-' * max(
+            10, self.n * 2 + 4) + '\n'
 
         for j in range(self.n):
             for i in [j + self.n, j]:
-                string += "- " if self.rs[i] else "+ "
+                string += '- ' if self.rs[i] else '+ '
 
                 for k in range(0, self.n):
                     if self.xs[i, k] & (not self.zs[i, k]):
-                        string += "X%d" % k
+                        string += 'X%d' % k
                     elif (not self.xs[i, k]) & self.zs[i, k]:
-                        string += "Z%d" % k
+                        string += 'Z%d' % k
                     elif self.xs[i, k] & self.zs[i, k]:
-                        string += "Y%d" % k
+                        string += 'Y%d' % k
                     else:
-                        string += "  "
+                        string += '  '
 
                 if i == j + self.n:
-                    string += " " * max(0, 4 - self.n * 2) + " | "
+                    string += ' ' * max(0, 4 - self.n * 2) + ' | '
 
-            string += "\n"
+            string += '\n'
 
         return string
 
