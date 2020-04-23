@@ -52,7 +52,7 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
                    atol: float) -> Union[bool, NotImplementedType, None]:
         if not isinstance(other, Pauli):
             return NotImplemented
-        return self == other
+        return self is other
 
     def third(self, second: 'Pauli') -> 'Pauli':
         return Pauli._XYZ[(-self._index - second._index) % 3]
@@ -117,7 +117,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
         assert exponent == 1
-        return cls()
+        return Pauli._XYZ[0]
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
@@ -138,7 +138,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
         assert exponent == 1
-        return cls()
+        return Pauli._XYZ[1]
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
@@ -159,7 +159,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
         assert exponent == 1
-        return cls()
+        return Pauli._XYZ[2]
 
 
 X = _PauliX()
