@@ -676,20 +676,18 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             return None
         return self.exponent % 1 == 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._exponent == 1:
             return 'H'
-        return 'H^{}'.format(self._exponent)
+        return f'H^{self._exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.H'
-            return '(cirq.H**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.HPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.H**{proper_repr(self._exponent)})'
+        return (f'cirq.HPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -969,16 +967,15 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'CNOT'
-        return 'CNOT**{!r}'.format(self._exponent)
+        return f'CNOT**{self._exponent!r}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CNOT'
-            return '(cirq.CNOT**{})'.format(proper_repr(self._exponent))
-        return ('cirq.CXPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+            return f'(cirq.CNOT**{proper_repr(self._exponent)})'
+        return (f'cirq.CXPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
     def on(self, *args: 'cirq.Qid',
            **kwargs: 'cirq.Qid') -> raw_types.Operation:
