@@ -534,6 +534,7 @@ LIMITED_FSIM_SERIALIZERS = [
             cast(ops.CZPowGate, op.gate).exponent, 1.0))
 ]
 
+
 LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=ops.FSimGate,

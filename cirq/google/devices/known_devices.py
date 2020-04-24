@@ -81,6 +81,7 @@ def create_device_proto_from_diagram(
     """
     qubits, _ = _parse_device(ascii_grid)
 
+    # Create a list of all adjacent pairs on the grid for two-qubit gates.
     qubit_set = frozenset(qubits)
     pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
     for qubit in qubits:
@@ -121,12 +122,10 @@ def create_device_proto_for_qubits(
     meas_targets.name = _MEAS_TARGET_SET
     meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
 
-    # Set up a target set for 2 qubit gates (all adjacent pairs)
+    # Set up a target set for 2 qubit gates (specified qubit pairs)
     grid_targets = out.valid_targets.add()
     grid_targets.name = _2_QUBIT_TARGET_SET
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
-
-    # Create the target set as all adjacent pairs on the grid
     for pair in pairs:
         new_target = grid_targets.targets.add()
         new_target.ids.extend(v2.qubit_to_proto_id(q) for q in pair)
