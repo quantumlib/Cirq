@@ -104,9 +104,7 @@ def main(qubit_count=6):
             f'No significant answers. Sequence probably {np.zeros(qubit_count)}'
         )
     else:
-        print(
-            f'Most common answer was : {freqs.most_common(1)[0]}'
-        )
+        print(f'Most common answer was : {freqs.most_common(1)[0]}')
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
@@ -125,14 +123,13 @@ def make_oracle(input_qubits, output_qubits, secret_string):
             if secret_string[j] > 0:
                 yield cirq.CNOT(input_qubits[significant], output_qubits[j])
     # Apply a random permutation:
-    pos = [
-        0, len(secret_string) - 1
-    ]  # Swap some qubits to define oracle. We choose first and last:
+    pos = [0, len(secret_string) - 1
+          ]  # Swap some qubits to define oracle. We choose first and last:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
 
 def make_simon_circuit(input_qubits, output_qubits, oracle):
-    """Solves for the secret period s of a 2-to-1 function such that 
+    """Solves for the secret period s of a 2-to-1 function such that
     f(x) = f(y) iff x ⨁ y = s
     """
 
