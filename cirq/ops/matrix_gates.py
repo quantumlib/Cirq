@@ -14,7 +14,7 @@
 
 """Quantum gates defined by a matrix."""
 
-from typing import cast, Any, Tuple, Optional, Iterable, TYPE_CHECKING
+from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -62,7 +62,7 @@ class MatrixGate(raw_types.Gate):
         if not linalg.is_unitary(matrix):
             raise ValueError(f'Not a unitary matrix: {self._matrix}')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'matrix': self._matrix.tolist(),
@@ -110,7 +110,7 @@ class MatrixGate(raw_types.Gate):
         rest = [f'#{i+1}' for i in range(1, len(self._qid_shape))]
         return protocols.CircuitDiagramInfo(wire_symbols=[main, *rest])
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         vals = tuple(v for _, v in np.ndenumerate(self._matrix))
         return hash((MatrixGate, vals))
 
@@ -128,13 +128,13 @@ class MatrixGate(raw_types.Gate):
     def __ne__(self, other):
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if all(e == 2 for e in self._qid_shape):
             return f'cirq.MatrixGate({proper_repr(self._matrix)})'
         return (f'cirq.MatrixGate({proper_repr(self._matrix)}, '
                 f'qid_shape={self._qid_shape})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self._matrix.round(3))
 
 
@@ -158,11 +158,10 @@ class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
         """
         super().__init__(matrix, qid_shape=(matrix.shape[0],))
 
-    def __repr__(self):
-        return 'cirq.SingleQubitMatrixGate({})'.format(proper_repr(
-            self._matrix))
+    def __repr__(self) -> str:
+        return f'cirq.SingleQubitMatrixGate({proper_repr(self._matrix)})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'matrix': self._matrix,
@@ -193,7 +192,7 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
         """
         super().__init__(matrix, qid_shape=(2, 2))
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'matrix': self._matrix,
@@ -203,8 +202,8 @@ class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
     def _from_json_dict_(cls, matrix, **kwargs):
         return cls(matrix=np.array(matrix))
 
-    def __repr__(self):
-        return 'cirq.TwoQubitMatrixGate({})'.format(proper_repr(self._matrix))
+    def __repr__(self) -> str:
+        return f'cirq.TwoQubitMatrixGate({proper_repr(self._matrix)})'
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,

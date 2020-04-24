@@ -13,7 +13,7 @@
 # limitations under the License.
 """IdentityGate and IdentityOperation."""
 
-from typing import (Any, Iterable, List, Optional, Sequence, Tuple, Union,
+from typing import (Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union,
                     TYPE_CHECKING)
 
 import numpy as np
@@ -40,7 +40,7 @@ class IdentityGate(raw_types.Gate):
 
     def __init__(self,
                  num_qubits: Optional[int] = None,
-                 qid_shape: Tuple[int, ...] = None):
+                 qid_shape: Optional[Tuple[int, ...]] = None) -> None:
         """
         Args:
             num_qubits:
@@ -104,7 +104,7 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=int))
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
@@ -116,28 +116,28 @@ class IdentityGate(raw_types.Gate):
             return NotImplemented
         return value.LinearDict({'I' * self.num_qubits(): 1.0})
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self._qid_shape == (2,):
             return 'cirq.I'
         if all(e == 2 for e in self._qid_shape):
             return f'cirq.IdentityGate({len(self._qid_shape)})'
         return f'cirq.IdentityGate(qid_shape={self._qid_shape!r})'
 
-    def _decompose_(self, qubits):
+    def _decompose_(self, qubits) -> 'cirq.OP_TREE':
         return []
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.num_qubits() == 1:
             return 'I'
-        return 'I({})'.format(self.num_qubits())
+        return f'I({self.num_qubits()})'
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self._qid_shape
 
-    def _trace_distance_bound_(self):
+    def _trace_distance_bound_(self) -> float:
         return 0.0
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         other = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape
@@ -157,7 +157,7 @@ class IdentityGate(raw_types.Gate):
 
     _rmul_with_qubits = _mul_with_qubits
 
-    def _circuit_diagram_info_(self, args):
+    def _circuit_diagram_info_(self, args) -> Tuple[str, ...]:
         return ('I',) * self.num_qubits()
 
     def _qasm_(self, args: 'cirq.QasmArgs',
