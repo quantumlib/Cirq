@@ -76,5 +76,5 @@ def _strat_has_stabilizer_effect_from_unitary(val: Any) -> Optional[bool]:
         return None
     unitary = protocols.unitary(val)
     if unitary.shape == (2, 2):
-        return not SingleQubitCliffordGate.from_unitary(unitary) is None
+        return SingleQubitCliffordGate.from_unitary(unitary) is not None
     return None
