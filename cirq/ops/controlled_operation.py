@@ -11,16 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    cast,
-    Any,
-    Collection,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    TYPE_CHECKING,
-)
+from typing import (Any, cast, Collection, Dict, Optional, Sequence, Tuple,
+                    Union, TYPE_CHECKING)
 
 import itertools
 import numpy as np
@@ -144,7 +136,7 @@ class ControlledOperation(raw_types.Operation):
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if set(self.control_values) == {(1,)}:
 
             def get_prefix(control_vals):
@@ -152,25 +144,25 @@ class ControlledOperation(raw_types.Operation):
         else:
 
             def get_prefix(control_vals):
-                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
+                control_vals_str = ''.join(map(str, sorted(control_vals)))
+                return f'C{control_vals_str}'
 
         prefix = ''.join(map(get_prefix, self.control_values))
         if isinstance(self.sub_operation, gate_operation.GateOperation):
-            return '{}{}({})'.format(prefix, self.sub_operation.gate,
-                                     ', '.join(map(str, self.qubits)))
-        return '{}({}, {})'.format(prefix,
-                                   ', '.join(str(q) for q in self.controls),
-                                   str(self.sub_operation))
+            qubits = ', '.join(map(str, self.qubits))
+            return f'{prefix}{self.sub_operation.gate}({qubits})'
+        controls = ', '.join(str(q) for q in self.controls)
+        return f'{prefix}({controls}, {self.sub_operation})'
 
-    def __repr__(self):
-        return ('cirq.ControlledOperation(controls={!r}, sub_operation={!r}, '
-                'control_values={!r})'.format(self.controls, self.sub_operation,
-                                              self.control_values))
+    def __repr__(self) -> str:
+        return (f'cirq.ControlledOperation(controls={self.controls!r}, '
+                f'sub_operation={self.sub_operation!r}, '
+                f'control_values={self.control_values!r})')
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver):
+    def _resolve_parameters_(self, resolver) -> 'ControlledOperation':
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
         return ControlledOperation(self.controls, new_sub_op,
                                    self.control_values)
@@ -224,7 +216,7 @@ class ControlledOperation(raw_types.Operation):
             exponent_qubit_index=None if sub_info.exponent_qubit_index is None
             else sub_info.exponent_qubit_index + 1)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'controls': self.controls,

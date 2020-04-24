@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import Optional
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
@@ -60,7 +60,7 @@ class FSimGate(gate_features.TwoQubitGate,
         FSimGate(θ, φ) = ISWAP**(-2θ/π) CZPowGate(exponent=-φ/π)
     """
 
-    def __init__(self, theta: float, phi: float):
+    def __init__(self, theta: float, phi: float) -> None:
         """
         Args:
             theta: Swap angle on the ``|01⟩`` ``|10⟩`` subspace, in radians.
@@ -74,10 +74,10 @@ class FSimGate(gate_features.TwoQubitGate,
         self.theta = theta
         self.phi = phi
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.theta, self.phi
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.theta) or cirq.is_parameterized(
             self.phi)
 
@@ -142,17 +142,19 @@ class FSimGate(gate_features.TwoQubitGate,
         yield yy(a, b)
         yield cirq.CZ(a, b)**(-self.phi / np.pi)
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         t = args.format_radians(self.theta)
         p = args.format_radians(self.phi)
         return f'fsim({t}, {p})', '#2'
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> 'FSimGate':
         return FSimGate(cirq.mul(self.theta, power), cirq.mul(self.phi, power))
 
-    def __repr__(self):
-        return 'cirq.FSimGate(theta={}, phi={})'.format(proper_repr(self.theta),
-                                                        proper_repr(self.phi))
+    def __repr__(self) -> str:
+        t = proper_repr(self.theta)
+        p = proper_repr(self.phi)
+        return f'cirq.FSimGate(theta={t}, phi={p})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['theta', 'phi'])

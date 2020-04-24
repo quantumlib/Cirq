@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from typing import Any, Dict
+
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -35,15 +37,15 @@ class NamedQubit(raw_types.Qid):
     def dimension(self) -> int:
         return 2
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self._name
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._name
 
-    def __repr__(self):
-        return 'cirq.NamedQubit({})'.format(repr(self._name))
+    def __repr__(self) -> str:
+        return f'cirq.NamedQubit({self._name!r})'
 
     @staticmethod
     def range(*args, prefix: str):
@@ -64,7 +66,7 @@ class NamedQubit(raw_types.Qid):
         """
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['name'])
 
 
