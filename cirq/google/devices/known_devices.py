@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Optional, Iterable, List, Set, Tuple
+from typing import (Any, Collection, Dict, Optional, Iterable, List, Set, Tuple,
+                    TYPE_CHECKING)
 
 from cirq._doc import document
 from cirq.devices import GridQubit
@@ -23,6 +24,9 @@ from cirq.google.devices.serializable_device import SerializableDevice
 from cirq.google.devices.xmon_device import XmonDevice
 from cirq.ops import MeasurementGate, SingleQubitGate, WaitGate
 from cirq.value import Duration
+
+if TYPE_CHECKING:
+    import cirq
 
 _2_QUBIT_TARGET_SET = "2_qubit_targets"
 _MEAS_TARGET_SET = "meas_targets"
@@ -60,56 +64,76 @@ def create_device_proto_from_diagram(
         ascii_grid: str,
         gate_sets: Optional[Iterable[
             serializable_gate_set.SerializableGateSet]] = None,
-        durations_picos: Dict[str, int] = None,
+        durations_picos: Optional[Dict[str, int]] = None,
+        out: Optional[device_pb2.DeviceSpecification] = None,
 ) -> device_pb2.DeviceSpecification:
-    """
-    Parse ASCIIart device layout into DeviceSpecification proto containing
-    information about qubits and targets.  Note that this does not populate
-    the gate set information of the proto.  This function also assumes that
-    only adjacent qubits can be targets.
+    """Parse ASCIIart device layout into DeviceSpecification proto.
+
+    This function assumes that all pairs of adjacent qubits are valid targets
+    for two-qubit gates.
 
     Args:
-            ascii_grid: An ASCII version of the grid, see _parse_device for
-                    details
-            gate_set: A serializable gate_set object that is used to define
-                    the translation between gate ids and cirq Gate objects
-            durations_picos: A dictionary with keys of gate ids and values of
-                    the duration of that gate in picoseconds
-
+        ascii_grid: ASCII version of the grid (see _parse_device for details).
+        gate_sets: Gate sets that define the translation between gate ids and
+            cirq Gate objects.
+        durations_picos: A map from gate ids to gate durations in picoseconds.
+        out: If given, populate this proto, otherwise create a new proto.
     """
-
     qubits, _ = _parse_device(ascii_grid)
-    spec = device_pb2.DeviceSpecification()
+
+    # Create a list of all adjacent pairs on the grid for two-qubit gates.
+    qubit_set = frozenset(qubits)
+    pairs: List[Tuple['cirq.Qid', 'cirq.Qid']] = []
+    for qubit in qubits:
+        for neighbor in sorted(qubit.neighbors()):
+            if neighbor > qubit and neighbor in qubit_set:
+                pairs.append((qubit, neighbor))
+
+    return create_device_proto_for_qubits(qubits, pairs, gate_sets,
+                                          durations_picos, out)
+
+
+def create_device_proto_for_qubits(
+        qubits: Collection['cirq.Qid'],
+        pairs: Collection[Tuple['cirq.Qid', 'cirq.Qid']],
+        gate_sets: Optional[Iterable[
+            serializable_gate_set.SerializableGateSet]] = None,
+        durations_picos: Optional[Dict[str, int]] = None,
+        out: Optional[device_pb2.DeviceSpecification] = None,
+) -> device_pb2.DeviceSpecification:
+    """Create device spec for the given qubits and coupled pairs.
+
+    Args:
+        qubits: Qubits that can perform single-qubit gates.
+        pairs: Pairs of coupled qubits that can perform two-qubit gates.
+        gate_sets: Gate sets that define the translation between gate ids and
+            cirq Gate objects.
+        durations_picos: A map from gate ids to gate durations in picoseconds.
+        out: If given, populate this proto, otherwise create a new proto.
+    """
+    if out is None:
+        out = device_pb2.DeviceSpecification()
 
     # Create valid qubit list
-    qubit_set = frozenset(qubits)
-    spec.valid_qubits.extend([v2.qubit_to_proto_id(q) for q in qubits])
+    out.valid_qubits.extend(v2.qubit_to_proto_id(q) for q in qubits)
 
     # Set up a target set for measurement (any qubit permutation)
-    meas_targets = spec.valid_targets.add()
+    meas_targets = out.valid_targets.add()
     meas_targets.name = _MEAS_TARGET_SET
     meas_targets.target_ordering = device_pb2.TargetSet.SUBSET_PERMUTATION
 
-    # Set up a target set for 2 qubit gates (all adjacent pairs)
-    grid_targets = spec.valid_targets.add()
+    # Set up a target set for 2 qubit gates (specified qubit pairs)
+    grid_targets = out.valid_targets.add()
     grid_targets.name = _2_QUBIT_TARGET_SET
     grid_targets.target_ordering = device_pb2.TargetSet.SYMMETRIC
-
-    # Create the target set as all adjacent pairs on the grid
-    neighbor_set: Set[Tuple] = set()
-    for q in qubits:
-        for neighbor in sorted(q.neighbors(qubit_set)):
-            if (neighbor, q) not in neighbor_set:
-                # Don't add pairs twice
-                new_target = grid_targets.targets.add()
-                new_target.ids.extend(
-                    (v2.qubit_to_proto_id(q), v2.qubit_to_proto_id(neighbor)))
-                neighbor_set.add((q, neighbor))
+    for pair in pairs:
+        new_target = grid_targets.targets.add()
+        new_target.ids.extend(v2.qubit_to_proto_id(q) for q in pair)
 
     # Create gate sets
     arg_def = device_pb2.ArgDefinition
     for gate_set in gate_sets or []:
-        gs_proto = spec.valid_gate_sets.add()
+        gs_proto = out.valid_gate_sets.add()
         gs_proto.name = gate_set.gate_set_name
         gate_ids: Set[str] = set()
         for gate_type in gate_set.serializers:
@@ -128,7 +152,7 @@ def create_device_proto_from_diagram(
                 # Note: if it is not a measurement gate and doesn't inherit
                 # from SingleQubitGate, it's assumed to be a two qubit gate.
                 if gate_type == MeasurementGate:
-                    gate.valid_targets.extend([_MEAS_TARGET_SET])
+                    gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == WaitGate:
                     # TODO(#2537): Refactor gate-sets / device to eliminate
                     # The need for checking type here.
@@ -137,7 +161,7 @@ def create_device_proto_from_diagram(
                     gate.number_of_qubits = 1
                 else:
                     # This must be a two-qubit gate
-                    gate.valid_targets.extend([_2_QUBIT_TARGET_SET])
+                    gate.valid_targets.append(_2_QUBIT_TARGET_SET)
                     gate.number_of_qubits = 2
 
                 # Add gate duration
@@ -156,7 +180,7 @@ def create_device_proto_from_diagram(
                     new_arg.name = arg.serialized_name
                     # Note: this does not yet support adding allowed_ranges
 
-    return spec
+    return out
 
 
 _FOXTAIL_GRID = """
