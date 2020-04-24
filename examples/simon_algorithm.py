@@ -101,9 +101,7 @@ def main(qubit_count=6):
             1
     )[0][1] < 0.25 * n_samples:  # forcing at least 25% of samples to coincide
         zeros = [0 for _ in range(qubit_count)]
-        print(
-            f'No significant answers. Sequence probably {zeros}'
-        )
+        print(f'No significant answers. Sequence probably {zeros}')
     else:
         print(f'Most common answer was : {freqs.most_common(1)[0]}')
 
