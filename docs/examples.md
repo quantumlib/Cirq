@@ -10,7 +10,7 @@ in the Github repository.
 In addition to these examples, you can also find the notebooks that generated
 the cirq docs found here in the
 [docs directory](https://github.com/quantumlib/Cirq/tree/master/docs) as well
-as all the more advanced case studies listed further down on this page.
+as all the more advanced tutorials listed further down on this page.
 
 Below is a listing of the examples in the repository:
 
@@ -94,20 +94,24 @@ Algorithm for solving linear systems using quantum phase estimation.
 Quantum circuit to prepare the BCS ground states for superconductors/superfluids.
 
 
-## Advanced Case Studies
+## Advanced Tutorials
 
-*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/studies/variational_algorithms.html)
+*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/tutorials/variational_algorithms.html)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*    [QAOA](https://cirq.readthedocs.io/en/latest/studies/QAOA_Demo.html)
+*    [QAOA](https://cirq.readthedocs.io/en/latest/tutorials/QAOA_Demo.html)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
-*    [Quantum Walk](https://cirq.readthedocs.io/en/latest/studies/Quantum_Walk.html)
+*    [Hidden Linear Function](https://cirq.readthedocs.io/en/latest/tutorials/hidden_linear_function.html)
+Demonstration of a problem similar to Bernstein-Vazirani that uses a hidden
+function rather than using an Oracle.
+
+*    [Quantum Walk](https://cirq.readthedocs.io/en/latest/tutorials/Quantum_Walk.html)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/studies/Rabi_Demo.html)
+*    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/tutorials/Rabi_Demo.html)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.
