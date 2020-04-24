@@ -5,17 +5,19 @@ import numpy as np
 import scipy as sp
 import cirq
 """Demonstrates Simon's algorithm.
-Simon's Algorithm solves the following problem: 
+Simon's Algorithm solves the following problem:
 
-Given a function  f:{0,1}^n -> {0,1}^n, such that for some s ∈ {0,1}^n,  
+Given a function  f:{0,1}^n -> {0,1}^n, such that for some s ∈ {0,1}^n,
 
-f(x) = f(y) iff  x ⨁ y ∈ {0^n, s}, 
+f(x) = f(y) iff  x ⨁ y ∈ {0^n, s},
 
-find the n-bit string s. 
+find the n-bit string s.
 
-A classical algorithm requires O(2^n/2) queries to find s, while Simon’s algorithm needs only O(n) quantum queries.  
+A classical algorithm requires O(2^n/2) queries to find s, while Simon’s algorithm
+needs only O(n) quantum queries.
 === REFERENCE ===
-D. R. Simon. On the power of quantum cryptography. In35th FOCS, pages 116–123, Santa Fe,New Mexico, 1994. IEEE Computer Society Press.
+D. R. Simon. On the power of quantum cryptography. In35th FOCS, pages 116–123,
+Santa Fe,New Mexico, 1994. IEEE Computer Society Press.
 
 === EXAMPLE OUTPUT ===
 Secret string = [1, 0, 0, 1, 0, 0]
@@ -47,9 +49,10 @@ Circuit:
                 └──────┘   └───────────┘
 Most common Simon Algorithm answer is: ('[1 0 0 1 0 0]', 100)
 
-***If the input string is s=0^n, no significant answer can be distinguished (since the
-null-space of the system of equations provided by the measurements gives a random vector). 
-In this case the output is: 
+***If the input string is s=0^n, no significant answer can be
+distinguished (since the null-space of the system of equations
+provided by the measurements gives a random vector).
+In this case the output is:
 "No significant answers obtained. Secret Sequence is probably [0,0,0,0,0,0]"
 """
 
@@ -77,7 +80,7 @@ def main(qubit_count=6):
             # Pick coefficients for the oracle and create a circuit to query it.
             oracle = make_oracle(input_qubits, output_qubits, secret_string)
 
-            # Embed the oracle into a special quantum circuit querying it exactly once.
+            # Embed oracle into special quantum circuit querying it exactly once.
             circuit = make_simon_circuit(input_qubits, output_qubits, oracle)
 
             # Sample from the circuit a n-1 times (n = qubit_count).
@@ -97,11 +100,11 @@ def main(qubit_count=6):
             1
     )[0][1] < 0.25 * n_samples:  # forcing at least 25% of samples to coincide
         print(
-            f'No significant answers obtained. Secret Sequence is probably {np.zeros(qubit_count)}'
+            f'No significant answers. Sequence probably {np.zeros(qubit_count)}'
         )
     else:
         print(
-            f'Most common Simon{chr(39)}s Algorithm answer is: {freqs.most_common(1)[0]}'
+            f'Most common Simon{chr(39)}s Alg. answer: {freqs.most_common(1)[0]}'
         )
 
 
@@ -123,12 +126,12 @@ def make_oracle(input_qubits, output_qubits, secret_string):
     # Apply a random permutation:
     pos = [
         0, len(secret_string) - 1
-    ]  # Choose any combination of qubits to swap to define the oracle. Here we choose the first and last qubits:
+    ]  # Swap any combination of qubits to define oracle. We choose first and last:
     yield cirq.SWAP(output_qubits[pos[0]], output_qubits[pos[1]])
 
 
 def make_simon_circuit(input_qubits, output_qubits, oracle):
-    """Solves for secret period s of a 2-to-1 function such that f(x) = f(y) iff x ⨁ y = s"""
+    """Solves for secret period s of a 2-to-1 function s.t. f(x)=f(y) iff x⨁y=s"""
 
     c = cirq.Circuit()
 
@@ -147,6 +150,7 @@ def make_simon_circuit(input_qubits, output_qubits, oracle):
     ])
 
     return c
+
 
 def post_processing(data, results):
     """Solves a system of equations with modulo 2 numbers"""
