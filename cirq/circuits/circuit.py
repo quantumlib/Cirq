@@ -24,7 +24,7 @@ from itertools import groupby
 import math
 
 from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
-                    List, Optional, overload, Sequence, Set, Tuple, Type,
+                    List, NoReturn, Optional, overload, Sequence, Set, Tuple, Type,
                     TYPE_CHECKING, TypeVar, Union)
 
 import re
