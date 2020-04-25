@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""  Protocols and methods for quantum channels, unitary and misture """
 
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
