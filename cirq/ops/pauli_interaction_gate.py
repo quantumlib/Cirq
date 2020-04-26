@@ -116,19 +116,18 @@ class PauliInteractionGate(eigen_gate.EigenGate,
         l0 = labels[self.pauli0]
         l1 = labels[self.pauli1]
         # Add brackets around letter if inverted
-        l0, l1 = ('(-{})'.format(l) if inv else l
+        l0, l1 = (f'(-{l})' if inv else l
                   for l, inv in ((l0, self.invert0), (l1, self.invert1)))
         return protocols.CircuitDiagramInfo(
             wire_symbols=(l0, l1),
             exponent=self._diagram_exponent(args))
 
-    def __repr__(self):
-        base = 'cirq.PauliInteractionGate({!r}, {!s}, {!r}, {!s})'.format(
-            self.pauli0, self.invert0, self.pauli1, self.invert1)
+    def __repr__(self) -> str:
+        base = (f'cirq.PauliInteractionGate({self.pauli0!r}, {self.invert0!s}, '
+                f'{self.pauli1!r}, {self.invert1!s})')
         if self._exponent == 1:
             return base
-
-        return '({}**{})'.format(base, proper_repr(self._exponent))
+        return f'({base}**{proper_repr(self._exponent)})'
 
 
 PauliInteractionGate.CZ = PauliInteractionGate(

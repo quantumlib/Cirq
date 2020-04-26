@@ -88,9 +88,8 @@ class XXPowGate(eigen_gate.EigenGate,
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
             # Mølmer–Sørensen gate.
-            symbol = common_gates._rads_func_symbol(
-                'MS', args,
-                self._diagram_exponent(args, ignore_global_phase=False) / 2)
+            angle_str = self._format_exponent_as_angle(args, order=4)
+            symbol = f'MS({angle_str})'
             return protocols.CircuitDiagramInfo(
                                 wire_symbols=(symbol, symbol))
 
@@ -109,23 +108,22 @@ class XXPowGate(eigen_gate.EigenGate,
         if self._global_shift == -0.5:
             if self._exponent == 1:
                 return 'MS(π/2)'
-            return 'MS({!r}π/2)'.format(self._exponent)
+            return f'MS({self._exponent!r}π/2)'
         if self.exponent == 1:
             return 'XX'
-        return 'XX**{!r}'.format(self._exponent)
+        return f'XX**{self._exponent!r}'
 
     def __repr__(self) -> str:
         if self._global_shift == -0.5 and not protocols.is_parameterized(self):
             if self._exponent == 1:
                 return 'cirq.ms(np.pi/2)'
-            return 'cirq.ms({!r}*np.pi/2)'.format(self._exponent)
+            return f'cirq.ms({self._exponent!r}*np.pi/2)'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'
-            return '(cirq.XX**{})'.format(proper_repr(self._exponent))
-        return ('cirq.XXPowGate(exponent={}, '
-                'global_shift={!r})'
-                ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.XX**{proper_repr(self._exponent)})'
+        return (f'cirq.XXPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
 
 class YYPowGate(eigen_gate.EigenGate,
@@ -188,19 +186,18 @@ class YYPowGate(eigen_gate.EigenGate,
         return formatter.format('RY({0}) {1}\nRY({2}) {3}\n', self._exponent,
                                 qubits[0], self._exponent, qubits[1])
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._exponent == 1:
             return 'YY'
-        return 'YY**{!r}'.format(self._exponent)
+        return f'YY**{self._exponent!r}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.YY'
-            return '(cirq.YY**{})'.format(proper_repr(self._exponent))
-        return ('cirq.YYPowGate(exponent={}, '
-                'global_shift={!r})'
-                ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.YY**{proper_repr(self._exponent)})'
+        return (f'cirq.YYPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
 
 class ZZPowGate(eigen_gate.EigenGate,
@@ -270,19 +267,18 @@ class ZZPowGate(eigen_gate.EigenGate,
         return formatter.format('RZ({0}) {1}\nRZ({2}) {3}\n', self._exponent,
                                 qubits[0], self._exponent, qubits[1])
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._exponent == 1:
             return 'ZZ'
-        return 'ZZ**{}'.format(self._exponent)
+        return f'ZZ**{self._exponent}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ZZ'
-            return '(cirq.ZZ**{})'.format(proper_repr(self._exponent))
-        return ('cirq.ZZPowGate(exponent={}, '
-                'global_shift={!r})'
-                ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.ZZ**{proper_repr(self._exponent)})'
+        return (f'cirq.ZZPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
 
 XX = XXPowGate()

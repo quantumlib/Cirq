@@ -26,24 +26,31 @@ User Documentation
 
     install
     tutorial.ipynb
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Concepts
+
     gates.ipynb
     circuits.ipynb
     simulation.ipynb
     noise.ipynb
     devices
+    interop.ipynb
     qudits.ipynb
-    examples
     api
 
 
 .. toctree::
     :maxdepth: 1
-    :caption: Case Studies
+    :caption: Tutorials
 
-    studies/variational_algorithm.ipynb
-    studies/QAOA_Demo.ipynb
-    studies/Quantum_Walk.ipynb
-    studies/Rabi_Demo.ipynb
+    examples
+    tutorials/variational_algorithm.ipynb
+    tutorials/QAOA_Demo.ipynb
+    tutorials/hidden_linear_function.ipynb
+    tutorials/Quantum_Walk.ipynb
+    tutorials/Rabi_Demo.ipynb
 
 
 .. toctree::
