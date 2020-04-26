@@ -125,6 +125,27 @@ USERGATE1 0
 """
 
 
+def test_two_quil_one_qubit_gate_output():
+    q0, = _make_qubits(1)
+    gate = QuilOneQubitGate(np.array([[1, 0], [0, 1]]))
+    gate1 = QuilOneQubitGate(np.array([[2, 0], [0, 3]]))
+    output = cirq.QuilOutput((
+        gate.on(q0),
+        gate1.on(q0),
+    ), (q0,))
+    assert str(output) == """# Created using Cirq.
+
+DEFGATE USERGATE1:
+\t1.0+0.0i, 0.0+0.0i
+\t0.0+0.0i, 1.0+0.0i
+USERGATE1 0
+DEFGATE USERGATE2:
+\t2.0+0.0i, 0.0+0.0i
+\t0.0+0.0i, 3.0+0.0i
+USERGATE2 0
+"""
+
+
 def test_quil_two_qubit_gate_output():
     q0, q1, = _make_qubits(2)
     gate = QuilTwoQubitGate(

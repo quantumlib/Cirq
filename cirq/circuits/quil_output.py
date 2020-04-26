@@ -163,7 +163,6 @@ class QuilOutput:
             output_func('\n')
 
         def keep(op: 'cirq.Operation') -> bool:
-            print("I'm keeping")
             return protocols.quil(op, formatter=self.formatter) is not None
 
         def fallback(op):
@@ -174,6 +173,7 @@ class QuilOutput:
             if mat is None:
                 return NotImplemented
 
+            # coverage: ignore
             if len(op.qubits) == 1:
                 return QuilOneQubitGate(mat).on(*op.qubits)
             return QuilTwoQubitGate(mat).on(*op.qubits)
