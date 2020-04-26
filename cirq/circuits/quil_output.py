@@ -138,11 +138,7 @@ class QuilOutput:
     def save_to_file(self, path: Union[str, bytes, int]) -> None:
         """Write QUIL output to a file specified by path."""
         with open(path, 'w') as f:
-
-            def write(s: str) -> None:
-                f.write(s)
-
-            self._write_quil(write)
+            f.write(str(self))
 
     def __str__(self) -> str:
         output = []
@@ -173,6 +169,9 @@ class QuilOutput:
             if mat is None:
                 return NotImplemented
 
+            # Following code is a safety measure
+            # Could not find a gate that doesn't decompose into a gate
+            # with a _quil_ implementation
             # coverage: ignore
             if len(op.qubits) == 1:
                 return QuilOneQubitGate(mat).on(*op.qubits)
