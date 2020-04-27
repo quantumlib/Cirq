@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
-    Iterable
+from typing import (Any, cast, Dict, Iterable, List, NamedTuple, Optional,
+                    Tuple, TypeVar, Union)
 
 import abc
 
@@ -367,7 +367,7 @@ class EigenGate(raw_types.Gate):
         canonical_diff = (exponents[0] - exponents[1]) % period
         return np.isclose(canonical_diff, 0, atol=atol)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
 
