@@ -65,6 +65,7 @@ def test_xx_str():
 
     ms = cirq.XXPowGate(global_shift=-0.5)
     assert str(ms) == 'MS(π/2)'
+    assert str(ms**0.5) == 'MS(0.5π/2)'
     assert str(ms**2) == 'MS(2.0π/2)'
     assert str(ms**-1) == 'MS(-1.0π/2)'
 
@@ -108,11 +109,13 @@ def test_xx_diagrams():
         cirq.XX(a, b),
         cirq.XX(a, b)**3,
         cirq.XX(a, b)**0.5,
+        cirq.XXPowGate(global_shift=-0.5).on(a, b),
     )
-    cirq.testing.assert_has_diagram(circuit, """
-a: ───XX───XX───XX───────
-      │    │    │
-b: ───XX───XX───XX^0.5───
+    cirq.testing.assert_has_diagram(
+        circuit, """
+a: ───XX───XX───XX───────MS(0.5π)───
+      │    │    │        │
+b: ───XX───XX───XX^0.5───MS(0.5π)───
 """)
 
 

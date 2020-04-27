@@ -321,11 +321,11 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
     readout_error_probs: Dict['cirq.Qid', float] = {}
 
     if depol_noise:
-        # TODO: replace with Pauli error once it's available.
-        # Github issue: https://github.com/quantumlib/Cirq/issues/2832
+        # In the single-qubit case, Pauli error and the depolarization fidelity
+        # differ by a factor of 4/3.
         depol_probs = {
-            qubit[0]: depol_prob[0] for qubit, depol_prob in
-            calibration['single_qubit_rb_total_error'].items()
+            qubit[0]: pauli_err[0] * 4 / 3 for qubit, pauli_err in
+            calibration['single_qubit_rb_pauli_error_per_gate'].items()
         }
     if damping_noise:
         # TODO: implement per-gate amplitude damping noise.

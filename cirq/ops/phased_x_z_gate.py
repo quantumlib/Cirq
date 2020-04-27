@@ -1,5 +1,5 @@
 import numbers
-from typing import Union, TYPE_CHECKING, Tuple, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -190,15 +190,15 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 f'x={args.format_real(self._x_exponent)},'
                 f'z={args.format_real(self._z_exponent)})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return protocols.circuit_diagram_info(self).wire_symbols[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.PhasedXZGate('
                 f'axis_phase_exponent={proper_repr(self._axis_phase_exponent)},'
                 f' x_exponent={proper_repr(self._x_exponent)}, '
                 f'z_exponent={proper_repr(self._z_exponent)})')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent'])

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Any, Collection, Union, Sequence, Optional, Tuple
+from typing import Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -206,7 +206,7 @@ class ControlledGate(raw_types.Gate):
                           *sub_info.wire_symbols),
             exponent=sub_info.exponent)
 
-    def __str__(self):
+    def __str__(self) -> str:
         if set(self.control_values) == {(1,)}:
 
             def get_prefix(control_vals):
@@ -214,26 +214,25 @@ class ControlledGate(raw_types.Gate):
         else:
 
             def get_prefix(control_vals):
-                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
+                control_vals_str = ''.join(map(str, sorted(control_vals)))
+                return f'C{control_vals_str}'
 
         return ''.join(map(get_prefix, self.control_values)) + str(
             self.sub_gate)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self.num_controls() == 1 and self.control_values == ((1,),):
-            return 'cirq.ControlledGate(sub_gate={!r})'.format(self.sub_gate)
+            return f'cirq.ControlledGate(sub_gate={self.sub_gate!r})'
 
         if (all(vals == (1,) for vals in self.control_values) and
                 set(self.control_qid_shape) == {2}):
-            return ('cirq.ControlledGate(sub_gate={!r}, '
-                    'num_controls={!r})'.format(self.sub_gate,
-                                                self.num_controls()))
-        return ('cirq.ControlledGate(sub_gate={!r}, control_values={!r},'
-                'control_qid_shape={!r})'.format(self.sub_gate,
-                                                 self.control_values,
-                                                 self.control_qid_shape))
+            return (f'cirq.ControlledGate(sub_gate={self.sub_gate!r}, '
+                    f'num_controls={self.num_controls()!r})')
+        return (f'cirq.ControlledGate(sub_gate={self.sub_gate!r}, '
+                f'control_values={self.control_values!r},'
+                f'control_qid_shape={self.control_qid_shape!r})')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'control_values': self.control_values,

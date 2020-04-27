@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, TYPE_CHECKING
+from typing import Any, Dict, Iterable, TYPE_CHECKING
 
 import dataclasses
 import time
@@ -43,7 +43,7 @@ class SingleQubitReadoutCalibrationResult:
     repetitions: int
     timestamp: float
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'zero_state_errors': list(self.zero_state_errors.items()),
@@ -60,7 +60,7 @@ class SingleQubitReadoutCalibrationResult:
                    repetitions=repetitions,
                    timestamp=timestamp)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.SingleQubitReadoutCalibrationResult('
                 f'zero_state_errors={self.zero_state_errors!r}, '
                 f'one_state_errors={self.one_state_errors!r}, '

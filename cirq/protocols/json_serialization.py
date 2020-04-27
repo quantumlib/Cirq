@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
+
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
@@ -89,6 +90,8 @@ class _ResolverCache:
                 'CrossEntropyResult': CrossEntropyResult,
                 'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
+                'CliffordState': cirq.CliffordState,
+                'CliffordTableau': cirq.CliffordTableau,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
@@ -96,6 +99,7 @@ class _ResolverCache:
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
@@ -134,6 +138,7 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
+                'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,

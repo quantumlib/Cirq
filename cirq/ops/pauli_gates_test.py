@@ -182,6 +182,7 @@ def test_commutes():
     with pytest.raises(TypeError):
         assert cirq.commutes(cirq.X, 'X')
     assert cirq.commutes(cirq.X, 'X', default='default') == 'default'
+    assert cirq.commutes(cirq.Z, cirq.read_json(json_text=cirq.to_json(cirq.Z)))
 
 
 def test_unitary():

@@ -566,12 +566,12 @@ class PauliSum:
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return 'cirq.{}({!r})'.format(class_name, self._linear_dict)
+        return f'cirq.{class_name}({self._linear_dict!r})'
 
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
         return _format_terms(terms=terms, format_spec=format_spec)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__format__('.3f')
