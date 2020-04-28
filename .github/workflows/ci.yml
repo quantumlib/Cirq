@@ -163,6 +163,7 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        shell: bash
   macos:
     name: Pytest MacOS
     runs-on: macos-10.15
