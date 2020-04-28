@@ -591,7 +591,8 @@ def measure_state_vector(
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
         out: np.ndarray = None,
-        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> Tuple[List[int], np.ndarray]:
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the state in the computational basis.
 
     This does not modify `state` unless the optional `out` is `state`.

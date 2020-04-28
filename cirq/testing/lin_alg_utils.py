@@ -67,8 +67,10 @@ def random_density_matrix(dim: int,
     return mat / np.trace(mat)
 
 
-def random_unitary(dim: int, *,
-                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+def random_unitary(dim: int,
+                   *,
+                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+                  ) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -90,7 +92,9 @@ def random_unitary(dim: int, *,
     return q * (d / abs(d))
 
 
-def random_orthogonal(dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+def random_orthogonal(dim: int,
+                      *,
+                      random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                      ) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
@@ -135,10 +139,9 @@ def random_special_unitary(dim: int,
     return r
 
 
-def random_special_orthogonal(dim: int,
-                              *,
-                              random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                             ) -> np.ndarray:
+def random_special_orthogonal(
+        dim: int, *,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 
     Args:
