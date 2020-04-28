@@ -120,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: value.RANDOM_STATE_LIKE = None,
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
                  ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
@@ -444,7 +444,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,

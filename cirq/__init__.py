@@ -386,6 +386,7 @@ from cirq.value import (
     DURATION_LIKE,
     LinearDict,
     PeriodicValue,
+    RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
     TParamVal,
     validate_probability,

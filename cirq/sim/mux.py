@@ -50,7 +50,7 @@ def sample(program: 'cirq.Circuit',
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
+           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.TrialResult:
     """Simulates sampling from the given circuit.
 
     Args:
@@ -107,7 +107,7 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: value.RANDOM_STATE_LIKE = None) -> 'np.ndarray':
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -166,7 +166,7 @@ def sample_sweep(program: 'cirq.Circuit',
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64,
-                 seed: value.RANDOM_STATE_LIKE = None
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                 ) -> List[study.TrialResult]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
