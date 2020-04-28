@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union, TYPE_CHECKING)
+                    TypeVar, Union, TYPE_CHECKING, Iterable)
 
 import numpy as np
 
@@ -132,8 +132,28 @@ class GateOperation(raw_types.Operation):
     def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.channel(self.gate, NotImplemented)
 
-    def _measurement_key_(self) -> str:
-        return protocols.measurement_key(self.gate, NotImplemented)
+    def _measurement_key_(self) -> Optional[str]:
+        if hasattr(self.gate, '_measurement_key_'):
+            return self.gate._measurement_key_()
+        return NotImplemented
+
+    def _measurement_keys_(self) -> Optional[Iterable[str]]:
+        if hasattr(self.gate, '_measurement_keys_'):
+            return self.gate._measurement_keys_()
+        return NotImplemented
+
+    def _can_act_on_state_vector_(self) -> Optional[bool]:
+        if not hasattr(self.gate, '_can_act_on_state_vector_'):
+            return NotImplemented
+        return self.gate._can_act_on_state_vector_()
+
+    def _act_on_state_vector_(
+            self,
+            args: 'cirq.ActOnStateVectorArgs',
+    ) -> Optional[bool]:
+        if not hasattr(self.gate, '_act_on_state_vector_'):
+            return NotImplemented
+        return self.gate._act_on_state_vector_(args)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.gate)

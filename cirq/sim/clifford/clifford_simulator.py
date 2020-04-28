@@ -61,7 +61,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
-        if protocols.is_measurement(op): return True
+        if isinstance(op, cirq.MeasurementGate): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
         u = cirq.unitary(op)
@@ -100,16 +100,17 @@ class CliffordSimulator(simulator.SimulatesSamples,
             state = CliffordState(qubit_map, initial_state=initial_state)
 
             for moment in circuit:
-                measurements = collections.defaultdict(
-                    list)  # type: Dict[str, List[np.ndarray]]
+                measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(list)
 
                 for op in moment:
-                    if protocols.has_unitary(op):
-                        state.apply_unitary(op)
-                    elif protocols.is_measurement(op):
+                    if protocols.is_measurement(op):
+                        if not isinstance(op, ops.MeasurementGate):
+                            raise NotImplementedError('Measurement type other than cirq.MeasurementGate')
                         key = protocols.measurement_key(op)
                         measurements[key].extend(
                             state.perform_measurement(op.qubits, self._prng))
+                    elif protocols.has_unitary(op):
+                        state.apply_unitary(op)
 
                 yield CliffordSimulatorStepResult(measurements=measurements,
                                                   state=state)

@@ -395,11 +395,14 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
+    act_all_on_state_vector,
+    act_on_state_vector,
     apply_channel,
     apply_mixture,
     apply_unitaries,
     apply_unitary,
     ApplyChannelArgs,
+    ActOnStateVectorArgs,
     ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
@@ -424,6 +427,7 @@ from cirq.protocols import (
     is_parameterized,
     json_serializable_dataclass,
     measurement_key,
+    measurement_keys,
     mixture,
     mixture_channel,
     mul,

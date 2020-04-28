@@ -79,3 +79,28 @@ def test_is_measurement():
             raise NotImplementedError()
 
     assert not cirq.is_measurement(NotImplementedOperation())
+
+
+def test_works_in_decomposition():
+    class G(cirq.Gate):
+        def _decompose_(self, qubits):
+            yield cirq.measure(qubits[0], key='inner1')
+            yield cirq.measure(qubits[1], key='inner2')
+            yield cirq.reset(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 2
+
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.X(a),
+        cirq.X(b),
+        G().on(a, b),
+        cirq.measure(a, key='outer1'),
+        cirq.measure(b, key='outer2'),
+    )
+
+    r = cirq.Simulator().sample(c, repetitions=100)
+    print(r)
+
+    assert False

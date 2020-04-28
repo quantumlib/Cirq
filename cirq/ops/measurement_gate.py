@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING, List, \
+    Sequence, Union
 
 import numpy as np
 
@@ -183,6 +184,25 @@ class MeasurementGate(raw_types.Gate):
                    key=key,
                    invert_mask=tuple(invert_mask),
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
+
+    def _apply_measurement_to_state_vector_(
+            self,
+            args: 'cirq.ActOnStateVectorArgs',
+    ) -> Tuple[np.ndarray, Dict[str, Union[int, Sequence[int]]]]:
+        from cirq.sim.wave_function import measure_state_vector
+
+        invert_mask = self.full_invert_mask()
+        bits, _ = measure_state_vector(
+            args.target_tensor,
+            args.axes,
+            out=args.target_tensor,
+            qid_shape=args.target_tensor.shape,
+            seed=args.prng)
+        corrected = [
+            bit ^ (bit < 2 and mask)
+            for bit, mask in zip(bits, invert_mask)
+        ]
+        return args.target_tensor, {self.key: corrected}
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

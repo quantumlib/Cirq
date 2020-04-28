@@ -578,8 +578,9 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
 
 def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result = collections.Counter(
-        protocols.measurement_key(op, default=None)
-        for op in ops.flatten_op_tree(iter(circuit)))
+        key
+        for op in ops.flatten_op_tree(iter(circuit))
+        for key in protocols.measurement_keys(op))
     result[None] = 0
     duplicates = [k for k, v in result.most_common() if v > 1]
     if duplicates:

@@ -551,6 +551,23 @@ class ResetChannel(gate_features.SingleQubitGate):
 
     def _qid_shape_(self):
         return (self._dimension,)
+    
+    def _act_on_state_vector_(self, args: 'cirq.ActOnStateVectorArgs'):
+        from cirq.sim.wave_function import measure_state_vector
+
+        # Do a silent measurement.
+        bits, _ = measure_state_vector(
+            args.target_tensor,
+            args.axes,
+            out=args.target_tensor,
+            qid_shape=args.target_tensor.shape)
+
+        # Apply bit flip(s) to change the reset the bits to 0.
+        for b, i, d in zip(bits, args.axes, self._qid_shape_()):
+            if b == 0:
+                continue  # Already zero, no reset needed
+            reset_unitary = _FlipGate(d, reset_value=b)(*op.qubits)
+            self._simulate_unitary(reset_unitary, data, [i])
 
     def _channel_(self) -> Iterable[np.ndarray]:
         # The first axis is over the list of channel matrices

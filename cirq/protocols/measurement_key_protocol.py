@@ -13,12 +13,20 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any
+from typing import Any, Iterable, Union, TYPE_CHECKING, Tuple, Dict, List, \
+    Optional, DefaultDict
 
 from typing_extensions import Protocol
 
 from cirq._doc import document
-from cirq.protocols import has_channel
+from cirq.protocols.channel import has_channel
+import numpy as np
+
+from cirq.protocols.decompose_protocol import \
+    _try_decompose_into_operations_and_qubits
+
+if TYPE_CHECKING:
+    import cirq
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -48,6 +56,15 @@ class SupportsMeasurementKey(Protocol):
         will be stored.
         """
 
+    @document
+    def _measurement_keys_(self) -> Iterable[str]:
+        """Return the key that will be used to identify this measurement.
+
+        When a measurement occurs, either on hardware, or in a simulation,
+        this is the key value under which the results of the measurement
+        will be stored.
+        """
+
 
 def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     """Get the measurement key for the given value.
@@ -68,27 +85,59 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
         TypeError: `val` doesn't have a _measurement_key_ method (or that method
             returned NotImplemented) and also no default value was specified.
     """
-    getter = getattr(val, '_measurement_key_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return result
+    result = measurement_keys(val)
+
+    if len(result) == 1:
+        return result[0]
+
+    if len(result) > 1:
+        raise TypeError(f'Got multiple measurement keys ({result!r}) '
+                        f'from {val!r}.')
 
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    if getter is None:
-        raise TypeError(
-            "object of type '{}' has no _measurement_key_ method.".format(
-                type(val)))
-
-    raise TypeError("object of type '{}' does have a _measurement_key_ method, "
-                    "but it returned NotImplemented.".format(type(val)))
+    raise TypeError(f"object of type '{type(val)}' had no measurement keys.")
 
 
-def is_measurement(val: Any) -> bool:
+def measurement_keys(val: Any,
+                     include_decompose: bool = True) -> Tuple[str, ...]:
+    """Get the measurement key for the given value.
+
+    Args:
+        val: The value which has the measurement key..
+        default: Determines the fallback behavior when `val` doesn't have
+            a measurement key. If `default` is not set, a TypeError is raised.
+            If default is set to a value, that value is returned if the value
+            does not have `_measurement_key_`.
+
+    Returns:
+        If `val` has a `_measurement_key_` method and its result is not
+        `NotImplemented`, that result is returned. Otherwise, if a default
+        value was specified, the default value is returned.
+    """
+    getter = getattr(val, '_measurement_keys_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        return tuple(result)
+
+    getter = getattr(val, '_measurement_key_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented and result is not None:
+        return result,
+
+    if include_decompose:
+        operations, _, _ = _try_decompose_into_operations_and_qubits(val)
+        if operations is not None:
+            return tuple(key for op in operations for key in measurement_keys(op))
+
+    return ()
+
+
+def is_measurement(val: Any, include_decompose: bool = True) -> bool:
     """Returns whether or not the given value is a measurement.
 
     A measurement must implement the `measurement_key` protocol and have a
     channel, as represented by the `has_channel` protocol returning true.
     """
-    return measurement_key(val, None) is not None and has_channel(val)
+    return bool(measurement_keys(val, include_decompose=include_decompose))

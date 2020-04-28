@@ -267,7 +267,9 @@ class SupportsConsistentApplyUnitary(Protocol):
 
 def apply_unitary(unitary_value: Any,
                   args: ApplyUnitaryArgs,
-                  default: TDefault = RaiseTypeErrorIfNotProvided
+                  default: TDefault = RaiseTypeErrorIfNotProvided,
+                  *,
+                  allow_decompose: bool = True,
                  ) -> Union[np.ndarray, TDefault]:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
@@ -290,7 +292,7 @@ def apply_unitary(unitary_value: Any,
         Case c) Method returns a numpy array.
             Multiply the matrix onto the target tensor and return to the caller.
 
-    C. Try to use `unitary_value._decompose_()`.
+    C. Try to use `unitary_value._decompose_()` (if `allow_decompose`).
         Case a) Method not present or returns `NotImplemented` or `None`.
             Continue to next strategy.
         Case b) Method returns an OP_TREE.
@@ -311,6 +313,9 @@ def apply_unitary(unitary_value: Any,
         default: What should be returned if `unitary_value` doesn't have a
             unitary effect. If not specified, a TypeError is raised instead of
             returning a default value.
+        allow_decompose: Defaults to True. If set to False, and applying the
+            unitary effect requires decomposing the object, the method will
+            pretend the object has no unitary effect.
 
     Returns:
         If the receiving object does not have a unitary effect, then the
@@ -341,6 +346,8 @@ def apply_unitary(unitary_value: Any,
             _strat_apply_unitary_from_decompose,
             _strat_apply_unitary_from_unitary
         ]
+    if not decompose_if_necessary:
+        strats.remove(_strat_apply_unitary_from_decompose)
 
     # Try each strategy, stopping if one works.
     for strat in strats:

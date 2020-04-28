@@ -13,6 +13,11 @@
 # limitations under the License.
 
 
+from cirq.protocols.act_on_state_vector_protocol import (
+    act_all_on_state_vector,
+    act_on_state_vector,
+    ActOnStateVectorArgs,
+)
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
@@ -77,8 +82,10 @@ from cirq.protocols.json_serialization import (
     SupportsJSON,
 )
 from cirq.protocols.measurement_key_protocol import (
+    apply_measurement_to_state_vector,
     is_measurement,
     measurement_key,
+    measurement_keys,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (
