@@ -20,7 +20,7 @@ import sympy
 
 import cirq
 from cirq import linalg, protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import eigen_gate, gate_features, swap_gates
 
 
@@ -214,8 +214,3 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
     """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
     return PhasedISwapPowGate()**(2 * angle_rads / pi)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.givens, instead.')
-def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
-    return givens(angle_rads)

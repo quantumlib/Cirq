@@ -33,7 +33,7 @@ class ControlledOperation(raw_types.Operation):
     """
 
     def __init__(self,
-                 controls: Sequence[raw_types.Qid],
+                 controls: Sequence['cirq.Qid'],
                  sub_operation: 'cirq.Operation',
                  control_values: Optional[Sequence[
                      Union[int, Collection[int]]]] = None):
@@ -154,10 +154,16 @@ class ControlledOperation(raw_types.Operation):
         controls = ', '.join(str(q) for q in self.controls)
         return f'{prefix}({controls}, {self.sub_operation})'
 
-    def __repr__(self) -> str:
-        return (f'cirq.ControlledOperation(controls={self.controls!r}, '
-                f'sub_operation={self.sub_operation!r}, '
-                f'control_values={self.control_values!r})')
+    def __repr__(self):
+        if all(q.dimension == 2 for q in self.controls):
+            if self.control_values == ((1,) * len(self.controls),):
+                if self == self.sub_operation.controlled_by(*self.controls):
+                    qubit_args = ', '.join(repr(q) for q in self.controls)
+                    return f'{self.sub_operation!r}.controlled_by({qubit_args})'
+        return (f'cirq.ControlledOperation('
+                f'sub_operation={self.sub_operation!r},'
+                f'control_values={self.control_values!r},'
+                f'controls={self.controls!r})')
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
