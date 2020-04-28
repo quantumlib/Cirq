@@ -24,17 +24,24 @@ DocProperties = NamedTuple(
 RECORDED_CONST_DOCS: Dict[int, DocProperties] = {}
 
 
-def document(value: Any, doc_string: str):
+def document(value: Any, doc_string: Optional[str] = None):
     """Stores documentation details about the given value.
 
-    This method is used to associate a docstring with global constants.
+    This method is used to associate a docstring with global constants. It is
+    also used to indicate that a private method should be included in the public
+    documentation (e.g. when documenting protocols or arithmetic operations).
 
     The given documentation information is filed under `id(value)` in
     `cirq._doc.RECORDED_CONST_DOCS`.
 
     Args:
         value: The value to associate with documentation information.
-        doc_string: The doc string to associate with the value.
+        doc_string: The doc string to associate with the value. Defaults to the
+            value's __doc__ attribute.
+
+    Returns:
+        The given value.
     """
     docs = DocProperties(doc_string=doc_string)
     RECORDED_CONST_DOCS[id(value)] = docs
+    return value

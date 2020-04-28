@@ -35,14 +35,13 @@ from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 def assert_implements_consistent_protocols(
         val: Any,
         *,
-        exponents: Sequence[Any] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        exponents: Sequence[Any] = (0, 1, -1, 0.25, -0.5, 0.1,
+                                    sympy.Symbol('s')),
         qubit_count: Optional[int] = None,
-        ignoring_global_phase: bool=False,
+        ignoring_global_phase: bool = False,
         setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
-        local_vals: Optional[Dict[str, Any]] = None
-        ) -> None:
+        local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
     global_vals = global_vals or {}
     local_vals = local_vals or {}

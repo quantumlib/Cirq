@@ -316,8 +316,8 @@ def test_calculate_quantum_volume_loop_with_readout_correction():
     # Keep test from taking a long time by lowering circuits and routing
     # attempts.
     cirq.contrib.quantum_volume.calculate_quantum_volume(
-        num_qubits=5,
-        depth=5,
+        num_qubits=4,
+        depth=4,
         num_circuits=1,
         routing_attempts=2,
         random_state=1,

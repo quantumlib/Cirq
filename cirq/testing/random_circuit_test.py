@@ -74,8 +74,8 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
 def test_random_circuit_reproducible_with_seed(seed):
     wrappers = (lambda s: s, np.random.RandomState)
     circuits = [
-        random_circuit(qubits=20,
-                       n_moments=20,
+        random_circuit(qubits=10,
+                       n_moments=10,
                        op_density=0.7,
                        random_state=wrapper(seed))
         for wrapper in wrappers

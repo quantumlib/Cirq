@@ -26,7 +26,7 @@ from cirq.testing import (
     (4, 3),
     (4, 4),
     (5, 4),
-    (22, 4),
+    (7, 4),
 ])
 def test_swap_field(n: int, d: int):
     before = cirq.Circuit(

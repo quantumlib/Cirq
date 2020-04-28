@@ -29,7 +29,12 @@ def optimized_for_xmon(
         allow_partial_czs: bool = False,
 ) -> 'cirq.Circuit':
     if allow_partial_czs:
-        return optimized_for_sycamore(circuit, new_device, qubit_map,
-                                      'xmon_partial_cz')
+        return optimized_for_sycamore(circuit,
+                                      new_device=new_device,
+                                      qubit_map=qubit_map,
+                                      optimizer_type='xmon_partial_cz')
     else:
-        return optimized_for_sycamore(circuit, new_device, qubit_map, 'xmon')
+        return optimized_for_sycamore(circuit,
+                                      new_device=new_device,
+                                      qubit_map=qubit_map,
+                                      optimizer_type='xmon')

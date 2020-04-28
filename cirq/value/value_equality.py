@@ -96,6 +96,7 @@ def _value_equality_hash(self: _SupportsValueEquality) -> int:
 def _value_equality_approx_eq(self: _SupportsValueEquality,
                               other: _SupportsValueEquality,
                               atol: float) -> bool:
+
     # Preserve regular equality type-comparison logic.
     cls_self = self._value_equality_values_cls_()
     if not isinstance(other, cls_self):

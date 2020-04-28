@@ -1,6 +1,7 @@
 import random
 
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -120,7 +121,11 @@ def test_canonicalization():
     t = f(1, 0.25, 0.5)._canonical()
     assert t.x_exponent == 1
     assert t.z_exponent == 0
-    assert t.axis_phase_exponent == 0.375
+    assert t.axis_phase_exponent == -0.375
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(t),
+                                                    cirq.unitary(f(
+                                                        1, 0.25, 0.5)),
+                                                    atol=1e-8)
 
     # Axis phase is irrelevant when not rotating.
     t = f(0, 0.25, 0.5)._canonical()
@@ -198,10 +203,18 @@ def test_from_matrix():
     assert cirq.approx_eq(cirq.PhasedXZGate.from_matrix(cirq.unitary(g)),
                           g,
                           atol=1e-8)
-    u = cirq.testing.random_unitary(2)
+
+
+@pytest.mark.parametrize('unitary', [
+    cirq.testing.random_unitary(2),
+    cirq.testing.random_unitary(2),
+    cirq.testing.random_unitary(2),
+    np.array([[0, 1], [1j, 0]]),
+])
+def test_from_matrix_close_unitary(unitary: np.ndarray):
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        cirq.PhasedXZGate.from_matrix(u)),
-                                                    u,
+        cirq.PhasedXZGate.from_matrix(unitary)),
+                                                    unitary,
                                                     atol=1e-8)
 
 

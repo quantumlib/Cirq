@@ -120,10 +120,8 @@ def diagonalize_real_symmetric_and_sorted_diagonal_matrices(
                 np.any(diagonal_matrix[:-1, :-1] < diagonal_matrix[1:, 1:])):
             raise ValueError(
                 'diagonal_matrix must be real diagonal descending.')
-        if not predicates.commutes(diagonal_matrix,
-                                   symmetric_matrix,
-                                   rtol=rtol,
-                                   atol=atol):
+        if not predicates.matrix_commutes(
+                diagonal_matrix, symmetric_matrix, rtol=rtol, atol=atol):
             raise ValueError('Given matrices must commute.')
 
     def similar_singular(i, j):

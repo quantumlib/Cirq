@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
+import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
@@ -33,10 +34,9 @@ def test_example_runs_bernstein_vazirani():
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [],
+                                                        True)) == [cirq.X(a)]
 
 
 def test_example_runs_simon():
@@ -57,6 +57,10 @@ def test_example_runs_hello_qubit():
 
 def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
+
+
+def test_example_runs_bb84():
+    examples.bb84.main()
 
 
 def test_example_runs_quantum_fourier_transform():
@@ -102,7 +106,9 @@ def test_example_runs_hhl():
 
 
 def test_example_runs_qubit_characterizations():
-    examples.qubit_characterizations_example.main()
+    examples.qubit_characterizations_example.main(minimum_cliffords=2,
+                                                  maximum_cliffords=6,
+                                                  cliffords_step=2)
 
 
 def test_example_swap_networks():
@@ -204,7 +210,7 @@ def test_example_shor_naive_order_finder(x, n):
     assert_order(r, x, n)
 
 
-@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7), (5, 8)))
+@pytest.mark.parametrize('x, n', ((2, 3), (5, 6), (2, 7), (6, 7)))
 def test_example_shor_quantum_order_finder(x, n):
     r = None
     for _ in range(15):

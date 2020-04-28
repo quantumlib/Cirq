@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 import json
 import numbers
 import pathlib
@@ -53,6 +54,8 @@ class _ResolverCache:
         if self._crd is None:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
+            from cirq.experiments import (CrossEntropyResult,
+                                          GridInteractionLayer)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -74,14 +77,19 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
+                'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
+                'CXPowGate': cirq.CXPowGate,
                 'CZPowGate': cirq.CZPowGate,
+                'CrossEntropyResult': CrossEntropyResult,
                 'Circuit': cirq.Circuit,
+                'CliffordState': cirq.CliffordState,
+                'CliffordTableau': cirq.CliffordTableau,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
@@ -89,9 +97,12 @@ class _ResolverCache:
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
+                'GridInteractionLayer': GridInteractionLayer,
+                'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
@@ -109,6 +120,7 @@ class _ResolverCache:
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
+                'PasqalDevice': cirq.pasqal.PasqalDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -116,6 +128,7 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
+                'PhysicalZTag': cirq.google.PhysicalZTag,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
@@ -123,8 +136,11 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
+                'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
+                'TaggedOperation': cirq.TaggedOperation,
+                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
@@ -230,6 +246,59 @@ def obj_to_dict_helper(obj: Any,
     for attr_name in attribute_names:
         d[attr_name] = getattr(obj, attr_name)
     return d
+
+
+# Copying the Python API, whose usage of `repr` annoys pylint.
+# pylint: disable=redefined-builtin
+def json_serializable_dataclass(_cls: Optional[Type] = None,
+                                *,
+                                namespace: Optional[str] = None,
+                                init: bool = True,
+                                repr: bool = True,
+                                eq: bool = True,
+                                order: bool = False,
+                                unsafe_hash: bool = False,
+                                frozen: bool = False):
+    """
+    Create a dataclass that supports JSON serialization
+
+    This function defers to the ordinary ``dataclass`` decorator but appends
+    the ``_json_dict_`` protocol method which automatically determines
+    the appropriate fields from the dataclass.
+
+    Args:
+        namespace: An optional prefix to the value associated with the
+            key "cirq_type". The namespace name will be joined with the
+            class name via a dot (.)
+        init, repr, eq, order, unsafe_hash, frozen: Forwarded to the
+            ``dataclass`` constructor.
+    """
+
+    def wrap(cls):
+        cls = dataclasses.dataclass(cls,
+                                    init=init,
+                                    repr=repr,
+                                    eq=eq,
+                                    order=order,
+                                    unsafe_hash=unsafe_hash,
+                                    frozen=frozen)
+
+        cls._json_dict_ = lambda obj: obj_to_dict_helper(
+            obj, [f.name for f in dataclasses.fields(cls)], namespace=namespace)
+
+        return cls
+
+    # _cls is used to deduce if we're being called as
+    # @json_serialiable_dataclass or @json_serializable_dataclass().
+    if _cls is None:
+        # We're called with parens.
+        return wrap
+
+    # We're called as @dataclass without parens.
+    return wrap(_cls)
+
+
+# pylint: enable=redefined-builtin
 
 
 class CirqEncoder(json.JSONEncoder):

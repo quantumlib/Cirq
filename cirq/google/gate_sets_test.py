@@ -12,12 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Dict
 import numpy as np
 import pytest
 import sympy
 
+from google.protobuf import json_format
+
 import cirq
 import cirq.google as cg
+from cirq.google.api import v2
+
+
+def op_proto(json_dict: Dict) -> v2.program_pb2.Operation:
+    op = v2.program_pb2.Operation()
+    json_format.ParseDict(json_dict, op)
+    return op
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -31,7 +41,7 @@ import cirq.google as cg
 ])
 def test_serialize_exp_w(gate, axis_half_turns, half_turns):
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -50,9 +60,9 @@ def test_serialize_exp_w(gate, axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert cg.XMON.serialize_op_dict(gate.on(q)) == expected
+    assert cg.XMON.serialize_op(gate.on(q)) == expected
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -64,7 +74,7 @@ def test_serialize_exp_w(gate, axis_half_turns, half_turns):
 def test_serialize_exp_w_parameterized_half_turns(gate, axis_half_turns,
                                                   half_turns):
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -81,15 +91,15 @@ def test_serialize_exp_w_parameterized_half_turns(gate, axis_half_turns,
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert cg.XMON.serialize_op_dict(gate.on(q)) == expected
+    assert cg.XMON.serialize_op(gate.on(q)) == expected
 
 
 def test_serialize_exp_w_parameterized_axis_half_turns():
     gate = cirq.PhasedXPowGate(exponent=0.25, phase_exponent=sympy.Symbol('x'))
     q = cirq.GridQubit(1, 2)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -106,9 +116,9 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
-    assert cg.XMON.serialize_op_dict(gate.on(q)) == expected
+    assert cg.XMON.serialize_op(gate.on(q)) == expected
 
 
 @pytest.mark.parametrize(('gate', 'half_turns'), [
@@ -118,7 +128,7 @@ def test_serialize_exp_w_parameterized_axis_half_turns():
 ])
 def test_serialize_exp_z(gate, half_turns):
     q = cirq.GridQubit(1, 2)
-    assert cg.XMON.serialize_op_dict(gate.on(q)) == {
+    assert cg.XMON.serialize_op(gate.on(q)) == op_proto({
         'gate': {
             'id': 'z'
         },
@@ -137,13 +147,13 @@ def test_serialize_exp_z(gate, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
 
 def test_serialize_exp_z_parameterized():
     q = cirq.GridQubit(1, 2)
     gate = cirq.Z**sympy.Symbol('x')
-    assert cg.XMON.serialize_op_dict(gate.on(q)) == {
+    assert cg.XMON.serialize_op(gate.on(q)) == op_proto({
         'gate': {
             'id': 'z'
         },
@@ -160,7 +170,7 @@ def test_serialize_exp_z_parameterized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
 
 
 @pytest.mark.parametrize(('gate', 'half_turns'), [
@@ -170,7 +180,7 @@ def test_serialize_exp_z_parameterized():
 def test_serialize_exp_11(gate, half_turns):
     c = cirq.GridQubit(1, 2)
     t = cirq.GridQubit(1, 3)
-    assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
+    assert cg.XMON.serialize_op(gate.on(c, t)) == op_proto({
         'gate': {
             'id': 'cz'
         },
@@ -186,14 +196,14 @@ def test_serialize_exp_11(gate, half_turns):
         }, {
             'id': '1_3'
         }]
-    }
+    })
 
 
 def test_serialize_exp_11_parameterized():
     c = cirq.GridQubit(1, 2)
     t = cirq.GridQubit(1, 3)
     gate = cirq.CZ**sympy.Symbol('x')
-    assert cg.XMON.serialize_op_dict(gate.on(c, t)) == {
+    assert cg.XMON.serialize_op(gate.on(c, t)) == op_proto({
         'gate': {
             'id': 'cz'
         },
@@ -207,7 +217,7 @@ def test_serialize_exp_11_parameterized():
         }, {
             'id': '1_3'
         }]
-    }
+    })
 
 
 @pytest.mark.parametrize(('qubits', 'qubit_ids', 'key', 'invert_mask'), [
@@ -218,11 +228,13 @@ def test_serialize_exp_11_parameterized():
 ])
 def test_serialize_meas(qubits, qubit_ids, key, invert_mask):
     op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'meas'
         },
-        'qubits': [],
+        'qubits': [{
+            'id': id
+        } for id in qubit_ids],
         'args': {
             'key': {
                 'arg_value': {
@@ -237,10 +249,8 @@ def test_serialize_meas(qubits, qubit_ids, key, invert_mask):
                 }
             }
         },
-    }
-    for qubit_id in qubit_ids:
-        expected['qubits'].append({'id': qubit_id})
-    assert cg.XMON.serialize_op_dict(op) == expected
+    })
+    assert cg.XMON.serialize_op(op) == expected
 
 
 def test_serialize_circuit():
@@ -248,28 +258,23 @@ def test_serialize_circuit():
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1),
                            cirq.measure(q1, key='m'))
-    expected = {
-        'language': {
-            'arg_function_language': '',
-            'gate_set': 'xmon'
-        },
-        'circuit': {
-            'scheduling_strategy':
-            1,
-            'moments': [{
-                'operations': [cg.XMON.serialize_op_dict(cirq.CZ(q0, q1))]
-            }, {
-                'operations': [
-                    cg.XMON.serialize_op_dict(cirq.X(q0)),
-                    cg.XMON.serialize_op_dict(cirq.Z(q1))
-                ]
-            }, {
-                'operations':
-                [cg.XMON.serialize_op_dict(cirq.measure(q1, key='m'))]
-            }]
-        },
-    }
-    assert cg.XMON.serialize_dict(circuit) == expected
+    expected = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(arg_function_language='',
+                                         gate_set='xmon'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[cg.XMON.serialize_op(cirq.CZ(q0, q1))]),
+                v2.program_pb2.Moment(operations=[
+                    cg.XMON.serialize_op(cirq.X(q0)),
+                    cg.XMON.serialize_op(cirq.Z(q1))
+                ]),
+                v2.program_pb2.Moment(operations=[
+                    cg.XMON.serialize_op(cirq.measure(q1, key='m'))
+                ])
+            ]))
+    assert cg.XMON.serialize(circuit) == expected
 
 
 @pytest.mark.parametrize(('axis_half_turns', 'half_turns'), [
@@ -278,7 +283,7 @@ def test_serialize_circuit():
     (0.5, 0.25),
 ])
 def test_deserialize_exp_w(axis_half_turns, half_turns):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -297,15 +302,15 @@ def test_deserialize_exp_w(axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.PhasedXPowGate(exponent=half_turns,
                                    phase_exponent=axis_half_turns)(q)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 def test_deserialize_exp_w_parameterized():
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -320,16 +325,16 @@ def test_deserialize_exp_w_parameterized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.PhasedXPowGate(exponent=sympy.Symbol('y'),
                                    phase_exponent=sympy.Symbol('x'))(q)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 @pytest.mark.parametrize('half_turns', [0, 0.25, 1.0])
 def test_deserialize_exp_z(half_turns):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'z'
         },
@@ -348,14 +353,14 @@ def test_deserialize_exp_z(half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.ZPowGate(exponent=half_turns)(q)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 def test_deserialize_exp_z_parameterized():
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'z'
         },
@@ -372,15 +377,15 @@ def test_deserialize_exp_z_parameterized():
         'qubits': [{
             'id': '1_2'
         }]
-    }
+    })
     q = cirq.GridQubit(1, 2)
     expected = cirq.ZPowGate(exponent=sympy.Symbol('x'))(q)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 @pytest.mark.parametrize('half_turns', [0, 0.25, 1.0])
 def test_deserialize_exp_11(half_turns):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'cz'
         },
@@ -396,15 +401,15 @@ def test_deserialize_exp_11(half_turns):
         }, {
             'id': '2_2'
         }]
-    }
+    })
     c = cirq.GridQubit(1, 2)
     t = cirq.GridQubit(2, 2)
     expected = cirq.CZPowGate(exponent=half_turns)(c, t)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 def test_deserialize_exp_11_parameterized():
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'cz'
         },
@@ -418,11 +423,11 @@ def test_deserialize_exp_11_parameterized():
         }, {
             'id': '2_2'
         }]
-    }
+    })
     c = cirq.GridQubit(1, 2)
     t = cirq.GridQubit(2, 2)
     expected = cirq.CZPowGate(exponent=sympy.Symbol('x'))(c, t)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 @pytest.mark.parametrize(('qubits', 'qubit_ids', 'key', 'invert_mask'), [
@@ -432,7 +437,7 @@ def test_deserialize_exp_11_parameterized():
      (True, False)),
 ])
 def test_deserialize_meas(qubits, qubit_ids, key, invert_mask):
-    serialized_op = {
+    serialized_op = op_proto({
         'gate': {
             'id': 'meas'
         },
@@ -453,9 +458,9 @@ def test_deserialize_meas(qubits, qubit_ids, key, invert_mask):
         'qubits': [{
             'id': id
         } for id in qubit_ids]
-    }
+    })
     expected = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
-    assert cg.XMON.deserialize_op_dict(serialized_op) == expected
+    assert cg.XMON.deserialize_op(serialized_op) == expected
 
 
 def test_deserialize_circuit():
@@ -463,27 +468,22 @@ def test_deserialize_circuit():
     q1 = cirq.GridQubit(1, 2)
     circuit = cirq.Circuit(cirq.CZ(q0, q1), cirq.X(q0), cirq.Z(q1),
                            cirq.measure(q1, key='m'))
-    serialized = {
-        'language': {
-            'gate_set': 'xmon'
-        },
-        'circuit': {
-            'scheduling_strategy':
-            1,
-            'moments': [{
-                'operations': [cg.XMON.serialize_op_dict(cirq.CZ(q0, q1))]
-            }, {
-                'operations': [
-                    cg.XMON.serialize_op_dict(cirq.X(q0)),
-                    cg.XMON.serialize_op_dict(cirq.Z(q1))
-                ]
-            }, {
-                'operations':
-                [cg.XMON.serialize_op_dict(cirq.measure(q1, key='m'))]
-            }]
-        },
-    }
-    assert cg.XMON.deserialize_dict(serialized) == circuit
+    serialized = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(gate_set='xmon'),
+        circuit=v2.program_pb2.Circuit(
+            scheduling_strategy=v2.program_pb2.Circuit.MOMENT_BY_MOMENT,
+            moments=[
+                v2.program_pb2.Moment(
+                    operations=[cg.XMON.serialize_op(cirq.CZ(q0, q1))]),
+                v2.program_pb2.Moment(operations=[
+                    cg.XMON.serialize_op(cirq.X(q0)),
+                    cg.XMON.serialize_op(cirq.Z(q1))
+                ]),
+                v2.program_pb2.Moment(operations=[
+                    cg.XMON.serialize_op(cirq.measure(q1, key='m'))
+                ])
+            ]))
+    assert cg.XMON.deserialize(serialized) == circuit
 
 
 def test_deserialize_schedule():
@@ -494,39 +494,27 @@ def test_deserialize_schedule():
                            cirq.Z(q1),
                            cirq.measure(q0, key='a'),
                            device=cg.Bristlecone)
-    serialized = {
-        'language': {
-            'gate_set': 'xmon'
-        },
-        'schedule': {
-            'scheduled_operations': [{
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.CZ(q0, q1)),
-                'start_time_picos':
-                0
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.X(q0)),
-                'start_time_picos':
-                200000,
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.Z(q1)),
-                'start_time_picos':
-                200000,
-            }, {
-                'operation':
-                cg.XMON.serialize_op_dict(cirq.measure(q0, key='a')),
-                'start_time_picos':
-                400000,
-            }]
-        },
-    }
-    assert cg.XMON.deserialize_dict(serialized, cg.Bristlecone) == circuit
+    serialized = v2.program_pb2.Program(
+        language=v2.program_pb2.Language(gate_set='xmon'),
+        schedule=v2.program_pb2.Schedule(scheduled_operations=[
+            v2.program_pb2.ScheduledOperation(operation=cg.XMON.serialize_op(
+                cirq.CZ(q0, q1)),
+                                              start_time_picos=0),
+            v2.program_pb2.ScheduledOperation(operation=cg.XMON.serialize_op(
+                cirq.X(q0)),
+                                              start_time_picos=200000),
+            v2.program_pb2.ScheduledOperation(operation=cg.XMON.serialize_op(
+                cirq.Z(q1)),
+                                              start_time_picos=200000),
+            v2.program_pb2.ScheduledOperation(operation=cg.XMON.serialize_op(
+                cirq.measure(q0, key='a')),
+                                              start_time_picos=400000),
+        ]))
+    assert cg.XMON.deserialize(serialized, cg.Bristlecone) == circuit
 
 
 def test_serialize_deserialize_syc():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'syc'
         },
@@ -536,13 +524,13 @@ def test_serialize_deserialize_syc():
         }, {
             'id': '1_3'
         }]
-    }
+    })
 
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
     op = cg.SYC(q0, q1)
-    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SYC_GATESET.serialize_op(op) == proto
+    assert cg.SYC_GATESET.deserialize_op(proto) == op
 
 
 def test_serialize_fails_on_other_fsim_gates():
@@ -550,9 +538,9 @@ def test_serialize_fails_on_other_fsim_gates():
     b = cirq.GridQubit(2, 2)
     op = cirq.FSimGate(phi=0.5, theta=-0.2)(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SYC_GATESET.serialize_op_dict(op)
+        _ = cg.SYC_GATESET.serialize_op(op)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SQRT_ISWAP_GATESET.serialize_op_dict(op)
+        _ = cg.SQRT_ISWAP_GATESET.serialize_op(op)
 
 
 def test_serialize_fails_on_symbols():
@@ -560,13 +548,13 @@ def test_serialize_fails_on_symbols():
     b = cirq.GridQubit(2, 2)
     op = cirq.FSimGate(phi=np.pi / 2, theta=sympy.Symbol('t'))(a, b)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SYC_GATESET.serialize_op_dict(op)
+        _ = cg.SYC_GATESET.serialize_op(op)
     with pytest.raises(ValueError, match='Cannot serialize'):
-        _ = cg.SQRT_ISWAP_GATESET.serialize_op_dict(op)
+        _ = cg.SQRT_ISWAP_GATESET.serialize_op(op)
 
 
 def test_serialize_deserialize_sqrt_iswap():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'fsim_pi_4'
         },
@@ -576,21 +564,21 @@ def test_serialize_deserialize_sqrt_iswap():
         }, {
             'id': '1_3'
         }]
-    }
+    })
 
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
     op = cirq.FSimGate(theta=np.pi / 4, phi=0)(q0, q1)
     op2 = cirq.ISWAP(q0, q1)**-0.5
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op2) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == proto
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op2) == proto
     # Note that ISWAP deserializes back to a FSimGate
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op
 
 
 def test_serialize_deserialize_inv_sqrt_iswap():
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'inv_fsim_pi_4'
         },
@@ -600,17 +588,17 @@ def test_serialize_deserialize_inv_sqrt_iswap():
         }, {
             'id': '1_3'
         }]
-    }
+    })
 
     q0 = cirq.GridQubit(1, 2)
     q1 = cirq.GridQubit(1, 3)
     op = cirq.FSimGate(theta=-np.pi / 4, phi=0)(q0, q1)
     op2 = cirq.ISWAP(q0, q1)**+0.5
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op2) == proto_dict
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == proto
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op2) == proto
     # Note that ISWAP deserializes back to a FSimGate
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op
 
 
 @pytest.mark.parametrize(('gate', 'axis_half_turns', 'half_turns'), [
@@ -624,7 +612,7 @@ def test_serialize_deserialize_inv_sqrt_iswap():
 ])
 def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
     op = gate.on(cirq.GridQubit(1, 2))
-    expected = {
+    expected = op_proto({
         'gate': {
             'id': 'xy'
         },
@@ -643,16 +631,16 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
         'qubits': [{
             'id': '1_2'
         }]
-    }
-    assert cg.SYC_GATESET.serialize_op_dict(op) == expected
-    deserialized_op = cg.SYC_GATESET.deserialize_op_dict(expected)
+    })
+    assert cg.SYC_GATESET.serialize_op(op) == expected
+    deserialized_op = cg.SYC_GATESET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),
         atol=1e-7,
     )
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == expected
-    deserialized_op = cg.SQRT_ISWAP_GATESET.deserialize_op_dict(expected)
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == expected
+    deserialized_op = cg.SQRT_ISWAP_GATESET.deserialize_op(expected)
     cirq.testing.assert_allclose_up_to_global_phase(
         cirq.unitary(deserialized_op),
         cirq.unitary(op),
@@ -668,11 +656,13 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns):
 ])
 def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
     op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'meas'
         },
-        'qubits': [],
+        'qubits': [{
+            'id': id
+        } for id in qubit_ids],
         'args': {
             'key': {
                 'arg_value': {
@@ -687,18 +677,16 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
                 }
             }
         },
-    }
-    for qubit_id in qubit_ids:
-        proto_dict['qubits'].append({'id': qubit_id})
-    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    })
+    assert cg.SYC_GATESET.serialize_op(op) == proto
+    assert cg.SYC_GATESET.deserialize_op(proto) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == proto
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op
 
 
 def test_serialize_deserialize_wait_gate():
     op = cirq.WaitGate(duration=cirq.Duration(nanos=50.0))(cirq.GridQubit(1, 2))
-    proto_dict = {
+    proto = op_proto({
         'gate': {
             'id': 'wait'
         },
@@ -712,8 +700,8 @@ def test_serialize_deserialize_wait_gate():
                 }
             },
         },
-    }
-    assert cg.SYC_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SYC_GATESET.deserialize_op_dict(proto_dict) == op
-    assert cg.SQRT_ISWAP_GATESET.serialize_op_dict(op) == proto_dict
-    assert cg.SQRT_ISWAP_GATESET.deserialize_op_dict(proto_dict) == op
+    })
+    assert cg.SYC_GATESET.serialize_op(op) == proto
+    assert cg.SYC_GATESET.deserialize_op(proto) == op
+    assert cg.SQRT_ISWAP_GATESET.serialize_op(op) == proto
+    assert cg.SQRT_ISWAP_GATESET.deserialize_op(proto) == op

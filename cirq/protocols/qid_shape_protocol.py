@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
 from typing_extensions import Protocol
 
 from cirq import ops
+from cirq._doc import document
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -38,6 +39,7 @@ class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
+    @document
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
         """A tuple specifying the number of quantum levels of each qid this
         object operates on, e.g. (2, 2, 2) for a three-qubit gate.
@@ -65,6 +67,7 @@ class SupportsExplicitNumQubits(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number of qubits."""
 
+    @document
     def _num_qubits_(self) -> Union[int, NotImplementedType]:
         """The number of qubits, qudits, or qids this object operates on.
 
