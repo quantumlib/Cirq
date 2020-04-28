@@ -3727,7 +3727,9 @@ def test_indexing_by_numpy_integer():
 
 
 def test_all_measurement_keys():
+
     class Unknown(cirq.SingleQubitGate):
+
         def _measurement_key_(self):
             return 'test'
 
@@ -3749,11 +3751,13 @@ def test_all_measurement_keys():
     assert cirq.Circuit().all_measurement_keys() == []
 
     # Output order matches insertion order, not qubit order.
-    assert cirq.Circuit(cirq.Moment([
-        cirq.measure(a, key='x'),
-        cirq.measure(b, key='y'),
-    ])).all_measurement_keys() == ['x', 'y']
-    assert cirq.Circuit(cirq.Moment([
-        cirq.measure(b, key='y'),
-        cirq.measure(a, key='x'),
-    ])).all_measurement_keys() == ['y', 'x']
+    assert cirq.Circuit(
+        cirq.Moment([
+            cirq.measure(a, key='x'),
+            cirq.measure(b, key='y'),
+        ])).all_measurement_keys() == ['x', 'y']
+    assert cirq.Circuit(
+        cirq.Moment([
+            cirq.measure(b, key='y'),
+            cirq.measure(a, key='x'),
+        ])).all_measurement_keys() == ['y', 'x']
