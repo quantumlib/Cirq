@@ -95,8 +95,8 @@ def main(qubit_count=3):
     print('Circuit:')
     print(circuit)
     print(f'Most common answer was : {freqs.most_common(1)[0]}')
-    if freqs.most_common(1)[0][1]/n_samples < 0.25:
-        print(f'Low count. String was probably {[0]*qubit_count}')
+    if freqs.most_common(1)[0][1] / n_samples < 0.25:
+        print('Low count. String was probably only zeros')
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
