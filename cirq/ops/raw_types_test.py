@@ -647,3 +647,27 @@ def test_tagged_operation_forwards_protocols():
     assert (cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args))
 
     cirq.testing.assert_has_consistent_apply_unitary(tagged_h)
+
+
+def test_inverse_composite_standards():
+
+    @cirq.value_equality
+    class Gate(cirq.Gate):
+
+        def _decompose_(self, qubits):
+            return cirq.S.on(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _has_unitary_(self):
+            return True
+
+        def _value_equality_values_(self):
+            return ()
+
+        def __repr__(self):
+            return 'C()'
+
+    cirq.testing.assert_implements_consistent_protocols(cirq.inverse(Gate()),
+                                                        global_vals={'C': Gate})
