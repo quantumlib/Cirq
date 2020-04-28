@@ -53,8 +53,6 @@ Most common Simon Algorithm answer is: ('[1 0 0 1 0 0]', 100)
 ***If the input string is s=0^n, no significant answer can be
 distinguished (since the null-space of the system of equations
 provided by the measurements gives a random vector).
-In this case the output is:
-"No significant answers obtained. Secret Sequence is probably [0,0,0,0,0,0]"
 """
 
 
@@ -63,8 +61,7 @@ def main(qubit_count=3):
     data = []  # we'll store here the results
 
     # define a secret string:
-    # secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
-    secret_string = [0 for _ in range(qubit_count)]
+    secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
 
     print(f'Secret string = {secret_string}')
 
@@ -98,13 +95,9 @@ def main(qubit_count=3):
     freqs = Counter(data)
     print('Circuit:')
     print(circuit)
-    if freqs.most_common(
-            1
-    )[0][1] < 0.25 * n_samples:  # forcing at least 25% of samples to coincide
-        zeros = [0 for _ in range(qubit_count)]
-        print(f'No significant answers. Sequence probably {zeros}')
-    else:
-        print(f'Most common answer was : {freqs.most_common(1)[0]}')
+    print(f'Most common answer was : {freqs.most_common(1)[0]}')
+    if not sum(secret_string):
+        print(f'String is {secret_string}')
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
