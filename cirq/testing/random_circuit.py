@@ -20,7 +20,6 @@ from cirq.circuits import Circuit
 if TYPE_CHECKING:
     import cirq
 
-
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.CNOT: 2,
     ops.CZ: 2,

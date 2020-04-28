@@ -15,7 +15,6 @@ from cirq.google.optimizers.two_qubit_gates.math_utils import (
 if TYPE_CHECKING:
     import cirq
 
-
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
