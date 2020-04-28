@@ -230,7 +230,7 @@ def update_mapping(mapping: Dict[ops.Qid, LogicalIndex],
         operations: The operations to update according to.
     """
     for op in ops.flatten_op_tree(operations):
-        # Ignoring type warning about passing an abstract type into Type[...].
+        # Type check false positive (https://github.com/python/mypy/issues/5374)
         gate = ops.op_gate_of_type(op, PermutationGate)  # type: ignore
         if gate is not None:
             # Ignoring type warning about op.qubits not being a tuple.
@@ -253,7 +253,7 @@ def get_logical_operations(operations: 'cirq.OP_TREE',
     """
     mapping = initial_mapping.copy()
     for op in ops.flatten_to_ops(operations):
-        # Ignoring type warning about passing an abstract type into Type[...].
+        # Type check false positive (https://github.com/python/mypy/issues/5374)
         gate = ops.op_gate_of_type(op, PermutationGate)  # type: ignore
         if gate is not None:
             gate.update_mapping(mapping, op.qubits)
