@@ -13,10 +13,11 @@
 # limitations under the License.
 
 import abc
-from typing import (cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
-                    TypeVar, Union)
+from typing import (Any, cast, Dict, Iterable, Sequence, Tuple, TYPE_CHECKING,
+                    TypeVar, Union, TYPE_CHECKING)
 
 from cirq import circuits, ops, optimizers, protocols, value
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -83,8 +84,9 @@ class PermutationGate(ops.Gate, metaclass=abc.ABCMeta):
             if max(permutation) >= n_elements:
                 raise IndexError('key is out of bounds.')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
+    def _circuit_diagram_info_(
+            self, args: 'cirq.CircuitDiagramInfoArgs'
+    ) -> Union[str, Iterable[str], 'cirq.CircuitDiagramInfo']:
         if args.known_qubit_count is None:
             return NotImplemented
         permutation = self.permutation()
@@ -142,13 +144,21 @@ class SwapPermutationGate(PermutationGate):
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         yield self.swap_gate(*qubits)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.acquaintance.SwapPermutationGate(' +
                 ('' if self.swap_gate == ops.SWAP else repr(self.swap_gate)) +
                 ')')
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.swap_gate,)
+
+    def _commutes_(self, other: Any, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
+        if (isinstance(other, ops.Gate) and
+                isinstance(other, ops.InterchangeableQubitsGate) and
+                protocols.num_qubits(other) == 2):
+            return True
+        return NotImplemented
 
 
 def _canonicalize_permutation(permutation: Dict[int, int]) -> Dict[int, int]:
@@ -187,16 +197,16 @@ class LinearPermutationGate(PermutationGate):
                     yield swap_gate(*qubits[i:i+2])
                     mapping[i], mapping[i+1] = mapping[i+1], mapping[i]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.contrib.acquaintance.LinearPermutationGate('
-                '{!r}, {!r}, {!r})'.format(
-                self.num_qubits(), self._permutation, self.swap_gate))
+                f'{self.num_qubits()!r}, {self._permutation!r}, '
+                f'{self.swap_gate!r})')
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (tuple(sorted((i, j) for i, j in self._permutation.items()
                 if i != j)), self.swap_gate)
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return bool(_canonicalize_permutation(self._permutation))
 
     def __pow__(self, exponent):

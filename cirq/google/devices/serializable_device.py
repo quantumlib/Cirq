@@ -34,8 +34,8 @@ class _GateDefinition:
             target_set: Set[Tuple['cirq.Qid', ...]],
             number_of_qubits: int,
             is_permutation: bool,
-            can_serialize_predicate: Callable[['cirq.Gate'], bool] = lambda x:
-            True,
+            can_serialize_predicate: Callable[['cirq.Operation'], bool] = lambda
+            x: True,
     ):
         self.duration = Duration(duration)
         self.target_set = target_set
@@ -49,7 +49,7 @@ class _GateDefinition:
         }
 
     def with_can_serialize_predicate(
-            self, can_serialize_predicate: Callable[['cirq.Gate'], bool]
+            self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
     ) -> '_GateDefinition':
         """Creates a new _GateDefintion as a copy of the existing definition
         but with a new with_can_serialize_predicate.  This is useful if multiple
@@ -205,8 +205,13 @@ class SerializableDevice(devices.Device):
             diagram = circuits.TextDiagramDrawer()
 
             qubits = cast(List['cirq.GridQubit'], self.qubits)
+
+            # Don't print out extras newlines if the row/col doesn't start at 0
+            min_col = min(q.col for q in qubits)
+            min_row = min(q.row for q in qubits)
+
             for q in qubits:
-                diagram.write(q.col, q.row, str(q))
+                diagram.write(q.col - min_col, q.row - min_row, str(q))
 
             # Find pairs that are connected by two-qubit gates.
             Pair = Tuple['cirq.GridQubit', 'cirq.GridQubit']
@@ -220,8 +225,9 @@ class SerializableDevice(devices.Device):
             # Draw lines between connected pairs. Limit to horizontal/vertical
             # lines since that is all the diagram drawer can handle.
             for q1, q2 in sorted(pairs):
-                if q1.row == q2.row or q1.col == q2.row:
-                    diagram.grid_line(q1.col, q1.row, q2.col, q2.row)
+                if q1.row == q2.row or q1.col == q2.col:
+                    diagram.grid_line(q1.col - min_col, q1.row - min_row,
+                                      q2.col - min_col, q2.row - min_row)
 
             return diagram.render(horizontal_spacing=3,
                                   vertical_spacing=2,
@@ -240,7 +246,7 @@ class SerializableDevice(devices.Device):
         for type_key, gate_defs in self.gate_definitions.items():
             if isinstance(op.gate, type_key):
                 for gate_def in gate_defs:
-                    if gate_def.can_serialize_predicate(op.gate):
+                    if gate_def.can_serialize_predicate(op):
                         return gate_def
         return None
 

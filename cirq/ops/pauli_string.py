@@ -11,9 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Dict, ItemsView, Iterable, Iterator, KeysView, Mapping,
-                    Tuple, TypeVar, Union, ValuesView, overload, Optional, cast,
-                    TYPE_CHECKING, SupportsComplex, List, Sequence, Any)
+
+from typing import (Any, cast, Dict, ItemsView, Iterable, Iterator, KeysView,
+                    List, Mapping, Optional, overload, Sequence,
+                    SupportsComplex, Tuple, TYPE_CHECKING, TypeVar, Union,
+                    ValuesView)
 
 import cmath
 import math
@@ -24,16 +26,17 @@ import numpy as np
 from cirq import value, protocols, linalg
 from cirq._doc import document
 from cirq.ops import (
-    global_phase_op,
-    raw_types,
-    gate_operation,
-    common_gates,
-    pauli_gates,
     clifford_gate,
-    pauli_interaction_gate,
-    op_tree,
+    common_gates,
+    gate_operation,
+    global_phase_op,
     identity,
+    op_tree,
+    pauli_gates,
+    pauli_interaction_gate,
+    raw_types,
 )
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -141,7 +144,7 @@ class PauliString(raw_types.Operation):
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
@@ -283,7 +286,7 @@ class PauliString(raw_types.Operation):
         else:
             p.text(str(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -300,10 +303,10 @@ class PauliString(raw_types.Operation):
 
         fused = prefix + '*'.join(factors)
         if len(factors) > 1:
-            return '({})'.format(fused)
+            return f'({fused})'
         return fused
 
-    def __str__(self):
+    def __str__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -379,8 +382,8 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -478,8 +481,8 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -549,10 +552,12 @@ class PauliString(raw_types.Operation):
                   ) -> Iterator[Tuple[pauli_gates.Pauli, pauli_gates.Pauli]]:
         return (paulis for qubit, paulis in self.zip_items(other))
 
-    def commutes_with(self, other: 'PauliString') -> bool:
-        return sum(not p0.commutes_with(p1)
-                   for p0, p1 in self.zip_paulis(other)
-                   ) % 2 == 0
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
+        if not isinstance(other, PauliString):
+            return NotImplemented
+        return sum(not protocols.commutes(p0, p1)
+                   for p0, p1 in self.zip_paulis(other)) % 2 == 0
 
     def __neg__(self) -> 'PauliString':
         return PauliString(qubit_pauli_map=self._qubit_pauli_map,
@@ -602,8 +607,8 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
-                    "Coefficient must be imaginary.".format(base, self))
+                    'Exponentiated to a non-Hermitian PauliString '
+                    f'<{base}**{self}>. Coefficient must be imaginary.')
 
             half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
 
@@ -841,13 +846,13 @@ class PauliString(raw_types.Operation):
 
         quarter_kickback = 0
         if (qubit0 in pauli_map and
-                not pauli_map[qubit0].commutes_with(gate.pauli0)):
+                not protocols.commutes(pauli_map[qubit0], gate.pauli0)):
             quarter_kickback += merge_and_kickback(qubit1,
                                                    gate.pauli1,
                                                    pauli_map.get(qubit1),
                                                    gate.invert1)
         if (qubit1 in pauli_map and
-                not pauli_map[qubit1].commutes_with(gate.pauli1)):
+                not protocols.commutes(pauli_map[qubit1], gate.pauli1)):
             quarter_kickback += merge_and_kickback(qubit0,
                                                    pauli_map.get(qubit0),
                                                    gate.pauli0,
@@ -885,8 +890,8 @@ def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
     used_inds = [qubit_map[q] for q in pauli_qubits]
     if len(used_inds) != len(set(used_inds)) or not set(
             range(num_state_qubits)) >= set(sorted(used_inds)):
-        raise ValueError("Input qubit map indices must be valid for a state "
-                         "over {} qubits.".format(num_state_qubits))
+        raise ValueError('Input qubit map indices must be valid for a state '
+                         f'over {num_state_qubits} qubits.')
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
@@ -938,7 +943,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __neg__(self):
         return -self._as_pauli_string()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod

@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 
 import cirq
 
@@ -43,6 +42,3 @@ def test_parse_random_state():
     vals = [prng.rand() for prng in prngs]
     eq = cirq.testing.EqualsTester()
     eq.add_equality_group(*vals)
-
-    with pytest.raises(TypeError):
-        cirq.value.parse_random_state('random_state')

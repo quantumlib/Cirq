@@ -14,20 +14,11 @@
 
 from cirq.google import api
 
-from cirq.google.api.v1.params import (
-    sweep_to_proto_dict,
-    sweep_from_proto_dict,
-)
-
 from cirq.google.api.v1.programs import (
-    gate_to_proto_dict,
     is_native_xmon_gate,
     is_native_xmon_op,
     pack_results,
-    circuit_as_schedule_to_proto_dicts,
-    circuit_from_schedule_from_proto_dicts,
     unpack_results,
-    xmon_op_from_proto_dict,
 )
 
 from cirq.google.devices import (
@@ -45,13 +36,15 @@ from cirq.google.engine import (
     engine_from_environment,
     EngineJob,
     EngineProgram,
-    JobConfig,
+    EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
 )
 
 from cirq.google.gate_sets import (
     XMON,
+    FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
 )
@@ -63,7 +56,8 @@ from cirq.google.line import (
     LinePlacementStrategy,
 )
 
-from cirq.google.ops.sycamore_gate import (
+from cirq.google.ops import (
+    PhysicalZTag,
     SycamoreGate,
     SYC,
 )
@@ -72,6 +66,7 @@ from cirq.google.optimizers import (
     ConvertToXmonGates,
     ConvertToSqrtIswapGates,
     ConvertToSycamoreGates,
+    GateTabulation,
     optimized_for_sycamore,
     optimized_for_xmon,
 )

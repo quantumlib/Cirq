@@ -38,6 +38,11 @@ from cirq.protocols.channel import (
     has_channel,
     SupportsChannel,
 )
+from cirq.protocols.commutes_protocol import (
+    commutes,
+    definitely_commutes,
+    SupportsCommutes,
+)
 from cirq.protocols.circuit_diagram_info_protocol import (
     circuit_diagram_info,
     CircuitDiagramInfo,
@@ -55,9 +60,17 @@ from cirq.protocols.equal_up_to_global_phase_protocol import (
     equal_up_to_global_phase,
     SupportsEqualUpToGlobalPhase,
 )
+from cirq.protocols.has_stabilizer_effect_protocol import (
+    has_stabilizer_effect,)
+from cirq.protocols.has_unitary_protocol import (
+    has_unitary,
+    SupportsExplicitHasUnitary,
+)
 from cirq.protocols.inverse_protocol import (
     inverse,)
 from cirq.protocols.json_serialization import (
+    DEFAULT_RESOLVERS,
+    json_serializable_dataclass,
     to_json,
     read_json,
     obj_to_dict_helper,
@@ -111,11 +124,7 @@ from cirq.protocols.qid_shape_protocol import (
     SupportsExplicitQidShape,
     SupportsExplicitNumQubits,
 )
-from cirq.protocols.unitary import (
+from cirq.protocols.unitary_protocol import (
     SupportsUnitary,
     unitary,
-)
-from cirq.protocols.has_unitary_protocol import (
-    has_unitary,
-    SupportsExplicitHasUnitary,
 )

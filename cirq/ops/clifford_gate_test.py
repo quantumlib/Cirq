@@ -12,15 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools, functools
+import functools
+import itertools
+
+import numpy as np
 import pytest
+
+import cirq
 from cirq.testing import (
     EqualsTester,
     assert_allclose_up_to_global_phase,
 )
-
-import cirq
-
 
 _bools = (False, True)
 _paulis = (cirq.X, cirq.Y, cirq.Z)
@@ -95,36 +97,25 @@ def test_init_from_double_map_vs_kwargs(trans1, trans2, from1):
     # Test initializes the same gate
     assert gate_kw == gate_map
 
+    # Test initializes what was expected
+    assert gate_map.transform(from1) == trans1
+    assert gate_map.transform(from2) == trans2
+    _assert_not_mirror(gate_map)
+    _assert_no_collision(gate_map)
 
-@pytest.mark.parametrize('trans1,trans2,from1',
-    ((trans1, trans2, from1)
-     for trans1, trans2, from1 in itertools.product(_all_rotations(),
-                                                    _all_rotations(),
-                                                    _paulis)
-     if trans1.to == trans2.to))
-def test_init_from_double_invalid(trans1, trans2, from1):
+
+@pytest.mark.parametrize(
+    'trans1,from1',
+    ((trans1, from1)
+     for trans1, from1 in itertools.product(_all_rotations(), _paulis)))
+def test_init_from_double_invalid(trans1, from1):
     from2 = cirq.Pauli.by_relative_index(from1, 1)
     # Test throws on invalid arguments
     with pytest.raises(ValueError):
-        cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
-                                                      from2: trans2})
-
-
-@pytest.mark.parametrize('trans1,trans2,from1',
-    ((trans1, trans2, from1)
-     for trans1, trans2, from1 in itertools.product(_all_rotations(),
-                                                    _all_rotations(),
-                                                    _paulis)
-     if trans1.to != trans2.to))
-def test_init_from_double(trans1, trans2, from1):
-    from2 = cirq.Pauli.by_relative_index(from1, 1)
-    gate = cirq.SingleQubitCliffordGate.from_double_map({from1: trans1,
-                                                         from2: trans2})
-    # Test initializes what was expected
-    assert gate.transform(from1) == trans1
-    assert gate.transform(from2) == trans2
-    _assert_not_mirror(gate)
-    _assert_no_collision(gate)
+        cirq.SingleQubitCliffordGate.from_double_map({
+            from1: trans1,
+            from2: trans1
+        })
 
 
 @pytest.mark.parametrize('trans,frm',
@@ -397,29 +388,46 @@ def test_inverse_matrix(gate):
                                        rtol=1e-7, atol=1e-7)
 
 
+def test_commutes_notimplemented_type():
+    with pytest.raises(TypeError):
+        cirq.commutes(cirq.SingleQubitCliffordGate.X, 'X')
+    assert (cirq.commutes(cirq.SingleQubitCliffordGate.X,
+                          'X',
+                          default='default') == 'default')
+
+
 @pytest.mark.parametrize('gate,other',
     itertools.product(_all_clifford_gates(),
                       _all_clifford_gates()))
-def test_commutes_with_single_qubit_gate(gate, other):
+def test_commutes_single_qubit_gate(gate, other):
     q0 = cirq.NamedQubit('q0')
+    gate_op = gate(q0)
+    other_op = other(q0)
     mat = cirq.Circuit(
-        gate(q0),
-        other(q0),
+        gate_op,
+        other_op,
     ).unitary()
     mat_swap = cirq.Circuit(
-        other(q0),
-        gate(q0),
+        other_op,
+        gate_op,
     ).unitary()
-    commutes = gate.commutes_with(other)
+    commutes = cirq.commutes(gate, other)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
+
+    # Test after switching order
+    mat_swap = cirq.Circuit(
+        gate.equivalent_gate_before(other)(q0),
+        gate_op,
+    ).unitary()
+    assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('gate,pauli,half_turns',
     itertools.product(_all_clifford_gates(),
                       _paulis,
                       (0.1, 0.25, 0.5, -0.5)))
-def test_commutes_with_pauli(gate, pauli, half_turns):
+def test_commutes_pauli(gate, pauli, half_turns):
     pauli_gate = pauli ** half_turns
     q0 = cirq.NamedQubit('q0')
     mat = cirq.Circuit(
@@ -430,25 +438,9 @@ def test_commutes_with_pauli(gate, pauli, half_turns):
         pauli_gate(q0),
         gate(q0),
     ).unitary()
-    commutes = gate.commutes_with(pauli)
+    commutes = cirq.commutes(gate, pauli)
     commutes_check = cirq.allclose_up_to_global_phase(mat, mat_swap)
     assert commutes == commutes_check
-
-
-@pytest.mark.parametrize('gate,other',
-    itertools.product(_all_clifford_gates(),
-                      _all_clifford_gates()))
-def test_single_qubit_gate_after_switching_order(gate, other):
-    q0 = cirq.NamedQubit('q0')
-    mat = cirq.Circuit(
-        gate(q0),
-        other(q0),
-    ).unitary()
-    mat_swap = cirq.Circuit(
-        gate.equivalent_gate_before(other)(q0),
-        gate(q0),
-    ).unitary()
-    assert_allclose_up_to_global_phase(mat, mat_swap, rtol=1e-7, atol=1e-7)
 
 
 @pytest.mark.parametrize('gate,sym,exp', (
@@ -467,3 +459,39 @@ def test_text_diagram_info(gate, sym, exp):
     assert cirq.circuit_diagram_info(gate) == cirq.CircuitDiagramInfo(
         wire_symbols=(sym,),
         exponent=exp)
+
+
+def test_from_unitary():
+
+    def _test(clifford_gate):
+        u = cirq.unitary(clifford_gate)
+        result_gate = cirq.SingleQubitCliffordGate.from_unitary(u)
+        assert result_gate == clifford_gate
+
+    _test(cirq.SingleQubitCliffordGate.I)
+    _test(cirq.SingleQubitCliffordGate.H)
+    _test(cirq.SingleQubitCliffordGate.X)
+    _test(cirq.SingleQubitCliffordGate.Y)
+    _test(cirq.SingleQubitCliffordGate.Z)
+    _test(cirq.SingleQubitCliffordGate.X_nsqrt)
+
+
+def test_from_untary_with_phase_shift():
+    u = np.exp(0.42j) * cirq.unitary(cirq.SingleQubitCliffordGate.Y_sqrt)
+    gate = cirq.SingleQubitCliffordGate.from_unitary(u)
+
+    assert gate == cirq.SingleQubitCliffordGate.Y_sqrt
+
+
+def test_from_unitary_not_clifford():
+    # Not a single-qubit gate.
+    u = cirq.unitary(cirq.CNOT)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+    # Not an unitary matrix.
+    u = 2 * cirq.unitary(cirq.X)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None
+
+    # Not a Clifford gate.
+    u = cirq.unitary(cirq.T)
+    assert cirq.SingleQubitCliffordGate.from_unitary(u) is None

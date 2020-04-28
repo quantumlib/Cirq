@@ -32,6 +32,12 @@ def test_init():
     assert isinstance(Timestamp(nanos=1.0).raw_picos(), float)
 
 
+def test_str():
+    assert str(Timestamp(picos=1000, nanos=1000)) == 't=1001000'
+    assert str(Timestamp(nanos=5.0)) == 't=5000.0'
+    assert str(Timestamp(picos=-100)) == 't=-100'
+
+
 def test_repr():
     a = Timestamp(picos=1000, nanos=1000)
     cirq.testing.assert_equivalent_repr(a)

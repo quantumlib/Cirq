@@ -17,6 +17,7 @@ from typing import Any
 
 from typing_extensions import Protocol
 
+from cirq._doc import document
 from cirq.protocols import has_channel
 
 # This is a special indicator value used by the inverse method to determine
@@ -38,6 +39,7 @@ class SupportsMeasurementKey(Protocol):
     conditional on the measurement outcome being k.
     """
 
+    @document
     def _measurement_key_(self) -> str:
         """Return the key that will be used to identify this measurement.
 

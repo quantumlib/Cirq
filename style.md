@@ -57,7 +57,7 @@ exceptions.
 An import cycle is where modules need to import each other (perhaps indirectly).
 Sometimes in order to add a type annotation you have to add an import which
 causes a cycle. To avoid this we use the `TYPE_CHECKING` constant provided 
-by `typing':
+by `typing`:
 ```python
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:

@@ -207,6 +207,10 @@ def main():
     quiet = len(sys.argv) >= 2 and sys.argv[1] == '-q'
 
     file_names = glob.glob('cirq/**/*.py', recursive=True)
+    # Remove the engine client code.
+    file_names = [
+        f for f in file_names if not f.startswith('cirq/google/engine/client/')
+    ]
     failed, attempted = run_tests(file_names,
                                   include_modules=True,
                                   include_local=False,

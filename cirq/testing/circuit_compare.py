@@ -113,6 +113,10 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
         reference: A circuit with the correct function.
         atol: Absolute error tolerance.
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
     measured_qubits_actual = {qubit
                               for op in actual.all_operations()
                               if protocols.is_measurement(op)
@@ -254,6 +258,9 @@ def assert_has_consistent_apply_unitary(val: Any, *,
         val: The value under test. Should have a `__pow__` method.
         atol: Absolute error tolerance.
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
 
     _assert_apply_unitary_works_when_axes_transposed(val, atol=atol)
 
@@ -368,6 +375,10 @@ def assert_has_consistent_apply_unitary_for_various_exponents(
             the value's `__pow__` returns `NotImplemented` for any of these,
             they are skipped.
     """
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
     for exponent in exponents:
         gate = protocols.pow(val, exponent, default=None)
         if gate is not None:

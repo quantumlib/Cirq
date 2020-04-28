@@ -14,7 +14,7 @@
 
 from typing import (Any, Callable, Iterable, Sequence, Tuple, Union, cast, List)
 
-from cirq import ops, circuits
+from cirq import circuits, ops, protocols
 
 from cirq.contrib.paulistring.pauli_string_dag import (
     pauli_string_reorder_pred,
@@ -41,7 +41,8 @@ def _sorted_best_string_placements(
                 # Skip if operations don't share qubits
                 continue
             if (isinstance(out_op, ops.PauliStringPhasor) and
-                    out_op.pauli_string.commutes_with(string_op.pauli_string)):
+                    protocols.commutes(out_op.pauli_string,
+                                       string_op.pauli_string)):
                 # Pass through another Pauli string if they commute
                 continue
             if not (isinstance(out_op, ops.GateOperation) and

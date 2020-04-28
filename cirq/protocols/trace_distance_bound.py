@@ -15,7 +15,9 @@
 from typing import Any, TypeVar, Optional, Sequence
 import numpy as np
 from typing_extensions import Protocol
-from cirq.protocols.unitary import unitary
+
+from cirq._doc import document
+from cirq.protocols import unitary_protocol
 
 
 TDefault = TypeVar('TDefault')
@@ -30,6 +32,7 @@ class SupportsTraceDistanceBound(Protocol):
     negligible.
     """
 
+    @document
     def _trace_distance_bound_(self) -> float:
         """A maximum on the trace distance between `val`'s input and output.
 
@@ -94,7 +97,7 @@ def _strat_from_trace_distance_bound_method(val: Any) -> Optional[float]:
 
 def _strat_distance_from_unitary(val: Any) -> Optional[float]:
     """Attempts to compute a value's trace_distance_bound from its unitary."""
-    u = unitary(val, default=None)
+    u = unitary_protocol.unitary(val, default=None)
 
     if u is None:
         return NotImplemented

@@ -1,0 +1,1 @@
+cirq.TaggedOperation(cirq.X.on(cirq.NamedQubit('q1')), 'tag1', cirq.google.PhysicalZTag())

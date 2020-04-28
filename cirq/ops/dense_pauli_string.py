@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numbers
-from typing import (Union, List, Optional, Sequence, TYPE_CHECKING, Any, Tuple,
-                    TypeVar, Type, Iterable, cast, Callable)
+from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
+                    Sequence, Tuple, Type, TYPE_CHECKING, TypeVar, Union)
 import abc
 
 import numpy as np
@@ -23,6 +23,7 @@ from cirq import protocols, linalg, value
 from cirq._compat import proper_repr
 from cirq.ops import (raw_types, identity, pauli_gates, global_phase_op,
                       pauli_string)
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -85,7 +86,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         if type(self) != MutableDensePauliString:
             self.pauli_mask = np.copy(self.pauli_mask)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli_mask', 'coefficient'])
 
     def _value_equality_values_(self):
@@ -293,7 +294,7 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 q: PAULI_GATES[p] for q, p in zip(qubits, self.pauli_mask) if p
             })
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.coefficient == 1:
             coef = '+'
         elif self.coefficient == -1:
@@ -305,12 +306,13 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
         mask = ''.join(PAULI_CHARS[p] for p in self.pauli_mask)
         return coef + mask
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         paulis = ''.join(PAULI_CHARS[p] for p in self.pauli_mask)
         return (f'cirq.{type(self).__name__}({repr(paulis)}, '
                 f'coefficient={proper_repr(self.coefficient)})')
 
-    def _commutes_(self, other):
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
         if isinstance(other, BaseDensePauliString):
             n = min(len(self.pauli_mask), len(other.pauli_mask))
             phase = _vectorized_pauli_mul_phase(self.pauli_mask[:n],
@@ -442,7 +444,7 @@ class MutableDensePauliString(BaseDensePauliString):
                                        pauli_mask=np.copy(self.pauli_mask)
                                        if pauli_mask is None else pauli_mask)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return super().__str__() + ' (mutable)'
 
     @classmethod
