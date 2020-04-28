@@ -449,7 +449,7 @@ def test_tagged_operation():
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(2, 2)
     op = cirq.X(q1).with_tags('tag1')
-    op_repr = "cirq.X.on(cirq.GridQubit(1, 1))"
+    op_repr = "cirq.X(cirq.GridQubit(1, 1))"
     assert repr(op) == f"cirq.TaggedOperation({op_repr}, 'tag1')"
 
     assert op.qubits == (q1,)
