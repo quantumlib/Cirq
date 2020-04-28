@@ -13,11 +13,14 @@
 # limitations under the License.
 """A testing class with utilities for checking linear algebra."""
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 import numpy as np
 
 from cirq import linalg, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def random_superposition(dim: int,
