@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
-    Iterable
+from typing import (Any, cast, Dict, Iterable, List, NamedTuple, Optional,
+                    Tuple, TypeVar, Union)
 
 import abc
 
@@ -115,7 +115,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -337,7 +337,7 @@ class EigenGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
+    def _resolve_parameters_(self: TSelf, param_resolver) -> 'EigenGate':
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
 
@@ -367,7 +367,7 @@ class EigenGate(raw_types.Gate):
         canonical_diff = (exponents[0] - exponents[1]) % period
         return np.isclose(canonical_diff, 0, atol=atol)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
 

@@ -40,7 +40,7 @@ class Unique(Generic[T]):
     def __init__(self, val: T) -> None:
         self.val = val
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'cirq.Unique({}, {!r})'.format(id(self), self.val)
 
     def __lt__(self, other):

@@ -58,22 +58,20 @@ class GateOperation(raw_types.Operation):
     def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
         return new_gate.on(*self.qubits)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         # Abbreviate when possible.
         if self == self.gate.on(*self.qubits):
-            return '{!r}.on({})'.format(
-                self.gate,
-                ', '.join(repr(q) for q in self.qubits))
+            qubits = ', '.join(repr(q) for q in self.qubits)
+            return f'{self.gate!r}.on({qubits})'
 
-        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
-            self.gate,
-            list(self.qubits))
+        return (f'cirq.GateOperation(gate={self.gate!r}, '
+                f'qubits={list(self.qubits)!r})')
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    def __str__(self) -> str:
+        qubits = ', '.join(str(e) for e in self.qubits)
+        return f'{self.gate}({qubits})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(

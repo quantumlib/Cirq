@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import Union, Sequence, Tuple, Optional, cast
+from typing import Any, cast, Dict, Optional, Sequence, Tuple, Union
 
 import math
 import numpy as np
@@ -154,19 +154,20 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             wire_symbols=(f'PhX({args.format_real(self.phase_exponent)})',),
             exponent=value.canonicalize_half_turns(self._exponent))
 
-    def __str__(self):
+    def __str__(self) -> str:
         info = protocols.circuit_diagram_info(self)
         if info.exponent == 1:
             return info.wire_symbols[0]
-        return '{}^{}'.format(info.wire_symbols[0], info.exponent)
+        return f'{info.wire_symbols[0]}^{info.exponent}'
 
-    def __repr__(self):
-        args = ['phase_exponent={}'.format(proper_repr(self.phase_exponent))]
+    def __repr__(self) -> str:
+        args = [f'phase_exponent={proper_repr(self.phase_exponent)}']
         if self.exponent != 1:
-            args.append('exponent={}'.format(proper_repr(self.exponent)))
+            args.append(f'exponent={proper_repr(self.exponent)}')
         if self._global_shift != 0:
-            args.append('global_shift={!r}'.format(self._global_shift))
-        return 'cirq.PhasedXPowGate({})'.format(', '.join(args))
+            args.append(f'global_shift={self._global_shift!r}')
+        args_str = ', '.join(args)
+        return f'cirq.PhasedXPowGate({args_str})'
 
     def _period(self):
         exponents = [self._global_shift, 1 + self._global_shift]
@@ -204,6 +205,6 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['phase_exponent', 'exponent', 'global_shift'])
