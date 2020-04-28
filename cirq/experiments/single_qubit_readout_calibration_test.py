@@ -24,7 +24,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
     def __init__(self,
                  p0: float,
                  p1: float,
-                 seed: cirq.value.RANDOM_STATE_LIKE = None):
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Sampler that flips some bits upon readout.
 
         Args:

@@ -307,6 +307,6 @@ class EngineProgram:
                                            self.program_id,
                                            delete_jobs=delete_jobs)
 
-    def __str__(self):
-        return 'EngineProgram(project_id=\'{}\', program_id=\'{}\')'.format(
-            self.project_id, self.program_id)
+    def __str__(self) -> str:
+        return (f'EngineProgram(project_id=\'{self.project_id}\', '
+                f'program_id=\'{self.program_id}\')')

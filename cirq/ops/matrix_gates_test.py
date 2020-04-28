@@ -242,14 +242,14 @@ def test_two_qubit_consistent():
 
 def test_two_qubit_matrix_gate():
     u = cirq.testing.random_unitary(4)
-    g = cirq.MatrixGate(u)
-    cirq.testing.assert_equivalent_repr(g)
+    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(u))
+    cirq.testing.assert_equivalent_repr(cirq.TwoQubitMatrixGate(u))
 
 
 def test_single_qubit_matrix_gate():
     u = cirq.testing.random_unitary(2)
-    g = cirq.MatrixGate(u)
-    cirq.testing.assert_equivalent_repr(g)
+    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(u))
+    cirq.testing.assert_equivalent_repr(cirq.SingleQubitMatrixGate(u))
 
 
 def test_matrix_gate_init_validation():

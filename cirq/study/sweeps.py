@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (cast, Dict, Iterable, Iterator, List, overload, Sequence,
-                    Tuple, Union)
+from typing import (Any, cast, Dict, Iterable, Iterator, List, overload,
+                    Sequence, Tuple, Union)
 
 import abc
 import collections
@@ -66,7 +66,7 @@ class Sweep(metaclass=abc.ABCMeta):
         elif isinstance(other, Sweep):
             factors.append(other)
         else:
-            raise TypeError('cannot multiply sweep and {}'.format(type(other)))
+            raise TypeError(f'cannot multiply sweep and {type(other)}')
         return Product(*factors)
 
     def __add__(self, other: 'Sweep') -> 'Sweep':
@@ -80,7 +80,7 @@ class Sweep(metaclass=abc.ABCMeta):
         elif isinstance(other, Sweep):
             sweeps.append(other)
         else:
-            raise TypeError('cannot add sweep and {}'.format(type(other)))
+            raise TypeError(f'cannot add sweep and {type(other)}')
         return Zip(*sweeps)
 
     @abc.abstractmethod
@@ -122,8 +122,7 @@ class Sweep(metaclass=abc.ABCMeta):
             return next(itertools.islice(self, val, val + 1))
         if not isinstance(val, slice):
             raise TypeError(
-                'Sweep indices must be either int or slices, not {}'.format(
-                    type(val)))
+                f'Sweep indices must be either int or slices, not {type(val)}')
 
         inds_map: Dict[int, int] = {
             sweep_i: slice_i for slice_i, sweep_i in enumerate(range(n)[val])
@@ -141,7 +140,7 @@ class Sweep(metaclass=abc.ABCMeta):
     def param_tuples(self) -> Iterator[Params]:
         """An iterator over (key, value) pairs assigning Symbol key to value."""
 
-    def __str__(self):
+    def __str__(self) -> str:
         length = len(self)
         max_show = 10
         # Show a maximum of max_show entries with an ellipsis in the middle
@@ -183,7 +182,7 @@ class _Unit(Sweep):
     def param_tuples(self) -> Iterator[Params]:
         yield ()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'cirq.UnitSweep'
 
 
@@ -234,11 +233,11 @@ class Product(Sweep):
 
         return _gen(self.factors)
 
-    def __repr__(self):
-        return 'cirq.Product({})'.format(', '.join(
-            repr(f) for f in self.factors))
+    def __repr__(self) -> str:
+        factors_repr = ', '.join(repr(f) for f in self.factors)
+        return f'cirq.Product({factors_repr})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self.factors:
             return 'Product()'
         factor_strs = []
@@ -271,7 +270,7 @@ class Zip(Sweep):
     def __eq__(self, other):
         return isinstance(other, Zip) and self.sweeps == other.sweeps
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(tuple(self.sweeps))
 
     @property
@@ -288,10 +287,11 @@ class Zip(Sweep):
         for values in zip(*iters):
             yield sum(values, ())
 
-    def __repr__(self):
-        return 'cirq.Zip({})'.format(', '.join(repr(s) for s in self.sweeps))
+    def __repr__(self) -> str:
+        sweeps_repr = ', '.join(repr(s) for s in self.sweeps)
+        return f'cirq.Zip({sweeps_repr})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self.sweeps:
             return 'Zip()'
         return ' + '.join(
@@ -311,11 +311,11 @@ class SingleSweep(Sweep):
             return NotImplemented
         return self._tuple() == other._tuple()
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.__class__, self._tuple()))
 
     @abc.abstractmethod
-    def _tuple(self):
+    def _tuple(self) -> Tuple[Any, ...]:
         pass
 
     @property
@@ -340,7 +340,7 @@ class Points(SingleSweep):
         super(Points, self).__init__(key)
         self.points = points
 
-    def _tuple(self):
+    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], Sequence[float]]:
         return self.key, tuple(self.points)
 
     def __len__(self) -> int:
@@ -349,8 +349,8 @@ class Points(SingleSweep):
     def _values(self) -> Iterator[float]:
         return iter(self.points)
 
-    def __repr__(self):
-        return 'cirq.Points({!r}, {!r})'.format(self.key, self.points)
+    def __repr__(self) -> str:
+        return f'cirq.Points({self.key!r}, {self.points!r})'
 
 
 class Linspace(SingleSweep):
@@ -371,7 +371,7 @@ class Linspace(SingleSweep):
         self.stop = stop
         self.length = length
 
-    def _tuple(self):
+    def _tuple(self) -> Tuple[Union[str, sympy.Symbol], float, float, int]:
         return (self.key, self.start, self.stop, self.length)
 
     def __len__(self) -> int:
@@ -385,9 +385,9 @@ class Linspace(SingleSweep):
                 p = i / (self.length - 1)
                 yield self.start * (1 - p) + self.stop * p
 
-    def __repr__(self):
-        return 'cirq.Linspace({!r}, start={!r}, stop={!r}, length={!r})'.format(
-                self.key, self.start, self.stop, self.length)
+    def __repr__(self) -> str:
+        return (f'cirq.Linspace({self.key!r}, start={self.start!r}, '
+                f'stop={self.stop!r}, length={self.length!r})')
 
 
 class ListSweep(Sweep):
@@ -404,7 +404,7 @@ class ListSweep(Sweep):
         self.resolver_list: List[resolver.ParamResolver] = []
         for r in resolver_list:
             if not isinstance(r, (dict, resolver.ParamResolver)):
-                raise TypeError('Not a ParamResolver or dict: <{!r}>'.format(r))
+                raise TypeError(f'Not a ParamResolver or dict: <{r!r}>')
             self.resolver_list.append(resolver.ParamResolver(r))
 
     def __eq__(self, other):
@@ -428,8 +428,8 @@ class ListSweep(Sweep):
         for r in self.resolver_list:
             yield tuple(_params_without_symbols(r))
 
-    def __repr__(self):
-        return 'cirq.ListSweep({!r})'.format(self.resolver_list)
+    def __repr__(self) -> str:
+        return f'cirq.ListSweep({self.resolver_list!r})'
 
 
 def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:

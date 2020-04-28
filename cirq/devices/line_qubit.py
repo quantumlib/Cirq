@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import functools
-from typing import Any, Iterable, List, Optional, Sequence, Set, TypeVar, \
-    TYPE_CHECKING
+from typing import (Any, Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
+                    TYPE_CHECKING)
 
 import abc
 
@@ -179,13 +179,13 @@ class LineQid(_BaseLineQid):
         from cirq.protocols.qid_shape_protocol import qid_shape
         return LineQid.for_qid_shape(qid_shape(val), start=start, step=step)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.LineQid({self.x}, dimension={self.dimension})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.x} (d={self.dimension})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x', 'dimension'])
 
 
@@ -230,11 +230,11 @@ class LineQubit(_BaseLineQid):
         """
         return [LineQubit(i) for i in range(*range_args)]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.LineQubit({self.x})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.x}"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['x'])

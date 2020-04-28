@@ -25,8 +25,8 @@ class VirtualTag():
     def __eq__(self, other):
         return isinstance(other, VirtualTag)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '<virtual>'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)

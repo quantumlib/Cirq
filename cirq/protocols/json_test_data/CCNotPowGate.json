@@ -1,0 +1,5 @@
+{
+  "cirq_type": "CCXPowGate",
+  "exponent": 0.123,
+  "global_shift": 0.456
+}

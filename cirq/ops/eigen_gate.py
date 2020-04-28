@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import Tuple, Union, List, Optional, cast, TypeVar, NamedTuple, \
-    Iterable
+from typing import (Any, cast, Dict, Iterable, List, NamedTuple, Optional,
+                    Tuple, TypeVar, Union)
 
 import abc
 
@@ -115,7 +115,7 @@ class EigenGate(raw_types.Gate):
         return self._global_shift
 
     # virtual method
-    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> TSelf:
+    def _with_exponent(self: TSelf, exponent: value.TParamVal) -> 'EigenGate':
         """Return the same kind of gate, but with a different exponent.
 
         Child classes should override this method if they have an __init__
@@ -184,6 +184,25 @@ class EigenGate(raw_types.Gate):
             result = h - result
 
         return result
+
+    def _format_exponent_as_angle(
+            self,
+            args: 'protocols.CircuitDiagramInfoArgs',
+            order: int = 2,
+    ) -> str:
+        """Returns string with exponent expressed as angle in radians.
+
+        Args:
+            args: CircuitDiagramInfoArgs describing the desired drawing style.
+            order: Exponent corresponding to full rotation by 2π.
+
+        Returns:
+            Angle in radians corresponding to the exponent of self and
+            formatted according to style described by args.
+        """
+        exponent = self._diagram_exponent(args, ignore_global_phase=False)
+        pi = sympy.pi if protocols.is_parameterized(exponent) else np.pi
+        return args.format_radians(radians=2 * pi * exponent / order)
 
     # virtual method
     def _eigen_shifts(self) -> List[float]:
@@ -318,7 +337,7 @@ class EigenGate(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
 
-    def _resolve_parameters_(self: TSelf, param_resolver) -> TSelf:
+    def _resolve_parameters_(self: TSelf, param_resolver) -> 'EigenGate':
         return self._with_exponent(
                 exponent=param_resolver.value_of(self._exponent))
 
@@ -348,7 +367,7 @@ class EigenGate(raw_types.Gate):
         canonical_diff = (exponents[0] - exponents[1]) % period
         return np.isclose(canonical_diff, 0, atol=atol)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['exponent', 'global_shift'])
 
 
