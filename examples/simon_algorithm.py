@@ -58,12 +58,13 @@ In this case the output is:
 """
 
 
-def main(qubit_count=6):
+def main(qubit_count=3):
 
     data = []  # we'll store here the results
 
     # define a secret string:
-    secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
+    # secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
+    secret_string = [0 _ in range(qubit_count)]
 
     print(f'Secret string = {secret_string}')
 
