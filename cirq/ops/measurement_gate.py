@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING
 
 import numpy as np
 
@@ -150,12 +150,24 @@ class MeasurementGate(raw_types.Gate):
                             i))
         return ''.join(lines)
 
-    def __repr__(self) -> str:
-        other = ''
-        if not all(d == 2 for d in self._qid_shape):
-            other = f', {self._qid_shape!r}'
-        return (f'cirq.MeasurementGate({self.num_qubits()!r}, {self.key!r}, '
-                f'{self.invert_mask!r}{other})')
+    def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
+        args = list(repr(q) for q in qubits)
+        if self.key != _default_measurement_key(qubits):
+            args.append(f'key={self.key!r}')
+        if self.invert_mask:
+            args.append(f'invert_mask={self.invert_mask!r}')
+        arg_list = ', '.join(args)
+        return f'cirq.measure({arg_list})'
+
+    def __repr__(self):
+        qid_shape_arg = ''
+        if any(d != 2 for d in self._qid_shape):
+            qid_shape_arg = f', {self._qid_shape!r}'
+        return (f'cirq.MeasurementGate('
+                f'{self.num_qubits()!r}, '
+                f'{self.key!r}, '
+                f'{self.invert_mask}'
+                f'{qid_shape_arg})')
 
     def _value_equality_values_(self) -> Any:
         return self.key, self.invert_mask, self._qid_shape
