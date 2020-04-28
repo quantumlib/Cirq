@@ -1,7 +1,7 @@
 """Attempt to tabulate single qubit gates required to generate a target 2Q gate
 with a product A k A."""
 from functools import reduce
-from typing import Tuple, Sequence, List, NamedTuple
+from typing import Tuple, Sequence, List, NamedTuple, TYPE_CHECKING
 
 from dataclasses import dataclass
 import numpy as np
@@ -11,6 +11,9 @@ from cirq import linalg, value
 from cirq.google.optimizers.two_qubit_gates.math_utils import (
     kak_vector_infidelity, vector_kron, weyl_chamber_mesh, random_qubit_unitary,
     kak_vector_to_unitary)
+
+if TYPE_CHECKING:
+    import cirq
 
 _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
@@ -287,13 +290,14 @@ def _tabulate_kak_vectors(
     return _TabulationStepResult(kept_kaks, kept_cycles)
 
 
-def gate_product_tabulation(base_gate: np.ndarray,
-                            max_infidelity: float,
-                            *,
-                            sample_scaling: int = 50,
-                            allow_missed_points: bool = True,
-                            random_state: value.RANDOM_STATE_LIKE = None
-                           ) -> GateTabulation:
+def gate_product_tabulation(
+        base_gate: np.ndarray,
+        max_infidelity: float,
+        *,
+        sample_scaling: int = 50,
+        allow_missed_points: bool = True,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+) -> GateTabulation:
     r"""Generate a GateTabulation for a base two qubit unitary.
 
     Args:
