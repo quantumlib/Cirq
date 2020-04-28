@@ -49,7 +49,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                         simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self, seed: value.RANDOM_STATE_LIKE = None):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Creates instance of `CliffordSimulator`.
 
         Args:
@@ -242,7 +242,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
 
         measurements = []
 

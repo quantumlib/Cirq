@@ -104,6 +104,9 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=int))
 
@@ -182,9 +185,6 @@ class IdentityOperation(raw_types.Operation):
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
-        raise NotImplementedError('deprecated')
-
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
         raise NotImplementedError('deprecated')
 
 

@@ -217,6 +217,7 @@ results.
     :toctree: generated/
 
     cirq.CIRCUIT_LIKE
+    cirq.RANDOM_STATE_OR_SEED_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
@@ -578,6 +579,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.assert_specifies_has_unitary_if_unitary
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit

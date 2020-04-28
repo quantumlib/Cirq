@@ -3724,3 +3724,40 @@ def test_indexing_by_numpy_integer():
 
     assert c[np.int32(1)] == cirq.Moment([cirq.Y(q)])
     assert c[np.int64(1)] == cirq.Moment([cirq.Y(q)])
+
+
+def test_all_measurement_keys():
+
+    class Unknown(cirq.SingleQubitGate):
+
+        def _measurement_key_(self):
+            return 'test'
+
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(
+        cirq.X(a),
+        cirq.CNOT(a, b),
+        cirq.measure(a, key='x'),
+        cirq.measure(b, key='y'),
+        cirq.reset(a),
+        cirq.measure(a, b, key='xy'),
+        Unknown().on(a),
+    )
+
+    # Big case.
+    assert c.all_measurement_keys() == ['x', 'y', 'xy', 'test']
+
+    # Empty case.
+    assert cirq.Circuit().all_measurement_keys() == []
+
+    # Output order matches insertion order, not qubit order.
+    assert cirq.Circuit(
+        cirq.Moment([
+            cirq.measure(a, key='x'),
+            cirq.measure(b, key='y'),
+        ])).all_measurement_keys() == ['x', 'y']
+    assert cirq.Circuit(
+        cirq.Moment([
+            cirq.measure(b, key='y'),
+            cirq.measure(a, key='x'),
+        ])).all_measurement_keys() == ['y', 'x']
