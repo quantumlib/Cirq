@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import abc
-from typing import (Any, Dict, Iterable, Sequence, Tuple,
-                    TypeVar, Union, TYPE_CHECKING)
+from typing import (Any, Dict, Iterable, Sequence, Tuple, TypeVar, Union,
+                    TYPE_CHECKING)
 
 from cirq import circuits, ops, optimizers, protocols, value
 from cirq.type_workarounds import NotImplementedType
