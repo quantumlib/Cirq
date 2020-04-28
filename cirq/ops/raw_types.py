@@ -14,8 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Hashable, Optional, Sequence,
-                    Tuple, TYPE_CHECKING, Union)
+from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
+                    Sequence, Tuple, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -144,13 +144,13 @@ class _QubitAsQid(Qid):
         # Don't include self._qubit.dimension
         return self._qubit._cmp_tuple()[:-1]
 
-    def __repr__(self):
-        return '{!r}.with_dimension({})'.format(self.qubit, self.dimension)
+    def __repr__(self) -> str:
+        return f'{self.qubit!r}.with_dimension({self.dimension})'
 
-    def __str__(self):
-        return '{!s} (d={})'.format(self.qubit, self.dimension)
+    def __str__(self) -> str:
+        return f'{self.qubit!s} (d={self.dimension})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
@@ -294,6 +294,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def _backwards_compatibility_num_qubits(self) -> int:
         return protocols.num_qubits(self)
 
+    def _has_stabilizer_effect_(self) -> Optional[bool]:
+        return NotImplemented
+
     @value.alternative(requires='_num_qubits_',
                        implementation=_backwards_compatibility_num_qubits)
     def num_qubits(self) -> int:
@@ -353,7 +356,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """cirq.GateOperation.__rmul__ delegates to this method."""
         return NotImplemented
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
@@ -392,6 +395,16 @@ class Operation(metaclass=abc.ABCMeta):
                 exactly match the order of qubits returned from the operation's
                 `qubits` property.
         """
+
+    @property
+    def tags(self) -> Tuple[Hashable, ...]:
+        """Returns a tuple of the operation's tags."""
+        return ()
+
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self
 
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation, with this op and the specified tags.
@@ -509,6 +522,11 @@ class TaggedOperation(Operation):
         """Returns a tuple of the operation's tags."""
         return self._tags
 
+    @property
+    def untagged(self) -> 'cirq.Operation':
+        """Returns the underlying operation without any tags."""
+        return self.sub_operation
+
     def with_tags(self, *new_tags: Hashable) -> 'cirq.TaggedOperation':
         """Creates a new TaggedOperation with combined tags.
 
@@ -518,21 +536,21 @@ class TaggedOperation(Operation):
         """
         return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
-    def __str__(self):
+    def __str__(self) -> str:
         tag_repr = ','.join(repr(t) for t in self._tags)
-        return f"cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})"
+        return f'cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.sub_operation, self._tags)
 
     @classmethod
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
         return cls(sub_operation, *tags)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> 'cirq.OP_TREE':
@@ -649,8 +667,8 @@ class _InverseCompositeGate(Gate):
         sub_info.exponent *= -1
         return sub_info
 
-    def __repr__(self):
-        return '({!r}**-1)'.format(self._original)
+    def __repr__(self) -> str:
+        return f'({self._original!r}**-1)'
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:

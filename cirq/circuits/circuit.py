@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -84,6 +83,13 @@ class Circuit:
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
             followed by the moments in circuit2;
@@ -166,11 +172,29 @@ class Circuit:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: slice) -> 'Circuit':
+    def __getitem__(self, key: slice) -> 'cirq.Circuit':
         pass
 
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
         pass
 
     def __getitem__(self, key):
@@ -178,10 +202,27 @@ class Circuit:
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if hasattr(key, '__index__'):
             return self._moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
+                if isinstance(qubit_idx, cirq.Qid):
+                    qubit_idx = [qubit_idx]
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return new_circuit
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type slice or int.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
@@ -280,20 +321,20 @@ class Circuit:
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
-            return 'cirq.Circuit(device={!r})'.format(self._device)
+            return f'cirq.Circuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit({})'.format(moment_str)
+            return f'cirq.Circuit({moment_str})'
 
-        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
+        return f'cirq.Circuit({moment_str}, device={self._device!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
@@ -746,19 +787,6 @@ class Circuit:
             if q in start_frontier), default=0)
         2) set(operation.qubits).intersection(start_frontier)
 
-        Args:
-            start_frontier: A starting set of reachable locations.
-            is_blocker: A predicate that determines if operations block
-                reachability. Any location covered by an operation that causes
-                `is_blocker` to return True is considered to be an unreachable
-                location.
-
-        Returns:
-            A list of tuples. Each tuple describes an operation found between
-            the start frontier and a blocking operation. The first item of
-            each tuple is the index of the moment containing the operation,
-            and the second item is the operation itself.
-
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
         their moment indices) in the output. `F` and `T` indicate that
@@ -803,6 +831,19 @@ class Circuit:
         ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                    │                  │
         ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
 
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]
@@ -1607,9 +1648,7 @@ class Circuit:
             diagram.write(0, i, qubit_namer(q))
 
         if any(
-                isinstance(op, cirq.GlobalPhaseOperation) or
-            (isinstance(op, cirq.TaggedOperation) and
-             isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
+                isinstance(op.untagged, cirq.GlobalPhaseOperation)
                 for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
@@ -1772,12 +1811,8 @@ def _get_operation_circuit_diagram_info_with_fallback(
                     info))
         return info
 
-    # Fallback to a default representation using the operation's __str__.
-    name = str(op)
-
-    # For TaggedOperation, use the sub_operations __str__ instead
-    if isinstance(op, cirq.TaggedOperation):
-        name = str(op.sub_operation)
+    # Use the untagged operation's __str__.
+    name = str(op.untagged)
 
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
@@ -1786,7 +1821,7 @@ def _get_operation_circuit_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if isinstance(op, cirq.TaggedOperation):
+    if op.tags:
         name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
@@ -1905,18 +1940,14 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = None
+    global_phase: Optional[complex] = None
     tags: List[Any] = []
     for op in moment:
-        if (isinstance(op, ops.TaggedOperation) and
-                isinstance(op.sub_operation, ops.GlobalPhaseOperation)):
+        if isinstance(op.untagged, ops.GlobalPhaseOperation):
             tags.extend(op.tags)
-            op = op.sub_operation
-        if isinstance(op, ops.GlobalPhaseOperation):
-            if global_phase:
-                global_phase *= complex(op.coefficient)
-            else:
-                global_phase = complex(op.coefficient)
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= complex(op.untagged.coefficient)
 
     # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
     if global_phase and (global_phase != 1 or not non_global_ops):

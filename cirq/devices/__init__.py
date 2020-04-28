@@ -16,7 +16,9 @@ from cirq.devices.device import (
     Device,)
 
 from cirq.devices.grid_qubit import (
-    GridQubit,)
+    GridQid,
+    GridQubit,
+)
 
 from cirq.devices.line_qubit import (
     LineQubit,

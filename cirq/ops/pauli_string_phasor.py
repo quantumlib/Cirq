@@ -101,7 +101,7 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
 
     def merged_with(self, op: 'PauliStringPhasor') -> 'PauliStringPhasor':
         if not self.can_merge_with(op):
-            raise ValueError('Cannot merge operations: {}, {}'.format(self, op))
+            raise ValueError(f'Cannot merge operations: {self}, {op}')
         pp = self.exponent_pos + op.exponent_pos
         pn = self.exponent_neg + op.exponent_neg
         return PauliStringPhasor(self.pauli_string,
@@ -161,20 +161,19 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                                  exponent_pos=pp,
                                  exponent_neg=pn)
 
-    def __repr__(self):
-        return ('cirq.PauliStringPhasor({!r}, '
-                'exponent_neg={}, '
-                'exponent_pos={})'.format(self.pauli_string,
-                                          proper_repr(self.exponent_neg),
-                                          proper_repr(self.exponent_pos)))
+    def __repr__(self) -> str:
+        return (f'cirq.PauliStringPhasor({self.pauli_string!r}, '
+                f'exponent_neg={proper_repr(self.exponent_neg)}, '
+                f'exponent_pos={proper_repr(self.exponent_pos)})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.exponent_pos == -self.exponent_neg:
-            return 'exp({}iπ{}*{})'.format(
-                '-' if self.exponent_pos < 0 else '',
-                '' if abs(self.exponent_relative) == 1 else abs(
-                    self.exponent_pos * 2), self.pauli_string)
-        return '({})**{}'.format(self.pauli_string, self.exponent_relative)
+            sign = '-' if self.exponent_pos < 0 else ''
+            exponent = str(abs(self.exponent_pos * 2))
+            if abs(self.exponent_relative) == 1:
+                exponent = ''
+            return f'exp({sign}iπ{exponent}*{self.pauli_string})'
+        return f'({self.pauli_string})**{self.exponent_relative}'
 
 
 def xor_nonlocal_decompose(qubits: Iterable[raw_types.Qid],

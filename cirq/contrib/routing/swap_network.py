@@ -36,7 +36,7 @@ class SwapNetwork:
     """
 
     def __init__(self, circuit: 'cirq.Circuit',
-                 initial_mapping: Dict[ops.Qid, ops.Qid]) -> None:
+                 initial_mapping: Dict['cirq.Qid', 'cirq.Qid']) -> None:
         if not all(
                 isinstance(i, ops.Qid)
                 for I in initial_mapping.items()
@@ -45,26 +45,26 @@ class SwapNetwork:
         self.circuit = circuit
         self.initial_mapping = initial_mapping
 
-    def final_mapping(self):
+    def final_mapping(self) -> Dict['cirq.Qid', 'cirq.Qid']:
         mapping = dict(self.initial_mapping)
         cca.update_mapping(mapping, self.circuit.all_operations())
         return mapping
 
-    def get_logical_operations(self) -> Iterable[ops.Operation]:
+    def get_logical_operations(self) -> Iterable['cirq.Operation']:
         return cca.get_logical_operations(self.circuit.all_operations(),
                                           self.initial_mapping)
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return False
         return (self.circuit == other.circuit and
                 self.initial_mapping == other.initial_mapping)
 
     @property
-    def device(self):
+    def device(self) -> 'cirq.Device':
         return self.circuit.device
 
-    def __str__(self):
+    def __str__(self) -> str:
         circuit = self.circuit.copy()
         cca.display_mapping(circuit, self.initial_mapping)
         return str(circuit)

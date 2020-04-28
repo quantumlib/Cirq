@@ -76,11 +76,11 @@ class GateOperation(raw_types.Operation):
         return (f'cirq.GateOperation(gate={self.gate!r}, '
                 f'qubits=[{qubit_args_repr}])')
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    def __str__(self) -> str:
+        qubits = ', '.join(str(e) for e in self.qubits)
+        return f'{self.gate}({qubits})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(

@@ -16,6 +16,8 @@
 
 from typing import (Any, Callable, Iterable, TypeVar, Union, Tuple, FrozenSet,
                     TYPE_CHECKING, Iterator)
+from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator,
+                    overload, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union)
 from cirq import protocols
 from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
@@ -34,6 +36,13 @@ class Moment:
     moment should execute at the same time (to the extent possible; not all
     operations have the same duration) and it is expected that all operations
     in a moment should be completed before beginning the next moment.
+
+    Moment can be indexed by qubit or list of qubits:
+        moment[qubit] returns the Operation in the moment which touches the
+            given qubit, or throws KeyError if there is no such operation.
+        moment[qubits] returns another Moment which consists only of those
+            operations which touch at least one of the given qubits. If there
+            are no such operations, returns an empty Moment.
     """
 
     @deprecated_parameter(
@@ -90,7 +99,7 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def with_operation(self, operation: 'cirq.Operation'):
+    def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
         Args:
@@ -109,7 +118,8 @@ class Moment:
 
         return m
 
-    def without_operations_touching(self, qubits: Iterable['cirq.Qid']):
+    def without_operations_touching(self, qubits: Iterable['cirq.Qid']
+                                   ) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -124,6 +134,18 @@ class Moment:
         return Moment(
             operation for operation in self.operations
             if qubits.isdisjoint(frozenset(operation.qubits)))
+
+    def _operation_touching(self, qubit: raw_types.Qid) -> 'cirq.Operation':
+        """Returns the operation touching given qubit.
+        Args:
+            qubit: Operations that touch this qubit will be returned.
+        Returns:
+            The operation which touches `qubit`.
+        """
+        for op in self.operations:
+            if qubit in op.qubits:
+                return op
+        raise KeyError("Moment doesn't act on given qubit")
 
     def __copy__(self):
         return type(self)(self.operations)
@@ -170,10 +192,10 @@ class Moment:
             new_ops.append(new_op)
         return Moment(new_ops)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.operations)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self.operations:
             return 'cirq.Moment()'
 
@@ -182,7 +204,7 @@ class Moment:
 
         return f'cirq.Moment(\n{indented}\n)'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
@@ -201,14 +223,36 @@ class Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['operations'])
 
     @classmethod
     def _from_json_dict_(cls, operations, **kwargs):
         return Moment(operations)
 
-    def __add__(self, other):
+    def __add__(self,
+                other: Union['cirq.Operation', 'cirq.Moment']) -> 'cirq.Moment':
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
+        if isinstance(other, Moment):
+            return Moment(self.operations + other.operations)
         return NotImplemented
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, key: raw_types.Qid) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self, key: Iterable[raw_types.Qid]) -> 'cirq.Moment':
+        pass
+
+    def __getitem__(self, key):
+        if isinstance(key, raw_types.Qid):
+            return self._operation_touching(key)
+        elif isinstance(key, Iterable):
+            qubits_to_keep = frozenset(key)
+            ops_to_keep = tuple(
+                op for op in self.operations
+                if not qubits_to_keep.isdisjoint(frozenset(op.qubits)))
+            return Moment(ops_to_keep)

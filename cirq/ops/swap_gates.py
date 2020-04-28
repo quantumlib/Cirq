@@ -129,16 +129,16 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'SWAP'
-        return 'SWAP**{}'.format(self._exponent)
+        return f'SWAP**{self._exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        e = proper_repr(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.SWAP'
-            return '(cirq.SWAP**{})'.format(proper_repr(self._exponent))
-        return ('cirq.SwapPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+            return f'(cirq.SWAP**{e})'
+        return (f'cirq.SwapPowGate(exponent={e}, '
+                f'global_shift={self._global_shift!r})')
 
 
 class ISwapPowGate(eigen_gate.EigenGate,
@@ -239,16 +239,16 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'ISWAP'
-        return 'ISWAP**{}'.format(self._exponent)
+        return f'ISWAP**{self._exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        e = proper_repr(self._exponent)
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.ISWAP'
-            return '(cirq.ISWAP**{})'.format(proper_repr(self._exponent))
-        return ('cirq.ISwapPowGate(exponent={}, '
-                'global_shift={!r})').format(proper_repr(self._exponent),
-                                             self._global_shift)
+            return f'(cirq.ISWAP**{e})'
+        return (f'cirq.ISwapPowGate(exponent={e}, '
+                f'global_shift={self._global_shift!r})')
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
