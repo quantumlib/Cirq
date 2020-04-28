@@ -1445,6 +1445,14 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_keys(self) -> List[str]:
+        result = []
+        for op in self.all_operations():
+            key = protocols.measurement_key(op, default=None)
+            if key is not None:
+                result.append(key)
+        return result
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
