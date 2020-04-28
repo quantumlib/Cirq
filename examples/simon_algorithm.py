@@ -51,7 +51,8 @@ Most common Simon Algorithm answer is: ('[1 0 0 1 0 0]', 100)
 
 ***If the input string is s=0^n, no significant answer can be
 distinguished (since the null-space of the system of equations
-provided by the measurements gives a random vector).
+provided by the measurements gives a random vector). This will
+lead to low frequency count in output string.
 """
 
 
@@ -95,8 +96,6 @@ def main(qubit_count=3):
     print('Circuit:')
     print(circuit)
     print(f'Most common answer was : {freqs.most_common(1)[0]}')
-    if freqs.most_common(1)[0][1] / n_samples < 0.25:
-        print('Low count. String was probably only zeros')
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
