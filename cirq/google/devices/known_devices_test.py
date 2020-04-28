@@ -58,6 +58,22 @@ valid_gate_sets {
     }
   }
   valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
+    }
+  }
+  valid_gates {
     id: "cz"
     number_of_qubits: 2
     valid_args {
@@ -238,6 +254,42 @@ valid_targets {
 """
 
 
+def test_create_device_proto_for_irregular_grid():
+    qubits = cirq.GridQubit.rect(2, 2)
+    pairs = [
+        (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+        (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+        (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
+    ]
+    proto = known_devices.create_device_proto_for_qubits(qubits, pairs)
+    assert str(proto) == """\
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
+  }
+}
+"""
+
+
 def test_multiple_gate_sets():
     halfPiGateSet = cg.serializable_gate_set.SerializableGateSet(
         gate_set_name='half_pi_gateset',
@@ -284,6 +336,22 @@ valid_gate_sets {
     valid_args {
       name: "type"
       type: STRING
+    }
+  }
+  valid_gates {
+    id: "xyz"
+    number_of_qubits: 1
+    valid_args {
+      name: "x_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "z_exponent"
+      type: FLOAT
+    }
+    valid_args {
+      name: "axis_phase_exponent"
+      type: FLOAT
     }
   }
   valid_gates {

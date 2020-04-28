@@ -138,7 +138,7 @@ class Simulator(simulator.SimulatesSamples,
     def __init__(self,
                  *,
                  dtype: Type[np.number] = np.complex64,
-                 seed: value.RANDOM_STATE_LIKE = None):
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """A sparse matrix simulator.
 
         Args:
@@ -192,6 +192,11 @@ class Simulator(simulator.SimulatesSamples,
         circuit: circuits.Circuit,
         repetitions: int) -> Dict[str, List[np.ndarray]]:
         measurements = {}  # type: Dict[str, List[np.ndarray]]
+        if repetitions == 0:
+            for _, op, _ in circuit.findall_operations_with_gate_type(
+                    ops.MeasurementGate):
+                measurements[protocols.measurement_key(op)] = np.empty([0, 1])
+
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
                     circuit,
@@ -437,7 +442,7 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
         return wave_function.sample_state_vector(self._state_vector,
                                                  indices,

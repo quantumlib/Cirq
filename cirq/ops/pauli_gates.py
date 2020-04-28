@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Union, TYPE_CHECKING, Tuple, cast
+from typing import Any, cast, Tuple, TYPE_CHECKING, Union
 
 from cirq import value
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
+from cirq.type_workarounds import NotImplementedType
 
 
 if TYPE_CHECKING:
@@ -47,7 +48,10 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
     def num_qubits(self):
         return 1
 
-    def commutes_with(self, other: 'Pauli') -> bool:
+    def _commutes_(self, other: Any,
+                   atol: float) -> Union[bool, NotImplementedType, None]:
+        if not isinstance(other, Pauli):
+            return NotImplemented
         return self is other
 
     def third(self, second: 'Pauli') -> 'Pauli':
@@ -97,50 +101,65 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
 
 class _PauliX(Pauli, common_gates.XPowGate):
 
-    def __init__(self, *, exponent: value.TParamVal = 1.0):
+    def __init__(self):
         Pauli.__init__(self, index=0, name='X')
-        common_gates.XPowGate.__init__(self, exponent=exponent)
+        common_gates.XPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliX',
                 exponent: value.TParamVal) -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
 
+    def _with_exponent(self: '_PauliX',
+                       exponent: value.TParamVal) -> common_gates.XPowGate:
+        return self.__pow__(exponent)
+
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
-        return cls(exponent=exponent)
+        assert exponent == 1
+        return Pauli._XYZ[0]
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
 
-    def __init__(self, *, exponent: value.TParamVal = 1.0):
+    def __init__(self):
         Pauli.__init__(self, index=1, name='Y')
-        common_gates.YPowGate.__init__(self, exponent=exponent)
+        common_gates.YPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliY',
                 exponent: value.TParamVal) -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
 
+    def _with_exponent(self: '_PauliY',
+                       exponent: value.TParamVal) -> common_gates.YPowGate:
+        return self.__pow__(exponent)
+
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
-        return cls(exponent=exponent)
+        assert exponent == 1
+        return Pauli._XYZ[1]
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
 
-    def __init__(self, *, exponent: value.TParamVal = 1.0):
+    def __init__(self):
         Pauli.__init__(self, index=2, name='Z')
-        common_gates.ZPowGate.__init__(self, exponent=exponent)
+        common_gates.ZPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliZ',
                 exponent: value.TParamVal) -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
 
+    def _with_exponent(self: '_PauliZ',
+                       exponent: value.TParamVal) -> common_gates.ZPowGate:
+        return self.__pow__(exponent)
+
     @classmethod
     def _from_json_dict_(cls, exponent, global_shift, **kwargs):
         assert global_shift == 0
-        return cls(exponent=exponent)
+        assert exponent == 1
+        return Pauli._XYZ[2]
 
 
 X = _PauliX()

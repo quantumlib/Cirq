@@ -28,4 +28,4 @@ if sys.version_info < (3, 6, 0):
         'B) Explicitly install an older deprecated-but-compatible version '
         'of cirq (e.g. "python -m pip install cirq==0.5.*")')
 
-__version__ = "0.7.0.dev"
+__version__ = "0.8.0.dev"

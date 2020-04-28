@@ -54,7 +54,7 @@ def test_parse_real_formula():
     assert parse_formula('1/2') == 0.5
     assert parse_formula('t*t + ln(t)') == t * t + sympy.ln(t)
     assert parse_formula('cos(pi*t)') == sympy.cos(sympy.pi * t)
-    assert parse_formula('5t') == 5 * t
+    assert parse_formula('5t') == 5.0 * t
     np.testing.assert_allclose(parse_formula('cos(pi)'), -1, atol=1e-8)
     assert type(parse_formula('cos(pi)')) is float
 

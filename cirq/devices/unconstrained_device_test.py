@@ -22,3 +22,7 @@ def test_repr():
 def test_infinitely_fast():
     assert cirq.UNCONSTRAINED_DEVICE.duration_of(cirq.X(
         cirq.NamedQubit('a'))) == cirq.Duration(picos=0)
+
+
+def test_qubit_set():
+    assert cirq.UNCONSTRAINED_DEVICE.qubit_set() is None

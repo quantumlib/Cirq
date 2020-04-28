@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import pytest
+import numpy as np
+import sympy
 
 import cirq
 
@@ -423,3 +425,225 @@ def test_inverse_composite_diagram_info():
     c = cirq.inverse(Gate2())
     assert cirq.circuit_diagram_info(c) == cirq.CircuitDiagramInfo(
         wire_symbols=('s!',), exponent=-1)
+
+
+def test_tagged_operation_equality():
+    eq = cirq.testing.EqualsTester()
+    q1 = cirq.GridQubit(1, 1)
+    op = cirq.X(q1)
+    op2 = cirq.Y(q1)
+
+    eq.add_equality_group(op)
+    eq.add_equality_group(op.with_tags('tag1'),
+                          cirq.TaggedOperation(op, 'tag1'))
+    eq.add_equality_group(op2.with_tags('tag1'),
+                          cirq.TaggedOperation(op2, 'tag1'))
+    eq.add_equality_group(op.with_tags('tag2'),
+                          cirq.TaggedOperation(op, 'tag2'))
+    eq.add_equality_group(op.with_tags('tag1', 'tag2'),
+                          op.with_tags('tag1').with_tags('tag2'),
+                          cirq.TaggedOperation(op, 'tag1', 'tag2'))
+
+
+def test_tagged_operation():
+    q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(2, 2)
+    op = cirq.X(q1).with_tags('tag1')
+    op_repr = "cirq.X.on(cirq.GridQubit(1, 1))"
+    assert repr(op) == f"cirq.TaggedOperation({op_repr}, 'tag1')"
+
+    assert op.qubits == (q1,)
+    assert op.tags == ('tag1',)
+    assert op.gate == cirq.X
+    assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
+    assert op.with_qubits(q2).qubits == (q2,)
+
+
+def test_circuit_diagram():
+
+    class TaggyTag:
+        """Tag with a custom repr function to test circuit diagrams."""
+
+        def __repr__(self):
+            return 'TaggyTag()'
+
+    h = cirq.H(cirq.GridQubit(1, 1))
+    tagged_h = h.with_tags('tag1')
+    non_string_tag_h = h.with_tags(TaggyTag())
+
+    expected = cirq.CircuitDiagramInfo(wire_symbols=("H['tag1']",),
+                                       exponent=1.0,
+                                       connected=True,
+                                       exponent_qubit_index=None,
+                                       auto_exponent_parens=True)
+    args = cirq.CircuitDiagramInfoArgs(None, None, None, None, None, False)
+    assert cirq.circuit_diagram_info(tagged_h) == expected
+    assert (cirq.circuit_diagram_info(tagged_h,
+                                      args) == cirq.circuit_diagram_info(h))
+
+    c = cirq.Circuit(tagged_h)
+    diagram_with_tags = "(1, 1): ───H['tag1']───"
+    diagram_without_tags = "(1, 1): ───H───"
+    assert str(cirq.Circuit(tagged_h)) == diagram_with_tags
+    assert c.to_text_diagram() == diagram_with_tags
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+
+    c = cirq.Circuit(non_string_tag_h)
+    diagram_with_non_string_tag = "(1, 1): ───H[TaggyTag()]───"
+    assert c.to_text_diagram() == diagram_with_non_string_tag
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+
+
+def test_circuit_diagram_tagged_global_phase():
+    # Tests global phase operation
+    q = cirq.NamedQubit('a')
+    global_phase = cirq.GlobalPhaseOperation(coefficient=-1.0).with_tags('tag0')
+
+    # Just global phase in a circuit
+    assert (cirq.circuit_diagram_info(global_phase,
+                                      default='default') == 'default')
+    cirq.testing.assert_has_diagram(cirq.Circuit(global_phase),
+                                    "\n\nglobal phase:   π['tag0']",
+                                    use_unicode_characters=True)
+    cirq.testing.assert_has_diagram(cirq.Circuit(global_phase),
+                                    "\n\nglobal phase:   π",
+                                    use_unicode_characters=True,
+                                    include_tags=False)
+
+    expected = cirq.CircuitDiagramInfo(wire_symbols=(),
+                                       exponent=1.0,
+                                       connected=True,
+                                       exponent_qubit_index=None,
+                                       auto_exponent_parens=True)
+
+    # Operation with no qubits and returns diagram info with no wire symbols
+    class NoWireSymbols(cirq.GlobalPhaseOperation):
+
+        def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                                  ) -> 'cirq.CircuitDiagramInfo':
+            return expected
+
+    no_wire_symbol_op = NoWireSymbols(coefficient=-1.0).with_tags('tag0')
+    assert (cirq.circuit_diagram_info(no_wire_symbol_op,
+                                      default='default') == expected)
+    cirq.testing.assert_has_diagram(cirq.Circuit(no_wire_symbol_op),
+                                    "\n\nglobal phase:   π['tag0']",
+                                    use_unicode_characters=True)
+
+    # Two global phases in one moment
+    tag1 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag1')
+    tag2 = cirq.GlobalPhaseOperation(coefficient=1j).with_tags('tag2')
+    c = cirq.Circuit([cirq.X(q), tag1, tag2])
+    cirq.testing.assert_has_diagram(c,
+                                    """\
+a: ─────────────X───────────────────
+
+global phase:   π['tag1', 'tag2']""",
+                                    use_unicode_characters=True,
+                                    precision=2)
+
+    # Two moments with global phase, one with another tagged gate
+    c = cirq.Circuit([cirq.X(q).with_tags('x_tag'), tag1])
+    c.append(cirq.Moment([cirq.X(q), tag2]))
+    for m in c:
+        print(m)
+        print('----')
+    cirq.testing.assert_has_diagram(c,
+                                    """\
+a: ─────────────X['x_tag']─────X──────────────
+
+global phase:   0.5π['tag1']   0.5π['tag2']
+""",
+                                    use_unicode_characters=True,
+                                    include_tags=True)
+
+
+def test_circuit_diagram_no_circuit_diagram():
+
+    class NoCircuitDiagram(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def __repr__(self):
+            return 'guess-i-will-repr'
+
+    q = cirq.GridQubit(1, 1)
+    expected = "(1, 1): ───guess-i-will-repr───"
+    assert cirq.Circuit(NoCircuitDiagram()(q)).to_text_diagram() == expected
+    expected = "(1, 1): ───guess-i-will-repr['taggy']───"
+    assert cirq.Circuit(
+        NoCircuitDiagram()(q).with_tags('taggy')).to_text_diagram() == expected
+
+
+def test_tagged_operation_forwards_protocols():
+    """The results of all protocols applied to an operation with a tag should
+    be equivalent to the result without tags.
+    """
+    q1 = cirq.GridQubit(1, 1)
+    q2 = cirq.GridQubit(1, 2)
+    h = cirq.H(q1)
+    tag = 'tag1'
+    tagged_h = cirq.H(q1).with_tags(tag)
+
+    np.testing.assert_equal(cirq.unitary(tagged_h), cirq.unitary(h))
+    assert cirq.has_unitary(tagged_h)
+    assert cirq.decompose(tagged_h) == cirq.decompose(h)
+    assert cirq.pauli_expansion(tagged_h) == cirq.pauli_expansion(h)
+    assert cirq.equal_up_to_global_phase(h, tagged_h)
+    assert np.isclose(cirq.channel(h), cirq.channel(tagged_h)).all()
+
+    assert (cirq.measurement_key(cirq.measure(
+        q1, key='blah').with_tags(tag)) == 'blah')
+
+    parameterized_op = cirq.XPowGate(
+        exponent=sympy.Symbol('t'))(q1).with_tags(tag)
+    assert cirq.is_parameterized(parameterized_op)
+    resolver = cirq.study.ParamResolver({'t': 0.25})
+    assert (cirq.resolve_parameters(
+        parameterized_op, resolver) == cirq.XPowGate(exponent=0.25)(q1))
+
+    y = cirq.Y(q1)
+    tagged_y = cirq.Y(q1).with_tags(tag)
+    assert tagged_y**0.5 == cirq.YPowGate(exponent=0.5)(q1)
+    assert tagged_y * 2 == (y * 2)
+    assert (3 * tagged_y == (3 * y))
+    assert cirq.phase_by(y, 0.125, 0) == cirq.phase_by(tagged_y, 0.125, 0)
+    controlled_y = tagged_y.controlled_by(q2)
+    assert controlled_y.qubits == (
+        q2,
+        q1,
+    )
+    assert isinstance(controlled_y, cirq.Operation)
+    assert not isinstance(controlled_y, cirq.TaggedOperation)
+
+    clifford_x = cirq.SingleQubitCliffordGate.X(q1)
+    tagged_x = cirq.SingleQubitCliffordGate.X(q1).with_tags(tag)
+    assert cirq.commutes(clifford_x, clifford_x)
+    assert cirq.commutes(tagged_x, clifford_x)
+    assert cirq.commutes(clifford_x, tagged_x)
+    assert cirq.commutes(tagged_x, tagged_x)
+
+    assert (cirq.trace_distance_bound(y**0.001) == cirq.trace_distance_bound(
+        (y**0.001).with_tags(tag)))
+
+    flip = cirq.bit_flip(0.5)(q1)
+    tagged_flip = cirq.bit_flip(0.5)(q1).with_tags(tag)
+    assert cirq.has_mixture(tagged_flip)
+    assert cirq.has_channel(tagged_flip)
+
+    flip_mixture = cirq.mixture(flip)
+    tagged_mixture = cirq.mixture(tagged_flip)
+    assert len(tagged_mixture) == 2
+    assert len(tagged_mixture[0]) == 2
+    assert len(tagged_mixture[1]) == 2
+    assert tagged_mixture[0][0] == flip_mixture[0][0]
+    assert np.isclose(tagged_mixture[0][1], flip_mixture[0][1]).all()
+    assert tagged_mixture[1][0] == flip_mixture[1][0]
+    assert np.isclose(tagged_mixture[1][1], flip_mixture[1][1]).all()
+
+    qubit_map = {q1: 'q1'}
+    qasm_args = cirq.QasmArgs(qubit_id_map=qubit_map)
+    assert (cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args))
+
+    cirq.testing.assert_has_consistent_apply_unitary(tagged_h)

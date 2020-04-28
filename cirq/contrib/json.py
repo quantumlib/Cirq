@@ -3,7 +3,7 @@ classes in Contrib.
 
 """
 
-from cirq.protocols.json import DEFAULT_RESOLVERS
+from cirq.protocols.json_serialization import DEFAULT_RESOLVERS
 
 
 def contrib_class_resolver(cirq_type: str):

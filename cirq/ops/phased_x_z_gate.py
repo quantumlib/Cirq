@@ -1,5 +1,5 @@
 import numbers
-from typing import Union, TYPE_CHECKING, Tuple, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -52,12 +52,13 @@ class PhasedXZGate(gate_features.SingleQubitGate):
             x %= 2
             if x > 1:
                 x -= 2
+
         # Axis phase exponent is irrelevant if there is no X exponent.
         if x == 0:
             a = 0
         # For 180 degree X rotations, the axis phase and z exponent overlap.
         if x == 1 and z != 0:
-            a -= z / 2
+            a += z / 2
             z = 0
 
         # Canonicalize Z exponent into (-1, +1].
@@ -73,10 +74,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 a -= 2
             if a <= -0.5:
                 a += 1
-                x = -x
+                if x != 1:
+                    x = -x
             elif a > 0.5:
                 a -= 1
-                x = -x
+                if x != 1:
+                    x = -x
 
         return PhasedXZGate(x_exponent=x, z_exponent=z, axis_phase_exponent=a)
 
@@ -162,6 +165,23 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                             axis_phase_exponent=self._axis_phase_exponent +
                             phase_turns * 2)
 
+    def _pauli_expansion_(self) -> 'cirq.LinearDict[str]':
+        if protocols.is_parameterized(self):
+            return NotImplemented
+        x_angle = np.pi * self._x_exponent / 2
+        z_angle = np.pi * self._z_exponent / 2
+        axis_angle = np.pi * self._axis_phase_exponent
+        phase = np.exp(1j * (x_angle + z_angle))
+
+        cx = np.cos(x_angle)
+        sx = np.sin(x_angle)
+        return value.LinearDict({
+            'I': phase * cx * np.cos(z_angle),
+            'X': -1j * phase * sx * np.cos(z_angle + axis_angle),
+            'Y': -1j * phase * sx * np.sin(z_angle + axis_angle),
+            'Z': -1j * phase * cx * np.sin(z_angle),
+        })  # yapf: disable
+
     def _circuit_diagram_info_(self,
                                args: 'cirq.CircuitDiagramInfoArgs') -> str:
         """See `cirq.SupportsCircuitDiagramInfo`."""
@@ -170,15 +190,15 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 f'x={args.format_real(self._x_exponent)},'
                 f'z={args.format_real(self._z_exponent)})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return protocols.circuit_diagram_info(self).wire_symbols[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.PhasedXZGate('
                 f'axis_phase_exponent={proper_repr(self._axis_phase_exponent)},'
                 f' x_exponent={proper_repr(self._x_exponent)}, '
                 f'z_exponent={proper_repr(self._z_exponent)})')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent'])

@@ -18,6 +18,7 @@ from typing import Any, Sequence, Tuple, Union
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._doc import document
 from cirq.protocols.has_unitary_protocol import has_unitary
 
 from cirq.type_workarounds import NotImplementedType
@@ -31,6 +32,7 @@ class SupportsMixture(Protocol):
     """An object that may be describable as a probabilistic combination.
     """
 
+    @document
     def _mixture_(self
                  ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
         """Return the probabilistic mixture.
@@ -46,6 +48,7 @@ class SupportsMixture(Protocol):
             A tuple of (probability of object, object)
         """
 
+    @document
     def _has_mixture_(self) -> bool:
         """Whether this value has a mixture representation.
 

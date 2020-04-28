@@ -22,7 +22,7 @@ def _unitaries_allclose(circuit1, circuit2):
     [
         (cast(cirq.Gate, cirq.ISWAP), 7),  # cast is for fixing mypy confusion
         (cirq.CZ, 8),
-        (cirq.SWAP, 13),
+        (cirq.SWAP, 7),
         (cirq.CNOT, 9),
         (cirq.ISWAP**0.5, 1),
         (cirq.ISWAP**-0.5, 1),
@@ -74,7 +74,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     assert len(converted_circuit) <= expected_length
 
     # Check if unitaries are the same
-    for val in np.linspace(0, 2 * np.pi, 20):
+    for val in np.linspace(0, 2 * np.pi, 12):
         assert _unitaries_allclose(
             cirq.resolve_parameters(original_circuit, {'t': val}),
             cirq.resolve_parameters(converted_circuit, {'t': val}))

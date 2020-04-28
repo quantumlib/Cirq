@@ -81,7 +81,7 @@ If the returned object has a `_from_json_dict_` attribute, it is called instead.
 
 All of Cirq's public classes should be serializable.
 This is enforced by the `test_json_test_data_coverage` test in
-`cirq/protocols/json_test.py`, which iterates over cirq's API looking for types
+`cirq/protocols/json_serialization_test.py`, which iterates over cirq's API looking for types
 with no associated json test data.
 
 There are several steps needed to get a object serializing, deserializing, and

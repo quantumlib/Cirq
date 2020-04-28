@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -70,14 +70,14 @@ class WaitGate(raw_types.Gate):
         # to affect the unitary. Play it safe and fail.
         return NotImplemented
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'WaitGate({self.duration})'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.WaitGate({repr(self.duration)})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['duration'])
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.duration

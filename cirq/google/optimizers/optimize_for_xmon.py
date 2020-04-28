@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A combination of several optimizations targeting XmonDevice."""
-from typing import Callable, cast, List, Optional, TYPE_CHECKING
+from typing import Callable, cast, Optional, TYPE_CHECKING
 
 from cirq import devices
 from cirq.google.optimizers import optimized_for_sycamore
@@ -29,7 +29,12 @@ def optimized_for_xmon(
         allow_partial_czs: bool = False,
 ) -> 'cirq.Circuit':
     if allow_partial_czs:
-        return optimized_for_sycamore(circuit, new_device, qubit_map,
-                                      'xmon_partial_cz')
+        return optimized_for_sycamore(circuit,
+                                      new_device=new_device,
+                                      qubit_map=qubit_map,
+                                      optimizer_type='xmon_partial_cz')
     else:
-        return optimized_for_sycamore(circuit, new_device, qubit_map, 'xmon')
+        return optimized_for_sycamore(circuit,
+                                      new_device=new_device,
+                                      qubit_map=qubit_map,
+                                      optimizer_type='xmon')
