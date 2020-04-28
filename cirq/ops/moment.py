@@ -14,8 +14,8 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import (Any, Callable, Iterable, Sequence, TypeVar, Union, Tuple,
-                    FrozenSet, TYPE_CHECKING, Iterator, overload)
+from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator,
+                    overload, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union)
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -89,7 +89,7 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def with_operation(self, operation: 'cirq.Operation'):
+    def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
 
         Args:
@@ -108,7 +108,8 @@ class Moment:
 
         return m
 
-    def without_operations_touching(self, qubits: Iterable[raw_types.Qid]):
+    def without_operations_touching(self, qubits: Iterable['cirq.Qid']
+                                   ) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
 
         Args:
@@ -181,21 +182,21 @@ class Moment:
             new_ops.append(new_op)
         return Moment(new_ops)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.operations)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self.operations:
             return 'cirq.Moment()'
-        return 'cirq.Moment(operations={})'.format(
-            _list_repr_with_indented_item_lines(self.operations))
+        operations = _list_repr_with_indented_item_lines(self.operations)
+        return f'cirq.Moment(operations={operations})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ' and '.join(str(op) for op in self.operations)
 
     def transform_qubits(self: TSelf_Moment,
-                         func: Callable[[raw_types.Qid], raw_types.Qid]
-                         ) -> TSelf_Moment:
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']
+                        ) -> TSelf_Moment:
         """Returns the same moment, but with different qubits.
 
         Args:
@@ -209,12 +210,15 @@ class Moment:
         return self.__class__(op.transform_qubits(func)
                 for op in self.operations)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['operations'])
 
-    def __add__(self, other):
+    def __add__(self,
+                other: Union['cirq.Operation', 'cirq.Moment']) -> 'cirq.Moment':
         if isinstance(other, raw_types.Operation):
             return self.with_operation(other)
+        if isinstance(other, Moment):
+            return Moment(self.operations + other.operations)
         return NotImplemented
 
     # pylint: disable=function-redefined

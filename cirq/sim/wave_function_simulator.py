@@ -16,7 +16,7 @@
 
 import abc
 
-from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING
+from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple
 
 import numpy as np
 
@@ -115,22 +115,21 @@ class WaveFunctionStepResult(simulator.StepResult, metaclass=abc.ABCMeta):
 @value.value_equality(unhashable=True)
 class WaveFunctionSimulatorState:
 
-    def __init__(self,
-        state_vector: np.ndarray,
-        qubit_map: Dict[ops.Qid, int]):
+    def __init__(self, state_vector: np.ndarray,
+                 qubit_map: Dict[ops.Qid, int]) -> None:
         self.state_vector = state_vector
         self.qubit_map = qubit_map
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def __repr__(self):
-        return (
-            "cirq.WaveFunctionSimulatorState(state_vector=np.{!r}, qubit_map="
-            "{!r})".format(self.state_vector, self.qubit_map))
+    def __repr__(self) -> str:
+        return ('cirq.WaveFunctionSimulatorState('
+                f'state_vector=np.{self.state_vector!r}, '
+                f'qubit_map={self.qubit_map!r})')
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.state_vector.tolist(), self.qubit_map)
 
 
@@ -186,15 +185,14 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
 
-    def __str__(self):
+    def __str__(self) -> str:
         samples = super().__str__()
         final = self.state_vector()
         if len([1 for e in final if abs(e) > 0.001]) < 16:
             wave = self.dirac_notation(3)
         else:
             wave = str(final)
-
-        return 'measurements: {}\noutput vector: {}'.format(samples, wave)
+        return f'measurements: {samples}\noutput vector: {wave}'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Text output in Jupyter."""
@@ -204,8 +202,7 @@ class WaveFunctionTrialResult(wave_function.StateVectorMixin,
         else:
             p.text(str(self))
 
-    def __repr__(self):
-        return ('cirq.WaveFunctionTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_simulator_state={!r})').format(
-                    self.params, self.measurements, self._final_simulator_state)
+    def __repr__(self) -> str:
+        return (f'cirq.WaveFunctionTrialResult(params={self.params!r}, '
+                f'measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')

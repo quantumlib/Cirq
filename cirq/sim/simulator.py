@@ -519,13 +519,13 @@ class SimulationTrialResult:
         self.measurements = measurements
         self._final_simulator_state = final_simulator_state
 
-    def __repr__(self):
-        return ('cirq.SimulationTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_simulator_state={!r})').format(
-                    self.params, self.measurements, self._final_simulator_state)
+    def __repr__(self) -> str:
+        return (f'cirq.SimulationTrialResult(params={self.params!r}, '
+                f'measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')
 
-    def __str__(self):
+    def __str__(self) -> str:
+
         def bitstring(vals):
             separator = ' ' if np.max(vals) >= 10 else ''
             return separator.join(str(int(v)) for v in vals)
@@ -534,8 +534,7 @@ class SimulationTrialResult:
             [(key, bitstring(val)) for key, val in self.measurements.items()])
         if not results:
             return '(no measurements)'
-        return ' '.join(
-            ['{}={}'.format(key, val) for key, val in results])
+        return ' '.join([f'{key}={val}' for key, val in results])
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Text output in Jupyter."""
@@ -545,7 +544,7 @@ class SimulationTrialResult:
         else:
             p.text(str(self))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
