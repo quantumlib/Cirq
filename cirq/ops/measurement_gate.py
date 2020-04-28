@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -150,17 +150,17 @@ class MeasurementGate(raw_types.Gate):
                             i))
         return ''.join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         other = ''
         if not all(d == 2 for d in self._qid_shape):
-            other = ', {!r}'.format(self._qid_shape)
-        return 'cirq.MeasurementGate({!r}, {!r}, {!r}{})'.format(
-            self.num_qubits(), self.key, self.invert_mask, other)
+            other = f', {self._qid_shape!r}'
+        return (f'cirq.MeasurementGate({self.num_qubits()!r}, {self.key!r}, '
+                f'{self.invert_mask!r}{other})')
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.key, self.invert_mask, self._qid_shape
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         other = {}
         if not all(d == 2 for d in self._qid_shape):
             other['qid_shape'] = self._qid_shape

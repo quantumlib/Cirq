@@ -13,7 +13,7 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import List, Union, Sequence, Tuple, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -68,7 +68,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def phase_exponent(self) -> Union[float, sympy.Symbol]:
         return self._phase_exponent
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'phase_exponent': self._phase_exponent,
@@ -167,7 +167,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return 'PhasedISWAP'
         return f'PhasedISWAP**{self.exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         phase_exponent = proper_repr(self._phase_exponent)
         args = [f'phase_exponent={phase_exponent}']
         if self.exponent != 1:
