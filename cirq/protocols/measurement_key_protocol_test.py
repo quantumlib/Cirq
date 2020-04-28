@@ -40,9 +40,9 @@ def test_measurement_key_no_method():
         cirq.measurement_key(NoMethod())
 
     with pytest.raises(ValueError, match='multiple measurement keys'):
-        cirq.measurement_key(cirq.Circuit(
-            cirq.measure(cirq.LineQubit(0)),
-            cirq.measure(cirq.LineQubit(0))))
+        cirq.measurement_key(
+            cirq.Circuit(cirq.measure(cirq.LineQubit(0)),
+                         cirq.measure(cirq.LineQubit(0))))
 
     assert cirq.measurement_key(NoMethod(), None) is None
     assert cirq.measurement_key(NoMethod(), NotImplemented) is NotImplemented
@@ -102,6 +102,7 @@ def test_measurement_keys():
             return 2
 
     class MeasurementKeysGate(cirq.Gate):
+
         def _measurement_keys_(self):
             return ['a', 'b']
 
