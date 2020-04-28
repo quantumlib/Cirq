@@ -334,8 +334,8 @@ class EngineProcessor:
 
 
 def _to_date_time_filters(
-        from_time: Union[None, datetime.datetime, datetime. timedelta],
-        to_time: Union[None, datetime.datetime, datetime. timedelta]
+        from_time: Union[None, datetime.datetime, datetime.timedelta],
+        to_time: Union[None, datetime.datetime, datetime.timedelta]
 ) -> List[str]:
     now = datetime.datetime.now()
 
@@ -356,8 +356,7 @@ def _to_date_time_filters(
     elif isinstance(to_time, datetime.datetime):
         end_time = to_time
     else:
-        raise ValueError(
-            f"Don't understand to_time of type {type(to_time)}.")
+        raise ValueError(f"Don't understand to_time of type {type(to_time)}.")
 
     filters = []
     if end_time is not None:

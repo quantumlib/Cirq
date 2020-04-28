@@ -578,22 +578,24 @@ def test_list_reservations_time_filter_behavior(list_reservations):
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {100_000}')
 
     processor.list_reservations(from_time=datetime.timedelta(seconds=200),
-                           to_time=None)
+                                to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {100_200}')
 
-    processor.list_reservations(from_time=datetime.datetime.utcfromtimestamp(52),
-                           to_time=None)
+    processor.list_reservations(
+        from_time=datetime.datetime.utcfromtimestamp(52), to_time=None)
     list_reservations.assert_called_with('proj', 'p0', f'end_time > {52}')
 
     processor.list_reservations(from_time=None, to_time=datetime.timedelta(0))
-    list_reservations.assert_called_with('proj', 'p0', f'start_time < {100_000}')
+    list_reservations.assert_called_with('proj', 'p0',
+                                         f'start_time < {100_000}')
 
     processor.list_reservations(from_time=None,
-                           to_time=datetime.timedelta(seconds=200))
-    list_reservations.assert_called_with('proj', 'p0', f'start_time < {100_200}')
+                                to_time=datetime.timedelta(seconds=200))
+    list_reservations.assert_called_with('proj', 'p0',
+                                         f'start_time < {100_200}')
 
     processor.list_reservations(from_time=None,
-                           to_time=datetime.datetime.utcfromtimestamp(52))
+                                to_time=datetime.datetime.utcfromtimestamp(52))
     list_reservations.assert_called_with('proj', 'p0', f'start_time < {52}')
 
 
