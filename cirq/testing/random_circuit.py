@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Sequence, Dict, Optional
+from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.circuits import Circuit
+
+if TYPE_CHECKING:
+    import cirq
+
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.CNOT: 2,

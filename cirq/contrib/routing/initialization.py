@@ -13,12 +13,15 @@
 # limitations under the License.
 
 import itertools
-from typing import cast, Dict, Hashable
+from typing import cast, Dict, Hashable, TYPE_CHECKING
 
 import networkx as nx
 from sortedcontainers import SortedDict, SortedSet
 
 from cirq import ops, value
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def get_center(graph: nx.Graph) -> Hashable:

@@ -13,13 +13,16 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import cast, List, Optional, Tuple, Type, Union
+from typing import cast, List, Optional, Tuple, Type, Union, TYPE_CHECKING
 
 import numpy as np
 from scipy.stats import entropy
 
 from cirq import linalg, value
 from cirq.sim import wave_function
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def to_valid_density_matrix(
