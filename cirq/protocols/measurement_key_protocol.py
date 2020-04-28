@@ -101,8 +101,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     raise TypeError(f"object of type '{type(val)}' had no measurement keys.")
 
 
-def measurement_keys(val: Any,
-                     *,
+def measurement_keys(val: Any, *,
                      allow_decompose: bool = True) -> Tuple[str, ...]:
     """Gets the measurement keys of measurements within the given value.
 
@@ -131,7 +130,8 @@ def measurement_keys(val: Any,
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return tuple(key for op in operations for key in measurement_keys(op))
+            return tuple(
+                key for op in operations for key in measurement_keys(op))
 
     return ()
 

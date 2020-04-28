@@ -82,7 +82,9 @@ def test_is_measurement():
 
 
 def test_measurement_keys():
+
     class Composite(cirq.Gate):
+
         def _decompose_(self, qubits):
             yield cirq.measure(qubits[0], key='inner1')
             yield cirq.measure(qubits[1], key='inner2')
@@ -94,8 +96,7 @@ def test_measurement_keys():
     a, b = cirq.LineQubit.range(2)
     assert cirq.measurement_keys(Composite()) == ('inner1', 'inner2')
     assert cirq.measurement_keys(Composite().on(a, b)) == ('inner1', 'inner2')
-    assert cirq.measurement_keys(Composite(),
-                                 allow_decompose=False) == ()
+    assert cirq.measurement_keys(Composite(), allow_decompose=False) == ()
     assert cirq.measurement_keys(Composite().on(a, b),
                                  allow_decompose=False) == ()
 
@@ -109,6 +110,6 @@ def test_measurement_keys():
     assert cirq.measurement_keys(cirq.measure(a, key='out'),
                                  allow_decompose=False) == ('out',)
 
-    assert cirq.measurement_keys(cirq.Circuit(
-        cirq.measure(a, key='a'),
-        cirq.measure(b, key='2'))) == ('a', '2')
+    assert cirq.measurement_keys(
+        cirq.Circuit(cirq.measure(a, key='a'),
+                     cirq.measure(b, key='2'))) == ('a', '2')
