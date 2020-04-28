@@ -64,7 +64,7 @@ def main(qubit_count=3):
 
     # define a secret string:
     # secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
-    secret_string = [0 _ in range(qubit_count)]
+    secret_string = [0 for _ in range(qubit_count)]
 
     print(f'Secret string = {secret_string}')
 
