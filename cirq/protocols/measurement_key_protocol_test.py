@@ -36,12 +36,20 @@ def test_measurement_key_no_method():
     class NoMethod():
         pass
 
-    with pytest.raises(TypeError, match='no _measurement_key_'):
+    with pytest.raises(TypeError, match='no measurement keys'):
         cirq.measurement_key(NoMethod())
+
+    with pytest.raises(ValueError, match='multiple measurement keys'):
+        cirq.measurement_key(cirq.Circuit(
+            cirq.measure(cirq.LineQubit(0)),
+            cirq.measure(cirq.LineQubit(0))))
 
     assert cirq.measurement_key(NoMethod(), None) is None
     assert cirq.measurement_key(NoMethod(), NotImplemented) is NotImplemented
     assert cirq.measurement_key(NoMethod(), 'a') == 'a'
+
+    assert cirq.measurement_key(cirq.X, None) is None
+    assert cirq.measurement_key(cirq.X(cirq.LineQubit(0)), None) is None
 
 
 def test_measurement_key_not_implemented():
@@ -76,7 +84,7 @@ def test_is_measurement():
 
         @property
         def qubits(self):
-            raise NotImplementedError()
+            return cirq.LineQubit.range(2)
 
     assert not cirq.is_measurement(NotImplementedOperation())
 
@@ -93,6 +101,13 @@ def test_measurement_keys():
         def num_qubits(self) -> int:
             return 2
 
+    class MeasurementKeysGate(cirq.Gate):
+        def _measurement_keys_(self):
+            return ['a', 'b']
+
+        def num_qubits(self) -> int:
+            return 1
+
     a, b = cirq.LineQubit.range(2)
     assert cirq.measurement_keys(Composite()) == ('inner1', 'inner2')
     assert cirq.measurement_keys(Composite().on(a, b)) == ('inner1', 'inner2')
@@ -103,6 +118,7 @@ def test_measurement_keys():
     assert cirq.measurement_keys(None) == ()
     assert cirq.measurement_keys([]) == ()
     assert cirq.measurement_keys(cirq.X) == ()
+    assert cirq.measurement_keys(cirq.X(a)) == ()
     assert cirq.measurement_keys(None, allow_decompose=False) == ()
     assert cirq.measurement_keys([], allow_decompose=False) == ()
     assert cirq.measurement_keys(cirq.X, allow_decompose=False) == ()
@@ -113,3 +129,5 @@ def test_measurement_keys():
     assert cirq.measurement_keys(
         cirq.Circuit(cirq.measure(a, key='a'),
                      cirq.measure(b, key='2'))) == ('a', '2')
+    assert cirq.measurement_keys(MeasurementKeysGate()) == ('a', 'b')
+    assert cirq.measurement_keys(MeasurementKeysGate().on(a)) == ('a', 'b')

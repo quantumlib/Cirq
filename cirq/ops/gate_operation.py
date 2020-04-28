@@ -133,13 +133,15 @@ class GateOperation(raw_types.Operation):
         return protocols.channel(self.gate, NotImplemented)
 
     def _measurement_key_(self) -> Optional[str]:
-        if hasattr(self.gate, '_measurement_key_'):
-            return self.gate._measurement_key_()
+        getter = getattr(self.gate, '_measurement_key_', None)
+        if getter is not None:
+            return getter()
         return NotImplemented
 
     def _measurement_keys_(self) -> Optional[Iterable[str]]:
-        if hasattr(self.gate, '_measurement_keys_'):
-            return self.gate._measurement_keys_()
+        getter = getattr(self.gate, '_measurement_keys_', None)
+        if getter is not None:
+            return getter()
         return NotImplemented
 
     def _is_parameterized_(self) -> bool:

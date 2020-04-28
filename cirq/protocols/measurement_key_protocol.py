@@ -13,20 +13,15 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any, Iterable, Union, TYPE_CHECKING, Tuple, Dict, List, \
-    Optional, DefaultDict
+from typing import Any, Iterable, Tuple
 
 from typing_extensions import Protocol
 
 from cirq._doc import document
-from cirq.protocols.channel import has_channel
-import numpy as np
 
 from cirq.protocols.decompose_protocol import \
     _try_decompose_into_operations_and_qubits
 
-if TYPE_CHECKING:
-    import cirq
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
