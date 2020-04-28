@@ -67,7 +67,7 @@ def test_random_rotations_between_grid_interaction_layers(
             [cirq.GridQubit, cirq.GridQubit, np.random.RandomState], cirq.
             OP_TREE], pattern: Sequence[GridInteractionLayer],
         single_qubit_gates: Sequence[cirq.Gate],
-        add_final_single_qubit_layer: bool, seed: cirq.value.RANDOM_STATE_LIKE,
+        add_final_single_qubit_layer: bool, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE',
         expected_circuit_length: int, single_qubit_layers_slice: slice,
         two_qubit_layers_slice: slice):
     qubits = set(qubits)

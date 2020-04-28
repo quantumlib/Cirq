@@ -28,7 +28,7 @@ def get_center(graph: nx.Graph) -> Hashable:
 
 def get_initial_mapping(logical_graph: nx.Graph,
                         device_graph: nx.Graph,
-                        random_state: value.RANDOM_STATE_LIKE = None
+                        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                        ) -> Dict[ops.Qid, ops.Qid]:
     """Gets an initial mapping of logical to physical qubits for routing.
 

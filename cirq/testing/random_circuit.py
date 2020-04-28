@@ -36,7 +36,7 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
                    n_moments: int,
                    op_density: float,
                    gate_domain: Optional[Dict[ops.Gate, int]] = None,
-                   random_state: value.RANDOM_STATE_LIKE = None) -> Circuit:
+                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> Circuit:
     """Generates a random circuit.
 
     Args:

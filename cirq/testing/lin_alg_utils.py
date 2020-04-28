@@ -22,7 +22,7 @@ from cirq import linalg, value
 
 def random_superposition(dim: int,
                          *,
-                         random_state: value.RANDOM_STATE_LIKE = None
+                         random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                         ) -> np.ndarray:
     """Returns a random unit-length vector from the uniform distribution.
 
@@ -45,7 +45,7 @@ def random_superposition(dim: int,
 
 def random_density_matrix(dim: int,
                           *,
-                          random_state: value.RANDOM_STATE_LIKE = None
+                          random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                          ) -> np.ndarray:
     """Returns a random density matrix distributed with Hilbert-Schmidt measure.
 
@@ -68,7 +68,7 @@ def random_density_matrix(dim: int,
 
 
 def random_unitary(dim: int, *,
-                   random_state: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
     """Returns a random unitary matrix distributed with Haar measure.
 
     Args:
@@ -90,7 +90,7 @@ def random_unitary(dim: int, *,
     return q * (d / abs(d))
 
 
-def random_orthogonal(dim: int, *, random_state: value.RANDOM_STATE_LIKE = None
+def random_orthogonal(dim: int, *, random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                      ) -> np.ndarray:
     """Returns a random orthogonal matrix distributed with Haar measure.
 
@@ -137,7 +137,7 @@ def random_special_unitary(dim: int,
 
 def random_special_orthogonal(dim: int,
                               *,
-                              random_state: value.RANDOM_STATE_LIKE = None
+                              random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                              ) -> np.ndarray:
     """Returns a random special orthogonal matrix distributed with Haar measure.
 

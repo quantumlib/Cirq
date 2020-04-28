@@ -91,7 +91,7 @@ def sample_density_matrix(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         repetitions: int = 1,
-        seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the density_matrix.
@@ -157,7 +157,7 @@ def measure_density_matrix(density_matrix: np.ndarray,
                            indices: List[int],
                            qid_shape: Optional[Tuple[int, ...]] = None,
                            out: np.ndarray = None,
-                           seed: value.RANDOM_STATE_LIKE = None
+                           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                           ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
