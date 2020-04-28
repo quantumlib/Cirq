@@ -31,7 +31,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (controlled_gate, eigen_gate, gate_features, raw_types)
 
@@ -995,34 +995,16 @@ def rx(rads: value.TParamVal) -> XPowGate:
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.rx, instead.')
-def Rx(rads: value.TParamVal) -> XPowGate:
-    """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return rx(rads)
-
-
 def ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.ry, instead.')
-def Ry(rads: value.TParamVal) -> YPowGate:
-    """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return ry(rads)
-
-
 def rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.rz, instead.')
-def Rz(rads: value.TParamVal) -> ZPowGate:
-    """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return rz(rads)
 
 
 H = HPowGate()
