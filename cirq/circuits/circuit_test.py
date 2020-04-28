@@ -23,7 +23,6 @@ import sympy
 
 import cirq
 import cirq.google as cg
-from cirq._compat_test import capture_logging
 from cirq import ops
 
 
@@ -1182,10 +1181,9 @@ def test_findall_operations_until_blocked():
 
     assert_findall_operations_until_blocked_as_expected()
 
-    circuit = cirq.Circuit(cirq.H(a), cirq.CZ(a, b), cirq.H(b),
-                           cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
-                           cirq.H(d), cirq.CZ(c, d), cirq.H(c),
-                           cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+    circuit = cirq.Circuit(cirq.H(a), cirq.CZ(a, b), cirq.H(b), cirq.CZ(b, c),
+                           cirq.H(c), cirq.CZ(c, d), cirq.H(d), cirq.CZ(c, d),
+                           cirq.H(c), cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
                            cirq.H(a))
     expected_diagram = """
 0: ───H───@───────────────────────────────────────@───H───
@@ -1259,9 +1257,7 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h_on_a,
             expected_ops=[(11, cirq.CZ.on(a, b))])
 
-    circuit = cirq.Circuit(
-        [cirq.CZ(a, b), cirq.CZ(a, b),
-         cirq.CZ(b, c)])
+    circuit = cirq.Circuit([cirq.CZ(a, b), cirq.CZ(a, b), cirq.CZ(b, c)])
     expected_diagram = """
 0: ───@───@───────
       │   │
