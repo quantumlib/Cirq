@@ -1,4 +1,3 @@
-import random
 # Used for classical post-processing:
 from collections import Counter
 import numpy as np
@@ -61,7 +60,7 @@ def main(qubit_count=3):
     data = []  # we'll store here the results
 
     # define a secret string:
-    secret_string = [random.randint(0, 1) for _ in range(qubit_count)]
+    secret_string = np.random.randint(2, size=qubit_count)
 
     print(f'Secret string = {secret_string}')
 
@@ -96,8 +95,8 @@ def main(qubit_count=3):
     print('Circuit:')
     print(circuit)
     print(f'Most common answer was : {freqs.most_common(1)[0]}')
-    if not sum(secret_string):
-        print(f'String is {secret_string}')
+    if freqs.most_common(1)[0][1]/n_samples < 0.25:
+        print(f'Low count. String was probably {[0]*qubit_count}')
 
 
 def make_oracle(input_qubits, output_qubits, secret_string):
@@ -109,7 +108,7 @@ def make_oracle(input_qubits, output_qubits, secret_string):
     # Create mapping:
     if sum(secret_string):  # check if the secret string is non-zero
         # Find significant bit of secret string (first non-zero bit)
-        significant = secret_string.index(1)
+        significant = list(secret_string).index(1)
 
         # Add secret string to input according to the significant bit:
         for j in range(len(secret_string)):
