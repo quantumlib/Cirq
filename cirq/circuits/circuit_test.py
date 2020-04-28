@@ -1182,11 +1182,11 @@ def test_findall_operations_until_blocked():
 
     assert_findall_operations_until_blocked_as_expected()
 
-    circuit = cirq.Circuit.from_ops(cirq.H(a), cirq.CZ(a, b), cirq.H(b),
-                                    cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
-                                    cirq.H(d), cirq.CZ(c, d), cirq.H(c),
-                                    cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
-                                    cirq.H(a))
+    circuit = cirq.Circuit(cirq.H(a), cirq.CZ(a, b), cirq.H(b),
+                           cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
+                           cirq.H(d), cirq.CZ(c, d), cirq.H(c),
+                           cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                           cirq.H(a))
     expected_diagram = """
 0: ───H───@───────────────────────────────────────@───H───
           │                                       │
@@ -1259,7 +1259,7 @@ def test_findall_operations_until_blocked():
             is_blocker=stop_if_h_on_a,
             expected_ops=[(11, cirq.CZ.on(a, b))])
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         [cirq.CZ(a, b), cirq.CZ(a, b),
          cirq.CZ(b, c)])
     expected_diagram = """
@@ -1281,7 +1281,7 @@ def test_findall_operations_until_blocked():
         is_blocker=is_blocker,
         expected_ops=expected_ops)
 
-    circuit = cirq.Circuit.from_ops([cirq.ZZ(a, b), cirq.ZZ(b, c)])
+    circuit = cirq.Circuit([cirq.ZZ(a, b), cirq.ZZ(b, c)])
     expected_diagram = """
 0: ───ZZ────────
       │
@@ -1300,7 +1300,7 @@ def test_findall_operations_until_blocked():
         is_blocker=is_blocker,
         expected_ops=[])
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         [cirq.ZZ(a, b), cirq.XX(c, d),
          cirq.ZZ(b, c), cirq.Z(b)])
     expected_diagram = """
@@ -1323,7 +1323,7 @@ def test_findall_operations_until_blocked():
         is_blocker=is_blocker,
         expected_ops=[(0, cirq.ZZ(a, b))])
 
-    circuit = cirq.Circuit.from_ops(
+    circuit = cirq.Circuit(
         [cirq.XX(a, b),
          cirq.Z(a),
          cirq.ZZ(b, c),
