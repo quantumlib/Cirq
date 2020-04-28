@@ -103,6 +103,9 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=int))
 
