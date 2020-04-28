@@ -175,6 +175,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',

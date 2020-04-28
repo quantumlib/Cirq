@@ -217,6 +217,7 @@ results.
     :toctree: generated/
 
     cirq.CIRCUIT_LIKE
+    cirq.RANDOM_STATE_OR_SEED_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int

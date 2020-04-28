@@ -16,7 +16,7 @@ import cirq.contrib.routing as ccr
 def generate_model_circuit(num_qubits: int,
                            depth: int,
                            *,
-                           random_state: cirq.value.RANDOM_STATE_LIKE = None
+                           random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                           ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -338,7 +338,7 @@ def prepare_circuits(
         num_qubits: int,
         depth: int,
         num_circuits: int,
-        random_state: cirq.value.RANDOM_STATE_LIKE = None,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
 
@@ -432,7 +432,7 @@ def calculate_quantum_volume(
         num_circuits: int,
         device_or_qubits: Union[cirq.google.XmonDevice, List[cirq.GridQubit]],
         samplers: List[cirq.Sampler],
-        random_state: cirq.value.RANDOM_STATE_LIKE = None,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         repetitions=10_000,
         routing_attempts=30,
