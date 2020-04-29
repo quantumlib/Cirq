@@ -13,12 +13,15 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import List, Optional, Tuple
+from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
 
 from cirq import linalg, qis, value
 from cirq._compat import deprecated
+
+if TYPE_CHECKING:
+    import cirq
 
 to_valid_density_matrix = deprecated(
     deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')(

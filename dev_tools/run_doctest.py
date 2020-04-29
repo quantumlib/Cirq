@@ -29,7 +29,6 @@ messages.
 from typing import Any, Dict, Iterable, List, Tuple
 
 import sys
-import os
 import glob
 import importlib.util
 import doctest
