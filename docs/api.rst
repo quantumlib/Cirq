@@ -95,10 +95,9 @@ Unitary effects that can be applied to one or more qubits.
     cirq.SingleQubitGate
     cirq.SwapPowGate
     cirq.TaggedOperation
-    cirq.ThreeQubitGate
     cirq.ThreeQubitDiagonalGate
+    cirq.ThreeQubitGate
     cirq.TwoQubitDiagonalGate
-    cirq.TwoQubitMatrixGate
     cirq.TwoQubitGate
     cirq.WaitGate
     cirq.XPowGate
