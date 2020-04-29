@@ -63,16 +63,15 @@ class ParallelGateOperation(raw_types.Operation):
         """ParallelGateOperation with same qubits but a new gate"""
         return ParallelGateOperation(new_gate, self.qubits)
 
-    def __repr__(self):
-        return 'cirq.ParallelGateOperation(gate={!r}, qubits={!r})'.format(
-            self.gate,
-            list(self.qubits))
+    def __repr__(self) -> str:
+        return ('cirq.ParallelGateOperation('
+                f'gate={self.gate!r}, qubits={list(self.qubits)!r})')
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    def __str__(self) -> str:
+        qubits = ', '.join(str(e) for e in self.qubits)
+        return f'{self.gate}({qubits})'
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.gate, frozenset(self.qubits)
 
     def _decompose_(self) -> 'cirq.OP_TREE':

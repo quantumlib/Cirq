@@ -26,6 +26,16 @@ def test_zip_duplicate_keys():
         _ = cirq.Linspace('a', 0, 9, 10) + cirq.Linspace('a', 0, 10, 11)
 
 
+def test_product_wrong_type():
+    with pytest.raises(TypeError):
+        _ = cirq.Linspace('a', 0, 9, 10) * 2
+
+
+def test_zip_wrong_type():
+    with pytest.raises(TypeError):
+        _ = cirq.Linspace('a', 0, 9, 10) + 2
+
+
 def test_linspace():
     sweep = cirq.Linspace('a', 0.34, 9.16, 7)
     assert len(sweep) == 7
@@ -215,6 +225,8 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.ListSweep(cirq.Linspace('a', start=0, stop=3, length=4)),
         setup_code='import cirq\nfrom collections import OrderedDict')
+    cirq.testing.assert_equivalent_repr(cirq.Points('zero&pi', [0, 3.14159]))
+    cirq.testing.assert_equivalent_repr(cirq.Linspace('I/10', 0, 1, 10))
 
 
 def test_zip_product_str():

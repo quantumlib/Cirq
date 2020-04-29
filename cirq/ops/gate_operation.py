@@ -13,14 +13,13 @@
 # limitations under the License.
 
 """Basic types defining qubits, gates, and operations."""
-
-from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
+import re
+from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple,
                     TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -59,21 +58,29 @@ class GateOperation(raw_types.Operation):
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
+        if hasattr(self.gate, '_op_repr_'):
+            result = self.gate._op_repr_(self.qubits)
+            if result is not None and result is not NotImplemented:
+                return result
+        gate_repr = repr(self.gate)
+        qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
+        assert type(self.gate).__call__ == raw_types.Gate.__call__
+
         # Abbreviate when possible.
+        dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
+        if dont_need_on and self == self.gate.__call__(*self.qubits):
+            return f'{gate_repr}({qubit_args_repr})'
         if self == self.gate.on(*self.qubits):
-            return '{!r}.on({})'.format(
-                self.gate,
-                ', '.join(repr(q) for q in self.qubits))
+            return f'{gate_repr}.on({qubit_args_repr})'
 
-        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
-            self.gate,
-            list(self.qubits))
+        return (f'cirq.GateOperation(gate={self.gate!r}, '
+                f'qubits=[{qubit_args_repr}])')
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    def __str__(self) -> str:
+        qubits = ', '.join(str(e) for e in self.qubits)
+        return f'{self.gate}({qubits})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(
@@ -222,11 +229,3 @@ class GateOperation(raw_types.Operation):
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)
-
-
-@deprecated(deadline='v0.8.0',
-            fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
-def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
-    """Returns gate of given type, if op has that gate otherwise None."""
-    gate = getattr(op, 'gate', None)
-    return gate if isinstance(gate, gate_type) else None

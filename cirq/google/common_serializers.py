@@ -37,17 +37,25 @@ PHYSICAL_Z = 'physical'
 VIRTUAL_Z = 'virtual_propagates_forward'
 
 
-def _near_mod_n(e, t, n, atol=1e-8):
+# Default tolerance for differences in floating point
+# Note that Google protocol buffers use floats
+# which trigger a conversion from double precision to single precision
+# This results in errors possibly up to 1e-6
+# (23 bits for mantissa in single precision)
+_DEFAULT_ATOL = 1e-6
+
+
+def _near_mod_n(e, t, n, atol=_DEFAULT_ATOL):
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
-def _near_mod_2pi(e, t, atol=1e-8):
+def _near_mod_2pi(e, t, atol=_DEFAULT_ATOL):
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
-def _near_mod_2(e, t, atol=1e-8):
+def _near_mod_2(e, t, atol=_DEFAULT_ATOL):
     return _near_mod_n(e, t, n=2, atol=atol)
 
 
