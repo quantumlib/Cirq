@@ -29,9 +29,12 @@ RaiseTypeErrorIfNotProvided = ([],)  # type: Any
 
 
 class SupportsMeasurementKey(Protocol):
-    r"""An object that is a measurement and has a measurement key.
+    r"""An object that is a measurement and has a measurement key or keys.
 
     Measurement keys are used in referencing the results of a measurement.
+
+    Users are free to implement either `_measurement_key_` returning one string
+    or `_measurement_keys_` returning an iterable of strings.
 
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
@@ -53,10 +56,10 @@ class SupportsMeasurementKey(Protocol):
 
     @document
     def _measurement_keys_(self) -> Iterable[str]:
-        """Return the key that will be used to identify this measurement.
+        """Return the keys for measurements performed by the receiving object.
 
         When a measurement occurs, either on hardware, or in a simulation,
-        this is the key value under which the results of the measurement
+        these are the key values under which the results of the measurements
         will be stored.
         """
 
@@ -93,7 +96,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     if default is not RaiseTypeErrorIfNotProvided:
         return default
 
-    raise TypeError(f"object of type '{type(val)}' had no measurement keys.")
+    raise TypeError(f"Object of type '{type(val)}' had no measurement keys.")
 
 
 def measurement_keys(val: Any, *,
@@ -101,7 +104,7 @@ def measurement_keys(val: Any, *,
     """Gets the measurement keys of measurements within the given value.
 
     Args:
-        val: The value which has the measurement key..
+        val: The value which has the measurement key.
         allow_decompose: Used by internal methods to stop redundant
             decompositions from being performed (e.g. there's no need to
             decompose an object to check if it is unitary as part of determining
