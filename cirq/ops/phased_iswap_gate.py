@@ -13,14 +13,14 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import List, Union, Sequence, Tuple, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
 
 import cirq
 from cirq import linalg, protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq.ops import eigen_gate, gate_features, swap_gates
 
 
@@ -68,7 +68,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def phase_exponent(self) -> Union[float, sympy.Symbol]:
         return self._phase_exponent
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'phase_exponent': self._phase_exponent,
@@ -167,7 +167,7 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             return 'PhasedISWAP'
         return f'PhasedISWAP**{self.exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         phase_exponent = proper_repr(self._phase_exponent)
         args = [f'phase_exponent={phase_exponent}']
         if self.exponent != 1:
@@ -214,8 +214,3 @@ def givens(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
     """
     pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
     return PhasedISwapPowGate()**(2 * angle_rads / pi)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.givens, instead.')
-def GivensRotation(angle_rads: value.TParamVal) -> PhasedISwapPowGate:
-    return givens(angle_rads)

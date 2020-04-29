@@ -299,19 +299,19 @@ _CALIBRATION_DATA = Merge(
             double_val: .9998
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q0_0'],
         values: [{
             double_val: .001
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q0_1'],
         values: [{
             double_val: .002
         }]
     }, {
-        name: 'single_qubit_rb_total_error',
+        name: 'single_qubit_rb_pauli_error_per_gate',
         targets: ['q1_0'],
         values: [{
             double_val: .003
@@ -355,6 +355,10 @@ _CALIBRATION_DATA = Merge(
     }]
 """, v2.metrics_pb2.MetricsSnapshot())
 
+DEPOL_001 = .001 * 4 / 3
+DEPOL_002 = .002 * 4 / 3
+DEPOL_003 = .003 * 4 / 3
+
 
 def test_noise_from_metrics_requires_type():
     # Attempt to generate a noise model without specifying a noise type.
@@ -396,15 +400,15 @@ def test_per_qubit_depol_noise_from_data():
     # Insert channels explicitly to construct expected output.
     expected_program = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[0])]),
-        cirq.Moment([cirq.DepolarizingChannel(0.001).on(qubits[0])]),
+        cirq.Moment([cirq.DepolarizingChannel(DEPOL_001).on(qubits[0])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment([
-            cirq.DepolarizingChannel(0.001).on(qubits[0]),
-            cirq.DepolarizingChannel(0.002).on(qubits[1])
+            cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
+            cirq.DepolarizingChannel(DEPOL_002).on(qubits[1])
         ]), cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
         cirq.Moment([
-            cirq.DepolarizingChannel(0.001).on(qubits[0]),
-            cirq.DepolarizingChannel(0.003).on(qubits[2])
+            cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
+            cirq.DepolarizingChannel(DEPOL_003).on(qubits[2])
         ]), cirq.Moment([cirq.Z(qubits[1]).with_tags(ops.VirtualTag())]),
         cirq.Moment([
             cirq.measure(qubits[0], key='q0'),
@@ -514,15 +518,15 @@ def test_per_qubit_combined_noise_from_data():
     decay_prob = [1 - exp(-1 / 0.007), 1 - exp(-1 / 0.008), 1 - exp(-1 / 0.009)]
     expected_program = cirq.Circuit(
         cirq.Moment([cirq.H(qubits[0])]),
-        cirq.Moment([cirq.DepolarizingChannel(0.001).on(qubits[0])]),
+        cirq.Moment([cirq.DepolarizingChannel(DEPOL_001).on(qubits[0])]),
         cirq.Moment([cirq.CNOT(qubits[0], qubits[1])]),
         cirq.Moment([
-            cirq.DepolarizingChannel(0.001).on(qubits[0]),
-            cirq.DepolarizingChannel(0.002).on(qubits[1])
+            cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
+            cirq.DepolarizingChannel(DEPOL_002).on(qubits[1])
         ]), cirq.Moment([cirq.CNOT(qubits[0], qubits[2])]),
         cirq.Moment([
-            cirq.DepolarizingChannel(0.001).on(qubits[0]),
-            cirq.DepolarizingChannel(0.003).on(qubits[2])
+            cirq.DepolarizingChannel(DEPOL_001).on(qubits[0]),
+            cirq.DepolarizingChannel(DEPOL_003).on(qubits[2])
         ]),
         cirq.Moment([
             cirq.AmplitudeDampingChannel(decay_prob[i]).on(qubits[i])

@@ -1,0 +1,1 @@
+[cirq.TOFFOLI.on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)), cirq.CCZ.on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)), cirq.CNOT.on(cirq.LineQubit(0), cirq.LineQubit(1)), cirq.FREDKIN.on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2)), cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))]

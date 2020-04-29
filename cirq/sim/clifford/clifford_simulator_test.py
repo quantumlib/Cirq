@@ -187,8 +187,7 @@ def test_clifford_trial_result_repr():
                                  final_simulator_state=final_simulator_state))
             == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
             "measurements={'m': array([[1]])}, "
-            "final_simulator_state=StabilizerStateChForm(num_qubits=1, "
-            "initial_state=0))")
+            "final_simulator_state=StabilizerStateChForm(num_qubits=1))")
 
 
 def test_clifford_trial_result_str():
@@ -289,7 +288,7 @@ def test_stabilizerStateChForm_H():
 def test_clifford_stabilizerStateChForm_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    assert repr(state) == 'StabilizerStateChForm(num_qubits=2, initial_state=0)'
+    assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
 
 
 def test_clifford_circuit():
@@ -449,3 +448,31 @@ def test_simulate_global_phase_operation():
     result = simulator.simulate(circuit).final_state.wave_function()
 
     assert np.allclose(result, [-1j, 0, 0, 0])
+
+
+def test_json_roundtrip():
+    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1, q2: 2})
+
+    # Apply some transformations.
+    state.apply_unitary(cirq.X(q0))
+    state.apply_unitary(cirq.H(q1))
+
+    # Roundtrip serialize, then deserialize.
+    state_roundtrip = cirq.CliffordState._from_json_dict_(**state._json_dict_())
+
+    # Apply the same transformation on both the original object and the one that
+    # went through the roundtrip.
+    state.apply_unitary(cirq.S(q1))
+    state_roundtrip.apply_unitary(cirq.S(q1))
+
+    # The (de)stabilizers should be the same.
+    assert (state.stabilizers() == state_roundtrip.stabilizers())
+    assert (state.destabilizers() == state_roundtrip.destabilizers())
+
+    # Also check that the tableaux are also unchanged.
+    assert (state.tableau._str_full_() == state_roundtrip.tableau._str_full_())
+
+    # And the CH form isn't changed either.
+    assert np.allclose(state.ch_form.wave_function(),
+                       state_roundtrip.ch_form.wave_function())

@@ -75,7 +75,7 @@ def t1_decay(sampler: work.Sampler,
 
     # Cross tabulate into a delay_ns, false_count, true_count table.
     tab = pd.crosstab(results.delay_ns, results.output)
-    del tab.columns.name
+    tab.rename_axis(None, axis="columns", inplace=True)
     tab = tab.rename(columns={0: 'false_count', 1: 'true_count'}).reset_index()
     for col_index, name in [(1, 'false_count'), (2, 'true_count')]:
         if name not in tab:
@@ -132,18 +132,18 @@ class T1DecayResult:
             fig.show()
         return ax
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'T1DecayResult with data:\n{self.data}'
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.data.equals(other.data)
 
-    def __ne__(self, other):
+    def __ne__(self, other) -> bool:
         return not self == other
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.experiments.T1DecayResult(data={proper_repr(self.data)})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
