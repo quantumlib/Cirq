@@ -35,9 +35,8 @@ if TYPE_CHECKING:
 _STATE = Tuple[List[List[GridQubit]], Set[EDGE]]
 
 
-class AnnealSequenceSearch(object):
-    """Simulated annealing search heuristic.
-    """
+class AnnealSequenceSearch:
+    """Simulated annealing search heuristic."""
 
     def __init__(self, device: 'cirq.google.XmonDevice', seed=None) -> None:
         """Greedy sequence search constructor.

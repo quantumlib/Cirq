@@ -156,18 +156,19 @@ class BucketPriorityQueue(Generic[TItem]):
 
         return priority, item
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = [
             '{}: {},'.format(p, e)
             for p, e in self
         ]
         return 'BucketPriorityQueue {' + _indent(lines) + '\n}'
 
-    def __repr__(self):
-        return '{}(entries={!r}, drop_duplicate_entries={!r})'.format(
-            'cirq.circuits._bucket_priority_queue.BucketPriorityQueue',
-            list(self),
-            self._drop_set is not None)
+    def __repr__(self) -> str:
+        entries = list(self)
+        drop_duplicate_entries = self._drop_set is not None
+        return ('cirq.circuits._bucket_priority_queue.BucketPriorityQueue('
+                f'entries={entries!r}, '
+                f'drop_duplicate_entries={drop_duplicate_entries})')
 
     __hash__ = None  # type: ignore
 

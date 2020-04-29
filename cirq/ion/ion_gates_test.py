@@ -13,10 +13,8 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 
 import cirq
-from cirq._compat_test import capture_logging
 
 
 def test_ms_arguments():
@@ -56,15 +54,9 @@ def test_ms_diagrams():
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.SWAP(a, b), cirq.X(a), cirq.Y(a),
                            cirq.ms(np.pi).on(a, b))
-    cirq.testing.assert_has_diagram(circuit, """
+    cirq.testing.assert_has_diagram(
+        circuit, """
 a: ───×───X───Y───MS(π)───
       │           │
 b: ───×───────────MS(π)───
 """)
-
-
-@pytest.mark.parametrize('rads', (-1, -0.1, 0.2, 1))
-def test_deprecated_ms(rads):
-    with capture_logging():
-        assert np.all(
-            cirq.unitary(cirq.ms(rads)) == cirq.unitary(cirq.MS(rads)))

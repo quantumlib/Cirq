@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, TYPE_CHECKING, Union
+from typing import Any, Dict, Sequence, TYPE_CHECKING, Union
 
 from cirq import ops, protocols, value
 from cirq._doc import document
@@ -190,16 +190,16 @@ class _NoNoiseModel(NoiseModel):
     def noisy_operation(self, operation: 'cirq.Operation'):
         return operation
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return None
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '(no noise)'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'cirq.NO_NOISE'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
 
 
@@ -216,10 +216,10 @@ class ConstantQubitNoiseModel(NoiseModel):
             raise ValueError('noise.num_qubits() != 1')
         self.qubit_noise_gate = qubit_noise_gate
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.qubit_noise_gate
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'cirq.ConstantQubitNoiseModel({self.qubit_noise_gate!r})'
 
     def noisy_moment(self, moment: 'cirq.Moment',
