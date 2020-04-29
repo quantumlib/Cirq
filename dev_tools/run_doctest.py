@@ -192,14 +192,15 @@ def import_file(file_path: str) -> ModuleType:
 
     Returns: The imported module.
     """
-    mod_name = os.path.basename(file_path)
-    if mod_name.endswith('.py'):
-        mod_name = mod_name[:-3]
+    mod_name = 'cirq_doctest_module'
     # Find and create the module
     spec = importlib.util.spec_from_file_location(mod_name, file_path)
     mod = importlib.util.module_from_spec(spec)
     # Run the code in the module (but not with __name__ == '__main__')
+    sys.modules[mod_name] = mod
     spec.loader.exec_module(mod)  # type: ignore
+    mod = sys.modules[mod_name]
+    del sys.modules[mod_name]
     return mod
 
 
