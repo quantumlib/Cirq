@@ -1,5 +1,5 @@
 {
-  "cirq_type": "CNotPowGate",
+  "cirq_type": "CXPowGate",
   "exponent": 1,
   "global_shift": 0.0
 }

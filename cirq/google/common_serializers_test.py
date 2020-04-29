@@ -659,13 +659,18 @@ def test_wait_gate():
     (cirq.ISWAP**0.5, -np.pi / 4, 0),
     (cirq.ISWAP**-0.5, np.pi / 4, 0),
     (cirq.ISWAP**0.0, 0, 0),
+    (cirq.CZ, 0, np.pi),
+    (cirq.CZ**-1.0, 0, np.pi),
     (cirq.FSimGate(theta=0, phi=0), 0, 0),
+    (cirq.FSimGate(theta=0, phi=np.pi), 0, np.pi),
     (cirq.FSimGate(theta=np.pi / 4, phi=0), np.pi / 4, 0),
     (cirq.FSimGate(theta=7 * np.pi / 4, phi=0), 7 * np.pi / 4, 0),
     (cirq.FSimGate(theta=-np.pi / 4, phi=0), -np.pi / 4, 0),
     (cirq.FSimGate(theta=-7 * np.pi / 4, phi=0), -7 * np.pi / 4, 0),
     (cirq.google.SYC, np.pi / 2, np.pi / 6),
     (cirq.FSimGate(theta=np.pi / 2, phi=np.pi / 6), np.pi / 2, np.pi / 6),
+    (cirq.FSimGate(theta=1.5707963705062866, phi=0.5235987901687622),
+     1.5707963705062866, 0.5235987901687622),
 ])
 def test_serialize_deserialize_fsim_gate(gate, theta, phi):
     gate_set = cg.SerializableGateSet('test', cgc.LIMITED_FSIM_SERIALIZERS,

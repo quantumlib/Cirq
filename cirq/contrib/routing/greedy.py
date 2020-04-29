@@ -96,7 +96,7 @@ class _GreedyRouter:
             initial_mapping: Optional[Dict[ops.Qid, ops.Qid]] = None,
             can_reorder: Callable[[ops.Operation, ops.Operation],
                                   bool] = circuits.circuit_dag._disjoint_qubits,
-            random_state: value.RANDOM_STATE_LIKE = None):
+            random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
 
         self.prng = value.parse_random_state(random_state)
 

@@ -14,7 +14,9 @@
 
 from unittest import mock
 import datetime
+
 import pytest
+import freezegun
 from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -507,6 +509,94 @@ def test_get_schedule_filter_by_time_slot(list_time_slots):
     list_time_slots.assert_called_once_with(
         'proj', 'p0', 'start_time < 1000050000 AND end_time > 1000000000 AND ' +
         'time_slot_type = MAINTENANCE')
+
+
+@freezegun.freeze_time(datetime.datetime.utcfromtimestamp(100_000))
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_time_slots')
+def test_get_schedule_time_filter_behavior(list_time_slots):
+    list_time_slots.return_value = []
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+
+    processor.get_schedule()
+    list_time_slots.assert_called_with(
+        'proj', 'p0',
+        f'start_time < {100_000 + 60*60*24*14} AND end_time > {100_000}')
+
+    with pytest.raises(ValueError, match='from_time of type'):
+        processor.get_schedule(from_time=object())
+
+    with pytest.raises(ValueError, match='to_time of type'):
+        processor.get_schedule(to_time=object())
+
+    processor.get_schedule(from_time=None, to_time=None)
+    list_time_slots.assert_called_with('proj', 'p0', '')
+
+    processor.get_schedule(from_time=datetime.timedelta(0), to_time=None)
+    list_time_slots.assert_called_with('proj', 'p0', f'end_time > {100_000}')
+
+    processor.get_schedule(from_time=datetime.timedelta(seconds=200),
+                           to_time=None)
+    list_time_slots.assert_called_with('proj', 'p0', f'end_time > {100_200}')
+
+    processor.get_schedule(from_time=datetime.datetime.utcfromtimestamp(52),
+                           to_time=None)
+    list_time_slots.assert_called_with('proj', 'p0', f'end_time > {52}')
+
+    processor.get_schedule(from_time=None, to_time=datetime.timedelta(0))
+    list_time_slots.assert_called_with('proj', 'p0', f'start_time < {100_000}')
+
+    processor.get_schedule(from_time=None,
+                           to_time=datetime.timedelta(seconds=200))
+    list_time_slots.assert_called_with('proj', 'p0', f'start_time < {100_200}')
+
+    processor.get_schedule(from_time=None,
+                           to_time=datetime.datetime.utcfromtimestamp(52))
+    list_time_slots.assert_called_with('proj', 'p0', f'start_time < {52}')
+
+
+@freezegun.freeze_time(datetime.datetime.utcfromtimestamp(100_000))
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_reservations')
+def test_list_reservations_time_filter_behavior(list_reservations):
+    list_reservations.return_value = []
+    processor = cg.EngineProcessor('proj', 'p0', EngineContext())
+
+    processor.list_reservations()
+    list_reservations.assert_called_with(
+        'proj', 'p0',
+        f'start_time < {100_000 + 60*60*24*14} AND end_time > {100_000}')
+
+    with pytest.raises(ValueError, match='from_time of type'):
+        processor.list_reservations(from_time=object())
+
+    with pytest.raises(ValueError, match='to_time of type'):
+        processor.list_reservations(to_time=object())
+
+    processor.list_reservations(from_time=None, to_time=None)
+    list_reservations.assert_called_with('proj', 'p0', '')
+
+    processor.list_reservations(from_time=datetime.timedelta(0), to_time=None)
+    list_reservations.assert_called_with('proj', 'p0', f'end_time > {100_000}')
+
+    processor.list_reservations(from_time=datetime.timedelta(seconds=200),
+                                to_time=None)
+    list_reservations.assert_called_with('proj', 'p0', f'end_time > {100_200}')
+
+    processor.list_reservations(
+        from_time=datetime.datetime.utcfromtimestamp(52), to_time=None)
+    list_reservations.assert_called_with('proj', 'p0', f'end_time > {52}')
+
+    processor.list_reservations(from_time=None, to_time=datetime.timedelta(0))
+    list_reservations.assert_called_with('proj', 'p0',
+                                         f'start_time < {100_000}')
+
+    processor.list_reservations(from_time=None,
+                                to_time=datetime.timedelta(seconds=200))
+    list_reservations.assert_called_with('proj', 'p0',
+                                         f'start_time < {100_200}')
+
+    processor.list_reservations(from_time=None,
+                                to_time=datetime.datetime.utcfromtimestamp(52))
+    list_reservations.assert_called_with('proj', 'p0', f'start_time < {52}')
 
 
 def test_str():
