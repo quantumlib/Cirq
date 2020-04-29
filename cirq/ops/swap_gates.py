@@ -114,7 +114,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                               ) -> 'cirq.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
-                wire_symbols=('swap', 'swap'),
+                wire_symbols=('Swap', 'Swap'),
                 exponent=self._diagram_exponent(args))
         return protocols.CircuitDiagramInfo(
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args))
@@ -233,7 +233,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('iSwap', 'iSwap'),
+            wire_symbols=('ISwap', 'ISwap'),
             exponent=self._diagram_exponent(args))
 
     def __str__(self) -> str:

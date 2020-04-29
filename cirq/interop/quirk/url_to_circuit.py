@@ -82,9 +82,9 @@ def quirk_url_to_circuit(
         >>> print(cirq.quirk_url_to_circuit(
         ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
         ...     extra_cell_makers={'iswap': cirq.ISWAP}))
-        0: ───iSwap───
+        0: ───ISwap───
               │
-        1: ───iSwap───
+        1: ───ISwap───
 
         >>> print(cirq.quirk_url_to_circuit(
         ...     'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
@@ -94,9 +94,9 @@ def quirk_url_to_circuit(
         ...             size=2,
         ...             maker=lambda args: cirq.ISWAP(*args.qubits))
         ...     ]))
-        0: ───iSwap───
+        0: ───ISwap───
               │
-        1: ───iSwap───
+        1: ───ISwap───
 
     Returns:
         The parsed circuit.

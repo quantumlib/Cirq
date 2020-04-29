@@ -89,9 +89,9 @@ def test_random_circuit_reproducible_between_runs():
     circuit = random_circuit(5, 8, 0.5, random_state=77)
     expected_diagram = """
                   ┌──┐
-0: ────────────────S─────iSwap───────Y───X───
+0: ────────────────S─────ISwap───────Y───X───
                          │
-1: ───────────Y──────────iSwap───────Y───────
+1: ───────────Y──────────ISwap───────Y───────
 
 2: ─────────────────X────T───────────S───S───
                     │

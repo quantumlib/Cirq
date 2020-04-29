@@ -23,7 +23,7 @@ class PhysicalZTag:
     By default, all Z rotations on Google devices are considered to be virtual.
     When performing the Z operation, the device will update its internal phase
     tracking mechanisms, essentially commuting it forwards through the circuit
-    until it hits a non-commuting operation (Such as a sqrt(iSwap)).
+    until it hits a non-commuting operation (Such as a sqrt(ISwap)).
 
     When applied to a Z rotation operation, this tag indicates to the hardware
     that an actual physical operation should be done instead.  This class can

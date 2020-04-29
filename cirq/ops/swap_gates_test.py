@@ -55,16 +55,16 @@ def test_text_diagrams():
 
     cirq.testing.assert_has_diagram(
         circuit, """
-a: ───×───iSwap──────
+a: ───×───ISwap──────
       │   │
-b: ───×───iSwap^-1───
+b: ───×───ISwap^-1───
 """)
 
     cirq.testing.assert_has_diagram(circuit,
                                     """
-a: ---swap---iSwap------
+a: ---Swap---ISwap------
       |      |
-b: ---swap---iSwap^-1---
+b: ---Swap---ISwap^-1---
 """,
                                     use_unicode_characters=False)
 
