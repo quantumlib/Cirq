@@ -1,4 +1,5 @@
 from cirq.qis.measures import (
+    fidelity,
     von_neumann_entropy,)
 
 from cirq.qis.states import (

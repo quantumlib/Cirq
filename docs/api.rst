@@ -610,7 +610,6 @@ Algebra and Representation
     cirq.diagonalize_real_symmetric_matrix
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
-    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian
@@ -656,6 +655,7 @@ Quantum Information Science
     cirq.density_matrix_from_state_vector
     cirq.dirac_notation
     cirq.eye_tensor
+    cirq.fidelity
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
