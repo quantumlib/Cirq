@@ -27,8 +27,7 @@ p_circuit.append(cirq.measure(qubit, key='result'))    # Measurement.
 # Create a PasqalSampler object to use.
 # Replace PASQAL_API_ACCESS_TOKEN with the access token.
 # PASQAL_API_ACCESS_TOKEN = 'my_token'
-# sampler = cirq.pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal',
-                                    access_token=PASQAL_API_ACCESS_TOKEN)
+# sampler = cirq.pasqal.PasqalSampler(remote_host='http://34.98.71.118/v0/pasqal', access_token=PASQAL_API_ACCESS_TOKEN)
 
 # This will run the circuit and return the results in a 'TrialResult'
 # results = sampler.run(p_circuit, repetitions=1000)
