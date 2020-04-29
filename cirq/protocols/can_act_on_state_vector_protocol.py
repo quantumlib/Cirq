@@ -21,7 +21,7 @@ from typing import (
 from typing_extensions import Protocol
 
 from cirq._doc import document
-from cirq.protocols import has_unitary_protocol, mixture_protocol
+from cirq.protocols import mixture_protocol
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
 
