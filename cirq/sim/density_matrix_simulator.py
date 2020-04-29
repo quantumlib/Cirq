@@ -15,7 +15,7 @@
 
 import collections
 
-from typing import Dict, Iterator, List, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
@@ -120,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: value.RANDOM_STATE_LIKE = None,
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
                  ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
@@ -442,7 +442,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,
@@ -463,22 +463,21 @@ class DensityMatrixSimulatorState():
     """
 
     def __init__(self, density_matrix: np.ndarray,
-                 qubit_map: Dict[ops.Qid, int]):
+                 qubit_map: Dict[ops.Qid, int]) -> None:
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.density_matrix.tolist(), self.qubit_map)
 
-    def __repr__(self):
-        return ("cirq.DensityMatrixSimulatorState("
-                "density_matrix=np.array({!r}), "
-                "qubit_map={!r})".format(self.density_matrix.tolist(),
-                                         self.qubit_map))
+    def __repr__(self) -> str:
+        return ('cirq.DensityMatrixSimulatorState('
+                f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
+                f'qubit_map={self.qubit_map!r})')
 
 
 @value.value_equality(unhashable=True)
@@ -531,19 +530,18 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
         self.final_density_matrix = np.reshape(
             final_simulator_state.density_matrix, (size, size))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         measurements = {
             k: v.tolist() for k, v in sorted(self.measurements.items())
         }
         return (self.params, measurements, self._final_simulator_state)
 
-    def __str__(self):
+    def __str__(self) -> str:
         samples = super().__str__()
-        return 'measurements: {}\nfinal density matrix:\n{}'.format(
-            samples, self.final_density_matrix)
+        return (f'measurements: {samples}\n'
+                f'final density matrix:\n{self.final_density_matrix}')
 
-    def __repr__(self):
-        return ("cirq.DensityMatrixTrialResult(params={!r}, measurements={!r}, "
-                "final_simulator_state={!r})".format(
-                    self.params, self.measurements,
-                    self._final_simulator_state))
+    def __repr__(self) -> str:
+        return ('cirq.DensityMatrixTrialResult('
+                f'params={self.params!r}, measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')

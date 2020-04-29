@@ -138,7 +138,7 @@ class CrossEntropyResult:
         return cls(data=[CrossEntropyPair(d, f) for d, f in data],
                    repetitions=repetitions)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.CrossEntropyResult('
                 f'data={[tuple(p) for p in self.data]!r}, '
                 f'repetitions={self.repetitions!r})')

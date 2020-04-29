@@ -78,11 +78,12 @@ class PeriodicValue:
 
         return approx_eq(low, high, atol=atol)
 
-    def __repr__(self):
-        return 'cirq.PeriodicValue({}, {})'.format(proper_repr(self.value),
-                                                   proper_repr(self.period))
+    def __repr__(self) -> str:
+        v = proper_repr(self.value)
+        p = proper_repr(self.period)
+        return f'cirq.PeriodicValue({v}, {p})'
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import is_parameterized
         return any(is_parameterized(val) for val in (self.value, self.period))

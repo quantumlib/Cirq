@@ -18,9 +18,9 @@ import numpy as np
 
 from cirq._doc import document
 
-RANDOM_STATE_LIKE = Any
+RANDOM_STATE_OR_SEED_LIKE = Any
 document(
-    RANDOM_STATE_LIKE,
+    RANDOM_STATE_OR_SEED_LIKE,
     """A pseudorandom number generator or object that can be converted to one.
 
     If None, turns into the module `np.random`.
@@ -36,7 +36,7 @@ document(
     """)
 
 
-def parse_random_state(random_state: RANDOM_STATE_LIKE
+def parse_random_state(random_state: RANDOM_STATE_OR_SEED_LIKE
                       ) -> np.random.RandomState:
     """Interpret an object as a pseudorandom number generator.
 

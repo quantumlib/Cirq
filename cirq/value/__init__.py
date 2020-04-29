@@ -48,7 +48,7 @@ from cirq.value.periodic_value import (
 
 from cirq.value.random_state import (
     parse_random_state,
-    RANDOM_STATE_LIKE,
+    RANDOM_STATE_OR_SEED_LIKE,
 )
 
 from cirq.value.timestamp import (

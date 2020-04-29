@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import cast, Iterable, Optional, Set, TYPE_CHECKING, FrozenSet
+from typing import Any, cast, FrozenSet, Iterable, Optional, Set, TYPE_CHECKING
 
 from cirq import circuits, value, devices, ops, protocols
 from cirq.ion import convert_to_ion_gates
@@ -128,7 +128,8 @@ class IonDevice(devices.Device):
         q = devices.LineQubit(position)
         return q if q in self.qubits else None
 
-    def neighbors_of(self, qubit: devices.LineQubit):
+    def neighbors_of(self,
+                     qubit: devices.LineQubit) -> Iterable[devices.LineQubit]:
         """Returns the qubits that the given qubit can interact with."""
         possibles = [
             devices.LineQubit(qubit.x + 1),
@@ -136,16 +137,14 @@ class IonDevice(devices.Device):
         ]
         return [e for e in possibles if e in self.qubits]
 
-    def __repr__(self):
-        return ('IonDevice(measurement_duration={!r}, '
-                'twoq_gates_duration={!r}, '
-                'oneq_gates_duration={!r} '
-                'qubits={!r})').format(self._measurement_duration,
-                                       self._twoq_gates_duration,
-                                       self._oneq_gates_duration,
-                                       sorted(self.qubits))
+    def __repr__(self) -> str:
+        return (
+            f'IonDevice(measurement_duration={self._measurement_duration!r}, '
+            f'twoq_gates_duration={self._twoq_gates_duration!r}, '
+            f'oneq_gates_duration={self._oneq_gates_duration!r} '
+            f'qubits={sorted(self.qubits)!r})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         diagram = circuits.TextDiagramDrawer()
 
         for q in self.qubits:
@@ -158,7 +157,7 @@ class IonDevice(devices.Device):
             vertical_spacing=2,
             use_unicode_characters=True)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self._measurement_duration,
                 self._twoq_gates_duration,
                 self._oneq_gates_duration,

@@ -12,6 +12,7 @@ Classes for identifying the qubits and hardware you want to operate on.
 
     cirq.UNCONSTRAINED_DEVICE
     cirq.Device
+    cirq.GridQid
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
@@ -68,10 +69,12 @@ Unitary effects that can be applied to one or more qubits.
     cirq.givens
     cirq.identity_each
     cirq.riswap
+    cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
     cirq.CNotPowGate
     cirq.CSwapGate
+    cirq.CXPowGate
     cirq.CZPowGate
     cirq.ControlledGate
     cirq.ControlledOperation
@@ -82,7 +85,6 @@ Unitary effects that can be applied to one or more qubits.
     cirq.HPowGate
     cirq.ISwapPowGate
     cirq.IdentityGate
-    cirq.IdentityOperation
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
@@ -91,11 +93,11 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
     cirq.SingleQubitGate
-    cirq.SingleQubitMatrixGate
     cirq.SwapPowGate
     cirq.TaggedOperation
     cirq.ThreeQubitDiagonalGate
-    cirq.TwoQubitMatrixGate
+    cirq.ThreeQubitGate
+    cirq.TwoQubitGate
     cirq.WaitGate
     cirq.XPowGate
     cirq.XXPowGate
@@ -178,7 +180,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.op_gate_of_type
     cirq.transform_op_tree
     cirq.Circuit
     cirq.CircuitDag
@@ -214,6 +215,7 @@ results.
     :toctree: generated/
 
     cirq.CIRCUIT_LIKE
+    cirq.RANDOM_STATE_OR_SEED_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
     cirq.big_endian_int_to_bits
@@ -319,6 +321,7 @@ the magic methods that can be implemented.
     cirq.has_channel
     cirq.has_mixture
     cirq.has_mixture_channel
+    cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
     cirq.is_measurement
@@ -388,6 +391,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phased_x_z
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
+    cirq.stratified_circuit
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -497,6 +501,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.Foxtail
     cirq.google.GateOpDeserializer
     cirq.google.GateOpSerializer
+    cirq.google.GateTabulation
     cirq.google.GreedySequenceSearchStrategy
     cirq.google.LinePlacementStrategy
     cirq.google.PhysicalZTag
@@ -565,6 +570,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.assert_specifies_has_unitary_if_unitary
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
@@ -604,6 +610,7 @@ Algebra and Representation
     cirq.diagonalize_real_symmetric_matrix
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
+    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian
@@ -670,21 +677,3 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
     cirq.TParamVal
-
-
-Deprecated
-''''''''''
-
-These objects will be removed in a future version of the library.
-
-.. autosummary::
-    :toctree: generated/
-
-    cirq.MS
-    cirq.Rx
-    cirq.Ry
-    cirq.Rz
-    cirq.GivensRotation
-    cirq.ISwapRotation
-    cirq.ThreeQubitGate
-    cirq.TwoQubitGate

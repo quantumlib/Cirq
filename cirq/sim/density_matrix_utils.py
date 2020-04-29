@@ -34,7 +34,7 @@ def sample_density_matrix(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         repetitions: int = 1,
-        seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
     """Samples repeatedly from measurements in the computational basis.
 
     Note that this does not modify the density_matrix.
@@ -66,8 +66,9 @@ def sample_density_matrix(
             of qubits corresponding to the density matrix.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'
-                         .format(repetitions))
+        raise ValueError(
+            'Number of repetitions cannot be negative. Was {}'.format(
+                repetitions))
     if qid_shape is None:
         num_qubits = _validate_num_qubits(density_matrix)
         qid_shape = (2,) * num_qubits
@@ -100,7 +101,7 @@ def measure_density_matrix(density_matrix: np.ndarray,
                            indices: List[int],
                            qid_shape: Optional[Tuple[int, ...]] = None,
                            out: np.ndarray = None,
-                           seed: value.RANDOM_STATE_LIKE = None
+                           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                           ) -> Tuple[List[int], np.ndarray]:
     """Performs a measurement of the density matrix in the computational basis.
 
@@ -257,18 +258,15 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
     col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
     if row_size != col_size:
-        raise ValueError(
-            'Matrix was not square. Shape was {}'.format(shape))
+        raise ValueError('Matrix was not square. Shape was {}'.format(shape))
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'not a power of two. Shape was {}'.format(shape)
-        )
+            'not a power of two. Shape was {}'.format(shape))
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(
             'Matrix is a tensor of rank greater than 2, but had dimensions '
-            'that are not powers of two. Shape was {}'.format(shape)
-        )
+            'that are not powers of two. Shape was {}'.format(shape))
     return int(row_size).bit_length() - 1
 
 
