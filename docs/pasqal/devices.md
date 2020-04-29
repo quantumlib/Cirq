@@ -21,7 +21,7 @@ p_qubits = [ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)]
 
 Connectivity is limited to qubits that are closer than a control radius. In the current
 version, the control radius can be chosen by the user and passed as a parameter of the
-`cirq.pasqal.PasqalDevice` class class. In the future, specific versions of the devices
+`cirq.pasqal.PasqalDevice` class. In the future, specific versions of the devices
 may impose some constraints on that value.
 
 ```python
