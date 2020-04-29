@@ -27,7 +27,7 @@ from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
-from cirq import linalg
+from cirq import qis
 
 if TYPE_CHECKING:
     import cirq
@@ -150,7 +150,7 @@ def _strat_has_unitary_from_apply_unitary(val: Any) -> Optional[bool]:
     val_qid_shape = qid_shape_protocol.qid_shape(val, None)
     if val_qid_shape is None:
         return None
-    state = linalg.one_hot(shape=val_qid_shape, dtype=np.complex64)
+    state = qis.one_hot(shape=val_qid_shape, dtype=np.complex64)
     buffer = np.empty_like(state)
     result = method(ApplyUnitaryArgs(state, buffer, range(len(val_qid_shape))))
     if result is NotImplemented:
