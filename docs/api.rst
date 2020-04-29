@@ -85,7 +85,6 @@ Unitary effects that can be applied to one or more qubits.
     cirq.HPowGate
     cirq.ISwapPowGate
     cirq.IdentityGate
-    cirq.IdentityOperation
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
@@ -94,11 +93,11 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
     cirq.SingleQubitGate
-    cirq.SingleQubitMatrixGate
     cirq.SwapPowGate
     cirq.TaggedOperation
     cirq.ThreeQubitDiagonalGate
-    cirq.TwoQubitMatrixGate
+    cirq.ThreeQubitGate
+    cirq.TwoQubitGate
     cirq.WaitGate
     cirq.XPowGate
     cirq.XXPowGate
@@ -181,7 +180,6 @@ Circuits, Operations, and Moments.
     cirq.OP_TREE
     cirq.flatten_op_tree
     cirq.freeze_op_tree
-    cirq.op_gate_of_type
     cirq.transform_op_tree
     cirq.Circuit
     cirq.CircuitDag
@@ -579,6 +577,7 @@ operation.
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
     cirq.testing.assert_same_circuits
+    cirq.testing.assert_specifies_has_unitary_if_unitary
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
@@ -670,21 +669,3 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
     cirq.TParamVal
-
-
-Deprecated
-''''''''''
-
-These objects will be removed in a future version of the library.
-
-.. autosummary::
-    :toctree: generated/
-
-    cirq.MS
-    cirq.Rx
-    cirq.Ry
-    cirq.Rz
-    cirq.GivensRotation
-    cirq.ISwapRotation
-    cirq.ThreeQubitGate
-    cirq.TwoQubitGate

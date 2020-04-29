@@ -125,6 +125,9 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                                           self._axis_phase_exponent - 0.5)
         return protocols.qasm(qasm_gate, args=args, qubits=qubits)
 
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
+
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         q = qubits[0]
         yield ops.Z(q)**-self._axis_phase_exponent

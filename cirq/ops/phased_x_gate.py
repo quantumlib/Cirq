@@ -105,10 +105,13 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
             return None
         return abs(np.sin(self._exponent * 0.5 * np.pi))
 
+    def _has_unitary_(self):
+        return not self._is_parameterized_()
+
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """See `cirq.SupportsUnitary`."""
         if self._is_parameterized_():
-            return NotImplemented
+            return None
         z = protocols.unitary(cirq.Z**self._phase_exponent)
         x = protocols.unitary(cirq.X**self._exponent)
         p = np.exp(1j * np.pi * self._global_shift * self._exponent)
