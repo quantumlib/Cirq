@@ -113,6 +113,9 @@ class MeasurementGate(raw_types.Gate):
     def _has_channel_(self):
         return True
 
+    def _can_act_on_state_vector_(self):
+        return True
+
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         symbols = ['M'] * self.num_qubits()

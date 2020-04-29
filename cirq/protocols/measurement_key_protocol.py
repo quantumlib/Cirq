@@ -102,11 +102,13 @@ def measurement_keys(val: Any, *,
 
     Args:
         val: The value which has the measurement key..
-        allow_decompose: Defaults to True. When true, composite operations that
-            don't directly specify their measurement keys will be decomposed in
-            order to find measurement keys within the decomposed operations. If
-            not set, composite operations will appear to have no measurement
-            keys.
+        allow_decompose: Used by internal methods to stop redundant
+            decompositions from being performed (e.g. there's no need to
+            decompose an object to check if it is unitary as part of determining
+            if the object is a quantum channel, when the quantum channel check
+            will already be doing a more general decomposition check). Defaults
+            to True. When false, the decomposition strategy for determining
+            the result is skipped.
 
     Returns:
         The measurement keys of the value. If the value has no measurement,

@@ -394,6 +394,7 @@ from cirq.protocols import (
     ApplyMixtureArgs,
     ApplyUnitaryArgs,
     approx_eq,
+    can_act_on_state_vector,
     channel,
     circuit_diagram_info,
     CircuitDiagramInfo,

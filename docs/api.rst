@@ -319,6 +319,7 @@ the magic methods that can be implemented.
     cirq.apply_unitaries
     cirq.apply_unitary
     cirq.approx_eq
+    cirq.can_act_on_state_vector
     cirq.channel
     cirq.circuit_diagram_info
     cirq.decompose

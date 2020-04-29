@@ -13,6 +13,8 @@
 # limitations under the License.
 
 
+from cirq.protocols.can_act_on_state_vector_protocol import (
+    can_act_on_state_vector,)
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,

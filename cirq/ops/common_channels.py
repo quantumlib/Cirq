@@ -549,6 +549,9 @@ class ResetChannel(gate_features.SingleQubitGate):
         """
         self._dimension = dimension
 
+    def _can_act_on_state_vector_(self):
+        return True
+
     def _qid_shape_(self):
         return (self._dimension,)
 
