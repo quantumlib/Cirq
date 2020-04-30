@@ -17,7 +17,7 @@ from typing import (Any, cast, Collection, Dict, Optional, Sequence, Tuple,
 import itertools
 import numpy as np
 
-from cirq import protocols, linalg, value
+from cirq import protocols, qis, value
 from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
 
@@ -129,7 +129,7 @@ class ControlledOperation(raw_types.Operation):
             return NotImplemented
         qid_shape = protocols.qid_shape(self)
         sub_n = len(qid_shape) - len(self.controls)
-        tensor = linalg.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
+        tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls):] * 2)
         for control_vals in itertools.product(*self.control_values):
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
