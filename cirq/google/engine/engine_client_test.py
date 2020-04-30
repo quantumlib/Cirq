@@ -853,8 +853,6 @@ def test_update_reservation_remove_all_users(client_constructor):
     name = 'projects/proj/processors/processor0/reservations/papar-party-44'
     result = qtypes.QuantumReservation(
         name=name,
-        start_time=Timestamp(seconds=1000001000),
-        end_time=Timestamp(seconds=1000002000),
         whitelisted_users=[],
     )
     grpc_client.update_quantum_reservation.return_value = result
@@ -868,12 +866,9 @@ def test_update_reservation_remove_all_users(client_constructor):
     ) == result)
     kwargs = grpc_client.update_quantum_reservation.call_args[1]
     assert kwargs == {
-        'name':
-        name,
-        'quantum_reservation':
-        result,
-        'update_mask':
-        FieldMask(paths=['whitelisted_users'])
+        'name': name,
+        'quantum_reservation': result,
+        'update_mask': FieldMask(paths=['whitelisted_users'])
     }
 
 
