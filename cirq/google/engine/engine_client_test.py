@@ -866,9 +866,12 @@ def test_update_reservation_remove_all_users(client_constructor):
     ) == result)
     kwargs = grpc_client.update_quantum_reservation.call_args[1]
     assert kwargs == {
-        'name': name,
-        'quantum_reservation': result,
-        'update_mask': FieldMask(paths=['whitelisted_users'])
+        'name':
+        name,
+        'quantum_reservation':
+        result,
+        'update_mask':
+        FieldMask(paths=['whitelisted_users'])
     }
 
 
