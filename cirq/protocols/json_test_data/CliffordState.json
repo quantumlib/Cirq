@@ -1,0 +1,72 @@
+{
+  "cirq_type": "CliffordState",
+  "qubit_map": [
+    [
+      {
+        "cirq_type": "LineQubit",
+        "x": 0
+      },
+      0
+    ]
+  ],
+  "tableau": {
+    "cirq_type": "CliffordTableau",
+    "n": 1,
+    "rs": [
+      false,
+      false,
+      false
+    ],
+    "xs": [
+      [
+        true
+      ],
+      [
+        false
+      ],
+      [
+        false
+      ]
+    ],
+    "zs": [
+      [
+        false
+      ],
+      [
+        true
+      ],
+      [
+        false
+      ]
+    ]
+  },
+  "ch_form": {
+    "cirq_type": "StabilizerStateChForm",
+    "n": 1,
+    "G": [
+      [
+        true
+      ]
+    ],
+    "F": [
+      [
+        true
+      ]
+    ],
+    "M": [
+      [
+        false
+      ]
+    ],
+    "gamma": [
+      0
+    ],
+    "v": [
+      false
+    ],
+    "s": [
+      false
+    ],
+    "omega": 1
+  }
+}
