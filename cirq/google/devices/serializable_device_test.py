@@ -148,7 +148,7 @@ def test_duration_of():
         proto=cg.devices.known_devices.FOXTAIL_PROTO,
         gate_sets=[cg.gate_sets.XMON])
 
-    assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=20)
+    assert foxtail.duration_of(cirq.X(valid_qubit1)) == cirq.Duration(nanos=15)
 
     # Unsupported op
     with pytest.raises(ValueError):
