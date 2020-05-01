@@ -241,6 +241,14 @@ def test_get_device():
     with pytest.raises(ValueError):
         device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
 
+def test_get_missing_device():
+    processor = cg.EngineProcessor('a',
+                                   'p',
+                                   EngineContext(),
+                                   _processor=qtypes.QuantumProcessor())
+    with pytest.raises(ValueError, match='device specification'):
+        device = processor.get_device(gate_sets=[_GATE_SET])
+
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_calibrations')
 def test_list_calibrations(list_calibrations):
