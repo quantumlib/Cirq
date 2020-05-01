@@ -1,8 +1,7 @@
+#This is demonstration of Shor's code
+
 import cirq
 
-# Circuit
-#     Measurement
-#     Output
 class Code:
 
     def __init__(self):
