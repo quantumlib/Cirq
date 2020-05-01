@@ -241,6 +241,7 @@ def test_get_device():
     with pytest.raises(ValueError):
         device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
 
+
 def test_get_missing_device():
     processor = cg.EngineProcessor('a',
                                    'p',
