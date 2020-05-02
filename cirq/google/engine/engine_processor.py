@@ -113,6 +113,12 @@ class EngineProcessor:
     def get_device(
             self,
             gate_sets: Iterable[serializable_gate_set.SerializableGateSet]):
+        """Returns a `Device` created from the processor's device specification.
+
+        This method queries the processor to retrieve the device specification,
+        which is then use to create a `SerializableDevice` that will validate
+        that operations are supported and use the correct qubits.
+        """
         spec = self.get_device_specification()
         if not spec:
             raise ValueError('Processor does not have a device specification')
