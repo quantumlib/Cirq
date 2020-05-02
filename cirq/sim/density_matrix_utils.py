@@ -13,79 +13,22 @@
 # limitations under the License.
 """Code to handle density matrices."""
 
-from typing import cast, List, Optional, Tuple, Type, Union, TYPE_CHECKING
+from typing import List, Optional, TYPE_CHECKING, Tuple
 
 import numpy as np
-from scipy.stats import entropy
 
-from cirq import linalg, value
-from cirq.sim import wave_function
+from cirq import linalg, qis, value
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
 
-
-def to_valid_density_matrix(
-        density_matrix_rep: Union[int, np.ndarray],
-        num_qubits: Optional[int] = None,
-        *,  # Force keyword arguments
-        qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Type[np.number] = np.complex64,
-        atol: float = 1e-7) -> np.ndarray:
-    """Verifies the density_matrix_rep is valid and converts it to ndarray form.
-
-    This method is used to support passing a matrix, a vector (wave function),
-    or a computational basis state as a representation of a state.
-
-    Args:
-        density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
-            then this is the density matrix. If it is a numpy array of rank 1
-            (a vector) then this is a wave function. If this is an int,
-            then this is the computation basis state.
-        num_qubits: The number of qubits for the density matrix. The
-            density_matrix_rep must be valid for this number of qubits.
-        qid_shape: The qid shape of the state vector.  Specify this argument
-            when using qudits.
-        dtype: The numpy dtype of the density matrix, will be used when creating
-            the state for a computational basis state (int), or validated
-            against if density_matrix_rep is a numpy array.
-        atol: Numerical tolerance for verifying density matrix properties.
-
-    Returns:
-        A numpy matrix corresponding to the density matrix on the given number
-        of qubits.
-
-    Raises:
-        ValueError if the density_matrix_rep is not valid.
-    """
-    qid_shape = _qid_shape_from_args(num_qubits, qid_shape)
-    if (isinstance(density_matrix_rep, np.ndarray)
-        and density_matrix_rep.ndim == 2):
-        if density_matrix_rep.shape != (np.prod(qid_shape, dtype=int),) * 2:
-            raise ValueError(
-                'Density matrix was not square and of size 2 ** num_qubit, '
-                'instead was {}'.format(density_matrix_rep.shape))
-        if not np.allclose(density_matrix_rep,
-                           np.transpose(np.conj(density_matrix_rep)),
-                           atol=atol):
-            raise ValueError('The density matrix is not hermitian.')
-        if not np.isclose(np.trace(density_matrix_rep), 1.0, atol=atol):
-            raise ValueError(
-                'Density matrix did not have trace 1 but instead {}'.format(
-                    np.trace(density_matrix_rep)))
-        if density_matrix_rep.dtype != dtype:
-            raise ValueError(
-                'Density matrix had dtype {} but expected {}'.format(
-                    density_matrix_rep.dtype, dtype))
-        if not np.all(np.linalg.eigvalsh(density_matrix_rep) > -atol):
-            raise ValueError('The density matrix is not positive semidefinite.')
-        return density_matrix_rep
-
-    state_vector = wave_function.to_valid_state_vector(density_matrix_rep,
-                                                       len(qid_shape),
-                                                       qid_shape=qid_shape,
-                                                       dtype=dtype)
-    return np.outer(state_vector, np.conj(state_vector))
+to_valid_density_matrix = deprecated(
+    deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')(
+        qis.to_valid_density_matrix)
+von_neumann_entropy = deprecated(deadline='v0.9',
+                                 fix='Use cirq.von_neumann_entropy instead.')(
+                                     qis.von_neumann_entropy)
 
 
 def sample_density_matrix(
@@ -126,8 +69,9 @@ def sample_density_matrix(
             of qubits corresponding to the density matrix.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'
-                         .format(repetitions))
+        raise ValueError(
+            'Number of repetitions cannot be negative. Was {}'.format(
+                repetitions))
     if qid_shape is None:
         num_qubits = _validate_num_qubits(density_matrix)
         qid_shape = (2,) * num_qubits
@@ -281,27 +225,6 @@ def _probs(density_matrix: np.ndarray, indices: List[int],
     return probs
 
 
-def _qid_shape_from_args(num_qubits: Optional[int],
-                         qid_shape: Optional[Tuple[int, ...]]
-                        ) -> Tuple[int, ...]:
-    """Returns either `(2,) * num_qubits` or `qid_shape`.
-
-    Raises:
-        ValueError: If both arguments are None or their values disagree.
-    """
-    if num_qubits is None and qid_shape is None:
-        raise ValueError('Either the num_qubits or qid_shape argument must be '
-                         'specified. Both were None.')
-    if num_qubits is None:
-        return cast(Tuple[int, ...], qid_shape)
-    if qid_shape is None:
-        return (2,) * num_qubits
-    if len(qid_shape) != num_qubits:
-        raise ValueError('num_qubits != len(qid_shape). num_qubits was {!r}. '
-                         'qid_shape was {!r}.'.format(num_qubits, qid_shape))
-    return qid_shape
-
-
 def _validate_density_matrix_qid_shape(density_matrix: np.array,
                                        qid_shape: Tuple[int, ...]
                                       ) -> Tuple[int, ...]:
@@ -338,18 +261,15 @@ def _validate_num_qubits(density_matrix: np.ndarray) -> int:
     row_size = np.prod(shape[:half_index]) if len(shape) != 0 else 0
     col_size = np.prod(shape[half_index:]) if len(shape) != 0 else 0
     if row_size != col_size:
-        raise ValueError(
-            'Matrix was not square. Shape was {}'.format(shape))
+        raise ValueError('Matrix was not square. Shape was {}'.format(shape))
     if row_size & (row_size - 1):
         raise ValueError(
             'Matrix could not be shaped into a square matrix with dimensions '
-            'not a power of two. Shape was {}'.format(shape)
-        )
+            'not a power of two. Shape was {}'.format(shape))
     if len(shape) > 2 and not np.allclose(shape, 2):
         raise ValueError(
             'Matrix is a tensor of rank greater than 2, but had dimensions '
-            'that are not powers of two. Shape was {}'.format(shape)
-        )
+            'that are not powers of two. Shape was {}'.format(shape))
     return int(row_size).bit_length() - 1
 
 
@@ -363,14 +283,3 @@ def _indices_shape(qid_shape: Tuple[int, ...],
         raise IndexError('Out of range indices, must be less than number of '
                          'qubits but was {}'.format(indices))
     return tuple(qid_shape[i] for i in indices)
-
-
-def von_neumann_entropy(density_matrix: np.ndarray) -> float:
-    """Calculates von Neumann entropy of density matrix in bits.
-    Args:
-        density_matrix: The density matrix.
-    Returns:
-        The calculated von Neumann entropy.
-    """
-    eigenvalues = np.linalg.eigvalsh(density_matrix)
-    return entropy(abs(eigenvalues), base=2)
