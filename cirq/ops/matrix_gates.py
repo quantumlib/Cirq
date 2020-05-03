@@ -19,8 +19,8 @@ from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import linalg, protocols
-from cirq._compat import proper_repr, deprecated
-from cirq.ops import gate_features, raw_types
+from cirq._compat import proper_repr
+from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
@@ -136,74 +136,6 @@ class MatrixGate(raw_types.Gate):
 
     def __str__(self) -> str:
         return str(self._matrix.round(3))
-
-
-class SingleQubitMatrixGate(MatrixGate, gate_features.SingleQubitGate):
-    """A 1-qubit or qudit gate defined by its matrix.
-
-    More general than specialized classes like `ZPowGate`, but more expensive
-    and more float-error sensitive to work with (due to using
-    eigendecompositions).
-    """
-
-    @deprecated(deadline='v0.8',
-                fix='Use `cirq.MatrixGate` instead.',
-                name='cirq.SingleQubitMatrixGate')
-    def __init__(self, matrix: np.ndarray) -> None:
-        """
-        Initializes the single qubit matrix gate.
-
-        Args:
-            matrix: The matrix that defines the gate.
-        """
-        super().__init__(matrix, qid_shape=(matrix.shape[0],))
-
-    def __repr__(self) -> str:
-        return f'cirq.SingleQubitMatrixGate({proper_repr(self._matrix)})'
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'matrix': self._matrix,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, matrix, **kwargs):
-        return cls(matrix=np.array(matrix))
-
-
-class TwoQubitMatrixGate(MatrixGate, gate_features.TwoQubitGate):
-    """A 2-qubit gate defined only by its matrix.
-
-    More general than specialized classes like `CZPowGate`, but more expensive
-    and more float-error sensitive to work with (due to using
-    eigendecompositions).
-    """
-
-    @deprecated(deadline='v0.8',
-                fix='Use `cirq.MatrixGate` instead.',
-                name='cirq.TwoQubitMatrixGate')
-    def __init__(self, matrix: np.ndarray) -> None:
-        """
-        Initializes the 2-qubit matrix gate.
-
-        Args:
-            matrix: The matrix that defines the gate.
-        """
-        super().__init__(matrix, qid_shape=(2, 2))
-
-    def _json_dict_(self) -> Dict[str, Any]:
-        return {
-            'cirq_type': self.__class__.__name__,
-            'matrix': self._matrix,
-        }
-
-    @classmethod
-    def _from_json_dict_(cls, matrix, **kwargs):
-        return cls(matrix=np.array(matrix))
-
-    def __repr__(self) -> str:
-        return f'cirq.TwoQubitMatrixGate({proper_repr(self._matrix)})'
 
 
 def _matrix_to_diagram_symbol(matrix: np.ndarray,

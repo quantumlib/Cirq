@@ -12,19 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cirq
-from cirq._compat_test import capture_logging
+from typing import Any
+
+from cirq import protocols
 
 
-def test_deprecated():
-    with capture_logging() as log:
-        _ = cirq.linalg.eye_tensor((1,), dtype=float)
-    assert len(log) == 1
-    assert "cirq.eye_tensor" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
+def assert_specifies_has_unitary_if_unitary(val: Any) -> None:
+    """Checks that unitary values can be cheaply identifies as unitary."""
 
-    with capture_logging() as log:
-        _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
-    assert len(log) == 1
-    assert "cirq.one_hot" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
+    # pylint: disable=unused-variable
+    __tracebackhide__ = True
+    # pylint: enable=unused-variable
+
+    assert not protocols.has_unitary(val) or hasattr(val, '_has_unitary_'), (
+        "Value is unitary but doesn't specify a _has_unitary_ method that "
+        "can be used to cheaply verify this fact.\n"
+        "\n"
+        "val: {!r}".format(val))

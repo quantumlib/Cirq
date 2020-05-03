@@ -11,16 +11,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""IdentityGate and IdentityOperation."""
+"""IdentityGate."""
 
-from typing import (Any, Dict, Iterable, List, Optional, Sequence, Tuple, Union,
+from typing import (Any, Dict, Iterable, List, Optional, Tuple, Union,
                     TYPE_CHECKING)
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.ops import raw_types
 
@@ -104,6 +103,9 @@ class IdentityGate(raw_types.Gate):
             return self
         return NotImplemented
 
+    def _has_unitary_(self) -> bool:
+        return True
+
     def _unitary_(self) -> np.ndarray:
         return np.identity(np.prod(self._qid_shape, dtype=int))
 
@@ -169,23 +171,6 @@ class IdentityGate(raw_types.Gate):
     def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
         return cls(num_qubits=num_qubits,
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
-
-
-class IdentityOperation(raw_types.Operation):
-    """An application of the identity gate to a sequence of qubits."""
-
-    @deprecated(deadline='v0.8',
-                fix='Use cirq.IdentityGate or cirq.identity_each instead.',
-                name='IdentityOperation')
-    def __new__(cls, qubits: Sequence['cirq.Qid']):
-        return IdentityGate(qid_shape=protocols.qid_shape(qubits)).on(*qubits)
-
-    @property
-    def qubits(self) -> Tuple['cirq.Qid', ...]:
-        raise NotImplementedError('deprecated')
-
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
-        raise NotImplementedError('deprecated')
 
 
 I = IdentityGate(num_qubits=1)

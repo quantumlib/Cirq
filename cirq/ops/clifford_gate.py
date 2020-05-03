@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq import protocols, value, linalg
 from cirq._doc import document
-from cirq.ops import (common_gates, gate_features, named_qubit, pauli_gates)
+from cirq.ops import common_gates, gate_features, named_qubit, pauli_gates
 from cirq.ops.pauli_gates import Pauli
 from cirq.type_workarounds import NotImplementedType
 
