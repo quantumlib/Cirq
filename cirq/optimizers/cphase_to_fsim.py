@@ -166,10 +166,10 @@ def decompose_cphase_into_two_fsim(
         if 0 <= sin_alpha_squared <= 1:
             break
     else:
-        rs = compute_cphase_exponents_for_fsim_decomposition(fsim_gate)
+        intervals = compute_cphase_exponents_for_fsim_decomposition(fsim_gate)
         raise ValueError(
-            f'{cphase_gate} cannot be decomposed into two {fsim_gate}. '
-            f'Valid intervals for canonical exponent of CZPowGate: {rs}.')
+            f'{cphase_gate} cannot be decomposed into two {fsim_gate}. Valid '
+            f'intervals for canonical exponent of CZPowGate: {intervals}.')
     assert 0 <= sin_alpha_squared <= 1
     alpha = np.arcsin(np.sqrt(sin_alpha_squared))
 
