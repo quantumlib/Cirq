@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import (Callable, cast, List, Optional, Type, TypeVar, Union,
+from typing import (Callable, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
 import numpy as np
