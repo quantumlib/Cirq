@@ -26,6 +26,7 @@ from cirq.google.engine.engine_timeslot import EngineTimeSlot
 
 if TYPE_CHECKING:
     import cirq.google.engine.engine as engine_base
+    import cirq
 
 
 class EngineProcessor:
@@ -111,8 +112,8 @@ class EngineProcessor:
             return None
 
     def get_device(
-            self,
-            gate_sets: Iterable[serializable_gate_set.SerializableGateSet]):
+            self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
+    ) -> 'cirq.Device':
         """Returns a `Device` created from the processor's device specification.
 
         This method queries the processor to retrieve the device specification,
