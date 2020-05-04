@@ -34,23 +34,21 @@ def test_invalid_qubits():
 
 
 def test_circuit_structure():
-    circuit = cirq.decompose_cphase_into_two_fsim(cirq.CZ,
-                                                  fsim_gate=cirq.google.SYC)
+    ops = cirq.decompose_cphase_into_two_fsim(cirq.CZ,
+                                              fsim_gate=cirq.google.SYC)
     num_interaction_moments = 0
-    for moment in circuit:
-        for op in moment.operations:
-            assert len(op.qubits) in (0, 1, 2)
-            if len(op.qubits) == 2:
-                num_interaction_moments += 1
-                assert isinstance(op.gate, cirq.google.SycamoreGate)
+    for op in ops:
+        assert len(op.qubits) in (0, 1, 2)
+        if len(op.qubits) == 2:
+            num_interaction_moments += 1
+            assert isinstance(op.gate, cirq.google.SycamoreGate)
     assert num_interaction_moments == 2
 
 
 def assert_decomposition_valid(cphase_gate, fsim_gate):
     u_expected = cirq.unitary(cphase_gate)
-    circuit = cirq.decompose_cphase_into_two_fsim(cphase_gate,
-                                                  fsim_gate=fsim_gate)
-    u_actual = cirq.unitary(circuit)
+    ops = cirq.decompose_cphase_into_two_fsim(cphase_gate, fsim_gate=fsim_gate)
+    u_actual = cirq.unitary(cirq.Circuit(ops))
     assert np.allclose(u_actual, u_expected)
 
 

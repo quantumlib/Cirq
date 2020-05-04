@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, devices, ops, protocols
+from cirq import devices, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
@@ -36,8 +36,8 @@ def compute_cphase_exponents_for_fsim_decomposition(
         returns zero, one or two intervals.
     """
 
-    def filter_out_empty_intervals(intervals: Sequence[Tuple[float, float]]
-                                  ) -> Sequence[Tuple[float, float]]:
+    def nonempty_intervals(intervals: Sequence[Tuple[float, float]]
+                          ) -> Sequence[Tuple[float, float]]:
         return tuple((a, b) for a, b in intervals if a < b)
 
     # Each of the two FSimGate parameters sets a bound on phase angle.
@@ -56,16 +56,16 @@ def compute_cphase_exponents_for_fsim_decomposition(
 
     # Intervals are disjoint. Return both.
     if max_exponent_1 < min_exponent_2:
-        return filter_out_empty_intervals([(min_exponent_1, max_exponent_1),
-                                           (min_exponent_2, max_exponent_2)])
+        return nonempty_intervals([(min_exponent_1, max_exponent_1),
+                                   (min_exponent_2, max_exponent_2)])
     if max_exponent_2 < min_exponent_1:
-        return filter_out_empty_intervals([(min_exponent_2, max_exponent_2),
-                                           (min_exponent_1, max_exponent_1)])
+        return nonempty_intervals([(min_exponent_2, max_exponent_2),
+                                   (min_exponent_1, max_exponent_1)])
 
     # Intervals overlap. Merge.
     min_exponent = min(min_exponent_1, min_exponent_2)
     max_exponent = max(max_exponent_1, max_exponent_2)
-    return filter_out_empty_intervals([(min_exponent, max_exponent)])
+    return nonempty_intervals([(min_exponent, max_exponent)])
 
 
 def decompose_cphase_into_two_fsim(
@@ -73,7 +73,7 @@ def decompose_cphase_into_two_fsim(
         *,
         fsim_gate: 'cirq.FSimGate',
         qubits: Optional[Sequence['cirq.Qid']] = None,
-        atol: float = 1e-8) -> 'cirq.Circuit':
+        atol: float = 1e-8) -> 'cirq.OP_TREE':
     """Decomposes CZPowGate into two FSimGates.
 
     This function implements the decomposition described in section VII F I
@@ -116,7 +116,7 @@ def decompose_cphase_into_two_fsim(
             the phi angle are too close.
 
     Returns:
-        Circuit equivalent to cphase_gate and consisting solely of two copies
+        Operations equivalent to cphase_gate and consisting solely of two copies
         of fsim_gate and a few single-qubit rotations.
 
     Raises:
@@ -185,7 +185,7 @@ def decompose_cphase_into_two_fsim(
     #
     # Step 3: synthesize output circuit
     #
-    return circuits.Circuit(
+    return (
         # Local X rotations to convert Γ1⊗I − iZ⊗Γ2 into exp(-i Z⊗Z δ/4)
         ops.rx(xi).on(q0),
         ops.rx(eta).on(q1),
