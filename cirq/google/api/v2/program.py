@@ -41,6 +41,39 @@ def qubit_to_proto_id(q: 'cirq.Qid') -> str:
             type(q)))
 
 
+def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
+    """Return a `cirq.Qid` for a proto id.
+
+    Proto IDs of the form {int}_{int} are parsed as GridQubits.
+
+    Proto IDs of the form {int} are parsed as LineQubits.
+
+    All other proto IDs are parsed as NamedQubits. Note that this will happily
+    accept any string; for circuits which explicitly use Grid or LineQubits,
+    prefer one of the specialized methods below.
+
+    Args:
+        proto_id: The id to convert.
+
+    Returns:
+        A `cirq.Qid` corresponding to the proto id.
+    """
+    try:
+        q = grid_qubit_from_proto_id(proto_id)
+        return q
+    except ValueError:
+        pass  # Not a grid qubit.
+    try:
+        q = line_qubit_from_proto_id(proto_id)
+        return q
+    except ValueError:
+        pass  # Not a line qubit.
+
+    # named_qubit_from_proto has no failure condition.
+    q = named_qubit_from_proto_id(proto_id)
+    return q
+
+
 def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     """Parse a proto id to a `cirq.GridQubit`.
 
