@@ -3,8 +3,6 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 
 from cirq import ops, circuits, devices, protocols
-from cirq.optimizers.merge_single_qubit_gates import MergeSingleQubitGates
-from cirq.optimizers.drop_empty_moments import DropEmptyMoments
 
 if TYPE_CHECKING:
     import cirq
@@ -187,7 +185,7 @@ def decompose_cphase_into_two_fsim(
     #
     # Step 3: synthesize output circuit
     #
-    circuit = circuits.Circuit(
+    return circuits.Circuit(
         # Local X rotations to convert Γ1⊗I − iZ⊗Γ2 into exp(-i Z⊗Z δ/4)
         ops.rx(xi).on(q0),
         ops.rx(eta).on(q1),
@@ -218,7 +216,3 @@ def decompose_cphase_into_two_fsim(
         ops.rz(-delta / 2).on(q1),
         ops.GlobalPhaseOperation(np.exp(-1j * delta / 4)),
     )
-
-    MergeSingleQubitGates().optimize_circuit(circuit)
-    DropEmptyMoments().optimize_circuit(circuit)
-    return circuit

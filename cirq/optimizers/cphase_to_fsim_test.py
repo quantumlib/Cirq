@@ -36,24 +36,14 @@ def test_invalid_qubits():
 def test_circuit_structure():
     circuit = cirq.decompose_cphase_into_two_fsim(cirq.CZ,
                                                   fsim_gate=cirq.google.SYC)
-    assert len(circuit) == 5
-
-    # First moment consists of 0- and 1-qubit operations.
-    assert set(len(op.qubits) for op in circuit[0].operations) == {0, 1}
-
-    # Second moment consists of a single Sycamore gate.
-    assert len(circuit[1]) == 1
-    assert isinstance(circuit[1].operations[0].gate, cirq.google.SycamoreGate)
-
-    # Third moment consists of 1-qubit operations only.
-    assert set(len(op.qubits) for op in circuit[2].operations) == {1}
-
-    # Fourth moment consists of a single Sycamore gate.
-    assert len(circuit[3]) == 1
-    assert isinstance(circuit[3].operations[0].gate, cirq.google.SycamoreGate)
-
-    # Fifth moment consists of 1-qubit operations only.
-    assert set(len(op.qubits) for op in circuit[4].operations) == {1}
+    num_interaction_moments = 0
+    for moment in circuit:
+        for op in moment.operations:
+            assert len(op.qubits) in (0, 1, 2)
+            if len(op.qubits) == 2:
+                num_interaction_moments += 1
+                assert isinstance(op.gate, cirq.google.SycamoreGate)
+    assert num_interaction_moments == 2
 
 
 def assert_decomposition_valid(cphase_gate, fsim_gate):
