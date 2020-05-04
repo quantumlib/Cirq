@@ -140,7 +140,7 @@ class CliffordTableau():
         self.rs[:] ^= self.zs[:, q]
 
     def _Y(self, q):
-        self.rs[:] ^= self.xs[:, q] | self.zs[:, q]
+        self.rs[:] ^= self.xs[:, q] ^ self.zs[:, q]
 
     def _Z(self, q):
         self.rs[:] ^= self.xs[:, q]
