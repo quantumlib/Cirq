@@ -2,7 +2,7 @@ from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import ops, circuits, devices, protocols
+from cirq import circuits, devices, ops, protocols
 
 if TYPE_CHECKING:
     import cirq
