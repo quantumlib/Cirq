@@ -13,17 +13,20 @@
 # limitations under the License.
 import datetime
 
-from typing import List, Optional, TYPE_CHECKING, Union, Tuple
+from typing import Iterable, List, Optional, TYPE_CHECKING, Union
 from pytz import utc
 
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google.engine.client.quantum import enums as qenums
+from cirq.google import serializable_gate_set
 from cirq.google.api import v2
+from cirq.google.devices import serializable_device
 from cirq.google.engine import calibration
 from cirq.google.engine.engine_timeslot import EngineTimeSlot
 
 if TYPE_CHECKING:
     import cirq.google.engine.engine as engine_base
+    import cirq
 
 
 class EngineProcessor:
@@ -107,6 +110,21 @@ class EngineProcessor:
             return device_spec
         else:
             return None
+
+    def get_device(
+            self, gate_sets: Iterable[serializable_gate_set.SerializableGateSet]
+    ) -> 'cirq.Device':
+        """Returns a `Device` created from the processor's device specification.
+
+        This method queries the processor to retrieve the device specification,
+        which is then use to create a `SerializableDevice` that will validate
+        that operations are supported and use the correct qubits.
+        """
+        spec = self.get_device_specification()
+        if not spec:
+            raise ValueError('Processor does not have a device specification')
+        return serializable_device.SerializableDevice.from_proto(
+            spec, gate_sets)
 
     @staticmethod
     def _to_calibration(calibration_any: qtypes.any_pb2.Any
