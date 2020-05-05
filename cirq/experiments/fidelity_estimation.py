@@ -227,3 +227,57 @@ def log_xeb_fidelity(
                         qubit_order,
                         amplitudes,
                         estimator=log_xeb_fidelity_from_probabilities)
+
+
+def least_squares_xeb_fidelity_from_expectations(
+        measured_expectations: Sequence[float],
+        exact_expectations: Sequence[float],
+        uniform_expectations: Sequence[float]) -> float:
+    """Least squares fidelity estimator.
+
+    An XEB experiment collects data from the execution of random circuits
+    subject to noise. The effect of applying a random circuit with unitary U is
+    modeled as U followed by a depolarizing channel. The result is that the
+    initial state |𝜓⟩ is mapped to a density matrix ρ_U as follows:
+
+        |𝜓⟩ → ρ_U = f |𝜓_U⟩⟨𝜓_U| + (1 - f) I / D
+
+    where |𝜓_U⟩ = U|𝜓⟩, D is the dimension of the Hilbert space, I / D is the
+    maximally mixed state, and f is the fidelity with which the circuit is
+    applied. Let O_U be an observable that is diagonal in the computational
+    basis. Then the expectation of O_U on ρ_U is given by
+
+        Tr(ρ_U O_U) = f ⟨𝜓_U|O_U|𝜓_U⟩ + (1 - f) Tr(O_U / D).
+
+    This equation shows how f can be estimated, since Tr(ρ_U O_U) can be
+    estimated from experimental data, and ⟨𝜓_U|O_U|𝜓_U⟩ and Tr(O_U / D) can be
+    computed numerically.
+
+    Let e_U = ⟨𝜓_U|O_U|𝜓_U⟩, u_U = Tr(O_U / D), and m_U denote the experimental
+    estimate of Tr(ρ_U O_U). Then we estimate f by performing least squares
+    minimization of the quantity
+
+        f (e_U - u_U) - (m_U - u_U)
+
+    over different random circuits (giving different U). The solution to the
+    least squares problem is given by
+
+        f = (∑_U (m_U - u_U) * (e_U - u_U)) / (∑_U (e_U - u_U)^2).
+
+    Args:
+        measured_expectations: A list of the m_U, the experimental estimates
+            of the observable, one for each circuit U.
+        exact_expectations: A list of the e_U, the exact value of the
+            observable. The order should match the order of the
+            `measured_expectations` argument.
+        uniform_expectations: A list of the u_U, the expectation of the
+            observable on a uniformly random bitstring. The order should match
+            the order in the other arguments.
+    """
+    numerator = 0.0
+    denominator = 0.0
+    for m, e, u in zip(measured_expectations, exact_expectations,
+                       uniform_expectations):
+        numerator += (m - u) * (e - u)
+        denominator += (e - u)**2
+    return numerator / denominator

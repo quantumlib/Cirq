@@ -36,6 +36,8 @@ from cirq import devices, ops, protocols, sim, value
 from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
                                                          CrossEntropyResultDict,
                                                          CrossEntropyPair)
+from cirq.experiments.fidelity_estimation import (
+    least_squares_xeb_fidelity_from_expectations)
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
@@ -322,48 +324,13 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                                                ) -> CrossEntropyResultDict:
     """Compute grid parallel two-qubit XEB results from experimental data.
 
-    The grid parallel two-qubit XEB experiment collects data from the execution
-    of random circuits subject to noise. The effect of applying a random circuit
-    with unitary U is modeled as U followed by a depolarizing channel.
-    The result is that the initial state |𝜓⟩ is mapped to a density matrix ρ_U
-    as follows:
+    XEB fidelities are calculated using the least squares XEB fidelity estimator
+    with the linear cross entropy observable. Using notation from the docstring
+    of `cirq.experiments.least_squares_xeb_fidelity_from_expectations`,
+    the linear cross entropy observable O_U has eigenvalue corresponding to the
+    computational basis state |z⟩ given by D * |⟨z|𝜓_U⟩|^2.
 
-        |𝜓⟩ → ρ_U = p_eff |𝜓_U⟩⟨𝜓_U| + (1 - p_eff) I / D
-
-    where |𝜓_U⟩ = U|𝜓⟩, D is the dimension of the Hilbert space, I / D is the
-    maximally mixed state, and p_eff is the effective depolarization of the
-    depolarizing channel. The purpose of this function is to compute estimates
-    of p_eff from experimental data. Let O_U be the diagonal observable whose
-    value on the bitstring z is given by O_U(z) = D * |⟨z|𝜓_U⟩|^2. Then the
-    expectation of O_U on ρ_U is given by
-
-        Tr(ρ_U O_U) = p_eff ⟨𝜓_U|O_U|𝜓_U⟩ + (1 - p_eff).
-
-    This equation shows how p_eff can be estimated, since Tr(ρ_U O_U) can be
-    estimated from experimental data and ⟨𝜓_U|O_U|𝜓_U⟩ can be computed
-    numerically by simulating the circuit.
-
-    Let V_U = ⟨𝜓_U|O_U|𝜓_U⟩ and R_U denote the experimental estimate of
-    Tr(ρ_U O_U). Then we estimate p_eff by performing least squares minimization
-    of the quantity
-
-        p_eff (V_U - 1) - (R_U - 1)
-
-    over different random circuits (giving different U). The solution to the
-    least squares problem is given by
-
-        p_eff = (∑_U (R_U - 1) * (V_U - 1)) / (∑_U (V_U - 1)^2).
-
-    Each circuit executed in the grid parallel two-qubit XEB experiment is
-    obtained by truncating a "parent" circuit at a specified depth, or number
-    of cycles. A cycle consists of a layer of single-qubit gates followed by a
-    layer of two-qubit gates. Within a circuit, every layer of two-qubit gates
-    is identical, so that the entire circuit can be viewed as acting on pairs of
-    qubits at a time, i.e., the unitary U factors as the tensor product of
-    unitaries that each act on only two qubits. This method computes p_eff for
-    each pair of qubits, for each number of cycles that the circuits were
-    truncated at. Results are saved in the file
-    {base_dir}/{data_collection_id}/results.json.
+    Results are saved in the file {base_dir}/{data_collection_id}/results.json.
 
     Args:
         data_collection_id: The data collection ID of the data set to analyze.
@@ -394,8 +361,8 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         # Each combination of qubit pair and parent circuit can be handled in a
         # separate process
         # Reason for type: ignore: https://github.com/python/mypy/issues/4678
-        numerators = manager.dict()  # type: ignore
-        denominators = manager.dict()  # type: ignore
+        measured_expectations = manager.dict()
+        exact_expectations = manager.dict()
         arguments = []
         # Construct arguments to be mapped by multiprocessing
         for layer in layers:
@@ -419,18 +386,21 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                     trial_result = load(trial_result_params, base_dir=base_dir)
                     trial_results.append(trial_result)
                 for qubit_pair in active_qubit_pairs:
-                    arguments.append((qubit_pair, qubits, circuit, cycles,
-                                      trial_results, numerators, denominators))
+                    arguments.append(
+                        (qubit_pair, qubits, circuit, cycles, trial_results,
+                         measured_expectations, exact_expectations))
 
-        # Initialize lists to store numerators and denominators.
+        # Initialize lists to store expectations
         for qubit_pair, depth in itertools.product(all_active_qubit_pairs,
                                                    cycles):
             # Reason for type: ignore:
             # https://github.com/python/mypy/issues/4678
-            numerators[(qubit_pair, depth)] = manager.list()  # type: ignore
-            denominators[(qubit_pair, depth)] = manager.list()  # type: ignore
+            measured_expectations[(qubit_pair,
+                                   depth)] = manager.list()  # type: ignore
+            exact_expectations[(qubit_pair,
+                                depth)] = manager.list()  # type: ignore
 
-        # Compute the numerators and denominators
+        # Compute the expectations
         num_processors = min(num_processors, len(arguments))
         with multiprocessing.Pool(num_processors) as pool:
             pool.starmap(_get_fidelity_estimator_components, arguments)
@@ -439,8 +409,11 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         for qubit_pair in all_active_qubit_pairs:
             data = []
             for depth in cycles:
-                fidelity = (sum(numerators[(qubit_pair, depth)]) /
-                            sum(denominators[(qubit_pair, depth)]))
+                fidelity = least_squares_xeb_fidelity_from_expectations(
+                    measured_expectations=measured_expectations[(qubit_pair,
+                                                                 depth)],
+                    exact_expectations=exact_expectations[(qubit_pair, depth)],
+                    uniform_expectations=[1.0] * num_circuits)
                 data.append(CrossEntropyPair(depth, fidelity))
             xeb_results[qubit_pair] = CrossEntropyResult(  # type: ignore
                 data=data, repetitions=repetitions)
@@ -458,8 +431,9 @@ def _get_fidelity_estimator_components(
         qubit_pair: GridQubitPair, all_qubits: Sequence['cirq.GridQubit'],
         circuit: 'cirq.Circuit', cycles: Sequence[int],
         trial_results: Sequence['cirq.TrialResult'],
-        numerators: Dict[Tuple[GridQubitPair, int], List[float]],
-        denominators: Dict[Tuple[GridQubitPair, int], List[float]]) -> None:
+        measured_expectations: Dict[Tuple[GridQubitPair, int], List[float]],
+        exact_expectations: Dict[Tuple[GridQubitPair, int], List[float]]
+) -> None:
     """Compute quantities to estimate p_eff for a qubit pair for given cycles.
     """
     a, b = qubit_pair
@@ -482,15 +456,13 @@ def _get_fidelity_estimator_components(
             moment_index += 1
         amplitudes = step_result.state_vector()
         probabilities = np.abs(amplitudes)**2
-        # Compute the values needed for fidelity calculation
-        experimental_value = 4 * np.mean(
+        # Compute the expectations needed for fidelity calculation
+        measured_expectation = 4 * np.mean(
             probabilities[restricted_measurements_ints])
-        theoretical_value = 4 * np.sum(probabilities**2)
-        numerator = (experimental_value - 1) * (theoretical_value - 1)
-        denominator = (theoretical_value - 1)**2
+        exact_expectation = 4 * np.sum(probabilities**2)
         # Save values in dictionaries
-        numerators[(qubit_pair, depth)].append(numerator)
-        denominators[(qubit_pair, depth)].append(denominator)
+        measured_expectations[(qubit_pair, depth)].append(measured_expectation)
+        exact_expectations[(qubit_pair, depth)].append(exact_expectation)
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
