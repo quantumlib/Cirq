@@ -24,6 +24,7 @@ import examples.quantum_fourier_transform
 import examples.quantum_teleportation
 import examples.qubit_characterizations_example
 import examples.shor
+import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
 
@@ -36,6 +37,10 @@ def test_example_runs_bernstein_vazirani():
     assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
     assert list(examples.bernstein_vazirani.make_oracle([], a, [],
                                                         True)) == [cirq.X(a)]
+
+
+def test_example_runs_simon():
+    examples.simon_algorithm.main()
 
 
 def test_example_runs_deutsch():

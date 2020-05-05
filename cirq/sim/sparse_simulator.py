@@ -20,7 +20,7 @@ from typing import Dict, Iterator, List, Tuple, Type, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import circuits, linalg, ops, protocols, study, value
+from cirq import circuits, linalg, ops, protocols, qis, study, value
 from cirq.sim import simulator, wave_function, wave_function_simulator
 
 if TYPE_CHECKING:
@@ -246,10 +246,10 @@ class Simulator(simulator.SimulatesSamples,
         num_qubits = len(qubits)
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        state = wave_function.to_valid_state_vector(initial_state,
-                                                    num_qubits,
-                                                    qid_shape=qid_shape,
-                                                    dtype=self._dtype)
+        state = qis.to_valid_state_vector(initial_state,
+                                          num_qubits,
+                                          qid_shape=qid_shape,
+                                          dtype=self._dtype)
         if len(circuit) == 0:
             yield SparseSimulatorStep(state, {}, qubit_map, self._dtype)
 
@@ -432,11 +432,11 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         return self._simulator_state().state_vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
-        update_state = wave_function.to_valid_state_vector(
-            state,
-            len(self.qubit_map),
-            qid_shape=protocols.qid_shape(self, None),
-            dtype=self._dtype)
+        update_state = qis.to_valid_state_vector(state,
+                                                 len(self.qubit_map),
+                                                 qid_shape=protocols.qid_shape(
+                                                     self, None),
+                                                 dtype=self._dtype)
         np.copyto(self._state_vector, update_state)
 
     def sample(self,
