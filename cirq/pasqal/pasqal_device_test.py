@@ -94,10 +94,11 @@ def test_is_pasqal_device():
     op = (cirq.ops.CZ).on(*(d.qubit_list()))
     bad_op = cirq.ops.CNotPowGate(exponent=0.5)
 
+    assert d.is_pasqal_device_op(op)
     assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
     assert not d.is_pasqal_device_op(cirq.ops.CCX(cirq.NamedQubit('q0'),
                                                   cirq.NamedQubit('q1'),
-                                                  cirq.NamedQubit('q2')))
+                                                  cirq.NamedQubit('q2'))**0.2)
     assert not d.is_pasqal_device_op(bad_op(cirq.NamedQubit('q0'),
                                             cirq.NamedQubit('q1')))
     op1 = cirq.ops.CNotPowGate(exponent=1.)

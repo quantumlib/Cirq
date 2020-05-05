@@ -83,8 +83,9 @@ class PasqalDevice(cirq.devices.Device):
                       cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
         if not valid_op:    # To prevent further checking if already passed
-            if isinstance(op.gate, (cirq.ops.HPowGate,
-                                    cirq.ops.CNotPowGate, cirq.ops.CZPowGate)):
+            if isinstance(op.gate, (cirq.ops.HPowGate, cirq.ops.CNotPowGate,
+                                    cirq.ops.CZPowGate, cirq.ops.CCZPowGate,
+                                    cirq.ops.CCXPowGate)):
                 expo = op.gate.exponent
                 valid_op = np.isclose(expo, np.around(expo, decimals=0))
 
@@ -172,8 +173,10 @@ class PasqalVirtualDevice(PasqalDevice):
         return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit,)
 
     def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
-        return super().is_pasqal_device_op(op) and not isinstance(op.gate,
-                                                                  cirq.ops.CNotPowGate)
+        invalid = isinstance(op.gate, (cirq.ops.CNotPowGate,
+                                       cirq.ops.CCZPowGate,
+                                       cirq.ops.CCXPowGate))
+        return super().is_pasqal_device_op(op) and not invalid
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
