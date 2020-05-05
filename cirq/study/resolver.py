@@ -98,10 +98,11 @@ class ParamResolver:
 
         # Handle cases where input is mapped to a resolved value.
         key = None
-        if value in self.param_dict:
-            key = value
-        if value.name in self.param_dict:
-            key = value.name
+        if isinstance(value, sympy.Symbol):
+            if value in self.param_dict:
+                key = value
+            if value.name in self.param_dict:
+                key = value.name
         if key is not None:
             resolved = self.param_dict[key]
             if not isinstance(resolved, (sympy.Basic, Iterable)):
