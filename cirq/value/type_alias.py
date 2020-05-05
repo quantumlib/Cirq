@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Union, Any
 import sympy
 
 from cirq._doc import document
 """Supply aliases for commonly used types.
 """
 
-TParamVal = Union[float, sympy.Basic]
+TParamVal = Union[float, sympy.Basic, Any]
 document(
     TParamVal,  # type: ignore
     """A value that a parameter resolver may return for a symbol.""")

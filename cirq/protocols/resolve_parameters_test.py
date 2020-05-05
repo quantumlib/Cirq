@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import dataclasses
 
+import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -87,3 +90,39 @@ def test_skips_empty_resolution():
     t = Tester()
     assert cirq.resolve_parameters(t, {}) is t
     assert cirq.resolve_parameters(t, {'x': 2}) == 5
+
+
+def test_resolve_unknown_dataclass():
+
+    @dataclasses.dataclass
+    class C:
+        x: int
+        y: int
+
+    c = C(1, 2)
+    assert cirq.resolve_parameters('c', {'c': c}) is c
+
+
+def test_recursive_resolution():
+    assert cirq.resolve_parameters(
+        'c', {sympy.Symbol('c'): sympy.Symbol('a'), sympy.Symbol('a'): 2}) == 2
+    assert cirq.resolve_parameters(
+        'c', {sympy.Symbol('c'): 'a', sympy.Symbol('a'): 2}) == 2
+    assert cirq.resolve_parameters(
+        'c', {sympy.Symbol('a'): 2, sympy.Symbol('c'): sympy.Symbol('a')}) == 2
+    assert cirq.resolve_parameters('c', {'c': 'a', 'a': 2}) == 2
+    assert cirq.resolve_parameters('c', {'a': 2, 'c': 'a'}) == 2
+
+
+def test_refuse_to_resolve_to_iterables_except_str():
+    assert cirq.resolve_parameters('c', {'c': 'a'}) == sympy.Symbol('a')
+    assert cirq.resolve_parameters(sympy.Symbol('c'),
+                                   {'c': 'a'}) == sympy.Symbol('a')
+    with pytest.raises(TypeError, match='ambiguity with cartesian'):
+        _ = cirq.resolve_parameters('c', {'c': [1, 2, 3]})
+    with pytest.raises(TypeError, match='ambiguity with cartesian'):
+        _ = cirq.resolve_parameters(sympy.Symbol('c'), {'c': [1, 2, 3]})
+    with pytest.raises(TypeError, match='ambiguity with cartesian'):
+        _ = cirq.resolve_parameters('c', {'c': (1, 2, 3)})
+    with pytest.raises(TypeError, match='ambiguity with cartesian'):
+        _ = cirq.resolve_parameters('c', {'c': np.array([1, 2, 3])})

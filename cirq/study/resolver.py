@@ -13,8 +13,9 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+import numbers
+from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast, \
+    Iterable
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -23,7 +24,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
+ParamDictType = Dict[Union[str, sympy.Symbol],
+                     Union[float, str, sympy.Basic, Any]]
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")
@@ -86,45 +88,54 @@ class ParamResolver:
         Returns:
             The value of the parameter as resolved by this resolver.
         """
-        # Input is a float, no resolution needed: return early
-        if isinstance(value, float):
+        # Numerical inputs don't need resolution.
+        if isinstance(value, numbers.Number):
             return value
 
-        # Handles 2 cases:
-        # Input is a string and maps to a number in the dictionary
-        # Input is a symbol and maps to a number in the dictionary
-        # In both cases, return it directly.
-        if value in self.param_dict:
-            param_value = self.param_dict[value]
-            if isinstance(param_value, (float, int)):
-                return param_value
-
-        # Input is a string and is not in the dictionary.
-        # Treat it as a symbol instead.
+        # Strings are shorthands for symbols.
         if isinstance(value, str):
-            # If the string is in the param_dict as a value, return it.
-            # Otherwise, try using the symbol instead.
-            return self.value_of(sympy.Symbol(value))
+            value = sympy.Symbol(value)
 
-        # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
-        # in the dictionary ({'a': 1.0}).  Return it.
-        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
-            param_value = self.param_dict[value.name]
-            if isinstance(param_value, (float, int)):
-                return param_value
+        # Handle cases where input is mapped to a resolved value.
+        key = None
+        if value in self.param_dict:
+            key = value
+        if value.name in self.param_dict:
+            key = value.name
+        if key is not None:
+            resolved = self.param_dict[key]
+            if not isinstance(resolved, (sympy.Basic, Iterable)):
+                return resolved
 
-        # Input is either a sympy formula or the dictionary maps to a
-        # formula.  Use sympy to resolve the value.
-        # Note that sympy.subs() is slow, so we want to avoid this and
-        # only use it for cases that require complicated resolution.
-        if isinstance(value, sympy.Basic):
+            if (isinstance(resolved, Iterable) and
+                    not isinstance(resolved, str)):
+                raise TypeError(
+                    "To avoid ambiguity with cartesian product shorthand, such "
+                    "as `params={'a': [1, 2, 3], 'b': [4, 5]}`, symbols "
+                    "currently can't resolve to a list, tuple, or other "
+                    "iterable.\n"
+                    "For gates that are really parameterized by a list, you "
+                    "can work around this issue by putting the list inside a "
+                    "custom wrapper object.\n"
+                    "\n"
+                    f"The symbol {proper_repr(value)} "
+                    f"resolved to an iterable {resolved!r}.")
+
+        # If the input is a sympy formula, or resolves to a formula, use sympy
+        # to resolve the value. Note that sympy.subs() is slow, so we want to
+        # avoid this and only use it for cases that require complicated
+        # resolution.
+        while isinstance(value, sympy.Basic):
             v = value.subs(self.param_dict)
             if v.free_symbols:
+                # Attempt recursive resolution.
+                if v != value:
+                    value = v
+                    continue
                 return v
-            elif sympy.im(v):
+            if sympy.im(v):
                 return complex(v)
-            else:
-                return float(v)
+            return float(v)
 
         # No known way to resolve this variable, return unchanged.
         return value

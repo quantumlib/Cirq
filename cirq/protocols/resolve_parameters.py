@@ -91,7 +91,7 @@ def resolve_parameters(
 
     # Ensure its a dictionary wrapped in a ParamResolver.
     param_resolver = study.ParamResolver(param_resolver)
-    if isinstance(val, sympy.Basic):
+    if isinstance(val, (str, sympy.Basic)):
         return param_resolver.value_of(val)
     if isinstance(val, (list, tuple)):
         return type(val)(resolve_parameters(e, param_resolver) for e in val)
