@@ -23,8 +23,8 @@ class ThreeDGridQubit(cirq.ops.Qid):
     ThreeDGridQubits use row-column-layer ordering:
 
         ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
-        < ThreeDGridQubit(0, 1, 0)< ThreeDGridQubit(1, 0, 0)
-        < ThreeDGridQubit(0, 1, 1)< ThreeDGridQubit(1, 0, 1)
+        < ThreeDGridQubit(0, 1, 0)< ThreeDGridQubit(0, 1, 1)
+        < ThreeDGridQubit(1, 0, 0)< ThreeDGridQubit(1, 0, 1)
         < ThreeDGridQubit(1, 1, 0)< ThreeDGridQubit(1, 1, 1)
 
     New ThreeDGridQubit can be constructed by adding or subtracting tuples
