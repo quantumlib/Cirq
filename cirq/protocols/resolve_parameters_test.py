@@ -104,12 +104,18 @@ def test_resolve_unknown_dataclass():
 
 
 def test_recursive_resolution():
-    assert cirq.resolve_parameters(
-        'c', {sympy.Symbol('c'): sympy.Symbol('a'), sympy.Symbol('a'): 2}) == 2
-    assert cirq.resolve_parameters(
-        'c', {sympy.Symbol('c'): 'a', sympy.Symbol('a'): 2}) == 2
-    assert cirq.resolve_parameters(
-        'c', {sympy.Symbol('a'): 2, sympy.Symbol('c'): sympy.Symbol('a')}) == 2
+    assert cirq.resolve_parameters('c', {
+        sympy.Symbol('c'): sympy.Symbol('a'),
+        sympy.Symbol('a'): 2
+    }) == 2
+    assert cirq.resolve_parameters('c', {
+        sympy.Symbol('c'): 'a',
+        sympy.Symbol('a'): 2
+    }) == 2
+    assert cirq.resolve_parameters('c', {
+        sympy.Symbol('a'): 2,
+        sympy.Symbol('c'): sympy.Symbol('a')
+    }) == 2
     assert cirq.resolve_parameters('c', {'c': 'a', 'a': 2}) == 2
     assert cirq.resolve_parameters('c', {'a': 2, 'c': 'a'}) == 2
 

@@ -24,8 +24,8 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Symbol],
-                     Union[float, str, sympy.Basic, Any]]
+ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.
+                                                     Basic, Any]]
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")

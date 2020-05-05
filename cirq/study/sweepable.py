@@ -14,7 +14,7 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Dict, Iterable, Iterator, List, Union, cast
+from typing import Dict, Iterable, Iterator, List, Union, cast, Any
 import itertools
 
 from cirq._doc import document
@@ -22,8 +22,10 @@ from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
 
-Sweepable = Union[Dict[str, float], ParamResolver, Sweep, Iterable[
-    Union[Dict[str, float], ParamResolver, Sweep]], None]
+Sweepable = Union[Dict[str, Union[float, str, Iterable, Any]], ParamResolver,
+                  Sweep, Iterable[
+                      Union[Dict[str, Union[float, str, Iterable, Any]],
+                            ParamResolver, Sweep]], None]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
