@@ -22,6 +22,7 @@ import argparse
 import asyncio
 from dataclasses import dataclass
 import itertools
+import math
 import random
 import sys
 import numpy as np
@@ -276,6 +277,24 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
+def _estimate_std_devs_clifford(fidelity: float, N: int):
+    """
+    Estimates the standard deviation of the measurement for Clifford circuits.
+
+    Args:
+        fidelity: The measured fidelity
+        N: the number of measurements
+    Returns:
+        The standard deviation (estimated and a bound)
+    """
+    fidelity_bounded = max(0.0, min(1.0, fidelity))
+    std_dev_estimate = math.sqrt(
+        (1.0 - fidelity_bounded) * fidelity_bounded / N)
+
+    std_dev_bound = 0.5 / math.sqrt(N)
+    return std_dev_estimate, std_dev_bound
+
+
 @dataclass
 class TrialResult:
     """
@@ -304,6 +323,9 @@ class DFEIntermediateResult:
     pauli_traces: List[PauliTrace]
     # Measurement results from sampling the circuit.
     trial_results: List[TrialResult]
+    # Standard deviations (estimate based on fidelity and bound)
+    std_dev_estimate: float
+    std_dev_bound: float
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
@@ -408,10 +430,18 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     estimated_fidelity = fidelity / len(pauli_traces)
 
+    if clifford_circuit:
+        std_dev_estimate, std_dev_bound = _estimate_std_devs_clifford(
+            estimated_fidelity, len(measured_pauli_traces))
+    else:
+        std_dev_estimate, std_dev_bound = None, None
+
     dfe_intermediate_result = DFEIntermediateResult(
         clifford_state=clifford_state,
         pauli_traces=pauli_traces,
-        trial_results=trial_results)
+        trial_results=trial_results,
+        std_dev_estimate=std_dev_estimate,
+        std_dev_bound=std_dev_bound)
 
     return estimated_fidelity, dfe_intermediate_result
 
