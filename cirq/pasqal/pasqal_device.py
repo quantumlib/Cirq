@@ -173,10 +173,9 @@ class PasqalVirtualDevice(PasqalDevice):
         return (ThreeDQubit, TwoDQubit, GridQubit, LineQubit,)
 
     def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
-        invalid = isinstance(op.gate, (cirq.ops.CNotPowGate,
-                                       cirq.ops.CCZPowGate,
-                                       cirq.ops.CCXPowGate))
-        return super().is_pasqal_device_op(op) and not invalid
+        return (super().is_pasqal_device_op(op) and not isinstance(
+            op.gate, (cirq.ops.CNotPowGate, cirq.ops.CCZPowGate,
+                      cirq.ops.CCXPowGate)))
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """Raises an error if the given operation is invalid on this device.
