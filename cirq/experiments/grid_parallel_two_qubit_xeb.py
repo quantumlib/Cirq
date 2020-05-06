@@ -61,11 +61,11 @@ SINGLE_QUBIT_GATES = [
 GridQubitPair = Tuple['cirq.GridQubit', 'cirq.GridQubit']
 
 
-def save(params: Any, obj: Any, base_dir: str, mode='x') -> str:
-    """Save an object to disk as a JSON file.
+def save(params: Any, obj: Any, base_dir: str, mode: str = 'x') -> str:
+    """Save an object to filesystem as a JSON file.
 
     Arguments:
-        params: Parameters describing the object. This should have an `fn`
+        params: Parameters describing the object. This should have an `filename`
             attribute containing the filename with which to save the object.
         obj: The object to save.
         base_dir: The directory in which to save the object.
@@ -75,25 +75,25 @@ def save(params: Any, obj: Any, base_dir: str, mode='x') -> str:
     Returns:
         The full path to the saved JSON file.
     """
-    fn = os.path.join(base_dir, params.fn)
-    os.makedirs(os.path.dirname(fn), exist_ok=True)
-    with open(fn, mode) as f:
+    filename = os.path.join(base_dir, params.filename)
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, mode) as f:
         protocols.to_json(obj, f)
-    return fn
+    return filename
 
 
-def load(params: Any, base_dir: str):
+def load(params: Any, base_dir: str) -> Any:
     """Load an object from a JSON file.
 
     Arguments:
-        params: Parameters describing the object. This should have an `fn`
+        params: Parameters describing the object. This should have an `filename`
             attribute containing the filename of the saved object.
         base_dir: The directory from which to load the object.
 
     Returns: The loaded object.
     """
-    fn = os.path.join(base_dir, params.fn)
-    return protocols.read_json(fn)
+    filename = os.path.join(base_dir, params.filename)
+    return protocols.read_json(filename)
 
 
 @dataclasses.dataclass
@@ -106,7 +106,7 @@ class GridParallelXEBMetadataParameters:
     data_collection_id: str
 
     @property
-    def fn(self) -> str:
+    def filename(self) -> str:
         return os.path.join(self.data_collection_id, 'metadata.json')
 
 
@@ -125,7 +125,7 @@ class GridParallelXEBCircuitParameters:
     circuit_index: int
 
     @property
-    def fn(self) -> str:
+    def filename(self) -> str:
         return os.path.join(self.data_collection_id, 'circuits',
                             f'{self.layer}',
                             f'circuit-{self.circuit_index}.json')
@@ -151,7 +151,7 @@ class GridParallelXEBTrialResultParameters:
     circuit_index: int
 
     @property
-    def fn(self) -> str:
+    def filename(self) -> str:
         return os.path.join(self.data_collection_id, 'data', f'{self.layer}',
                             f'circuit-{self.circuit_index}',
                             f'depth-{self.depth}.json')
@@ -167,7 +167,7 @@ class GridParallelXEBResultsParameters:
     data_collection_id: str
 
     @property
-    def fn(self) -> str:
+    def filename(self) -> str:
         return os.path.join(self.data_collection_id, 'results.json')
 
 
@@ -187,15 +187,15 @@ def collect_grid_parallel_two_qubit_xeb_data(
     """Collect data for a grid parallel two-qubit XEB experiment.
 
     For each grid interaction layer in `layers`, `num_circuits` random circuits
-    are generated. Each random circuit consists of `max(cycles)` cycles, where
-    each cycle consists of a layer of single-qubit gates followed by a layer
-    of two-qubit gates. A layer of single-qubit gates consists of a single-qubit
-    gate acting on each qubit, where each gate is of the form
+    are generated. The circuits are generated using the function
+    `cirq.experiments.random_rotations_between_grid_interaction_layers_circuit`,
+    with two-qubit layer pattern consisting of only the corresponding grid
+    interaction layer. Each random circuit is generated with a depth of
+    `max(cycles)`. The single-qubit gates used are those of the form
     `cirq.PhasedXZGate(x_exponent=0.5, z_exponent=z, axis_phase_exponent=a)`
-    with `z` and `a` being randomly chosen from the set of 8 values
-    [0, 1/4, ..., 7/4]. A layer of two-qubit gates consists of `two_qubit_gate`
-    being applied to the pairs of qubits specified by the corresponding grid
-    interaction layer. Note that since the same set of interactions is applied
+    with `z` and `a` each ranging through the set of 8 values
+    [0, 1/4, ..., 7/4]. The final single-qubit gate layer is omitted.
+    Note that since the same set of interactions is applied
     in each two-qubit gate layer, a circuit does not entangle pairs of qubits
     other than the pairs present in the corresponding grid interaction layer.
 
@@ -207,8 +207,8 @@ def collect_grid_parallel_two_qubit_xeb_data(
     number of generated circuits is `len(layers) * num_circuits * len(cycles)`.
     Each of these circuits is sampled with the number of repetitions specified
     by `repetitions`. The trial results of the circuit executions are saved to
-    disk as JSON files. The full-length circuits are also saved to disk as JSON
-    files. The resulting directory structure looks like
+    filesystem as JSON files. The full-length circuits are also saved to
+    filesystem as JSON files. The resulting directory structure looks like
 
         {base_dir}
         └── {data_collection_id}
@@ -248,11 +248,11 @@ def collect_grid_parallel_two_qubit_xeb_data(
         seed: A seed for the pseudorandom number generator, used to generate
             the random circuits.
         data_collection_id: The data collection ID to use. This determines the
-            name of the directory in which data is saved to disk.
-        base_dir: The base directory in which to save data to disk.
+            name of the directory in which data is saved to filesystem.
+        base_dir: The base directory in which to save data to filesystem.
 
     Side effects:
-        Saves data to disk in the directory structure described above.
+        Saves data to filesystem in the directory structure described above.
     """
     if data_collection_id is None:
         data_collection_id = datetime.datetime.now().isoformat()

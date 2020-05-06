@@ -158,22 +158,24 @@ class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
     """
     results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'results': list(self.results.items()),
         }
 
     @classmethod
-    def _from_json_dict_(cls, results, **kwargs):
+    def _from_json_dict_(
+            cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]],
+            **kwargs) -> 'CrossEntropyResultDict':
         return cls(
             results={tuple(qubits): result for qubits, result in results})
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.CrossEntropyResultDict('
                 f'results={self.results!r})')
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
         return self.results[key]
 
     def __iter__(self):
