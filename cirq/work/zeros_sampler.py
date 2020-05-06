@@ -16,6 +16,7 @@ import abc
 from typing import (Dict, List, TYPE_CHECKING)
 
 import numpy as np
+from cirq.google.serializable_gate_set import SerializableGateSet
 
 from cirq import work, study, protocols
 
@@ -25,6 +26,14 @@ if TYPE_CHECKING:
 
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
+
+    def __init__(self, gate_set: SerializableGateSet = None):
+        """
+        Args:
+            gate_set: SerializableGetSet. If set, sampler will validate that
+                all gates in circuit are from the given gate set.
+        """
+        self.gate_set = gate_set
 
     def run_sweep(
             self,
@@ -43,6 +52,10 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
+        if self.gate_set is not None:
+            for op in program.all_operations():
+                assert self.gate_set.is_supported_operation(op)
+                
         measurements = {}  # type: Dict[str, np.ndarray]
         for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)
