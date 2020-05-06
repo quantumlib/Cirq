@@ -848,6 +848,31 @@ def test_update_reservation(client_constructor):
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_update_reservation_remove_all_users(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+    name = 'projects/proj/processors/processor0/reservations/papar-party-44'
+    result = qtypes.QuantumReservation(
+        name=name,
+        whitelisted_users=[],
+    )
+    grpc_client.update_quantum_reservation.return_value = result
+
+    client = EngineClient()
+    assert (client.update_reservation(
+        'proj',
+        'processor0',
+        'papar-party-44',
+        whitelisted_users=[],
+    ) == result)
+    kwargs = grpc_client.update_quantum_reservation.call_args[1]
+    assert kwargs == {
+        'name': name,
+        'quantum_reservation': result,
+        'update_mask': FieldMask(paths=['whitelisted_users'])
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_time_slots(client_constructor):
     grpc_client = setup_mock_(client_constructor)
     results = [
