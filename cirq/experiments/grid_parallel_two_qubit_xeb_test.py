@@ -3,6 +3,8 @@ import numpy as np
 import cirq
 from cirq.experiments import (collect_grid_parallel_two_qubit_xeb_data,
                               compute_grid_parallel_two_qubit_xeb_results)
+from cirq.experiments.grid_parallel_two_qubit_xeb import (
+    GridParallelXEBMetadata, LAYER_A, LAYER_B)
 
 ALIGNED_HORIZONTAL = cirq.experiments.GridInteractionLayer(col_offset=0,
                                                            vertical=False,
@@ -64,3 +66,14 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid(tmpdir):
         cycle_pauli_error = ((1 - depolarizing_model.cycle_depolarization) *
                              15 / 16)
         np.testing.assert_allclose(1 - cycle_pauli_error, (1 - e)**4, atol=1e-2)
+
+
+def test_grid_parallel_xeb_metadata_repr():
+    metadata = GridParallelXEBMetadata(qubits=cirq.GridQubit.square(2),
+                                       two_qubit_gate=cirq.ISWAP,
+                                       num_circuits=10,
+                                       repetitions=10_000,
+                                       cycles=[2, 4, 6, 8, 10],
+                                       layers=[LAYER_A, LAYER_B],
+                                       seed=1234)
+    cirq.testing.assert_equivalent_repr(metadata)
