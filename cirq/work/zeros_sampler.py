@@ -16,18 +16,18 @@ import abc
 from typing import (Dict, List, TYPE_CHECKING)
 
 import numpy as np
-from cirq.google.serializable_gate_set import SerializableGateSet
 
 from cirq import work, study, protocols
 
 if TYPE_CHECKING:
     import cirq
+    from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
 
-    def __init__(self, gate_set: SerializableGateSet = None):
+    def __init__(self, gate_set: 'SerializableGateSet' = None):
         """
         Args:
             gate_set: `SerializableGateSet`. If set, sampler will validate that
