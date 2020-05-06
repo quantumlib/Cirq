@@ -30,8 +30,8 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     def __init__(self, gate_set: SerializableGateSet = None):
         """
         Args:
-            gate_set: SerializableGetSet. If set, sampler will validate that
-                all gates in circuit are from the given gate set.
+            gate_set: `SerializableGateSet`. If set, sampler will validate that
+                all gates in the circuit are from the given gate set.
         """
         self.gate_set = gate_set
 
