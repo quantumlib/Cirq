@@ -274,6 +274,7 @@ def compile_circuit(
         # TODO: The routing algorithm sometimes does a poor job with the parity
         # qubits, adding SWAP gates that are unnecessary. This should be fixed,
         # or we can add the parity qubits manually after routing.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2967
         routing_algo_name = 'greedy'
 
     swap_networks: List[ccr.SwapNetwork] = []
