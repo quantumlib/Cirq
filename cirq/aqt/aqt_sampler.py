@@ -197,7 +197,9 @@ class AQTSampler(Sampler):
             TrialResult list for this run; one for each possible parameter
             resolver.
         """
-        meas_name = 'm'  # TODO: Get measurement name from circuit. Issue #2195
+        # TODO: Use measurement name from circuit.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2199
+        meas_name = 'm'
         assert isinstance(program.device, IonDevice)
         trial_results = []  # type: List[study.TrialResult]
         for param_resolver in study.to_resolvers(params):

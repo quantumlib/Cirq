@@ -26,7 +26,8 @@ SQRT_ISWAP_INV = ops.ISWAP**-0.5
 
 
 # TODO: Combine this with the equivalent functions in google/gate_set.py
-# Or better yet, write a proper gate set so we don't need this in two places
+# Or better yet, write a proper gate set so we don't need this in two places.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2970
 def _near_mod_n(e, t, n, atol=1e-8):
     return abs((e - t + 1) % n - 1) <= atol
 
