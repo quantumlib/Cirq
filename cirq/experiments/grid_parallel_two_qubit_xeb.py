@@ -282,7 +282,8 @@ def collect_grid_parallel_two_qubit_xeb_data(
         Saves data to filesystem in the directory structure described above.
     """
     if data_collection_id is None:
-        data_collection_id = datetime.datetime.now().isoformat()
+        data_collection_id = datetime.datetime.now().isoformat().replace(
+            ':', '')
     qubits = list(qubits)
     cycles = list(cycles)
     prng = value.parse_random_state(seed)
