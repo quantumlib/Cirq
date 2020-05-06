@@ -146,3 +146,50 @@ def test_xeb_fidelity_tuple_input():
     f1 = cirq.xeb_fidelity(circuit, bitstrings, (q0, q1))
     f2 = cirq.xeb_fidelity(circuit, tuple(bitstrings), (q0, q1))
     assert f1 == f2
+
+
+def test_least_squares_xeb_fidelity_from_expectations():
+    prng_state = np.random.get_state()
+    np.random.seed(0)
+
+    depolarization = 0.5
+
+    n_qubits = 5
+    dim = 2**n_qubits
+    n_circuits = 10
+    qubits = cirq.LineQubit.range(n_qubits)
+
+    measured_expectations_lin = []
+    exact_expectations_lin = []
+    measured_expectations_log = []
+    exact_expectations_log = []
+    uniform_expectations_log = []
+    for _ in range(n_circuits):
+        circuit = make_random_quantum_circuit(qubits, depth=12)
+        bitstrings = sample_noisy_bitstrings(circuit,
+                                             qubits,
+                                             depolarization=depolarization,
+                                             repetitions=5000)
+        amplitudes = cirq.final_wavefunction(circuit)
+        probabilities = np.abs(amplitudes)**2
+
+        measured_expectations_lin.append(dim *
+                                         np.mean(probabilities[bitstrings]))
+        exact_expectations_lin.append(dim * np.sum(probabilities**2))
+
+        measured_expectations_log.append(
+            np.mean(np.log(dim * probabilities[bitstrings])))
+        exact_expectations_log.append(
+            np.sum(probabilities * np.log(dim * probabilities)))
+        uniform_expectations_log.append(np.mean(np.log(dim * probabilities)))
+
+    f_lin = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+        measured_expectations_lin, exact_expectations_lin, [1.0] * n_circuits)
+    f_log = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+        measured_expectations_log, exact_expectations_log,
+        uniform_expectations_log)
+
+    assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
+    assert np.isclose(f_log, 1 - depolarization, atol=0.01)
+
+    np.random.set_state(prng_state)
