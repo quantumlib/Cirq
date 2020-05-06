@@ -52,7 +52,7 @@ def test_estimate_parallel_two_qubit_xeb_fidelity_on_grid(tmpdir):
         repetitions=1_000,
         cycles=cycles,
         layers=(ALIGNED_HORIZONTAL, ALIGNED_VERTICAL),
-        seed=14948,
+        seed=np.random.RandomState(14948),
         base_dir=base_dir)
     results = compute_grid_parallel_two_qubit_xeb_results(data_collection_id,
                                                           num_processors=4,

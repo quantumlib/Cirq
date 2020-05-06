@@ -57,6 +57,8 @@ class _ResolverCache:
             from cirq.experiments import (CrossEntropyResult,
                                           CrossEntropyResultDict,
                                           GridInteractionLayer)
+            from cirq.experiments.grid_parallel_two_qubit_xeb import (
+                GridParallelXEBMetadata)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -104,6 +106,7 @@ class _ResolverCache:
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridInteractionLayer': GridInteractionLayer,
+                'GridParallelXEBMetadata': GridParallelXEBMetadata,
                 'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,

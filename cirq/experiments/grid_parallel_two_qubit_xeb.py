@@ -96,6 +96,33 @@ def load(params: Any, base_dir: str) -> Any:
     return protocols.read_json(filename)
 
 
+@protocols.json_serializable_dataclass
+class GridParallelXEBMetadata:
+    """Metadata for a grid parallel XEB experiment.
+
+    Attributes:
+        data_collection_id: The data collection ID of the experiment.
+    """
+    qubits: List['cirq.Qid']
+    two_qubit_gate: 'cirq.Gate'
+    num_circuits: int
+    repetitions: int
+    cycles: List[int]
+    layers: List[GridInteractionLayer]
+    seed: Optional[int]
+
+    def __repr__(self) -> str:
+        return ('cirq.experiments.grid_parallel_two_qubit_xeb.'
+                'GridParallelXEBMetadata('
+                f'qubits={self.qubits!r}, '
+                f'two_qubit_gate={self.two_qubit_gate!r}, '
+                f'num_circuits={self.num_circuits!r}, '
+                f'repetitions={self.repetitions!r}, '
+                f'cycles={self.cycles!r}, '
+                f'layers={self.layers!r}, '
+                f'seed={self.seed!r})')
+
+
 @dataclasses.dataclass
 class GridParallelXEBMetadataParameters:
     """Parameters describing metadata for a grid parallel XEB experiment.
@@ -263,15 +290,14 @@ def collect_grid_parallel_two_qubit_xeb_data(
     # Save metadata
     metadata_params = GridParallelXEBMetadataParameters(
         data_collection_id=data_collection_id)
-    metadata = {
-        'qubits': qubits,
-        'two_qubit_gate': two_qubit_gate,
-        'num_circuits': num_circuits,
-        'repetitions': repetitions,
-        'cycles': cycles,
-        'layers': list(layers),
-        'seed': seed
-    }
+    metadata = GridParallelXEBMetadata(
+        qubits=qubits,
+        two_qubit_gate=two_qubit_gate,
+        num_circuits=num_circuits,
+        repetitions=repetitions,
+        cycles=cycles,
+        layers=list(layers),
+        seed=seed if isinstance(seed, int) else None)
     save(metadata_params, metadata, base_dir=base_dir)
 
     # Generate and save all circuits
@@ -347,11 +373,11 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     metadata_params = GridParallelXEBMetadataParameters(
         data_collection_id=data_collection_id)
     metadata = load(metadata_params, base_dir=base_dir)
-    qubits = metadata['qubits']
-    num_circuits = metadata['num_circuits']
-    repetitions = metadata['repetitions']
-    cycles = metadata['cycles']
-    layers = metadata['layers']
+    qubits = metadata.qubits
+    num_circuits = metadata.num_circuits
+    repetitions = metadata.repetitions
+    cycles = metadata.cycles
+    layers = metadata.layers
 
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
     all_active_qubit_pairs = []
