@@ -302,7 +302,7 @@ def test_measure_density_matrix_not_square():
     with pytest.raises(ValueError, match='not square'):
         cirq.measure_density_matrix(np.array([1, 0, 0]), [1])
     with pytest.raises(ValueError, match='not square'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(2, 1, 2),
+        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape((2, 1, 2)),
                                     [1],
                                     qid_shape=(2, 1))
 
@@ -321,8 +321,8 @@ def test_measure_density_matrix_higher_powers_of_two():
 
 def test_measure_density_matrix_tensor_different_left_right_shape():
     with pytest.raises(ValueError, match='not equal'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(2, 2, 1, 1),
-                                    [1],
+        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(
+            (2, 2, 1, 1)), [1],
                                     qid_shape=(2, 1))
 
 
