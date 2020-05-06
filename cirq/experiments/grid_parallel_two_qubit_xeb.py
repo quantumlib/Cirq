@@ -208,7 +208,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
         cycles: Iterable[int] = range(3, 204, 10),
         layers: Sequence[GridInteractionLayer] = (LAYER_A, LAYER_B, LAYER_C,
                                                   LAYER_D),
-        seed: 'cirq.value.RANDOM_STATE_LIKE' = None,
+        seed: 'cirq.value.RANDOM_STATE_OR_SEED_LIKE' = None,
         data_collection_id: Optional[str] = None,
         base_dir: str = DEFAULT_BASE_DIR) -> str:
     """Collect data for a grid parallel two-qubit XEB experiment.
