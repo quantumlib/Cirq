@@ -13,7 +13,12 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import sympy
+
+from cirq.google.common_serializers import CZ_SERIALIZER, CZ_POW_DESERIALIZER, \
+    SINGLE_QUBIT_SERIALIZERS, SINGLE_QUBIT_DESERIALIZERS
+from cirq.google.serializable_gate_set import SerializableGateSet
 
 import cirq
 from cirq import study
@@ -52,3 +57,16 @@ def test_sample():
                                       params=params).sort_index(axis=1)
 
     assert np.all(result1 == result2)
+
+
+def test_sample_with_gate_set():
+    gate_set = SerializableGateSet('test', SINGLE_QUBIT_SERIALIZERS,
+                                   SINGLE_QUBIT_DESERIALIZERS)
+    sampler = cirq.ZerosSampler(gate_set=gate_set)
+    a, b = cirq.LineQubit.range(2)
+    circuit1 = cirq.Circuit([cirq.X(a)])
+    circuit2 = cirq.Circuit([cirq.CX(a, b)])
+
+    sampler.sample(circuit1)
+    with pytest.raises(AssertionError, match='Unsupported operation'):
+        sampler.sample(circuit2)
