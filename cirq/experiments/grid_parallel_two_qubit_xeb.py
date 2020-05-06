@@ -290,7 +290,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
     # Save metadata
     metadata_params = GridParallelXEBMetadataParameters(
         data_collection_id=data_collection_id)
-    metadata = GridParallelXEBMetadata( # type: ignore
+    metadata = GridParallelXEBMetadata(  # type: ignore
         qubits=qubits,
         two_qubit_gate=two_qubit_gate,
         num_circuits=num_circuits,
@@ -387,8 +387,8 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         # Each combination of qubit pair and parent circuit can be handled in a
         # separate process
         # Reason for type: ignore: https://github.com/python/mypy/issues/4678
-        measured_expectations = manager.dict() # type: ignore
-        exact_expectations = manager.dict() # type: ignore
+        measured_expectations = manager.dict()  # type: ignore
+        exact_expectations = manager.dict()  # type: ignore
         arguments = []
         # Construct arguments to be mapped by multiprocessing
         for layer in layers:
