@@ -16,12 +16,11 @@ import numpy as np
 import pytest
 import sympy
 
-from cirq.google.common_serializers import CZ_SERIALIZER, CZ_POW_DESERIALIZER, \
-    SINGLE_QUBIT_SERIALIZERS, SINGLE_QUBIT_DESERIALIZERS
-from cirq.google.serializable_gate_set import SerializableGateSet
-
 import cirq
 from cirq import study
+from cirq.google.common_serializers import (SINGLE_QUBIT_SERIALIZERS,
+                                            SINGLE_QUBIT_DESERIALIZERS)
+from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 def test_run_sweep():
@@ -45,7 +44,7 @@ def test_sample():
     # actual simulation.
     qs = cirq.LineQubit.range(6)
     c = cirq.Circuit([cirq.CNOT(qs[0], qs[1]), cirq.X(qs[2]), cirq.X(qs[2])])
-    c += cirq.Z(qs[3])**sympy.Symbol('p')
+    c += cirq.Z(qs[3]) ** sympy.Symbol('p')
     c += [cirq.measure(q) for q in qs[0:3]]
     c += cirq.measure(qs[4], qs[5])
     # Z to even power is an identity.
