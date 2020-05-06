@@ -243,3 +243,4 @@ def test_colorbar(ax):
 
     # TODO: Make this is a more thorough test, e.g., we should test that the
     # position, size and pad arguments are respected.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2969
