@@ -17,7 +17,8 @@
 
 import functools
 import pkg_resources
-from typing import (Dict, List, Optional, Sequence, Tuple, Union, TYPE_CHECKING)
+from typing import (Callable, Dict, List, Optional, Sequence, Tuple, Union,
+                    TYPE_CHECKING)
 import warnings
 
 from google.oauth2 import service_account
@@ -76,16 +77,19 @@ class QuantumEngineServiceClient(object):
 
     from_service_account_json = from_service_account_file
 
-    def __init__(
-            self,
-            transport: Union[quantum_engine_service_grpc_transport.
-                             QuantumEngineServiceGrpcTransport] = None,
-            channel: grpc.Channel = None,
-            credentials: service_account.Credentials = None,
-            client_config: Dict = None,
-            client_info: google.api_core.gapic_v1.client_info.ClientInfo = None,
-            client_options: Union[Dict, google.api_core.client_options.
-                                  ClientOptions] = None):
+    def __init__(self,
+                 transport: Union[
+                     quantum_engine_service_grpc_transport.
+                     QuantumEngineServiceGrpcTransport,
+                     Callable[..., quantum_engine_service_grpc_transport.
+                              QuantumEngineServiceGrpcTransport]] = None,
+                 channel: Optional[grpc.Channel] = None,
+                 credentials: Optional[service_account.Credentials] = None,
+                 client_config: Optional[Dict] = None,
+                 client_info: Optional[
+                     google.api_core.gapic_v1.client_info.ClientInfo] = None,
+                 client_options: Union[Dict, google.api_core.client_options.
+                                       ClientOptions] = None):
         """Constructor.
 
         Args:
@@ -189,9 +193,9 @@ class QuantumEngineServiceClient(object):
     # Service calls
     def create_quantum_program(
             self,
-            parent: str = None,
+            parent: Optional[str] = None,
             quantum_program: Union[Dict, pb_types.QuantumProgram] = None,
-            overwrite_existing_source_code: bool = None,
+            overwrite_existing_source_code: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -266,8 +270,8 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_program(
             self,
-            name: str = None,
-            return_code: bool = None,
+            name: Optional[str] = None,
+            return_code: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -339,9 +343,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_programs(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -443,8 +447,8 @@ class QuantumEngineServiceClient(object):
 
     def delete_quantum_program(
             self,
-            name: str = None,
-            delete_jobs: bool = None,
+            name: Optional[str] = None,
+            delete_jobs: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -513,7 +517,7 @@ class QuantumEngineServiceClient(object):
 
     def update_quantum_program(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             quantum_program: Union[Dict, pb_types.QuantumProgram] = None,
             update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
             retry: Optional[google.api_core.retry.
@@ -593,9 +597,9 @@ class QuantumEngineServiceClient(object):
 
     def create_quantum_job(
             self,
-            parent: str = None,
+            parent: Optional[str] = None,
             quantum_job: Union[Dict, pb_types.QuantumJob] = None,
-            overwrite_existing_run_context: bool = None,
+            overwrite_existing_run_context: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -672,8 +676,8 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_job(
             self,
-            name: str = None,
-            return_run_context: bool = None,
+            name: Optional[str] = None,
+            return_run_context: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -744,9 +748,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_jobs(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -846,7 +850,7 @@ class QuantumEngineServiceClient(object):
 
     def delete_quantum_job(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -911,7 +915,7 @@ class QuantumEngineServiceClient(object):
 
     def update_quantum_job(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             quantum_job: Union[Dict, pb_types.QuantumJob] = None,
             update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
             retry: Optional[google.api_core.retry.
@@ -993,7 +997,7 @@ class QuantumEngineServiceClient(object):
 
     def cancel_quantum_job(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1058,8 +1062,8 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_job_events(
             self,
-            parent: str = None,
-            page_size: int = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1159,7 +1163,7 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_result(
             self,
-            parent: str = None,
+            parent: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1227,9 +1231,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_processors(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1331,7 +1335,7 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_processor(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1399,9 +1403,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_calibrations(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1503,7 +1507,7 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_calibration(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1569,7 +1573,7 @@ class QuantumEngineServiceClient(object):
 
     def create_quantum_reservation(
             self,
-            parent: str = None,
+            parent: Optional[str] = None,
             quantum_reservation: Union[Dict, pb_types.
                                        QuantumReservation] = None,
             retry: Optional[google.api_core.retry.
@@ -1644,7 +1648,7 @@ class QuantumEngineServiceClient(object):
 
     def cancel_quantum_reservation(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1710,7 +1714,7 @@ class QuantumEngineServiceClient(object):
 
     def delete_quantum_reservation(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1775,7 +1779,7 @@ class QuantumEngineServiceClient(object):
 
     def get_quantum_reservation(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1841,9 +1845,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_reservations(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1945,7 +1949,7 @@ class QuantumEngineServiceClient(object):
 
     def update_quantum_reservation(
             self,
-            name: str = None,
+            name: Optional[str] = None,
             quantum_reservation: Union[Dict, pb_types.
                                        QuantumReservation] = None,
             update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
@@ -2087,9 +2091,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_reservation_grants(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -2191,9 +2195,9 @@ class QuantumEngineServiceClient(object):
 
     def reallocate_quantum_reservation_grant(
             self,
-            name: str = None,
-            source_project_id: str = None,
-            target_project_id: str = None,
+            name: Optional[str] = None,
+            source_project_id: Optional[str] = None,
+            target_project_id: Optional[str] = None,
             duration: Union[Dict, duration_pb2.Duration] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
@@ -2271,9 +2275,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_reservation_budgets(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -2375,9 +2379,9 @@ class QuantumEngineServiceClient(object):
 
     def list_quantum_time_slots(
             self,
-            parent: str = None,
-            page_size: int = None,
-            filter_: str = None,
+            parent: Optional[str] = None,
+            page_size: Optional[int] = None,
+            filter_: Optional[str] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
