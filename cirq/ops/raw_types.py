@@ -655,6 +655,14 @@ class _InverseCompositeGate(Gate):
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits))
 
+    def _has_unitary_(self):
+        from cirq import protocols, devices
+        qubits = devices.LineQid.for_gate(self)
+        return all(
+            protocols.has_unitary(op)
+            for op in protocols.decompose_once_with_qubits(
+                self._original, qubits))
+
     def _value_equality_values_(self):
         return self._original
 

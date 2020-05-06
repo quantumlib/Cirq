@@ -230,7 +230,6 @@ class ConstantQubitNoiseModel(NoiseModel):
         return [
             moment,
             ops.Moment([
-                # TODO: Replace with "VirtualTag" class instance.
                 self.qubit_noise_gate(q).with_tags(ops.VirtualTag())
                 for q in system_qubits
             ])

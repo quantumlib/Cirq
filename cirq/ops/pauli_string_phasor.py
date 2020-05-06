@@ -108,6 +108,9 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
                                  exponent_pos=pp,
                                  exponent_neg=pn)
 
+    def _has_unitary_(self):
+        return not self._is_parameterized_()
+
     def _decompose_(self) -> 'cirq.OP_TREE':
         if len(self.pauli_string) <= 0:
             return

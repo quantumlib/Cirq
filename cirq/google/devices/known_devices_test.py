@@ -43,7 +43,7 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
-    gate_duration_picos: 20000
+    gate_duration_picos: 15000
   }
   valid_gates {
     id: "z"
@@ -80,7 +80,7 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
-    gate_duration_picos: 50000
+    gate_duration_picos: 45000
     valid_targets: "2_qubit_targets"
   }
   valid_gates {

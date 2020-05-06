@@ -154,8 +154,10 @@ def create_device_proto_for_qubits(
                 if gate_type == MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == WaitGate:
-                    # TODO(#2537): Refactor gate-sets / device to eliminate
-                    # The need for checking type here.
+                    # TODO: Refactor gate-sets / device to eliminate the need
+                    # to keep checking type here.
+                    # Github issue:
+                    # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
                 elif issubclass(gate_type, SingleQubitGate):
                     gate.number_of_qubits = 1
@@ -228,8 +230,8 @@ document(Foxtail, f"""72 xmon qubit device.
 
 # Duration dict in picoseconds
 _DURATIONS_FOR_XMON = {
-    'cz': 50_000,
-    'xy': 20_000,
+    'cz': 45_000,
+    'xy': 15_000,
     'z': 0,
     'meas': 4_000_000,  # 1000ns for readout, 3000ns for "ring down"
 }

@@ -30,8 +30,7 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, protocols
-from cirq._compat import deprecated, deprecated_parameter
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
@@ -101,23 +100,6 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass circuit contents positionally (without a keyword).',
-        func_name='cirq.Circuit',
-        parameter_desc='moments keyword',
-        match=lambda args, kwargs: 'moments' in kwargs,
-        rewrite=lambda args, kwargs: (args + (kwargs[
-            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass the device using the "device=" keyword.',
-        func_name='cirq.Circuit',
-        parameter_desc='positional device',
-        match=lambda args, kwargs: len(args) == 3 and isinstance(
-            args[2], devices.Device),
-        rewrite=lambda args, kwargs: (
-            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
@@ -148,26 +130,6 @@ class Circuit:
     def device(self, new_device: 'cirq.Device') -> None:
         new_device.validate_circuit(self)
         self._device = new_device
-
-    @staticmethod
-    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
-    def from_ops(*operations: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE
-                ) -> 'Circuit':
-        """Creates an empty circuit and appends the given operations.
-
-        Args:
-            operations: The operations to append to the new circuit.
-            strategy: How to append the operations.
-            device: Hardware that the circuit should be able to run on.
-
-        Returns:
-            The constructed circuit containing the operations.
-        """
-        result = Circuit(device=device)
-        result.append(operations, strategy)
-        return result
 
     def __copy__(self) -> 'Circuit':
         return self.copy()
@@ -1111,11 +1073,12 @@ class Circuit:
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
+                op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(
-                    k, moment_or_op, strategy)
+                    k, op, strategy)
                 while p >= len(self._moments):
                     self._moments.append(ops.Moment())
-                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -1445,6 +1408,14 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_keys(self) -> List[str]:
+        result = []
+        for op in self.all_operations():
+            key = protocols.measurement_key(op, default=None)
+            if key is not None:
+                result.append(key)
+        return result
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1522,7 +1493,7 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.eye_tensor(qid_shape, dtype=dtype)
+        state = qis.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
@@ -1602,8 +1573,7 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        from cirq import sim
-        state = sim.to_valid_state_vector(initial_state,
+        state = qis.to_valid_state_vector(initial_state,
                                           qid_shape=qid_shape,
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)

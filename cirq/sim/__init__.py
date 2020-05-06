@@ -77,3 +77,13 @@ from cirq.sim.clifford import (
     CliffordTrialResult,
     CliffordSimulatorStepResult,
 )
+
+# Deprecated
+# pylint: disable=wrong-import-order
+import sys as _sys
+from cirq._compat import wrap_module as _wrap_module
+deprecated_constants = {
+    'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE, instead'),
+}
+_sys.modules[__name__] = _wrap_module(_sys.modules[__name__],
+                                      deprecated_constants)
