@@ -154,8 +154,10 @@ def create_device_proto_for_qubits(
                 if gate_type == MeasurementGate:
                     gate.valid_targets.append(_MEAS_TARGET_SET)
                 elif gate_type == WaitGate:
-                    # TODO(#2537): Refactor gate-sets / device to eliminate
-                    # The need for checking type here.
+                    # TODO: Refactor gate-sets / device to eliminate the need
+                    # to keep checking type here.
+                    # Github issue:
+                    # https://github.com/quantumlib/Cirq/issues/2537
                     gate.number_of_qubits = 1
                 elif issubclass(gate_type, SingleQubitGate):
                     gate.number_of_qubits = 1
