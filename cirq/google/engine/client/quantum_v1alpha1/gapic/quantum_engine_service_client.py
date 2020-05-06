@@ -17,7 +17,7 @@
 
 import functools
 import pkg_resources
-from typing import (Callable, Dict, List, Optional, Sequence, Tuple, Union,
+from typing import (Any, Callable, Dict, List, Optional, Sequence, Tuple, Union,
                     TYPE_CHECKING)
 import warnings
 
@@ -85,11 +85,11 @@ class QuantumEngineServiceClient(object):
                               QuantumEngineServiceGrpcTransport]] = None,
                  channel: Optional[grpc.Channel] = None,
                  credentials: Optional[service_account.Credentials] = None,
-                 client_config: Optional[Dict] = None,
+                 client_config: Optional[Dict[str, Any]] = None,
                  client_info: Optional[
                      google.api_core.gapic_v1.client_info.ClientInfo] = None,
-                 client_options: Union[Dict, google.api_core.client_options.
-                                       ClientOptions] = None):
+                 client_options: Union[Dict[str, Any], google.api_core.
+                                       client_options.ClientOptions] = None):
         """Constructor.
 
         Args:
@@ -194,7 +194,8 @@ class QuantumEngineServiceClient(object):
     def create_quantum_program(
             self,
             parent: Optional[str] = None,
-            quantum_program: Union[Dict, pb_types.QuantumProgram] = None,
+            quantum_program: Union[Dict[str, Any], pb_types.
+                                   QuantumProgram] = None,
             overwrite_existing_source_code: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
@@ -518,8 +519,9 @@ class QuantumEngineServiceClient(object):
     def update_quantum_program(
             self,
             name: Optional[str] = None,
-            quantum_program: Union[Dict, pb_types.QuantumProgram] = None,
-            update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
+            quantum_program: Union[Dict[str, Any], pb_types.
+                                   QuantumProgram] = None,
+            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -598,7 +600,7 @@ class QuantumEngineServiceClient(object):
     def create_quantum_job(
             self,
             parent: Optional[str] = None,
-            quantum_job: Union[Dict, pb_types.QuantumJob] = None,
+            quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
             overwrite_existing_run_context: Optional[bool] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
@@ -916,8 +918,8 @@ class QuantumEngineServiceClient(object):
     def update_quantum_job(
             self,
             name: Optional[str] = None,
-            quantum_job: Union[Dict, pb_types.QuantumJob] = None,
-            update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
+            quantum_job: Union[Dict[str, Any], pb_types.QuantumJob] = None,
+            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1574,7 +1576,7 @@ class QuantumEngineServiceClient(object):
     def create_quantum_reservation(
             self,
             parent: Optional[str] = None,
-            quantum_reservation: Union[Dict, pb_types.
+            quantum_reservation: Union[Dict[str, Any], pb_types.
                                        QuantumReservation] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
@@ -1950,9 +1952,9 @@ class QuantumEngineServiceClient(object):
     def update_quantum_reservation(
             self,
             name: Optional[str] = None,
-            quantum_reservation: Union[Dict, pb_types.
+            quantum_reservation: Union[Dict[str, Any], pb_types.
                                        QuantumReservation] = None,
-            update_mask: Union[Dict, field_mask_pb2.FieldMask] = None,
+            update_mask: Union[Dict[str, Any], field_mask_pb2.FieldMask] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
@@ -2198,7 +2200,7 @@ class QuantumEngineServiceClient(object):
             name: Optional[str] = None,
             source_project_id: Optional[str] = None,
             target_project_id: Optional[str] = None,
-            duration: Union[Dict, duration_pb2.Duration] = None,
+            duration: Union[Dict[str, Any], duration_pb2.Duration] = None,
             retry: Optional[google.api_core.retry.
                             Retry] = google.api_core.gapic_v1.method.DEFAULT,
             timeout: Optional[float] = google.api_core.gapic_v1.method.DEFAULT,
