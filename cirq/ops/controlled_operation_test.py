@@ -157,18 +157,20 @@ def test_str():
 
 
 def test_repr():
-    c0, c1, t, c2 = cirq.LineQubit.range(4)
+    a, b, c, d = cirq.LineQubit.range(4)
 
-    ccz = cirq.ControlledOperation([c0], cirq.CZ(c1, t))
-    assert (
-        repr(ccz) == "cirq.ControlledOperation(controls=(cirq.LineQubit(0),), "
-        "sub_operation=cirq.CZ.on(cirq.LineQubit(1), cirq.LineQubit(2)), "
-        "control_values=((1,),))")
-    cirq.testing.assert_equivalent_repr(ccz)
-
-    c1c02z = cirq.ControlledOperation([c0, c1.with_dimension(3)],
-                                      cirq.CZ(c2, t),
+    ch = cirq.H(a).controlled_by(b)
+    cch = cirq.H(a).controlled_by(b, c)
+    ccz = cirq.ControlledOperation([a], cirq.CZ(b, c))
+    c1c02z = cirq.ControlledOperation([a, b.with_dimension(3)],
+                                      cirq.CZ(d, c),
                                       control_values=[1, (2, 0)])
+
+    assert repr(ch) == (
+        'cirq.H(cirq.LineQubit(0)).controlled_by(cirq.LineQubit(1))')
+    cirq.testing.assert_equivalent_repr(ch)
+    cirq.testing.assert_equivalent_repr(cch)
+    cirq.testing.assert_equivalent_repr(ccz)
     cirq.testing.assert_equivalent_repr(c1c02z)
 
 

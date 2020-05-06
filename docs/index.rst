@@ -43,14 +43,14 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Case Studies
+    :caption: Tutorials
 
     examples
-    studies/hidden_linear_function.ipynb
-    studies/variational_algorithm.ipynb
-    studies/QAOA_Demo.ipynb
-    studies/Quantum_Walk.ipynb
-    studies/Rabi_Demo.ipynb
+    tutorials/variational_algorithm.ipynb
+    tutorials/QAOA_Demo.ipynb
+    tutorials/hidden_linear_function.ipynb
+    tutorials/Quantum_Walk.ipynb
+    tutorials/Rabi_Demo.ipynb
 
 
 .. toctree::
