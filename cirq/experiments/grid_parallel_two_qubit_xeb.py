@@ -428,7 +428,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                         restricted_measurement_results.append(
                             restricted_measurements)
                     arguments.append(
-                        (qubit_pair, qubits, circuit, i, cycles,
+                        (qubit_pair, qubits, circuit[:, qubit_pair], i, cycles,
                          restricted_measurement_results, measured_expectations,
                          exact_expectations))
 
@@ -477,7 +477,7 @@ def _get_fidelity_estimator_components(
     """Compute quantities to estimate p_eff for a qubit pair for given cycles.
     """
     simulator = sim.Simulator()
-    step_results = simulator.simulate_moment_steps(circuit[:, qubit_pair],
+    step_results = simulator.simulate_moment_steps(circuit,
                                                    qubit_order=qubit_pair)
     moment_index = 0
 
