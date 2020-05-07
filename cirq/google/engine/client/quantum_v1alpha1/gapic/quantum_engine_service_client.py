@@ -45,6 +45,11 @@ from google.protobuf import field_mask_pb2
 
 _GAPIC_LIBRARY_VERSION = 0.1
 
+QUANTUM_ENGINE_SERVICE_GRPC_TRANSPORT_LIKE = Union[
+    quantum_engine_service_grpc_transport.QuantumEngineServiceGrpcTransport,
+    Callable[..., quantum_engine_service_grpc_transport.
+             QuantumEngineServiceGrpcTransport]]
+
 
 class QuantumEngineServiceClient(object):
     """-"""
@@ -78,11 +83,7 @@ class QuantumEngineServiceClient(object):
     from_service_account_json = from_service_account_file
 
     def __init__(self,
-                 transport: Union[
-                     quantum_engine_service_grpc_transport.
-                     QuantumEngineServiceGrpcTransport,
-                     Callable[..., quantum_engine_service_grpc_transport.
-                              QuantumEngineServiceGrpcTransport]] = None,
+                 transport: QUANTUM_ENGINE_SERVICE_GRPC_TRANSPORT_LIKE = None,
                  channel: Optional[grpc.Channel] = None,
                  credentials: Optional[service_account.Credentials] = None,
                  client_config: Optional[Dict[str, Any]] = None,
