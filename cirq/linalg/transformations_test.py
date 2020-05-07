@@ -442,7 +442,7 @@ def test_subwavefunction():
 def test_subwavefunction_bad_subset():
     a = cirq.testing.random_superposition(4)
     b = cirq.testing.random_superposition(8)
-    state = np.kron(a, b).reshape(2, 2, 2, 2, 2)
+    state = np.kron(a, b).reshape((2, 2, 2, 2, 2))
 
     for q1 in range(5):
         assert cirq.subwavefunction(state, [q1], default=None,
@@ -462,7 +462,7 @@ def test_subwavefunction_bad_subset():
 def test_subwavefunction_non_kron():
     a = np.array([1, 0, 0, 0, 0, 0, 0, 1]) / np.sqrt(2)
     b = np.array([1, 1]) / np.sqrt(2)
-    state = np.kron(a, b).reshape(2, 2, 2, 2)
+    state = np.kron(a, b).reshape((2, 2, 2, 2))
 
     for q1 in [0, 1, 2]:
         assert cirq.subwavefunction(state, [q1], default=None,
@@ -487,7 +487,8 @@ def test_subwavefunction_invalid_inputs():
 
     # State shape does not conform to input requirements.
     with pytest.raises(ValueError, match='shaped'):
-        cirq.subwavefunction(np.arange(16).reshape(2, 4, 2), [1, 2], atol=1e-8)
+        cirq.subwavefunction(np.arange(16).reshape((2, 4, 2)), [1, 2],
+                             atol=1e-8)
     with pytest.raises(ValueError, match='shaped'):
         cirq.subwavefunction(np.arange(16).reshape((16, 1)), [1, 2], atol=1e-8)
 
@@ -499,7 +500,7 @@ def test_subwavefunction_invalid_inputs():
     with pytest.raises(ValueError, match='2, 2'):
         cirq.subwavefunction(state, [1, 2, 2], atol=1e-8)
 
-    state = np.array([1, 0, 0, 0]).reshape(2, 2)
+    state = np.array([1, 0, 0, 0]).reshape((2, 2))
     with pytest.raises(ValueError, match='invalid'):
         cirq.subwavefunction(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
@@ -512,7 +513,7 @@ def test_wavefunction_partial_trace_as_mixture_invalid_input():
         cirq.wavefunction_partial_trace_as_mixture(np.arange(7), [1, 2],
                                                    atol=1e-8)
 
-    bad_shape = np.arange(16).reshape(2, 4, 2)
+    bad_shape = np.arange(16).reshape((2, 4, 2))
     with pytest.raises(ValueError, match='shaped'):
         cirq.wavefunction_partial_trace_as_mixture(bad_shape, [1], atol=1e-8)
     bad_shape = np.arange(16).reshape((16, 1))
@@ -526,7 +527,7 @@ def test_wavefunction_partial_trace_as_mixture_invalid_input():
     with pytest.raises(ValueError, match='2, 2'):
         cirq.wavefunction_partial_trace_as_mixture(state, [1, 2, 2], atol=1e-8)
 
-    state = np.array([1, 0, 0, 0]).reshape(2, 2)
+    state = np.array([1, 0, 0, 0]).reshape((2, 2))
     with pytest.raises(ValueError, match='invalid'):
         cirq.wavefunction_partial_trace_as_mixture(state, [5], atol=1e-8)
     with pytest.raises(ValueError, match='invalid'):
@@ -560,15 +561,15 @@ def test_wavefunction_partial_trace_as_mixture_pure_result():
     assert mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [0, 1, 2, 3, 4],
                                                    atol=1e-8),
-        ((1.0, np.kron(a, b).reshape(2, 2, 2, 2, 2)),))
+        ((1.0, np.kron(a, b).reshape((2, 2, 2, 2, 2))),))
     assert mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [0, 1, 5, 6, 7, 8],
                                                    atol=1e-8),
-        ((1.0, np.kron(a, c).reshape(2, 2, 2, 2, 2, 2)),))
+        ((1.0, np.kron(a, c).reshape((2, 2, 2, 2, 2, 2))),))
     assert mixtures_equal(
         cirq.wavefunction_partial_trace_as_mixture(state, [2, 3, 4, 5, 6, 7, 8],
                                                    atol=1e-8),
-        ((1.0, np.kron(b, c).reshape(2, 2, 2, 2, 2, 2, 2)),))
+        ((1.0, np.kron(b, c).reshape((2, 2, 2, 2, 2, 2, 2))),))
 
     # Shapes of states in the output mixture conform to the input's shape.
     state = state.reshape(2**9)
@@ -603,21 +604,22 @@ def test_wavefunction_partial_trace_as_mixture_mixed_result():
                                                              atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-    state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape(2, 2, 2) / np.sqrt(3)
-    truth = ((2 / 3, np.array([1.0, 0.0])), (1 / 3, np.array([0.0, 1.0])))
+    state = np.array([0, 1, 1, 0, 1, 0, 0, 0]).reshape((2, 2, 2)) / np.sqrt(3)
+    truth = ((1 / 3, np.array([0.0, 1.0])), (2 / 3, np.array([1.0, 0.0])))
     for q1 in [0, 1, 2]:
         mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1],
                                                              atol=1e-8)
+        assert mixtures_equal(mixture, truth)
 
-    state = np.array([1, 0, 0, 0, 0, 0, 0, 1]).reshape(2, 2, 2) / np.sqrt(2)
+    state = np.array([1, 0, 0, 0, 0, 0, 0, 1]).reshape((2, 2, 2)) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     for q1 in [0, 1, 2]:
         mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1],
                                                              atol=1e-8)
         assert mixtures_equal(mixture, truth)
 
-    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(2, 2)),
-             (0.5, np.array([0, 0, 0, 1]).reshape(2, 2)))
+    truth = ((0.5, np.array([1, 0, 0, 0]).reshape(
+        (2, 2))), (0.5, np.array([0, 0, 0, 1]).reshape((2, 2))))
     for (q1, q2) in [(0, 1), (0, 2), (1, 2)]:
         mixture = cirq.wavefunction_partial_trace_as_mixture(state, [q1, q2],
                                                              atol=1e-8)
