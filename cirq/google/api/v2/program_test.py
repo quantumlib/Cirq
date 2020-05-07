@@ -85,3 +85,4 @@ def test_generic_qubit_from_proto_id():
 
     # All non-int-parseable names are converted to NamedQubits.
     assert v2.named_qubit_from_proto_id('a') == cirq.NamedQubit('a')
+    assert v2.named_qubit_from_proto_id('1_b') == cirq.NamedQubit('1_b')
