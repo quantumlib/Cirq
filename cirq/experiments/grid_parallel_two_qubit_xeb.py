@@ -413,9 +413,24 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                     trial_result = load(trial_result_params, base_dir=base_dir)
                     trial_results.append(trial_result)
                 for qubit_pair in active_qubit_pairs:
+                    # Restrict measurements to this qubit pair
+                    a, b = qubit_pair
+                    qubit_indices = [qubits.index(a), qubits.index(b)]
+                    restricted_measurement_results = []
+                    for trial_result in trial_results:
+                        # Get the measurements of this qubit pair
+                        restricted_measurements = trial_result.measurements[
+                            'm'][:, qubit_indices]
+                        # Convert length-2 bitstrings to integers
+                        restricted_measurements = (
+                            2 * restricted_measurements[:, 0] +
+                            restricted_measurements[:, 1])
+                        restricted_measurement_results.append(
+                            restricted_measurements)
                     arguments.append(
-                        (qubit_pair, qubits, circuit, i, cycles, trial_results,
-                         measured_expectations, exact_expectations))
+                        (qubit_pair, qubits, circuit, i, cycles,
+                         restricted_measurement_results, measured_expectations,
+                         exact_expectations))
 
         # Compute the expectations
         num_processors = min(num_processors, len(arguments))
@@ -454,26 +469,18 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
 def _get_fidelity_estimator_components(
         qubit_pair: GridQubitPair, all_qubits: Sequence['cirq.GridQubit'],
         circuit: 'cirq.Circuit', circuit_index: int, cycles: Sequence[int],
-        trial_results: Sequence['cirq.TrialResult'],
+        measurement_results: List[np.ndarray],
         measured_expectations: Dict[Tuple[GridQubitPair, int], List[float]],
         exact_expectations: Dict[Tuple[GridQubitPair, int], List[float]]
 ) -> None:
     """Compute quantities to estimate p_eff for a qubit pair for given cycles.
     """
-    a, b = qubit_pair
-    qubit_indices = [all_qubits.index(a), all_qubits.index(b)]
     simulator = sim.Simulator()
     step_results = simulator.simulate_moment_steps(circuit[:, qubit_pair],
                                                    qubit_order=qubit_pair)
     moment_index = 0
 
-    for depth, trial_result in zip(cycles, trial_results):
-        # Get the measurements of this qubit pair
-        restricted_measurements = trial_result.measurements['m'][:,
-                                                                 qubit_indices]
-        # Convert length-2 bitstrings to integers
-        restricted_measurements_ints = (2 * restricted_measurements[:, 0] +
-                                        restricted_measurements[:, 1])
+    for depth, measurements in zip(cycles, measurement_results):
         # Compute the theoretical probabilities
         while moment_index < 2 * depth:
             step_result = next(step_results)
@@ -481,8 +488,7 @@ def _get_fidelity_estimator_components(
         amplitudes = step_result.state_vector()
         probabilities = np.abs(amplitudes)**2
         # Compute the expectations needed for fidelity calculation
-        measured_expectation = 4 * np.mean(
-            probabilities[restricted_measurements_ints])
+        measured_expectation = 4 * np.mean(probabilities[measurements])
         exact_expectation = 4 * np.sum(probabilities**2)
         # Save values in dictionaries
         measured_expectations[(qubit_pair, depth,
