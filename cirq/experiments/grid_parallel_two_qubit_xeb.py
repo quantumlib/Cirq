@@ -470,8 +470,9 @@ def _get_fidelity_estimator_components(
         qubit_pair: GridQubitPair, all_qubits: Sequence['cirq.GridQubit'],
         circuit: 'cirq.Circuit', circuit_index: int, cycles: Sequence[int],
         measurement_results: List[np.ndarray],
-        measured_expectations: Dict[Tuple[GridQubitPair, int], List[float]],
-        exact_expectations: Dict[Tuple[GridQubitPair, int], List[float]]
+        measured_expectations: Dict[Tuple[GridQubitPair, int, int],
+                                    List[float]],
+        exact_expectations: Dict[Tuple[GridQubitPair, int, int], List[float]]
 ) -> None:
     """Compute quantities to estimate p_eff for a qubit pair for given cycles.
     """
