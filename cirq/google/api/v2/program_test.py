@@ -79,8 +79,9 @@ def test_generic_qubit_from_proto_id():
     assert v2.qubit_from_proto_id('1') == cirq.LineQubit(1)
     assert v2.qubit_from_proto_id('a') == cirq.NamedQubit('a')
 
-    # int(1_2_3) = 123
-    assert v2.qubit_from_proto_id('1_2_3') == cirq.LineQubit(123)
+    # Despite the fact that int(1_2_3) = 123, only pure numbers are parsed into
+    # LineQubits.
+    assert v2.qubit_from_proto_id('1_2_3') == cirq.NamedQubit('1_2_3')
 
     # All non-int-parseable names are converted to NamedQubits.
     assert v2.named_qubit_from_proto_id('a') == cirq.NamedQubit('a')

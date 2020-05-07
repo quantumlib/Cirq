@@ -58,16 +58,19 @@ def qubit_from_proto_id(proto_id: str) -> 'cirq.Qid':
     Returns:
         A `cirq.Qid` corresponding to the proto id.
     """
-    try:
-        grid_q = grid_qubit_from_proto_id(proto_id)
-        return grid_q
-    except ValueError:
-        pass  # Not a grid qubit.
-    try:
-        line_q = line_qubit_from_proto_id(proto_id)
-        return line_q
-    except ValueError:
-        pass  # Not a line qubit.
+    num_coords = len(proto_id.split('_'))
+    if num_coords == 2:
+        try:
+            grid_q = grid_qubit_from_proto_id(proto_id)
+            return grid_q
+        except ValueError:
+            pass  # Not a grid qubit.
+    elif num_coords == 1:
+        try:
+            line_q = line_qubit_from_proto_id(proto_id)
+            return line_q
+        except ValueError:
+            pass  # Not a line qubit.
 
     # named_qubit_from_proto has no failure condition.
     named_q = named_qubit_from_proto_id(proto_id)
