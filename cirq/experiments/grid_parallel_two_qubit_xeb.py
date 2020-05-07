@@ -414,18 +414,8 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                     trial_results.append(trial_result)
                 for qubit_pair in active_qubit_pairs:
                     arguments.append(
-                        (qubit_pair, qubits, circuit, cycles, trial_results,
+                        (qubit_pair, qubits, circuit, i, cycles, trial_results,
                          measured_expectations, exact_expectations))
-
-        # Initialize lists to store expectations
-        for qubit_pair, depth in itertools.product(all_active_qubit_pairs,
-                                                   cycles):
-            # Reason for type: ignore:
-            # https://github.com/python/mypy/issues/4678
-            measured_expectations[(qubit_pair,
-                                   depth)] = manager.list()  # type: ignore
-            exact_expectations[(qubit_pair,
-                                depth)] = manager.list()  # type: ignore
 
         # Compute the expectations
         num_processors = min(num_processors, len(arguments))
@@ -436,10 +426,17 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         for qubit_pair in all_active_qubit_pairs:
             data = []
             for depth in cycles:
+                measured = [
+                    measured_expectations[(qubit_pair, depth, i)]
+                    for i in range(num_circuits)
+                ]
+                exact = [
+                    exact_expectations[(qubit_pair, depth, i)]
+                    for i in range(num_circuits)
+                ]
                 fidelity = least_squares_xeb_fidelity_from_expectations(
-                    measured_expectations=measured_expectations[(qubit_pair,
-                                                                 depth)],
-                    exact_expectations=exact_expectations[(qubit_pair, depth)],
+                    measured_expectations=measured,
+                    exact_expectations=exact,
                     uniform_expectations=[1.0] * num_circuits)
                 data.append(CrossEntropyPair(depth, fidelity))
             xeb_results[qubit_pair] = CrossEntropyResult(  # type: ignore
@@ -456,7 +453,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
 
 def _get_fidelity_estimator_components(
         qubit_pair: GridQubitPair, all_qubits: Sequence['cirq.GridQubit'],
-        circuit: 'cirq.Circuit', cycles: Sequence[int],
+        circuit: 'cirq.Circuit', circuit_index: int, cycles: Sequence[int],
         trial_results: Sequence['cirq.TrialResult'],
         measured_expectations: Dict[Tuple[GridQubitPair, int], List[float]],
         exact_expectations: Dict[Tuple[GridQubitPair, int], List[float]]
@@ -488,8 +485,10 @@ def _get_fidelity_estimator_components(
             probabilities[restricted_measurements_ints])
         exact_expectation = 4 * np.sum(probabilities**2)
         # Save values in dictionaries
-        measured_expectations[(qubit_pair, depth)].append(measured_expectation)
-        exact_expectations[(qubit_pair, depth)].append(exact_expectation)
+        measured_expectations[(qubit_pair, depth,
+                               circuit_index)] = measured_expectation
+        exact_expectations[(qubit_pair, depth,
+                            circuit_index)] = exact_expectation
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
