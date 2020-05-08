@@ -314,7 +314,9 @@ the magic methods that can be implemented.
     cirq.approx_eq
     cirq.channel
     cirq.circuit_diagram_info
+    cirq.compute_cphase_exponents_for_fsim_decomposition
     cirq.decompose
+    cirq.decompose_cphase_into_two_fsim
     cirq.decompose_once
     cirq.decompose_once_with_qubits
     cirq.equal_up_to_global_phase
