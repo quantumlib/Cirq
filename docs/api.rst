@@ -339,6 +339,7 @@ the magic methods that can be implemented.
     cirq.pow
     cirq.qasm
     cirq.qid_shape
+    cirq.quil
     cirq.read_json
     cirq.resolve_parameters
     cirq.to_json
@@ -351,6 +352,8 @@ the magic methods that can be implemented.
     cirq.CircuitDiagramInfoArgs
     cirq.QasmArgs
     cirq.QasmOutput
+    cirq.QuilFormatter
+    cirq.QuilOutput
     cirq.SupportsApplyChannel
     cirq.SupportsApplyMixture
     cirq.SupportsApproximateEquality
