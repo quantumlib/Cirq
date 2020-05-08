@@ -33,7 +33,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Args:
-            matrix: The 2\\times 2 unitary matrix for this gate.
+            matrix: The 2x2 unitary matrix for this gate.
         """
         self.matrix = matrix
 
@@ -56,7 +56,7 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
 @value.value_equality(approximate=True)
 class QuilTwoQubitGate(ops.TwoQubitGate):
-    """A two qubit gate represented in QUIL with a DEFGATE and it's 4\\times 4
+    """A two qubit gate represented in QUIL with a DEFGATE and it's 4x4
     unitary matrix.
     """
 
