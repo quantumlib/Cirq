@@ -13,7 +13,7 @@
 # limitations under the License.
 """Creates the gate instrance for a two qubit diagonal gate.
 
-The gate is used to create a 4\\times 4 matrix with the diagonal elements
+The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
