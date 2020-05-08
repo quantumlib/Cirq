@@ -615,7 +615,8 @@ class PauliString(raw_types.Operation):
                     pauli_gates.Y: common_gates.YPowGate,
                     pauli_gates.Z: common_gates.ZPowGate,
                 }
-                return gates[p](exponent=half_turns, global_shift=-0.5).on(q)
+                return gates[p](exponent=2 * half_turns,
+                                global_shift=-0.5).on(q)
 
             # HACK: Avoid circular dependency.
             from cirq.ops import pauli_string_phasor
