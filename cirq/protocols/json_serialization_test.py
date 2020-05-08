@@ -315,6 +315,7 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',

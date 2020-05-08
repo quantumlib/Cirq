@@ -255,6 +255,7 @@ from cirq.ops import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
+    TwoQubitDiagonalGate,
     TwoQubitGate,
     WaitGate,
     X,
