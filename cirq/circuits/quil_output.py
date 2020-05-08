@@ -63,7 +63,7 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
     def __init__(self, matrix: np.ndarray) -> None:
         """
         Args:
-            matrix: The 4\\times 4 unitary matrix for this gate.
+            matrix: The 4x4 unitary matrix for this gate.
         """
         self.matrix = matrix
 
