@@ -70,6 +70,7 @@ from cirq.circuits import (
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
+    QuilOutput,
     TextDiagramDrawer,
     Unique,
 )
@@ -432,6 +433,8 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    quil,
+    QuilFormatter,
     read_json,
     resolve_parameters,
     SupportsApplyChannel,
