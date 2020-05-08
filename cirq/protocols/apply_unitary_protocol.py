@@ -28,7 +28,7 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq import linalg
+from cirq import linalg, qis
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
@@ -109,9 +109,9 @@ class ApplyUnitaryArgs:
             qid_shape = (2,) * num_qubits
         qid_shape = cast(Tuple[int, ...], qid_shape)  # Satisfy mypy
         num_qubits = len(qid_shape)
-        state = linalg.one_hot(index=(0,) * num_qubits,
-                               shape=qid_shape,
-                               dtype=np.complex128)
+        state = qis.one_hot(index=(0,) * num_qubits,
+                            shape=qid_shape,
+                            dtype=np.complex128)
         return ApplyUnitaryArgs(state, np.empty_like(state), range(num_qubits))
 
     def with_axes_transposed_to_start(self) -> 'ApplyUnitaryArgs':

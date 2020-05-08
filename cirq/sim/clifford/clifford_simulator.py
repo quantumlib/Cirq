@@ -49,7 +49,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                         simulator.SimulatesIntermediateState):
     """An efficient simulator for Clifford circuits."""
 
-    def __init__(self, seed: value.RANDOM_STATE_LIKE = None):
+    def __init__(self, seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None):
         """Creates instance of `CliffordSimulator`.
 
         Args:
@@ -242,7 +242,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
 
         measurements = []
 
@@ -346,7 +346,21 @@ class CliffordState():
 
     def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
         qubit = self.qubit_map[op.qubits[0]]
-        # Handle H natively as optimization.
+        if op.gate == cirq.I:
+            return
+
+        if op.gate == cirq.X:
+            self._apply_X(qubit)
+            return
+
+        if op.gate == cirq.Y:
+            self._apply_Y(qubit)
+            return
+
+        if op.gate == cirq.Z:
+            self._apply_Z(qubit)
+            return
+
         if op.gate == cirq.H:
             self._apply_H(qubit)
             return
@@ -381,13 +395,25 @@ class CliffordState():
         phase_shift = u[max_idx] / applied_unitary[max_idx]
         self.ch_form.omega *= phase_shift
 
-    def _apply_H(self, qubit: ops.Qid):
+    def _apply_H(self, qubit: int):
         self.tableau._H(qubit)
         self.ch_form._H(qubit)
 
-    def _apply_S(self, qubit: ops.Qid):
+    def _apply_S(self, qubit: int):
         self.tableau._S(qubit)
         self.ch_form._S(qubit)
+
+    def _apply_X(self, qubit: int):
+        self.tableau._X(qubit)
+        self.ch_form._X(qubit)
+
+    def _apply_Z(self, qubit: int):
+        self.tableau._Z(qubit)
+        self.ch_form._Z(qubit)
+
+    def _apply_Y(self, qubit: int):
+        self.tableau._Y(qubit)
+        self.ch_form._Y(qubit)
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],

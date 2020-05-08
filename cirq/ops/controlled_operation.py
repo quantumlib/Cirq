@@ -17,7 +17,7 @@ from typing import (Any, cast, Collection, Dict, Optional, Sequence, Tuple,
 import itertools
 import numpy as np
 
-from cirq import protocols, linalg, value
+from cirq import protocols, qis, value
 from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
 
@@ -33,7 +33,7 @@ class ControlledOperation(raw_types.Operation):
     """
 
     def __init__(self,
-                 controls: Sequence[raw_types.Qid],
+                 controls: Sequence['cirq.Qid'],
                  sub_operation: 'cirq.Operation',
                  control_values: Optional[Sequence[
                      Union[int, Collection[int]]]] = None):
@@ -129,7 +129,7 @@ class ControlledOperation(raw_types.Operation):
             return NotImplemented
         qid_shape = protocols.qid_shape(self)
         sub_n = len(qid_shape) - len(self.controls)
-        tensor = linalg.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
+        tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls):] * 2)
         for control_vals in itertools.product(*self.control_values):
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
@@ -154,10 +154,16 @@ class ControlledOperation(raw_types.Operation):
         controls = ', '.join(str(q) for q in self.controls)
         return f'{prefix}({controls}, {self.sub_operation})'
 
-    def __repr__(self) -> str:
-        return (f'cirq.ControlledOperation(controls={self.controls!r}, '
-                f'sub_operation={self.sub_operation!r}, '
-                f'control_values={self.control_values!r})')
+    def __repr__(self):
+        if all(q.dimension == 2 for q in self.controls):
+            if self.control_values == ((1,) * len(self.controls),):
+                if self == self.sub_operation.controlled_by(*self.controls):
+                    qubit_args = ', '.join(repr(q) for q in self.controls)
+                    return f'{self.sub_operation!r}.controlled_by({qubit_args})'
+        return (f'cirq.ControlledOperation('
+                f'sub_operation={self.sub_operation!r},'
+                f'control_values={self.control_values!r},'
+                f'controls={self.controls!r})')
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)

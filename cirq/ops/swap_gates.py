@@ -27,7 +27,7 @@ import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate
 
@@ -115,7 +115,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                               ) -> 'cirq.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
-                wire_symbols=('swap', 'swap'),
+                wire_symbols=('Swap', 'Swap'),
                 exponent=self._diagram_exponent(args))
         return protocols.CircuitDiagramInfo(
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args))
@@ -269,11 +269,6 @@ def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ISwapPowGate()**(2 * rads / pi)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.riswap, instead.')
-def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
-    return riswap(angle_rads)
 
 
 SWAP = SwapPowGate()

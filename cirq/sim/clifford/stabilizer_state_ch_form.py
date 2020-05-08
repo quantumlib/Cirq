@@ -121,8 +121,8 @@ class StabilizerStateChForm():
             if y[p]:
                 u ^= self.F[p, :]
                 mu += 2 * (sum(self.M[p, :] & u) % 2)
-        return self.omega * 2**(-sum(self.v) / 2) * 1j**mu * (
-            -1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s))
+        return (self.omega * 2**(-sum(self.v) / 2) * 1j**mu *
+                (-1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s)))
 
     def wave_function(self) -> np.ndarray:
         wf = np.zeros(2**self.n, dtype=complex)

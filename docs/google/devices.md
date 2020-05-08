@@ -5,19 +5,19 @@ Since quantum hardware is an active area of research, hardware specifications an
 practices are constantly evolving in an attempt to continuously improve performance.
 While this information should be a solid base for beginning your quantum application,
 please work with your Google sponsor to obtain the latest information on devices that
-you plan to use. 
+you plan to use.
 
 ## General limitations
 
 Qubits on Google devices are laid out in a grid structure. Connectivity is limited to
-adjacent qubits, either horizontally or vertically. 
+adjacent qubits, either horizontally or vertically.
 
 Measurement takes much longer than other gates. Currently, the only supported
 configuration is to have terminal measurement in the final moment of a circuit.
 
 Most devices have a limited set of gates that can be applied. Gates not in that set
 must be decomposed into an equivalent circuit using gates within the set.
-See below for those restrictions. 
+See below for those restrictions.
 
 There are some limitations to the total circuit length due to hardware limitations.
 Several factors can influence this limit, but this can be estimated at about 40 microseconds
@@ -30,12 +30,12 @@ of total circuit run-time. Circuits that exceed this limit will return a
 
 The Sycamore device is a 54 qubit device introduced in 2019 with a
 [publication in Nature](https://www.nature.com/articles/s41586-019-1666-5).
-Note that the supremacy result in the paper utilized a device that had 53 qubits since 
+Note that the supremacy result in the paper utilized a device that had 53 qubits since
 one qubit had malfunctioned.
 
 It can be accessed using `cirq.GridQubit(row, col)` using grid coordinates specified below.
 
-```            
+```
   0123456789
 0 -----AB---
 1 ----ABCD--
@@ -88,7 +88,7 @@ compilation as the Sycamore device.
 The Bristlecone processor is a 72 qubit device
 [announced by Google in 2018](https://ai.googleblog.com/2018/03/a-preview-of-bristlecone-googles-new.html).
 
-The device is arrayed on a grid in a diamond pattern like this. 
+The device is arrayed on a grid in a diamond pattern like this.
 
 ```
             11
@@ -121,8 +121,3 @@ algorithms on NISQ devices.
 It can be accessing by using `cirq.google.Foxtail`. Circuits can be compiled to it by using
 `cirq.google.optimized_for_xmon` or by using `cirq.google.optimized_for_sycamore` with
 optimizer_type `xmon`.
-
-
-
-
-

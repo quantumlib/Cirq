@@ -19,14 +19,48 @@ import pytest
 import numpy as np
 
 import cirq
+from cirq._compat_test import capture_logging
 
 
-def assert_dirac_notation_numpy(vec, expected, decimals=2):
-    assert cirq.dirac_notation(np.array(vec), decimals=decimals) == expected
+def test_deprecated():
+    with capture_logging() as log:
+        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
+    assert len(log) == 1
+    assert "cirq.bloch_vector_from_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
 
+    with capture_logging() as log:
+        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
+    assert len(log) == 1
+    assert "cirq.density_matrix_from_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
 
-def assert_dirac_notation_python(vec, expected, decimals=2):
-    assert cirq.dirac_notation(vec, decimals=decimals) == expected
+    with capture_logging() as log:
+        _ = cirq.sim.dirac_notation(np.array([1, 0]))
+    assert len(log) == 1
+    assert "cirq.dirac_notation" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.to_valid_state_vector(0, 1)
+    assert len(log) == 1
+    assert "cirq.to_valid_state_vector" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        _ = cirq.sim.validate_normalized_state(np.array([1, 0],
+                                                        dtype=np.complex64),
+                                               qid_shape=(2,))
+    assert len(log) == 1
+    assert "cirq.validate_normalized_state" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
+
+    with capture_logging() as log:
+        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
+        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
+    assert len(log) == 1
+    assert "cirq.STATE_VECTOR_LIKE" in log[0].getMessage()
+    assert "deprecated" in log[0].getMessage()
 
 
 def test_state_mixin():
@@ -56,282 +90,6 @@ def test_state_mixin():
         _ = TestClass({qubits[0]: 1, qubits[1]: 1})
     with pytest.raises(ValueError, match='Duplicate qubit index'):
         _ = TestClass({qubits[0]: -1, qubits[1]: 1})
-
-
-def test_bloch_vector_simple_H_zero():
-    sqrt = np.sqrt(0.5)
-    H_state = np.array([sqrt, sqrt])
-
-    bloch = cirq.bloch_vector_from_state_vector(H_state, 0)
-    desired_simple = np.array([1,0,0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_simple_XH_zero():
-    sqrt = np.sqrt(0.5)
-    XH_state = np.array([sqrt, sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(XH_state, 0)
-
-    desired_simple = np.array([1,0,0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_simple_YH_zero():
-    sqrt = np.sqrt(0.5)
-    YH_state = np.array([-1.0j * sqrt, 1.0j * sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(YH_state, 0)
-
-    desired_simple = np.array([-1,0,0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_simple_ZH_zero():
-    sqrt = np.sqrt(0.5)
-    ZH_state = np.array([sqrt, -sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(ZH_state, 0)
-
-    desired_simple = np.array([-1,0,0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_simple_TH_zero():
-    sqrt = np.sqrt(0.5)
-    TH_state = np.array([sqrt, 0.5+0.5j])
-    bloch = cirq.bloch_vector_from_state_vector(TH_state, 0)
-
-    desired_simple = np.array([sqrt,sqrt,0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_equal_sqrt3():
-    sqrt3 = 1/np.sqrt(3)
-    test_state = np.array([0.888074, 0.325058 + 0.325058j])
-    bloch = cirq.bloch_vector_from_state_vector(test_state, 0)
-
-    desired_simple = np.array([sqrt3,sqrt3,sqrt3])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_multi_pure():
-    HH_state = np.array([0.5,0.5,0.5,0.5])
-
-    bloch_0 = cirq.bloch_vector_from_state_vector(HH_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(HH_state, 1)
-    desired_simple = np.array([1,0,0])
-
-    np.testing.assert_array_almost_equal(bloch_1, desired_simple)
-    np.testing.assert_array_almost_equal(bloch_0, desired_simple)
-
-
-def test_bloch_vector_multi_mixed():
-    sqrt = np.sqrt(0.5)
-    HCNOT_state = np.array([sqrt, 0., 0., sqrt])
-
-    bloch_0 = cirq.bloch_vector_from_state_vector(HCNOT_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(HCNOT_state, 1)
-    zero = np.zeros(3)
-
-    np.testing.assert_array_almost_equal(bloch_0, zero)
-    np.testing.assert_array_almost_equal(bloch_1, zero)
-
-    RCNOT_state = np.array([0.90612745, -0.07465783j,
-        -0.37533028j, 0.18023996])
-    bloch_mixed_0 = cirq.bloch_vector_from_state_vector(RCNOT_state, 0)
-    bloch_mixed_1 = cirq.bloch_vector_from_state_vector(RCNOT_state, 1)
-
-    true_mixed_0 = np.array([0., -0.6532815, 0.6532815])
-    true_mixed_1 = np.array([0., 0., 0.9238795])
-
-    np.testing.assert_array_almost_equal(true_mixed_0, bloch_mixed_0)
-    np.testing.assert_array_almost_equal(true_mixed_1, bloch_mixed_1)
-
-
-def test_bloch_vector_multi_big():
-    big_H_state = np.array([0.1767767] * 32)
-    desired_simple = np.array([1,0,0])
-    for qubit in range(0, 5):
-        bloch_i = cirq.bloch_vector_from_state_vector(big_H_state, qubit)
-        np.testing.assert_array_almost_equal(bloch_i, desired_simple)
-
-
-def test_bloch_vector_invalid():
-    with pytest.raises(ValueError):
-        _ = cirq.bloch_vector_from_state_vector(
-            np.array([0.5, 0.5, 0.5]), 0)
-    with pytest.raises(IndexError):
-        _ = cirq.bloch_vector_from_state_vector(
-            np.array([0.5, 0.5,0.5,0.5]), -1)
-    with pytest.raises(IndexError):
-        _ = cirq.bloch_vector_from_state_vector(
-            np.array([0.5, 0.5,0.5,0.5]), 2)
-
-
-def test_density_matrix():
-    test_state = np.array([0.-0.35355339j, 0.+0.35355339j, 0.-0.35355339j,
-        0.+0.35355339j, 0.+0.35355339j, 0.-0.35355339j, 0.+0.35355339j,
-        0.-0.35355339j])
-
-    full_rho = cirq.density_matrix_from_state_vector(test_state)
-    np.testing.assert_array_almost_equal(full_rho,
-        np.outer(test_state, np.conj(test_state)))
-
-    rho_one = cirq.density_matrix_from_state_vector(test_state, [1])
-    true_one = np.array([[0.5+0.j, 0.5+0.j], [0.5+0.j, 0.5+0.j]])
-    np.testing.assert_array_almost_equal(rho_one, true_one)
-
-    rho_two_zero = cirq.density_matrix_from_state_vector(test_state, [0,2])
-    true_two_zero = np.array([[ 0.25+0.j, -0.25+0.j, -0.25+0.j,  0.25+0.j],
-                             [-0.25+0.j, 0.25+0.j,  0.25+0.j, -0.25+0.j],
-                             [-0.25+0.j, 0.25+0.j,  0.25+0.j, -0.25+0.j],
-                             [ 0.25+0.j, -0.25+0.j, -0.25+0.j,  0.25+0.j]])
-    np.testing.assert_array_almost_equal(rho_two_zero, true_two_zero)
-
-    # two and zero will have same single qubit density matrix.
-    rho_two = cirq.density_matrix_from_state_vector(test_state, [2])
-    true_two = np.array([[0.5+0.j, -0.5+0.j], [-0.5+0.j, 0.5+0.j]])
-    np.testing.assert_array_almost_equal(rho_two, true_two)
-    rho_zero = cirq.density_matrix_from_state_vector(test_state, [0])
-    np.testing.assert_array_almost_equal(rho_zero, true_two)
-
-
-def test_density_matrix_invalid():
-    bad_state = np.array([0.5,0.5,0.5])
-    good_state = np.array([0.5,0.5,0.5,0.5])
-    with pytest.raises(ValueError):
-        _ = cirq.density_matrix_from_state_vector(bad_state)
-    with pytest.raises(ValueError):
-        _ = cirq.density_matrix_from_state_vector(bad_state, [0, 1])
-    with pytest.raises(IndexError):
-        _ = cirq.density_matrix_from_state_vector(good_state, [-1, 0, 1])
-    with pytest.raises(IndexError):
-        _ = cirq.density_matrix_from_state_vector(good_state, [-1])
-
-
-def test_dirac_notation():
-    sqrt = np.sqrt(0.5)
-    exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation_numpy([0, 0], "0")
-    assert_dirac_notation_python([1], "|⟩")
-    assert_dirac_notation_numpy([sqrt, sqrt], "0.71|0⟩ + 0.71|1⟩")
-    assert_dirac_notation_python([-sqrt, sqrt], "-0.71|0⟩ + 0.71|1⟩")
-    assert_dirac_notation_numpy([sqrt, -sqrt], "0.71|0⟩ - 0.71|1⟩")
-    assert_dirac_notation_python([-sqrt, -sqrt], "-0.71|0⟩ - 0.71|1⟩")
-    assert_dirac_notation_numpy([sqrt, 1j * sqrt], "0.71|0⟩ + 0.71j|1⟩")
-    assert_dirac_notation_python([sqrt, exp_pi_2], "0.71|0⟩ + (0.5+0.5j)|1⟩")
-    assert_dirac_notation_numpy([exp_pi_2, -sqrt], "(0.5+0.5j)|0⟩ - 0.71|1⟩")
-    assert_dirac_notation_python([exp_pi_2, 0.5 - 0.5j],
-                                 "(0.5+0.5j)|0⟩ + (0.5-0.5j)|1⟩")
-    assert_dirac_notation_numpy([0.5, 0.5, -0.5, -0.5],
-                                "0.5|00⟩ + 0.5|01⟩ - 0.5|10⟩ - 0.5|11⟩")
-    assert_dirac_notation_python([0.71j, 0.71j], "0.71j|0⟩ + 0.71j|1⟩")
-
-
-def test_dirac_notation_partial_state():
-    sqrt = np.sqrt(0.5)
-    exp_pi_2 = 0.5 + 0.5j
-    assert_dirac_notation_numpy([1, 0], "|0⟩")
-    assert_dirac_notation_python([1j, 0], "1j|0⟩")
-    assert_dirac_notation_numpy([0, 1], "|1⟩")
-    assert_dirac_notation_python([0, 1j], "1j|1⟩")
-    assert_dirac_notation_numpy([sqrt, 0, 0, sqrt], "0.71|00⟩ + 0.71|11⟩")
-    assert_dirac_notation_python([sqrt, sqrt, 0, 0], "0.71|00⟩ + 0.71|01⟩")
-    assert_dirac_notation_numpy([exp_pi_2, 0, 0, exp_pi_2],
-                                "(0.5+0.5j)|00⟩ + (0.5+0.5j)|11⟩")
-    assert_dirac_notation_python([0, 0, 0, 1], "|11⟩")
-
-
-def test_dirac_notation_precision():
-    sqrt = np.sqrt(0.5)
-    assert_dirac_notation_numpy([sqrt, sqrt], "0.7|0⟩ + 0.7|1⟩", decimals=1)
-    assert_dirac_notation_python([sqrt, sqrt],
-                                 "0.707|0⟩ + 0.707|1⟩",
-                                 decimals=3)
-
-
-def test_to_valid_state_vector():
-    np.testing.assert_almost_equal(cirq.to_valid_state_vector(
-        np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),
-        np.array([1.0, 0.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(cirq.to_valid_state_vector(
-        np.array([0.0, 1.0, 0.0, 0.0], dtype=np.complex64), 2),
-        np.array([0.0, 1.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(cirq.to_valid_state_vector(0, 2),
-                                   np.array([1.0, 0.0, 0.0, 0.0]))
-    np.testing.assert_almost_equal(cirq.to_valid_state_vector(1, 2),
-                                   np.array([0.0, 1.0, 0.0, 0.0]))
-
-    v = cirq.to_valid_state_vector([0, 1, 2, 0], qid_shape=(3, 3, 3, 3))
-    assert v.shape == (3**4,)
-    assert v[6 + 9] == 1
-
-    v = cirq.to_valid_state_vector([False, True, False, False], num_qubits=4)
-    assert v.shape == (16,)
-    assert v[4] == 1
-
-    v = cirq.to_valid_state_vector([0, 1, 0, 0], num_qubits=2)
-    assert v.shape == (4,)
-    assert v[1] == 1
-
-    v = cirq.to_valid_state_vector(np.array([1, 0], dtype=np.complex64),
-                                   qid_shape=(2, 1))
-    assert v.shape == (2,)
-    assert v[0] == 1
-
-
-def test_to_valid_state_vector_creates_new_copy():
-    state = np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64)
-    out = cirq.to_valid_state_vector(state, 2)
-    assert out is not state
-
-
-def test_invalid_to_valid_state_vector():
-    with pytest.raises(ValueError, match="Must specify"):
-        _ = cirq.to_valid_state_vector(np.array([1]))
-
-    with pytest.raises(ValueError):
-        _ = cirq.to_valid_state_vector(
-            np.array([1.0, 0.0], dtype=np.complex64), 2)
-    with pytest.raises(ValueError):
-        _ = cirq.to_valid_state_vector(-1, 2)
-    with pytest.raises(ValueError):
-        _ = cirq.to_valid_state_vector(5, 2)
-    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
-        _ = cirq.to_valid_state_vector('0000', 2)
-    with pytest.raises(TypeError, match='Unrecognized type of STATE_LIKE'):
-        _ = cirq.to_valid_state_vector('not an int', 2)
-    with pytest.raises(ValueError, match=r'num_qubits != len\(qid_shape\)'):
-        _ = cirq.to_valid_state_vector(0, 5, qid_shape=(1, 2, 3))
-
-    with pytest.raises(ValueError, match='out of bounds'):
-        _ = cirq.to_valid_state_vector([3], qid_shape=(3,))
-    with pytest.raises(ValueError, match='out of bounds'):
-        _ = cirq.to_valid_state_vector([-1], qid_shape=(3,))
-    with pytest.raises(ValueError, match='but its shape was neither'):
-        _ = cirq.to_valid_state_vector([], qid_shape=(3,))
-    with pytest.raises(ValueError, match='but its shape was neither'):
-        _ = cirq.to_valid_state_vector([0, 1], num_qubits=3)
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.to_valid_state_vector([1, 0], qid_shape=(2, 1))
-    with pytest.raises(ValueError, match='ambiguous'):
-        _ = cirq.to_valid_state_vector(np.array([1, 0], dtype=np.int64),
-                                       qid_shape=(2, 1))
-
-
-def test_check_state():
-    cirq.validate_normalized_state(np.array([0.5, 0.5, 0.5, 0.5],
-                                            dtype=np.complex64),
-                                   qid_shape=(2, 2))
-    with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64),
-                                       qid_shape=(2, 2))
-    with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1.0, 0.2, 0.0, 0.0],
-                                                dtype=np.complex64),
-                                       qid_shape=(2, 2))
-    with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1.0, 0.0, 0.0, 0.0],
-                                                dtype=np.float64),
-                                       qid_shape=(2, 2))
 
 
 def test_sample_state_big_endian():

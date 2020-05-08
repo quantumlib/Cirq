@@ -52,9 +52,6 @@ from cirq.linalg.diagonalize import (
     diagonalize_real_symmetric_matrix,
 )
 
-from cirq.linalg.distance_measures import (
-    fidelity,)
-
 from cirq.linalg.operator_spaces import (
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,

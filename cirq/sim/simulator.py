@@ -417,7 +417,7 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
         Note that this does not collapse the wave function.
@@ -439,7 +439,7 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample_measurement_ops(self,
                                measurement_ops: List[ops.GateOperation],
                                repetitions: int = 1,
-                               seed: value.RANDOM_STATE_LIKE = None
+                               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                               ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
