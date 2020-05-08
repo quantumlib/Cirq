@@ -55,7 +55,7 @@ class StateVectorMixin():
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
     def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None,
-        *args, **kwargs):
+                 *args, **kwargs):
         """
         Args:
             qubit_map: A map from the Qubits in the Circuit to the the index
@@ -155,7 +155,8 @@ class StateVectorMixin():
         """
         return qis.density_matrix_from_state_vector(
             self.state_vector(),
-            [self.qubit_map[q] for q in qubits] if qubits is not None else None,
+            [self.qubit_map[q]
+                for q in qubits] if qubits is not None else None,
             qid_shape=self._qid_shape)
 
     def bloch_vector_of(self, qubit: 'cirq.Qid') -> np.ndarray:
@@ -243,7 +244,66 @@ def sample_state_vector(
         value.big_endian_int_to_digits(result[i], base=meas_shape)
         for i in range(len(result))
     ],
-                    dtype=np.uint8)
+        dtype=np.uint8)
+
+
+def sample_counts_state_vector(
+        state: np.ndarray,
+        indices: List[int],
+        *,  # Force keyword args
+        qid_shape: Optional[Tuple[int, ...]] = None,
+        repetitions: int = 1,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
+    """Samples a state vector from Multinomial distribution.
+
+    Note that this does not modify the passed in state.
+
+    Args:
+        state: The multi-qubit wavefunction to be sampled. This is an array of
+            2 to the power of the number of qubit complex numbers, and so
+            state must be of size ``2**integer``.  The state can be a vector of
+            size ``2**integer`` or a tensor of shape ``(2, 2, ..., 2)``.
+        indices: Which qubits are measured. The state is assumed to be supplied
+            in big endian order. That is the xth index of v, when expressed as
+            a bitstring, has its largest values in the 0th index.
+        qid_shape: The qid shape of the state vector.  Specify this argument
+            when using qudits.
+        repetitions: The number of times to sample the state.
+        seed: A seed for the pseudorandom number generator.
+
+    Returns:
+        Measurement results as number of times each value of the list
+        appeared.
+
+    Raises:
+        ValueError: ``repetitions`` is less than one or size of ``state`` is not
+            a power of 2.
+        IndexError: An index from ``indices`` is out of range, given the number
+            of qubits corresponding to the state.
+    """
+    if repetitions < 0:
+        raise ValueError('Number of repetitions cannot be negative. Was {}'
+                         .format(repetitions))
+    qid_shape = qis.validate_qid_shape(state, qid_shape)
+    num_qubits = len(qid_shape)
+    qis.validate_indices(num_qubits, indices)
+
+    if repetitions == 0 or len(indices) == 0:
+        return np.zeros(shape=(repetitions, len(indices)), dtype=np.uint8)
+
+    prng = value.parse_random_state(seed)
+
+    # Calculate the measurement probabilities.
+    probs = _probs(state, indices, qid_shape)
+
+    # We now have the probability vector, correctly ordered, so sample over
+    # it. Note that we use multinomial that returns how many times a value
+    # is repeated out of repetitions.
+    result = prng.multinomial(n=repetitions, pvals=probs, size=None)
+
+    # Convert to individual qudit measurements.
+    meas_shape = tuple(qid_shape[i] for i in indices)
+    return result
 
 
 def measure_state_vector(
