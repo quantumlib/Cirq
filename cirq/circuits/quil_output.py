@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Dict, Optional, Sequence, Set, Tuple, Union
+from typing import Callable, Dict, Set, Tuple, Union
 import numpy as np
 import cirq
 from cirq import protocols, value, ops
