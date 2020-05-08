@@ -272,7 +272,9 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
