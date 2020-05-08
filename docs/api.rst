@@ -217,14 +217,10 @@ results.
 
     cirq.CIRCUIT_LIKE
     cirq.RANDOM_STATE_OR_SEED_LIKE
-    cirq.STATE_VECTOR_LIKE
     cirq.big_endian_bits_to_int
     cirq.big_endian_digits_to_int
     cirq.big_endian_int_to_bits
     cirq.big_endian_int_to_digits
-    cirq.bloch_vector_from_state_vector
-    cirq.density_matrix_from_state_vector
-    cirq.dirac_notation
     cirq.final_density_matrix
     cirq.final_wavefunction
     cirq.flatten
@@ -241,10 +237,7 @@ results.
     cirq.sample_sweep
     cirq.to_resolvers
     cirq.to_sweep
-    cirq.to_valid_density_matrix
-    cirq.to_valid_state_vector
     cirq.validate_mixture
-    cirq.validate_normalized_state
     cirq.validate_probability
     cirq.xeb_fidelity
     cirq.CircuitSampleJob
@@ -322,7 +315,9 @@ the magic methods that can be implemented.
     cirq.approx_eq
     cirq.channel
     cirq.circuit_diagram_info
+    cirq.compute_cphase_exponents_for_fsim_decomposition
     cirq.decompose
+    cirq.decompose_cphase_into_two_fsim
     cirq.decompose_once
     cirq.decompose_once_with_qubits
     cirq.equal_up_to_global_phase
@@ -618,8 +613,6 @@ Algebra and Representation
     cirq.diagonalize_real_symmetric_matrix
     cirq.dot
     cirq.expand_matrix_in_orthogonal_basis
-    cirq.eye_tensor
-    cirq.fidelity
     cirq.hilbert_schmidt_inner_product
     cirq.is_diagonal
     cirq.is_hermitian
@@ -639,7 +632,6 @@ Algebra and Representation
     cirq.map_eigenvalues
     cirq.match_global_phase
     cirq.matrix_from_basis_coefficients
-    cirq.one_hot
     cirq.partial_trace
     cirq.reflection_matrix_pow
     cirq.slice_for_qubits_equal_to
@@ -648,12 +640,30 @@ Algebra and Representation
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
     cirq.unitary_eig
-    cirq.von_neumann_entropy
     cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition
     cirq.Duration
     cirq.KakDecomposition
     cirq.Timestamp
+
+
+Quantum Information Science
+'''''''''''''''''''''''''''
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.STATE_VECTOR_LIKE
+    cirq.bloch_vector_from_state_vector
+    cirq.density_matrix_from_state_vector
+    cirq.dirac_notation
+    cirq.eye_tensor
+    cirq.fidelity
+    cirq.one_hot
+    cirq.to_valid_density_matrix
+    cirq.to_valid_state_vector
+    cirq.validate_normalized_state
+    cirq.von_neumann_entropy
 
 
 Internal Implementation Details

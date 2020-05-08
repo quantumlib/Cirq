@@ -291,6 +291,19 @@ def test_clifford_stabilizerStateChForm_repr():
     assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
 
 
+def test_clifforf_circuit_SHSYSHS():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.Y(q0),
+                           cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.measure(q0))
+
+    clifford_simulator = cirq.CliffordSimulator()
+    wave_function_simulator = cirq.Simulator()
+
+    np.testing.assert_almost_equal(
+        clifford_simulator.simulate(circuit).final_state.wave_function(),
+        wave_function_simulator.simulate(circuit).final_state)
+
+
 def test_clifford_circuit():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     circuit = cirq.Circuit()

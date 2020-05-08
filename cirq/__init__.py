@@ -31,6 +31,7 @@ with _import.delay_import('cirq.protocols'):
         protocols,
         value,
         linalg,
+        qis,
         ops,
         devices,
         study,
@@ -119,9 +120,7 @@ from cirq.linalg import (
     diagonalize_real_symmetric_matrix,
     dot,
     expand_matrix_in_orthogonal_basis,
-    fidelity,
     hilbert_schmidt_inner_product,
-    eye_tensor,
     is_diagonal,
     is_hermitian,
     is_normal,
@@ -141,7 +140,6 @@ from cirq.linalg import (
     map_eigenvalues,
     match_global_phase,
     matrix_from_basis_coefficients,
-    one_hot,
     partial_trace,
     PAULI_BASIS,
     scatter_plot_normalized_kak_interaction_coefficients,
@@ -275,7 +273,9 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
@@ -299,8 +299,21 @@ from cirq.optimizers import (
     two_qubit_matrix_to_operations,
 )
 
-from cirq.sim import (
+from cirq.qis import (
     bloch_vector_from_state_vector,
+    density_matrix_from_state_vector,
+    dirac_notation,
+    eye_tensor,
+    fidelity,
+    one_hot,
+    STATE_VECTOR_LIKE,
+    to_valid_density_matrix,
+    to_valid_state_vector,
+    validate_normalized_state,
+    von_neumann_entropy,
+)
+
+from cirq.sim import (
     StabilizerStateChForm,
     CIRCUIT_LIKE,
     CliffordSimulator,
@@ -308,12 +321,10 @@ from cirq.sim import (
     CliffordSimulatorStepResult,
     CliffordTableau,
     CliffordTrialResult,
-    density_matrix_from_state_vector,
     DensityMatrixSimulator,
     DensityMatrixSimulatorState,
     DensityMatrixStepResult,
     DensityMatrixTrialResult,
-    dirac_notation,
     measure_density_matrix,
     measure_state_vector,
     final_density_matrix,
@@ -330,13 +341,8 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
-    STATE_VECTOR_LIKE,
     StateVectorMixin,
     StepResult,
-    to_valid_density_matrix,
-    to_valid_state_vector,
-    validate_normalized_state,
-    von_neumann_entropy,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
     WaveFunctionTrialResult,

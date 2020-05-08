@@ -754,6 +754,8 @@ class EngineClient:
             start: the new starting time of the reservation as a datetime object
             end: the new ending time of the reservation as a datetime object
             whitelisted_users: a list of emails that can use the reservation.
+                The empty list, [], will clear the whitelisted_users while None
+                will leave the value unchanged.
         """
         name = self._reservation_name_from_ids(
             project_id, processor_id, reservation_id) if reservation_id else ''
@@ -766,7 +768,7 @@ class EngineClient:
         if end:
             reservation.end_time.seconds = int(end.timestamp())
             paths.append('end_time')
-        if whitelisted_users:
+        if whitelisted_users != None:
             reservation.whitelisted_users.extend(whitelisted_users)
             paths.append('whitelisted_users')
 
