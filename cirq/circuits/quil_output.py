@@ -27,7 +27,7 @@ def to_quil_complex_format(num) -> str:
 @value.value_equality(approximate=True)
 class QuilOneQubitGate(ops.SingleQubitGate):
     """A QUIL gate representing any single qubit unitary with a DEFGATE and
-        2\\times 2 matrix in QUIL.
+        2x2 matrix in QUIL.
     """
 
     def __init__(self, matrix: np.ndarray) -> None:
