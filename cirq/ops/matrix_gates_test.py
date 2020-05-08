@@ -18,7 +18,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -27,20 +26,6 @@ QFT2 = np.array([[1, 1, 1, 1],
                  [1, -1, 1, -1],
                  [1, -1j, -1, 1j]]) * 0.5
 PLUS_ONE = np.array([[0, 0, 1], [1, 0, 0], [0, 1, 0]])
-
-
-def test_deprecated():
-    with capture_logging() as log:
-        _ = cirq.SingleQubitMatrixGate(np.eye(2))
-    assert len(log) == 1
-    assert "cirq.SingleQubitMatrixGate" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        _ = cirq.TwoQubitMatrixGate(np.eye(4))
-    assert len(log) == 1
-    assert "cirq.TwoQubitMatrixGate" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
 
 def test_single_qubit_init():
@@ -240,16 +225,11 @@ def test_two_qubit_consistent():
     cirq.testing.assert_implements_consistent_protocols(g)
 
 
-def test_two_qubit_matrix_gate():
-    u = cirq.testing.random_unitary(4)
-    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(u))
-    cirq.testing.assert_equivalent_repr(cirq.TwoQubitMatrixGate(u))
-
-
-def test_single_qubit_matrix_gate():
-    u = cirq.testing.random_unitary(2)
-    cirq.testing.assert_equivalent_repr(cirq.MatrixGate(u))
-    cirq.testing.assert_equivalent_repr(cirq.SingleQubitMatrixGate(u))
+def test_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.MatrixGate(cirq.testing.random_unitary(2)))
+    cirq.testing.assert_equivalent_repr(
+        cirq.MatrixGate(cirq.testing.random_unitary(4)))
 
 
 def test_matrix_gate_init_validation():

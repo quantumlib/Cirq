@@ -332,12 +332,12 @@ class AnnealSequenceSearch:
                 index -= 1
         return None
 
-
 class AnnealSequenceSearchStrategy(place_strategy.LinePlacementStrategy):
     """Linearized sequence search using simulated annealing method.
 
     TODO: This line search strategy is still work in progress and requires
     efficiency improvements.
+    Github issue: https://github.com/quantumlib/Cirq/issues/2217
     """
 
     def __init__(self,
