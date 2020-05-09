@@ -606,7 +606,7 @@ class PauliString(raw_types.Operation):
                     'Exponentiated to a non-Hermitian PauliString '
                     f'<{base}**{self}>. Coefficient must be imaginary.')
 
-            half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
+            half_turns = 2 * math.log(base) * (-self.coefficient.imag / math.pi)
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))
@@ -615,15 +615,14 @@ class PauliString(raw_types.Operation):
                     pauli_gates.Y: common_gates.YPowGate,
                     pauli_gates.Z: common_gates.ZPowGate,
                 }
-                return gates[p](exponent=2 * half_turns,
-                                global_shift=-0.5).on(q)
+                return gates[p](exponent=half_turns, global_shift=-0.5).on(q)
 
             # HACK: Avoid circular dependency.
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
                 PauliString(qubit_pauli_map=self._qubit_pauli_map),
-                exponent_neg=+half_turns / 2,
-                exponent_pos=-half_turns / 2)
+                exponent_neg=+half_turns / 4,
+                exponent_pos=-half_turns / 4)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
