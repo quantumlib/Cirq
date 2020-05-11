@@ -62,9 +62,9 @@ b: ───×───iSwap^-1───
 
     cirq.testing.assert_has_diagram(circuit,
                                     """
-a: ---swap---iSwap------
+a: ---Swap---iSwap------
       |      |
-b: ---swap---iSwap^-1---
+b: ---Swap---iSwap^-1---
 """,
                                     use_unicode_characters=False)
 
