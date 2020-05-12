@@ -323,6 +323,11 @@ def apply_unitary(unitary_value: Any,
         all three of these cases. In all cases `args.target_tensor` and
         `args.available_buffer` may have been mutated.
 
+        Note: If `args` specifies a tensor defined over d-level quantum systems
+        and `unitary_value` operates on k-level quantum systems (k < d), then
+        the effect of `unitary_value` will be restricted to the subspace
+        consisting of the first `k` levels of the system.
+
     Raises:
         TypeError: `unitary_value` doesn't have a unitary effect and `default`
             wasn't specified.
