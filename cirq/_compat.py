@@ -200,6 +200,8 @@ def wrap_module(module: ModuleType,
 
     class Wrapped(ModuleType):
 
+        __dict__ = module.__dict__
+
         def __getattr__(self, name):
             if name in deprecated_attributes:
                 deadline, fix = deprecated_attributes[name]
