@@ -5,8 +5,8 @@ of 0. Below is info on how we version releases, and how the releases
 themselves are created. Note that development is done on the `master`
 branch, so if you want to use a more stable version you should use one
 of the [releases](https://github.com/quantumlib/Cirq/releases) or
-install from pypi using `pip install cirq`.  Nightly releases can be
-installed with `pip install cirq-unstable`.
+install from pypi using `pip install cirq`.  The release from the
+latest commit to master can be installed with `pip install cirq-unstable`.
 
 ## Versioning
 
@@ -94,7 +94,8 @@ Master branch should never see a non-dev version specifier.
 
 ### Create distribution wheel
 
-From release branch, create a binary distribution wheel. This is the package that will go to pypi.
+From release branch, create a binary distribution wheel. This is the package
+that will go to pypi.
 
 ```bash
 git checkout "v${VER}-dev"
