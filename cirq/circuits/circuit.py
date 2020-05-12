@@ -30,12 +30,12 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, protocols
-from cirq._compat import deprecated, deprecated_parameter
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
 import cirq._version
 
@@ -101,23 +101,6 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass circuit contents positionally (without a keyword).',
-        func_name='cirq.Circuit',
-        parameter_desc='moments keyword',
-        match=lambda args, kwargs: 'moments' in kwargs,
-        rewrite=lambda args, kwargs: (args + (kwargs[
-            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass the device using the "device=" keyword.',
-        func_name='cirq.Circuit',
-        parameter_desc='positional device',
-        match=lambda args, kwargs: len(args) == 3 and isinstance(
-            args[2], devices.Device),
-        rewrite=lambda args, kwargs: (
-            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
@@ -148,26 +131,6 @@ class Circuit:
     def device(self, new_device: 'cirq.Device') -> None:
         new_device.validate_circuit(self)
         self._device = new_device
-
-    @staticmethod
-    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
-    def from_ops(*operations: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE
-                ) -> 'Circuit':
-        """Creates an empty circuit and appends the given operations.
-
-        Args:
-            operations: The operations to append to the new circuit.
-            strategy: How to append the operations.
-            device: Hardware that the circuit should be able to run on.
-
-        Returns:
-            The constructed circuit containing the operations.
-        """
-        result = Circuit(device=device)
-        result.append(operations, strategy)
-        return result
 
     def __copy__(self) -> 'Circuit':
         return self.copy()
@@ -359,20 +322,20 @@ class Circuit:
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
-            return 'cirq.Circuit(device={!r})'.format(self._device)
+            return f'cirq.Circuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit({})'.format(moment_str)
+            return f'cirq.Circuit({moment_str})'
 
-        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
+        return f'cirq.Circuit({moment_str}, device={self._device!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
@@ -1111,11 +1074,12 @@ class Circuit:
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
+                op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(
-                    k, moment_or_op, strategy)
+                    k, op, strategy)
                 while p >= len(self._moments):
                     self._moments.append(ops.Moment())
-                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -1445,6 +1409,14 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_keys(self) -> List[str]:
+        result = []
+        for op in self.all_operations():
+            key = protocols.measurement_key(op, default=None)
+            if key is not None:
+                result.append(key)
+        return result
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1522,7 +1494,7 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.eye_tensor(qid_shape, dtype=dtype)
+        state = qis.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
@@ -1602,8 +1574,7 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        from cirq import sim
-        state = sim.to_valid_state_vector(initial_state,
+        state = qis.to_valid_state_vector(initial_state,
                                           qid_shape=qid_shape,
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
@@ -1756,6 +1727,13 @@ class Circuit:
                           precision=precision,
                           version='2.0')
 
+    def _to_quil_output(
+            self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> QuilOutput:
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QuilOutput(operations=self.all_operations(), qubits=qubits)
+
     def to_qasm(
             self,
             header: Optional[str] = None,
@@ -1771,7 +1749,13 @@ class Circuit:
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
+
         return str(self._to_qasm_output(header, precision, qubit_order))
+
+    def to_quil(self,
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+               ) -> str:
+        return str(self._to_quil_output(qubit_order))
 
     def save_qasm(
             self,

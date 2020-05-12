@@ -16,17 +16,17 @@ This specification is defined in the Device proto within `cirq.google.api.v2`.
 
 Most devices can only accept a limited set of gates.  This is known as the
 gate set of the device.   Any circuits sent to this device must only use gates
-within this set.  The gate set portion of the protocol buffer defines which 
+within this set.  The gate set portion of the protocol buffer defines which
 gate set(s) are valid on the device, and which gates make up that set.
 
 ### Gate Definitions
 
 Each gate in the gate set will have a definition that defines the id that
 the gate is serialized as, the number of qubits for the gates, the arguments
-to the gate, the duration, and which qubits it can be applied to. 
+to the gate, the duration, and which qubits it can be applied to.
 
 This definition uses "target sets" to specify which qubits the operation can
-be applied to.  See the section below for more information. 
+be applied to.  See the section below for more information.
 
 ### Gate Durations
 
@@ -34,7 +34,7 @@ The time it takes the device to perform each gate is stored within the device
 specification.  This time is stored as an integer number of picoseconds.
 
 Example code to print out the gate durations for every gate supported by the
-device is shown below:  
+device is shown below:
 
 ```
 import cirq
@@ -44,7 +44,7 @@ engine = cirq.google.Engine(project_id='your_project_id',
                             proto_version=cirq.google.ProtoVersion.V2)
 
 # Replace the processor id to get the device specification with that id.
-spec = engine.get_device_specification('processor_id')
+spec = engine.get_processor('processor_id').get_device_specification()
 
 # Iterate through each gate set valid on the device.
 for gateset in spec.valid_gate_sets:
@@ -82,7 +82,7 @@ the targets is valid.  This is typically used for measurement gates.  If `q0`,
 gate, then `gate.on(q0)`, `gate.on(q1)`, `gate.on(q2)`, `gate.on(q0, q1)`,
 `gate.on(q0, q2)`, `gate.on(q1, q2)` and `gate.on(q0, q1, q2)` are all valid
 uses of the gate.
- 
+
 ### Developer Recommendations
 
 This is a free form text field for additional recommendations and soft
@@ -113,12 +113,9 @@ import cirq.google as cg
 engine = cg.Engine(project_id='your_project_id',
                    proto_version=cirq.google.ProtoVersion.V2)
 
-# Replace the processor id to get the device specification with that id.
-spec = engine.get_device_specification('processor_id')
-
-device = cg.SerializableDevice.from_proto(
-    proto=spec,
-    gate_sets=[cg.gate_sets.SQRT_ISWAP_GATESET)
+# Replace the processor id to get the device with that id.
+device = engine.get_processor('processor_id').get_device(
+  gate_sets=[cg.gate_sets.SQRT_ISWAP_GATESET])
 
 q0, q1 = cirq.LineQubit.range(2)
 
@@ -127,4 +124,4 @@ cirq.Circuit(cirq.CZ(q0,q1), device=device)
 ```
 
 Note that, if network traffic is undesired, the `DeviceSpecification` can
-easily be stored in either binary format or TextProto format for later usage.  
+easily be stored in either binary format or TextProto format for later usage.

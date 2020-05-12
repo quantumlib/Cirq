@@ -105,10 +105,10 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 # TODO: Include cirq.rx in the Circuit test case file.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2014
 # Note that even the following doesn't work because theta gets
-#       multiplied by 1/pi.
-#       https://github.com/quantumlib/Cirq/issues/2014
-# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
+# multiplied by 1/pi:
+#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
 
@@ -175,6 +175,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
@@ -269,7 +270,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
-    'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
@@ -301,6 +301,8 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QuilFormatter',
+    'QuilOutput',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
@@ -308,7 +310,6 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
-    'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
     'Sycamore',
@@ -316,6 +317,7 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
@@ -547,6 +549,7 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
         json_from_cirq = cirq.to_json(repr_obj)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
+
         assert json_from_cirq_obj == json_from_file_obj, (
             f'The json produced by cirq no longer agrees with the json in the '
             f'{rel_json_path} test data file.\n'

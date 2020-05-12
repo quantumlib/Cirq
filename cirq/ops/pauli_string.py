@@ -23,7 +23,7 @@ import numbers
 
 import numpy as np
 
-from cirq import value, protocols, linalg
+from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,
@@ -144,7 +144,7 @@ class PauliString(raw_types.Operation):
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
@@ -286,7 +286,7 @@ class PauliString(raw_types.Operation):
         else:
             p.text(str(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -303,10 +303,10 @@ class PauliString(raw_types.Operation):
 
         fused = prefix + '*'.join(factors)
         if len(factors) > 1:
-            return '({})'.format(fused)
+            return f'({fused})'
         return fused
 
-    def __str__(self):
+    def __str__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -382,8 +382,8 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -399,12 +399,10 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state=state,
-                                      qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype,
-                                      atol=atol)
+            qis.validate_normalized_state(state=state,
+                                          qid_shape=(2,) * num_qubits,
+                                          dtype=state.dtype,
+                                          atol=atol)
         return self._expectation_from_wavefunction_no_validation(
             state, qubit_map)
 
@@ -481,8 +479,8 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -499,14 +497,12 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.density_matrix_utils import to_valid_density_matrix
             # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+            _ = qis.to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
-                                        num_qubits=num_qubits,
-                                        dtype=state.dtype,
-                                        atol=atol)
+                                            num_qubits=num_qubits,
+                                            dtype=state.dtype,
+                                            atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 
@@ -607,10 +603,10 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
-                    "Coefficient must be imaginary.".format(base, self))
+                    'Exponentiated to a non-Hermitian PauliString '
+                    f'<{base}**{self}>. Coefficient must be imaginary.')
 
-            half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
+            half_turns = 2 * math.log(base) * (-self.coefficient.imag / math.pi)
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))
@@ -625,8 +621,8 @@ class PauliString(raw_types.Operation):
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
                 PauliString(qubit_pauli_map=self._qubit_pauli_map),
-                exponent_neg=+half_turns / 2,
-                exponent_pos=-half_turns / 2)
+                exponent_neg=+half_turns / 4,
+                exponent_pos=-half_turns / 4)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]
@@ -890,8 +886,8 @@ def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
     used_inds = [qubit_map[q] for q in pauli_qubits]
     if len(used_inds) != len(set(used_inds)) or not set(
             range(num_state_qubits)) >= set(sorted(used_inds)):
-        raise ValueError("Input qubit map indices must be valid for a state "
-                         "over {} qubits.".format(num_state_qubits))
+        raise ValueError('Input qubit map indices must be valid for a state '
+                         f'over {num_state_qubits} qubits.')
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
@@ -943,7 +939,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __neg__(self):
         return -self._as_pauli_string()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod

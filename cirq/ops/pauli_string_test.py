@@ -148,16 +148,16 @@ def test_exponentiation_as_exponent():
 def test_exponentiate_single_value_as_exponent():
     q = cirq.LineQubit(0)
 
-    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.X(q)),
+    assert cirq.approx_eq(math.e**(-0.125j * math.pi * cirq.X(q)),
                           cirq.rx(0.25 * math.pi).on(q))
 
-    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Y(q)),
+    assert cirq.approx_eq(math.e**(-0.125j * math.pi * cirq.Y(q)),
                           cirq.ry(0.25 * math.pi).on(q))
 
-    assert cirq.approx_eq(math.e**(-0.25j * math.pi * cirq.Z(q)),
+    assert cirq.approx_eq(math.e**(-0.125j * math.pi * cirq.Z(q)),
                           cirq.rz(0.25 * math.pi).on(q))
 
-    assert cirq.approx_eq(np.exp(-0.3j * math.pi * cirq.X(q)),
+    assert cirq.approx_eq(np.exp(-0.15j * math.pi * cirq.X(q)),
                           cirq.rx(0.3 * math.pi).on(q))
 
     assert cirq.approx_eq(cirq.X(q)**0.5, cirq.XPowGate(exponent=0.5).on(q))
@@ -201,6 +201,11 @@ def test_exponentiation_as_base():
     assert cirq.approx_eq(
         np.exp(0.5j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
+
+    assert cirq.approx_eq(
+        cirq.unitary(np.exp(0.5j * math.pi * cirq.Z(a))),
+        np.diag([np.exp(0.5j * math.pi),
+                 np.exp(-0.5j * math.pi)]))
 
 
 @pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
