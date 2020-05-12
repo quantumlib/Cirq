@@ -40,7 +40,8 @@ class EngineProgram:
                  project_id: str,
                  program_id: str,
                  context: 'engine_base.EngineContext',
-                 _program: Optional[qtypes.QuantumProgram] = None) -> None:
+                 _program: Optional[qtypes.QuantumProgram] = None,
+                 timeout: Optional[int] = None) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -48,11 +49,13 @@ class EngineProgram:
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
+            timeout: Seconds to wait for job results before timeout
         """
         self.project_id = project_id
         self.program_id = program_id
         self.context = context
         self._program = _program
+        self.timeout = timeout
 
     def run_sweep(
             self,
@@ -99,8 +102,12 @@ class EngineProgram:
             run_context=run_context,
             description=description,
             labels=labels)
-        return engine_job.EngineJob(self.project_id, self.program_id,
-                                    created_job_id, self.context, job)
+        return engine_job.EngineJob(self.project_id,
+                                    self.program_id,
+                                    created_job_id,
+                                    self.context,
+                                    job,
+                                    timeout=self.timeout)
 
     def run(
             self,

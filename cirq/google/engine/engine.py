@@ -124,6 +124,7 @@ class Engine:
             service_args: Optional[Dict] = None,
             verbose: Optional[bool] = None,
             context: Optional[EngineContext] = None,
+            timeout: Optional[int] = None,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -138,6 +139,8 @@ class Engine:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            timeout: Timeout for polling for results, in seconds.  Default is
+                to never timeout
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError(
@@ -150,6 +153,7 @@ class Engine:
                                     service_args=service_args,
                                     verbose=verbose)
         self.context = context
+        self.timeout = timeout
 
     def run(
             self,
@@ -303,8 +307,11 @@ class Engine:
             description=description,
             labels=labels)
 
-        return engine_program.EngineProgram(self.project_id, new_program_id,
-                                            self.context, new_program)
+        return engine_program.EngineProgram(self.project_id,
+                                            new_program_id,
+                                            self.context,
+                                            new_program,
+                                            timeout=self.timeout)
 
     def _serialize_program(
             self,

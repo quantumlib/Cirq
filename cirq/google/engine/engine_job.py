@@ -53,7 +53,8 @@ class EngineJob:
                  program_id: str,
                  job_id: str,
                  context: 'engine_base.EngineContext',
-                 _job: Optional[quantum.types.QuantumJob] = None) -> None:
+                 _job: Optional[quantum.types.QuantumJob] = None,
+                 timeout: Optional[int] = None) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -62,6 +63,7 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
+            timeout: Seconds to wait for results before time out
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -69,6 +71,7 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
+        self.timeout = timeout
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -262,10 +265,14 @@ class EngineJob:
         import cirq.google.engine.engine as engine_base
         if not self._results:
             job = self._refresh_job()
-            for _ in range(1000):
+            total_seconds_waited = 0.0
+            while True:
+                if self.timeout and total_seconds_waited >= self.timeout:
+                    break
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 time.sleep(0.5)
+                total_seconds_waited += 0.5
                 job = self._refresh_job()
             self._raise_on_failure(job)
             response = self.context.client.get_job_results(
