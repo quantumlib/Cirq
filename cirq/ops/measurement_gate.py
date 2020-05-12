@@ -150,6 +150,25 @@ class MeasurementGate(raw_types.Gate):
                             i))
         return ''.join(lines)
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
+        invert_mask = self.invert_mask
+        if len(invert_mask) < len(qubits):
+            invert_mask = (invert_mask + (False,) *
+                           (len(qubits) - len(invert_mask)))
+        lines = []
+        for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
+            if inv:
+                lines.append(
+                    formatter.format(
+                        'X {0} # Inverting for following measurement\n', qubit))
+            lines.append(
+                formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key,
+                                 i))
+        return ''.join(lines)
+
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):

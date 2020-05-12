@@ -143,6 +143,7 @@ class _ResolverCache:
                 'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
+                'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'WaitGate': cirq.WaitGate,
@@ -325,7 +326,7 @@ class CirqEncoder(json.JSONEncoder):
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
-        #       https://github.com/quantumlib/Cirq/issues/2014
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
