@@ -440,6 +440,7 @@ run experiments.
     cirq.experiments.single_qubit_state_tomography
     cirq.experiments.state_tomography
     cirq.experiments.t1_decay
+    cirq.experiments.t2_decay
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
@@ -449,6 +450,7 @@ run experiments.
     cirq.experiments.SingleQubitReadoutCalibrationResult
     cirq.experiments.StateTomographyExperiment
     cirq.experiments.T1DecayResult
+    cirq.experiments.T2DecayResult
     cirq.experiments.TomographyResult
 
 
