@@ -70,6 +70,7 @@ from cirq.circuits import (
     PointOptimizationSummary,
     PointOptimizer,
     QasmOutput,
+    QuilOutput,
     TextDiagramDrawer,
     Unique,
 )
@@ -255,6 +256,7 @@ from cirq.ops import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
     transform_op_tree,
+    TwoQubitDiagonalGate,
     TwoQubitGate,
     WaitGate,
     X,
@@ -272,7 +274,9 @@ from cirq.ops import (
 )
 
 from cirq.optimizers import (
+    compute_cphase_exponents_for_fsim_decomposition,
     ConvertToCzAndSingleGates,
+    decompose_cphase_into_two_fsim,
     decompose_multi_controlled_x,
     decompose_multi_controlled_rotation,
     decompose_two_qubit_interaction_into_four_fsim_gates_via_b,
@@ -429,6 +433,8 @@ from cirq.protocols import (
     qasm,
     QasmArgs,
     qid_shape,
+    quil,
+    QuilFormatter,
     read_json,
     resolve_parameters,
     SupportsApplyChannel,

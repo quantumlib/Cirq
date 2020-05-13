@@ -268,7 +268,8 @@ def simulate(circuit):
 
     for label, result in zip(('X', 'Y', 'Z'), list(results)):
         # Only select cases where the ancilla is 1.
-        # TODO optimize using amplitude amplification algorithm
+        # TODO: optimize using amplitude amplification algorithm.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2216
         expectation = 1 - 2 * np.mean(
             result.measurements['m'][result.measurements['a'] == 1])
         print('{} = {}'.format(label, expectation))

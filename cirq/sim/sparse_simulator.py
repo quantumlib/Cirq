@@ -287,6 +287,8 @@ class Simulator(simulator.SimulatesSamples,
                     # Do measurements second, since there may be mixtures that
                     # operate as measurements.
                     # TODO: support measurement outside the computational basis.
+                    # Github issue:
+                    # https://github.com/quantumlib/Cirq/issues/1357
                     if perform_measurements:
                         self._simulate_measurement(op, data, indices,
                                                    measurements, num_qubits)
@@ -333,6 +335,7 @@ class Simulator(simulator.SimulatesSamples,
                               num_qubits: int) -> None:
         """Simulate an op that is a measurement in the computational basis."""
         # TODO: support measurement outside computational basis.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/1357
         if isinstance(op.gate, ops.MeasurementGate):
             meas = op.gate
             invert_mask = meas.full_invert_mask()

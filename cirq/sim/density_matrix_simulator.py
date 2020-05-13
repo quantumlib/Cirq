@@ -291,6 +291,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
+                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 if isinstance(op.gate, ops.MeasurementGate):
@@ -318,7 +319,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
-                    # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
             yield DensityMatrixStepResult(density_matrix=state.tensor,
                                           measurements=measurements,
