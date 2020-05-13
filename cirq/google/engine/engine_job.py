@@ -262,10 +262,15 @@ class EngineJob:
         import cirq.google.engine.engine as engine_base
         if not self._results:
             job = self._refresh_job()
-            for _ in range(1000):
+            total_seconds_waited = 0.0
+            timeout = self.context.timeout
+            while True:
+                if timeout and total_seconds_waited >= timeout:
+                    break
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 time.sleep(0.5)
+                total_seconds_waited += 0.5
                 job = self._refresh_job()
             self._raise_on_failure(job)
             response = self.context.client.get_job_results(
