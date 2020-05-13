@@ -69,22 +69,22 @@ def test_fsim_circuit():
     )
     cirq.testing.assert_has_diagram(
         c, """
-0: ───fsim(0.5π, π)───fsim(-π, 0.5π)───
+0: ───FSim(0.5π, π)───FSim(-π, 0.5π)───
       │               │
-1: ───#2──────────────#2───────────────
+1: ───FSim(0.5π, π)───FSim(-π, 0.5π)───
     """)
     cirq.testing.assert_has_diagram(c,
                                     """
-0: ---fsim(0.5pi, pi)---fsim(-pi, 0.5pi)---
+0: ---FSim(0.5pi, pi)---FSim(-pi, 0.5pi)---
       |                 |
-1: ---#2----------------#2-----------------
+1: ---FSim(0.5pi, pi)---FSim(-pi, 0.5pi)---
         """,
                                     use_unicode_characters=False)
     cirq.testing.assert_has_diagram(c,
                                     """
-0: ---fsim(1.5707963267948966, pi)---fsim(-pi, 1.5707963267948966)---
+0: ---FSim(1.5707963267948966, pi)---FSim(-pi, 1.5707963267948966)---
       |                              |
-1: ---#2-----------------------------#2------------------------------
+1: ---FSim(1.5707963267948966, pi)---FSim(-pi, 1.5707963267948966)---
 """,
                                     use_unicode_characters=False,
                                     precision=None)
@@ -92,9 +92,9 @@ def test_fsim_circuit():
         cirq.FSimGate(sympy.Symbol('a') + sympy.Symbol('b'), 0).on(a, b))
     cirq.testing.assert_has_diagram(
         c, """
-0: ───fsim(a + b, 0)───
+0: ───FSim(a + b, 0)───
       │
-1: ───#2───────────────
+1: ───FSim(a + b, 0)───
     """)
 
 
