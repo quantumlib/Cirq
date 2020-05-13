@@ -71,7 +71,8 @@ class EngineContext:
                  proto_version: Optional[ProtoVersion] = None,
                  service_args: Optional[Dict] = None,
                  verbose: Optional[bool] = None,
-                 client: 'Optional[engine_client.EngineClient]' = None) -> None:
+                 client: 'Optional[engine_client.EngineClient]' = None,
+                 timeout: Optional[int] = None) -> None:
         """Context and client for using Quantum Engine.
 
         Args:
@@ -80,6 +81,8 @@ class EngineContext:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            timeout: Timeout for polling for results, in seconds.  Default is
+                to never timeout.
         """
         if (service_args or verbose) and client:
             raise ValueError(
@@ -91,6 +94,7 @@ class EngineContext:
             client = engine_client.EngineClient(service_args=service_args,
                                                 verbose=verbose)
         self.client = client
+        self.timeout = timeout
 
     def copy(self) -> 'EngineContext':
         return EngineContext(proto_version=self.proto_version,
@@ -124,6 +128,7 @@ class Engine:
             service_args: Optional[Dict] = None,
             verbose: Optional[bool] = None,
             context: Optional[EngineContext] = None,
+            timeout: Optional[int] = None,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -138,6 +143,8 @@ class Engine:
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            timeout: Timeout for polling for results, in seconds.  Default is
+                to never timeout.
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError(
@@ -148,7 +155,8 @@ class Engine:
         if not context:
             context = EngineContext(proto_version=proto_version,
                                     service_args=service_args,
-                                    verbose=verbose)
+                                    verbose=verbose,
+                                    timeout=timeout)
         self.context = context
 
     def run(
