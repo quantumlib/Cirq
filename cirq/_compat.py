@@ -185,17 +185,18 @@ def deprecated_parameter(
 
 def wrap_module(module: ModuleType,
                 deprecated_attributes: Dict[str, Tuple[str, str]]):
-    """Wrap a module with deprecated attributes.
+    """Wrap a module with deprecated attributes that give warnings.
 
     Args:
         module: The module to wrap.
-        deprecated_attributes: A dictionary from attribute name to pair of
+        deprecated_attributes: A dictionary from attribute name to a tuple of
             strings, where the first string gives the version that the attribute
             will be removed in, and the second string describes what the user
             should do instead of accessing this deprecated attribute.
 
     Returns:
-        Wrapped module with deprecated attributes.
+        Wrapped module with deprecated attributes. Use of these attributes
+        will cause a warning for these deprecated attributes.
     """
 
     class Wrapped(ModuleType):
@@ -213,4 +214,4 @@ def wrap_module(module: ModuleType,
                     stacklevel=2)
             return getattr(module, name)
 
-    return Wrapped(module.__name__)
+    return Wrapped(module.__name__, module.__doc__)
