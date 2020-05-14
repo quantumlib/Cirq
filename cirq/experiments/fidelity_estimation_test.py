@@ -78,7 +78,7 @@ def test_xeb_fidelity(depolarization, estimator):
                                              repetitions=5000)
 
         f = cirq.xeb_fidelity(circuit, bitstrings, qubits, estimator=estimator)
-        amplitudes = cirq.final_wavefunction(circuit)
+        amplitudes = cirq.final_state_vector(circuit)
         f2 = cirq.xeb_fidelity(circuit,
                                bitstrings,
                                qubits,

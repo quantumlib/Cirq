@@ -319,6 +319,8 @@ NOT_YET_SERIALIZABLE = [
     'Timestamp',
     'TwoQubitDiagonalGate',
     'UnitSweep',
+    'StateVectorSimulatorState',
+    'StateVectorTrialResult',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'XmonDevice',

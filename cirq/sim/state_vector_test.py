@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Tests for wave_function.py"""
+"""Tests for state_vector.py"""
 
 import itertools
 import pytest
@@ -22,51 +22,13 @@ import cirq
 from cirq._compat_test import capture_logging
 
 
-def test_deprecated():
-    with capture_logging() as log:
-        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
-    assert len(log) == 1
-    assert "cirq.bloch_vector_from_state_vector" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
-    assert len(log) == 1
-    assert "cirq.density_matrix_from_state_vector" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        _ = cirq.sim.dirac_notation(np.array([1, 0]))
-    assert len(log) == 1
-    assert "cirq.dirac_notation" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        _ = cirq.sim.to_valid_state_vector(0, 1)
-    assert len(log) == 1
-    assert "cirq.to_valid_state_vector" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        _ = cirq.sim.validate_normalized_state(np.array([1, 0],
-                                                        dtype=np.complex64),
-                                               qid_shape=(2,))
-    assert len(log) == 1
-    assert "cirq.validate_normalized_state" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-    with capture_logging() as log:
-        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
-        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
-    assert len(log) == 1
-    assert "cirq.STATE_VECTOR_LIKE" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
-
-
 def test_state_mixin():
+
     class TestClass(cirq.StateVectorMixin):
+
         def state_vector(self) -> np.ndarray:
             return np.array([0, 0, 1, 0])
+
     qubits = cirq.LineQubit.range(2)
     test = TestClass(qubit_map={qubits[i]: i for i in range(2)})
     assert test.dirac_notation() == '|10⟩'
@@ -98,8 +60,8 @@ def test_sample_state_big_endian():
         state = cirq.to_valid_state_vector(x, 3)
         sample = cirq.sample_state_vector(state, [2, 1, 0])
         results.append(sample)
-    expecteds = [[list(reversed(x))] for x in
-                 list(itertools.product([False, True], repeat=3))]
+    expecteds = [[list(reversed(x))]
+                 for x in list(itertools.product([False, True], repeat=3))]
     for result, expected in zip(results, expecteds):
         np.testing.assert_equal(result, expected)
 
@@ -110,6 +72,7 @@ def test_sample_state_partial_indices():
             state = cirq.to_valid_state_vector(x, 3)
             np.testing.assert_equal(cirq.sample_state_vector(state, [index]),
                                     [[bool(1 & (x >> (2 - index)))]])
+
 
 def test_sample_state_partial_indices_oder():
     for x in range(8):
@@ -134,8 +97,8 @@ def test_sample_state():
     state[2] = 1 / np.sqrt(2)
     for _ in range(10):
         sample = cirq.sample_state_vector(state, [2, 1, 0])
-        assert (np.array_equal(sample, [[False, False, False]])
-                or np.array_equal(sample, [[False, True, False]]))
+        assert (np.array_equal(sample, [[False, False, False]]) or
+                np.array_equal(sample, [[False, True, False]]))
     # Partial sample is correct.
     for _ in range(10):
         np.testing.assert_equal(cirq.sample_state_vector(state, [2]), [[False]])
@@ -145,7 +108,7 @@ def test_sample_state():
 def test_sample_empty_state():
     state = np.array([1.0])
     np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
-        np.zeros(shape=(1,0)))
+                                   np.zeros(shape=(1, 0)))
 
 
 def test_sample_no_repetitions():
@@ -205,8 +168,8 @@ def test_sample_state_index_out_of_range():
 
 def test_sample_no_indices():
     state = cirq.to_valid_state_vector(0, 3)
-    np.testing.assert_almost_equal(
-        cirq.sample_state_vector(state, []), np.zeros(shape=(1, 0)))
+    np.testing.assert_almost_equal(cirq.sample_state_vector(state, []),
+                                   np.zeros(shape=(1, 0)))
 
 
 def test_sample_no_indices_repetitions():
@@ -223,8 +186,10 @@ def test_measure_state_computational_basis():
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in
-                list(itertools.product([False, True], repeat=3))]
+    expected = [
+        list(reversed(x))
+        for x in list(itertools.product([False, True], repeat=3))
+    ]
     assert results == expected
 
 
@@ -235,8 +200,10 @@ def test_measure_state_reshape():
         bits, state = cirq.measure_state_vector(initial_state, [2, 1, 0])
         results.append(bits)
         np.testing.assert_almost_equal(state, initial_state)
-    expected = [list(reversed(x)) for x in
-                list(itertools.product([False, True], repeat=3))]
+    expected = [
+        list(reversed(x))
+        for x in list(itertools.product([False, True], repeat=3))
+    ]
     assert results == expected
 
 
@@ -379,6 +346,7 @@ def test_measure_state_empty_state():
 
 
 class BasicStateVector(cirq.StateVectorMixin):
+
     def state_vector(self) -> np.ndarray:
         return np.array([0, 1, 0, 0])
 
@@ -392,27 +360,20 @@ def test_step_result_density_matrix():
     q0, q1 = cirq.LineQubit.range(2)
 
     step_result = BasicStateVector({q0: 0, q1: 1})
-    rho = np.array([[0, 0, 0, 0],
-                    [0, 1, 0, 0],
-                    [0, 0, 0, 0],
-                    [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix_of([q0, q1]))
+    rho = np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]])
+    np.testing.assert_array_almost_equal(
+        rho, step_result.density_matrix_of([q0, q1]))
 
-    np.testing.assert_array_almost_equal(rho,
-        step_result.density_matrix_of())
+    np.testing.assert_array_almost_equal(rho, step_result.density_matrix_of())
 
-    rho_ind_rev = np.array([[0, 0, 0, 0],
-                            [0, 0, 0, 0],
-                            [0, 0, 1, 0],
+    rho_ind_rev = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 1, 0],
                             [0, 0, 0, 0]])
-    np.testing.assert_array_almost_equal(rho_ind_rev,
-        step_result.density_matrix_of([q1, q0]))
+    np.testing.assert_array_almost_equal(
+        rho_ind_rev, step_result.density_matrix_of([q1, q0]))
 
-    single_rho = np.array([[0, 0],
-                           [0, 1]])
+    single_rho = np.array([[0, 0], [0, 1]])
     np.testing.assert_array_almost_equal(single_rho,
-        step_result.density_matrix_of([q1]))
+                                         step_result.density_matrix_of([q1]))
 
 
 def test_step_result_density_matrix_invalid():
@@ -434,6 +395,71 @@ def test_step_result_bloch_vector():
     bloch1 = np.array([0, 0, -1])
     bloch0 = np.array([0, 0, 1])
     np.testing.assert_array_almost_equal(bloch1,
-        step_result.bloch_vector_of(q1))
+                                         step_result.bloch_vector_of(q1))
     np.testing.assert_array_almost_equal(bloch0,
-        step_result.bloch_vector_of(q0))
+                                         step_result.bloch_vector_of(q0))
+
+
+def assert_deprecated_log(log, deprecated, replacement):
+    assert len(log) == 1
+    msg = log[0].getMessage()
+    assert deprecated in msg
+    assert replacement in msg
+    assert 'deprecated' in msg
+
+
+def test_deprecated():
+    with capture_logging() as log:
+        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
+    assert_deprecated_log(log=log,
+                          deprecated='cirq.sim.bloch_vector_from_state_vector',
+                          replacement='cirq.bloch_vector_from_state_vector')
+
+    with capture_logging() as log:
+        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
+    assert_deprecated_log(
+        log=log,
+        deprecated='cirq.sim.density_matrix_from_state_vector',
+        replacement='cirq.density_matrix_from_state_vector')
+
+    with capture_logging() as log:
+        _ = cirq.sim.dirac_notation(np.array([1, 0]))
+    assert_deprecated_log(log=log,
+                          deprecated='cirq.sim.dirac_notation',
+                          replacement='cirq.dirac_notation')
+
+    with capture_logging() as log:
+        _ = cirq.sim.to_valid_state_vector(0, 1)
+    assert_deprecated_log(log=log,
+                          deprecated='cirq.sim.to_valid_state_vector',
+                          replacement='cirq.to_valid_state_vector')
+
+    with capture_logging() as log:
+        _ = cirq.sim.validate_normalized_state(np.array([1, 0],
+                                                        dtype=np.complex64),
+                                               qid_shape=(2,))
+    assert_deprecated_log(log=log,
+                          deprecated='validate_normalized_state',
+                          replacement='cirq.validate_normalized_state_vector')
+
+    with capture_logging() as log:
+        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
+        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
+    assert_deprecated_log(log=log,
+                          deprecated='cirq.sim.STATE_VECTOR_LIKE',
+                          replacement='cirq.STATE_VECTOR_LIKE')
+
+    state_vector = np.array([1, 1]) / np.sqrt(2)
+    with capture_logging() as log:
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.sample_state_vector(state=state_vector, indices=[0])
+    assert_deprecated_log(log=log,
+                          deprecated='state',
+                          replacement='state_vector')
+
+    with capture_logging() as log:
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.measure_state_vector(state=state_vector, indices=[0])
+    assert_deprecated_log(log=log,
+                          deprecated='state',
+                          replacement='state_vector')
