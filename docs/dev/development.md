@@ -12,7 +12,7 @@ The simplest way to get a local copy of cirq that you can edit is by cloning Cir
 git clone git@github.com:quantumlib/cirq.git
 cd cirq
 ```
-
+f
 To do your development in a Docker image, you can build one with Cirq/dev_tools/Dockerfile or pull an existing image:
 ```bash
     docker pull quantumlib/cirq:dev

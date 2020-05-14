@@ -11,8 +11,9 @@ from cirq.qis.states import (
     one_hot,
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
+    to_valid_state,
     to_valid_state_vector,
     validate_indices,
     validate_qid_shape,
-    validate_normalized_state,
+    validate_normalized_state_vector,
 )
