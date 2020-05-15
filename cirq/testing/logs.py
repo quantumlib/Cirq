@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Helpers for testing python logging statements."""
+"""Helper for testing python logging statements."""
 
 import logging
 from typing import ContextManager, List
@@ -25,7 +25,7 @@ def assert_logs(*matches: str,
     """A context manager for testing logging and warning events.
 
     To use this one wraps the code that is to be tested for log events within
-    the context of the ContextManager this method returns:
+    the context of this method's return value:
 
         with assert_logs(count=2, 'first_match', 'second_match') as logs:
             <code that produces python logs>
@@ -43,17 +43,14 @@ def assert_logs(*matches: str,
         level: The level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the
             `logging.WARNING` level, so this does not capture `logging.INFO`
-            or `logging.DEBUG` logs.
+            or `logging.DEBUG` logs by default.
         capture_warnings: Whether warnings from the python's `warnings` module
             are redirected to the logging system and captured.
 
     Returns:
         A ContextManager that can be entered into which captures the logs
         for code executed within the entered context. This ContextManager
-        checks that the asserts for the logs are true on exit. All of the
-        logs are captured by this ContextManager, in the order the logs
-        appear in the execution, and these can be assigned to a target
-        for future assertion.
+        checks that the asserts for the logs are true on exit.
     """
     records = []
 
