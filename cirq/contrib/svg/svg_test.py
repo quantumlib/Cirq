@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 import cirq
 from cirq.contrib.svg import circuit_to_svg
@@ -9,9 +10,14 @@ def test_svg():
 
     svg_text = circuit_to_svg(
         cirq.Circuit(
-            cirq.CNOT(a, b), cirq.CZ(b, c), cirq.SWAP(a, c),
+            cirq.CNOT(a, b),
+            cirq.CZ(b, c),
+            cirq.SWAP(a, c),
             cirq.PhasedXPowGate(exponent=0.123, phase_exponent=0.456).on(c),
-            cirq.Z(a), cirq.measure(a, b, c, key='z')))
+            cirq.Z(a),
+            cirq.measure(a, b, c, key='z'),
+            cirq.MatrixGate(np.eye(2)).on(a),
+        ))
     assert '<svg' in svg_text
     assert '</svg>' in svg_text
 
