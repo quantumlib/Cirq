@@ -44,7 +44,7 @@ to_valid_state_vector = deprecated(
     deadline='v0.9',
     fix='Use cirq.to_valid_state_vector instead.')(qis.to_valid_state_vector)
 validate_normalized_state = deprecated(
-    deadline='v0.9', fix='Use cirq.validate_normalized_state_vector instead.')(
+    deadline='v0.10', fix='Use cirq.validate_normalized_state_vector instead.')(
         qis.validate_normalized_state_vector)
 STATE_VECTOR_LIKE = qis.STATE_VECTOR_LIKE
 

@@ -40,7 +40,8 @@ STATE_VECTOR_LIKE = Union[
     parameter_desc='state',
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (
-        args, {('state_vector' if k == 'state' else k): v for k, v in kwargs}))
+        args, {('state_vector' if k == 'state' else k): v for k, v in
+               kwargs.items()}))
 def bloch_vector_from_state_vector(state_vector: Sequence,
                                    index: int,
                                    qid_shape: Optional[Tuple[int, ...]] = None
@@ -88,7 +89,8 @@ def bloch_vector_from_state_vector(state_vector: Sequence,
     parameter_desc='state',
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (
-        args, {('state_vector' if k == 'state' else k): v for k, v in kwargs}))
+        args, {('state_vector' if k == 'state' else k): v for k, v in
+               kwargs.items()}))
 def density_matrix_from_state_vector(
         state_vector: Sequence,
         indices: Optional[Iterable[int]] = None,
@@ -163,7 +165,8 @@ def density_matrix_from_state_vector(
     parameter_desc='state',
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (
-        args, {('state_vector' if k == 'state' else k): v for k, v in kwargs}))
+        args, {('state_vector' if k == 'state' else k): v for k, v in
+               kwargs.items()}))
 def dirac_notation(state_vector: Sequence,
                    decimals: int = 2,
                    qid_shape: Optional[Tuple[int, ...]] = None) -> str:
@@ -419,13 +422,20 @@ def validate_normalized_state_vector(
             'State_vector is not normalized instead had norm {}'.format(norm))
 
 
+validate_normalized_state = deprecated(
+    deadline='v0.10.0',
+    fix='Use validate_normalized_state_vector instead.')(
+    validate_normalized_state_vector)
+
+
 @deprecated_parameter(
     deadline='v0.10.0',
     fix='Use state_vector instead.',
     parameter_desc='state',
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (
-        args, {('state_vector' if k == 'state' else k): v for k, v in kwargs}))
+        args, {('state_vector' if k == 'state' else k): v for k, v in
+               kwargs.items()}))
 def validate_qid_shape(state_vector: np.ndarray,
                        qid_shape: Optional[Tuple[int, ...]]) -> Tuple[int, ...]:
     """Validates the size of the given `state_vector` against the given shape.

@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+from cirq._compat_test import capture_logging
 
 
 def assert_dirac_notation_numpy(vec, expected, decimals=2):
@@ -524,3 +525,9 @@ def test_eye_tensor():
          [[0, 0], [0, 1], [0, 0]]],
         [[[0, 0], [0, 0], [1, 0]],
          [[0, 0], [0, 0], [0, 1]]]]))  # yapf: disable
+
+
+def test_deprecated():
+    state_vector = np.array([1, 1]) / np.sqrt(2)
+    with capture_logging() as log:
+        _ = cirq.bloch_vector_from_state_vector(state=state_vector, index=0)
