@@ -12,6 +12,7 @@ option java_multiple_files = true;
 // Program message to the device.
 message DeviceSpecification {
 
+  
   // A list of allowed gatesets for programs submitted to this processor
   // Language.gate_set should be one of these values to be valid.
   repeated GateSet valid_gate_sets = 1;
