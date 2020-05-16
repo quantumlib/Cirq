@@ -277,21 +277,23 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
-def _estimate_std_devs_clifford(fidelity: float, N: int):
+def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[float, float]:
     """
     Estimates the standard deviation of the measurement for Clifford circuits.
 
     Args:
         fidelity: The measured fidelity
-        N: the number of measurements
+        n: the number of measurements
+
     Returns:
-        The standard deviation (estimated and a bound)
+        The standard deviation (estimated from the fidelity and a maximum bound
+        on the variance regardless of what the true fidelity is)
     """
     fidelity_bounded = max(0.0, min(1.0, fidelity))
     std_dev_estimate = math.sqrt(
-        (1.0 - fidelity_bounded) * fidelity_bounded / N)
+        (1.0 - fidelity_bounded) * fidelity_bounded / n)
 
-    std_dev_bound = 0.5 / math.sqrt(N)
+    std_dev_bound = 0.5 / math.sqrt(n)
     return std_dev_estimate, std_dev_bound
 
 
@@ -324,8 +326,8 @@ class DFEIntermediateResult:
     # Measurement results from sampling the circuit.
     trial_results: List[TrialResult]
     # Standard deviations (estimate based on fidelity and bound)
-    std_dev_estimate: float
-    std_dev_bound: float
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
@@ -430,6 +432,8 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     estimated_fidelity = fidelity / len(pauli_traces)
 
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
     if clifford_circuit:
         std_dev_estimate, std_dev_bound = _estimate_std_devs_clifford(
             estimated_fidelity, len(measured_pauli_traces))
