@@ -93,8 +93,9 @@ def test_example_runs_qaoa():
 
 
 def test_example_runs_quantum_teleportation():
-    expected, teleported = examples.quantum_teleportation.main()
-    assert np.all(np.isclose(expected, teleported, atol=1e-4))
+    _, teleported = examples.quantum_teleportation.main(seed=12)
+    assert np.allclose(np.array([0.07023552, -0.9968105, -0.03788921]),
+                       teleported)
 
 
 def test_example_runs_superdense_coding():

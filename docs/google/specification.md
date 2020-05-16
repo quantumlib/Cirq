@@ -40,8 +40,7 @@ device is shown below:
 import cirq
 
 # Create an Engine object to use.
-engine = cirq.google.Engine(project_id='your_project_id',
-                            proto_version=cirq.google.ProtoVersion.V2)
+engine = cirq.google.Engine(project_id='your_project_id')
 
 # Replace the processor id to get the device specification with that id.
 spec = engine.get_processor('processor_id').get_device_specification()
@@ -52,7 +51,7 @@ for gateset in spec.valid_gate_sets:
     print('-------')
     # Prints each gate valid in the set with its duration
     for gate in gateset.valid_gates:
-      print('%s %d' % (gate.id, gate.gate_duration_picos))
+        print('%s %d' % (gate.id, gate.gate_duration_picos))
 ```
 
 Note that, by convention, measurement gate duration includes both the duration
