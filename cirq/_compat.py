@@ -16,6 +16,7 @@
 import functools
 import warnings
 from typing import Any, Callable, Optional, Dict, Tuple
+from types import ModuleType
 
 import numpy as np
 import pandas as pd
@@ -180,3 +181,37 @@ def deprecated_parameter(
         return decorated_func
 
     return decorator
+
+
+def wrap_module(module: ModuleType,
+                deprecated_attributes: Dict[str, Tuple[str, str]]):
+    """Wrap a module with deprecated attributes that give warnings.
+
+    Args:
+        module: The module to wrap.
+        deprecated_attributes: A dictionary from attribute name to a tuple of
+            strings, where the first string gives the version that the attribute
+            will be removed in, and the second string describes what the user
+            should do instead of accessing this deprecated attribute.
+
+    Returns:
+        Wrapped module with deprecated attributes. Use of these attributes
+        will cause a warning for these deprecated attributes.
+    """
+
+    class Wrapped(ModuleType):
+
+        __dict__ = module.__dict__
+
+        def __getattr__(self, name):
+            if name in deprecated_attributes:
+                deadline, fix = deprecated_attributes[name]
+                warnings.warn(
+                    f'{name} was used but is deprecated.\n'
+                    f'It will be removed in cirq {deadline}.\n'
+                    f'{fix}\n',
+                    DeprecationWarning,
+                    stacklevel=2)
+            return getattr(module, name)
+
+    return Wrapped(module.__name__, module.__doc__)

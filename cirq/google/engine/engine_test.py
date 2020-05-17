@@ -338,7 +338,7 @@ def test_run_circuit_timeout(patched_time_sleep, client):
             'state': 'RUNNING',
         })
 
-    engine = cg.Engine(project_id='project-id')
+    engine = cg.Engine(project_id='project-id', timeout=600)
     with pytest.raises(RuntimeError, match='Timed out'):
         engine.run(program=_CIRCUIT)
 
