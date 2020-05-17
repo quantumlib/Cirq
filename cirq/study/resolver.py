@@ -105,22 +105,8 @@ class ParamResolver:
                 key = value.name
         if key is not None:
             resolved = self.param_dict[key]
-            if not isinstance(resolved, (sympy.Basic, Iterable)):
+            if not isinstance(resolved, (sympy.Basic, str)):
                 return resolved
-
-            if (isinstance(resolved, Iterable) and
-                    not isinstance(resolved, str)):
-                raise TypeError(
-                    "To avoid ambiguity with cartesian product shorthand, such "
-                    "as `params={'a': [1, 2, 3], 'b': [4, 5]}`, symbols "
-                    "currently can't resolve to a list, tuple, or other "
-                    "iterable.\n"
-                    "For gates that are really parameterized by a list, you "
-                    "can work around this issue by putting the list inside a "
-                    "custom wrapper object.\n"
-                    "\n"
-                    f"The symbol {proper_repr(value)} "
-                    f"resolved to an iterable {resolved!r}.")
 
         # If the input is a sympy formula, or resolves to a formula, use sympy
         # to resolve the value. Note that sympy.subs() is slow, so we want to

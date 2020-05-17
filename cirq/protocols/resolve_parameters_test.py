@@ -92,7 +92,7 @@ def test_skips_empty_resolution():
     assert cirq.resolve_parameters(t, {'x': 2}) == 5
 
 
-def test_resolve_unknown_dataclass():
+def test_resolve_generic_types():
 
     @dataclasses.dataclass
     class C:
@@ -101,6 +101,13 @@ def test_resolve_unknown_dataclass():
 
     c = C(1, 2)
     assert cirq.resolve_parameters('c', {'c': c}) is c
+
+    assert cirq.resolve_parameters('c', {'c': [1, 2, 3]}) == [1, 2, 3]
+    assert cirq.resolve_parameters(sympy.Symbol('c'), {'c': [1, 2, 3]}
+                                   ) == [1, 2, 3]
+    assert cirq.resolve_parameters('c', {'c': (1, 2, 3)}) == (1, 2, 3)
+    x = np.array([1, 2, 3])
+    assert cirq.resolve_parameters('c', {'c': x}) is x
 
 
 def test_recursive_resolution():
@@ -118,17 +125,6 @@ def test_recursive_resolution():
     }) == 2
     assert cirq.resolve_parameters('c', {'c': 'a', 'a': 2}) == 2
     assert cirq.resolve_parameters('c', {'a': 2, 'c': 'a'}) == 2
-
-
-def test_refuse_to_resolve_to_iterables_except_str():
     assert cirq.resolve_parameters('c', {'c': 'a'}) == sympy.Symbol('a')
     assert cirq.resolve_parameters(sympy.Symbol('c'),
                                    {'c': 'a'}) == sympy.Symbol('a')
-    with pytest.raises(TypeError, match='ambiguity with cartesian'):
-        _ = cirq.resolve_parameters('c', {'c': [1, 2, 3]})
-    with pytest.raises(TypeError, match='ambiguity with cartesian'):
-        _ = cirq.resolve_parameters(sympy.Symbol('c'), {'c': [1, 2, 3]})
-    with pytest.raises(TypeError, match='ambiguity with cartesian'):
-        _ = cirq.resolve_parameters('c', {'c': (1, 2, 3)})
-    with pytest.raises(TypeError, match='ambiguity with cartesian'):
-        _ = cirq.resolve_parameters('c', {'c': np.array([1, 2, 3])})

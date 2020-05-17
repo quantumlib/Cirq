@@ -20,6 +20,7 @@ import sympy
 
 import cirq
 
+
 def test_to_resolvers_none():
     assert list(cirq.to_resolvers(None)) == [cirq.ParamResolver({})]
 
@@ -83,15 +84,15 @@ def test_to_sweeps_iterable_sweeps():
 
 
 def test_to_sweeps_dictionary_of_list():
-    assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == \
-        cirq.study.to_sweeps([{'t': 0}, {'t': 2}, {'t': 3}])
-    assert cirq.study.to_sweeps({'t': [0, 1], 's': [2, 3], 'r': 4}) == \
+    assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == (
+        cirq.study.to_sweeps([{'t': 0}, {'t': 2}, {'t': 3}]))
+    assert cirq.study.to_sweeps({'t': [0, 1], 's': [2, 3], 'r': 4}) == (
         cirq.study.to_sweeps([
             {'t': 0, 's': 2, 'r': 4},
             {'t': 0, 's': 3, 'r': 4},
             {'t': 1, 's': 2, 'r': 4},
             {'t': 1, 's': 3, 'r': 4},
-        ])
+        ]))
 
 
 def test_to_sweeps_invalid():
@@ -163,7 +164,6 @@ def test_to_sweep_single_resolver(r_gen):
 def test_to_sweep_resolver_list(r_list_gen):
     sweep = cirq.to_sweep(r_list_gen())
     assert isinstance(sweep, cirq.Sweep)
-    print(list(sweep))
     assert list(sweep) == [
         cirq.ParamResolver({'a': 1}),
         cirq.ParamResolver({'a': 1.5})
