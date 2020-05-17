@@ -423,6 +423,7 @@ from cirq.protocols import (
     is_parameterized,
     json_serializable_dataclass,
     measurement_key,
+    measurement_keys,
     mixture,
     mixture_channel,
     mul,
