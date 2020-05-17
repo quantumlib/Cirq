@@ -90,6 +90,13 @@ class XXPowGate(eigen_gate.EigenGate,
             wire_symbols=('XX', 'XX'),
             exponent=self._diagram_exponent(args))
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('X {0}\nX {1}\n', qubits[0], qubits[1])
+        return formatter.format('RX({0}) {1}\nRX({2}) {3}\n', self._exponent,
+                                qubits[0], self._exponent, qubits[1])
+
     def __str__(self) -> str:
         if self.exponent == 1:
             return 'XX'
@@ -155,6 +162,14 @@ class YYPowGate(eigen_gate.EigenGate,
         return protocols.CircuitDiagramInfo(
             wire_symbols=('YY', 'YY'),
             exponent=self._diagram_exponent(args))
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Y {0}\nY {1}\n', qubits[0], qubits[1])
+
+        return formatter.format('RY({0}) {1}\nRY({2}) {3}\n', self._exponent,
+                                qubits[0], self._exponent, qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -228,6 +243,14 @@ class ZZPowGate(eigen_gate.EigenGate,
         args.target_tensor[zo] *= relative_phase
 
         return args.target_tensor
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Z {0}\nZ {1}\n', qubits[0], qubits[1])
+
+        return formatter.format('RZ({0}) {1}\nRZ({2}) {3}\n', self._exponent,
+                                qubits[0], self._exponent, qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:
