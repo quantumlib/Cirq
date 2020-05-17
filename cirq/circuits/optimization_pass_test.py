@@ -142,6 +142,28 @@ z: ─────────────────────────�
     assert actual_text_diagram == expected_text_diagram
 
 
+def test_point_optimizer_can_handle_gates_changing_qubits():
+
+    class EverythingIs42(cirq.PointOptimizer):
+        """Changes all single qubit operations to act on LineQubit(42)"""
+
+        def optimization_at(self, circuit, index, op):
+            if len(op.qubits) == 1:
+                new_op = op.gate(cirq.LineQubit(42))
+                return cirq.PointOptimizationSummary(clear_span=1,
+                                                     clear_qubits=op.qubits,
+                                                     new_operations=new_op)
+
+    c = cirq.Circuit(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1)))
+    EverythingIs42().optimize_circuit(c)
+    actual_text_diagram = c.to_text_diagram().strip()
+    expected_text_diagram = """
+42: ───X───X───
+    """.strip()
+
+    assert actual_text_diagram == expected_text_diagram
+
+
 def test_repr():
     assert repr(cirq.PointOptimizationSummary(clear_span=0, clear_qubits=[
     ], new_operations=[])) == 'cirq.PointOptimizationSummary(0, (), ())'

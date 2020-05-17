@@ -145,6 +145,13 @@ class PointOptimizer:
                     [e for e in range(i, i + opt.clear_span)])
                 new_operations = self.post_clean_up(
                     cast(Tuple[ops.Operation], opt.new_operations))
-                circuit.insert_at_frontier(new_operations, i, frontier)
 
+                flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
+                start_index = i
+                for flat_op in flat_new_operations:
+                    for q in flat_op.qubits:
+                        if frontier[q] is not None:
+                            start_index = max(start_index, frontier[q])
+                circuit.insert_at_frontier(flat_new_operations, start_index,
+                                           frontier)
             i += 1
