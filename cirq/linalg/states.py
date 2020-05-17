@@ -17,7 +17,10 @@ from typing import Sequence, Union, Tuple, Type, Any
 
 import numpy as np
 
+from cirq._compat import deprecated
 
+
+@deprecated(deadline='v0.9', fix='Use cirq.one_hot instead.')
 def one_hot(*,
             index: Union[None, int, Sequence[int]] = None,
             shape: Union[int, Sequence[int]],
@@ -42,6 +45,7 @@ def one_hot(*,
     return result
 
 
+@deprecated(deadline='v0.9', fix='Use cirq.eye_tensor instead.')
 def eye_tensor(
         half_shape: Tuple[int, ...],
         *,  # Force keyword args

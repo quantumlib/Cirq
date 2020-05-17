@@ -17,7 +17,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -599,17 +598,6 @@ def test_cnot_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
     assert not cirq.has_stabilizer_effect(gate**foo)
-
-
-@pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))
-def test_deprecated_rxyz_rotations(rads):
-    with capture_logging():
-        assert np.all(
-            cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
-        assert np.all(
-            cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
-        assert np.all(
-            cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
 
 
 def test_phase_by_xy():

@@ -17,14 +17,11 @@ This code implements the algorithm proposed for an example circuit (defined in
 the function build_circuit()) and a noise (defines in the variable noise).
 """
 
+from typing import cast, List, Optional, Tuple
 import argparse
 import asyncio
 from dataclasses import dataclass
 import itertools
-from typing import cast
-from typing import List
-from typing import Optional
-from typing import Tuple
 import random
 import sys
 import numpy as np
@@ -423,9 +420,10 @@ def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')
 
-    # TODO(#2802): Offer some guidance on how to set this flag. Maybe have an
+    # TODO: Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which
     # choice is the best.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2802
     parser.add_argument('--n_measured_operators',
                         default=10,
                         type=int,

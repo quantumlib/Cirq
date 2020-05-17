@@ -31,7 +31,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (controlled_gate, eigen_gate, gate_features, raw_types)
 
@@ -179,6 +179,12 @@ class XPowGate(eigen_gate.EigenGate,
         return args.format('rx({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('X {0}\n', qubits[0])
+        return formatter.format('RX({0}) {1}\n', self._exponent, qubits[0])
+
     @property
     def phase_exponent(self):
         return 0.0
@@ -320,6 +326,12 @@ class YPowGate(eigen_gate.EigenGate,
 
         return args.format('ry({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Y {0}\n', qubits[0])
+        return formatter.format('RY({0}) {1}\n', self._exponent, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -515,6 +527,13 @@ class ZPowGate(eigen_gate.EigenGate,
         return args.format('rz({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Z {0}\n', qubits[0])
+
+        return formatter.format('RZ({0}) {1}\n', self._exponent, qubits[0])
+
     def __str__(self) -> str:
         if self._global_shift == -0.5:
             if self._exponent == 1:
@@ -671,6 +690,13 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'rx({1:half_turns}) {3};\n'
             'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('H {0}\n', qubits[0])
+        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25,
+                                self._exponent, -0.25, qubits[0])
+
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
@@ -805,6 +831,13 @@ class CZPowGate(eigen_gate.EigenGate,
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
+        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent,
+                                qubits[0], qubits[1])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -959,6 +992,12 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('CNOT {0} {1}\n', qubits[0], qubits[1])
+        return None
+
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
@@ -995,34 +1034,16 @@ def rx(rads: value.TParamVal) -> XPowGate:
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.rx, instead.')
-def Rx(rads: value.TParamVal) -> XPowGate:
-    """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return rx(rads)
-
-
 def ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.ry, instead.')
-def Ry(rads: value.TParamVal) -> YPowGate:
-    """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return ry(rads)
-
-
 def rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.rz, instead.')
-def Rz(rads: value.TParamVal) -> ZPowGate:
-    """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return rz(rads)
 
 
 H = HPowGate()

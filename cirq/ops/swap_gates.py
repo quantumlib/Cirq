@@ -20,13 +20,14 @@ This module creates Gate instances for the following gates:
 Each of these are implemented as EigenGates, which means that they can be
 raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 """
+
 from typing import Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
 
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import common_gates, gate_features, eigen_gate
 
@@ -114,7 +115,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                               ) -> 'cirq.CircuitDiagramInfo':
         if not args.use_unicode_characters:
             return protocols.CircuitDiagramInfo(
-                wire_symbols=('swap', 'swap'),
+                wire_symbols=('Swap', 'Swap'),
                 exponent=self._diagram_exponent(args))
         return protocols.CircuitDiagramInfo(
             wire_symbols=('×', '×'), exponent=self._diagram_exponent(args))
@@ -125,6 +126,13 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
             return None  # Don't have an equivalent gate in QASM
         args.validate_version('2.0')
         return args.format('swap {0},{1};\n', qubits[0], qubits[1])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
+        return formatter.format('PSWAP({0}) {1} {2}\n', self._exponent,
+                                qubits[0], qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -250,16 +258,17 @@ class ISwapPowGate(eigen_gate.EigenGate,
         return (f'cirq.ISwapPowGate(exponent={e}, '
                 f'global_shift={self._global_shift!r})')
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
+        return None  #ISwap with rotation not supported in Quil
+
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
     """Returns gate with matrix exp(+i angle_rads (X⊗X + Y⊗Y) / 2)."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ISwapPowGate()**(2 * rads / pi)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.riswap, instead.')
-def ISwapRotation(angle_rads: value.TParamVal) -> ISwapPowGate:
-    return riswap(angle_rads)
 
 
 SWAP = SwapPowGate()

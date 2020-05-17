@@ -13,18 +13,15 @@
 # limitations under the License.
 
 import logging
+import types
 from typing import ContextManager, List
 
 import numpy as np
 import pandas as pd
 import sympy
 
-from cirq._compat import (
-    proper_repr,
-    deprecated,
-    deprecated_parameter,
-    proper_eq,
-)
+from cirq._compat import (proper_repr, deprecated, deprecated_parameter,
+                          proper_eq, wrap_module)
 
 
 def test_proper_repr():
@@ -120,6 +117,37 @@ def test_deprecated_parameter():
     assert 'double_count parameter of test_func was used' in log[0].getMessage()
     assert 'will be removed in cirq vAlready' in log[0].getMessage()
     assert 'Double it yourself.' in log[0].getMessage()
+
+
+def test_wrap_module():
+    my_module = types.ModuleType('my_module', 'my doc string')
+    my_module.foo = 'foo'
+    my_module.bar = 'bar'
+    assert 'foo' in my_module.__dict__
+    assert 'bar' in my_module.__dict__
+    assert 'zoo' not in my_module.__dict__
+
+    wrapped = wrap_module(my_module, {'foo': ('0.6.0', 'use bar instead')})
+    # Dunder methods
+    assert wrapped.__doc__ == 'my doc string'
+    assert wrapped.__name__ == 'my_module'
+    # Test dict is correct.
+    assert 'foo' in wrapped.__dict__
+    assert 'bar' in wrapped.__dict__
+    assert 'zoo' not in wrapped.__dict__
+
+    # Deprecation capability.
+    with capture_logging() as log:
+        _ = wrapped.foo
+    assert len(log) == 1
+    msg = log[0].getMessage()
+    assert 'foo was used but is deprecated.' in msg
+    assert 'will be removed in cirq 0.6.0' in msg
+    assert 'use bar instead' in msg
+
+    with capture_logging() as log:
+        _ = wrapped.bar
+    assert len(log) == 0
 
 
 def capture_logging() -> ContextManager[List[logging.LogRecord]]:

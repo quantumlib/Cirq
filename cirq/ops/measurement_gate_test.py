@@ -67,6 +67,15 @@ def test_qudit_measure_qasm():
                      default='not implemented') == 'not implemented'
 
 
+def test_qudit_measure_quil():
+    q0 = cirq.LineQid(0, 3)
+    qubit_id_map = {q0: '0'}
+    assert cirq.quil(
+        cirq.measure(q0, key='a'),
+        formatter=cirq.QuilFormatter(qubit_id_map=qubit_id_map,
+                                     measurement_id_map={})) == None
+
+
 def test_measurement_gate_diagram():
     # Shows key.
     assert cirq.circuit_diagram_info(
@@ -169,3 +178,14 @@ def test_consistent_protocols():
 
         gate = cirq.MeasurementGate(num_qubits=n, qid_shape=(3,) * n)
         cirq.testing.assert_implements_consistent_protocols(gate)
+
+
+def test_op_repr():
+    a, b = cirq.LineQubit.range(2)
+    assert repr(cirq.measure(a)) == 'cirq.measure(cirq.LineQubit(0))'
+    assert repr(cirq.measure(
+        a, b)) == ('cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1))')
+    assert repr(cirq.measure(a, b, key='out', invert_mask=(False, True))) == (
+        "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
+        "key='out', "
+        "invert_mask=(False, True))")

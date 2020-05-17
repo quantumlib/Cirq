@@ -287,7 +287,8 @@ class SerializableDevice(devices.Device):
             return
 
         if len(operation.qubits) > 1:
-            # TODO(dstrain): verify args
+            # TODO: verify args.
+            # Github issue: https://github.com/quantumlib/Cirq/issues/2964
 
             if not gate_def.target_set:
                 # All qubit combinations are valid
