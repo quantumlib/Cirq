@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Optional, Sequence, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 

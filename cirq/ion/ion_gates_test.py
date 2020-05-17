@@ -17,10 +17,10 @@ import numpy as np
 import cirq
 
 
-# def test_ms_arguments():
-#     eq_tester = cirq.testing.EqualsTester()
-#     eq_tester.add_equality_group(cirq.ms(np.pi / 2),
-#                                  cirq.XXPowGate(global_shift=-0.5))
+def test_ms_arguments():
+    eq_tester = cirq.testing.EqualsTester()
+    eq_tester.add_equality_group(cirq.ms(np.pi / 2),
+                                 cirq.ion.ion_gates.MSGate(rads=np.pi / 2))
 
 
 def test_ms_str():
@@ -30,6 +30,7 @@ def test_ms_str():
     assert str(ms**0.5) == 'MS(0.5π/2)'
     assert str(ms**2) == 'MS(2.0π/2)'
     assert str(ms**-1) == 'MS(-1.0π/2)'
+
 
 def test_ms_matrix():
     s = np.sqrt(0.5)
