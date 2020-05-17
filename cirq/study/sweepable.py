@@ -14,13 +14,15 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Dict, Iterable, Iterator, List, Union, cast
+from typing import Dict, Iterable, Iterator, List, Union, cast, TYPE_CHECKING
 import itertools
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
+if TYPE_CHECKING:
+    import cirq
 
 Sweepable = Union[Dict[str, float], ParamResolver, Sweep, Iterable[
     Union[Dict[str, float], ParamResolver, Sweep]], None]
@@ -81,9 +83,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
                     f'sweepable: {sweepable}')
 
 
-def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
-                                           Iterable[ParamResolverOrSimilarType]]
-            ) -> 'Sweep':
+def to_sweep(sweep_or_resolver_list: 'cirq.Sweepable') -> 'cirq.Sweep':
     """Converts the argument into a ``cirq.Sweep``.
 
     Args:

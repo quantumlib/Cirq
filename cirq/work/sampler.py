@@ -13,20 +13,106 @@
 # limitations under the License.
 """Abstract base class for things sampling quantum circuits."""
 
-from typing import List, TYPE_CHECKING
-import abc
+from typing import List, TYPE_CHECKING, Dict, Any
 
+import numpy as np
 import pandas as pd
 
-from cirq import study
+from cirq import study, value, ops
 
 if TYPE_CHECKING:
     import cirq
 
 
-class Sampler(metaclass=abc.ABCMeta):
-    """Something capable of sampling quantum circuits. Simulator or hardware."""
+class Sampler(metaclass=value.ABCMetaImplementAnyOneOf):
+    """Something capable of sampling quantum circuits. Simulator or hardware.
 
+    Child classes must implement at least one of the following methods:
+
+        - run
+        - run_sweep
+        - sample_dict
+        - sample_dicts
+
+    The other methods will be derived from the method that was implemented.
+    """
+
+    def _run_from_run_sweep(
+            self,
+            program: 'cirq.Circuit',
+            param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+            repetitions: int = 1,
+    ) -> 'cirq.TrialResult':
+        return self.run_sweep(program, study.ParamResolver(param_resolver),
+                              repetitions)[0]
+
+    def _run_from_sample_dicts(
+            self,
+            program: 'cirq.Circuit',
+            param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
+            repetitions: int = 1,
+    ) -> 'cirq.TrialResult':
+        param_resolver = study.ParamResolver(param_resolver)
+        dicts = self.sample_dicts(program,
+                                  repetitions=repetitions,
+                                  params=param_resolver)
+        shapes = {
+            op.gate.key: tuple(q.dimension for q in op.qubits)
+            for op in program.all_operations()
+            if isinstance(op.gate, ops.MeasurementGate)
+        }
+        return study.TrialResult(
+            params=param_resolver,
+            measurements={
+                key: np.array([
+                    value.big_endian_int_to_digits(d[key], base=shapes[key])
+                    for d in dicts
+                ]) for key in program.all_measurement_keys()
+            })
+
+    def _sample_dict_from_sample_dicts(
+            self,
+            program: 'cirq.Circuit',
+            *,
+            params: 'cirq.ParamResolverOrSimilarType' = None,
+    ) -> Dict[str, Any]:
+        return self.sample_dicts(program, params=params, repetitions=1)[0]
+
+    def _sample_dicts_from_run(
+            self,
+            program: 'cirq.Circuit',
+            *,
+            repetitions: int,
+            params: 'cirq.ParamResolverOrSimilarType' = None,
+    ) -> List[Dict[str, int]]:
+        return self.run(program, param_resolver=params,
+                        repetitions=repetitions).as_dicts()
+
+    def _sample_dicts_from_sample_dict(
+            self,
+            program: 'cirq.Circuit',
+            *,
+            repetitions: int,
+            params: 'cirq.ParamResolverOrSimilarType' = None,
+    ) -> List[Dict[str, int]]:
+        return [
+            self.sample_dict(program, params=params) for _ in range(repetitions)
+        ]
+
+    def _run_sweep_from_run(
+            self,
+            program: 'cirq.Circuit',
+            params: 'cirq.Sweepable',
+            repetitions: int = 1,
+    ) -> List['cirq.TrialResult']:
+        return [
+            self.run(program, param_resolver=param, repetitions=repetitions)
+            for param in study.to_sweep(params)
+        ]
+
+    @value.alternative(requires='run_sweep', implementation=_run_from_run_sweep)
+    @value.alternative(requires='sample_dicts',
+                       implementation=_run_from_sample_dicts)
     def run(
             self,
             program: 'cirq.Circuit',
@@ -34,9 +120,6 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: int = 1,
     ) -> 'cirq.TrialResult':
         """Samples from the given Circuit.
-
-        By default, the `run_async` method invokes this method on another
-        thread. So this method is supposed to be thread safe.
 
         Args:
             program: The circuit to sample from.
@@ -46,8 +129,65 @@ class Sampler(metaclass=abc.ABCMeta):
         Returns:
             TrialResult for a run.
         """
-        return self.run_sweep(program, study.ParamResolver(param_resolver),
-                              repetitions)[0]
+
+    @value.alternative(requires='sample_dicts',
+                       implementation=_sample_dict_from_sample_dicts)
+    def sample_dict(
+            self,
+            program: 'cirq.Circuit',
+            *,
+            params: 'cirq.ParamResolverOrSimilarType' = None,
+    ) -> Dict[str, Any]:
+        """Samples the circuit and returns the result as a dictionary.
+
+        The dictionary maps measurement keys to measurement results. Measurement
+        results are integers. Multi-qubit measurements are fused into an integer
+        in a big endian fashion. For example, cirq.measure(x, y, z) will produce
+        the binary integer 0b_xyz where x, y, and z are the bits resulting from
+        measuring qubits X, Y, and Z respectively.
+
+        Args:
+            program: The circuit to sample measurement results from.
+            params: Parameters for parameterized gates in the circuit. Defaults
+                to no parameters.
+
+        Returns:
+            A dictionary mapping measurement keys to measurement results for one
+            sample of the circuit.
+        """
+
+    @value.alternative(requires='run', implementation=_sample_dicts_from_run)
+    @value.alternative(requires='sample_dict',
+                       implementation=_sample_dicts_from_sample_dict)
+    def sample_dicts(
+            self,
+            program: 'cirq.Circuit',
+            *,
+            repetitions: int,
+            params: 'cirq.ParamResolverOrSimilarType' = None,
+    ) -> List[Dict[str, int]]:
+        """Repeatedly samples the circuit, returning results as a list of dicts.
+
+        Each dictionary maps measurement keys to measurement results.
+        Measurement results are integers. Multi-qubit measurements are fused
+        into an integer in a big endian fashion. For example,
+        cirq.measure(x, y, z) will produce the binary integer 0b_xyz where x, y,
+        and z are the bits resulting from measuring qubits X, Y, and Z
+        respectively.
+
+        Args:
+            program: The circuit to sample measurement results from.
+            params: Parameters for parameterized gates in the circuit. Defaults
+                to no parameters.
+            repetitions: How many times to sample from the circuit. The number
+                of entries in the returned list.
+
+        Returns:
+            A list of dictionaries. The length of the list is the number of
+            repetitions. Each dictionary is the results from one run of the
+            circuit, and maps measurement keys to the measurement results from
+            that run.
+        """
 
     def sample(
             self,
@@ -133,7 +273,7 @@ class Sampler(metaclass=abc.ABCMeta):
 
         return pd.concat(results)
 
-    @abc.abstractmethod
+    @value.alternative(requires='run', implementation=_run_sweep_from_run)
     def run_sweep(
             self,
             program: 'cirq.Circuit',

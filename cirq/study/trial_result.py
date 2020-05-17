@@ -15,7 +15,7 @@
 """Defines trial results."""
 
 from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
-                    TYPE_CHECKING, Tuple, TypeVar, Union)
+                    TYPE_CHECKING, Tuple, TypeVar, Union, List)
 
 import collections
 import io
@@ -76,7 +76,7 @@ class TrialResult:
     attribute. The repetition number is the row index and measurement keys
     are the columns of the DataFrame. Each element is a big endian integer
     representation of measurement outcomes for the measurement key in that
-    repitition.
+    repetition.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.
@@ -100,16 +100,36 @@ class TrialResult:
         self._data: Optional[pd.DataFrame] = None
         self._measurements = measurements
 
+    def as_dicts(self) -> List[Dict[str, int]]:
+        """Represents the measurement results as a list of dictionaries.
+
+        Each dictionary maps each measurement key to an integer value. For
+        single qubit measurements the integer value is 0 or 1. For multi-qubit
+        measurements, the individual results are the bits of the integer.
+        For example, a three qubit measurement of the qubits [A, B, C] where A
+        measured as 1 and both B and C measured as 0 would result in the integer
+        0b100 = 8.
+
+        Returns:
+            A list of dictionaries. Each entry in the list is a repetition. Each
+            dictionary maps measurement keys to the measured values within that
+            repetition.
+        """
+        return [{
+            key: value.big_endian_bits_to_int(val[k])
+            for key, val in self._measurements.items()
+        }
+                for k in range(self.repetitions)]
+
     @property
     def data(self) -> pd.DataFrame:
         if self._data is None:
             # Convert to a DataFrame with columns as measurement keys, rows as
             # repetitions and a big endian integer for individual measurements.
-            converted_dict = {}
-            for key, val in self._measurements.items():
-                converted_dict[key] = [
-                    value.big_endian_bits_to_int(m_vals) for m_vals in val
-                ]
+            converted_dict = {
+                key: [value.big_endian_bits_to_int(m_vals) for m_vals in val
+                     ] for key, val in self._measurements.items()
+            }
             # Note that when a numpy array is produced from this data frame,
             # Pandas will try to use np.int64 as dtype, but will upgrade to
             # object if any value is too large to fit.
@@ -139,7 +159,10 @@ class TrialResult:
 
     @property
     def repetitions(self) -> int:
-        return self.data.shape[0]
+        if not self.measurements:
+            raise NotImplementedError("Need measurements to get repetitions.")
+        any_key = next(iter(self.measurements.keys()))
+        return self.measurements[any_key].shape[0]
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
