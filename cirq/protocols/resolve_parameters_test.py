@@ -14,7 +14,6 @@
 import dataclasses
 
 import numpy as np
-import pytest
 import sympy
 
 import cirq
