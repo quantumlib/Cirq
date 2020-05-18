@@ -20,8 +20,8 @@ to connected pairs of grid qubits. The qubit pairs are benchmarked in parallel
 by executing circuits that act on many pairs simultaneously.
 """
 
-from typing import (Any, Dict, Iterable, List, Optional, Sequence,
-                    TYPE_CHECKING, Tuple)
+from typing import (Any, Iterable, List, Optional, Sequence, TYPE_CHECKING,
+                    Tuple)
 import collections
 from concurrent.futures import ThreadPoolExecutor
 import dataclasses
@@ -37,7 +37,7 @@ from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
                                                          CrossEntropyResultDict,
                                                          CrossEntropyPair)
 from cirq.experiments.fidelity_estimation import (
-    least_squares_xeb_fidelity_from_expectations)
+    least_squares_xeb_fidelity_from_probabilities)
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
@@ -461,35 +461,32 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
                     num_circuits: int, repetitions: int,
                     cycles: List[int]) -> float:
     simulator = sim.Simulator()
-    # Simulate circuits to get values for fidelity calculation
-    measured_expectations = collections.defaultdict(
-        list)  # type: Dict[int, List[float]]
-    exact_expectations = collections.defaultdict(
-        list)  # type: Dict[int, List[float]]
+    # Simulate circuits to get bitstring probabilities
+    all_and_observed_probabilities = collections.defaultdict(
+        list)  # type: Dict[int, List[Tuple[np.ndarray, np.ndarray]]]
     for i, circuit in enumerate(circuits):
         step_results = simulator.simulate_moment_steps(circuit,
                                                        qubit_order=qubit_pair)
         moment_index = 0
         for depth, measurements in zip(cycles, measurement_results[i]):
-            # Compute the bitstring probabilities
             while moment_index < 2 * depth:
                 step_result = next(step_results)
                 moment_index += 1
             amplitudes = step_result.state_vector()
             probabilities = np.abs(amplitudes)**2
-            # Compute the expectations needed for fidelity calculation
-            measured_expectation = 4 * np.mean(probabilities[measurements])
-            exact_expectation = 4 * np.sum(probabilities**2)
-            measured_expectations[depth].append(measured_expectation)
-            exact_expectations[depth].append(exact_expectation)
+            all_and_observed_probabilities[depth].append(
+                (probabilities, probabilities[measurements]))
     # Compute XEB result
     data = []
-    uniform_expectations = [1.0] * num_circuits
     for depth in cycles:
-        fidelity = least_squares_xeb_fidelity_from_expectations(
-            measured_expectations=measured_expectations[depth],
-            exact_expectations=exact_expectations[depth],
-            uniform_expectations=uniform_expectations)
+        all_probabilities, observed_probabilities = zip(
+            *all_and_observed_probabilities[depth])
+        fidelity = least_squares_xeb_fidelity_from_probabilities(
+            hilbert_space_dimension=4,
+            observed_probabilities=observed_probabilities,
+            all_probabilities=all_probabilities,
+            observable_from_probability=None,
+            normalize_probabilities=True)
         data.append(CrossEntropyPair(depth, fidelity))
     return CrossEntropyResult(data=data, repetitions=repetitions)
 

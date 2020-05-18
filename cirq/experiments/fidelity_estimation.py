@@ -281,3 +281,62 @@ def least_squares_xeb_fidelity_from_expectations(
         numerator += (m - u) * (e - u)
         denominator += (e - u)**2
     return numerator / denominator
+
+
+def least_squares_xeb_fidelity_from_probabilities(
+        hilbert_space_dimension: int,
+        observed_probabilities: Sequence[Sequence[float]],
+        all_probabilities: Sequence[Sequence[float]],
+        observable_from_probability: Optional[Callable[[float], float]] = None,
+        normalize_probabilities: bool = True) -> float:
+    """Least squares fidelity estimator with observable based on probabilities.
+
+    Using the notation from the docstring of
+    `least_squares_xeb_fidelity_from_expectations`, this function computes the
+    least squares fidelity estimator when the observable O_U has eigenvalue
+    corresponding to the computational basis state |z⟩ given by g(p(z)), where
+    p(z) = |⟨z|𝜓_U⟩|^2 and g is a function that can be specified. By default,
+    g is the identity function, but other choices, such as the logarithm, are
+    useful. By default, the probability p(z) is actually multiplied by the
+    Hilbert space dimension D, so that the observable is actually g(D * p(z)).
+    This behavior can be disabled by setting `normalize_probabilities` to
+    False.
+
+    Args:
+        hilbert_space_dimension: Dimension of the Hilbert space on which
+           the channel whose fidelity is being estimated is defined.
+        observed_probabilities: Ideal probabilities of bitstrings observed in
+            experiments. A list of lists, where each inner list contains the
+            probabilities for a single circuit.
+        all_probabilities: Ideal probabilities of all possible bitstrings.
+            A list of lists, where each inner list contains the probabilities
+            for a single circuit, and should have length equal to the Hilbert
+            space dimension. The order of the lists should correspond to that
+            of `observed_probabilities`.
+        observable_from_probability: Function that computes the observable from
+            a given probability.
+        normalize_probabilities: Whether to multiply the probabilities by the
+            Hilbert space dimension before computing the observable.
+    """
+    if not isinstance(observable_from_probability, np.ufunc):
+        if observable_from_probability is None:
+            observable_from_probability = lambda p: p
+        else:
+            observable_from_probability = np.frompyfunc(
+                observable_from_probability, 1, 1)
+    measured_expectations = []
+    exact_expectations = []
+    uniform_expectations = []
+    prefactor = hilbert_space_dimension if normalize_probabilities else 1.0
+    for observed, all_ in zip(observed_probabilities, all_probabilities):
+        observed = np.array(observed)
+        all_ = np.array(all_)
+        observable = observable_from_probability(prefactor * all_)
+        measured_expectations.append(
+            np.mean(observable_from_probability(prefactor * observed)))
+        exact_expectations.append(np.sum(all_ * observable))
+        uniform_expectations.append(
+            np.sum(observable) / hilbert_space_dimension)
+    return least_squares_xeb_fidelity_from_expectations(measured_expectations,
+                                                        exact_expectations,
+                                                        uniform_expectations)

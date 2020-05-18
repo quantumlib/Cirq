@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
-
 from typing import Sequence
+import itertools
+import math
 
 import numpy as np
 import pytest
@@ -191,5 +191,44 @@ def test_least_squares_xeb_fidelity_from_expectations():
 
     assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log, 1 - depolarization, atol=0.01)
+
+    np.random.set_state(prng_state)
+
+
+def test_least_squares_xeb_fidelity_from_probabilities():
+    prng_state = np.random.get_state()
+    np.random.seed(0)
+
+    depolarization = 0.5
+
+    n_qubits = 5
+    dim = 2**n_qubits
+    n_circuits = 10
+    qubits = cirq.LineQubit.range(n_qubits)
+
+    all_probabilities = []
+    observed_probabilities = []
+    for _ in range(n_circuits):
+        circuit = make_random_quantum_circuit(qubits, depth=12)
+        bitstrings = sample_noisy_bitstrings(circuit,
+                                             qubits,
+                                             depolarization=depolarization,
+                                             repetitions=5000)
+        amplitudes = cirq.final_wavefunction(circuit)
+        probabilities = np.abs(amplitudes)**2
+
+        all_probabilities.append(probabilities)
+        observed_probabilities.append(probabilities[bitstrings])
+
+    f_lin = cirq.least_squares_xeb_fidelity_from_probabilities(
+        dim, observed_probabilities, all_probabilities, None, True)
+    f_log_np = cirq.least_squares_xeb_fidelity_from_probabilities(
+        dim, observed_probabilities, all_probabilities, np.log, True)
+    f_log_math = cirq.least_squares_xeb_fidelity_from_probabilities(
+        dim, observed_probabilities, all_probabilities, math.log, False)
+
+    assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
+    assert np.isclose(f_log_np, 1 - depolarization, atol=0.01)
+    assert np.isclose(f_log_math, 1 - depolarization, atol=0.01)
 
     np.random.set_state(prng_state)
