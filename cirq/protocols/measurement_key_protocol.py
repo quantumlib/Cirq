@@ -109,7 +109,8 @@ def measurement_keys(val: Any, *,
             don't directly specify their measurement keys will be decomposed in
             order to find measurement keys within the decomposed operations. If
             not set, composite operations will appear to have no measurement
-            keys.
+            keys. Used by internal methods to stop redundant decompositions from
+            being performed.
 
     Returns:
         The measurement keys of the value. If the value has no measurement,

@@ -147,6 +147,28 @@ def test_has_mixture_channel():
     assert cirq.has_mixture_channel(ReturnsUnitary())
     assert not cirq.has_mixture_channel(ReturnsNotImplementedUnitary())
 
+    class NoAtom(cirq.Operation):
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(2)
+
+        def with_qubits(self):
+            raise NotImplementedError()
+
+    class No1:
+
+        def _decompose_(self):
+            return [NoAtom()]
+
+    class Yes1:
+
+        def _decompose_(self):
+            return [cirq.X(cirq.LineQubit(0))]
+
+    assert not cirq.has_mixture_channel(No1())
+    assert cirq.has_mixture_channel(Yes1())
+
 
 def test_valid_mixture():
     cirq.validate_mixture(ReturnsValidTuple())
