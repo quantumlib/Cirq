@@ -22,8 +22,8 @@ by executing circuits that act on many pairs simultaneously.
 
 from typing import (Any, Dict, Iterable, List, Optional, Sequence,
                     TYPE_CHECKING, Tuple)
-
 import collections
+from concurrent.futures import ThreadPoolExecutor
 import dataclasses
 import datetime
 import itertools
@@ -323,24 +323,29 @@ def collect_grid_parallel_two_qubit_xeb_data(
             save(circuit_params, circuit, base_dir=base_dir)
 
     # Collect data
+    def run_truncated_circuit(truncated_circuit: 'cirq.Circuit',
+                              layer: GridInteractionLayer, depth: int,
+                              circuit_index: int) -> None:
+        print(f'\tSampling from circuit {circuit_index} of layer {layer}.')
+        truncated_circuit.append(ops.measure(*qubits, key='m'))
+        trial_result = sampler.run(truncated_circuit, repetitions=repetitions)
+        trial_result_params = GridParallelXEBTrialResultParameters(
+            data_collection_id=data_collection_id,
+            layer=layer,
+            depth=depth,
+            circuit_index=circuit_index)
+        save(trial_result_params, trial_result, base_dir=base_dir)
+
     for depth in cycles:
         print(f'Executing circuits at depth {depth}.')
-        for layer in layers:
-            print(f'\tExecuting circuits with grid interaction layer {layer}.')
-            truncated_circuits = [
-                circuit[:2 * depth] for circuit in circuits_[layer]
-            ]
-            for i, truncated_circuit in enumerate(truncated_circuits):
-                print(f'\t\tSampling from circuit {i}.')
-                truncated_circuit.append(ops.measure(*qubits, key='m'))
-                trial_result = sampler.run(truncated_circuit,
-                                           repetitions=repetitions)
-                trial_result_params = GridParallelXEBTrialResultParameters(
-                    data_collection_id=data_collection_id,
-                    layer=layer,
-                    depth=depth,
-                    circuit_index=i)
-                save(trial_result_params, trial_result, base_dir=base_dir)
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            for layer in layers:
+                truncated_circuits = [
+                    circuit[:2 * depth] for circuit in circuits_[layer]
+                ]
+                for i, truncated_circuit in enumerate(truncated_circuits):
+                    executor.submit(run_truncated_circuit, truncated_circuit,
+                                    layer, depth, i)
 
     return data_collection_id
 
