@@ -15,7 +15,7 @@
 """A simulator that uses numpy's einsum or sparse matrix operations."""
 
 import collections
-from typing import Dict, Iterator, List, Type, TYPE_CHECKING
+from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict
 
 import numpy as np
 
@@ -175,7 +175,8 @@ class Simulator(simulator.SimulatesSamples,
                 for key in protocols.measurement_keys(circuit)
             }
 
-        measurements = collections.defaultdict(list)
+        measurements: DefaultDict[str, List[
+            np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
             all_step_results = self._base_iterator(
                     circuit,
@@ -241,7 +242,8 @@ class Simulator(simulator.SimulatesSamples,
             for op in moment:
                 if perform_measurements or not isinstance(
                         op.gate, ops.MeasurementGate):
-                    sim_state.axes = [qubit_map[qubit] for qubit in op.qubits]
+                    sim_state.axes = tuple(
+                        qubit_map[qubit] for qubit in op.qubits)
                     protocols.act_on(op, sim_state)
 
             yield SparseSimulatorStep(state_vector=sim_state.target_tensor,

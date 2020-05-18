@@ -13,8 +13,7 @@
 # limitations under the License.
 """Objects and methods for acting efficiently on a state vector."""
 
-from typing import (Any, Iterable, Sequence, Tuple, TYPE_CHECKING, Union,
-                    DefaultDict, List, Dict)
+from typing import Any, Iterable, Sequence, Tuple, TYPE_CHECKING, Union, Dict
 
 import numpy as np
 
@@ -187,7 +186,7 @@ def _act_all_on_state_vector(actions: Iterable[Any],
     old_axes = args.axes
     try:
         for action in actions:
-            args.axes = [qubit_map[q] for q in action.qubits]
+            args.axes = tuple(qubit_map[q] for q in action.qubits)
             protocols.act_on(action, args)
     finally:
         args.axes = old_axes

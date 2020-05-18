@@ -16,7 +16,7 @@
 
 import re
 from typing import (Any, Dict, FrozenSet, Iterable, List, Optional, Sequence,
-                    Tuple, TypeVar, Union, TYPE_CHECKING, Type)
+                    Tuple, TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 

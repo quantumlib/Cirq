@@ -107,8 +107,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                     if protocols.is_measurement(op):
                         if not isinstance(op.gate, ops.MeasurementGate):
                             raise NotImplementedError(
-                                'Measurement type other than cirq.MeasurementGate'
-                            )
+                                f'Unrecognized measurement type {op!r}')
                         key = protocols.measurement_key(op)
                         measurements[key].extend(
                             state.perform_measurement(op.qubits, self._prng))
