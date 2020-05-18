@@ -330,6 +330,7 @@ the magic methods that can be implemented.
     cirq.is_measurement
     cirq.is_parameterized
     cirq.measurement_key
+    cirq.measurement_keys
     cirq.mixture
     cirq.mixture_channel
     cirq.mul
