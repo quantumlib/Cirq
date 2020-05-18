@@ -389,6 +389,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     layers = metadata.layers
 
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    qubit_indices = {q: i for i, q in enumerate(qubits)}
     xeb_results = {}  # type: Dict[GridQubitPair, CrossEntropyResult]
 
     # Load data into a dictionary mapping qubit pair to list of
@@ -418,12 +419,12 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
             for qubit_pair in active_qubit_pairs:
                 # Restrict measurements to this qubit pair
                 a, b = qubit_pair
-                qubit_indices = [qubits.index(a), qubits.index(b)]
+                indices = [qubit_indices[a], qubit_indices[b]]
                 restricted_measurement_results = []
                 for trial_result in trial_results:
                     # Get the measurements of this qubit pair
                     restricted_measurements = trial_result.measurements[
-                        'm'][:, qubit_indices]
+                        'm'][:, indices]
                     # Convert length-2 bitstrings to integers
                     restricted_measurements = (
                         2 * restricted_measurements[:, 0] +
