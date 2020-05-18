@@ -240,6 +240,7 @@ results.
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
     cirq.CliffordSimulatorStepResult

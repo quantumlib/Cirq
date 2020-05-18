@@ -143,7 +143,7 @@ class ActOnStateVectorArgs:
                 break
             if result is True:
                 return True
-            assert result is NotImplemented
+            assert result is NotImplemented, str(result)
 
         return NotImplemented
 
@@ -184,13 +184,14 @@ def _act_all_on_state_vector(actions: Iterable[Any],
         raise ValueError('len(qubits) != len(args.axes)')
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
 
-    old_indices = args.indices
+    old_axes = args.axes
     try:
         for action in actions:
-            args.indices = [qubit_map[q] for q in action.qubits]
+            args.axes = [qubit_map[q] for q in action.qubits]
             protocols.act_on(action, args)
     finally:
-        args.indices = old_indices
+        args.axes = old_axes
+    return True
 
 
 def _strat_act_on_state_vector_from_mixture(action: Any,

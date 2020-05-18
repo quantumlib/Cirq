@@ -111,6 +111,11 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 #   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
+    # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnStateVectorArgs',
+    'ApplyChannelArgs',
+    'ApplyMixtureArgs',
+    'ApplyUnitaryArgs',
 
     # Circuit optimizers are function-like. Only attributes
     # are ignore_failures, tolerance, and other feature flags
@@ -257,9 +262,6 @@ def test_mutually_exclusive_blacklist():
 
 
 NOT_YET_SERIALIZABLE = [
-    'ApplyChannelArgs',
-    'ApplyMixtureArgs',
-    'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
