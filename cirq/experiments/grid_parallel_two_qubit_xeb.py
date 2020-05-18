@@ -391,77 +391,61 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
     xeb_results = {}  # type: Dict[GridQubitPair, CrossEntropyResult]
 
-    with multiprocessing.Manager() as manager:
-        # Each combination of qubit pair and parent circuit can be handled in a
-        # separate process
-        # Reason for type: ignore: https://github.com/python/mypy/issues/4678
-        measured_expectations = manager.dict()  # type: ignore
-        exact_expectations = manager.dict()  # type: ignore
-        arguments = []
-        # Construct arguments to be mapped by multiprocessing
-        for layer in layers:
-            active_qubit_pairs = [
-                pair for pair in coupled_qubit_pairs if pair in layer
-            ]
-            for i in range(num_circuits):
-                circuit_params = GridParallelXEBCircuitParameters(
+    # Load data into a dictionary mapping qubit pair to list of
+    # (circuit, measurement_results) tuples
+    data = collections.defaultdict(
+        list
+    )  # type: Dict[GridQubitPair, List[Tuple[cirq.Circuit, List[np.ndarray]]]]
+    for layer in layers:
+        active_qubit_pairs = [
+            pair for pair in coupled_qubit_pairs if pair in layer
+        ]
+        for i in range(num_circuits):
+            circuit_params = GridParallelXEBCircuitParameters(
+                data_collection_id=data_collection_id,
+                layer=layer,
+                circuit_index=i)
+            circuit = load(circuit_params, base_dir=base_dir)
+            trial_results = []
+            for depth in cycles:
+                trial_result_params = GridParallelXEBTrialResultParameters(
                     data_collection_id=data_collection_id,
                     layer=layer,
+                    depth=depth,
                     circuit_index=i)
-                circuit = load(circuit_params, base_dir=base_dir)
-                trial_results = []
-                for depth in cycles:
-                    trial_result_params = GridParallelXEBTrialResultParameters(
-                        data_collection_id=data_collection_id,
-                        layer=layer,
-                        depth=depth,
-                        circuit_index=i)
-                    trial_result = load(trial_result_params, base_dir=base_dir)
-                    trial_results.append(trial_result)
-                for qubit_pair in active_qubit_pairs:
-                    # Restrict measurements to this qubit pair
-                    a, b = qubit_pair
-                    qubit_indices = [qubits.index(a), qubits.index(b)]
-                    restricted_measurement_results = []
-                    for trial_result in trial_results:
-                        # Get the measurements of this qubit pair
-                        restricted_measurements = trial_result.measurements[
-                            'm'][:, qubit_indices]
-                        # Convert length-2 bitstrings to integers
-                        restricted_measurements = (
-                            2 * restricted_measurements[:, 0] +
-                            restricted_measurements[:, 1])
-                        restricted_measurement_results.append(
-                            restricted_measurements)
-                    arguments.append(
-                        (qubit_pair, qubits, circuit[:, qubit_pair], i, cycles,
-                         restricted_measurement_results, measured_expectations,
-                         exact_expectations))
+                trial_result = load(trial_result_params, base_dir=base_dir)
+                trial_results.append(trial_result)
+            for qubit_pair in active_qubit_pairs:
+                # Restrict measurements to this qubit pair
+                a, b = qubit_pair
+                qubit_indices = [qubits.index(a), qubits.index(b)]
+                restricted_measurement_results = []
+                for trial_result in trial_results:
+                    # Get the measurements of this qubit pair
+                    restricted_measurements = trial_result.measurements[
+                        'm'][:, qubit_indices]
+                    # Convert length-2 bitstrings to integers
+                    restricted_measurements = (
+                        2 * restricted_measurements[:, 0] +
+                        restricted_measurements[:, 1])
+                    restricted_measurement_results.append(
+                        restricted_measurements)
+                data[qubit_pair].append(
+                    (circuit[:, qubit_pair], restricted_measurement_results))
 
-        # Compute the expectations
-        num_processors = min(num_processors, len(arguments))
-        with multiprocessing.Pool(num_processors) as pool:
-            pool.starmap(_get_fidelity_estimator_components, arguments)
-
-        # Calculate the results
-        for qubit_pair in coupled_qubit_pairs:
-            data = []
-            for depth in cycles:
-                measured = [
-                    measured_expectations[(qubit_pair, depth, i)]
-                    for i in range(num_circuits)
-                ]
-                exact = [
-                    exact_expectations[(qubit_pair, depth, i)]
-                    for i in range(num_circuits)
-                ]
-                fidelity = least_squares_xeb_fidelity_from_expectations(
-                    measured_expectations=measured,
-                    exact_expectations=exact,
-                    uniform_expectations=[1.0] * num_circuits)
-                data.append(CrossEntropyPair(depth, fidelity))
-            xeb_results[qubit_pair] = CrossEntropyResult(  # type: ignore
-                data=data, repetitions=repetitions)
+    # Compute the XEB results
+    arguments = []
+    for qubit_pair in coupled_qubit_pairs:
+        circuits, measurement_results = zip(*data[qubit_pair])
+        arguments.append((qubit_pair, circuits, measurement_results,
+                          num_circuits, repetitions, cycles))
+    num_processors = min(num_processors, len(arguments))
+    with multiprocessing.Pool(num_processors) as pool:
+        xeb_results = pool.starmap(_get_xeb_result, arguments)
+    xeb_results = {
+        qubit_pair: result
+        for qubit_pair, result in zip(coupled_qubit_pairs, xeb_results)
+    }
 
     # Save results and return
     result_dict = CrossEntropyResultDict(results=xeb_results)  # type: ignore
@@ -472,40 +456,46 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     return result_dict
 
 
-def _get_fidelity_estimator_components(
-        qubit_pair: GridQubitPair, all_qubits: Sequence['cirq.GridQubit'],
-        circuit: 'cirq.Circuit', circuit_index: int, cycles: Sequence[int],
-        measurement_results: List[np.ndarray],
-        measured_expectations: Dict[Tuple[GridQubitPair, int, int],
-                                    List[float]],
-        exact_expectations: Dict[Tuple[GridQubitPair, int, int], List[float]]
-) -> None:
-    """Compute quantities to estimate p_eff for a qubit pair for given cycles.
-    """
+def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
+                    measurement_results: Sequence[List[np.ndarray]],
+                    num_circuits: int, repetitions: int,
+                    cycles: List[int]) -> float:
     simulator = sim.Simulator()
-    step_results = simulator.simulate_moment_steps(circuit,
-                                                   qubit_order=qubit_pair)
-    moment_index = 0
-
-    for depth, measurements in zip(cycles, measurement_results):
-        # Compute the theoretical probabilities
-        while moment_index < 2 * depth:
-            step_result = next(step_results)
-            moment_index += 1
-        amplitudes = step_result.state_vector()
-        probabilities = np.abs(amplitudes)**2
-        # Compute the expectations needed for fidelity calculation
-        measured_expectation = 4 * np.mean(probabilities[measurements])
-        exact_expectation = 4 * np.sum(probabilities**2)
-        # Save values in dictionaries
-        measured_expectations[(qubit_pair, depth,
-                               circuit_index)] = measured_expectation
-        exact_expectations[(qubit_pair, depth,
-                            circuit_index)] = exact_expectation
+    # Simulate circuits to get values for fidelity calculation
+    measured_expectations = collections.defaultdict(
+        list)  # type: Dict[int, List[float]]
+    exact_expectations = collections.defaultdict(
+        list)  # type: Dict[int, List[float]]
+    for i, circuit in enumerate(circuits):
+        step_results = simulator.simulate_moment_steps(circuit,
+                                                       qubit_order=qubit_pair)
+        moment_index = 0
+        for depth, measurements in zip(cycles, measurement_results[i]):
+            # Compute the bitstring probabilities
+            while moment_index < 2 * depth:
+                step_result = next(step_results)
+                moment_index += 1
+            amplitudes = step_result.state_vector()
+            probabilities = np.abs(amplitudes)**2
+            # Compute the expectations needed for fidelity calculation
+            measured_expectation = 4 * np.mean(probabilities[measurements])
+            exact_expectation = 4 * np.sum(probabilities**2)
+            measured_expectations[depth].append(measured_expectation)
+            exact_expectations[depth].append(exact_expectation)
+    # Compute XEB result
+    data = []
+    uniform_expectations = [1.0] * num_circuits
+    for depth in cycles:
+        fidelity = least_squares_xeb_fidelity_from_expectations(
+            measured_expectations=measured_expectations[depth],
+            exact_expectations=exact_expectations[depth],
+            uniform_expectations=uniform_expectations)
+        data.append(CrossEntropyPair(depth, fidelity))
+    return CrossEntropyResult(data=data, repetitions=repetitions)
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
-                        ) -> List[Tuple['cirq.GridQubit', 'cirq.GridQubit']]:
+                        ) -> List[GridQubitPair]:
     """Get pairs of GridQubits that are neighbors."""
     pairs = []
     qubit_set = set(qubits)
