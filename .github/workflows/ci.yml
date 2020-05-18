@@ -63,7 +63,7 @@ jobs:
           python-version: '3.6'
           architecture: 'x64'
       - name: Install pylint
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
       - name: Lint
         run: check/pylint
   doc_test:

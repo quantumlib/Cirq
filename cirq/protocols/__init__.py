@@ -79,6 +79,7 @@ from cirq.protocols.json_serialization import (
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    measurement_keys,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (
@@ -104,6 +105,7 @@ from cirq.protocols.qasm import (
     SupportsQasmWithArgs,
     SupportsQasmWithArgsAndQubits,
 )
+from cirq.protocols.quil import (quil, QuilFormatter)
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,
