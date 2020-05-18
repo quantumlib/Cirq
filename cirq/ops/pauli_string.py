@@ -23,7 +23,7 @@ import numbers
 
 import numpy as np
 
-from cirq import value, protocols, linalg
+from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,
@@ -399,12 +399,10 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state=state,
-                                      qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype,
-                                      atol=atol)
+            qis.validate_normalized_state(state=state,
+                                          qid_shape=(2,) * num_qubits,
+                                          dtype=state.dtype,
+                                          atol=atol)
         return self._expectation_from_wavefunction_no_validation(
             state, qubit_map)
 
@@ -499,14 +497,12 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.density_matrix_utils import to_valid_density_matrix
             # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+            _ = qis.to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
-                                        num_qubits=num_qubits,
-                                        dtype=state.dtype,
-                                        atol=atol)
+                                            num_qubits=num_qubits,
+                                            dtype=state.dtype,
+                                            atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 
@@ -610,7 +606,7 @@ class PauliString(raw_types.Operation):
                     'Exponentiated to a non-Hermitian PauliString '
                     f'<{base}**{self}>. Coefficient must be imaginary.')
 
-            half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
+            half_turns = 2 * math.log(base) * (-self.coefficient.imag / math.pi)
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))
@@ -625,8 +621,8 @@ class PauliString(raw_types.Operation):
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
                 PauliString(qubit_pauli_map=self._qubit_pauli_map),
-                exponent_neg=+half_turns / 2,
-                exponent_pos=-half_turns / 2)
+                exponent_neg=+half_turns / 4,
+                exponent_pos=-half_turns / 4)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]

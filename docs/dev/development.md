@@ -86,6 +86,7 @@ See the previous section for instructions.
 
     ```bash
     mkvirtualenv cirq-py3 --python=/usr/bin/python3
+    workon cirq-py3
     python -m pip install --upgrade pip
     python -m pip install -e .[dev_env]
     python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt

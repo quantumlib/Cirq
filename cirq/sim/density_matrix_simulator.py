@@ -19,7 +19,7 @@ from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, devices
+from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
 if TYPE_CHECKING:
@@ -120,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: value.RANDOM_STATE_LIKE = None,
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
                  ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
@@ -253,11 +253,10 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        initial_matrix = density_matrix_utils.to_valid_density_matrix(
-            initial_state,
-            len(qid_shape),
-            qid_shape=qid_shape,
-            dtype=self._dtype)
+        initial_matrix = qis.to_valid_density_matrix(initial_state,
+                                                     len(qid_shape),
+                                                     qid_shape=qid_shape,
+                                                     dtype=self._dtype)
         measured = collections.defaultdict(
             bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
@@ -292,6 +291,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
+                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 if isinstance(op.gate, ops.MeasurementGate):
@@ -319,7 +319,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
-                    # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
             yield DensityMatrixStepResult(density_matrix=state.tensor,
                                           measurements=measurements,
@@ -400,11 +399,10 @@ class DensityMatrixStepResult(simulator.StepResult):
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
-        density_matrix = density_matrix_utils.to_valid_density_matrix(
-            density_matrix_repr,
-            len(self._qubit_map),
-            qid_shape=self._qid_shape,
-            dtype=self._dtype)
+        density_matrix = qis.to_valid_density_matrix(density_matrix_repr,
+                                                     len(self._qubit_map),
+                                                     qid_shape=self._qid_shape,
+                                                     dtype=self._dtype)
         sim_state_matrix = self._simulator_state().density_matrix
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
         np.copyto(dst=sim_state_matrix, src=density_matrix)
@@ -444,7 +442,7 @@ class DensityMatrixStepResult(simulator.StepResult):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,

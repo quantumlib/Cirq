@@ -54,6 +54,9 @@ class QasmUGate(ops.SingleQubitGate):
             pre_phase / np.pi,
         )
 
+    def _has_unitary_(self):
+        return True
+
     def _qasm_(self, qubits: Tuple['cirq.Qid', ...],
                args: 'cirq.QasmArgs') -> str:
         args.validate_version('2.0')

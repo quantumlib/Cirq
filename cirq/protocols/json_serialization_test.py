@@ -105,10 +105,10 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 # TODO: Include cirq.rx in the Circuit test case file.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2014
 # Note that even the following doesn't work because theta gets
-#       multiplied by 1/pi.
-#       https://github.com/quantumlib/Cirq/issues/2014
-# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
+# multiplied by 1/pi:
+#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
 
@@ -175,6 +175,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
@@ -300,6 +301,8 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QuilFormatter',
+    'QuilOutput',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
@@ -314,6 +317,7 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',

@@ -56,7 +56,7 @@ circuit = cirq.Circuit(
 
 # Create an Engine object to use.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
+engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 
 # Create a sampler from the engine
 sampler = engine.sampler(processor_id='PROCESSOR_ID', gate_set=cg.SYC_GATESET)
@@ -94,9 +94,11 @@ device specifications.
 ## Calibration Metrics
 
 Metrics from the current status of the device can be retrieved using the\
-`get_latest_calibration` method of the `Engine` object.  This will return a
-Python dictionary where each key is the metric name.  The value of the
-dictionary will be the value of the metric, which can also be a dictionary.
+`get_current_calibration` method of an `EngineProcessor` object.  
+`EngineProcessor` objects can be retrieved from `Engine` using `get_processor`.
+This will return a Python dictionary where each key is the metric name.  The 
+value of the dictionary will be the value of the metric, which can also be 
+a dictionary.
 
 For example, the key may refer to a two-qubit gate error, and the value may
 be a dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented
