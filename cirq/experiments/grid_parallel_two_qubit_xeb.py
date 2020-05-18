@@ -210,6 +210,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
                                                   LAYER_D),
         seed: 'cirq.value.RANDOM_STATE_OR_SEED_LIKE' = None,
         data_collection_id: Optional[str] = None,
+        num_workers: int = 4,
         base_dir: str = DEFAULT_BASE_DIR) -> str:
     """Collect data for a grid parallel two-qubit XEB experiment.
 
@@ -276,6 +277,8 @@ def collect_grid_parallel_two_qubit_xeb_data(
             the random circuits.
         data_collection_id: The data collection ID to use. This determines the
             name of the directory in which data is saved to filesystem.
+        num_workers: The maximum number of threads to use to run circuits
+            concurrently.
         base_dir: The base directory in which to save data to filesystem.
 
     Side effects:
@@ -338,7 +341,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
 
     for depth in cycles:
         print(f'Executing circuits at depth {depth}.')
-        with ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
             for layer in layers:
                 truncated_circuits = [
                     circuit[:2 * depth] for circuit in circuits_[layer]
