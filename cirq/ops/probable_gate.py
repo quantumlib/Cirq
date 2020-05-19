@@ -129,4 +129,5 @@ class ProbableGate(raw_types.Gate):
             return (f'cirq.ProbableGate('
                     f'sub_gate={self.sub_gate!r}, '
                     f'probability=1)')
-        return f'{self.sub_gate!r}.with_probability({proper_repr(self.probability)})'
+        return (f'{self.sub_gate!r}.with_probability('
+                f'{proper_repr(self.probability)})')
