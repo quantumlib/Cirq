@@ -23,8 +23,8 @@ import sympy
 
 import cirq
 import cirq.google as cg
+import cirq.testing
 from cirq import ops
-from cirq._compat_test import capture_logging
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
@@ -3713,6 +3713,5 @@ def test_all_measurement_keys():
 def test_deprecated():
     q = cirq.NamedQubit('q')
     circuit = cirq.Circuit([cirq.H(q)])
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
         _ = circuit.final_wavefunction()
-    assert len(log) == 1

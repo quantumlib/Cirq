@@ -20,7 +20,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 _ = 0.0  # Make matrices readable by visually hiding off-diagonal elements.
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
@@ -1328,19 +1328,11 @@ def test_deprecated():
     q = cirq.LineQubit(0)
     pauli_sum = cirq.X(q) + 0.2 * cirq.Z(q)
     state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('expectation_from_wavefunction',
+                                  'expectation_from_state_vector',
+                                  'deprecated'):
         _ = pauli_sum.expectation_from_wavefunction(state_vector, {q: 0})
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'expectation_from_wavefunction' in msg
-    assert 'expectation_from_state_vector' in msg
-    assert 'deprecated' in msg
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
         _ = pauli_sum.expectation_from_state_vector(state=state_vector,
                                                     qubit_map={q: 0})
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'state' in msg
-    assert 'state_vector' in msg
-    assert 'deprecated' in msg

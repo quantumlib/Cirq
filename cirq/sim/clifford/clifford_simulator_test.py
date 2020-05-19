@@ -3,7 +3,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_simulate_no_circuit():
@@ -495,21 +495,13 @@ def test_json_roundtrip():
 def test_deprecated():
     q = cirq.LineQubit(0)
     clifford_state = cirq.CliffordState({q: 0})
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('wave_function', 'state_vector',
+                                  'deprecated'):
         _ = clifford_state.wave_function()
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'wave_function' in msg
-    assert 'state_vector' in msg
-    assert 'deprecated' in msg
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('collapse_wave_function',
+                                  'collapse_state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q],
                                                prng=0,
                                                collapse_wave_function=True)
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'collapse_wave_function' in msg
-    assert 'collapse_state_vector' in msg
-    assert 'deprecated' in msg

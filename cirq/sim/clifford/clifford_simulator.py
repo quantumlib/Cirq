@@ -423,7 +423,7 @@ class CliffordState():
     @deprecated_parameter(
         deadline='v0.10.0',
         fix='Use collapse_state_vector instead.',
-        parameter_desc='collapse_state_vector',
+        parameter_desc='collapse_wavefunction',
         match=lambda args, kwargs: 'collapse_wave_function' in kwargs,
         rewrite=lambda args, kwargs: (args, {(
             'collapse_state_vector' if k == 'collapse_wave_function' else k): v

@@ -268,14 +268,14 @@ results.
     cirq.Simulator
     cirq.SparseSimulatorStep
     cirq.StateVectorMixin
+    cirq.StateVectorSimulatorState
+    cirq.StateVectorStepResult
+    cirq.StateVectorTrialResult
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
-    cirq.StateVectorSimulatorState
-    cirq.StateVectorStepResult
-    cirq.StateVectorTrialResult
     cirq.Zip
 
 
@@ -670,6 +670,7 @@ Quantum Information Science
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
     cirq.validate_normalized_state_vector
+    cirq.validate_qid_shape
     cirq.von_neumann_entropy
 
 
@@ -692,16 +693,16 @@ important roles in the internal machinery of the library.
 Deprecated
 ''''''''''
 
-These objects will be removed in a future version of the library.
+These objects and methods will be removed in a future version of the library.
 
 .. autosummary::
     :toctree: generated/
 
     cirq.final_wavefunction
-    cirq.SimulatesIntermediateWaveFunction
     cirq.subwavefunction
+    cirq.validate_normalized_state
+    cirq.wavefunction_partial_trace_as_mixture
+    cirq.SimulatesIntermediateWaveFunction
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
-    cirq.wavefunction_partial_trace_as_mixture
-    cirq.validate_normalized_state

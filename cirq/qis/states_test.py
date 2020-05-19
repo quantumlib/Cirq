@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def assert_dirac_notation_numpy(vec, expected, decimals=2):
@@ -528,6 +528,24 @@ def test_eye_tensor():
 
 
 def test_deprecated():
-    state_vector = np.array([1, 1]) / np.sqrt(2)
-    with capture_logging() as log:
+    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.bloch_vector_from_state_vector(state=state_vector, index=0)
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.density_matrix_from_state_vector(state=state_vector)
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.dirac_notation(state=state_vector)
+
+    with cirq.testing.assert_logs('validate_normalized_state',
+                                  'validate_normalized_state_vector',
+                                  'deprecated'):
+        _ = cirq.validate_normalized_state(state_vector, qid_shape=(2,))
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.validate_qid_shape(state=state_vector, qid_shape=(2,))

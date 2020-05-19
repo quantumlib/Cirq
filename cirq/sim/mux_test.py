@@ -20,7 +20,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_sample():
@@ -366,10 +366,6 @@ def test_final_density_matrix_noise():
 
 def test_deprecated():
     a = cirq.LineQubit(0)
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('final_wavefunction', 'final_state_vector',
+                                  'deprecated'):
         _ = cirq.final_wavefunction([cirq.H(a)])
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'final_wavefunction' in msg
-    assert 'final_state_vector' in msg
-    assert 'deprecated' in msg

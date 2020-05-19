@@ -21,7 +21,7 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def _make_qubits(n):
@@ -1546,23 +1546,15 @@ def test_pretty_print():
 def test_deprecated():
     a = cirq.LineQubit(0)
     state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('expectation_from_wavefunction',
+                                  'expectation_from_state_vector',
+                                  'deprecated'):
         _ = cirq.PauliString({
             a: 'x'
         }).expectation_from_wavefunction(state_vector, {a: 0})
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'expectation_from_wavefunction' in msg
-    assert 'expectation_from_state_vector' in msg
-    assert 'deprecated' in msg
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.PauliString({
             a: 'x'
         }).expectation_from_state_vector(state=state_vector, qubit_map={a: 0})
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert 'state' in msg
-    assert 'state_vector' in msg
-    assert 'deprecated' in msg

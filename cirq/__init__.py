@@ -312,7 +312,9 @@ from cirq.qis import (
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,
+    validate_normalized_state,
     validate_normalized_state_vector,
+    validate_qid_shape,
     von_neumann_entropy,
 )
 

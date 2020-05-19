@@ -15,7 +15,7 @@
 import numpy as np
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_state_vector_trial_result_repr():
@@ -147,28 +147,22 @@ def test_pretty_print():
     assert p.text_pretty == 'StateVectorTrialResult(...)'
 
 
-def assert_deprecated_log(log, deprecated, replacement):
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert deprecated in msg
-    assert replacement in msg
-    assert 'deprecated' in msg
-
-
 def test_deprecated():
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('WaveFunctionTrialResult',
+                                  'StateVectorTrialResult', 'deprecated'):
         _ = cirq.sim.WaveFunctionTrialResult(
             cirq.ParamResolver(), {},
             cirq.StateVectorSimulatorState(np.array([1]), {}))
-    assert_deprecated_log(log=log,
-                          deprecated='WaveFunctionTrialResult',
-                          replacement='StateVectorTrialResult')
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('final_state', 'final_state_vector',
+                                  'deprecated'):
+        _ = cirq.sim.StateVectorTrialResult(
+            cirq.ParamResolver(), {},
+            cirq.StateVectorSimulatorState(np.array([1]), {})).final_state
+
+    with cirq.testing.assert_logs('WaveFunctionSimulatorState',
+                                  'StateVectorSimulatorState', 'deprecated'):
         _ = cirq.sim.WaveFunctionSimulatorState(np.array([1]), {})
-    assert_deprecated_log(log=log,
-                          deprecated='WaveFunctionSimulatorState',
-                          replacement='StateVectorSimulatorState')
 
     class TestStepResult(cirq.sim.WaveFunctionStepResult):
 
@@ -181,11 +175,9 @@ def test_deprecated():
         def sample(self, qubits, repetitions, seed):
             pass
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('WaveFunctionStepResult',
+                                  'StateVectorStepResult', 'deprecated'):
         _ = TestStepResult()
-    assert_deprecated_log(log=log,
-                          deprecated='WaveFunctionStepResult',
-                          replacement='StateVectorStepResult')
 
     class TestSimulatesClass(cirq.sim.SimulatesIntermediateWaveFunction):
 
@@ -193,9 +185,7 @@ def test_deprecated():
                                 initial_state):
             pass
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('SimulatesIntermediateWaveFunction',
+                                  'SimulatesIntermediateStateVector',
+                                  'deprecated'):
         _ = TestSimulatesClass()
-
-    assert_deprecated_log(log=log,
-                          deprecated='SimulatesIntermediateWaveFunction',
-                          replacement='SimulatesIntermediateStateVector')

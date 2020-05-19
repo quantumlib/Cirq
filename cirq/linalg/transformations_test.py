@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_reflection_matrix_pow_consistent_results():
@@ -633,42 +633,24 @@ def test_partial_trace_of_state_vector_as_mixture_mixed_result():
         assert mixtures_equal(mixture, truth)
 
 
-def assert_deprecated_log(log, deprecated, replacement):
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert deprecated in msg
-    assert replacement in msg
-    assert 'deprecated' in msg
-
-
 def test_deprecated():
     a = np.arange(4) / np.linalg.norm(np.arange(4))
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('subwavefunction', 'sub_state_vector',
+                                  'deprecated'):
         _ = cirq.subwavefunction(a, [0, 1], atol=1e-8)
-    assert_deprecated_log(log=log,
-                          deprecated='subwavefunction',
-                          replacement='sub_state_vector')
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.sub_state_vector(wavefunction=a,
                                   keep_indices=[0, 1],
                                   atol=1e-8)
-    assert_deprecated_log(log=log,
-                          deprecated='wavefunction',
-                          replacement='state_vector')
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('wavefunction_partial_trace_as_mixture',
+                                  'partial_trace_of_state_vector_as_mixture',
+                                  'deprecated'):
         _ = cirq.wavefunction_partial_trace_as_mixture(a, [0])
-    assert_deprecated_log(
-        log=log,
-        deprecated='wavefunction_partial_trace_as_mixture',
-        replacement='partial_trace_of_state_vector_as_mixture')
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('wavefunction', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.partial_trace_of_state_vector_as_mixture(wavefunction=a,
                                                           keep_indices=[0])
-    assert_deprecated_log(log=log,
-                          deprecated='wavefunction',
-                          replacement='state_vector')

@@ -400,14 +400,6 @@ def test_step_result_bloch_vector():
                                          step_result.bloch_vector_of(q0))
 
 
-def assert_deprecated_log(log, deprecated, replacement):
-    assert len(log) == 1
-    msg = log[0].getMessage()
-    assert deprecated in msg
-    assert replacement in msg
-    assert 'deprecated' in msg
-
-
 def test_deprecated():
     with cirq.testing.assert_logs('cirq.bloch_vector_from_state_vector',
                                   'deprecated'):
@@ -433,59 +425,11 @@ def test_deprecated():
         # Reason for type: ignore: https://github.com/python/mypy/issues/5354
         _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
 
-
-def test_deprecated():
-    with capture_logging() as log:
-        _ = cirq.sim.bloch_vector_from_state_vector(np.array([1, 0]), 0)
-    assert_deprecated_log(log=log,
-                          deprecated='cirq.sim.bloch_vector_from_state_vector',
-                          replacement='cirq.bloch_vector_from_state_vector')
-
-    with capture_logging() as log:
-        _ = cirq.sim.density_matrix_from_state_vector(np.array([1, 0]))
-    assert_deprecated_log(
-        log=log,
-        deprecated='cirq.sim.density_matrix_from_state_vector',
-        replacement='cirq.density_matrix_from_state_vector')
-
-    with capture_logging() as log:
-        _ = cirq.sim.dirac_notation(np.array([1, 0]))
-    assert_deprecated_log(log=log,
-                          deprecated='cirq.sim.dirac_notation',
-                          replacement='cirq.dirac_notation')
-
-    with capture_logging() as log:
-        _ = cirq.sim.to_valid_state_vector(0, 1)
-    assert_deprecated_log(log=log,
-                          deprecated='cirq.sim.to_valid_state_vector',
-                          replacement='cirq.to_valid_state_vector')
-
-    with capture_logging() as log:
-        _ = cirq.sim.validate_normalized_state(np.array([1, 0],
-                                                        dtype=np.complex64),
-                                               qid_shape=(2,))
-    assert_deprecated_log(log=log,
-                          deprecated='validate_normalized_state',
-                          replacement='cirq.validate_normalized_state_vector')
-
-    with capture_logging() as log:
-        # Reason for type: ignore: https://github.com/python/mypy/issues/5354
-        _ = cirq.sim.STATE_VECTOR_LIKE  # type: ignore
-    assert_deprecated_log(log=log,
-                          deprecated='cirq.sim.STATE_VECTOR_LIKE',
-                          replacement='cirq.STATE_VECTOR_LIKE')
-
     state_vector = np.array([1, 1]) / np.sqrt(2)
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.sample_state_vector(state=state_vector, indices=[0])
-    assert_deprecated_log(log=log,
-                          deprecated='state',
-                          replacement='state_vector')
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.measure_state_vector(state=state_vector, indices=[0])
-    assert_deprecated_log(log=log,
-                          deprecated='state',
-                          replacement='state_vector')
