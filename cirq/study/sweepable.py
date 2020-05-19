@@ -22,10 +22,15 @@ from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
 
-Sweepable = Union[Dict[str, Union[float, str, Iterable, Any]], ParamResolver,
-                  Sweep, Iterable[
-                      Union[Dict[str, Union[float, str, Iterable, Any]],
-                            ParamResolver, Sweep]], None]
+Sweepable = Union[
+    # Singleton parameter sets.
+    None,  # The empty assignment.
+    Dict[str, Any],
+    ParamResolver,
+    # Built-in sweep type.
+    Sweep,
+    # Recursive flattening case.
+    Iterable[Union[Dict[str, Any], ParamResolver, Sweep]]]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
