@@ -45,7 +45,7 @@ class Moment:
 
     @deprecated_parameter(
         deadline='v0.9',
-        fix="Don't specify a keyword.",
+        fix='Don\'t specify a keyword.',
         match=lambda _, kwargs: 'operations' in kwargs,
         parameter_desc='operations',
         rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}))
