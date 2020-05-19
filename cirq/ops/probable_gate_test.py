@@ -88,11 +88,14 @@ def test_consistent_protocols():
 
 
 def test_diagram():
+
     class NoDetailsGate(cirq.Gate):
+
         def num_qubits(self) -> int:
             raise NotImplementedError()
 
-    assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5), None) is None
+    assert cirq.circuit_diagram_info(NoDetailsGate().with_probability(0.5),
+                                     None) is None
 
     a, b = cirq.LineQubit.range(2)
     cirq.testing.assert_has_diagram(cirq.Circuit(
@@ -119,14 +122,17 @@ def test_parameterized():
 
 
 def test_mixture():
+
     class NoDetailsGate(cirq.Gate):
+
         def num_qubits(self) -> int:
             return 1
 
     assert not cirq.has_mixture(NoDetailsGate().with_probability(0.5))
     assert cirq.mixture(NoDetailsGate().with_probability(0.5), None) is None
 
-    assert cirq.mixture(cirq.X.with_probability(sympy.Symbol('x')), None) is None
+    assert cirq.mixture(cirq.X.with_probability(sympy.Symbol('x')),
+                        None) is None
 
     m = cirq.mixture(cirq.X.with_probability(0.25))
     assert len(m) == 2
@@ -149,13 +155,16 @@ def assert_channel_sums_to_identity(val):
 
 
 def test_channel():
+
     class NoDetailsGate(cirq.Gate):
+
         def num_qubits(self) -> int:
             return 1
 
     assert not cirq.has_channel(NoDetailsGate().with_probability(0.5))
     assert cirq.channel(NoDetailsGate().with_probability(0.5), None) is None
-    assert cirq.channel(cirq.X.with_probability(sympy.Symbol('x')), None) is None
+    assert cirq.channel(cirq.X.with_probability(sympy.Symbol('x')),
+                        None) is None
     assert_channel_sums_to_identity(cirq.X.with_probability(0.25))
     assert_channel_sums_to_identity(cirq.bit_flip(0.75).with_probability(0.25))
     assert_channel_sums_to_identity(
