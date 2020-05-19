@@ -13,9 +13,10 @@
 # limitations under the License.
 
 """Basic types defining qubits, gates, and operations."""
+
 import re
-from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple,
-                    TypeVar, Union, TYPE_CHECKING)
+from typing import (Any, Dict, FrozenSet, Iterable, List, Optional, Sequence,
+                    Tuple, TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
@@ -141,8 +142,17 @@ class GateOperation(raw_types.Operation):
     def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
         return protocols.channel(self.gate, NotImplemented)
 
-    def _measurement_key_(self) -> str:
-        return protocols.measurement_key(self.gate, NotImplemented)
+    def _measurement_key_(self) -> Optional[str]:
+        getter = getattr(self.gate, '_measurement_key_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _measurement_keys_(self) -> Optional[Iterable[str]]:
+        getter = getattr(self.gate, '_measurement_keys_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.gate)
