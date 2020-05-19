@@ -473,9 +473,13 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_probability(self, probability: Union[float, sympy.Basic, float]):
         from cirq.ops.probable_gate import ProbableGate
+        gate = self.gate
+        if gate is None:
+            raise NotImplementedError(
+                "with_probability not implemented for operations with no gate.")
         if probability == 1:
             return self
-        return ProbableGate(sub_gate=self.gate,
+        return ProbableGate(sub_gate=gate,
                             probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):

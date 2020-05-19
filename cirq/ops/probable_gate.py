@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import numbers
-from typing import Tuple, TYPE_CHECKING, Dict, Any
+from typing import Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat
 
 import numpy as np
 
@@ -30,8 +30,8 @@ class ProbableGate(raw_types.Gate):
     """Applies a sub operation with some probability."""
 
     def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
-        if isinstance(probability,
-                      numbers.Number) and not 0 <= float(probability) <= 1:
+        if isinstance(probability, numbers.Number) and not 0 <= float(
+                cast(SupportsFloat, probability)) <= 1:
             raise ValueError("not 0 <= probability <= 1")
 
         self.sub_gate = sub_gate
