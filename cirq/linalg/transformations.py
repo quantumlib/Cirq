@@ -334,7 +334,7 @@ def partial_trace_of_state_vector_as_mixture(
 
     The input state vector must have shape `(2,) * n` or `(2 ** n)` where
     `state_vector` is expressed over n qubits. States in the output mixture will
-    retain the same type of shape as the input state_function, either `(2 ** k)`
+    retain the same type of shape as the input state vector, either `(2 ** k)`
     or `(2,) * k` where k is the number of qubits kept.
 
     If the state vector cannot be factored into a pure state over `keep_indices`
@@ -347,13 +347,13 @@ def partial_trace_of_state_vector_as_mixture(
         atol: The tolerance for determining that a factored state is pure.
 
     Returns:
-        A single-component mixture in which the factored state_function has
+        A single-component mixture in which the factored state vector has
         probability '1' if the partially traced state is pure, or else a
         mixture of the default eigendecomposition of the mixed state's
         partial trace.
 
     Raises:
-        ValueError: if the input state_function is not an array of length
+        ValueError: if the input `state_vector` is not an array of length
         `(2 ** n)` or a tensor with a shape of `(2,) * n`
     """
 
@@ -403,14 +403,14 @@ def sub_state_vector(state_vector: np.ndarray,
                      *,
                      default: TDefault = RaiseValueErrorIfNotProvided,
                      atol: Union[int, float] = 1e-8) -> np.ndarray:
-    r"""Attempts to factor a state_vector into two parts and return one of them.
+    r"""Attempts to factor a state vector into two parts and return one of them.
 
-    The input state_vector must have shape ``(2,) * n`` or ``(2 ** n)`` where
+    The input `state_vector` must have shape ``(2,) * n`` or ``(2 ** n)`` where
     `state_vector` is expressed over n qubits. The returned array will retain
-    the same type of shape as the input state_function, either ``(2 ** k)`` or
+    the same type of shape as the input state vector, either ``(2 ** k)`` or
     ``(2,) * k`` where k is the number of qubits kept.
 
-    If a state_vector $|\psi\rangle$ defined on n qubits is an outer product
+    If a state vector $|\psi\rangle$ defined on n qubits is an outer product
     of kets like  $|\psi\rangle$ = $|x\rangle \otimes |y\rangle$, and
     $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
@@ -425,7 +425,7 @@ def sub_state_vector(state_vector: np.ndarray,
     This method randomizes the global phase of $|x\rangle$ in order to avoid
     accidental reliance on the global phase being some specific value.
 
-    If the provided state_vector cannot be factored into a pure state over
+    If the provided `state_vector` cannot be factored into a pure state over
     `keep_indices`, the method will fall back to return `default`. If `default`
     is not provided, the method will fail and raise `ValueError`.
 
@@ -441,7 +441,7 @@ def sub_state_vector(state_vector: np.ndarray,
             measure to 1.
 
     Returns:
-        The state_vector expressed over the desired subset of qubits.
+        The state vector expressed over the desired subset of qubits.
 
     Raises:
         ValueError: if the `state_vector` is not of the correct shape or the
