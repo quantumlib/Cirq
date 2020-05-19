@@ -68,6 +68,9 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
 )
 
+from cirq.testing.logs import (
+    assert_logs,)
+
 from cirq.testing.order_tester import (
     OrderTester,)
 
