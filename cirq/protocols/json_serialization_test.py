@@ -135,11 +135,13 @@ SHOULDNT_BE_SERIALIZED = [
     'PAULI_BASIS',
 
     # abstract, but not inspect.isabstract():
+    'Device',
     'InterchangeableQubitsGate',
     'Pauli',
     'SingleQubitGate',
     'ThreeQubitGate',
     'TwoQubitGate',
+    'ABCMetaImplementAnyOneOf',
 
     # protocols:
     'SupportsApplyChannel',
@@ -147,6 +149,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
+    'SupportsCommutes',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
@@ -219,11 +222,10 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
         if name.startswith('_'):
             continue
 
-        if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
-             issubclass(type(obj), abc.ABCMeta))):
+        if inspect.isclass(obj) and inspect.isabstract(obj):
             continue
 
+        # assert name != 'XPowGate'
         yield name, obj
 
 

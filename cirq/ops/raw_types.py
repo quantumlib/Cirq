@@ -20,6 +20,7 @@ from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
 import abc
 import functools
 import numpy as np
+import sympy
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
@@ -259,6 +260,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def with_probability(self, probability: Union[float, sympy.Basic, float]):
+        from cirq.ops.probable_gate import ProbableGate
+        if probability == 1:
+            return self
+        return ProbableGate(sub_gate=self, probability=probability)
+
     def controlled(self,
                    num_controls: int = None,
                    control_values: Optional[Sequence[
@@ -459,10 +466,17 @@ class Operation(metaclass=abc.ABCMeta):
                 default to 1.
         """
         # Avoids circular import.
-        from cirq.ops import ControlledOperation
+        from cirq.ops.controlled_operation import ControlledOperation
         if len(control_qubits) == 0:
             return self
         return ControlledOperation(control_qubits, self, control_values)
+
+    def with_probability(self, probability: Union[float, sympy.Basic, float]):
+        from cirq.ops.probable_gate import ProbableGate
+        if probability == 1:
+            return self
+        return ProbableGate(sub_gate=self.gate,
+                            probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
