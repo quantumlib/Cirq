@@ -83,28 +83,6 @@ class ReturnsNotImplementedUnitary():
         return NotImplemented
 
 
-@pytest.mark.parametrize('val', (
-    NoMethod(),
-    ReturnsNotImplemented(),
-))
-def test_objects_with_no_mixture(val):
-    with pytest.raises(TypeError, match="mixture"):
-        _ = cirq.mixture(val)
-    assert cirq.mixture(val, None) is None
-    assert cirq.mixture(val, NotImplemented) is NotImplemented
-    default = ((0.4, 'a'), (0.6, 'b'))
-    assert cirq.mixture(val, default) == default
-
-
-@pytest.mark.parametrize('val,mixture', (
-    (ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
-    (ReturnsNonnormalizedTuple(), ((0.4, 'a'), (0.4, 'b'))),
-))
-def test_objects_with_mixture(val, mixture):
-    assert cirq.mixture(val) == mixture
-    assert cirq.mixture(val, ((0.3, 'a'), (0.7, 'b'))) == mixture
-
-
 @pytest.mark.parametrize('val,mixture',
                          ((ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
                           (ReturnsNonnormalizedTuple(), ((0.4, 'a'),
