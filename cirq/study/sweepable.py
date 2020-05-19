@@ -80,10 +80,8 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
         ]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
-            sweep for item in sweepable for sweep in to_sweeps(
-                cast(
-                    Union[Dict[str, Union[float, str, Iterable, Any]],
-                          ParamResolver, Sweep], item))
+            sweep for item in sweepable
+            for sweep in to_sweeps(cast(Sweepable, item))
         ]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
                     f'sweepable: {sweepable}')
