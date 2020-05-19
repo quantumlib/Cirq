@@ -475,8 +475,7 @@ class Operation(metaclass=abc.ABCMeta):
         from cirq.ops.probable_gate import ProbableGate
         gate = self.gate
         if gate is None:
-            raise NotImplementedError(
-                "with_probability not implemented for operations with no gate.")
+            raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
         return ProbableGate(sub_gate=gate,
