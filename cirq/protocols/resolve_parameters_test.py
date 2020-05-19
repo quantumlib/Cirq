@@ -102,8 +102,8 @@ def test_resolve_generic_types():
     assert cirq.resolve_parameters('c', {'c': c}) is c
 
     assert cirq.resolve_parameters('c', {'c': [1, 2, 3]}) == [1, 2, 3]
-    assert cirq.resolve_parameters(sympy.Symbol('c'), {'c': [1, 2, 3]}
-                                   ) == [1, 2, 3]
+    assert cirq.resolve_parameters(sympy.Symbol('c'),
+                                   {'c': [1, 2, 3]}) == [1, 2, 3]
     assert cirq.resolve_parameters('c', {'c': (1, 2, 3)}) == (1, 2, 3)
     x = np.array([1, 2, 3])
     assert cirq.resolve_parameters('c', {'c': x}) is x

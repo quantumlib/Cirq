@@ -84,15 +84,42 @@ def test_to_sweeps_iterable_sweeps():
 
 
 def test_to_sweeps_dictionary_of_list():
-    assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == (
-        cirq.study.to_sweeps([{'t': 0}, {'t': 2}, {'t': 3}]))
-    assert cirq.study.to_sweeps({'t': [0, 1], 's': [2, 3], 'r': 4}) == (
-        cirq.study.to_sweeps([
-            {'t': 0, 's': 2, 'r': 4},
-            {'t': 0, 's': 3, 'r': 4},
-            {'t': 1, 's': 2, 'r': 4},
-            {'t': 1, 's': 3, 'r': 4},
-        ]))
+    assert cirq.study.to_sweeps({'t': [0, 2, 3]}) == (cirq.study.to_sweeps([{
+        't':
+        0
+    }, {
+        't':
+        2
+    }, {
+        't':
+        3
+    }]))
+    assert cirq.study.to_sweeps({
+        't': [0, 1],
+        's': [2, 3],
+        'r': 4
+    }) == (cirq.study.to_sweeps([
+        {
+            't': 0,
+            's': 2,
+            'r': 4
+        },
+        {
+            't': 0,
+            's': 3,
+            'r': 4
+        },
+        {
+            't': 1,
+            's': 2,
+            'r': 4
+        },
+        {
+            't': 1,
+            's': 3,
+            'r': 4
+        },
+    ]))
 
 
 def test_to_sweeps_invalid():

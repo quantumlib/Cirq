@@ -25,8 +25,7 @@ from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 Sweepable = Union[
     # Singleton parameter sets.
     None,  # The empty assignment.
-    Dict[str, Any],
-    ParamResolver,
+    Dict[str, Any], ParamResolver,
     # Built-in sweep type.
     Sweep,
     # Recursive flattening case.
