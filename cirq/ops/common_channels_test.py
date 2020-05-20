@@ -503,3 +503,33 @@ def test_bit_flip_channel_text_diagram():
     assert (cirq.circuit_diagram_info(
         bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
             wire_symbols=('BF(0.12)',)))
+
+
+def test_phase_damp_equivalent_to_three_matrix_decomposition():
+
+    class ThreeTermPhaseDamp(cirq.Gate):
+        def __init__(self, p):
+            self.p = p
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _channel_(self):
+            return [
+                np.sqrt(1 - self.p) * cirq.unitary(cirq.I),
+                np.sqrt(self.p) * np.array([[1, 0], [0, 0]]),
+                np.sqrt(self.p) * np.array([[0, 0], [0, 1]]),
+            ]
+
+    a, b = cirq.LineQubit.range(2)
+    actual = cirq.final_density_matrix(cirq.Circuit(
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        cirq.phase_damp(0.1).on(a),
+    ))
+    expected = cirq.final_density_matrix(cirq.Circuit(
+        cirq.H(a),
+        cirq.CNOT(a, b),
+        ThreeTermPhaseDamp(0.1).on(a),
+    ))
+    np.testing.assert_allclose(actual, expected, atol=1e-6)

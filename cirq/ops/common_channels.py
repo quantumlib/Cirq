@@ -638,15 +638,9 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
 
             $$
             \begin{aligned}
-            M_0 =& \begin{bmatrix}
-                    1 & 0 \\
-                    0 & \sqrt{1 - \gamma}
-                  \end{bmatrix}
+            M_0 =& \sqrt{1 - \gamma / 2} I
             \\
-            M_1 =& \begin{bmatrix}
-                    0 & 0 \\
-                    0 & \sqrt{\gamma}
-                  \end{bmatrix}
+            M_1 =& \sqrt{\gamma / 2} Z
             \end{aligned}
             $$
 
@@ -658,13 +652,13 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         """
         self._gamma = value.validate_probability(gamma, 'gamma')
 
-    def _channel_(self) -> Iterable[np.ndarray]:
-        return (
-            np.array([[1., 0.], [0., np.sqrt(1. - self._gamma)]]),
-            np.array([[0., 0.], [0., np.sqrt(self._gamma)]]),
-        )
+    def _mixture_(self):
+        return [
+            (self._gamma / 2, np.array([[1, 0], [0, -1]])),
+            (1 - self._gamma / 2, np.array([[1, 0], [0, 1]])),
+        ]
 
-    def _has_channel_(self) -> bool:
+    def _has_mixture_(self) -> bool:
         return True
 
     def _value_equality_values_(self):
@@ -706,15 +700,9 @@ def phase_damp(gamma: float) -> PhaseDampingChannel:
 
         $$
         \begin{aligned}
-        M_0 =& \begin{bmatrix}
-                1 & 0  \\
-                0 & \sqrt{1 - \gamma}
-              \end{bmatrix}
-        \\
-        M_1 =& \begin{bmatrix}
-                0 & 0 \\
-                0 & \sqrt{\gamma}
-              \end{bmatrix}
+            M_0 =& \sqrt{1 - \gamma / 2} I
+            \\
+            M_1 =& \sqrt{\gamma / 2} Z
         \end{aligned}
         $$
 
