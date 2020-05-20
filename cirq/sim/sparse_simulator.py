@@ -36,6 +36,7 @@ class _StateAndBuffer():
 
     def __init__(self, state_vector, buffer):
         self.state_vector = state_vector
+        self.buffer = buffer
 
 
 class Simulator(simulator.SimulatesSamples,
