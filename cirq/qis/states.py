@@ -449,7 +449,7 @@ def validate_qid_shape(state_vector: np.ndarray,
     return qid_shape
 
 
-def validate_indices(num_qubits: int, indices: List[int]) -> None:
+def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
     """Validates that the indices have values within range of num_qubits."""
     if any(index < 0 for index in indices):
         raise IndexError('Negative index in indices: {}'.format(indices))

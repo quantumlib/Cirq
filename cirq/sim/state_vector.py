@@ -13,13 +13,7 @@
 # limitations under the License.
 """Helpers for handling quantum state vectors."""
 
-from typing import (
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    TYPE_CHECKING,
-)
+from typing import (Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence)
 
 import abc
 import numpy as np
@@ -266,7 +260,7 @@ def sample_state_vector(
                                          ): v for k, v in kwargs.items()}))
 def measure_state_vector(
         state_vector: np.ndarray,
-        indices: List[int],
+        indices: Sequence[int],
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
         out: np.ndarray = None,
@@ -355,7 +349,7 @@ def measure_state_vector(
     return measurement_bits, out
 
 
-def _probs(state: np.ndarray, indices: List[int],
+def _probs(state: np.ndarray, indices: Sequence[int],
            qid_shape: Tuple[int, ...]) -> np.ndarray:
     """Returns the probabilities for a measurement on the given indices."""
     tensor = np.reshape(state, qid_shape)

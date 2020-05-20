@@ -92,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
+    cirq.RandomGateChannel
     cirq.SingleQubitGate
     cirq.SwapPowGate
     cirq.TaggedOperation
@@ -240,6 +241,7 @@ results.
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
     cirq.CliffordSimulatorStepResult
@@ -308,6 +310,7 @@ the magic methods that can be implemented.
     :toctree: generated/
 
     cirq.DEFAULT_RESOLVERS
+    cirq.act_on
     cirq.apply_channel
     cirq.apply_mixture
     cirq.apply_unitaries
@@ -355,6 +358,7 @@ the magic methods that can be implemented.
     cirq.QasmOutput
     cirq.QuilFormatter
     cirq.QuilOutput
+    cirq.SupportsActOn
     cirq.SupportsApplyChannel
     cirq.SupportsApplyMixture
     cirq.SupportsApproximateEquality
