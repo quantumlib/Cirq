@@ -13,7 +13,8 @@
 # limitations under the License.
 
 import numbers
-from typing import Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat
+from typing import Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, \
+    Optional
 
 import numpy as np
 
@@ -112,13 +113,14 @@ class ProbableGate(raw_types.Gate):
     def _from_json_dict_(cls, sub_gate, probability, **kwargs):
         return cls(sub_gate=sub_gate, probability=probability)
 
-    def _circuit_diagram_info_(self, args):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Optional['cirq.CircuitDiagramInfo']:
         result = protocols.circuit_diagram_info(self.sub_gate, args, None)
         if result is None:
             return None
         wires = list(result.wire_symbols)
         if wires:
-            wires[0] += f'[prob={self.probability}]'
+            wires[0] += f'[prob={args.format_real(self.probability)}]'
         return result.with_wire_symbols(wires)
 
     def __str__(self):

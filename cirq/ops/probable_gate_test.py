@@ -98,14 +98,21 @@ def test_diagram():
                                      None) is None
 
     a, b = cirq.LineQubit.range(2)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(cirq.CNOT(a, b).with_probability(0.125)), """
+0: ───@[prob=0.125]───
+      │
+1: ───X───────────────
+        """)
+
     cirq.testing.assert_has_diagram(cirq.Circuit(
-        cirq.CNOT(a, b).with_probability(0.5)),
+        cirq.CNOT(a, b).with_probability(0.125)),
                                     """
-0: ───@[prob=0.5]───
+0: ───@[prob=0.1]───
       │
 1: ───X─────────────
         """,
-                                    use_unicode_characters=True)
+                                    precision=1)
 
 
 def test_parameterized():
