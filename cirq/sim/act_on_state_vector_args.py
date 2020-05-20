@@ -157,7 +157,7 @@ class ActOnStateVectorArgs:
         for strat in strats:
             result = strat(action, self)
             if result is False:
-                break
+                break  # coverage: ignore
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
@@ -197,8 +197,7 @@ def _strat_act_on_state_vector_from_apply_decompose(
 def _act_all_on_state_vector(actions: Iterable[Any],
                              qubits: Sequence['cirq.Qid'],
                              args: 'cirq.ActOnStateVectorArgs'):
-    if len(qubits) != len(args.axes):
-        raise ValueError('len(qubits) != len(args.axes)')
+    assert len(qubits) == len(args.axes)
     qubit_map = {q: args.axes[i] for i, q in enumerate(qubits)}
 
     old_axes = args.axes

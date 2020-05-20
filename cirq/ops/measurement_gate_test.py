@@ -195,6 +195,9 @@ def test_act_on():
     a, b = cirq.LineQubit.range(2)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(m, object())
+
     args = cirq.ActOnStateVectorArgs(
         target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
@@ -228,6 +231,9 @@ def test_act_on():
     )
     cirq.act_on(m, args)
     assert args.log_of_measurement_results == {'out': [0, 1]}
+
+    with pytest.raises(ValueError, match="already logged to key"):
+        cirq.act_on(m, args)
 
 
 def test_act_on_qutrit():

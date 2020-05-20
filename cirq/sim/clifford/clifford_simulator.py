@@ -97,26 +97,26 @@ class CliffordSimulator(simulator.SimulatesSamples,
                                               state=CliffordState(
                                                   qubit_map,
                                                   initial_state=initial_state))
-        else:
-            state = CliffordState(qubit_map, initial_state=initial_state)
+            return
 
-            for moment in circuit:
-                measurements: Dict[str, List[
-                    np.ndarray]] = collections.defaultdict(list)
+        state = CliffordState(qubit_map, initial_state=initial_state)
 
-                for op in moment:
-                    if protocols.is_measurement(op):
-                        if not isinstance(op.gate, ops.MeasurementGate):
-                            raise NotImplementedError(
-                                f'Unrecognized measurement type {op!r}')
-                        key = protocols.measurement_key(op)
-                        measurements[key].extend(
-                            state.perform_measurement(op.qubits, self._prng))
-                    elif protocols.has_unitary(op):
-                        state.apply_unitary(op)
+        for moment in circuit:
+            measurements: Dict[str, List[
+                np.ndarray]] = collections.defaultdict(list)
 
-                yield CliffordSimulatorStepResult(measurements=measurements,
-                                                  state=state)
+            for op in moment:
+                if isinstance(op.gate, ops.MeasurementGate):
+                    key = protocols.measurement_key(op)
+                    measurements[key].extend(
+                        state.perform_measurement(op.qubits, self._prng))
+                elif protocols.has_unitary(op):
+                    state.apply_unitary(op)
+                else:
+                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+
+            yield CliffordSimulatorStepResult(measurements=measurements,
+                                              state=state)
 
     def _simulator_iterator(
             self,

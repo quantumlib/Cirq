@@ -103,7 +103,7 @@ def act_on(
                 f'_act_on_ must return True or NotImplemented but got '
                 f'{result!r} from {action!r}._act_on_')
 
-    arg_fallback = getattr(args, '_act_on_fallback_')
+    arg_fallback = getattr(args, '_act_on_fallback_', None)
     if arg_fallback is not None:
         result = arg_fallback(action, allow_decompose=allow_decompose)
         if result is True:
