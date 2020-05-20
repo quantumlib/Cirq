@@ -21,6 +21,7 @@ def test_ms_arguments():
     eq_tester = cirq.testing.EqualsTester()
     eq_tester.add_equality_group(cirq.ms(np.pi / 2),
                                  cirq.ion.ion_gates.MSGate(rads=np.pi / 2))
+    eq_tester.add_equality_group(cirq.XXPowGate(global_shift=-0.5))
 
 
 def test_ms_str():
@@ -48,10 +49,10 @@ def test_ms_matrix():
 
 
 def test_ms_repr():
-    ms = cirq.ms(np.pi / 2)
     assert repr(cirq.ms(np.pi / 2)) == 'cirq.ms(np.pi/2)'
     assert repr(cirq.ms(np.pi / 4)) == 'cirq.ms(0.5*np.pi/2)'
     cirq.testing.assert_equivalent_repr(cirq.ms(np.pi / 4))
+    ms = cirq.ms(np.pi / 2)
     assert (repr(ms**2) == 'cirq.ms(2.0*np.pi/2)')
     assert (repr(ms**-0.5) == 'cirq.ms(-0.5*np.pi/2)')
 
