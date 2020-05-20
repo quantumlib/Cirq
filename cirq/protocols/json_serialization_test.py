@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
 import inspect
 
 import io
@@ -140,18 +139,22 @@ SHOULDNT_BE_SERIALIZED = [
     'PAULI_BASIS',
 
     # abstract, but not inspect.isabstract():
+    'Device',
     'InterchangeableQubitsGate',
     'Pauli',
     'SingleQubitGate',
     'ThreeQubitGate',
     'TwoQubitGate',
+    'ABCMetaImplementAnyOneOf',
 
     # protocols:
+    'SupportsActOn',
     'SupportsApplyChannel',
     'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
+    'SupportsCommutes',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
@@ -224,11 +227,10 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
         if name.startswith('_'):
             continue
 
-        if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
-             issubclass(type(obj), abc.ABCMeta))):
+        if inspect.isclass(obj) and inspect.isabstract(obj):
             continue
 
+        # assert name != 'XPowGate'
         yield name, obj
 
 
