@@ -508,6 +508,7 @@ def test_bit_flip_channel_text_diagram():
 def test_phase_damp_equivalent_to_three_matrix_decomposition():
 
     class ThreeTermPhaseDamp(cirq.Gate):
+
         def __init__(self, p):
             self.p = p
 
@@ -522,14 +523,16 @@ def test_phase_damp_equivalent_to_three_matrix_decomposition():
             ]
 
     a, b = cirq.LineQubit.range(2)
-    actual = cirq.final_density_matrix(cirq.Circuit(
-        cirq.H(a),
-        cirq.CNOT(a, b),
-        cirq.phase_damp(0.1).on(a),
-    ))
-    expected = cirq.final_density_matrix(cirq.Circuit(
-        cirq.H(a),
-        cirq.CNOT(a, b),
-        ThreeTermPhaseDamp(0.1).on(a),
-    ))
+    actual = cirq.final_density_matrix(
+        cirq.Circuit(
+            cirq.H(a),
+            cirq.CNOT(a, b),
+            cirq.phase_damp(0.1).on(a),
+        ))
+    expected = cirq.final_density_matrix(
+        cirq.Circuit(
+            cirq.H(a),
+            cirq.CNOT(a, b),
+            ThreeTermPhaseDamp(0.1).on(a),
+        ))
     np.testing.assert_allclose(actual, expected, atol=1e-6)
