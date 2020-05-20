@@ -387,7 +387,7 @@ def partial_trace_of_state_vector_as_mixture(
 
 wavefunction_partial_trace_as_mixture = deprecated(
     deadline='v0.10.0',
-    fix='use partial_trace_of_state_vector_as_mixture instead')(
+    fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')(
         partial_trace_of_state_vector_as_mixture)
 
 
@@ -415,12 +415,9 @@ def sub_state_vector(state_vector: np.ndarray,
     $|x\rangle$ is defined over the subset ``keep_indices`` of k qubits, then
     this method will factor $|\psi\rangle$ into $|x\rangle$ and $|y\rangle$ and
     return $|x\rangle$. Note that $|x\rangle$ is not unique, because scalar
-    multiplication may be absorbed by any factor of a tensor product:
-
-    $$
-        e^{i \theta} |y\rangle \otimes |x\rangle
-        = |y\rangle \otimes e^{i \theta} |x\rangle
-    $$
+    multiplication may be absorbed by any factor of a tensor product,
+    $e^{i \theta} |y\rangle \otimes |x\rangle =
+    |y\rangle \otimes e^{i \theta} |x\rangle$
 
     This method randomizes the global phase of $|x\rangle$ in order to avoid
     accidental reliance on the global phase being some specific value.
@@ -502,4 +499,5 @@ def sub_state_vector(state_vector: np.ndarray,
 
 
 subwavefunction = deprecated(
-    deadline='v0.10.0', fix='use sub_state_vector instead')(sub_state_vector)
+    deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')(
+    sub_state_vector)
