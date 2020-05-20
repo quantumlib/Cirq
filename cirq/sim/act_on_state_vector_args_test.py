@@ -19,7 +19,9 @@ import cirq
 
 
 def test_decomposed_fallback():
+
     class Composite(cirq.Gate):
+
         def num_qubits(self) -> int:
             return 1
 
@@ -40,6 +42,7 @@ def test_decomposed_fallback():
 
 
 def test_cannot_act():
+
     class NoDetails:
         pass
 

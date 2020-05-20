@@ -102,8 +102,8 @@ class CliffordSimulator(simulator.SimulatesSamples,
         state = CliffordState(qubit_map, initial_state=initial_state)
 
         for moment in circuit:
-            measurements: Dict[str, List[
-                np.ndarray]] = collections.defaultdict(list)
+            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(
+                list)
 
             for op in moment:
                 if isinstance(op.gate, ops.MeasurementGate):

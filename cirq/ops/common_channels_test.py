@@ -330,17 +330,19 @@ def test_reset_act_on():
 
     cirq.act_on(cirq.ResetChannel(), args)
     assert args.log_of_measurement_results == {}
-    np.testing.assert_allclose(args.target_tensor,
-                               cirq.one_hot(index=(1, 0, 1, 1, 1),
-                                            shape=(2, 2, 2, 2, 2),
-                                            dtype=np.complex64))
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
 
     cirq.act_on(cirq.ResetChannel(), args)
     assert args.log_of_measurement_results == {}
-    np.testing.assert_allclose(args.target_tensor,
-                               cirq.one_hot(index=(1, 0, 1, 1, 1),
-                                            shape=(2, 2, 2, 2, 2),
-                                            dtype=np.complex64))
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
 
 
 def test_phase_damping_channel():
