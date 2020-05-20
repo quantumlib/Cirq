@@ -33,8 +33,9 @@ def test_eq():
     eq = cirq.testing.EqualsTester()
     q = cirq.LineQubit(0)
 
-    eq.add_equality_group(cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5),
-                          cirq.X.with_probability(0.5))
+    eq.add_equality_group(
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5),
+        cirq.X.with_probability(0.5))
 
     # Each field matters for equality.
     eq.add_equality_group(cirq.Y.with_probability(0.5))
@@ -82,7 +83,8 @@ def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
         cirq.RandomGateChannel(sub_gate=cirq.X, probability=0))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.RandomGateChannel(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2))
+        cirq.RandomGateChannel(sub_gate=cirq.X,
+                               probability=sympy.Symbol('x') / 2))
     cirq.testing.assert_implements_consistent_protocols(
         cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5))
 
