@@ -315,6 +315,7 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
     CliffordSimulator,
@@ -394,6 +395,7 @@ from cirq.value import (
 
 # pylint: disable=redefined-builtin
 from cirq.protocols import (
+    act_on,
     apply_channel,
     apply_mixture,
     apply_unitaries,
@@ -438,10 +440,11 @@ from cirq.protocols import (
     QuilFormatter,
     read_json,
     resolve_parameters,
+    SupportsActOn,
     SupportsApplyChannel,
     SupportsApplyMixture,
-    SupportsConsistentApplyUnitary,
     SupportsApproximateEquality,
+    SupportsConsistentApplyUnitary,
     SupportsChannel,
     SupportsCircuitDiagramInfo,
     SupportsCommutes,

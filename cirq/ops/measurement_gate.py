@@ -215,6 +215,28 @@ class MeasurementGate(raw_types.Gate):
                    invert_mask=tuple(invert_mask),
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
 
+    def _act_on_(self, args: Any) -> bool:
+        from cirq import sim
+
+        if isinstance(args, sim.ActOnStateVectorArgs):
+
+            invert_mask = self.full_invert_mask()
+            bits, _ = sim.measure_state_vector(
+                args.target_tensor,
+                args.axes,
+                out=args.target_tensor,
+                qid_shape=args.target_tensor.shape,
+                seed=args.prng)
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
+            args.record_measurement_result(self.key, corrected)
+
+            return True
+
+        return NotImplemented
+
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:
     return ','.join(str(q) for q in qubits)
