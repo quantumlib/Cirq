@@ -1297,6 +1297,33 @@ class Circuit:
         self._device.validate_circuit(copy)
         self._moments = copy._moments
 
+    def batch_replace(self, replacements: Iterable[
+            Tuple[int, 'cirq.Operation', 'cirq.Operation']]) -> None:
+        """Replaces several operations in a circuit with new operations.
+
+        Args:
+            replacements: A sequence of (moment_index, old_op, new_op) tuples
+                indicating operations to be replaced in this circuit. All "old"
+                operations must actually be present or the edit will fail
+                (without making any changes to the circuit).
+
+        ValueError:
+            One of the operations to replace wasn't present to start with.
+
+        IndexError:
+            Replaced in a moment that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op, new_op in replacements:
+            if op not in copy._moments[i].operations:
+                raise ValueError(
+                    f"Can't replace {op} @ {i} because it doesn't exist.")
+            copy._moments[i] = ops.Moment(
+                old_op if old_op != op else new_op
+                for old_op in copy._moments[i].operations)
+        self._device.validate_circuit(copy)
+        self._moments = copy._moments
+
     def batch_insert_into(self,
                           insert_intos: Iterable[Tuple[int, ops.Operation]]
                           ) -> None:

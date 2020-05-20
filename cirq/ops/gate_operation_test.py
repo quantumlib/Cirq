@@ -207,6 +207,22 @@ def test_pauli_expansion():
     assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
         cirq.CNOT))
 
+    class No(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    class Yes(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _pauli_expansion_(self):
+            return cirq.LinearDict({'X': 0.5})
+
+    assert cirq.pauli_expansion(No().on(a), default=None) is None
+    assert cirq.pauli_expansion(Yes().on(a)) == cirq.LinearDict({'X': 0.5})
+
 
 def test_unitary():
     a = cirq.NamedQubit('a')
@@ -344,3 +360,39 @@ def test_mul():
     # Handles the symmetric type case correctly.
     assert m * m == 6
     assert r * r == 4
+
+
+def test_with_gate():
+    g1 = cirq.GateOperation(cirq.X, cirq.LineQubit.range(1))
+    g2 = cirq.GateOperation(cirq.Y, cirq.LineQubit.range(1))
+    assert g1.with_gate(cirq.X) is g1
+    assert g1.with_gate(cirq.Y) == g2
+
+
+def test_is_parameterized():
+
+    class No1(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    class No2(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _is_parameterized_(self):
+            return False
+
+    class Yes(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _is_parameterized_(self):
+            return True
+
+    q = cirq.LineQubit(0)
+    assert not cirq.is_parameterized(No1().on(q))
+    assert not cirq.is_parameterized(No2().on(q))
+    assert cirq.is_parameterized(Yes().on(q))
