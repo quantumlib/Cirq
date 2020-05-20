@@ -104,6 +104,13 @@ def test_run_measure_at_end_no_repetitions(dtype):
         assert mock_sim.call_count == 4
 
 
+def test_run_repetitions_terminal_measurement_stochastic():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.H(q), cirq.measure(q, key='q'))
+    results = cirq.Simulator().run(c, repetitions=10000)
+    assert 1000 <= sum(v[0] for v in results.measurements['q']) < 9000
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_run_repetitions_measure_at_end(dtype):
     q0, q1 = cirq.LineQubit.range(2)

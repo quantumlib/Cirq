@@ -14,6 +14,9 @@
 
 """Base simulation classes and generic simulators."""
 
+from cirq.sim.act_on_state_vector_args import (
+    ActOnStateVectorArgs,)
+
 from cirq.sim.density_matrix_utils import (
     measure_density_matrix,
     sample_density_matrix,
