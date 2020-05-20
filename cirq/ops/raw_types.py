@@ -260,10 +260,10 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return self.on(*args, **kwargs)
 
     def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
-        from cirq.ops.probable_gate import ProbableGate
+        from cirq.ops.random_gate_channel import RandomGateChannel
         if probability == 1:
             return self
-        return ProbableGate(sub_gate=self, probability=probability)
+        return RandomGateChannel(sub_gate=self, probability=probability)
 
     def controlled(self,
                    num_controls: int = None,
@@ -472,14 +472,14 @@ class Operation(metaclass=abc.ABCMeta):
 
     def with_probability(self,
                          probability: 'cirq.TParamVal') -> 'cirq.Operation':
-        from cirq.ops.probable_gate import ProbableGate
+        from cirq.ops.random_gate_channel import RandomGateChannel
         gate = self.gate
         if gate is None:
             raise NotImplementedError("with_probability on gateless operation.")
         if probability == 1:
             return self
-        return ProbableGate(sub_gate=gate,
-                            probability=probability).on(*self.qubits)
+        return RandomGateChannel(sub_gate=gate,
+                                 probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid

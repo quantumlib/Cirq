@@ -1,5 +1,5 @@
 {
-      "cirq_type": "ProbableGate",
+      "cirq_type": "RandomGateChannel",
       "sub_gate": {
             "cirq_type": "_PauliX",
             "exponent": 1,

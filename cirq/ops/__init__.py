@@ -188,8 +188,8 @@ from cirq.ops.phased_x_gate import (
 from cirq.ops.phased_x_z_gate import (
     PhasedXZGate,)
 
-from cirq.ops.probable_gate import (
-    ProbableGate,)
+from cirq.ops.random_gate_channel import (
+    RandomGateChannel,)
 
 from cirq.ops.raw_types import (
     Gate,

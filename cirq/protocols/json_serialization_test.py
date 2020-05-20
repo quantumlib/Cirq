@@ -148,6 +148,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ABCMetaImplementAnyOneOf',
 
     # protocols:
+    'SupportsActOn',
     'SupportsApplyChannel',
     'SupportsApplyMixture',
     'SupportsApproximateEquality',

@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality(approximate=True)
-class ProbableGate(raw_types.Gate):
+class RandomGateChannel(raw_types.Gate):
     """Applies a sub gate with some probability."""
 
     def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
@@ -39,7 +39,7 @@ class ProbableGate(raw_types.Gate):
         self.probability = probability
 
         # Auto flatten.
-        if isinstance(self.sub_gate, ProbableGate):
+        if isinstance(self.sub_gate, RandomGateChannel):
             self.probability *= self.sub_gate.probability
             self.sub_gate = self.sub_gate.sub_gate
 
@@ -66,7 +66,7 @@ class ProbableGate(raw_types.Gate):
                                   self.sub_gate)
 
     def _resolve_parameters_(self, resolver):
-        return ProbableGate(
+        return RandomGateChannel(
             sub_gate=protocols.resolve_parameters(self.sub_gate, resolver),
             probability=protocols.resolve_parameters(self.probability,
                                                      resolver),
@@ -128,7 +128,7 @@ class ProbableGate(raw_types.Gate):
 
     def __repr__(self):
         if self.probability == 1:
-            return (f'cirq.ProbableGate('
+            return (f'cirq.RandomGateChannel('
                     f'sub_gate={self.sub_gate!r}, '
                     f'probability=1)')
         return (f'{self.sub_gate!r}.with_probability('

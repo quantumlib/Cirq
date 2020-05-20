@@ -233,7 +233,7 @@ from cirq.ops import (
     PhasedXPowGate,
     PhasedXZGate,
     PhaseFlipChannel,
-    ProbableGate,
+    RandomGateChannel,
     QFT,
     Qid,
     QuantumFourierTransformGate,

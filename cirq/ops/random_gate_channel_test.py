@@ -19,21 +19,21 @@ import cirq
 
 
 def test_init():
-    p = cirq.ProbableGate(sub_gate=cirq.X, probability=0.5)
+    p = cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5)
     assert p.sub_gate is cirq.X
     assert p.probability == 0.5
 
     with pytest.raises(ValueError, match='probability'):
-        _ = cirq.ProbableGate(sub_gate=cirq.X, probability=2)
+        _ = cirq.RandomGateChannel(sub_gate=cirq.X, probability=2)
     with pytest.raises(ValueError, match='probability'):
-        _ = cirq.ProbableGate(sub_gate=cirq.X, probability=-1)
+        _ = cirq.RandomGateChannel(sub_gate=cirq.X, probability=-1)
 
 
 def test_eq():
     eq = cirq.testing.EqualsTester()
     q = cirq.LineQubit(0)
 
-    eq.add_equality_group(cirq.ProbableGate(sub_gate=cirq.X, probability=0.5),
+    eq.add_equality_group(cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5),
                           cirq.X.with_probability(0.5))
 
     # Each field matters for equality.
@@ -56,10 +56,10 @@ def test_eq():
 
     # Flattening.
     eq.add_equality_group(
-        cirq.ProbableGate(sub_gate=cirq.Z, probability=0.25),
-        cirq.ProbableGate(sub_gate=cirq.ProbableGate(sub_gate=cirq.Z,
-                                                     probability=0.5),
-                          probability=0.5),
+        cirq.RandomGateChannel(sub_gate=cirq.Z, probability=0.25),
+        cirq.RandomGateChannel(sub_gate=cirq.RandomGateChannel(sub_gate=cirq.Z,
+                                                               probability=0.5),
+                               probability=0.5),
         cirq.Z.with_probability(0.5).with_probability(0.5),
         cirq.Z.with_probability(0.25))
 
@@ -78,13 +78,13 @@ def test_eq():
 
 def test_consistent_protocols():
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ProbableGate(sub_gate=cirq.X, probability=1))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=1))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ProbableGate(sub_gate=cirq.X, probability=0))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ProbableGate(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=sympy.Symbol('x') / 2))
     cirq.testing.assert_implements_consistent_protocols(
-        cirq.ProbableGate(sub_gate=cirq.X, probability=0.5))
+        cirq.RandomGateChannel(sub_gate=cirq.X, probability=0.5))
 
 
 def test_diagram():
