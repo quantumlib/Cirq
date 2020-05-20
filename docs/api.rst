@@ -330,6 +330,7 @@ the magic methods that can be implemented.
     cirq.is_measurement
     cirq.is_parameterized
     cirq.measurement_key
+    cirq.measurement_keys
     cirq.mixture
     cirq.mixture_channel
     cirq.mul
@@ -574,6 +575,7 @@ operation.
     cirq.testing.assert_has_diagram
     cirq.testing.assert_implements_consistent_protocols
     cirq.testing.assert_json_roundtrip_works
+    cirq.testing.assert_logs
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
