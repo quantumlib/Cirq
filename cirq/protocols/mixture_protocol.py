@@ -30,23 +30,25 @@ RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 
 class SupportsMixture(Protocol):
-    """An object that may be describable as a probabilistic combination.
+    """An object that decomposes into a probability distribution of unitaries.
     """
 
     @document
     def _mixture_(self
                  ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
-        """Return the probabilistic mixture.
+        """Decompose into a probability distribution of unitaries.
+
+        This method is used by the global `cirq.mixture` method.
 
         A mixture is described by an iterable of tuples of the form
 
-            (probability of object, object)
+            (probability of unitary, unitary as numpy array)
 
         The probability components of the tuples must sum to 1.0 and be between
         0 and 1 (inclusive).
 
         Returns:
-            A tuple of (probability of object, object)
+            A list of (probability, unitary) pairs.
         """
 
     @document
@@ -63,18 +65,18 @@ class SupportsMixture(Protocol):
 
 
 def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-           ) -> Sequence[Tuple[float, Any]]:
-    """Return a sequence of tuples representing a probabilistic combination.
+           ) -> Sequence[Tuple[float, np.ndarray]]:
+    """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form
 
-        (probability of object, object)
+        (probability of unitary, unitary as numpy array)
 
-    The probability components of the tuples must sum to 1.0 and be between
-    0 and 1 (inclusive).
+    The probability components of the tuples must sum to 1.0 and be
+    non-negative.
 
     Args:
-        val: The value whose mixture is being computed.
+        val: The value to decompose into a mixture of unitaries.
         default: A default value if val does not support mixture.
 
     Returns:
