@@ -84,7 +84,11 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState', qubits: Tuple['cirq.Qid', ...]) -> Optional['CliffordState']:
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
         if len(qubits) != self.num_qubits():
             raise ValueError('len(qubits) != num_qubits')
         qubit = qubits[0]
@@ -281,6 +285,28 @@ class YPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        qubit = qubits[0]
+        if self._exponent % 0.5 != 0:
+            return NotImplemented
+        effective_exponent = self._exponent % 2
+        if effective_exponent == 0.5:
+            state._apply_Z(qubit)
+            state._apply_H(qubit)
+        elif effective_exponent == 1:
+            state._apply_Y(qubit)
+        elif effective_exponent == 1.5:
+            state._apply_Y(qubit)
+            state._apply_Z(qubit)
+            state._apply_H(qubit)
+        return state
+
     def in_su2(self) -> 'YPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return YPowGate(exponent=self._exponent, global_shift=-0.5)
@@ -420,6 +446,26 @@ class ZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        qubit = qubits[0]
+        if self._exponent % 0.5 != 0:
+            return NotImplemented
+        effective_exponent = self._exponent % 2
+        if effective_exponent == 0.5:
+            state._apply_S(qubit)
+        elif effective_exponent == 1:
+            state._apply_Z(qubit)
+        elif effective_exponent == 1.5:
+            state._apply_Z(qubit)
+            state._apply_S(qubit)
+        return state
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -662,6 +708,20 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        qubit = qubits[0]
+        if self._exponent % 1 != 0:
+            return NotImplemented
+        if self._exponent % 2 == 1:
+            state._apply_H(qubit)
+        return state
+
     def _decompose_(self, qubits):
         q = qubits[0]
 
@@ -763,6 +823,19 @@ class CZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        if self._exponent % 1 != 0:
+            return NotImplemented
+        if self._exponent % 2 == 1:
+            state._apply_CZ(qubits)
+        return state
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -925,6 +998,19 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
+                                 qubits: Tuple['cirq.Qid', ...]
+                                ) -> Optional['CliffordState']:
+        if protocols.is_parameterized(self):
+            return None
+        if len(qubits) != self.num_qubits():
+            raise ValueError('len(qubits) != num_qubits')
+        if self._exponent % 1 != 0:
+            return NotImplemented
+        if self._exponent % 2 == 1:
+            state._apply_CNOT(qubits)
+        return state
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):

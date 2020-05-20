@@ -40,7 +40,6 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 
@@ -64,7 +63,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         if protocols.is_measurement(op): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
-        u = cirq.unitary(op)
+        u = unitary(op)
         if u.shape == (2, 2):
             return not SingleQubitCliffordGate.from_unitary(u) is None
         else:
@@ -336,14 +335,14 @@ class CliffordState():
             self._apply_H(qubit)
             return
 
-        u = unitary(op)
+        u = cirq.unitary(op)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is None:
             raise ValueError('%s cannot be run with Clifford simulator.' %
                              str(op.gate))
 
-        h = unitary(ops.H)
-        s = unitary(ops.S)
+        h = cirq.unitary(ops.H)
+        s = cirq.unitary(ops.S)
         applied_unitary = np.eye(2)
         for axis, quarter_turns in clifford_gate.decompose_rotation():
             for _ in range(quarter_turns % 4):
@@ -367,12 +366,12 @@ class CliffordState():
         self.ch_form.omega *= phase_shift
 
     def _apply_H(self, qubit: ops.Qid):
-        self.tableau._H(qubit)
-        self.ch_form._H(qubit)
+        self.tableau._H(self.qubit_map[qubit])
+        self.ch_form._H(self.qubit_map[qubit])
 
     def _apply_S(self, qubit: ops.Qid):
-        self.tableau._S(qubit)
-        self.ch_form._S(qubit)
+        self.tableau._S(self.qubit_map[qubit])
+        self.ch_form._S(self.qubit_map[qubit])
 
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],

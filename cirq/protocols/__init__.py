@@ -25,8 +25,7 @@ from cirq.protocols.apply_channel_protocol import (
     SupportsApplyChannel,
 )
 from cirq.protocols.apply_clifford_tableau_protocol import (
-    apply_clifford_tableau,
-)
+    apply_clifford_tableau,)
 from cirq.protocols.apply_mixture_protocol import (
     apply_mixture,
     ApplyMixtureArgs,

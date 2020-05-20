@@ -12,14 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+import sympy
 import cirq
 
+
 def test_inconclusive():
-    qubits = [cirq.NamedQubit('a'),cirq.NamedQubit('b'),cirq.NamedQubit('c')]
+    qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b'), cirq.NamedQubit('c')]
     q_map = {q: i for i, q in enumerate(qubits)}
     s = cirq.CliffordState(q_map)
     # assert cirq.apply_clifford_tableau(cirq.X, s, (q_map[qubits[0]],))
-    assert cirq.apply_clifford_tableau(cirq.X**6, s, (q_map[qubits[0]],))
+    bar = sympy.Symbol('bar')
+    with pytest.raises(ValueError):
+        _ = cirq.apply_clifford_tableau((cirq.X**bar)(qubits[0]), s)
+    assert cirq.apply_clifford_tableau((cirq.X**6)(qubits[0]), s)
     # assert cirq.apply_clifford_tableau(cirq.X**1.5, s, (q_map[qubits[0]],))
-    assert cirq.apply_clifford_tableau(cirq.X**2.5, s, (q_map[qubits[0]],))
-    assert cirq.apply_clifford_tableau(cirq.Z, s, (q_map[qubits[0]],))
+    assert cirq.apply_clifford_tableau((cirq.X**2.5)(qubits[0]), s)
+    with pytest.raises(ValueError):
+        _ = cirq.apply_clifford_tableau((cirq.X**2.2)(qubits[0]), s)
+    assert cirq.apply_clifford_tableau(cirq.Z(qubits[0]), s)
