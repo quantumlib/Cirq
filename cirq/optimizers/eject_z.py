@@ -40,7 +40,7 @@ def _is_swaplike(op: ops.Operation):
     return False
 
 
-class EjectZ():
+class EjectZ:
     """Pushes Z gates towards the end of the circuit.
 
     As the Z gates get pushed they may absorb other Z gates, get absorbed into
@@ -65,20 +65,36 @@ class EjectZ():
     def optimize_circuit(self, circuit: circuits.Circuit):
         # Tracks qubit phases (in half turns; multiply by pi to get radians).
         qubit_phase: Dict[ops.Qid, float] = defaultdict(lambda: 0)
+        deletions: List[Tuple[int, ops.Operation]] = []
+        replacements: List[Tuple[int, ops.Operation, ops.Operation]] = []
+        insertions: List[Tuple[int, ops.Operation]] = []
+        phased_xz_replacements: Dict[Tuple[int, ops.Qid], int] = {}
 
         def dump_tracked_phase(qubits: Iterable[ops.Qid],
                                index: int) -> None:
             """Zeroes qubit_phase entries by emitting Z gates."""
             for q in qubits:
                 p = qubit_phase[q]
-                if not decompositions.is_negligible_turn(p, self.tolerance):
+                qubit_phase[q] = 0
+                if decompositions.is_negligible_turn(p, self.tolerance):
+                    continue
+                dumped = False
+                moment_index = circuit.prev_moment_operating_on([q], index)
+                if moment_index is not None:
+                    op = circuit.moments[moment_index][q]
+                    if op and isinstance(op.gate, ops.PhasedXZGate):
+                        # Attach z-rotation to replacing PhasedXZ gate.
+                        idx = phased_xz_replacements[moment_index, q]
+                        _, _, repl_op = replacements[idx]
+                        gate = cast(ops.PhasedXZGate, repl_op.gate)
+                        repl_op = gate.with_z_exponent(p * 2).on(q)
+                        replacements[idx] = (moment_index, op, repl_op)
+                        dumped = True
+                if not dumped:
+                    # Add a new Z gate
                     dump_op = ops.Z(q)**(p * 2)
                     insertions.append((index, dump_op))
-                qubit_phase[q] = 0
 
-        deletions: List[Tuple[int, ops.Operation]] = []
-        inline_intos: List[Tuple[int, ops.Operation]] = []
-        insertions: List[Tuple[int, ops.Operation]] = []
         for moment_index, moment in enumerate(circuit):
             for op in moment.operations:
                 # Move Z gates into tracked qubit phases.
@@ -96,8 +112,9 @@ class EjectZ():
 
                 # If there's no tracked phase, we can move on.
                 phases = [qubit_phase[q] for q in op.qubits]
-                if all(decompositions.is_negligible_turn(p, self.tolerance)
-                       for p in phases):
+                if (not isinstance(op.gate, ops.PhasedXZGate) and all(
+                        decompositions.is_negligible_turn(p, self.tolerance)
+                        for p in phases)):
                     continue
 
                 if _is_swaplike(op):
@@ -106,7 +123,6 @@ class EjectZ():
                         b], qubit_phase[a]
                     continue
 
-
                 # Try to move the tracked phasing over the operation.
                 phased_op = op
                 for i, p in enumerate(phases):
@@ -114,15 +130,22 @@ class EjectZ():
                         phased_op = protocols.phase_by(phased_op, -p, i,
                                                        default=None)
                 if phased_op is not None:
-                    deletions.append((moment_index, op))
-                    inline_intos.append((moment_index,
-                                     cast(ops.Operation, phased_op)))
+                    gate = phased_op.gate
+                    if (isinstance(gate, ops.PhasedXZGate) and
+                        (self.eject_parameterized or
+                         not protocols.is_parameterized(gate.z_exponent))):
+                        qubit = phased_op.qubits[0]
+                        qubit_phase[qubit] += gate.z_exponent / 2
+                        phased_op = gate.with_z_exponent(0).on(qubit)
+                        repl_idx = len(replacements)
+                        phased_xz_replacements[moment_index, qubit] = repl_idx
+                    replacements.append((moment_index, op, phased_op))
                 else:
                     dump_tracked_phase(op.qubits, moment_index)
 
         dump_tracked_phase(qubit_phase.keys(), len(circuit))
         circuit.batch_remove(deletions)
-        circuit.batch_insert_into(inline_intos)
+        circuit.batch_replace(replacements)
         circuit.batch_insert(insertions)
 
 
