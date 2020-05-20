@@ -20,7 +20,6 @@ from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
 import abc
 import functools
 import numpy as np
-import sympy
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType
