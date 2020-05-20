@@ -19,44 +19,16 @@ from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict
 
 import numpy as np
 
-<<<<<<< HEAD
-from cirq import circuits, linalg, ops, protocols, qis, study, value
-from cirq.sim import simulator, state_vector, state_vector_simulator
-=======
 from cirq import circuits, ops, protocols, qis, study, value
 from cirq.sim import (
     simulator,
-    wave_function,
-    wave_function_simulator,
+    state_vector,
+    state_vector_simulator,
     act_on_state_vector_args,
 )
->>>>>>> master
 
 if TYPE_CHECKING:
     import cirq
-
-
-<<<<<<< HEAD
-class _FlipGate(ops.SingleQubitGate):
-    """A unitary gate that flips the |0> state with another state.
-
-    Used by `Simulator` to reset a qubit.
-    """
-
-    def __init__(self, dimension: int, reset_value: int):
-        assert 0 < reset_value < dimension
-        self.dimension = dimension
-        self.reset_value = reset_value
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return (self.dimension,)
-
-    def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs') -> np.ndarray:
-        args.available_buffer[..., 0] = args.target_tensor[..., self.
-                                                           reset_value]
-        args.available_buffer[..., self.
-                              reset_value] = args.target_tensor[..., 0]
-        return args.available_buffer
 
 
 # Mutable named tuple to hold state vector and a buffer.
@@ -64,14 +36,6 @@ class _StateAndBuffer():
 
     def __init__(self, state_vector, buffer):
         self.state_vector = state_vector
-=======
-# Mutable named tuple to hold state and a buffer.
-class _StateAndBuffer:
-
-    def __init__(self, state: np.ndarray, buffer: np.ndarray):
-        self.state = state
->>>>>>> master
-        self.buffer = buffer
 
 
 class Simulator(simulator.SimulatesSamples,
