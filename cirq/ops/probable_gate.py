@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 
 @value.value_equality(approximate=True)
 class ProbableGate(raw_types.Gate):
-    """Applies a sub operation with some probability."""
+    """Applies a sub gate with some probability."""
 
     def __init__(self, *, sub_gate: 'cirq.Gate', probability: value.TParamVal):
         if isinstance(probability, numbers.Number) and not 0 <= float(

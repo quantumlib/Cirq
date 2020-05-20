@@ -260,7 +260,7 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
-    def with_probability(self, probability: Union[float, sympy.Basic, float]):
+    def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
         from cirq.ops.probable_gate import ProbableGate
         if probability == 1:
             return self
@@ -471,7 +471,8 @@ class Operation(metaclass=abc.ABCMeta):
             return self
         return ControlledOperation(control_qubits, self, control_values)
 
-    def with_probability(self, probability: Union[float, sympy.Basic, float]):
+    def with_probability(self,
+                         probability: 'cirq.TParamVal') -> 'cirq.Operation':
         from cirq.ops.probable_gate import ProbableGate
         gate = self.gate
         if gate is None:
