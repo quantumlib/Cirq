@@ -417,7 +417,7 @@ def validate_normalized_state_vector(
 validate_normalized_state = deprecated(
     deadline='v0.10.0',
     fix='Use `cirq.validate_normalized_state_vector` instead.')(
-    validate_normalized_state_vector)
+        validate_normalized_state_vector)
 
 
 @deprecated_parameter(

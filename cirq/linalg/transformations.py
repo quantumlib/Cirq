@@ -499,5 +499,5 @@ def sub_state_vector(state_vector: np.ndarray,
 
 
 subwavefunction = deprecated(
-    deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')(
-    sub_state_vector)
+    deadline='v0.10.0',
+    fix='Use `cirq.sub_state_vector` instead.')(sub_state_vector)

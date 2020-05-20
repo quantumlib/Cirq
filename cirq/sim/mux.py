@@ -162,8 +162,8 @@ def final_state_vector(
 
 
 final_wavefunction = deprecated(
-    deadline='v.0.10.0', fix='Use `cirq.final_state_vector` instead.')(
-    final_state_vector)
+    deadline='v.0.10.0',
+    fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
 
 
 def sample_sweep(program: 'cirq.Circuit',
