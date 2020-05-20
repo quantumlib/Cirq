@@ -139,7 +139,6 @@ class EjectZ:
                         phased_op = gate.with_z_exponent(0).on(qubit)
                         repl_idx = len(replacements)
                         phased_xz_replacements[moment_index, qubit] = repl_idx
-                        print(repl_idx, '->', (moment_index, op, phased_op))
                     replacements.append((moment_index, op, phased_op))
                 else:
                     dump_tracked_phase(op.qubits, moment_index)
