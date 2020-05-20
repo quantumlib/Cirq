@@ -61,6 +61,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
+        # TODO: support more general Pauli measurements
         if isinstance(op.gate, cirq.MeasurementGate): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False

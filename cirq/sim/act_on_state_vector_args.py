@@ -26,7 +26,16 @@ if TYPE_CHECKING:
 
 
 class ActOnStateVectorArgs:
-    """State and context for an operation acting on a state vector."""
+    """State and context for an operation acting on a state vector.
+
+    There are three common ways to act on this object:
+
+    1. Directly edit the `target_tensor` property, which is storing the state
+        vector of the quantum system as a numpy array with one axis per qudit.
+    2. Overwrite the `available_buffer` property with the new state vector, and
+        then pass `available_buffer` into `swap_target_tensor_for`.
+    3. Call `record_measurement_result(key, val)` to log a measurement result.
+    """
 
     def __init__(self, target_tensor: np.ndarray, available_buffer: np.ndarray,
                  axes: Iterable[int], prng: np.random.RandomState,
@@ -37,9 +46,10 @@ class ActOnStateVectorArgs:
                 with one dimension for each qubit in the system. Operations are
                 expected to perform inplace edits of this object.
             available_buffer: A workspace with the same shape and dtype as
-                `target_tensor`. The result of an operation can be put into this
-                buffer, instead of directly editing `target_tensor`, if
-                `swap_target_tensor_for` is called afterward.
+                `target_tensor`. Used by operations that cannot be applied to
+                `target_tensor` inline, in order to avoid unnecessary
+                allocations. Passing `available_buffer` into
+                `swap_target_tensor_for` will swap it for `target_tensor`.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
             prng: The pseudo random number generator to use for probabilistic
@@ -94,14 +104,22 @@ class ActOnStateVectorArgs:
                 bit of the integer is the desired bit for the first axis, and
                 so forth in increasing order. Can't be specified at the same
                 time as `big_endian_bits_int`.
+
+                When operating on qudits instead of qubits, the same basic logic
+                applies but in a different basis. For example, if the target
+                axes have dimension [a:2, b:3, c:2] then the integer 10
+                decomposes into [a=0, b=2, c=1] via 7 = 1*(3*2) +  2*(2) + 0.
+
             big_endian_bits_int: The desired value of the qubits at the
                 targeted `axes`, packed into an integer. The most significant
                 bit of the integer is the desired bit for the first axis, and
                 so forth in decreasing order. Can't be specified at the same
                 time as `little_endian_bits_int`.
-            value_tuple: The desired value of the qids at the targeted `axes`,
-                packed into a tuple.  Specify either `little_endian_bits_int` or
-                `value_tuple`.
+
+                When operating on qudits instead of qubits, the same basic logic
+                applies but in a different basis. For example, if the target
+                axes have dimension [a:2, b:3, c:2] then the integer 10
+                decomposes into [a=1, b=2, c=0] via 7 = 1*(3*2) +  2*(2) + 0.
 
         Returns:
             A value that can be used to index into `target_tensor` and

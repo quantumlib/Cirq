@@ -190,9 +190,6 @@ class ApplyUnitaryArgs:
                 bit of the integer is the desired bit for the first axis, and
                 so forth in decreasing order. Can't be specified at the same
                 time as `little_endian_bits_int`.
-            value_tuple: The desired value of the qids at the targeted `axes`,
-                packed into a tuple.  Specify either `little_endian_bits_int` or
-                `value_tuple`.
 
         Returns:
             A value that can be used to index into `target_tensor` and
