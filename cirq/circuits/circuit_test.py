@@ -2650,6 +2650,55 @@ def test_batch_remove():
     assert after == original
 
 
+def test_batch_replace():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    original = cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Empty case.
+    after = original.copy()
+    after.batch_replace([])
+    assert after == original
+
+    # Replace one.
+    after = original.copy()
+    after.batch_replace([(0, cirq.X(a), cirq.Y(a))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.Y(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Out of range.
+    after = original.copy()
+    with pytest.raises(IndexError):
+        after.batch_replace([(500, cirq.X(a), cirq.Y(a))])
+    assert after == original
+
+    # Gate does not exist.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_replace([(0, cirq.Z(a), cirq.Y(a))])
+    assert after == original
+
+    # Replace several.
+    after = original.copy()
+    after.batch_replace([(0, cirq.X(a), cirq.Y(a)),
+                         (2, cirq.CZ(a, b), cirq.CNOT(a, b))])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.Y(a)]),
+        cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+
 def test_batch_insert_into():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -3691,19 +3740,19 @@ def test_all_measurement_keys():
     )
 
     # Big case.
-    assert c.all_measurement_keys() == ['x', 'y', 'xy', 'test']
+    assert c.all_measurement_keys() == ('x', 'y', 'xy', 'test')
 
     # Empty case.
-    assert cirq.Circuit().all_measurement_keys() == []
+    assert cirq.Circuit().all_measurement_keys() == ()
 
     # Output order matches insertion order, not qubit order.
     assert cirq.Circuit(
         cirq.Moment([
             cirq.measure(a, key='x'),
             cirq.measure(b, key='y'),
-        ])).all_measurement_keys() == ['x', 'y']
+        ])).all_measurement_keys() == ('x', 'y')
     assert cirq.Circuit(
         cirq.Moment([
             cirq.measure(b, key='y'),
             cirq.measure(a, key='x'),
-        ])).all_measurement_keys() == ['y', 'x']
+        ])).all_measurement_keys() == ('y', 'x')

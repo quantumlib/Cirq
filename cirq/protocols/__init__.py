@@ -79,6 +79,7 @@ from cirq.protocols.json_serialization import (
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    measurement_keys,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (
