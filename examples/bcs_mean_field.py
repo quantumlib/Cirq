@@ -317,7 +317,7 @@ def bcs_parameters(n_site, n_fermi, u, t) :
     hop_erg = hop_erg - fermi_erg
 
     def _bcs_gap(x):
-        """Defines the self-consistent equation for the BCS wavefunction.
+        """Defines the self-consistent equation for the BCS state vector.
 
         Args:
             x: the superconducting gap

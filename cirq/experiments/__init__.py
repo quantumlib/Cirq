@@ -52,3 +52,8 @@ from cirq.experiments.t1_decay_experiment import (
     t1_decay,
     T1DecayResult,
 )
+
+from cirq.experiments.t2_decay_experiment import (
+    t2_decay,
+    T2DecayResult,
+)

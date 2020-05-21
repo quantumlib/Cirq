@@ -14,6 +14,11 @@
 
 """Circuit transformation utilities."""
 
+from cirq.optimizers.cphase_to_fsim import (
+    compute_cphase_exponents_for_fsim_decomposition,
+    decompose_cphase_into_two_fsim,
+)
+
 from cirq.optimizers.controlled_gate_decomposition import (
     decompose_multi_controlled_x, decompose_multi_controlled_rotation)
 

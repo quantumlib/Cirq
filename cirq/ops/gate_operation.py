@@ -14,13 +14,13 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Dict, FrozenSet, List, Optional, Sequence, Tuple, Type,
-                    TypeVar, Union, TYPE_CHECKING)
+import re
+from typing import (Any, Dict, FrozenSet, Iterable, List, Optional, Sequence,
+                    Tuple, TypeVar, Union, TYPE_CHECKING)
 
 import numpy as np
 
 from cirq import protocols, value
-from cirq._compat import deprecated
 from cirq.ops import raw_types, gate_features
 from cirq.type_workarounds import NotImplementedType
 
@@ -56,24 +56,34 @@ class GateOperation(raw_types.Operation):
         return self.gate.on(*new_qubits)
 
     def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
+        if self.gate is new_gate:
+            return self
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
+        if hasattr(self.gate, '_op_repr_'):
+            result = self.gate._op_repr_(self.qubits)
+            if result is not None and result is not NotImplemented:
+                return result
+        gate_repr = repr(self.gate)
+        qubit_args_repr = ', '.join(repr(q) for q in self.qubits)
+        assert type(self.gate).__call__ == raw_types.Gate.__call__
+
         # Abbreviate when possible.
+        dont_need_on = re.match(r'^[a-zA-Z0-9.()]+$', gate_repr)
+        if dont_need_on and self == self.gate.__call__(*self.qubits):
+            return f'{gate_repr}({qubit_args_repr})'
         if self == self.gate.on(*self.qubits):
-            return '{!r}.on({})'.format(
-                self.gate,
-                ', '.join(repr(q) for q in self.qubits))
+            return f'{gate_repr}.on({qubit_args_repr})'
 
-        return 'cirq.GateOperation(gate={!r}, qubits={!r})'.format(
-            self.gate,
-            list(self.qubits))
+        return (f'cirq.GateOperation(gate={self.gate!r}, '
+                f'qubits=[{qubit_args_repr}])')
 
-    def __str__(self):
-        return '{}({})'.format(self.gate,
-                               ', '.join(str(e) for e in self.qubits))
+    def __str__(self) -> str:
+        qubits = ', '.join(str(e) for e in self.qubits)
+        return f'{self.gate}({qubits})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gate', 'qubits'])
 
     def _group_interchangeable_qubits(
@@ -95,7 +105,7 @@ class GateOperation(raw_types.Operation):
         return self.gate, self._group_interchangeable_qubits()
 
     def _qid_shape_(self):
-        return protocols.qid_shape(self.gate)
+        return self.gate._qid_shape_()
 
     def _num_qubits_(self):
         return len(self._qubits)
@@ -106,43 +116,85 @@ class GateOperation(raw_types.Operation):
                                                     NotImplemented)
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
-        return protocols.pauli_expansion(self.gate)
+        getter = getattr(self.gate, '_pauli_expansion_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Union[np.ndarray, None, NotImplementedType]:
-        return protocols.apply_unitary(self.gate, args, default=None)
+        getter = getattr(self.gate, '_apply_unitary_', None)
+        if getter is not None:
+            return getter(args)
+        return NotImplemented
 
     def _has_unitary_(self) -> bool:
-        return protocols.has_unitary(self.gate)
+        getter = getattr(self.gate, '_has_unitary_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        return protocols.unitary(self.gate, default=None)
+        getter = getattr(self.gate, '_unitary_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _commutes_(self, other: Any,
                    atol: float) -> Union[bool, NotImplementedType, None]:
         return self.gate._commutes_on_qids_(self.qubits, other, atol=atol)
 
     def _has_mixture_(self) -> bool:
-        return protocols.has_mixture(self.gate)
+        getter = getattr(self.gate, '_has_mixture_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _mixture_(self) -> Sequence[Tuple[float, Any]]:
-        return protocols.mixture(self.gate, NotImplemented)
+        getter = getattr(self.gate, '_mixture_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _has_channel_(self) -> bool:
-        return protocols.has_channel(self.gate)
+        getter = getattr(self.gate, '_has_channel_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _channel_(self) -> Union[Tuple[np.ndarray], NotImplementedType]:
-        return protocols.channel(self.gate, NotImplemented)
+        getter = getattr(self.gate, '_channel_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
-    def _measurement_key_(self) -> str:
-        return protocols.measurement_key(self.gate, NotImplemented)
+    def _measurement_key_(self) -> Optional[str]:
+        getter = getattr(self.gate, '_measurement_key_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _measurement_keys_(self) -> Optional[Iterable[str]]:
+        getter = getattr(self.gate, '_measurement_keys_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _act_on_(self, args: Any):
+        getter = getattr(self.gate, '_act_on_', None)
+        if getter is not None:
+            return getter(args)
+        return NotImplemented
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.gate)
+        getter = getattr(self.gate, '_is_parameterized_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _resolve_parameters_(self, resolver):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
-        return GateOperation(resolved_gate, self._qubits)
+        return self.with_gate(resolved_gate)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
@@ -157,7 +209,10 @@ class GateOperation(raw_types.Operation):
         return sub(self.qubits)
 
     def _trace_distance_bound_(self) -> float:
-        return protocols.trace_distance_bound(self.gate)
+        getter = getattr(self.gate, '_trace_distance_bound_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
 
     def _phase_by_(self, phase_turns: float,
                    qubit_index: int) -> 'GateOperation':
@@ -208,6 +263,11 @@ class GateOperation(raw_types.Operation):
                               qubits=self.qubits,
                               default=None)
 
+    def _quil_(self, formatter: 'protocols.QuilFormatter') -> Optional[str]:
+        return protocols.quil(self.gate,
+                              qubits=self.qubits,
+                              formatter=formatter)
+
     def _equal_up_to_global_phase_(self,
                                    other: Any,
                                    atol: Union[int, float] = 1e-8
@@ -222,11 +282,3 @@ class GateOperation(raw_types.Operation):
 
 
 TV = TypeVar('TV', bound=raw_types.Gate)
-
-
-@deprecated(deadline='v0.8.0',
-            fix='use: `op.gate if isinstance(op.gate, gate_type) else None`')
-def op_gate_of_type(op: Any, gate_type: Type[TV]) -> Optional[TV]:
-    """Returns gate of given type, if op has that gate otherwise None."""
-    gate = getattr(op, 'gate', None)
-    return gate if isinstance(gate, gate_type) else None

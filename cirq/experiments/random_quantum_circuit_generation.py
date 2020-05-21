@@ -156,7 +156,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
                                                          phase_exponent=0.25,
                                                          exponent=0.5)),
         add_final_single_qubit_layer: bool = True,
-        seed: value.RANDOM_STATE_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Circuit':
     """Generate a random quantum circuit.
 

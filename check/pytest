@@ -32,6 +32,6 @@ if [ -z "${ACTUALLY_QUIET}" ]; then
 else
     # Filter out lines like "...F....x...      [ 42%]", with coloring.
     pytest -q --color=yes "${PYTEST_ARGS[@]}" |
-        grep -Pv '^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$'
+        perl -nle'print if not m{^(.\[0m)?[\.FEsx]+(.\[36m)?\s+\[\s*\d+%\](.\[0m)?$}'
     exit "${PIPESTATUS[0]}"
 fi

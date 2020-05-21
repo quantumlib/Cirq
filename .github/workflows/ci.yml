@@ -63,7 +63,7 @@ jobs:
           python-version: '3.6'
           architecture: 'x64'
       - name: Install pylint
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
       - name: Lint
         run: check/pylint
   doc_test:
@@ -163,6 +163,7 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
+        shell: bash
   macos:
     name: Pytest MacOS
     runs-on: macos-10.15

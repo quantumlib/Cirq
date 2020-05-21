@@ -33,7 +33,7 @@ The basic process for setting up a fork is
 Forking creates a new github repo at the location
 ```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
 your github id. Use the directions on the
-[development page](docs/development.md) to download a copy to
+[development page](docs/dev/development.md) to download a copy to
 your local machine. You need only do this once.
 1. Checkout master and create a new branch from this master
     ```shell
@@ -75,8 +75,8 @@ the same process as above.
 When a pull request is created or updated, various automatic checks will run to ensure that the change won't break Cirq and meets our coding standards.
 
 Cirq contains a continuous integration tool to verify testing.  See our
-[development page](docs/development.md) on how to run the continuous integration
-checks locally.
+[development page](docs/dev/development.md) on how to run the continuous 
+integration checks locally.
 
 Please be aware of the following code standards that will be applied to any
 new changes.

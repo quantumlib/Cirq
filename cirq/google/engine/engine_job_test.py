@@ -374,7 +374,7 @@ def test_timeout(patched_time_sleep, get_job):
     qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
         state=qtypes.ExecutionStatus.State.RUNNING))
     get_job.return_value = qjob
-    job = cg.EngineJob('a', 'b', 'steve', EngineContext())
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(timeout=500))
     with pytest.raises(RuntimeError, match='Timed out'):
         job.results()
 

@@ -16,7 +16,6 @@ import numpy as np
 import pytest
 import sympy
 import cirq
-from cirq._compat_test import capture_logging
 
 
 def test_gate_operation_init():
@@ -208,6 +207,22 @@ def test_pauli_expansion():
     assert (cirq.pauli_expansion(cirq.CNOT(a, b)) == cirq.pauli_expansion(
         cirq.CNOT))
 
+    class No(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    class Yes(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _pauli_expansion_(self):
+            return cirq.LinearDict({'X': 0.5})
+
+    assert cirq.pauli_expansion(No().on(a), default=None) is None
+    assert cirq.pauli_expansion(Yes().on(a)) == cirq.LinearDict({'X': 0.5})
+
 
 def test_unitary():
     a = cirq.NamedQubit('a')
@@ -257,8 +272,8 @@ def test_mixture():
 
 def test_repr():
     a, b = cirq.LineQubit.range(2)
-    assert repr(cirq.GateOperation(cirq.CZ, (a, b))
-                ) == 'cirq.CZ.on(cirq.LineQubit(0), cirq.LineQubit(1))'
+    assert repr(cirq.GateOperation(
+        cirq.CZ, (a, b))) == 'cirq.CZ(cirq.LineQubit(0), cirq.LineQubit(1))'
 
     class Inconsistent(cirq.SingleQubitGate):
         def __repr__(self):
@@ -269,24 +284,6 @@ def test_repr():
 
     assert (repr(cirq.GateOperation(Inconsistent(), [a])) ==
             'cirq.GateOperation(gate=Inconsistent, qubits=[cirq.LineQubit(0)])')
-
-
-def test_op_gate_of_type():
-    a = cirq.NamedQubit('a')
-    op = cirq.X(a)
-    with capture_logging():
-        assert cirq.op_gate_of_type(op, cirq.XPowGate) == op.gate
-        assert cirq.op_gate_of_type(op, cirq.YPowGate) is None
-
-        class NonGateOperation(cirq.Operation):
-
-            def qubits(self):
-                pass
-
-            def with_qubits(self, *new_qubits):
-                pass
-
-        assert cirq.op_gate_of_type(NonGateOperation(), cirq.XPowGate) is None
 
 
 @pytest.mark.parametrize('gate1,gate2,eq_up_to_global_phase', [
@@ -363,3 +360,39 @@ def test_mul():
     # Handles the symmetric type case correctly.
     assert m * m == 6
     assert r * r == 4
+
+
+def test_with_gate():
+    g1 = cirq.GateOperation(cirq.X, cirq.LineQubit.range(1))
+    g2 = cirq.GateOperation(cirq.Y, cirq.LineQubit.range(1))
+    assert g1.with_gate(cirq.X) is g1
+    assert g1.with_gate(cirq.Y) == g2
+
+
+def test_is_parameterized():
+
+    class No1(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    class No2(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _is_parameterized_(self):
+            return False
+
+    class Yes(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _is_parameterized_(self):
+            return True
+
+    q = cirq.LineQubit(0)
+    assert not cirq.is_parameterized(No1().on(q))
+    assert not cirq.is_parameterized(No2().on(q))
+    assert cirq.is_parameterized(Yes().on(q))

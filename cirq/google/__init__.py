@@ -66,6 +66,7 @@ from cirq.google.optimizers import (
     ConvertToXmonGates,
     ConvertToSqrtIswapGates,
     ConvertToSycamoreGates,
+    GateTabulation,
     optimized_for_sycamore,
     optimized_for_xmon,
 )

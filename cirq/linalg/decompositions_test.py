@@ -605,7 +605,7 @@ _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
 def _random_two_qubit_unitaries(num_samples: int,
-                                random_state: value.RANDOM_STATE_LIKE):
+                                random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE'):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
     kl = _local_two_qubit_unitaries(num_samples, random_state)
 

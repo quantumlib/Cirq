@@ -1,5 +1,5 @@
 import numbers
-from typing import Union, TYPE_CHECKING, Tuple, Optional, Sequence
+from typing import Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 import sympy
@@ -116,6 +116,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                             axis_phase_exponent=-pre_phase,
                             z_exponent=post_phase + pre_phase)._canonical()
 
+    def with_z_exponent(self, z_exponent: Union[numbers.Real, sympy.Basic]
+                       ) -> 'cirq.PhasedXZGate':
+        return PhasedXZGate(axis_phase_exponent=self._axis_phase_exponent,
+                            x_exponent=self._x_exponent,
+                            z_exponent=z_exponent)
+
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         from cirq.circuits import qasm_output
@@ -124,6 +130,9 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                                           phi=self._z_exponent +
                                           self._axis_phase_exponent - 0.5)
         return protocols.qasm(qasm_gate, args=args, qubits=qubits)
+
+    def _has_unitary_(self) -> bool:
+        return not self._is_parameterized_()
 
     def _decompose_(self, qubits: Sequence['cirq.Qid']) -> 'cirq.OP_TREE':
         q = qubits[0]
@@ -190,15 +199,15 @@ class PhasedXZGate(gate_features.SingleQubitGate):
                 f'x={args.format_real(self._x_exponent)},'
                 f'z={args.format_real(self._z_exponent)})')
 
-    def __str__(self):
+    def __str__(self) -> str:
         return protocols.circuit_diagram_info(self).wire_symbols[0]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.PhasedXZGate('
                 f'axis_phase_exponent={proper_repr(self._axis_phase_exponent)},'
                 f' x_exponent={proper_repr(self._x_exponent)}, '
                 f'z_exponent={proper_repr(self._z_exponent)})')
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['axis_phase_exponent', 'x_exponent', 'z_exponent'])
