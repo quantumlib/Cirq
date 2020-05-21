@@ -231,6 +231,7 @@ def test_multi_qubit_gate_validate():
 def test_on_each_iterable_qid():
 
     class QidIter(cirq.Qid):
+
         @property
         def dimension(self) -> int:
             return 2
