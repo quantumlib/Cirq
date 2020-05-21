@@ -16,6 +16,7 @@ import numpy as np
 import pytest
 
 import cirq
+import cirq.testing
 
 
 def assert_dirac_notation_numpy(vec, expected, decimals=2):
@@ -36,46 +37,69 @@ def assert_valid_density_matrix(matrix, num_qubits=None, qid_shape=None):
                                      dtype=matrix.dtype), matrix)
 
 
-def test_bloch_vector_simple_H_zero():
-    sqrt = np.sqrt(0.5)
-    H_state = np.array([sqrt, sqrt])
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_zero_state(global_phase):
+    zero_state = global_phase * np.array([1, 0])
 
-    bloch = cirq.bloch_vector_from_state_vector(H_state, 0)
+    bloch = cirq.bloch_vector_from_state_vector(zero_state, 0)
+    desired_simple = np.array([0, 0, 1])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_one_state(global_phase):
+    one_state = global_phase * np.array([0, 1])
+
+    bloch = cirq.bloch_vector_from_state_vector(one_state, 0)
+    desired_simple = np.array([0, 0, -1])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_plus_state(global_phase):
+    sqrt = np.sqrt(0.5)
+    plus_state = global_phase * np.array([sqrt, sqrt])
+
+    bloch = cirq.bloch_vector_from_state_vector(plus_state, 0)
     desired_simple = np.array([1, 0, 0])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
 
 
-def test_bloch_vector_simple_XH_zero():
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_minus_state(global_phase):
     sqrt = np.sqrt(0.5)
-    XH_state = np.array([sqrt, sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(XH_state, 0)
-
-    desired_simple = np.array([1, 0, 0])
-    np.testing.assert_array_almost_equal(bloch, desired_simple)
-
-
-def test_bloch_vector_simple_YH_zero():
-    sqrt = np.sqrt(0.5)
-    YH_state = np.array([-1.0j * sqrt, 1.0j * sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(YH_state, 0)
+    minus_state = np.array([-1.0j * sqrt, 1.0j * sqrt])
+    bloch = cirq.bloch_vector_from_state_vector(minus_state, 0)
 
     desired_simple = np.array([-1, 0, 0])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
 
 
-def test_bloch_vector_simple_ZH_zero():
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_iplus_state(global_phase):
     sqrt = np.sqrt(0.5)
-    ZH_state = np.array([sqrt, -sqrt])
-    bloch = cirq.bloch_vector_from_state_vector(ZH_state, 0)
+    iplus_state = global_phase * np.array([sqrt, 1j * sqrt])
 
-    desired_simple = np.array([-1, 0, 0])
+    bloch = cirq.bloch_vector_from_state_vector(iplus_state, 0)
+    desired_simple = np.array([0, 1, 0])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
 
 
-def test_bloch_vector_simple_TH_zero():
+@pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
+def test_bloch_vector_iminus_state(global_phase):
     sqrt = np.sqrt(0.5)
-    TH_state = np.array([sqrt, 0.5 + 0.5j])
-    bloch = cirq.bloch_vector_from_state_vector(TH_state, 0)
+    iminus_state = global_phase * np.array([sqrt, -1j * sqrt])
+
+    bloch = cirq.bloch_vector_from_state_vector(iminus_state, 0)
+    desired_simple = np.array([0, -1, 0])
+    np.testing.assert_array_almost_equal(bloch, desired_simple)
+
+
+def test_bloch_vector_simple_th_zero():
+    sqrt = np.sqrt(0.5)
+    # State TH|0>.
+    th_state = np.array([sqrt, 0.5 + 0.5j])
+    bloch = cirq.bloch_vector_from_state_vector(th_state, 0)
 
     desired_simple = np.array([sqrt, sqrt, 0])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
@@ -91,10 +115,10 @@ def test_bloch_vector_equal_sqrt3():
 
 
 def test_bloch_vector_multi_pure():
-    HH_state = np.array([0.5, 0.5, 0.5, 0.5])
+    plus_plus_state = np.array([0.5, 0.5, 0.5, 0.5])
 
-    bloch_0 = cirq.bloch_vector_from_state_vector(HH_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(HH_state, 1)
+    bloch_0 = cirq.bloch_vector_from_state_vector(plus_plus_state, 0)
+    bloch_1 = cirq.bloch_vector_from_state_vector(plus_plus_state, 1)
     desired_simple = np.array([1, 0, 0])
 
     np.testing.assert_array_almost_equal(bloch_1, desired_simple)
@@ -103,18 +127,19 @@ def test_bloch_vector_multi_pure():
 
 def test_bloch_vector_multi_mixed():
     sqrt = np.sqrt(0.5)
-    HCNOT_state = np.array([sqrt, 0., 0., sqrt])
+    # Bell state 1/sqrt(2)(|00>+|11>)
+    phi_plus = np.array([sqrt, 0., 0., sqrt])
 
-    bloch_0 = cirq.bloch_vector_from_state_vector(HCNOT_state, 0)
-    bloch_1 = cirq.bloch_vector_from_state_vector(HCNOT_state, 1)
+    bloch_0 = cirq.bloch_vector_from_state_vector(phi_plus, 0)
+    bloch_1 = cirq.bloch_vector_from_state_vector(phi_plus, 1)
     zero = np.zeros(3)
 
     np.testing.assert_array_almost_equal(bloch_0, zero)
     np.testing.assert_array_almost_equal(bloch_1, zero)
 
-    RCNOT_state = np.array([0.90612745, -0.07465783j, -0.37533028j, 0.18023996])
-    bloch_mixed_0 = cirq.bloch_vector_from_state_vector(RCNOT_state, 0)
-    bloch_mixed_1 = cirq.bloch_vector_from_state_vector(RCNOT_state, 1)
+    rcnot_state = np.array([0.90612745, -0.07465783j, -0.37533028j, 0.18023996])
+    bloch_mixed_0 = cirq.bloch_vector_from_state_vector(rcnot_state, 0)
+    bloch_mixed_1 = cirq.bloch_vector_from_state_vector(rcnot_state, 1)
 
     true_mixed_0 = np.array([0., -0.6532815, 0.6532815])
     true_mixed_1 = np.array([0., 0., 0.9238795])
@@ -124,10 +149,11 @@ def test_bloch_vector_multi_mixed():
 
 
 def test_bloch_vector_multi_big():
-    big_H_state = np.array([0.1767767] * 32)
+    five_qubit_plus_state = np.array([0.1767767] * 32)
     desired_simple = np.array([1, 0, 0])
     for qubit in range(0, 5):
-        bloch_i = cirq.bloch_vector_from_state_vector(big_H_state, qubit)
+        bloch_i = cirq.bloch_vector_from_state_vector(five_qubit_plus_state,
+                                                      qubit)
         np.testing.assert_array_almost_equal(bloch_i, desired_simple)
 
 
@@ -297,21 +323,22 @@ def test_invalid_to_valid_state_vector():
                                        qid_shape=(2, 1))
 
 
-def test_check_state():
-    cirq.validate_normalized_state(np.array([0.5, 0.5, 0.5, 0.5],
-                                            dtype=np.complex64),
-                                   qid_shape=(2, 2))
+def test_validate_normalized_state():
+    cirq.validate_normalized_state_vector(np.array([0.5, 0.5, 0.5, 0.5],
+                                                   dtype=np.complex64),
+                                          qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1, 1], dtype=np.complex64),
-                                       qid_shape=(2, 2))
+        cirq.validate_normalized_state_vector(np.array([1, 1],
+                                                       dtype=np.complex64),
+                                              qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1.0, 0.2, 0.0, 0.0],
-                                                dtype=np.complex64),
-                                       qid_shape=(2, 2))
+        cirq.validate_normalized_state_vector(np.array([1.0, 0.2, 0.0, 0.0],
+                                                       dtype=np.complex64),
+                                              qid_shape=(2, 2))
     with pytest.raises(ValueError):
-        cirq.validate_normalized_state(np.array([1.0, 0.0, 0.0, 0.0],
-                                                dtype=np.float64),
-                                       qid_shape=(2, 2))
+        cirq.validate_normalized_state_vector(np.array([1.0, 0.0, 0.0, 0.0],
+                                                       dtype=np.float64),
+                                              qid_shape=(2, 2))
 
 
 def test_to_valid_density_matrix_from_density_matrix():
@@ -411,7 +438,7 @@ def test_to_valid_density_matrix_wrong_dtype():
                                      dtype=np.complex128)
 
 
-def test_to_valid_density_matrix_from_state():
+def test_to_valid_density_matrix_from_state_vector():
     np.testing.assert_almost_equal(
         cirq.to_valid_density_matrix(density_matrix_rep=np.array(
             [1, 0], dtype=np.complex64),
@@ -498,3 +525,27 @@ def test_eye_tensor():
          [[0, 0], [0, 1], [0, 0]]],
         [[[0, 0], [0, 0], [1, 0]],
          [[0, 0], [0, 0], [0, 1]]]]))  # yapf: disable
+
+
+def test_deprecated():
+    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.bloch_vector_from_state_vector(state=state_vector, index=0)
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.density_matrix_from_state_vector(state=state_vector)
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.dirac_notation(state=state_vector)
+
+    with cirq.testing.assert_logs('validate_normalized_state',
+                                  'validate_normalized_state_vector',
+                                  'deprecated'):
+        _ = cirq.validate_normalized_state(state_vector, qid_shape=(2,))
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = cirq.validate_qid_shape(state=state_vector, qid_shape=(2,))

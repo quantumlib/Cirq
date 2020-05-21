@@ -24,6 +24,7 @@ from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
 from cirq.ops.pauli_string import PauliString, _validate_qubit_mapping
 from cirq.value.linear_dict import _format_terms
+from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -350,6 +351,8 @@ class PauliSum:
         factory = type(self)
         return factory(self._linear_dict.copy())
 
+    @deprecated(deadline='v0.10.0',
+                fix='Use expectation_from_state_vector instead.')
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
@@ -357,17 +360,37 @@ class PauliSum:
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
-        """Evaluate the expectation of this PauliSum given a wavefunction.
+        return self.expectation_from_state_vector(
+            state_vector=state,
+            qubit_map=qubit_map,
+            atol=atol,
+            check_preconditions=check_preconditions)
 
-        See `PauliString.expectation_from_wavefunction`.
+    @deprecated_parameter(deadline='v0.10.0',
+                          fix='Use state_vector instead',
+                          parameter_desc='state',
+                          match=lambda args, kwargs: 'state' in kwargs,
+                          rewrite=lambda args, kwargs: (
+                              args, {('state_vector' if k == 'state' else k): v
+                                     for k, v in kwargs.items()}))
+    def expectation_from_state_vector(self,
+                                      state_vector: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int],
+                                      *,
+                                      atol: float = 1e-7,
+                                      check_preconditions: bool = True
+                                     ) -> float:
+        """Evaluate the expectation of this PauliSum given a state vector.
+
+        See `PauliString.expectation_from_state_vector`.
 
         Args:
-            state: An array representing a valid wavefunction.
+            state: An array representing a valid state vector.
             qubit_map: A map from all qubits used in this PauliSum to the
-                indices of the qubits that `state` is defined over.
+                indices of the qubits that `state_vector` is defined over.
             atol: Absolute numerical tolerance.
-            check_preconditions: Whether to check that `state` represents a
-                valid wavefunction.
+            check_preconditions: Whether to check that `state_vector` represents
+                a valid state vector.
 
         Returns:
             The expectation value of the input state.
@@ -377,28 +400,30 @@ class PauliSum:
                 "Cannot compute expectation value of a non-Hermitian "
                 "PauliString <{}>. Coefficient must be real.".format(self))
 
-        # FIXME: Avoid enforce specific complex type. This is necessary to
-        # prevent an `apply_unitary` bug (Issue #2041).
-        if state.dtype.kind != 'c':
+        # TODO: Avoid enforce specific complex type. This is necessary to
+        # prevent an `apply_unitary` bug.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2041
+        if state_vector.dtype.kind != 'c':
             raise TypeError("Input state dtype must be np.complex64 or "
                             "np.complex128")
 
-        size = state.size
+        size = state_vector.size
         num_qubits = size.bit_length() - 1
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
 
-        if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
-            raise ValueError("Input array does not represent a wavefunction "
+        if len(state_vector.shape) != 1 and state_vector.shape != (
+                2,) * num_qubits:
+            raise ValueError("Input array does not represent a state vector "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
         if check_preconditions:
-            qis.validate_normalized_state(state=state,
-                                          qid_shape=(2,) * num_qubits,
-                                          dtype=state.dtype,
-                                          atol=atol)
+            qis.validate_normalized_state_vector(state_vector=state_vector,
+                                                 qid_shape=(2,) * num_qubits,
+                                                 dtype=state_vector.dtype,
+                                                 atol=atol)
         return sum(
-            p._expectation_from_wavefunction_no_validation(state, qubit_map)
-            for p in self)
+            p._expectation_from_state_vector_no_validation(
+                state_vector, qubit_map) for p in self)
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
