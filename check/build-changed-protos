@@ -64,10 +64,12 @@ changed=$(git diff --name-only ${rev} -- \
     | grep "google/api/.*\.proto$" \
     | sed -e "s/\.proto$//"
 )
-for base in $changed:
-do
-    echo -e "Found changed proto: '${base}.proto'"
-done
+if [[ ! -z "$changed" ]]; then
+    for base in $changed:
+    do
+        echo -e "Found changed proto: '${base}.proto'"
+    done
+fi
 
 # Check if any of the build files have changed.
 build_changed=$(git diff --name-only ${rev} -- \
@@ -81,7 +83,7 @@ else
     echo -e "BUILD file changed in directories: '${build_changed[@]}'"
     for build_prefix in $build_changed
     do
-        bazel build "${build_prefix}...:*"
+        (set -x; bazel build "${build_prefix}...:*")
     done
 fi
 
@@ -89,9 +91,9 @@ fi
 # a problem as bazel returns immediately.
 for base in $changed
 do
-    bazel build "${base}_proto"
-    bazel build "${base}_py_proto"
-    bazel build "${base}_cc_proto"
+    (set -x; bazel build "${base}_proto"; \
+    bazel build "${base}_py_proto"; \
+    bazel build "${base}_cc_proto")
 done
 
 
