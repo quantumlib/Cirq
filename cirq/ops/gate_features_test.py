@@ -240,7 +240,6 @@ def test_on_each_iterable_qid():
             return 1
 
         def __iter__(self):
-            yield 1
-            yield 2
+            raise NotImplementedError()
 
     assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())
