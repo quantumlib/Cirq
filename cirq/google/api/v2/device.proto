@@ -11,7 +11,6 @@ option java_multiple_files = true;
 // This message specifies information that is needed when sending a
 // Program message to the device.
 message DeviceSpecification {
-
   
   // A list of allowed gatesets for programs submitted to this processor
   // Language.gate_set should be one of these values to be valid.

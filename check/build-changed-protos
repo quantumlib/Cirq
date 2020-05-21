@@ -3,6 +3,9 @@
 ################################################################################
 # Runs bazel build for proto files in cirq/google/api/* that have changed.
 #
+# If any BUILD file for the proto has changed, all targets in that BUILD
+# file will be built.
+#
 # Usage:
 #     check/build-changed-protos [BASE_REVISION]
 #
@@ -51,6 +54,11 @@ else
     rev="${base}"
 fi
 
+# All the protos.
+protos=$(find -type f -name "*.proto" -printf '%P\n' \
+    | grep "google/api/.*\.proto$" \
+    | sed -e "s/\.proto$//")
+
 # Get the changed protos and strip them of ".proto"
 changed=$(git diff --name-only ${rev} -- \
     | grep "google/api/.*\.proto$" \
@@ -61,9 +69,29 @@ do
     echo -e "Found changed proto: '${base}.proto'"
 done
 
+# Check if any of the build files have changed.
+build_changed=$(git diff --name-only ${rev} -- \
+    | grep "google/api/.*BUILD$" \
+    | sed -e "s/BUILD//")
+
+if [[ -z "$build_changed" ]]; then
+    echo -e "No BUILD files changed."
+else
+    # Build all the targets for the changed BUILD rule.
+    echo -e "BUILD file changed in directories: '${build_changed[@]}'"
+    for build_prefix in $build_changed
+    do
+        bazel build "${build_prefix}...:*"
+    done
+fi
+
+# We potentially will attempt to build a second time, but this is not
+# a problem as bazel returns immediately.
 for base in $changed
 do
     bazel build "${base}_proto"
     bazel build "${base}_py_proto"
     bazel build "${base}_cc_proto"
 done
+
+
