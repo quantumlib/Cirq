@@ -136,8 +136,10 @@ class Simulator(simulator.SimulatesSamples,
         self._check_all_resolved(resolved_circuit)
 
         def measure_or_mixture(op):
-            return protocols.is_measurement(op) or protocols.has_mixture(op)
-        if circuit.are_all_matches_terminal(measure_or_mixture):
+            return not protocols.has_unitary(op) and (
+                protocols.is_measurement(op) or protocols.has_mixture(op))
+
+        if resolved_circuit.are_all_matches_terminal(measure_or_mixture):
             return self._run_sweep_terminal_sample(resolved_circuit,
                                                    repetitions)
         return self._run_sweep_repeat(resolved_circuit, repetitions)
