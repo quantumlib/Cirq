@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Helpers for handling quantum wavefunctions."""
+"""Helpers for handling quantum state vectors."""
 
 from typing import (Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence)
 
@@ -20,7 +20,7 @@ import numpy as np
 
 from cirq import linalg, ops, qis, value
 from cirq.sim import simulator
-from cirq._compat import deprecated
+from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -38,8 +38,8 @@ to_valid_state_vector = deprecated(
     deadline='v0.9',
     fix='Use cirq.to_valid_state_vector instead.')(qis.to_valid_state_vector)
 validate_normalized_state = deprecated(
-    deadline='v0.9', fix='Use cirq.validate_normalized_state instead.')(
-        qis.validate_normalized_state)
+    deadline='v0.10', fix='Use cirq.validate_normalized_state_vector instead.')(
+        qis.validate_normalized_state_vector)
 STATE_VECTOR_LIKE = qis.STATE_VECTOR_LIKE
 
 
@@ -48,8 +48,10 @@ class StateVectorMixin():
     """
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5887
-    def __init__(self, qubit_map: Optional[Dict[ops.Qid, int]] = None,
-        *args, **kwargs):
+    def __init__(self,
+                 qubit_map: Optional[Dict[ops.Qid, int]] = None,
+                 *args,
+                 **kwargs):
         """
         Args:
             qubit_map: A map from the Qubits in the Circuit to the the index
@@ -176,8 +178,15 @@ class StateVectorMixin():
                                                   qid_shape=self._qid_shape)
 
 
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
 def sample_state_vector(
-        state: np.ndarray,
+        state_vector: np.ndarray,
         indices: List[int],
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
@@ -188,16 +197,17 @@ def sample_state_vector(
     Note that this does not modify the passed in state.
 
     Args:
-        state: The multi-qubit wavefunction to be sampled. This is an array of
-            2 to the power of the number of qubit complex numbers, and so
-            state must be of size ``2**integer``.  The state can be a vector of
-            size ``2**integer`` or a tensor of shape ``(2, 2, ..., 2)``.
-        indices: Which qubits are measured. The state is assumed to be supplied
-            in big endian order. That is the xth index of v, when expressed as
-            a bitstring, has its largest values in the 0th index.
-        qid_shape: The qid shape of the state vector.  Specify this argument
+        state_vector: The multi-qubit state vector to be sampled. This is an
+            array of 2 to the power of the number of qubit complex numbers, and
+            so state must be of size ``2**integer``.  The `state_vector` can be
+            a vector of size ``2**integer`` or a tensor of shape
+            ``(2, 2, ..., 2)``.
+        indices: Which qubits are measured. The `state_vector` is assumed to be
+            supplied in big endian order. That is the xth index of v, when
+            expressed as a bitstring, has its largest values in the 0th index.
+        qid_shape: The qid shape of the `state_vector`.  Specify this argument
             when using qudits.
-        repetitions: The number of times to sample the state.
+        repetitions: The number of times to sample.
         seed: A seed for the pseudorandom number generator.
 
     Returns:
@@ -207,16 +217,17 @@ def sample_state_vector(
         are wrapped as an numpy ndarray.
 
     Raises:
-        ValueError: ``repetitions`` is less than one or size of ``state`` is not
-            a power of 2.
+        ValueError: ``repetitions`` is less than one or size of `state_vector`
+            is not a power of 2.
         IndexError: An index from ``indices`` is out of range, given the number
             of qubits corresponding to the state.
     """
     if repetitions < 0:
-        raise ValueError('Number of repetitions cannot be negative. Was {}'
-                         .format(repetitions))
-    qid_shape = qis.validate_qid_shape(state, qid_shape)
-    num_qubits = len(qid_shape)
+        raise ValueError(
+            'Number of repetitions cannot be negative. Was {}'.format(
+                repetitions))
+    shape = qis.validate_qid_shape(state_vector, qid_shape)
+    num_qubits = len(shape)
     qis.validate_indices(num_qubits, indices)
 
     if repetitions == 0 or len(indices) == 0:
@@ -225,14 +236,14 @@ def sample_state_vector(
     prng = value.parse_random_state(seed)
 
     # Calculate the measurement probabilities.
-    probs = _probs(state, indices, qid_shape)
+    probs = _probs(state_vector, indices, shape)
 
     # We now have the probability vector, correctly ordered, so sample over
     # it. Note that we us ints here, since numpy's choice does not allow for
     # choosing from a list of tuples or list of lists.
     result = prng.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
-    meas_shape = tuple(qid_shape[i] for i in indices)
+    meas_shape = tuple(shape[i] for i in indices)
     return np.array([
         value.big_endian_int_to_digits(result[i], base=meas_shape)
         for i in range(len(result))
@@ -240,8 +251,15 @@ def sample_state_vector(
                     dtype=np.uint8)
 
 
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
 def measure_state_vector(
-        state: np.ndarray,
+        state_vector: np.ndarray,
         indices: Sequence[int],
         *,  # Force keyword args
         qid_shape: Optional[Tuple[int, ...]] = None,
@@ -253,75 +271,75 @@ def measure_state_vector(
     This does not modify `state` unless the optional `out` is `state`.
 
     Args:
-        state: The state to be measured. This state is assumed to be normalized.
-            The state must be of size 2 ** integer.  The state can be of shape
-            (2 ** integer) or (2, 2, ..., 2).
-        indices: Which qubits are measured. The state is assumed to be supplied
-            in big endian order. That is the xth index of v, when expressed as
-            a bitstring, has the largest values in the 0th index.
-        qid_shape: The qid shape of the state vector.  Specify this argument
+        state_vector: The state to be measured. This state vector is assumed to
+            be normalized. The state vector must be of size 2 ** integer.  The
+            state vector can be of shape (2 ** integer) or (2, 2, ..., 2).
+        indices: Which qubits are measured. The `state_vector` is assumed to be
+            supplied in big endian order. That is the xth index of v, when
+            expressed as a bitstring, has the largest values in the 0th index.
+        qid_shape: The qid shape of the `state_vector`.  Specify this argument
             when using qudits.
         out: An optional place to store the result. If `out` is the same as
-            the `state` parameter, then state will be modified inline. If `out`
-            is not None, then the result is put into `out`.  If `out` is None
-            a new value will be allocated. In all of these case out will be the
-            same as the returned ndarray of the method. The shape and dtype of
-            `out` will match that of state if `out` is None, otherwise it will
-            match the shape and dtype of `out`.
+            the `state_vector` parameter, then `state_vector` will be modified
+            inline. If `out` is not None, then the result is put into `out`.
+            If `out` is None a new value will be allocated. In all of these
+            case out will be the same as the returned ndarray of the method.
+            The shape and dtype of `out` will match that of `state_vector` if
+            `out` is None, otherwise it will match the shape and dtype of `out`.
         seed: A seed for the pseudorandom number generator.
 
     Returns:
         A tuple of a list and an numpy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement state. This state has the same
-        shape and dtype as the input state.
+        numpy array is the post measurement state vector. This state vector has
+        the same shape and dtype as the input `state_vector`.
 
     Raises:
         ValueError if the size of state is not a power of 2.
         IndexError if the indices are out of range for the number of qubits
             corresponding to the state.
     """
-    qid_shape = qis.validate_qid_shape(state, qid_shape)
-    num_qubits = len(qid_shape)
+    shape = qis.validate_qid_shape(state_vector, qid_shape)
+    num_qubits = len(shape)
     qis.validate_indices(num_qubits, indices)
 
     if len(indices) == 0:
         if out is None:
-            out = np.copy(state)
-        elif out is not state:
-            np.copyto(dst=out, src=state)
+            out = np.copy(state_vector)
+        elif out is not state_vector:
+            np.copyto(dst=out, src=state_vector)
         # Final else: if out is state then state will be modified in place.
         return ([], out)
 
     prng = value.parse_random_state(seed)
 
     # Cache initial shape.
-    initial_shape = state.shape
+    initial_shape = state_vector.shape
 
     # Calculate the measurement probabilities and then make the measurement.
-    probs = _probs(state, indices, qid_shape)
+    probs = _probs(state_vector, indices, shape)
     result = prng.choice(len(probs), p=probs)
     ###measurement_bits = [(1 & (result >> i)) for i in range(len(indices))]
     # Convert to individual qudit measurements.
-    meas_shape = tuple(qid_shape[i] for i in indices)
+    meas_shape = tuple(shape[i] for i in indices)
     measurement_bits = value.big_endian_int_to_digits(result, base=meas_shape)
 
     # Calculate the slice for the measurement result.
     result_slice = linalg.slice_for_qubits_equal_to(
-        indices, big_endian_qureg_value=result, qid_shape=qid_shape)
+        indices, big_endian_qureg_value=result, qid_shape=shape)
 
     # Create a mask which is False for only the slice.
-    mask = np.ones(qid_shape, dtype=bool)
+    mask = np.ones(shape, dtype=bool)
     mask[result_slice] = False
 
     if out is None:
-        out = np.copy(state)
-    elif out is not state:
-        np.copyto(dst=out, src=state)
+        out = np.copy(state_vector)
+    elif out is not state_vector:
+        np.copyto(dst=out, src=state_vector)
     # Final else: if out is state then state will be modified in place.
 
     # Potentially reshape to tensor, and then set masked values to 0.
-    out.shape = qid_shape
+    out.shape = shape
     out[mask] = 0
 
     # Restore original shape (if necessary) and renormalize.

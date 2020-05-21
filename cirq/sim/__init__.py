@@ -34,6 +34,7 @@ from cirq.sim.density_matrix_simulator import (
 from cirq.sim.mux import (
     CIRCUIT_LIKE,
     final_density_matrix,
+    final_state_vector,
     final_wavefunction,
     sample,
     sample_sweep,
@@ -53,14 +54,18 @@ from cirq.sim.sparse_simulator import (
     SparseSimulatorStep,
 )
 
-from cirq.sim.wave_function_simulator import (
+from cirq.sim.state_vector_simulator import (
+    SimulatesIntermediateStateVector,
     SimulatesIntermediateWaveFunction,
+    StateVectorSimulatorState,
+    StateVectorStepResult,
+    StateVectorTrialResult,
     WaveFunctionSimulatorState,
     WaveFunctionStepResult,
     WaveFunctionTrialResult,
 )
 
-from cirq.sim.wave_function import (
+from cirq.sim.state_vector import (
     bloch_vector_from_state_vector,
     density_matrix_from_state_vector,
     dirac_notation,

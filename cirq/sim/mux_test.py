@@ -20,6 +20,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 
 def test_sample():
@@ -124,100 +125,100 @@ def test_sample_sweep_seed():
     assert np.all(results[2].measurements['q'] == [[True], [False]])
 
 
-def test_final_wavefunction_different_program_types():
+def test_final_state_vector_different_program_types():
     a, b = cirq.LineQubit.range(2)
 
-    np.testing.assert_allclose(cirq.final_wavefunction(cirq.X), [0, 1],
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X), [0, 1],
                                atol=1e-8)
 
     ops = [cirq.H(a), cirq.CNOT(a, b)]
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(ops),
+        cirq.final_state_vector(ops),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.Circuit(ops)),
+        cirq.final_state_vector(cirq.Circuit(ops)),
         [np.sqrt(0.5), 0, 0, np.sqrt(0.5)],
         atol=1e-8)
 
 
-def test_final_wavefunction_initial_state():
-    np.testing.assert_allclose(cirq.final_wavefunction(cirq.X, initial_state=0),
+def test_final_state_vector_initial_state():
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=0),
                                [0, 1],
                                atol=1e-8)
 
-    np.testing.assert_allclose(cirq.final_wavefunction(cirq.X, initial_state=1),
+    np.testing.assert_allclose(cirq.final_state_vector(cirq.X, initial_state=1),
                                [1, 0],
                                atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.X,
+        cirq.final_state_vector(cirq.X,
                                 initial_state=[np.sqrt(0.5),
                                                1j * np.sqrt(0.5)]),
         [1j * np.sqrt(0.5), np.sqrt(0.5)],
         atol=1e-8)
 
 
-def test_final_wavefunction_dtype_insensitive_to_initial_state():
-    assert cirq.final_wavefunction(cirq.X,).dtype == np.complex64
+def test_final_state_vector_dtype_insensitive_to_initial_state():
+    assert cirq.final_state_vector(cirq.X,).dtype == np.complex64
 
-    assert cirq.final_wavefunction(cirq.X,
+    assert cirq.final_state_vector(cirq.X,
                                    initial_state=0).dtype == np.complex64
 
-    assert cirq.final_wavefunction(cirq.X,
+    assert cirq.final_state_vector(cirq.X,
                                    initial_state=[np.sqrt(0.5),
                                                   np.sqrt(0.5)
                                                  ]).dtype == np.complex64
 
-    assert cirq.final_wavefunction(cirq.X,
+    assert cirq.final_state_vector(cirq.X,
                                    initial_state=np.array(
                                        [np.sqrt(0.5),
                                         np.sqrt(0.5)])).dtype == np.complex64
 
     for t in [np.int32, np.float32, np.float64, np.complex64]:
-        assert cirq.final_wavefunction(
+        assert cirq.final_state_vector(
             cirq.X, initial_state=np.array([1, 0],
                                            dtype=t)).dtype == np.complex64
 
-        assert cirq.final_wavefunction(
+        assert cirq.final_state_vector(
             cirq.X,
             initial_state=np.array([1, 0], dtype=t),
             dtype=np.complex128).dtype == np.complex128
 
 
-def test_final_wavefunction_param_resolver():
+def test_final_state_vector_param_resolver():
     s = sympy.Symbol('s')
 
     with pytest.raises(ValueError, match='not unitary'):
-        _ = cirq.final_wavefunction(cirq.X**s)
+        _ = cirq.final_state_vector(cirq.X**s)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction(cirq.X**s, param_resolver={s: 0.5}),
+        cirq.final_state_vector(cirq.X**s, param_resolver={s: 0.5}),
         [0.5 + 0.5j, 0.5 - 0.5j])
 
 
-def test_final_wavefunction_qubit_order():
+def test_final_state_vector_qubit_order():
     a, b = cirq.LineQubit.range(2)
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction([cirq.X(a), cirq.X(b)**0.5], qubit_order=[a,
+        cirq.final_state_vector([cirq.X(a), cirq.X(b)**0.5], qubit_order=[a,
                                                                           b]),
         [0, 0, 0.5 + 0.5j, 0.5 - 0.5j])
 
     np.testing.assert_allclose(
-        cirq.final_wavefunction([cirq.X(a), cirq.X(b)**0.5], qubit_order=[b,
+        cirq.final_state_vector([cirq.X(a), cirq.X(b)**0.5], qubit_order=[b,
                                                                           a]),
         [0, 0.5 + 0.5j, 0, 0.5 - 0.5j])
 
 
-def test_final_wavefunction_seed():
+def test_final_state_vector_seed():
     a = cirq.LineQubit(0)
-    np.testing.assert_allclose(cirq.final_wavefunction(
+    np.testing.assert_allclose(cirq.final_state_vector(
         [cirq.X(a)**0.5, cirq.measure(a)], seed=123), [0, 0.707107 - 0.707107j],
                                atol=1e-4)
-    np.testing.assert_allclose(cirq.final_wavefunction(
+    np.testing.assert_allclose(cirq.final_state_vector(
         [cirq.X(a)**0.5, cirq.measure(a)], seed=124), [0.707107 + 0.707107j, 0],
                                atol=1e-4)
 
@@ -361,3 +362,10 @@ def test_final_density_matrix_noise():
         noise=cirq.ConstantQubitNoiseModel(cirq.amplitude_damp(1.0))),
                                [[1, 0], [0, 0]],
                                atol=1e-4)
+
+
+def test_deprecated():
+    a = cirq.LineQubit(0)
+    with cirq.testing.assert_logs('final_wavefunction', 'final_state_vector',
+                                  'deprecated'):
+        _ = cirq.final_wavefunction([cirq.H(a)])
