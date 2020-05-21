@@ -70,13 +70,15 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         gate_domain = DEFAULT_GATE_DOMAIN
     if not gate_domain:
         raise ValueError('gate_domain must be non-empty')
-    max_arity = max(gate_domain.values())
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
     n_qubits = len(qubits)
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
+    if n_qubits == 1:
+        gate_domain = {k: v for k, v in gate_domain.items() if v == 1}
+    max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
 
