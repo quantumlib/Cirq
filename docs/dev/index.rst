@@ -5,5 +5,6 @@ Internal Documentation for Cirq Developers
     :maxdepth: 1
 
     gates
+    nomenclature
     plotting
     serialization

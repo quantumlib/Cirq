@@ -63,6 +63,15 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
+    def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
+        return CircuitDiagramInfo(
+            wire_symbols=new_wire_symbols,
+            exponent=self.exponent,
+            connected=self.connected,
+            exponent_qubit_index=self.exponent_qubit_index,
+            auto_exponent_parens=self.auto_exponent_parens,
+        )
+
     def _value_equality_values_(self) -> Any:
         return (
             self.wire_symbols,

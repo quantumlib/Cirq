@@ -26,7 +26,7 @@ The quantum state is specified in two forms:
 
     2. In the CH-form defined by Bravyi et al, 2018 (arXiv:1808.00128).
     This representation keeps track of overall phase and enables access
-    to wavefunction amplitudes.
+    to state vector amplitudes.
 """
 
 import collections
@@ -43,6 +43,7 @@ from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
+from cirq._compat import deprecated, deprecated_parameter
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -254,7 +255,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
             measurements.append(
                 self.state.perform_measurement(qubits,
                                                value.parse_random_state(seed),
-                                               collapse_wavefunction=False))
+                                               collapse_state_vector=False))
 
         return np.array(measurements, dtype=bool)
 
@@ -266,7 +267,7 @@ class CliffordState():
     The state is stored using two complementary representations:
     Anderson's tableaux form and Bravyi's CH-form.
     The tableaux keeps track of the stabilizer operations, while the
-    CH-form allows access to the full wavefunction (including phase).
+    CH-form allows access to the full state vector (including phase).
 
     Gates and measurements are applied to each representation in O(n^2) time.
     """
@@ -309,7 +310,7 @@ class CliffordState():
         return repr(self.ch_form)
 
     def __str__(self) -> str:
-        """Return the wavefunction string representation of the state."""
+        """Return the state vector string representation of the state."""
         return str(self.ch_form)
 
     def to_numpy(self) -> np.ndarray:
@@ -326,8 +327,12 @@ class CliffordState():
         generators above generate the full Pauli group on n qubits."""
         return self.tableau.destabilizers()
 
+    def state_vector(self):
+        return self.ch_form.state_vector()
+
+    @deprecated(deadline='v0.10.0', fix='use state_vector instead')
     def wave_function(self):
-        return self.ch_form.wave_function()
+        return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
         if len(op.qubits) == 1:
@@ -419,13 +424,21 @@ class CliffordState():
         self.tableau._Y(qubit)
         self.ch_form._Y(qubit)
 
+    @deprecated_parameter(
+        deadline='v0.10.0',
+        fix='Use collapse_state_vector instead.',
+        parameter_desc='collapse_wavefunction',
+        match=lambda args, kwargs: 'collapse_wave_function' in kwargs,
+        rewrite=lambda args, kwargs: (args, {(
+            'collapse_state_vector' if k == 'collapse_wave_function' else k): v
+                                             for k, v in kwargs.items()}))
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
                             prng: np.random.RandomState,
-                            collapse_wavefunction=True):
+                            collapse_state_vector=True):
         results = []
 
-        if collapse_wavefunction:
+        if collapse_state_vector:
             state = self
         else:
             state = self.copy()
