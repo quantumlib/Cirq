@@ -92,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
+    cirq.RandomGateChannel
     cirq.SingleQubitGate
     cirq.SwapPowGate
     cirq.TaggedOperation
@@ -240,6 +241,7 @@ results.
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
     cirq.CliffordSimulatorStepResult
@@ -308,6 +310,7 @@ the magic methods that can be implemented.
     :toctree: generated/
 
     cirq.DEFAULT_RESOLVERS
+    cirq.act_on
     cirq.apply_channel
     cirq.apply_mixture
     cirq.apply_unitaries
@@ -330,6 +333,7 @@ the magic methods that can be implemented.
     cirq.is_measurement
     cirq.is_parameterized
     cirq.measurement_key
+    cirq.measurement_keys
     cirq.mixture
     cirq.mixture_channel
     cirq.mul
@@ -354,6 +358,7 @@ the magic methods that can be implemented.
     cirq.QasmOutput
     cirq.QuilFormatter
     cirq.QuilOutput
+    cirq.SupportsActOn
     cirq.SupportsApplyChannel
     cirq.SupportsApplyMixture
     cirq.SupportsApproximateEquality
@@ -574,6 +579,7 @@ operation.
     cirq.testing.assert_has_diagram
     cirq.testing.assert_implements_consistent_protocols
     cirq.testing.assert_json_roundtrip_works
+    cirq.testing.assert_logs
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary

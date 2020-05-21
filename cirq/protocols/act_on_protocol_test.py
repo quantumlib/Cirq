@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,14 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""A protocol that wouldn't exist if python had __rimul__."""
+
+import pytest
 
 import cirq
-import cirq.testing
 
 
-def test_deprecated():
-    with cirq.testing.assert_logs('cirq.eye_tensor', 'deprecated'):
-        _ = cirq.linalg.eye_tensor((1,), dtype=float)
+def test_act_on_checks():
 
-    with cirq.testing.assert_logs('cirq.one_hot', 'deprecated'):
-        _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
+    class Bad():
+
+        def _act_on_(self, args):
+            return False
+
+        def _act_on_fallback_(self, action, allow_decompose):
+            return False
+
+    with pytest.raises(ValueError, match="must return True or NotImplemented"):
+        _ = cirq.act_on(Bad(), object())
+
+    with pytest.raises(ValueError, match="must return True or NotImplemented"):
+        _ = cirq.act_on(object(), Bad())

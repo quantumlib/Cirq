@@ -1,6 +1,6 @@
 # Copyright 2018 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License");l
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Any, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 

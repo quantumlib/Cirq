@@ -44,11 +44,12 @@ def assert_removes_all_z_gates(circuit: cirq.Circuit,
     opt = cirq.EjectZ(eject_parameterized=eject_parameterized)
     optimized = circuit.copy()
     opt.optimize_circuit(optimized)
-    has_z = any(
-        _try_get_known_z_half_turns(op, eject_parameterized) is not None
-        for moment in optimized
-        for op in moment.operations)
-    assert not has_z
+    for op in optimized.all_operations():
+        assert _try_get_known_z_half_turns(op, eject_parameterized) is None
+        if (isinstance(op.gate, cirq.PhasedXZGate) and
+            (eject_parameterized or
+             not cirq.is_parameterized(op.gate.z_exponent))):
+            assert op.gate.z_exponent == 0
 
     if cirq.is_parameterized(circuit):
         for a in (0, 0.1, 0.5, 1.0, -1.0, 3.0):
@@ -70,6 +71,15 @@ def test_single_z_stays():
                      expected=cirq.Circuit([
                          cirq.Moment([cirq.Z(q)**0.5]),
                      ]))
+
+
+def test_single_phased_xz_stays():
+    gate = cirq.PhasedXZGate(axis_phase_exponent=0.2,
+                             x_exponent=0.3,
+                             z_exponent=0.4)
+    q = cirq.NamedQubit('q')
+    assert_optimizes(before=cirq.Circuit(gate(q)),
+                     expected=cirq.Circuit(gate(q)))
 
 
 def test_ignores_xz_and_cz():
@@ -248,6 +258,13 @@ def test_removes_zs():
     assert_removes_all_z_gates(
         cirq.Circuit(cirq.Z(a), cirq.Z(b), cirq.CZ(a, b), cirq.CZ(a, b),
                      cirq.measure(a, b)))
+
+    assert_removes_all_z_gates(
+        cirq.Circuit(
+            cirq.PhasedXZGate(axis_phase_exponent=0, x_exponent=0,
+                              z_exponent=1).on(a),
+            cirq.measure(a),
+        ))
 
     assert_removes_all_z_gates(cirq.Circuit(
         cirq.Z(a)**sympy.Symbol('a'),

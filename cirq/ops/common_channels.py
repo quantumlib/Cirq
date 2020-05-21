@@ -552,6 +552,29 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
+    def _act_on_(self, args: Any):
+        from cirq import sim
+
+        if isinstance(args, sim.ActOnStateVectorArgs):
+            # Do a silent measurement.
+            measurements, _ = sim.measure_state_vector(
+                args.target_tensor,
+                args.axes,
+                out=args.target_tensor,
+                qid_shape=args.target_tensor.shape)
+            result = measurements[0]
+
+            # Use measurement result to zero the qid.
+            if result:
+                zero = args.subspace_index(0)
+                other = args.subspace_index(result)
+                args.target_tensor[zero] = args.target_tensor[other]
+                args.target_tensor[other] = 0
+
+            return True
+
+        return NotImplemented
+
     def _channel_(self) -> Iterable[np.ndarray]:
         # The first axis is over the list of channel matrices
         channel = np.zeros((self._dimension,) * 3, dtype=np.complex64)

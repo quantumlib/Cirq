@@ -314,6 +314,37 @@ def test_reset_channel_text_diagram():
         cirq.ResetChannel(3)) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
 
 
+def test_reset_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.ResetChannel(), object())
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(1, 1, 1, 1, 1),
+                                   shape=(2, 2, 2, 2, 2),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.ResetChannel(), args)
+    assert args.log_of_measurement_results == {}
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
+
+    cirq.act_on(cirq.ResetChannel(), args)
+    assert args.log_of_measurement_results == {}
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
