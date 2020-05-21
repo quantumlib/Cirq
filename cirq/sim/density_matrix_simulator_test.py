@@ -466,7 +466,7 @@ def test_simulate_qudits(dtype):
         cirq.testing.random_circuit(cirq.LineQubit.range(4), 5, 0.9)
         for _ in range(20)
     ]))
-def test_simulate_compare_to_wave_function_simulator(dtype, circuit):
+def test_simulate_compare_to_state_vector_simulator(dtype, circuit):
     qubits = cirq.LineQubit.range(4)
     pure_result = (cirq.Simulator(dtype=dtype).simulate(
         circuit, qubit_order=qubits).density_matrix_of())

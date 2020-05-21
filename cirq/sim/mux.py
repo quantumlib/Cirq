@@ -24,8 +24,9 @@ import numpy as np
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import (sparse_simulator, density_matrix_simulator,
-                      wave_function_simulator)
+                      state_vector_simulator)
 from cirq.sim.clifford import clifford_simulator
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -99,7 +100,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     return cast('cirq.Circuit', result)
 
 
-def final_wavefunction(
+def final_state_vector(
         program: 'cirq.CIRCUIT_LIKE',
         *,
         initial_state: Union[int, Sequence[Union[int, float, complex]], np.
@@ -130,7 +131,7 @@ def final_wavefunction(
         seed: The random seed to use for this simulator.
 
     Returns:
-        The wavefunction resulting from applying the given unitary operations to
+        The state vector resulting from applying the given unitary operations to
         the desired initial state. Specifically, a numpy array containing the
         the amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
@@ -145,7 +146,7 @@ def final_wavefunction(
     if not protocols.has_unitary(
             protocols.resolve_parameters(circuit_like, param_resolver)):
         raise ValueError(
-            "Program doesn't have a single well defined final wavefunction "
+            "Program doesn't have a single well defined final state vector "
             "because it is not unitary. "
             "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
@@ -158,6 +159,11 @@ def final_wavefunction(
         param_resolver=param_resolver)
 
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
+
+
+final_wavefunction = deprecated(
+    deadline='v.0.10.0',
+    fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
 
 
 def sample_sweep(program: 'cirq.Circuit',
@@ -215,7 +221,7 @@ def final_density_matrix(
         ignore_measurement_results: bool = True) -> 'np.ndarray':
     """Returns the density matrix resulting from simulating the circuit.
 
-    Note that, unlike `cirq.final_wavefunction`, terminal measurements
+    Note that, unlike `cirq.final_state_vector`, terminal measurements
     are not omitted. Instead, all measurements are treated as sources
     of decoherence (i.e. measurements do not collapse, they dephase). See
     ignore_measurement_results for details.
@@ -275,7 +281,7 @@ def final_density_matrix(
             initial_state=initial_state_like,
             qubit_order=qubit_order,
             param_resolver=param_resolver)
-        return cast(wave_function_simulator.WaveFunctionTrialResult,
+        return cast(state_vector_simulator.StateVectorTrialResult,
                     result).density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing
