@@ -55,9 +55,9 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         gate_domain: The set of gates to choose from, specified as a dictionary
             where each key is a gate and the value of the key is the number of
             qubits the gate acts on. If not provided, the default gate domain is
-            {X, Y, Z, H, S, T, CNOT, CZ, SWAP, ISWAP, CZPowGate()}. If
-            len(qubits) = 1 (or qubits = 1), only single qubit gates are
-            selected from the gate domain.
+            {X, Y, Z, H, S, T, CNOT, CZ, SWAP, ISWAP, CZPowGate()}. Only gates
+            which act on a number of qubits less than len(qubits) (or qubits if
+            provided as an int) are selected from the gate domain.
         random_state: Random state or random state seed.
 
     Raises:
@@ -81,8 +81,7 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
     n_qubits = len(qubits)
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
-    if n_qubits == 1:
-        gate_domain = {key: val for key, val in gate_domain.items() if val == 1}
+    gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
     max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
