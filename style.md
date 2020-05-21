@@ -72,5 +72,6 @@ def my_func() -> 'module.that.causes.cycle.MyClass':
 
 #### Nomenclature
 
-For a list of terms we prefer for consistency see 
+Using consistent wording across Cirq is important for lowering users
+cognitive load. For rule governing naming, see the 
 [nomenclature guidelines](docs/dev/nomenclature.md).

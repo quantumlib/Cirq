@@ -31,14 +31,6 @@ if TYPE_CHECKING:
     import cirq
 
 
-# Mutable named tuple to hold state vector and a buffer.
-class _StateAndBuffer():
-
-    def __init__(self, state_vector, buffer):
-        self.state_vector = state_vector
-        self.buffer = buffer
-
-
 class Simulator(simulator.SimulatesSamples,
                 state_vector_simulator.SimulatesIntermediateStateVector):
     """A sparse matrix state vector simulator that uses numpy.

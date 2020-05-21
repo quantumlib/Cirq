@@ -183,7 +183,7 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
 
 
 class SimulatesFinalState(metaclass=abc.ABCMeta):
-    """Simulator that allows access to a quantum computer's final state.
+    """Simulator that allows access to the simulator's final state.
 
     Implementors of this interface should implement the simulate_sweep
     method. This simulator only returns the state of the quantum system
@@ -203,7 +203,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
-        quantum computer's final state.
+        simulator's final state.
 
         Args:
             program: The circuit to simulate.

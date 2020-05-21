@@ -48,9 +48,9 @@ def test_bloch_vector_zero_state(global_phase):
 
 @pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
 def test_bloch_vector_one_state(global_phase):
-    zero_state = global_phase * np.array([0, 1])
+    one_state = global_phase * np.array([0, 1])
 
-    bloch = cirq.bloch_vector_from_state_vector(zero_state, 0)
+    bloch = cirq.bloch_vector_from_state_vector(one_state, 0)
     desired_simple = np.array([0, 0, -1])
     np.testing.assert_array_almost_equal(bloch, desired_simple)
 
