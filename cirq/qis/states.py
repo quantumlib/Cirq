@@ -20,6 +20,8 @@ import itertools
 
 import numpy as np
 
+from cirq._compat import deprecated, deprecated_parameter
+
 if TYPE_CHECKING:
     import cirq
 
@@ -32,33 +34,46 @@ STATE_VECTOR_LIKE = Union[
     np.ndarray, Sequence[Union[int, float, complex]]]
 
 
-def bloch_vector_from_state_vector(state: Sequence,
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
+def bloch_vector_from_state_vector(state_vector: Sequence,
                                    index: int,
                                    qid_shape: Optional[Tuple[int, ...]] = None
                                   ) -> np.ndarray:
     """Returns the bloch vector of a qubit.
 
-    Calculates the bloch vector of the qubit at index
-    in the wavefunction given by state, assuming state follows
-    the standard Kronecker convention of numpy.kron.
+    Calculates the bloch vector of the qubit at index in the state vector,
+    assuming state vector follows the standard Kronecker convention of
+    numpy.kron.
 
     Args:
-        state: A sequence representing a wave function in which
+        state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
-            convention of numpy.kron.
+            convention of numpy.kron (big-endian).
         index: index of qubit who's bloch vector we want to find.
             follows the standard Kronecker convention of numpy.kron.
+        qid_shape: specifies the dimensions of the qudits for the input
+            `state_vector`.  If not specified, qubits are assumed and the
+            `state_vector` must have a dimension a power of two.
+            The qudit at `index` must be a qubit.
 
     Returns:
         A length 3 numpy array representing the qubit's bloch vector.
 
     Raises:
-        ValueError: if the size of state is not a power of 2.
-        ValueError: if the size of the state represents more than 25 qubits.
-        IndexError: if index is out of range for the number of qubits
-            corresponding to the state.
+        ValueError: if the size of `state_vector `is not a power of 2 and the
+            shape is not given or if the shape is given and `state_vector` has
+            a size that contradicts this shape.
+        IndexError: if index is out of range for the number of qubits or qudits
+            corresponding to `state_vector`.
     """
-    rho = density_matrix_from_state_vector(state, [index], qid_shape=qid_shape)
+    rho = density_matrix_from_state_vector(state_vector, [index],
+                                           qid_shape=qid_shape)
     v = np.zeros(3, dtype=np.float32)
     v[0] = 2 * np.real(rho[0][1])
     v[1] = 2 * np.imag(rho[1][0])
@@ -67,21 +82,28 @@ def bloch_vector_from_state_vector(state: Sequence,
     return v
 
 
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
 def density_matrix_from_state_vector(
-        state: Sequence,
+        state_vector: Sequence,
         indices: Optional[Iterable[int]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
 ) -> np.ndarray:
-    r"""Returns the density matrix of the wavefunction.
+    r"""Returns the density matrix of the state vector.
 
-    Calculate the density matrix for the system on the given qubit
-    indices, with the qubits not in indices that are present in state
-    traced out. If indices is None the full density matrix for state
-    is returned. We assume state follows the standard Kronecker
-    convention of numpy.kron.
+    Calculate the density matrix for the system on the given qubit indices,
+    with the qubits not in indices that are present in state vector traced out.
+    If indices is None the full density matrix for `state_vector` is returned.
+    We assume `state_vector` follows the standard Kronecker convention of
+    numpy.kron (big-endian).
 
     For example:
-    state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
+    state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
     indices = None
     gives us
 
@@ -93,66 +115,81 @@ def density_matrix_from_state_vector(
         $$
 
     Args:
-        state: A sequence representing a wave function in which
+        state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
-            convention of numpy.kron.
+            convention of numpy.kron (big-endian).
         indices: list containing indices for qubits that you would like
             to include in the density matrix (i.e.) qubits that WON'T
             be traced out. follows the standard Kronecker convention of
             numpy.kron.
+        qid_shape: specifies the dimensions of the qudits for the input
+            `state_vector`.  If not specified, qubits are assumed and the
+            `state_vector` must have a dimension a power of two.
 
     Returns:
         A numpy array representing the density matrix.
 
     Raises:
-        ValueError: if the size of state is not a power of 2.
-        ValueError: if the size of the state represents more than 25 qubits.
+        ValueError: if the size of `state_vector` is not a power of 2 and the
+            shape is not given or if the shape is given and `state_vector`
+            has a size that contradicts this shape.
         IndexError: if the indices are out of range for the number of qubits
-            corresponding to the state.
+            corresponding to `state_vector`.
     """
-    qid_shape = validate_qid_shape(state, qid_shape)
-    n_qubits = len(qid_shape)
+    shape = validate_qid_shape(state_vector, qid_shape)
+    n_qubits = len(shape)
 
     if indices is None:
-        return np.outer(state, np.conj(state))
+        return np.outer(state_vector, np.conj(state_vector))
 
     indices = list(indices)
     validate_indices(n_qubits, indices)
 
-    state = np.asarray(state).reshape(qid_shape)
+    state_vector = np.asarray(state_vector).reshape(shape)
 
     sum_inds = np.array(range(n_qubits))
     sum_inds[indices] += n_qubits
 
-    rho = np.einsum(state, list(range(n_qubits)), np.conj(state),
+    rho = np.einsum(state_vector, list(range(n_qubits)), np.conj(state_vector),
                     sum_inds.tolist(), indices + sum_inds[indices].tolist())
-    new_shape = np.prod([qid_shape[i] for i in indices], dtype=int)
+    new_shape = np.prod([shape[i] for i in indices], dtype=int)
 
     return rho.reshape((new_shape, new_shape))
 
 
-def dirac_notation(state: Sequence,
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
+def dirac_notation(state_vector: Sequence,
                    decimals: int = 2,
                    qid_shape: Optional[Tuple[int, ...]] = None) -> str:
-    """Returns the wavefunction as a string in Dirac notation.
+    """Returns the state vector as a string in Dirac notation.
 
     For example:
 
-        state = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
-        print(dirac_notation(state)) -> 0.71|0⟩ + 0.71|1⟩
+        state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
+                                dtype=np.complex64)
+        print(dirac_notation(state_vector)) -> 0.71|0⟩ + 0.71|1⟩
 
     Args:
-        state: A sequence representing a wave function in which the ordering
-            mapping to qubits follows the standard Kronecker convention of
-            numpy.kron.
+        state_vector: A sequence representing a state vector in which
+            the ordering mapping to qubits follows the standard Kronecker
+            convention of numpy.kron (big-endian).
         decimals: How many decimals to include in the pretty print.
+        qid_shape: specifies the dimensions of the qudits for the input
+            `state_vector`.  If not specified, qubits are assumed and the
+            `state_vector` must have a dimension a power of two.
 
     Returns:
         A pretty string consisting of a sum of computational basis kets
         and non-zero floats of the specified accuracy.
     """
     if qid_shape is None:
-        qid_shape = (2,) * (len(state).bit_length() - 1)
+        qid_shape = (2,) * (len(state_vector).bit_length() - 1)
 
     digit_separator = '' if max(qid_shape, default=0) < 10 else ','
     perm_list = [
@@ -163,8 +200,8 @@ def dirac_notation(state: Sequence,
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        val = (round(state[x].real, decimals) +
-               1j * round(state[x].imag, decimals))
+        val = (round(state_vector[x].real, decimals) +
+               1j * round(state_vector[x].imag, decimals))
 
         if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
             val = val.imag
@@ -173,8 +210,8 @@ def dirac_notation(state: Sequence,
             val = val.real
             format_str = "{:." + str(decimals) + "g}"
         if val != 0:
-            if round(state[x].real, decimals) == 1 and \
-               round(state[x].imag, decimals) == 0:
+            if round(state_vector[x].real, decimals) == 1 and \
+               round(state_vector[x].imag, decimals) == 0:
                 components.append(ket.format(perm_list[x]))
             else:
                 components.append((format_str + ket).format(val, perm_list[x]))
@@ -194,31 +231,32 @@ def to_valid_state_vector(
     """Verifies the state_rep is valid and converts it to ndarray form.
 
     This method is used to support passing in an integer representing a
-    computational basis state or a full wave function as a representation of
-    a state.
+    computational basis state or a full state vector as a representation of
+    a pure state.
 
     Args:
-        state_rep: If an int, the state returned is the state corresponding to
-            a computational basis state. If an numpy array this is the full
-            wave function. Both of these are validated for the given number
-            of qubits, and the state must be properly normalized and of the
-            appropriate dtype.
-        num_qubits: The number of qubits for the state. The state_rep must be
-            valid for this number of qubits.
-        qid_shape: The expected qid shape of the state vector.  Specify this
+        state_rep: If an int, the state vector returned is the state vector
+            corresponding to a computational basis state. If an numpy array
+            this is the full state vector. Both of these are validated for
+            the given number of qubits, and the state must be properly
+            normalized and of the appropriate dtype.
+        num_qubits: The number of qubits for the state vector. The state_rep
+            must be valid for this number of qubits.
+        qid_shape: The expected qid shape of the state vector. Specify this
             argument when using qudits.
-        dtype: The numpy dtype of the state, will be used when creating the
-            state for a computational basis state, or validated against if
+        dtype: The numpy dtype of the state vector, will be used when creating
+            the state for a computational basis state, or validated against if
             state_rep is a numpy array.
         atol: Numerical tolerance for verifying that the norm of the state
-            is close to 1.
+            vector is close to 1.
 
     Returns:
-        A numpy ndarray corresponding to the state on the given number of
+        A numpy ndarray corresponding to the state vector on the given number of
         qubits.
 
     Raises:
-        ValueError if the state is not valid or num_qubits != len(qid_shape).
+        ValueError: if `state_vector` is not valid or
+            num_qubits != len(qid_shape).
     """
 
     # Check shape.
@@ -247,7 +285,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                 atol: float) -> np.ndarray:
 
     if isinstance(state_like, int):
-        return _computational_basis_state_to_state_tensor(state=state_like,
+        return _computational_basis_state_to_state_tensor(state_rep=state_like,
                                                           qid_shape=qid_shape,
                                                           dtype=dtype)
 
@@ -270,13 +308,14 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                     'dtype.')
 
         if state_like.shape == (prod,) or state_like.shape == qid_shape:
-            return _amplitudes_to_validated_state_tensor(state=state_like,
-                                                         qid_shape=qid_shape,
-                                                         dtype=dtype,
-                                                         atol=atol)
+            return _amplitudes_to_validated_state_tensor(
+                state_vector=state_like,
+                qid_shape=qid_shape,
+                dtype=dtype,
+                atol=atol)
 
         if state_like.shape == (len(qid_shape),):
-            return _qudit_values_to_state_tensor(state=state_like,
+            return _qudit_values_to_state_tensor(state_vector=state_like,
                                                  qid_shape=qid_shape,
                                                  dtype=dtype)
 
@@ -299,24 +338,24 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
         f'qid_shape={qid_shape!r}')
 
 
-def _amplitudes_to_validated_state_tensor(*, state: np.ndarray,
+def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
                                           qid_shape: Tuple[int, ...],
                                           dtype: Type[np.number],
                                           atol: float) -> np.ndarray:
-    result = np.array(state, dtype=dtype).reshape(qid_shape)
-    validate_normalized_state(result,
-                              qid_shape=qid_shape,
-                              dtype=dtype,
-                              atol=atol)
+    result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
+    validate_normalized_state_vector(result,
+                                     qid_shape=qid_shape,
+                                     dtype=dtype,
+                                     atol=atol)
     return result
 
 
-def _qudit_values_to_state_tensor(*, state: np.ndarray,
+def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                                   qid_shape: Tuple[int, ...],
                                   dtype: Type[np.number]) -> np.ndarray:
 
     for i in range(len(qid_shape)):
-        s = state[i]
+        s = state_vector[i]
         q = qid_shape[i]
         if not 0 <= s < q:
             raise ValueError(
@@ -324,71 +363,89 @@ def _qudit_values_to_state_tensor(*, state: np.ndarray,
                 f'qudit dimension {q}.\n'
                 f'\n'
                 f'qid_shape={qid_shape!r}\n'
-                f'state={state!r}\n')
+                f'state={state_vector!r}\n')
 
-    if state.dtype.kind[0] not in '?bBiu':
+    if state_vector.dtype.kind[0] not in '?bBiu':
         raise ValueError(f'Expected a bool or int entry for each qudit in '
                          f'`state`, because len(state) == len(qid_shape), '
-                         f'but got dtype {state.dtype}.'
+                         f'but got dtype {state_vector.dtype}.'
                          f'\n'
                          f'qid_shape={qid_shape!r}\n'
-                         f'state={state!r}\n')
+                         f'state={state_vector!r}\n')
 
-    return one_hot(index=tuple(int(e) for e in state),
+    return one_hot(index=tuple(int(e) for e in state_vector),
                    shape=qid_shape,
                    dtype=dtype)
 
 
-def _computational_basis_state_to_state_tensor(*, state: int,
+def _computational_basis_state_to_state_tensor(*, state_rep: int,
                                                qid_shape: Tuple[int, ...],
                                                dtype: Type[np.number]
                                               ) -> np.ndarray:
     n = np.prod(qid_shape, dtype=int)
-    if not 0 <= state <= n:
+    if not 0 <= state_rep <= n:
         raise ValueError(f'Computational basis state is out of range.\n'
                          f'\n'
-                         f'state={state!r}\n'
+                         f'state={state_rep!r}\n'
                          f'MIN_STATE=0\n'
                          f'MAX_STATE=product(qid_shape)-1={n-1}\n'
                          f'qid_shape={qid_shape!r}\n')
-    return one_hot(index=state, shape=n, dtype=dtype).reshape(qid_shape)
+    return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
-def validate_normalized_state(
-        state: np.ndarray,
+def validate_normalized_state_vector(
+        state_vector: np.ndarray,
         *,  # Force keyword arguments
         qid_shape: Tuple[int, ...],
         dtype: Type[np.number] = np.complex64,
         atol: float = 1e-7) -> None:
-    """Validates that the given state is a valid wave function."""
-    if state.size != np.prod(qid_shape, dtype=int):
+    """Validates that the given state vector is a valid."""
+    if state_vector.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
-            'State has incorrect size. Expected {} but was {}.'.format(
-                np.prod(qid_shape, dtype=int), state.size))
-    if state.dtype != dtype:
+            'state_vector has incorrect size. Expected {} but was {}.'.format(
+                np.prod(qid_shape, dtype=int), state_vector.size))
+    if state_vector.dtype != dtype:
         raise ValueError(
-            'State has invalid dtype. Expected {} but was {}'.format(
-                dtype, state.dtype))
-    norm = np.sum(np.abs(state)**2)
+            'state_vector has invalid dtype. Expected {} but was {}'.format(
+                dtype, state_vector.dtype))
+    norm = np.sum(np.abs(state_vector)**2)
     if not np.isclose(norm, 1, atol=atol):
-        raise ValueError('State is not normalized instead had norm %s' % norm)
+        raise ValueError(
+            'State_vector is not normalized instead had norm {}'.format(norm))
 
 
-def validate_qid_shape(state: np.ndarray,
+validate_normalized_state = deprecated(
+    deadline='v0.10.0',
+    fix='Use `cirq.validate_normalized_state_vector` instead.')(
+        validate_normalized_state_vector)
+
+
+@deprecated_parameter(
+    deadline='v0.10.0',
+    fix='Use state_vector instead.',
+    parameter_desc='state',
+    match=lambda args, kwargs: 'state' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
+                                         ): v for k, v in kwargs.items()}))
+def validate_qid_shape(state_vector: np.ndarray,
                        qid_shape: Optional[Tuple[int, ...]]) -> Tuple[int, ...]:
-    """Validates that state's size is either a power of 2 or the product of the
-    qid shape.
+    """Validates the size of the given `state_vector` against the given shape.
 
     Returns:
         The qid shape.
+
+    Raises:
+        ValueError: if the size of `state_vector` does not match that given in
+            `qid_shape` or if `qid_state` is not given if `state_vector` does
+            not have a dimension that is a power of two.
     """
-    size = state.size
+    size = state_vector.size
     if qid_shape is None:
         qid_shape = (2,) * (size.bit_length() - 1)
     if size != np.prod(qid_shape, dtype=int):
         raise ValueError(
-            'state.size ({}) is not a power of two or is not a product of the '
-            'qid shape {!r}.'.format(size, qid_shape))
+            'state_vector.size ({}) is not a power of two or is not a product '
+            'of the qid shape {!r}.'.format(size, qid_shape))
     return qid_shape
 
 
@@ -410,17 +467,17 @@ def to_valid_density_matrix(
         atol: float = 1e-7) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
-    This method is used to support passing a matrix, a vector (wave function),
+    This method is used to support passing a matrix, a state vector,
     or a computational basis state as a representation of a state.
 
     Args:
         density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
             then this is the density matrix. If it is a numpy array of rank 1
-            (a vector) then this is a wave function. If this is an int,
+            (a vector) then this is a state vector. If this is an int,
             then this is the computation basis state.
         num_qubits: The number of qubits for the density matrix. The
             density_matrix_rep must be valid for this number of qubits.
-        qid_shape: The qid shape of the state vector.  Specify this argument
+        qid_shape: The qid shape of the state vector. Specify this argument
             when using qudits.
         dtype: The numpy dtype of the density matrix, will be used when creating
             the state for a computational basis state (int), or validated
@@ -524,6 +581,6 @@ def eye_tensor(
     Returns:
         The created numpy array with shape `half_shape + half_shape`.
     """
-    state = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
-    state.shape = half_shape * 2
-    return state
+    identity = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
+    identity.shape = half_shape * 2
+    return identity

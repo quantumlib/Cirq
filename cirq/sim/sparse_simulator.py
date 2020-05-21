@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A simulator that uses numpy's einsum or sparse matrix operations."""
+"""A simulator that uses numpy's einsum for sparse matrix operations."""
 
 import collections
 from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict
@@ -22,8 +22,8 @@ import numpy as np
 from cirq import circuits, ops, protocols, qis, study, value
 from cirq.sim import (
     simulator,
-    wave_function,
-    wave_function_simulator,
+    state_vector,
+    state_vector_simulator,
     act_on_state_vector_args,
 )
 
@@ -31,17 +31,9 @@ if TYPE_CHECKING:
     import cirq
 
 
-# Mutable named tuple to hold state and a buffer.
-class _StateAndBuffer:
-
-    def __init__(self, state: np.ndarray, buffer: np.ndarray):
-        self.state = state
-        self.buffer = buffer
-
-
 class Simulator(simulator.SimulatesSamples,
-                wave_function_simulator.SimulatesIntermediateWaveFunction):
-    """A sparse matrix wave function simulator that uses numpy.
+                state_vector_simulator.SimulatesIntermediateStateVector):
+    """A sparse matrix state vector simulator that uses numpy.
 
     This simulator can be applied on circuits that are made up of operations
     that have a `_unitary_` method, or `_has_unitary_` and
@@ -57,7 +49,7 @@ class Simulator(simulator.SimulatesSamples,
     This simulator supports three types of simulation.
 
     Run simulations which mimic running on actual quantum hardware. These
-    simulations do not give access to the wave function (like actual hardware).
+    simulations do not give access to the state vector (like actual hardware).
     There are two variations of run methods, one which takes in a single
     (optional) way to resolve parameterized circuits, and a second which
     takes in a list or sweep of parameter resolver:
@@ -74,12 +66,12 @@ class Simulator(simulator.SimulatesSamples,
     in the computational basis.
 
     By contrast the simulate methods of the simulator give access to the
-    wave function of the simulation at the end of the simulation of the circuit.
+    state vector of the simulation at the end of the simulation of the circuit.
     These methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
     ordering must be chosen for the kronecker product (see
     `SparseSimulationTrialResult` for details of this ordering). The initial
-    state can be either the full wave function, or an integer which represents
+    state can be either the full state vector, or an integer which represents
     the initial state of being in a computational basis state for the binary
     representation of that integer. Similar to run methods, there are two
     simulate methods that run for single runs or for sweeps across different
@@ -97,9 +89,9 @@ class Simulator(simulator.SimulatesSamples,
     methods.
 
     If one wishes to perform simulations that have access to the
-    wave function as one steps through running the circuit there is a generator
+    state vector as one steps through running the circuit there is a generator
     which can be iterated over and each step is an object that gives access
-    to the wave function.  This stepping through a `Circuit` is done on a
+    to the state vector.  This stepping through a `Circuit` is done on a
     `Moment` by `Moment` manner.
 
         simulate_moment_steps(circuit, param_resolver, qubit_order,
@@ -108,7 +100,7 @@ class Simulator(simulator.SimulatesSamples,
     One can iterate over the moments via
 
         for step_result in simulate_moments(circuit):
-           # do something with the wave function via step_result.state
+           # do something with the state vector via step_result.state_vector
 
     Note also that simulations can be stochastic, i.e. return different results
     for different runs.  The first version of this occurs for measurements,
@@ -265,8 +257,8 @@ class Simulator(simulator.SimulatesSamples,
                 'parameter sweep. Ops: {}'.format(unresolved))
 
 
-class SparseSimulatorStep(wave_function.StateVectorMixin,
-                          wave_function_simulator.WaveFunctionStepResult):
+class SparseSimulatorStep(state_vector.StateVectorMixin,
+                          state_vector_simulator.StateVectorStepResult):
     """A `StepResult` that includes `StateVectorMixin` methods."""
 
     def __init__(self, state_vector, measurements, qubit_map, dtype):
@@ -286,13 +278,12 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
         self._state_vector = np.reshape(state_vector, size)
 
     def _simulator_state(self
-                        ) -> wave_function_simulator.WaveFunctionSimulatorState:
-        return wave_function_simulator.WaveFunctionSimulatorState(
-            qubit_map=self.qubit_map,
-            state_vector=self._state_vector)
+                        ) -> state_vector_simulator.StateVectorSimulatorState:
+        return state_vector_simulator.StateVectorSimulatorState(
+            qubit_map=self.qubit_map, state_vector=self._state_vector)
 
     def state_vector(self):
-        """Return the wave function at this point in the computation.
+        """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
         states defined by the qubit_map. In particular the value in the
@@ -332,9 +323,9 @@ class SparseSimulatorStep(wave_function.StateVectorMixin,
                repetitions: int = 1,
                seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self.qubit_map[qubit] for qubit in qubits]
-        return wave_function.sample_state_vector(self._state_vector,
-                                                 indices,
-                                                 qid_shape=protocols.qid_shape(
-                                                     self, None),
-                                                 repetitions=repetitions,
-                                                 seed=seed)
+        return state_vector.sample_state_vector(self._state_vector,
+                                                indices,
+                                                qid_shape=protocols.qid_shape(
+                                                    self, None),
+                                                repetitions=repetitions,
+                                                seed=seed)

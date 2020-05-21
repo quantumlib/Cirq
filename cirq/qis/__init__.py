@@ -15,4 +15,5 @@ from cirq.qis.states import (
     validate_indices,
     validate_qid_shape,
     validate_normalized_state,
+    validate_normalized_state_vector,
 )
