@@ -26,7 +26,7 @@ The quantum state is specified in two forms:
 
     2. In the CH-form defined by Bravyi et al, 2018 (arXiv:1808.00128).
     This representation keeps track of overall phase and enables access
-    to wavefunction amplitudes.
+    to state vector amplitudes.
 """
 
 import collections
@@ -43,6 +43,7 @@ from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
+from cirq._compat import deprecated, deprecated_parameter
 
 
 class CliffordSimulator(simulator.SimulatesSamples,
@@ -61,7 +62,8 @@ class CliffordSimulator(simulator.SimulatesSamples,
     @staticmethod
     def is_supported_operation(op: 'cirq.Operation') -> bool:
         """Checks whether given operation can be simulated by this simulator."""
-        if protocols.is_measurement(op): return True
+        # TODO: support more general Pauli measurements
+        if isinstance(op.gate, cirq.MeasurementGate): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
         u = cirq.unitary(op)
@@ -96,23 +98,26 @@ class CliffordSimulator(simulator.SimulatesSamples,
                                               state=CliffordState(
                                                   qubit_map,
                                                   initial_state=initial_state))
-        else:
-            state = CliffordState(qubit_map, initial_state=initial_state)
+            return
 
-            for moment in circuit:
-                measurements = collections.defaultdict(
-                    list)  # type: Dict[str, List[np.ndarray]]
+        state = CliffordState(qubit_map, initial_state=initial_state)
 
-                for op in moment:
-                    if protocols.has_unitary(op):
-                        state.apply_unitary(op)
-                    elif protocols.is_measurement(op):
-                        key = protocols.measurement_key(op)
-                        measurements[key].extend(
-                            state.perform_measurement(op.qubits, self._prng))
+        for moment in circuit:
+            measurements: Dict[str, List[np.ndarray]] = collections.defaultdict(
+                list)
 
-                yield CliffordSimulatorStepResult(measurements=measurements,
-                                                  state=state)
+            for op in moment:
+                if isinstance(op.gate, ops.MeasurementGate):
+                    key = protocols.measurement_key(op)
+                    measurements[key].extend(
+                        state.perform_measurement(op.qubits, self._prng))
+                elif protocols.has_unitary(op):
+                    state.apply_unitary(op)
+                else:
+                    raise NotImplementedError(f"Unrecognized operation: {op!r}")
+
+            yield CliffordSimulatorStepResult(measurements=measurements,
+                                              state=state)
 
     def _simulator_iterator(
             self,
@@ -250,7 +255,7 @@ class CliffordSimulatorStepResult(simulator.StepResult):
             measurements.append(
                 self.state.perform_measurement(qubits,
                                                value.parse_random_state(seed),
-                                               collapse_wavefunction=False))
+                                               collapse_state_vector=False))
 
         return np.array(measurements, dtype=bool)
 
@@ -262,7 +267,7 @@ class CliffordState():
     The state is stored using two complementary representations:
     Anderson's tableaux form and Bravyi's CH-form.
     The tableaux keeps track of the stabilizer operations, while the
-    CH-form allows access to the full wavefunction (including phase).
+    CH-form allows access to the full state vector (including phase).
 
     Gates and measurements are applied to each representation in O(n^2) time.
     """
@@ -305,7 +310,7 @@ class CliffordState():
         return repr(self.ch_form)
 
     def __str__(self) -> str:
-        """Return the wavefunction string representation of the state."""
+        """Return the state vector string representation of the state."""
         return str(self.ch_form)
 
     def to_numpy(self) -> np.ndarray:
@@ -322,8 +327,12 @@ class CliffordState():
         generators above generate the full Pauli group on n qubits."""
         return self.tableau.destabilizers()
 
+    def state_vector(self):
+        return self.ch_form.state_vector()
+
+    @deprecated(deadline='v0.10.0', fix='use state_vector instead')
     def wave_function(self):
-        return self.ch_form.wave_function()
+        return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
         if len(op.qubits) == 1:
@@ -415,13 +424,21 @@ class CliffordState():
         self.tableau._Y(qubit)
         self.ch_form._Y(qubit)
 
+    @deprecated_parameter(
+        deadline='v0.10.0',
+        fix='Use collapse_state_vector instead.',
+        parameter_desc='collapse_wavefunction',
+        match=lambda args, kwargs: 'collapse_wave_function' in kwargs,
+        rewrite=lambda args, kwargs: (args, {(
+            'collapse_state_vector' if k == 'collapse_wave_function' else k): v
+                                             for k, v in kwargs.items()}))
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
                             prng: np.random.RandomState,
-                            collapse_wavefunction=True):
+                            collapse_state_vector=True):
         results = []
 
-        if collapse_wavefunction:
+        if collapse_state_vector:
             state = self
         else:
             state = self.copy()

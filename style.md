@@ -69,3 +69,9 @@ Note that if you do this you will need to use the string version of the type,
 def my_func() -> 'module.that.causes.cycle.MyClass':
     pass
 ```
+
+#### Nomenclature
+
+Using consistent wording across Cirq is important for lowering users
+cognitive load. For rule governing naming, see the 
+[nomenclature guidelines](docs/dev/nomenclature.md).

@@ -58,7 +58,7 @@ def test_asymmetric_depolarizing_mixture():
                            (0.1, X),
                            (0.2, Y),
                            (0.3, Z)))
-    assert cirq.has_mixture_channel(d)
+    assert cirq.has_mixture(d)
 
 
 def test_asymmetric_depolarizing_channel_repr():
@@ -131,7 +131,7 @@ def test_depolarizing_mixture():
                            (0.1, X),
                            (0.1, Y),
                            (0.1, Z)))
-    assert cirq.has_mixture_channel(d)
+    assert cirq.has_mixture(d)
 
 
 def test_depolarizing_channel_repr():
@@ -176,7 +176,8 @@ def test_generalized_amplitude_damping_channel():
                np.sqrt(0.9) * np.array([[np.sqrt(1. - 0.3), 0.], [0., 1.]]),
                np.sqrt(0.9) * np.array([[0., 0.], [np.sqrt(0.3), 0.]])))
     assert cirq.has_channel(d)
-    assert not cirq.has_mixture_channel(d)
+    assert not cirq.has_mixture(d)
+
 
 def test_generalized_amplitude_damping_repr():
     cirq.testing.assert_equivalent_repr(
@@ -233,7 +234,7 @@ def test_amplitude_damping_channel():
                               (np.array([[1., 0.], [0., np.sqrt(1. - 0.3)]]),
                                np.array([[0., np.sqrt(0.3)], [0., 0.]])))
     assert cirq.has_channel(d)
-    assert not cirq.has_mixture_channel(d)
+    assert not cirq.has_mixture(d)
 
 
 def test_amplitude_damping_channel_repr():
@@ -278,7 +279,7 @@ def test_reset_channel():
         cirq.channel(r),
         (np.array([[1., 0.], [0., 0]]), np.array([[0., 1.], [0., 0.]])))
     assert cirq.has_channel(r)
-    assert not cirq.has_mixture_channel(r)
+    assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (2,)
 
     r = cirq.reset(cirq.LineQid(0, dimension=3))
@@ -288,7 +289,7 @@ def test_reset_channel():
          np.array([[0, 1, 0], [0, 0, 0], [0, 0, 0]]),
          np.array([[0, 0, 1], [0, 0, 0], [0, 0, 0]])))  # yapf: disable
     assert cirq.has_channel(r)
-    assert not cirq.has_mixture_channel(r)
+    assert not cirq.has_mixture(r)
     assert cirq.qid_shape(r) == (3,)
 
 
@@ -314,13 +315,44 @@ def test_reset_channel_text_diagram():
         cirq.ResetChannel(3)) == cirq.CircuitDiagramInfo(wire_symbols=('R',)))
 
 
+def test_reset_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.ResetChannel(), object())
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(1, 1, 1, 1, 1),
+                                   shape=(2, 2, 2, 2, 2),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.ResetChannel(), args)
+    assert args.log_of_measurement_results == {}
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
+
+    cirq.act_on(cirq.ResetChannel(), args)
+    assert args.log_of_measurement_results == {}
+    np.testing.assert_allclose(
+        args.target_tensor,
+        cirq.one_hot(index=(1, 0, 1, 1, 1),
+                     shape=(2, 2, 2, 2, 2),
+                     dtype=np.complex64))
+
+
 def test_phase_damping_channel():
     d = cirq.phase_damp(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
                               (np.array([[1.0, 0.], [0., np.sqrt(1 - 0.3)]]),
                                np.array([[0., 0.], [0., np.sqrt(0.3)]])))
     assert cirq.has_channel(d)
-    assert not cirq.has_mixture_channel(d)
+    assert not cirq.has_mixture(d)
 
 
 def test_phase_damping_channel_repr():
@@ -370,7 +402,7 @@ def test_phase_flip_channel():
 def test_phase_flip_mixture():
     d = cirq.phase_flip(0.3)
     assert_mixtures_equal(cirq.mixture(d), ((0.7, np.eye(2)), (0.3, Z)))
-    assert cirq.has_mixture_channel(d)
+    assert cirq.has_mixture(d)
 
 
 def test_phase_flip_overload():
@@ -427,7 +459,7 @@ def test_bit_flip_channel():
 def test_bit_flip_mixture():
     d = cirq.bit_flip(0.3)
     assert_mixtures_equal(cirq.mixture(d), ((0.7, np.eye(2)), (0.3, X)))
-    assert cirq.has_mixture_channel(d)
+    assert cirq.has_mixture(d)
 
 
 def test_bit_flip_overload():
