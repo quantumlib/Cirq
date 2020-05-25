@@ -49,10 +49,15 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
             operation acts are chosen randomly, not all given qubits
             may be acted upon. If an int, then this number of qubits will
             be automatically generated.
-        n_moments: the number of moments in the generated circuit.
-        op_density: the expected proportion of qubits that are acted on in any
+        n_moments: The number of moments in the generated circuit.
+        op_density: The expected proportion of qubits that are acted on in any
             moment.
-        gate_domain: The set of gates to choose from, with a specified arity.
+        gate_domain: The set of gates to choose from, specified as a dictionary
+            where each key is a gate and the value of the key is the number of
+            qubits the gate acts on. If not provided, the default gate domain is
+            {X, Y, Z, H, S, T, CNOT, CZ, SWAP, ISWAP, CZPowGate()}. Only gates
+            which act on a number of qubits less than len(qubits) (or qubits if
+            provided as an int) are selected from the gate domain.
         random_state: Random state or random state seed.
 
     Raises:
@@ -70,13 +75,14 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         gate_domain = DEFAULT_GATE_DOMAIN
     if not gate_domain:
         raise ValueError('gate_domain must be non-empty')
-    max_arity = max(gate_domain.values())
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
     n_qubits = len(qubits)
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
+    gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
+    max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
 

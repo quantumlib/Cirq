@@ -13,6 +13,8 @@
 # limitations under the License.
 
 from collections.abc import Iterator
+from typing import Any
+
 import pytest
 
 import cirq
@@ -224,3 +226,20 @@ def test_multi_qubit_gate_validate():
         g.validate_args([a, b])
     with pytest.raises(ValueError):
         g.validate_args([a, b, c, d])
+
+
+def test_on_each_iterable_qid():
+
+    class QidIter(cirq.Qid):
+
+        @property
+        def dimension(self) -> int:
+            return 2
+
+        def _comparison_key(self) -> Any:
+            return 1
+
+        def __iter__(self):
+            raise NotImplementedError()
+
+    assert cirq.H.on_each(QidIter())[0] == cirq.H.on(QidIter())

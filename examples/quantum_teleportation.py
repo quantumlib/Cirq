@@ -80,7 +80,8 @@ def main(seed=None):
 
     print("\nBloch Sphere of Message After Random X and Y Gates:")
     # Prints the Bloch Sphere of the Message after the X and Y gates.
-    expected = cirq.bloch_vector_from_state_vector(message.final_state, 0)
+    expected = cirq.bloch_vector_from_state_vector(message.final_state_vector,
+                                                   0)
     print("x: ", np.around(expected[0], 4), "y: ", np.around(expected[1], 4),
           "z: ", np.around(expected[2], 4))
 
@@ -89,8 +90,8 @@ def main(seed=None):
 
     print("\nBloch Sphere of Qubit 2 at Final State:")
     # Prints the Bloch Sphere of Bob's entangled qubit at the final state.
-    teleported = cirq.bloch_vector_from_state_vector(final_results.final_state,
-                                                     2)
+    teleported = cirq.bloch_vector_from_state_vector(
+        final_results.final_state_vector, 2)
     print("x: ", np.around(teleported[0], 4), "y: ",
           np.around(teleported[1], 4), "z: ", np.around(teleported[2], 4))
 

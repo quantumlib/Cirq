@@ -141,7 +141,7 @@ def test_apply_mixture_returns_aux_buffer():
         assert_apply_mixture_returns(ReturnsAuxBuffer1(), rho, [0], [1])
 
 
-def test_apply_mixture_simple_wavefunction():
+def test_apply_mixture_simple_state_vector():
     for _ in range(25):
         state = cirq.testing.random_superposition(2)
         u1 = cirq.testing.random_unitary(2)
