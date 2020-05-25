@@ -17,6 +17,7 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -101,7 +102,7 @@ class StabilizerStateChForm():
         return copy
 
     def __str__(self) -> str:
-        """Return the wavefunction string representation of the state."""
+        """Return the state vector string representation of the state."""
         return cirq.dirac_notation(self.to_state_vector())
 
     def __repr__(self) -> str:
@@ -110,7 +111,7 @@ class StabilizerStateChForm():
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
-         the wavefunction, i.e. <x|psi> """
+         the state vector, i.e. <x|psi> """
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
@@ -124,13 +125,17 @@ class StabilizerStateChForm():
         return (self.omega * 2**(-sum(self.v) / 2) * 1j**mu *
                 (-1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s)))
 
-    def wave_function(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         wf = np.zeros(2**self.n, dtype=complex)
 
         for x in range(2**self.n):
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
+
+    @deprecated(deadline='v0.10.0', fix='Use state_vector instead.')
+    def wave_function(self) -> np.ndarray:
+        return self.state_vector()
 
     def _S(self, q, right=False):
         if right:

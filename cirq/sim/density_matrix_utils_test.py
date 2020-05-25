@@ -18,21 +18,15 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_deprecated():
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.to_valid_density_matrix', 'deprecated'):
         _ = cirq.sim.to_valid_density_matrix(0, 1)
-    assert len(log) == 1
-    assert "cirq.to_valid_density_matrix" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.von_neumann_entropy', 'deprecated'):
         _ = cirq.sim.von_neumann_entropy(np.eye(2) / 2)
-    assert len(log) == 1
-    assert "cirq.von_neumann_entropy" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
 
 def test_sample_density_matrix_big_endian():
