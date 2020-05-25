@@ -67,6 +67,6 @@ def test_sample_with_gate_set():
     circuit2 = cirq.Circuit([cirq.CX(a, b)])
 
     sampler.sample(circuit1)
-    
+
     with pytest.raises(AssertionError, match='Unsupported operation'):
         sampler.sample(circuit2)

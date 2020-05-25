@@ -26,8 +26,10 @@ if TYPE_CHECKING:
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
 
-    def __init__(self,
-                 gate_set: 'cirq.google.serializable_gate_set.SerializableGateSet' = None):
+    def __init__(
+            self,
+            gate_set:
+            'cirq.google.serializable_gate_set.SerializableGateSet' = None):
         """
         Args:
             gate_set: `SerializableGateSet`. If set, sampler will validate that
@@ -55,7 +57,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         if self.gate_set is not None:
             for op in program.all_operations():
                 assert self.gate_set.is_supported_operation(op), (
-                        "Unsupported operation: %s" % op)
+                    "Unsupported operation: %s" % op)
 
         measurements = {}  # type: Dict[str, np.ndarray]
         for op in program.all_operations():
