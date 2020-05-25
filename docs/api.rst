@@ -278,9 +278,6 @@ results.
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
-    cirq.WaveFunctionSimulatorState
-    cirq.WaveFunctionStepResult
-    cirq.WaveFunctionTrialResult
     cirq.ZerosSampler
     cirq.Zip
 
