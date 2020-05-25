@@ -329,6 +329,7 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionTrialResult',
     'XmonDevice',
     'XMON',
+    'ZerosSampler',
     'Zip',
 ]
 
