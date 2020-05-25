@@ -26,10 +26,7 @@ if TYPE_CHECKING:
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
 
-    def __init__(
-            self,
-            gate_set:
-            'cirq.google.serializable_gate_set.SerializableGateSet' = None):
+    def __init__(self, gate_set: 'cirq.google.SerializableGateSet' = None):
         """
         Args:
             gate_set: `SerializableGateSet`. If set, sampler will validate that
