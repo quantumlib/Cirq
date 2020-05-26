@@ -1,3 +1,5 @@
+import random
+import cirq
 """Demonstrates a Hidden Shift algorithm.
 
 Let f and g be two function oracles {0,1}^N -> {0,1}^N  which are the same
@@ -42,9 +44,6 @@ Counter({'100101': 100})
 Most common bitstring: 100101
 Found a match: True
 """
-
-import random
-import cirq
 
 
 def set_qubits(qubit_count):
