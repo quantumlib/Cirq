@@ -30,7 +30,7 @@ import examples.swap_networks
 
 
 def test_example_runs_bernstein_vazirani():
-      examples.bernstein_vazirani.main(qubit_count=3)
+    examples.bernstein_vazirani.main(qubit_count=3)
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
