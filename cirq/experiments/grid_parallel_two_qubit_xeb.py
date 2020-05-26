@@ -389,6 +389,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     layers = metadata.layers
 
     coupled_qubit_pairs = _coupled_qubit_pairs(qubits)
+    all_active_qubit_pairs = []  # type: List[GridQubitPair]
     qubit_indices = {q: i for i, q in enumerate(qubits)}
     xeb_results = {}  # type: Dict[GridQubitPair, CrossEntropyResult]
 
@@ -401,6 +402,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         active_qubit_pairs = [
             pair for pair in coupled_qubit_pairs if pair in layer
         ]
+        all_active_qubit_pairs.extend(active_qubit_pairs)
         for i in range(num_circuits):
             circuit_params = GridParallelXEBCircuitParameters(
                 data_collection_id=data_collection_id,
@@ -436,7 +438,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
 
     # Compute the XEB results
     arguments = []
-    for qubit_pair in coupled_qubit_pairs:
+    for qubit_pair in all_active_qubit_pairs:
         circuits, measurement_results = zip(*data[qubit_pair])
         arguments.append((qubit_pair, circuits, measurement_results,
                           num_circuits, repetitions, cycles))
@@ -445,7 +447,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
         xeb_results = pool.starmap(_get_xeb_result, arguments)
     xeb_results = {
         qubit_pair: result
-        for qubit_pair, result in zip(coupled_qubit_pairs, xeb_results)
+        for qubit_pair, result in zip(all_active_qubit_pairs, xeb_results)
     }
 
     # Save results and return
