@@ -57,7 +57,7 @@ def make_oracle_f(qubits):
     """Implement function {f(x) = Σ_i x_(2i-1) x_(2i)}."""
     return [
         cirq.CZ(qubits[2*i],qubits[2*i+1])
-        for i in range(len(qubits)//2)
+        for i in range(len(qubits) // 2)
     ]
 
 
@@ -72,15 +72,15 @@ def make_hs_circuit(qubits, oracle_f, shift):
 
     # Query oracle g: It is equivalent to that of f, shifted before and after:
     # Apply Shift:
-    c.append([
-        cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
+    c.append(
+        [cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
 
     # Query oracle.
     c.append(oracle_f)
 
     # Apply Shift:
-    c.append([
-        cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
+    c.append(
+        [cirq.X.on_each([qubits[k] for k in range(len(shift)) if shift[k]])])
 
     # Second Application of Hadamards to apply inverse fct.
     c.append([
