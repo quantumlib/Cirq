@@ -61,12 +61,12 @@ Example of circuit with 2 register qubits.
 (0, 0): ─────────────────────────Ry(θ₄)─Ry(θ₁)─Ry(θ₂)─Ry(θ₃)──────────────M──
                      ┌──────┐    │      │      │      │ ┌───┐
 (1, 0): ─H─@─────────│      │──X─@──────@────X─@──────@─│   │─────────@─H────
-           │         │QFT^-1│    │      │      │      │ │QFT│         │
+           │         │qft^-1│    │      │      │      │ │qft│         │
 (2, 0): ─H─┼─────@───│      │──X─@────X─@────X─@────X─@─│   │─@───────┼─H────
            │     │   └──────┘                           └───┘ │       │
 (3, 0): ───e^iAt─e^2iAt───────────────────────────────────────e^-2iAt─e^-iAt─
 
-Note: QFT in the above diagram omits swaps, which are included implicitly by
+Note: qft in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
 
@@ -96,7 +96,7 @@ class PhaseEstimation(cirq.Gate):
         qubits = list(qubits)
         yield cirq.H.on_each(*qubits[:-1])
         yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-        yield cirq.QFT(*qubits[:-1], without_reverse=True)**-1
+        yield cirq.qft(*qubits[:-1], without_reverse=True) ** -1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):

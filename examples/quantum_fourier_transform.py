@@ -1,5 +1,5 @@
 """
-Creates and simulates a circuit for Quantum Fourier Transform(QFT)
+Creates and simulates a circuit for Quantum Fourier Transform(qft)
 on a 4 qubit system.
 
 In this example we demonstrate Fourier Transform on

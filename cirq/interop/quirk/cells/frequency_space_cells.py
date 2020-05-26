@@ -25,9 +25,9 @@ from cirq.interop.quirk.cells.cell import (
 
 def generate_all_frequency_space_cell_makers() -> Iterator[CellMaker]:
     # Frequency space.
-    yield from _family("QFT", lambda n: cirq.QuantumFourierTransformGate(n))
+    yield from _family("qft", lambda n: cirq.QuantumFourierTransformGate(n))
     yield from _family(
-        "QFT†", lambda n: cirq.inverse(cirq.QuantumFourierTransformGate(n)))
+        "qft†", lambda n: cirq.inverse(cirq.QuantumFourierTransformGate(n)))
     yield from _family(
         "PhaseGradient", lambda n: cirq.PhaseGradientGate(num_qubits=n,
                                                           exponent=0.5))
