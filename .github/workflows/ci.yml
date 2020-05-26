@@ -116,7 +116,7 @@ jobs:
       - name: Build docs
         run: dev_tools/build-docs.sh
   build_protos:
-    name: Build changed protos
+    name: Build protos
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v1
@@ -129,7 +129,7 @@ jobs:
           python -m pip install -r dev_tools/conf/pip-list-dev-tools.txt
           wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
           sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
-      - name: Build changed protos
+      - name: Build protos
         run: check/build-changed-protos
   coverage:
     name: Coverage check
