@@ -65,7 +65,7 @@ jobs:
       - name: Install pylint
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
       - name: Lint
-        run: check/pylint
+        run: check/pylint-changed-files
   doc_test:
     name: Doc test
     runs-on: ubuntu-16.04

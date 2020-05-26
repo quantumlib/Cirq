@@ -57,8 +57,8 @@ done
 echo "Running misc"
 check/misc
 
-echo "Running pylint"
-check/pylint
+echo "Running incremental pylint"
+check/pylint-changed-files
 
 echo "Running mypy"
 check/mypy
