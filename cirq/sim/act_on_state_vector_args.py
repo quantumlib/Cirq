@@ -259,7 +259,7 @@ def _strat_act_on_state_vector_from_channel(action: Any,
         weight = prepare_into_buffer(i)
 
         if fallback_weight is None or weight > fallback_weight:
-            fallback_weight_i  = i
+            fallback_weight_i = i
             fallback_weight = weight
 
         p -= weight
