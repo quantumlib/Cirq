@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, cast, Collection, Dict, Optional, Sequence, Tuple,
-                    Union, TYPE_CHECKING, List)
+from typing import (Any, cast, Collection, Dict, List, Optional, Sequence,
+                    Tuple, Union, TYPE_CHECKING)
 
 import itertools
 import numpy as np
