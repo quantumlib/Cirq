@@ -237,6 +237,15 @@ def _strat_act_on_state_vector_from_channel(action: Any,
     if kraus_operators is None:
         return NotImplemented
 
+    def prepare_into_buffer(k: int) -> float:
+        linalg.targeted_left_multiply(
+            left_matrix=kraus_tensors[k],
+            right_target=args.target_tensor,
+            target_axes=args.axes,
+            out=args.available_buffer,
+        )
+        return np.linalg.norm(args.available_buffer)**2
+
     shape = protocols.qid_shape(action)
     kraus_tensors = [
         e.reshape(shape * 2).astype(args.target_tensor.dtype)
@@ -244,19 +253,25 @@ def _strat_act_on_state_vector_from_channel(action: Any,
     ]
     p = args.prng.random()
     weight = None
+    fallback_weight = None
+    fallback_weight_i = None
     for i in range(len(kraus_tensors)):
-        linalg.targeted_left_multiply(
-            left_matrix=kraus_tensors[i],
-            right_target=args.target_tensor,
-            target_axes=args.axes,
-            out=args.available_buffer,
-        )
-        weight = np.linalg.norm(args.available_buffer)**2
+        weight = prepare_into_buffer(i)
+
+        if fallback_weight is None or weight > fallback_weight:
+            fallback_weight_i  = i
+            fallback_weight = weight
+
         p -= weight
         if p < 0:
             break
 
     assert weight is not None, "No Kraus operators"
+    if p >= 0 or weight == 0:
+        # Floating point error resulted in a malformed sample.
+        # Fall back to the most likely case.
+        weight = prepare_into_buffer(fallback_weight_i)
+
     args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
     return True

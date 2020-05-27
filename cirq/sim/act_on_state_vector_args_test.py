@@ -187,3 +187,35 @@ def test_act_using_adaptive_two_qubit_channel():
             projected_state,
             sample=3 / 4 + 1e-8,
         )
+
+
+def test_probability_comes_up_short_results_in_fallback():
+
+    class Short(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _channel_(self):
+            return [
+                cirq.unitary(cirq.X) * np.sqrt(0.999),
+                np.eye(2) * 0,
+            ]
+
+    mock_prng = mock.Mock()
+    mock_prng.random.return_value = 0.9999
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=np.array([1, 0], dtype=np.complex64),
+        available_buffer=np.empty(2, dtype=np.complex64),
+        axes=[0],
+        prng=mock_prng,
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(Short(), args)
+
+    np.testing.assert_allclose(
+        args.target_tensor,
+        np.array([0, 1]),
+    )
