@@ -130,7 +130,7 @@ jobs:
           wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
           sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
       - name: Build protos
-        run: check/build-protos
+        run: check/build-changed-protos
   coverage:
     name: Coverage check
     runs-on: ubuntu-16.04
