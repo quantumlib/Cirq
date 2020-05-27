@@ -369,12 +369,9 @@ def test_monte_carlo_on_unknown_channel():
 
         def _channel_(self):
             return [
-                np.eye(4) - cirq.one_hot(index=(3, 3),
-                                        shape=(4, 4),
-                                        dtype=np.complex64),
-                cirq.one_hot(index=(0, 3),
-                             shape=(4, 4),
-                             dtype=np.complex64),
+                np.eye(4) -
+                cirq.one_hot(index=(3, 3), shape=(4, 4), dtype=np.complex64),
+                cirq.one_hot(index=(0, 3), shape=(4, 4), dtype=np.complex64),
             ]
 
     for k in range(4):
@@ -382,7 +379,8 @@ def test_monte_carlo_on_unknown_channel():
             cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))),
             initial_state=k,
         )
-        np.testing.assert_allclose(
-            out.state_vector(),
-            cirq.one_hot(index=k % 3, shape=4, dtype=np.complex64),
-            atol=1e-8)
+        np.testing.assert_allclose(out.state_vector(),
+                                   cirq.one_hot(index=k % 3,
+                                                shape=4,
+                                                dtype=np.complex64),
+                                   atol=1e-8)

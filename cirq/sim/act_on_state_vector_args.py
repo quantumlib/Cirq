@@ -238,8 +238,10 @@ def _strat_act_on_state_vector_from_channel(action: Any,
         return NotImplemented
 
     shape = protocols.qid_shape(action)
-    kraus_tensors = [e.reshape(shape * 2).astype(args.target_tensor.dtype)
-                     for e in kraus_operators]
+    kraus_tensors = [
+        e.reshape(shape * 2).astype(args.target_tensor.dtype)
+        for e in kraus_operators
+    ]
     p = args.prng.random()
     weight = None
     for i in range(len(kraus_tensors)):
