@@ -146,9 +146,7 @@ class ControlledOperation(raw_types.Operation):
         sub_mixture = protocols.mixture(self.sub_operation, None)
         if sub_mixture is None:
             return None
-        return [
-            (p, self._extend_matrix(m)) for p, m in sub_mixture
-        ]
+        return [(p, self._extend_matrix(m)) for p, m in sub_mixture]
 
     def __str__(self) -> str:
         if set(self.control_values) == {(1,)}:

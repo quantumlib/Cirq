@@ -528,7 +528,9 @@ def test_str():
 
 
 def test_controlled_mixture():
+
     class NoDetails(cirq.Gate):
+
         def num_qubits(self) -> int:
             return 1
 

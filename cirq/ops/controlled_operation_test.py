@@ -354,6 +354,7 @@ def test_controlled_mixture():
     a, b = cirq.LineQubit.range(2)
 
     class NoDetails(cirq.Operation):
+
         @property
         def qubits(self):
             return a,
