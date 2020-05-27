@@ -61,12 +61,12 @@ Example of circuit with 2 register qubits.
 (0, 0): ─────────────────────────Ry(θ₄)─Ry(θ₁)─Ry(θ₂)─Ry(θ₃)──────────────M──
                      ┌──────┐    │      │      │      │ ┌───┐
 (1, 0): ─H─@─────────│      │──X─@──────@────X─@──────@─│   │─────────@─H────
-           │         │qft^-1│    │      │      │      │ │qft│         │
+           │         │QFT^-1│    │      │      │      │ │QFT│         │
 (2, 0): ─H─┼─────@───│      │──X─@────X─@────X─@────X─@─│   │─@───────┼─H────
            │     │   └──────┘                           └───┘ │       │
 (3, 0): ───e^iAt─e^2iAt───────────────────────────────────────e^-2iAt─e^-iAt─
 
-Note: qft in the above diagram omits swaps, which are included implicitly by
+Note: QFT in the above diagram omits swaps, which are included implicitly by
 reversing qubit order for phase kickbacks.
 """
 

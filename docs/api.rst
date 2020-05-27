@@ -63,6 +63,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CSWAP
     cirq.FREDKIN
     cirq.ISWAP
+    cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
     cirq.givens
