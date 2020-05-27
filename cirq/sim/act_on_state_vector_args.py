@@ -149,6 +149,7 @@ class ActOnStateVectorArgs:
         strats = [
             _strat_act_on_state_vector_from_apply_unitary,
             _strat_act_on_state_vector_from_mixture,
+            _strat_act_on_state_vector_from_channel,
         ]
         if allow_decompose:
             strats.append(_strat_act_on_state_vector_from_apply_decompose)
@@ -225,5 +226,35 @@ def _strat_act_on_state_vector_from_mixture(action: Any,
                                   args.target_tensor,
                                   args.axes,
                                   out=args.available_buffer)
+    args.swap_target_tensor_for(args.available_buffer)
+    return True
+
+
+def _strat_act_on_state_vector_from_channel(action: Any,
+                                            args: 'cirq.ActOnStateVectorArgs'
+                                           ) -> bool:
+    kraus_operators = protocols.channel(action, default=None)
+    if kraus_operators is None:
+        return NotImplemented
+
+    shape = protocols.qid_shape(action)
+    kraus_tensors = [e.reshape(shape * 2).astype(args.target_tensor.dtype)
+                     for e in kraus_operators]
+    p = args.prng.random()
+    weight = None
+    for i in range(len(kraus_tensors)):
+        linalg.targeted_left_multiply(
+            left_matrix=kraus_tensors[i],
+            right_target=args.target_tensor,
+            target_axes=args.axes,
+            out=args.available_buffer,
+        )
+        weight = np.linalg.norm(args.available_buffer)**2
+        p -= weight
+        if p < 0:
+            break
+
+    assert weight is not None, "No Kraus operators"
+    args.available_buffer /= np.sqrt(weight)
     args.swap_target_tensor_for(args.available_buffer)
     return True
