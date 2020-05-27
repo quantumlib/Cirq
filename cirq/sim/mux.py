@@ -162,7 +162,7 @@ def final_state_vector(
 
 
 final_wavefunction = deprecated(
-    deadline='v.0.10.0',
+    deadline='v0.10.0',
     fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
 
 

@@ -63,11 +63,11 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CSWAP
     cirq.FREDKIN
     cirq.ISWAP
-    cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
     cirq.givens
     cirq.identity_each
+    cirq.qft
     cirq.riswap
     cirq.CCNotPowGate
     cirq.CCXPowGate
@@ -702,6 +702,7 @@ These objects and methods will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
+    cirq.QFT
     cirq.final_wavefunction
     cirq.subwavefunction
     cirq.validate_normalized_state
