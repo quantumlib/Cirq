@@ -66,7 +66,7 @@ def test_pow():
 
 
 def test_qft():
-    np.testing.assert_allclose(cirq.unitary(cirq.QFT(*cirq.LineQubit.range(2))),
+    np.testing.assert_allclose(cirq.unitary(cirq.qft(*cirq.LineQubit.range(2))),
                                np.array([
                                    [1, 1, 1, 1],
                                    [1, 1j, -1, -1j],
@@ -76,7 +76,7 @@ def test_qft():
                                atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(
-        cirq.QFT(*cirq.LineQubit.range(2), without_reverse=True)),
+        cirq.qft(*cirq.LineQubit.range(2), without_reverse=True)),
                                np.array([
                                    [1, 1, 1, 1],
                                    [1, -1, 1, -1],
@@ -86,14 +86,14 @@ def test_qft():
                                atol=1e-8)
 
     np.testing.assert_allclose(
-        cirq.unitary(cirq.QFT(*cirq.LineQubit.range(4))),
+        cirq.unitary(cirq.qft(*cirq.LineQubit.range(4))),
         np.array([[np.exp(2j * np.pi * i * j / 16)
                    for i in range(16)]
                   for j in range(16)]) / 4,
         atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(
-        cirq.QFT(*cirq.LineQubit.range(2))**-1),
+        cirq.qft(*cirq.LineQubit.range(2))**-1),
                                np.array([
                                    [1, 1, 1, 1],
                                    [1, -1j, -1, 1j],
@@ -111,15 +111,15 @@ def test_qft():
 
 def test_inverse():
     a, b, c = cirq.LineQubit.range(3)
-    assert cirq.QFT(a, b, c, inverse=True) == cirq.QFT(a, b, c)**-1
-    assert cirq.QFT(a, b, c, inverse=True,
+    assert cirq.qft(a, b, c, inverse=True) == cirq.qft(a, b, c)**-1
+    assert cirq.qft(a, b, c, inverse=True,
                     without_reverse=True) == cirq.inverse(
-                        cirq.QFT(a, b, c, without_reverse=True))
+                        cirq.qft(a, b, c, without_reverse=True))
 
 
 def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.decompose_once(cirq.QFT(*cirq.LineQubit.range(4)))),
+        cirq.Circuit(cirq.decompose_once(cirq.qft(*cirq.LineQubit.range(4)))),
         """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────×───
           │              │              │              │
@@ -133,7 +133,7 @@ def test_circuit_diagram():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             cirq.decompose_once(
-                cirq.QFT(*cirq.LineQubit.range(4), without_reverse=True))), """
+                cirq.qft(*cirq.LineQubit.range(4), without_reverse=True))), """
 0: ───H───Grad^0.5───────#2─────────────#3─────────────
           │              │              │
 1: ───────@──────────H───Grad^0.5───────#2─────────────
@@ -144,9 +144,9 @@ def test_circuit_diagram():
         """)
 
     cirq.testing.assert_has_diagram(
-        cirq.Circuit(cirq.QFT(*cirq.LineQubit.range(4)),
-                     cirq.inverse(cirq.QFT(*cirq.LineQubit.range(4)))), """
-0: ───QFT───QFT^-1───
+        cirq.Circuit(cirq.qft(*cirq.LineQubit.range(4)),
+                     cirq.inverse(cirq.qft(*cirq.LineQubit.range(4)))), """
+0: ───qft───qft^-1───
       │     │
 1: ───#2────#2───────
       │     │
@@ -154,3 +154,8 @@ def test_circuit_diagram():
       │     │
 3: ───#4────#4───────
         """)
+
+
+def test_deprecated():
+    with cirq.testing.assert_logs('cirq.qft', 'deprecated'):
+        _ = cirq.QFT(*cirq.LineQubit.range(3))
