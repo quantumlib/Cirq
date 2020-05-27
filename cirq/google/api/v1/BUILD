@@ -15,7 +15,7 @@ py_proto_library(
 cc_proto_library(
     name = "operations_cc_proto",
     deps = [
-        ":operations_proto"
+        ":operations_proto",
     ],
 )
 
@@ -32,7 +32,7 @@ py_proto_library(
 cc_proto_library(
     name = "params_cc_proto",
     deps = [
-        ":params_proto"
+        ":params_proto",
     ],
 )
 
