@@ -75,6 +75,7 @@ from cirq.ops.eigen_gate import (
 from cirq.ops.fourier_transform import (
     PhaseGradientGate,
     qft,
+    QFT,
     QuantumFourierTransformGate,
 )
 

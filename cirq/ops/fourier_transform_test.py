@@ -93,7 +93,7 @@ def test_qft():
         atol=1e-8)
 
     np.testing.assert_allclose(cirq.unitary(
-        cirq.qft(*cirq.LineQubit.range(2)) ** -1),
+        cirq.qft(*cirq.LineQubit.range(2))**-1),
                                np.array([
                                    [1, 1, 1, 1],
                                    [1, -1j, -1, 1j],
@@ -111,7 +111,7 @@ def test_qft():
 
 def test_inverse():
     a, b, c = cirq.LineQubit.range(3)
-    assert cirq.qft(a, b, c, inverse=True) == cirq.qft(a, b, c) ** -1
+    assert cirq.qft(a, b, c, inverse=True) == cirq.qft(a, b, c)**-1
     assert cirq.qft(a, b, c, inverse=True,
                     without_reverse=True) == cirq.inverse(
                         cirq.qft(a, b, c, without_reverse=True))
@@ -154,3 +154,8 @@ def test_circuit_diagram():
       │     │
 3: ───#4────#4───────
         """)
+
+
+def test_deprecated():
+    with cirq.testing.assert_logs('cirq.qft', 'deprecated'):
+        _ = cirq.QFT(*cirq.LineQubit.range(3))
