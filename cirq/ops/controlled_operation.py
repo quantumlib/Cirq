@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, cast, Collection, Dict, Optional, Sequence, Tuple,
-                    Union, TYPE_CHECKING)
+from typing import (Any, cast, Collection, Dict, List, Optional, Sequence,
+                    Tuple, Union, TYPE_CHECKING)
 
 import itertools
 import numpy as np
@@ -123,10 +123,7 @@ class ControlledOperation(raw_types.Operation):
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        sub_matrix = protocols.unitary(self.sub_operation, None)
-        if sub_matrix is None:
-            return NotImplemented
+    def _extend_matrix(self, sub_matrix: np.ndarray) -> np.ndarray:
         qid_shape = protocols.qid_shape(self)
         sub_n = len(qid_shape) - len(self.controls)
         tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
@@ -135,6 +132,21 @@ class ControlledOperation(raw_types.Operation):
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        sub_matrix = protocols.unitary(self.sub_operation, None)
+        if sub_matrix is None:
+            return NotImplemented
+        return self._extend_matrix(sub_matrix)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self.sub_operation)
+
+    def _mixture_(self) -> Optional[List[Tuple[float, np.ndarray]]]:
+        sub_mixture = protocols.mixture(self.sub_operation, None)
+        if sub_mixture is None:
+            return None
+        return [(p, self._extend_matrix(m)) for p, m in sub_mixture]
 
     def __str__(self) -> str:
         if set(self.control_values) == {(1,)}:

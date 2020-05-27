@@ -348,3 +348,33 @@ def test_controlled_operation_gate():
 
     op = Gateless().controlled_by(cirq.LineQubit(0))
     assert op.gate is None
+
+
+def test_controlled_mixture():
+    a, b = cirq.LineQubit.range(2)
+
+    class NoDetails(cirq.Operation):
+
+        @property
+        def qubits(self):
+            return a,
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+    c_no = cirq.ControlledOperation(
+        controls=[b],
+        sub_operation=NoDetails(),
+    )
+    assert not cirq.has_mixture(c_no)
+    assert cirq.mixture(c_no, None) is None
+
+    c_yes = cirq.ControlledOperation(
+        controls=[b],
+        sub_operation=cirq.phase_flip(0.25).on(a),
+    )
+    assert cirq.has_mixture(c_yes)
+    assert cirq.approx_eq(cirq.mixture(c_yes), [
+        (0.75, np.eye(4)),
+        (0.25, cirq.unitary(cirq.CZ)),
+    ])
