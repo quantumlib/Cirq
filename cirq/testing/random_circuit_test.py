@@ -22,7 +22,7 @@ import cirq.testing
 
 
 def test_random_circuit_errors():
-    with pytest.raises(ValueError, match='-1'):
+    with pytest.raises(ValueError, match='but was -1'):
         _ = cirq.testing.random_circuit(qubits=5, n_moments=5, op_density=-1)
 
     with pytest.raises(ValueError, match='empty'):
