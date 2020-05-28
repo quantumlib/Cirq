@@ -48,10 +48,15 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
             the circuit should act on. Because the qubits on which an
             operation acts are chosen randomly, not all given qubits
             may be acted upon. If an int, then this number of qubits will
-            be automatically generated.
+            be automatically generated, and the qubits will be
+            `cirq.NamedQubits` with names given by the integers in
+            `range(qubits)`.
         n_moments: The number of moments in the generated circuit.
-        op_density: The expected proportion of qubits that are acted on in any
-            moment.
+        op_density: The probability that a gate is selected to operate on
+            randomly selected qubits. Note that this is not the expected number
+            of qubits that are acted on, since there are cases where the
+            number of qubits that a gate acts on does not evenly divide the
+            total number of qubits.
         gate_domain: The set of gates to choose from, specified as a dictionary
             where each key is a gate and the value of the key is the number of
             qubits the gate acts on. If not provided, the default gate domain is
@@ -62,19 +67,19 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
 
     Raises:
         ValueError:
-            * op_density is not in (0, 1).
+            * op_density is not in (0, 1].
             * gate_domain is empty.
             * qubits is an int less than 1 or an empty sequence.
 
     Returns:
         The randomly generated Circuit.
     """
-    if not 0 < op_density < 1:
-        raise ValueError('op_density must be in (0, 1).')
+    if not 0 < op_density <= 1:
+        raise ValueError(f'op_density must be in (0, 1] but was {op_density}.')
     if gate_domain is None:
         gate_domain = DEFAULT_GATE_DOMAIN
     if not gate_domain:
-        raise ValueError('gate_domain must be non-empty')
+        raise ValueError('gate_domain must be non-empty.')
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
@@ -82,6 +87,9 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
     gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
+    if not gate_domain:
+        raise ValueError(f'After removing gates that act on less that '
+                         '{n_qubits}, gate_domain had no gates.')
     max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
