@@ -62,6 +62,7 @@ class CrossEntropyDepolarizingModel:
     covariance: Optional[np.ndarray] = None
 
 
+@dataclasses.dataclass
 @protocols.json_serializable_dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
