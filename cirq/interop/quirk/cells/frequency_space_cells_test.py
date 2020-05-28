@@ -22,9 +22,9 @@ def test_frequency_space_gates():
     a, b, c = cirq.LineQubit.range(3)
 
     assert_url_to_circuit_returns('{"cols":[["QFT3"]]}',
-                                  cirq.Circuit(cirq.QFT(a, b, c),))
+                                  cirq.Circuit(cirq.qft(a, b, c),))
     assert_url_to_circuit_returns(
-        '{"cols":[["QFT†3"]]}', cirq.Circuit(cirq.inverse(cirq.QFT(a, b, c)),))
+        '{"cols":[["QFT†3"]]}', cirq.Circuit(cirq.inverse(cirq.qft(a, b, c)),))
 
     assert_url_to_circuit_returns(
         '{"cols":[["PhaseGradient3"]]}',
