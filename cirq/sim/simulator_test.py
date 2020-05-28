@@ -358,3 +358,29 @@ def test_simulate_with_invert_mask():
     )
     assert np.all(
         cirq.Simulator().run(c).measurements['a'] == [[0, 1, 0, 2, 3]])
+
+
+def test_monte_carlo_on_unknown_channel():
+
+    class Reset11To00(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 2
+
+        def _channel_(self):
+            return [
+                np.eye(4) -
+                cirq.one_hot(index=(3, 3), shape=(4, 4), dtype=np.complex64),
+                cirq.one_hot(index=(0, 3), shape=(4, 4), dtype=np.complex64),
+            ]
+
+    for k in range(4):
+        out = cirq.Simulator().simulate(
+            cirq.Circuit(Reset11To00().on(*cirq.LineQubit.range(2))),
+            initial_state=k,
+        )
+        np.testing.assert_allclose(out.state_vector(),
+                                   cirq.one_hot(index=k % 3,
+                                                shape=4,
+                                                dtype=np.complex64),
+                                   atol=1e-8)
