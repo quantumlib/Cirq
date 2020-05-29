@@ -1094,7 +1094,11 @@ document(
          [. . . -1]]
     """)
 
-CNotPowGate = CXPowGate
+
+class CNotPowGate(CXPowGate):
+    pass
+
+
 CNOT = CX = CNotPowGate()
 document(
     CNOT, """The controlled NOT gate.
