@@ -254,7 +254,7 @@ results.
     cirq.ExpressionMap
     cirq.Linspace
     cirq.ListSweep
-    cirq.ParamDictType
+    .. autoclass:: cirq.ParamDictType
     cirq.ParamResolver
     cirq.ParamResolverOrSimilarType
     cirq.PauliSumCollector
