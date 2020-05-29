@@ -16,6 +16,7 @@ from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.circuits import Circuit
+from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
@@ -33,6 +34,13 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.Y: 1,
     ops.Z: 1
 }
+document(
+    DEFAULT_GATE_DOMAIN,
+    """The default gate domain for `cirq.testing.random_circuit`.
+
+This includes the gates CNOT, CZ, H, ISWAP, CZ, S, SWAP, T, X, Y,
+and Z gates.
+""")
 
 
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
