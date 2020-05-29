@@ -1095,8 +1095,7 @@ document(
     """)
 
 
-class CNotPowGate(CXPowGate):
-    pass
+CNotPowGate = CXPowGate
 
 
 CNOT = CX = CNotPowGate()

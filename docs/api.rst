@@ -69,10 +69,10 @@ Unitary effects that can be applied to one or more qubits.
     cirq.identity_each
     cirq.qft
     cirq.riswap
-    cirq.CCNotPowGate
+    .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
-    cirq.CNotPowGate
+    .. autoclass:: cirq.CNotPowGate
     cirq.CSwapGate
     cirq.CXPowGate
     cirq.CZPowGate

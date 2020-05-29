@@ -584,11 +584,7 @@ document(
     ```
     """)
 
-
-class CCNotPowGate(CCXPowGate):
-    pass
-
-
+CCNotPowGate = CCXPowGate
 CCX = TOFFOLI = CCNOT = CCXPowGate()
 document(
     CCX, """The TOFFOLI gate.
