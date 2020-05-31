@@ -20,4 +20,7 @@ def test_virtual_tag():
     tag2 = cirq.ops.VirtualTag()
 
     assert tag1 == tag2
-    assert repr(tag1) == repr(tag2) == '<virtual>'
+    assert str(tag1) == str(tag2) == '<virtual>'
+
+    cirq.testing.assert_equivalent_repr(tag1)
+    cirq.testing.assert_equivalent_repr(tag2)

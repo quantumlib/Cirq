@@ -262,6 +262,7 @@ from cirq.ops import (
     transform_op_tree,
     TwoQubitDiagonalGate,
     TwoQubitGate,
+    VirtualTag,
     WaitGate,
     X,
     XPowGate,
