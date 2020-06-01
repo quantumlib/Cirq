@@ -138,6 +138,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.PhaseDampingChannel
     cirq.PhaseFlipChannel
     cirq.ResetChannel
+    cirq.VirtualTag
 
 
 Pauli and Clifford Groups
