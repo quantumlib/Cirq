@@ -70,7 +70,7 @@ class Simulator(simulator.SimulatesSamples,
     These methods take in two parameters that the run methods do not: a
     qubit order and an initial state. The qubit order is necessary because an
     ordering must be chosen for the kronecker product (see
-    `SparseSimulationTrialResult` for details of this ordering). The initial
+    `StateVectorTrialResult` for details of this ordering). The initial
     state can be either the full state vector, or an integer which represents
     the initial state of being in a computational basis state for the binary
     representation of that integer. Similar to run methods, there are two
@@ -83,7 +83,7 @@ class Simulator(simulator.SimulatesSamples,
 
     The simulate methods in contrast to the run methods do not perform
     repetitions. The result of these simulations is a
-    `SparseSimulationTrialResult` which contains, in addition to measurement
+    `StateVectorTrialResult` which contains, in addition to measurement
     results and information about the parameters that were used in the
     simulation,access to the state via the `state` method and `StateVectorMixin`
     methods.

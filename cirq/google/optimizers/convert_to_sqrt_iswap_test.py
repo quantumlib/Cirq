@@ -4,8 +4,7 @@ import pytest
 import sympy
 
 import cirq
-import cirq.google.optimizers.convert_to_sqrt_iswap as cgoc
-import cirq.google as cig
+import cirq.google as cg
 
 
 def _unitaries_allclose(circuit1, circuit2):
@@ -48,8 +47,8 @@ def test_two_qubit_gates(gate: cirq.Gate, expected_length: int):
     q1 = cirq.GridQubit(5, 4)
     original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
-    cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
-    cig.SQRT_ISWAP_GATESET.serialize(converted_circuit)
+    cg.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
+    cg.SQRT_ISWAP_GATESET.serialize(converted_circuit)
     assert len(converted_circuit) <= expected_length
     assert _unitaries_allclose(original_circuit, converted_circuit)
 
@@ -70,7 +69,7 @@ def test_two_qubit_gates_with_symbols(gate: cirq.Gate, expected_length: int):
     q1 = cirq.GridQubit(5, 4)
     original_circuit = cirq.Circuit(gate(q0, q1))
     converted_circuit = original_circuit.copy()
-    cgoc.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
+    cg.ConvertToSqrtIswapGates().optimize_circuit(converted_circuit)
     assert len(converted_circuit) <= expected_length
 
     # Check if unitaries are the same
@@ -86,7 +85,7 @@ def test_cphase():
     qubits = [cirq.NamedQubit('a'), cirq.NamedQubit('b')]
     for theta in thetas:
         expected = cirq.CZPowGate(exponent=theta)
-        decomposition = cgoc.cphase_to_sqrt_iswap(qubits[0], qubits[1], theta)
+        decomposition = cg.cphase_to_sqrt_iswap(qubits[0], qubits[1], theta)
         actual = cirq.Circuit(decomposition)
         expected_unitary = cirq.unitary(expected)
         actual_unitary = cirq.unitary(actual)
@@ -101,7 +100,7 @@ def test_givens_rotation():
         program = cirq.Circuit(cirq.givens(theta).on(qubits[0], qubits[1]))
         unitary = cirq.unitary(program)
         test_program = program.copy()
-        cgoc.ConvertToSqrtIswapGates().optimize_circuit(test_program)
+        cg.ConvertToSqrtIswapGates().optimize_circuit(test_program)
         test_unitary = cirq.unitary(test_program)
         np.testing.assert_allclose(
             4,
@@ -120,4 +119,4 @@ def test_three_qubit_gate():
     circuit = cirq.Circuit(ThreeQubitGate()(q0, q1, q2))
 
     with pytest.raises(TypeError):
-        cgoc.ConvertToSqrtIswapGates().optimize_circuit(circuit)
+        cg.ConvertToSqrtIswapGates().optimize_circuit(circuit)

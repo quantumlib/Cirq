@@ -138,13 +138,13 @@ class Engine:
                 API interactions will be attributed to this project and any
                 resources created will be owned by the project. See
                 https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
-            context: Engine configuration and context to use.
             proto_version: The version of cirq protos to use. If None, then
                 ProtoVersion.V2 will be used.
             service_args: A dictionary of arguments that can be used to
                 configure options on the underlying client.
             verbose: Suppresses stderr messages when set to False. Default is
                 true.
+            context: Engine configuration and context to use.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
         """
