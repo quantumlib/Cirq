@@ -64,8 +64,6 @@ def run(
 dir=$(git rev-parse --show-toplevel)
 cd {}
 git init --quiet
-git config --global user.name 'Me'
-git config --global user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
 {}
 chmod +x ./test-script.sh
