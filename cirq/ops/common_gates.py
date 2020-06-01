@@ -31,7 +31,7 @@ import sympy
 
 import cirq
 from cirq import protocols, value
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr
 from cirq._doc import document
 from cirq.ops import (controlled_gate, eigen_gate, gate_features, raw_types)
 
@@ -122,11 +122,11 @@ class XPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CNotPowGate from controlled XPowGate when applicable.
+        Constructs CXPowGate from controlled XPowGate when applicable.
 
         This method is a specialized controlled method for XPowGate. It
         overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CNotPowGate and
+        transforming the underlying controlled gate to a CXPowGate and
         removing the last specified control qubit (which acts first
         semantically).  If this is a gate with multiple control qubits, it will
         now be a ControlledGate with one less control.
@@ -136,18 +136,18 @@ class XPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CNotPowGate is, by definition, a controlled-XPowGate.)
+        (Note that a CXPowGate is, by definition, a controlled-XPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
         if (isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
-            return cirq.CNotPowGate(exponent=self._exponent,
-                                    global_shift=self._global_shift).controlled(
-                                        result.num_controls() - 1,
-                                        result.control_values[:-1],
-                                        result.control_qid_shape[:-1])
+            return cirq.CXPowGate(exponent=self._exponent,
+                                  global_shift=self._global_shift).controlled(
+                                      result.num_controls() - 1,
+                                      result.control_values[:-1],
+                                      result.control_qid_shape[:-1])
         return result
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
@@ -163,10 +163,8 @@ class XPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            return _rads_func_symbol(
-                'Rx',
-                args,
-                self._diagram_exponent(args, ignore_global_phase=False))
+            angle_str = self._format_exponent_as_angle(args)
+            return f'Rx({angle_str})'
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=('X',),
@@ -180,6 +178,12 @@ class XPowGate(eigen_gate.EigenGate,
 
         return args.format('rx({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('X {0}\n', qubits[0])
+        return formatter.format('RX({0}) {1}\n', self._exponent, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -307,10 +311,8 @@ class YPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            return _rads_func_symbol(
-                'Ry',
-                args,
-                self._diagram_exponent(args, ignore_global_phase=False))
+            angle_str = self._format_exponent_as_angle(args)
+            return f'Ry({angle_str})'
 
         return protocols.CircuitDiagramInfo(
             wire_symbols=('Y',),
@@ -324,6 +326,12 @@ class YPowGate(eigen_gate.EigenGate,
 
         return args.format('ry({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Y {0}\n', qubits[0])
+        return formatter.format('RY({0}) {1}\n', self._exponent, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -492,10 +500,8 @@ class ZPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
         if self._global_shift == -0.5:
-            return _rads_func_symbol(
-                'Rz',
-                args,
-                self._diagram_exponent(args, ignore_global_phase=False))
+            angle_str = self._format_exponent_as_angle(args)
+            return f'Rz({angle_str})'
 
         e = self._diagram_exponent(args)
         if e in [-0.25, 0.25]:
@@ -520,6 +526,13 @@ class ZPowGate(eigen_gate.EigenGate,
 
         return args.format('rz({0:half_turns}) {1};\n', self._exponent,
                            qubits[0])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Z {0}\n', qubits[0])
+
+        return formatter.format('RZ({0}) {1}\n', self._exponent, qubits[0])
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -677,25 +690,30 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             'rx({1:half_turns}) {3};\n'
             'ry({2:half_turns}) {3};\n', 0.25, self._exponent, -0.25, qubits[0])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('H {0}\n', qubits[0])
+        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25,
+                                self._exponent, -0.25, qubits[0])
+
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
         return self.exponent % 1 == 0
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self._exponent == 1:
             return 'H'
-        return 'H^{}'.format(self._exponent)
+        return f'H^{self._exponent}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.H'
-            return '(cirq.H**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.HPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.H**{proper_repr(self._exponent)})'
+        return (f'cirq.HPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
 
 class CZPowGate(eigen_gate.EigenGate,
@@ -814,6 +832,13 @@ class CZPowGate(eigen_gate.EigenGate,
         args.validate_version('2.0')
         return args.format('cz {0},{1};\n', qubits[0], qubits[1])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
+        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent,
+                                qubits[0], qubits[1])
+
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
@@ -835,19 +860,7 @@ class CZPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-def _rads_func_symbol(func_name: str, args: 'protocols.CircuitDiagramInfoArgs',
-                      half_turns: Any) -> str:
-    if protocols.is_parameterized(half_turns):
-        return '{}({})'.format(func_name, sympy.pi * half_turns)
-    unit = 'π' if args.use_unicode_characters else 'pi'
-    if half_turns == 1:
-        return '{}({})'.format(func_name, unit)
-    if half_turns == -1:
-        return '{}(-{})'.format(func_name, unit)
-    return '{}({}{})'.format(func_name, half_turns, unit)
-
-
-class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
+class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     """A gate that applies a controlled power of an X gate.
 
     When applying CNOT (controlled-not) to qubits, you can either use
@@ -855,7 +868,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     or named arguments CNOT(control=q1, target=q2).
     (Mixing the two is not permitted.)
 
-    The unitary matrix of `CNotPowGate(exponent=t)` is:
+    The unitary matrix of `CXPowGate(exponent=t)` is:
 
         [[1, 0, 0, 0],
          [0, 1, 0, 0],
@@ -944,9 +957,9 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CCXPowGate from controlled CNotPowGate when applicable.
+        Constructs CCXPowGate from controlled CXPowGate when applicable.
 
-        This method is a specialized controlled method for CNotPowGate. It
+        This method is a specialized controlled method for CXPowGate. It
         overrides the default behavior of returning a ControlledGate by
         transforming the underlying controlled gate to a CCXPowGate and
         removing the last specified control qubit (which acts first
@@ -958,7 +971,7 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
-        (Note that a CCXPowGate is, by definition, a controlled-CNotPowGate.)
+        (Note that a CCXPowGate is, by definition, a controlled-CXPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -979,6 +992,12 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         args.validate_version('2.0')
         return args.format('cx {0},{1};\n', qubits[0], qubits[1])
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('CNOT {0} {1}\n', qubits[0], qubits[1])
+        return None
+
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
             return None
@@ -987,17 +1006,15 @@ class CNotPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'CNOT'
-        return 'CNOT**{!r}'.format(self._exponent)
+        return f'CNOT**{self._exponent!r}'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.CNOT'
-            return '(cirq.CNOT**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.CNotPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+            return f'(cirq.CNOT**{proper_repr(self._exponent)})'
+        return (f'cirq.CXPowGate(exponent={proper_repr(self._exponent)}, '
+                f'global_shift={self._global_shift!r})')
 
     def on(self, *args: 'cirq.Qid',
            **kwargs: 'cirq.Qid') -> raw_types.Operation:
@@ -1017,34 +1034,16 @@ def rx(rads: value.TParamVal) -> XPowGate:
     return XPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.rx, instead.')
-def Rx(rads: value.TParamVal) -> XPowGate:
-    """Returns a gate with the matrix e^{-i X rads / 2}."""
-    return rx(rads)
-
-
 def ry(rads: value.TParamVal) -> YPowGate:
     """Returns a gate with the matrix e^{-i Y rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return YPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
-@deprecated(deadline='v0.8.0', fix='Use cirq.ry, instead.')
-def Ry(rads: value.TParamVal) -> YPowGate:
-    """Returns a gate with the matrix e^{-i Y rads / 2}."""
-    return ry(rads)
-
-
 def rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
-
-
-@deprecated(deadline='v0.8.0', fix='Use cirq.rz, instead.')
-def Rz(rads: value.TParamVal) -> ZPowGate:
-    """Returns a gate with the matrix e^{-i Z rads / 2}."""
-    return rz(rads)
 
 
 H = HPowGate()
@@ -1095,11 +1094,12 @@ document(
          [. . . -1]]
     """)
 
+CNotPowGate = CXPowGate
 CNOT = CX = CNotPowGate()
 document(
     CNOT, """The controlled NOT gate.
 
-    The `exponent=1` instance of `cirq.CNotPowGate`.
+    The `exponent=1` instance of `cirq.CXPowGate`.
 
     Matrix:
 

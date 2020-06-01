@@ -15,7 +15,7 @@
 
 import time
 
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -262,10 +262,15 @@ class EngineJob:
         import cirq.google.engine.engine as engine_base
         if not self._results:
             job = self._refresh_job()
-            for _ in range(1000):
+            total_seconds_waited = 0.0
+            timeout = self.context.timeout
+            while True:
+                if timeout and total_seconds_waited >= timeout:
+                    break
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 time.sleep(0.5)
+                total_seconds_waited += 0.5
                 job = self._refresh_job()
             self._raise_on_failure(job)
             response = self.context.client.get_job_results(
@@ -343,10 +348,9 @@ class EngineJob:
                     format(name,
                            quantum.types.ExecutionStatus.State.Name(state)))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
 
-    def __str__(self):
-        return str(
-            'EngineJob(project_id=\'{}\', program_id=\'{}\', job_id=\'{}\')'.
-            format(self.project_id, self.program_id, self.job_id))
+    def __str__(self) -> str:
+        return (f'EngineJob(project_id=\'{self.project_id}\', '
+                f'program_id=\'{self.program_id}\', job_id=\'{self.job_id}\')')

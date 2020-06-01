@@ -1,5 +1,6 @@
 import inspect
-from pathlib import Path
+import pathlib
+import re
 from typing import Set, Dict, Tuple, Any, List
 
 import cirq
@@ -43,14 +44,14 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
     result: List[List[str]] = []
     section: List[str] = []
     seen: Set[str] = set()
-    with open(Path(__file__).parent / 'api.rst', mode='r') as f:
+    with open(pathlib.Path(__file__).parent / 'api.rst', mode='r') as f:
         for line in f.readlines():
             if line.strip() == '.. autosummary::':
                 if section:
                     result.append(section)
                     section = []
-            elif line.startswith('    cirq.'):
-                fullname = line.strip()
+            elif '    cirq.' in line or '    .. autoclass:: cirq.' in line:
+                fullname = line[line.find('cirq'):].strip()
                 if fullname in seen:
                     # coverage: ignore
                     raise ValueError(f'{fullname} appears twice in api.rst')

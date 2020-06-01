@@ -11,21 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (
-    cast,
-    Any,
-    Collection,
-    Optional,
-    Sequence,
-    Tuple,
-    Union,
-    TYPE_CHECKING,
-)
+from typing import (Any, cast, Collection, Dict, List, Optional, Sequence,
+                    Tuple, Union, TYPE_CHECKING)
 
 import itertools
 import numpy as np
 
-from cirq import protocols, linalg, value
+from cirq import protocols, qis, value
 from cirq.ops import raw_types, gate_operation, controlled_gate
 from cirq.type_workarounds import NotImplementedType
 
@@ -41,7 +33,7 @@ class ControlledOperation(raw_types.Operation):
     """
 
     def __init__(self,
-                 controls: Sequence[raw_types.Qid],
+                 controls: Sequence['cirq.Qid'],
                  sub_operation: 'cirq.Operation',
                  control_values: Optional[Sequence[
                      Union[int, Collection[int]]]] = None):
@@ -131,20 +123,32 @@ class ControlledOperation(raw_types.Operation):
     def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.sub_operation)
 
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        sub_matrix = protocols.unitary(self.sub_operation, None)
-        if sub_matrix is None:
-            return NotImplemented
+    def _extend_matrix(self, sub_matrix: np.ndarray) -> np.ndarray:
         qid_shape = protocols.qid_shape(self)
         sub_n = len(qid_shape) - len(self.controls)
-        tensor = linalg.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
+        tensor = qis.eye_tensor(qid_shape, dtype=sub_matrix.dtype)
         sub_tensor = sub_matrix.reshape(qid_shape[len(self.controls):] * 2)
         for control_vals in itertools.product(*self.control_values):
             active = (*(v for v in control_vals), *(slice(None),) * sub_n) * 2
             tensor[active] = sub_tensor
         return tensor.reshape((np.prod(qid_shape, dtype=int),) * 2)
 
-    def __str__(self):
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        sub_matrix = protocols.unitary(self.sub_operation, None)
+        if sub_matrix is None:
+            return NotImplemented
+        return self._extend_matrix(sub_matrix)
+
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self.sub_operation)
+
+    def _mixture_(self) -> Optional[List[Tuple[float, np.ndarray]]]:
+        sub_mixture = protocols.mixture(self.sub_operation, None)
+        if sub_mixture is None:
+            return None
+        return [(p, self._extend_matrix(m)) for p, m in sub_mixture]
+
+    def __str__(self) -> str:
         if set(self.control_values) == {(1,)}:
 
             def get_prefix(control_vals):
@@ -152,25 +156,31 @@ class ControlledOperation(raw_types.Operation):
         else:
 
             def get_prefix(control_vals):
-                return 'C{}'.format(''.join(map(str, sorted(control_vals))))
+                control_vals_str = ''.join(map(str, sorted(control_vals)))
+                return f'C{control_vals_str}'
 
         prefix = ''.join(map(get_prefix, self.control_values))
         if isinstance(self.sub_operation, gate_operation.GateOperation):
-            return '{}{}({})'.format(prefix, self.sub_operation.gate,
-                                     ', '.join(map(str, self.qubits)))
-        return '{}({}, {})'.format(prefix,
-                                   ', '.join(str(q) for q in self.controls),
-                                   str(self.sub_operation))
+            qubits = ', '.join(map(str, self.qubits))
+            return f'{prefix}{self.sub_operation.gate}({qubits})'
+        controls = ', '.join(str(q) for q in self.controls)
+        return f'{prefix}({controls}, {self.sub_operation})'
 
     def __repr__(self):
-        return ('cirq.ControlledOperation(controls={!r}, sub_operation={!r}, '
-                'control_values={!r})'.format(self.controls, self.sub_operation,
-                                              self.control_values))
+        if all(q.dimension == 2 for q in self.controls):
+            if self.control_values == ((1,) * len(self.controls),):
+                if self == self.sub_operation.controlled_by(*self.controls):
+                    qubit_args = ', '.join(repr(q) for q in self.controls)
+                    return f'{self.sub_operation!r}.controlled_by({qubit_args})'
+        return (f'cirq.ControlledOperation('
+                f'sub_operation={self.sub_operation!r},'
+                f'control_values={self.control_values!r},'
+                f'controls={self.controls!r})')
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver):
+    def _resolve_parameters_(self, resolver) -> 'ControlledOperation':
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
         return ControlledOperation(self.controls, new_sub_op,
                                    self.control_values)
@@ -224,7 +234,7 @@ class ControlledOperation(raw_types.Operation):
             exponent_qubit_index=None if sub_info.exponent_qubit_index is None
             else sub_info.exponent_qubit_index + 1)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'controls': self.controls,

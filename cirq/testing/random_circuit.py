@@ -12,10 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import List, Union, Sequence, Dict, Optional
+from typing import List, Union, Sequence, Dict, Optional, TYPE_CHECKING
 
 from cirq import ops, value
 from cirq.circuits import Circuit
+from cirq._doc import document
+
+if TYPE_CHECKING:
+    import cirq
 
 DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.CNOT: 2,
@@ -30,13 +34,21 @@ DEFAULT_GATE_DOMAIN: Dict[ops.Gate, int] = {
     ops.Y: 1,
     ops.Z: 1
 }
+document(
+    DEFAULT_GATE_DOMAIN,
+    """The default gate domain for `cirq.testing.random_circuit`.
+
+This includes the gates CNOT, CZ, H, ISWAP, CZ, S, SWAP, T, X, Y,
+and Z gates.
+""")
 
 
 def random_circuit(qubits: Union[Sequence[ops.Qid], int],
                    n_moments: int,
                    op_density: float,
                    gate_domain: Optional[Dict[ops.Gate, int]] = None,
-                   random_state: value.RANDOM_STATE_LIKE = None) -> Circuit:
+                   random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
+                  ) -> Circuit:
     """Generates a random circuit.
 
     Args:
@@ -44,35 +56,49 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
             the circuit should act on. Because the qubits on which an
             operation acts are chosen randomly, not all given qubits
             may be acted upon. If an int, then this number of qubits will
-            be automatically generated.
-        n_moments: the number of moments in the generated circuit.
-        op_density: the expected proportion of qubits that are acted on in any
-            moment.
-        gate_domain: The set of gates to choose from, with a specified arity.
+            be automatically generated, and the qubits will be
+            `cirq.NamedQubits` with names given by the integers in
+            `range(qubits)`.
+        n_moments: The number of moments in the generated circuit.
+        op_density: The probability that a gate is selected to operate on
+            randomly selected qubits. Note that this is not the expected number
+            of qubits that are acted on, since there are cases where the
+            number of qubits that a gate acts on does not evenly divide the
+            total number of qubits.
+        gate_domain: The set of gates to choose from, specified as a dictionary
+            where each key is a gate and the value of the key is the number of
+            qubits the gate acts on. If not provided, the default gate domain is
+            {X, Y, Z, H, S, T, CNOT, CZ, SWAP, ISWAP, CZPowGate()}. Only gates
+            which act on a number of qubits less than len(qubits) (or qubits if
+            provided as an int) are selected from the gate domain.
         random_state: Random state or random state seed.
 
     Raises:
         ValueError:
-            * op_density is not in (0, 1).
+            * op_density is not in (0, 1].
             * gate_domain is empty.
             * qubits is an int less than 1 or an empty sequence.
 
     Returns:
         The randomly generated Circuit.
     """
-    if not 0 < op_density < 1:
-        raise ValueError('op_density must be in (0, 1).')
+    if not 0 < op_density <= 1:
+        raise ValueError(f'op_density must be in (0, 1] but was {op_density}.')
     if gate_domain is None:
         gate_domain = DEFAULT_GATE_DOMAIN
     if not gate_domain:
-        raise ValueError('gate_domain must be non-empty')
-    max_arity = max(gate_domain.values())
+        raise ValueError('gate_domain must be non-empty.')
 
     if isinstance(qubits, int):
         qubits = tuple(ops.NamedQubit(str(i)) for i in range(qubits))
     n_qubits = len(qubits)
     if n_qubits < 1:
         raise ValueError('At least one qubit must be specified.')
+    gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
+    if not gate_domain:
+        raise ValueError(f'After removing gates that act on less that '
+                         '{n_qubits}, gate_domain had no gates.')
+    max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
 

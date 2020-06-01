@@ -102,6 +102,8 @@ def inverse(val: Any, default: Any = RaiseTypeErrorIfNotProvided) -> Any:
 
     # Check if object defines an inverse via __pow__.
     raiser = getattr(val, '__pow__', None)
+
+    # pylint: disable=not-callable
     result = NotImplemented if raiser is None else raiser(-1)
     if result is not NotImplemented:
         return result

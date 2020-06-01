@@ -20,6 +20,9 @@ from cirq.circuits.text_diagram_drawer import (
 from cirq.circuits.qasm_output import (
     QasmOutput,)
 
+from cirq.circuits.quil_output import (
+    QuilOutput,)
+
 from cirq.circuits.circuit import (
     Circuit,)
 from cirq.circuits.circuit_dag import (

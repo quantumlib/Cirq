@@ -12,19 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-from typing import ContextManager, List
+import types
 
 import numpy as np
 import pandas as pd
 import sympy
 
-from cirq._compat import (
-    proper_repr,
-    deprecated,
-    deprecated_parameter,
-    proper_eq,
-)
+import cirq.testing
+from cirq._compat import (proper_repr, deprecated, deprecated_parameter,
+                          proper_eq, wrap_module)
 
 
 def test_proper_repr():
@@ -81,13 +77,10 @@ def f(a, b):
 
 
 def test_deprecated():
-
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('test_func was used',
+                                  'will be removed in cirq vNever',
+                                  'Roll some dice.'):
         assert f(1, 2) == 3
-    assert len(log) == 1
-    assert 'test_func was used' in log[0].getMessage()
-    assert 'will be removed in cirq vNever' in log[0].getMessage()
-    assert 'Roll some dice.' in log[0].getMessage()
 
 
 def test_deprecated_parameter():
@@ -105,38 +98,42 @@ def test_deprecated_parameter():
         return new_count
 
     # Does not warn on usual use.
-    with capture_logging() as log:
+    with cirq.testing.assert_logs(count=0):
         assert f(1) == 1
         assert f(new_count=1) == 1
-    assert len(log) == 0
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs(
+            'double_count parameter of test_func was used',
+            'will be removed in cirq vAlready', 'Double it yourself.'):
         # pylint: disable=unexpected-keyword-arg
         # pylint: disable=no-value-for-parameter
         assert f(double_count=1) == 2
         # pylint: enable=no-value-for-parameter
         # pylint: enable=unexpected-keyword-arg
-    assert len(log) == 1
-    assert 'double_count parameter of test_func was used' in log[0].getMessage()
-    assert 'will be removed in cirq vAlready' in log[0].getMessage()
-    assert 'Double it yourself.' in log[0].getMessage()
 
 
-def capture_logging() -> ContextManager[List[logging.LogRecord]]:
-    records = []
+def test_wrap_module():
+    my_module = types.ModuleType('my_module', 'my doc string')
+    my_module.foo = 'foo'
+    my_module.bar = 'bar'
+    assert 'foo' in my_module.__dict__
+    assert 'bar' in my_module.__dict__
+    assert 'zoo' not in my_module.__dict__
 
-    class Handler(logging.Handler):
+    wrapped = wrap_module(my_module, {'foo': ('0.6.0', 'use bar instead')})
+    # Dunder methods
+    assert wrapped.__doc__ == 'my doc string'
+    assert wrapped.__name__ == 'my_module'
+    # Test dict is correct.
+    assert 'foo' in wrapped.__dict__
+    assert 'bar' in wrapped.__dict__
+    assert 'zoo' not in wrapped.__dict__
 
-        def emit(self, record):
-            records.append(record)
+    # Deprecation capability.
+    with cirq.testing.assert_logs('foo was used but is deprecated.',
+                                  'will be removed in cirq 0.6.0',
+                                  'use bar instead'):
+        _ = wrapped.foo
 
-        def __enter__(self):
-            logging.captureWarnings(True)
-            logging.getLogger().addHandler(self)
-            return records
-
-        def __exit__(self, exc_type, exc_val, exc_tb):
-            logging.getLogger().removeHandler(self)
-            logging.captureWarnings(False)
-
-    return Handler()
+    with cirq.testing.assert_logs(count=0):
+        _ = wrapped.bar

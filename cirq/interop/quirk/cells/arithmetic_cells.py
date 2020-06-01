@@ -172,10 +172,10 @@ class ArithmeticCell(Cell):
     def gate_count(self) -> int:
         return 1
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return self.identifier, self.target, self.inputs
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (f'cirq.interop.quirk.cells.arithmetic_cells.ArithmeticCell('
                 f'\n    {self.identifier!r},'
                 f'\n    {self.target!r},'
