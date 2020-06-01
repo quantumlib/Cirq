@@ -17,6 +17,7 @@
 import numpy as np
 
 from cirq.study import trial_result
+import warnings
 
 
 def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
@@ -40,7 +41,13 @@ def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     import matplotlib.pyplot as plt
 
     num_qubits = len(result.measurements.keys())
-    states = 2**num_qubits
+
+    if all([',' not in key for key in result.measurements.keys()]):
+        warnings.warn('plot_state_histogram takes single Qubit measurements, '
+                      'you have provided a multiple Qubit measurement. '
+                      'Consider using measure_each instead of measure.')
+
+    states = 2 ** num_qubits
     values = np.zeros(states)
 
     # measurements is a dict of {measurement gate key:
