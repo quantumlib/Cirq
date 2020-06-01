@@ -14,8 +14,6 @@
 
 """Tool to visualize the results of a study."""
 
-import warnings
-
 import numpy as np
 
 from cirq.study import trial_result
