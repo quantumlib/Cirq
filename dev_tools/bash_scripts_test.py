@@ -262,7 +262,7 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
                  setup='mkdir alt\n'
                  'cd alt\n'
                  'git init --quiet\n'
-                 'git config --local user.name 'Me''
+                 'git config --local user.name \'Me\''
                  'git config --local user.email \'<>\''
                  'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
                  'cd ..\n'
