@@ -8,7 +8,7 @@ branches:
   - master
   - /^v\d+\.\d+\.\d+-dev$/
 before_install:
-- pip3 install --upgrade pip setuptools wheel
+- pip install --upgrade pip setuptools wheel
 stages:
 - quick_test
 - test
