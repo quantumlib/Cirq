@@ -14,10 +14,11 @@
 
 """Tool to visualize the results of a study."""
 
+import warnings
+
 import numpy as np
 
 from cirq.study import trial_result
-import warnings
 
 
 def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
@@ -47,7 +48,7 @@ def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
                       'you have provided a multiple Qubit measurement. '
                       'Consider using measure_each instead of measure.')
 
-    states = 2 ** num_qubits
+    states = 2**num_qubits
     values = np.zeros(states)
 
     # measurements is a dict of {measurement gate key:
