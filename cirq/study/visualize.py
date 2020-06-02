@@ -37,10 +37,7 @@ def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
     # This allows cirq to be usable without python3-tk.
     import matplotlib.pyplot as plt
 
-    assert set([value.shape[0] for value in result.measurements.values()]), \
-        'Same number of measurement must be made on all qubits.'
     num_qubits = sum([value.shape[1] for value in result.measurements.values()])
-
     states = 2**num_qubits
     values = np.zeros(states)
     # measurements is a dict of {measurement gate key:
