@@ -79,6 +79,7 @@ chmod +x ./test-script.sh
 @only_on_posix
 def test_pytest_changed_files_file_selection(tmpdir_factory):
 
+
     result = run(script_file='check/pytest-changed-files',
                  tmpdir_factory=tmpdir_factory,
                  arg='HEAD~1',
