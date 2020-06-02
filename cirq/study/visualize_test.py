@@ -41,6 +41,7 @@ def test_plot_state_histogram():
 
 
 def test_plot_state_histogram_multi_1():
+    pl.switch_backend('PDF')
     qubits = cirq.LineQubit.range(3)
     c1 = cirq.Circuit(
         cirq.X.on_each(*qubits),
@@ -53,10 +54,11 @@ def test_plot_state_histogram_multi_1():
 
 
 def test_plot_state_histogram_multi_2():
+    pl.switch_backend('PDF')
     qubits = cirq.LineQubit.range(3)
     c2 = cirq.Circuit(
         cirq.X.on_each(*qubits),
-        cirq.measure_each(*qubits),  # One multi-qubit measurement
+        cirq.measure_each(*qubits),  # Many single-qubit measurements
     )
     r2 = cirq.sample(c2, repetitions=5)
     values_plotted = visualize.plot_state_histogram(r2)
@@ -65,11 +67,12 @@ def test_plot_state_histogram_multi_2():
 
 
 def test_plot_state_histogram_multi_3():
+    pl.switch_backend('PDF')
     qubits = cirq.LineQubit.range(3)
     c3 = cirq.Circuit(
         cirq.X.on_each(*qubits),
         cirq.measure(*qubits[:2]),  # One multi-qubit measurement
-        cirq.measure_each(*qubits[2:]),  # One multi-qubit measurement
+        cirq.measure_each(*qubits[2:]),  # One single-qubit measurement
     )
     r3 = cirq.sample(c3, repetitions=5)
     values_plotted = visualize.plot_state_histogram(r3)
