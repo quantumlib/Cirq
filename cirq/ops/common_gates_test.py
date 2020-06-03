@@ -274,21 +274,21 @@ def test_x_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.X**0.5, args)
-    cirq.act_on(cirq.X**0.5, args)
+    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.X, args)
+    cirq.act_on(cirq.X, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.X**3.5, args)
-    cirq.act_on(cirq.X**3.5, args)
+    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.X**2, args)
+    cirq.act_on(cirq.X**2, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
@@ -299,9 +299,6 @@ def test_x_act_on():
 
 class PhaserGate(cirq.SingleQubitGate):
     """Equivalent to an iZ gate without _act_on_ defined on it."""
-
-    def _has_unitary_(self):
-        return True
 
     def _unitary_(self):
         return np.array([[1j, 0], [0, -1j]])
@@ -320,24 +317,24 @@ def test_y_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.Y**0.5, args)
-    cirq.act_on(cirq.Y**0.5, args)
-    cirq.act_on(PhaserGate(), args, allow_decompose=True)
+    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
+    cirq.act_on(PhaserGate(), args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.Y, args)
+    cirq.act_on(cirq.Y, args, allow_decompose=False)
     cirq.act_on(PhaserGate(), args, allow_decompose=True)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.Y**3.5, args)
-    cirq.act_on(cirq.Y**3.5, args)
-    cirq.act_on(PhaserGate(), args, allow_decompose=True)
+    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
+    cirq.act_on(PhaserGate(), args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.Y**2, args)
+    cirq.act_on(cirq.Y**2, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
@@ -359,31 +356,31 @@ def test_z_h_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.H, args)
-    cirq.act_on(cirq.Z**0.5, args)
-    cirq.act_on(cirq.Z**0.5, args)
-    cirq.act_on(cirq.H, args)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.H, args)
-    cirq.act_on(cirq.Z, args)
-    cirq.act_on(cirq.H, args)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.H, args)
-    cirq.act_on(cirq.Z**3.5, args)
-    cirq.act_on(cirq.Z**3.5, args)
-    cirq.act_on(cirq.H, args)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.Z**2, args)
+    cirq.act_on(cirq.Z**2, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.H**2, args)
+    cirq.act_on(cirq.H**2, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
@@ -394,6 +391,10 @@ def test_z_h_act_on():
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
         cirq.act_on(cirq.H**foo, args)
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.H**1.5, args)
 
 
 def test_cx_act_on():
@@ -408,7 +409,7 @@ def test_cx_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.CX, args)
+    cirq.act_on(cirq.CX, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert (args.tableau.stabilizers() == [
         cirq.DensePauliString('ZIIII', coefficient=-1),
@@ -425,11 +426,11 @@ def test_cx_act_on():
         cirq.DensePauliString('IIIIX', coefficient=1)
     ])
 
-    cirq.act_on(cirq.CX, args)
+    cirq.act_on(cirq.CX, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.CX**4, args)
+    cirq.act_on(cirq.CX**4, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
@@ -453,7 +454,7 @@ def test_cz_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.CZ, args)
+    cirq.act_on(cirq.CZ, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert (args.tableau.stabilizers() == [
         cirq.DensePauliString('ZIIII', coefficient=-1),
@@ -470,11 +471,11 @@ def test_cz_act_on():
         cirq.DensePauliString('IIIIX', coefficient=1)
     ])
 
-    cirq.act_on(cirq.CZ, args)
+    cirq.act_on(cirq.CZ, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.CZ**4, args)
+    cirq.act_on(cirq.CZ**4, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 

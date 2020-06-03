@@ -111,6 +111,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnCliffordTableauArgs',
     'ActOnStateVectorArgs',
     'ApplyChannelArgs',
     'ApplyMixtureArgs',
