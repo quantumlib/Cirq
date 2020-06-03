@@ -49,25 +49,25 @@ def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 def test_cz_init():
     assert cirq.CZPowGate(exponent=0.5).exponent == 0.5
     assert cirq.CZPowGate(exponent=5).exponent == 5
-    assert (cirq.CZ ** 0.5).exponent == 0.5
+    assert (cirq.CZ**0.5).exponent == 0.5
 
 
 def test_transformations():
     pi = np.pi
     initialRx = cirq.rx(0.4)
-    expectedPowx = cirq.X ** (0.4 / pi)
+    expectedPowx = cirq.X**(0.4 / pi)
     receivedPowx = initialRx.with_canonical_global_phase()
     backToRx = receivedPowx.in_su2()
     assert receivedPowx == expectedPowx
     assert backToRx == initialRx
     initialRy = cirq.ry(0.123)
-    expectedPowy = cirq.Y ** (0.123 / pi)
+    expectedPowy = cirq.Y**(0.123 / pi)
     receivedPowy = initialRy.with_canonical_global_phase()
     backToRy = receivedPowy.in_su2()
     assert receivedPowy == expectedPowy
     assert backToRy == initialRy
     initialRz = cirq.rz(-1.53)
-    expectedPowz = cirq.Z ** (-1.53 / pi)
+    expectedPowz = cirq.Z**(-1.53 / pi)
     receivedPowz = initialRz.with_canonical_global_phase()
     backToRz = receivedPowz.in_su2()
     assert receivedPowz == expectedPowz
@@ -76,14 +76,14 @@ def test_transformations():
 
 def test_cz_str():
     assert str(cirq.CZ) == 'CZ'
-    assert str(cirq.CZ ** 0.5) == 'CZ**0.5'
-    assert str(cirq.CZ ** -0.25) == 'CZ**-0.25'
+    assert str(cirq.CZ**0.5) == 'CZ**0.5'
+    assert str(cirq.CZ**-0.25) == 'CZ**-0.25'
 
 
 def test_cz_repr():
     assert repr(cirq.CZ) == 'cirq.CZ'
-    assert repr(cirq.CZ ** 0.5) == '(cirq.CZ**0.5)'
-    assert repr(cirq.CZ ** -0.25) == '(cirq.CZ**-0.25)'
+    assert repr(cirq.CZ**0.5) == '(cirq.CZ**0.5)'
+    assert repr(cirq.CZ**-0.25) == '(cirq.CZ**-0.25)'
 
 
 def test_cz_unitary():
@@ -93,23 +93,17 @@ def test_cz_unitary():
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ ** 0.5),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1j]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**0.5),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ ** 0),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**0),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ ** -0.5),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, -1j]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**-0.5),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]))
 
 
 def test_z_init():
@@ -117,9 +111,9 @@ def test_z_init():
     assert z.exponent == 5
 
     # Canonicalizes exponent for equality, but keeps the inner details.
-    assert cirq.Z ** 0.5 != cirq.Z ** -0.5
-    assert (cirq.Z ** -1) ** 0.5 == cirq.Z ** -0.5
-    assert cirq.Z ** -1 == cirq.Z
+    assert cirq.Z**0.5 != cirq.Z**-0.5
+    assert (cirq.Z**-1)**0.5 == cirq.Z**-0.5
+    assert cirq.Z**-1 == cirq.Z
 
 
 @pytest.mark.parametrize(
@@ -149,48 +143,48 @@ def test_specialized_control(input_gate, specialized_output):
         num_controls=2) == specialized_output.controlled(num_controls=1)
     assert input_gate.controlled(
         control_values=((0,), (0,), (1,))) == specialized_output.controlled(
-        num_controls=2, control_values=((0,), (0,)))
+            num_controls=2, control_values=((0,), (0,)))
     assert input_gate.controlled(
         control_qid_shape=(3, 3, 2)) == specialized_output.controlled(
-        num_controls=2, control_qid_shape=(3, 3))
+            num_controls=2, control_qid_shape=(3, 3))
     assert input_gate.controlled(control_qid_shape=(2,)).controlled(
         control_qid_shape=(3,)).controlled(
-        control_qid_shape=(4,)) == specialized_output.controlled(
-        num_controls=2, control_qid_shape=(3, 4))
+            control_qid_shape=(4,)) == specialized_output.controlled(
+                num_controls=2, control_qid_shape=(3, 4))
 
     # When a control_value 1 qubit is not acting first, results in a regular
     # ControlledGate on the input gate instance.
     assert input_gate.controlled(num_controls=1,
                                  control_qid_shape=(3,)) == cirq.ControlledGate(
-        input_gate,
-        num_controls=1,
-        control_qid_shape=(3,))
+                                     input_gate,
+                                     num_controls=1,
+                                     control_qid_shape=(3,))
     assert input_gate.controlled(control_values=((0,), (1,),
                                                  (0,))) == cirq.ControlledGate(
-        input_gate,
-        num_controls=3,
-        control_values=((0,), (1,),
-                        (0,)))
+                                                     input_gate,
+                                                     num_controls=3,
+                                                     control_values=((0,), (1,),
+                                                                     (0,)))
     assert input_gate.controlled(control_qid_shape=(3, 2,
                                                     3)) == cirq.ControlledGate(
-        input_gate,
-        num_controls=3,
-        control_qid_shape=(3, 2,
-                           3))
+                                                        input_gate,
+                                                        num_controls=3,
+                                                        control_qid_shape=(3, 2,
+                                                                           3))
     assert input_gate.controlled(control_qid_shape=(3,)).controlled(
         control_qid_shape=(2,)).controlled(
-        control_qid_shape=(4,)) == cirq.ControlledGate(
-        input_gate, num_controls=3, control_qid_shape=(3, 2, 4))
+            control_qid_shape=(4,)) == cirq.ControlledGate(
+                input_gate, num_controls=3, control_qid_shape=(3, 2, 4))
 
 
 def test_rot_gates_eq():
     eq = cirq.testing.EqualsTester()
     gates = [
-        lambda p: cirq.CZ ** p,
-        lambda p: cirq.X ** p,
-        lambda p: cirq.Y ** p,
-        lambda p: cirq.Z ** p,
-        lambda p: cirq.CNOT ** p,
+        lambda p: cirq.CZ**p,
+        lambda p: cirq.X**p,
+        lambda p: cirq.Y**p,
+        lambda p: cirq.Z**p,
+        lambda p: cirq.CNOT**p,
     ]
     for gate in gates:
         eq.add_equality_group(gate(3.5),
@@ -220,25 +214,21 @@ def test_rot_gates_eq():
 def test_z_unitary():
     assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(cirq.unitary(cirq.Z ** 0.5),
-                       np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(cirq.unitary(cirq.Z ** 0),
-                       np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cirq.unitary(cirq.Z ** -0.5),
-                       np.array([[1, 0], [0, -1j]]))
+    assert np.allclose(cirq.unitary(cirq.Z**0.5), np.array([[1, 0], [0, 1j]]))
+    assert np.allclose(cirq.unitary(cirq.Z**0), np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.Z**-0.5), np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_unitary():
     assert np.allclose(cirq.unitary(cirq.Y),
                        np.array([[0, -1j], [1j, 0]]))
 
-    assert np.allclose(cirq.unitary(cirq.Y ** 0.5),
+    assert np.allclose(cirq.unitary(cirq.Y**0.5),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary(cirq.Y ** 0),
-                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.Y**0), np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.Y ** -0.5),
+    assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
 
 
@@ -246,18 +236,17 @@ def test_x_unitary():
     assert np.allclose(cirq.unitary(cirq.X),
                        np.array([[0, 1], [1, 0]]))
 
-    assert np.allclose(cirq.unitary(cirq.X ** 0.5),
+    assert np.allclose(cirq.unitary(cirq.X**0.5),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary(cirq.X ** 0),
-                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.X**0), np.array([[1, 0], [0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.X ** -0.5),
+    assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
 
 
 def test_h_unitary():
-    sqrt = cirq.unitary(cirq.H ** 0.5)
+    sqrt = cirq.unitary(cirq.H**0.5)
     m = np.dot(sqrt, sqrt)
     assert np.allclose(m, cirq.unitary(cirq.H), atol=1e-8)
 
@@ -269,7 +258,7 @@ def test_h_init():
 
 def test_h_str():
     assert str(cirq.H) == 'H'
-    assert str(cirq.H ** 0.5) == 'H^0.5'
+    assert str(cirq.H**0.5) == 'H^0.5'
 
 
 def test_x_act_on():
@@ -284,8 +273,8 @@ def test_x_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.X ** 0.5, args)
-    cirq.act_on(cirq.X ** 0.5, args)
+    cirq.act_on(cirq.X**0.5, args)
+    cirq.act_on(cirq.X**0.5, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
@@ -293,22 +282,23 @@ def test_x_act_on():
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.X ** 3.5, args)
-    cirq.act_on(cirq.X ** 3.5, args)
+    cirq.act_on(cirq.X**3.5, args)
+    cirq.act_on(cirq.X**3.5, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.X ** 2, args)
+    cirq.act_on(cirq.X**2, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.X ** foo, args)
+        cirq.act_on(cirq.X**foo, args)
 
 
 class PhaserGate(cirq.SingleQubitGate):
     """Equivalent to an iZ gate without _act_on_ defined on it."""
+
     def _has_unitary_(self):
         return True
 
@@ -328,8 +318,8 @@ def test_y_act_on():
         log_of_measurement_results={},
     )
 
-    cirq.act_on(cirq.Y ** 0.5, args)
-    cirq.act_on(cirq.Y ** 0.5, args)
+    cirq.act_on(cirq.Y**0.5, args)
+    cirq.act_on(cirq.Y**0.5, args)
     cirq.act_on(PhaserGate(), args, allow_decompose=True)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
@@ -339,19 +329,19 @@ def test_y_act_on():
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.Y ** 3.5, args)
-    cirq.act_on(cirq.Y ** 3.5, args)
+    cirq.act_on(cirq.Y**3.5, args)
+    cirq.act_on(cirq.Y**3.5, args)
     cirq.act_on(PhaserGate(), args, allow_decompose=True)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.Y ** 2, args)
+    cirq.act_on(cirq.Y**2, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.Y ** foo, args)
+        cirq.act_on(cirq.Y**foo, args)
 
 
 def test_z_h_act_on():
@@ -367,8 +357,8 @@ def test_z_h_act_on():
     )
 
     cirq.act_on(cirq.H, args)
-    cirq.act_on(cirq.Z ** 0.5, args)
-    cirq.act_on(cirq.Z ** 0.5, args)
+    cirq.act_on(cirq.Z**0.5, args)
+    cirq.act_on(cirq.Z**0.5, args)
     cirq.act_on(cirq.H, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
@@ -380,27 +370,27 @@ def test_z_h_act_on():
     assert args.tableau == original_tableau
 
     cirq.act_on(cirq.H, args)
-    cirq.act_on(cirq.Z ** 3.5, args)
-    cirq.act_on(cirq.Z ** 3.5, args)
+    cirq.act_on(cirq.Z**3.5, args)
+    cirq.act_on(cirq.Z**3.5, args)
     cirq.act_on(cirq.H, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.Z ** 2, args)
+    cirq.act_on(cirq.Z**2, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
-    cirq.act_on(cirq.H ** 2, args)
+    cirq.act_on(cirq.H**2, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.Z ** foo, args)
+        cirq.act_on(cirq.Z**foo, args)
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.H ** foo, args)
+        cirq.act_on(cirq.H**foo, args)
 
 
 def test_cx_act_on():
@@ -435,16 +425,16 @@ def test_cx_act_on():
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.CX ** 4, args)
+    cirq.act_on(cirq.CX**4, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CX ** foo, args)
+        cirq.act_on(cirq.CX**foo, args)
 
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CX ** 1.5, args)
+        cirq.act_on(cirq.CX**1.5, args)
 
 
 def test_cz_act_on():
@@ -479,16 +469,16 @@ def test_cz_act_on():
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
-    cirq.act_on(cirq.CZ ** 4, args)
+    cirq.act_on(cirq.CZ**4, args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CZ ** foo, args)
+        cirq.act_on(cirq.CZ**foo, args)
 
     with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CZ ** 1.5, args)
+        cirq.act_on(cirq.CZ**1.5, args)
 
 
 def test_runtime_types_of_rot_gates():
@@ -526,22 +516,22 @@ def test_identity_multiplication():
     assert cirq.I(a) * cirq.CX(a, b) == cirq.CX(a, b)
     assert cirq.CX(a, b) * cirq.I(a) == cirq.CX(a, b)
     assert cirq.CZ(a, b) * cirq.I(c) == cirq.CZ(a, b)
-    assert cirq.CX(a, b) ** 0.5 * cirq.I(c) == cirq.CX(a, b) ** 0.5
-    assert cirq.I(c) * cirq.CZ(b, c) ** 0.5 == cirq.CZ(b, c) ** 0.5
+    assert cirq.CX(a, b)**0.5 * cirq.I(c) == cirq.CX(a, b)**0.5
+    assert cirq.I(c) * cirq.CZ(b, c)**0.5 == cirq.CZ(b, c)**0.5
     assert cirq.T(a) * cirq.I(a) == cirq.T(a)
     assert cirq.T(b) * cirq.I(c) == cirq.T(b)
-    assert cirq.T(a) ** 0.25 * cirq.I(c) == cirq.T(a) ** 0.25
-    assert cirq.I(c) * cirq.T(b) ** 0.25 == cirq.T(b) ** 0.25
+    assert cirq.T(a)**0.25 * cirq.I(c) == cirq.T(a)**0.25
+    assert cirq.I(c) * cirq.T(b)**0.25 == cirq.T(b)**0.25
 
 
 def test_text_diagrams():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     circuit = cirq.Circuit(cirq.X(a), cirq.Y(a), cirq.Z(a),
-                           cirq.Z(a) ** sympy.Symbol('x'),
+                           cirq.Z(a)**sympy.Symbol('x'),
                            cirq.rx(sympy.Symbol('x')).on(a), cirq.CZ(a, b),
                            cirq.CNOT(a, b), cirq.CNOT(b, a),
-                           cirq.H(a) ** 0.5, cirq.I(a),
+                           cirq.H(a)**0.5, cirq.I(a),
                            cirq.IdentityGate(2)(a, b))
 
     cirq.testing.assert_has_diagram(
@@ -562,7 +552,7 @@ b: -----------------------------@---X---@---------------I---
 
 def test_cnot_unitary():
     np.testing.assert_almost_equal(
-        cirq.unitary(cirq.CNOT ** 0.5),
+        cirq.unitary(cirq.CNOT**0.5),
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
@@ -618,62 +608,62 @@ def test_cnot_unknown_keyword_argument():
 def test_cnot_decompose():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    assert cirq.decompose_once(cirq.CNOT(a, b) ** sympy.Symbol('x')) is not None
+    assert cirq.decompose_once(cirq.CNOT(a, b)**sympy.Symbol('x')) is not None
 
 
 def test_repr():
     assert repr(cirq.X) == 'cirq.X'
-    assert repr(cirq.X ** 0.5) == '(cirq.X**0.5)'
+    assert repr(cirq.X**0.5) == '(cirq.X**0.5)'
 
     assert repr(cirq.Z) == 'cirq.Z'
-    assert repr(cirq.Z ** 0.5) == 'cirq.S'
-    assert repr(cirq.Z ** 0.25) == 'cirq.T'
-    assert repr(cirq.Z ** 0.125) == '(cirq.Z**0.125)'
+    assert repr(cirq.Z**0.5) == 'cirq.S'
+    assert repr(cirq.Z**0.25) == 'cirq.T'
+    assert repr(cirq.Z**0.125) == '(cirq.Z**0.125)'
 
     assert repr(cirq.S) == 'cirq.S'
-    assert repr(cirq.S ** -1) == '(cirq.S**-1)'
+    assert repr(cirq.S**-1) == '(cirq.S**-1)'
     assert repr(cirq.T) == 'cirq.T'
-    assert repr(cirq.T ** -1) == '(cirq.T**-1)'
+    assert repr(cirq.T**-1) == '(cirq.T**-1)'
 
     assert repr(cirq.Y) == 'cirq.Y'
-    assert repr(cirq.Y ** 0.5) == '(cirq.Y**0.5)'
+    assert repr(cirq.Y**0.5) == '(cirq.Y**0.5)'
 
     assert repr(cirq.CNOT) == 'cirq.CNOT'
-    assert repr(cirq.CNOT ** 0.5) == '(cirq.CNOT**0.5)'
+    assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
-    cirq.testing.assert_equivalent_repr(
-        cirq.X ** (sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
+    cirq.testing.assert_equivalent_repr(cirq.X**(sympy.Symbol('a') / 2 -
+                                                 sympy.Symbol('c') * 3 + 5))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
     # floating point value" strategy, as opposed to the "exactly value in
     # decimal" strategy.
-    assert repr(cirq.CZ ** 0.2) == '(cirq.CZ**0.2)'
+    assert repr(cirq.CZ**0.2) == '(cirq.CZ**0.2)'
 
 
 def test_str():
     assert str(cirq.X) == 'X'
-    assert str(cirq.X ** 0.5) == 'X**0.5'
+    assert str(cirq.X**0.5) == 'X**0.5'
     assert str(cirq.rx(np.pi)) == 'Rx(π)'
     assert str(cirq.rx(0.5 * np.pi)) == 'Rx(0.5π)'
     assert str(cirq.XPowGate(
         global_shift=-0.25)) == 'XPowGate(exponent=1.0, global_shift=-0.25)'
 
     assert str(cirq.Z) == 'Z'
-    assert str(cirq.Z ** 0.5) == 'S'
-    assert str(cirq.Z ** 0.125) == 'Z**0.125'
+    assert str(cirq.Z**0.5) == 'S'
+    assert str(cirq.Z**0.125) == 'Z**0.125'
     assert str(cirq.rz(np.pi)) == 'Rz(π)'
     assert str(cirq.rz(1.4 * np.pi)) == 'Rz(1.4π)'
     assert str(cirq.ZPowGate(
         global_shift=0.25)) == 'ZPowGate(exponent=1.0, global_shift=0.25)'
 
     assert str(cirq.S) == 'S'
-    assert str(cirq.S ** -1) == 'S**-1'
+    assert str(cirq.S**-1) == 'S**-1'
     assert str(cirq.T) == 'T'
-    assert str(cirq.T ** -1) == 'T**-1'
+    assert str(cirq.T**-1) == 'T**-1'
 
     assert str(cirq.Y) == 'Y'
-    assert str(cirq.Y ** 0.5) == 'Y**0.5'
+    assert str(cirq.Y**0.5) == 'Y**0.5'
     assert str(cirq.ry(np.pi)) == 'Ry(π)'
     assert str(cirq.ry(3.14 * np.pi)) == 'Ry(3.14π)'
     assert str(cirq.YPowGate(
@@ -681,7 +671,7 @@ def test_str():
         global_shift=-0.25)) == 'YPowGate(exponent=2, global_shift=-0.25)'
 
     assert str(cirq.CX) == 'CNOT'
-    assert str(cirq.CNOT ** 0.5) == 'CNOT**0.5'
+    assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
 
 
 def test_rx_unitary():
@@ -750,79 +740,79 @@ def test_rz_unitary():
 def test_x_stabilizer():
     gate = cirq.X
     assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_y_stabilizer():
     gate = cirq.Y
     assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_z_stabilizer():
     gate = cirq.Z
     assert cirq.has_stabilizer_effect(gate)
-    assert cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_h_stabilizer():
     gate = cirq.H
     assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_cz_stabilizer():
     gate = cirq.CZ
     assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_cnot_stabilizer():
     gate = cirq.CNOT
     assert cirq.has_stabilizer_effect(gate)
-    assert not cirq.has_stabilizer_effect(gate ** 0.5)
-    assert cirq.has_stabilizer_effect(gate ** 0)
-    assert not cirq.has_stabilizer_effect(gate ** -0.5)
-    assert cirq.has_stabilizer_effect(gate ** 4)
-    assert not cirq.has_stabilizer_effect(gate ** 1.2)
+    assert not cirq.has_stabilizer_effect(gate**0.5)
+    assert cirq.has_stabilizer_effect(gate**0)
+    assert not cirq.has_stabilizer_effect(gate**-0.5)
+    assert cirq.has_stabilizer_effect(gate**4)
+    assert not cirq.has_stabilizer_effect(gate**1.2)
     foo = sympy.Symbol('foo')
-    assert not cirq.has_stabilizer_effect(gate ** foo)
+    assert not cirq.has_stabilizer_effect(gate**foo)
 
 
 def test_phase_by_xy():
     assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
-    assert cirq.phase_by(cirq.X ** 0.5, 0.25, 0) == cirq.Y ** 0.5
-    assert cirq.phase_by(cirq.X ** -0.5, 0.25, 0) == cirq.Y ** -0.5
+    assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
+    assert cirq.phase_by(cirq.X**-0.5, 0.25, 0) == cirq.Y**-0.5
 
 
 def test_ixyz_circuit_diagram():
@@ -834,12 +824,12 @@ def test_ixyz_circuit_diagram():
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             ix(q),
-            ix(q) ** -1,
-            ix(q) ** -0.99999,
-            ix(q) ** -1.00001,
-            ix(q) ** 3,
-            ix(q) ** 4.5,
-            ix(q) ** 4.500001,
+            ix(q)**-1,
+            ix(q)**-0.99999,
+            ix(q)**-1.00001,
+            ix(q)**3,
+            ix(q)**4.5,
+            ix(q)**4.500001,
         ), """
 q: ───X───X───X───X───X───X^0.5───X^0.5───
         """)
@@ -847,10 +837,10 @@ q: ───X───X───X───X───X───X^0.5───X^0.
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             iy(q),
-            iy(q) ** -1,
-            iy(q) ** 3,
-            iy(q) ** 4.5,
-            iy(q) ** 4.500001,
+            iy(q)**-1,
+            iy(q)**3,
+            iy(q)**4.5,
+            iy(q)**4.500001,
         ), """
 q: ───Y───Y───Y───Y^0.5───Y^0.5───
     """)
@@ -858,10 +848,10 @@ q: ───Y───Y───Y───Y^0.5───Y^0.5───
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             iz(q),
-            iz(q) ** -1,
-            iz(q) ** 3,
-            iz(q) ** 4.5,
-            iz(q) ** 4.500001,
+            iz(q)**-1,
+            iz(q)**3,
+            iz(q)**4.5,
+            iz(q)**4.500001,
         ), """
 q: ───Z───Z───Z───S───S───
     """)
@@ -889,10 +879,10 @@ q: ───Rx(π)───Rx(-π)───Rx(-π)───Rx(-π)───Rx(-�
         cirq.rx(-np.pi + 0.00001).on(q),
         cirq.rx(-np.pi - 0.00001).on(q),
     ),
-        """
+                                    """
 q: ---Rx(pi)---Rx(0.5pi)---Rx(-pi)---Rx(-pi)---
         """,
-        use_unicode_characters=False)
+                                    use_unicode_characters=False)
 
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
@@ -918,12 +908,12 @@ q: ───Rz(π)───Rz(-π)───Rz(-π)───Rz(0.5π)───Rz(
 
 def test_trace_distance():
     foo = sympy.Symbol('foo')
-    sx = cirq.X ** foo
-    sy = cirq.Y ** foo
-    sz = cirq.Z ** foo
-    sh = cirq.H ** foo
-    scx = cirq.CX ** foo
-    scz = cirq.CZ ** foo
+    sx = cirq.X**foo
+    sy = cirq.Y**foo
+    sz = cirq.Z**foo
+    sh = cirq.H**foo
+    scx = cirq.CX**foo
+    scz = cirq.CZ**foo
     # These values should have 1.0 or 0.0 directly returned
     assert cirq.trace_distance_bound(sx) == 1.0
     assert cirq.trace_distance_bound(sy) == 1.0
@@ -934,13 +924,13 @@ def test_trace_distance():
     assert cirq.trace_distance_bound(cirq.I) == 0.0
     # These values are calculated, so we use approx_eq
     assert cirq.approx_eq(cirq.trace_distance_bound(cirq.X), 1.0)
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Y ** -1), 1.0)
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Z ** 0.5),
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Y**-1), 1.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.Z**0.5),
                           np.sin(np.pi / 4))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.H ** 0.25),
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.H**0.25),
                           np.sin(np.pi / 8))
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX ** 2), 0.0)
-    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ ** (1 / 9)),
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CX**2), 0.0)
+    assert cirq.approx_eq(cirq.trace_distance_bound(cirq.CZ**(1 / 9)),
                           np.sin(np.pi / 18))
 
 
@@ -948,4 +938,4 @@ def test_commutes():
     assert cirq.commutes(cirq.ZPowGate(exponent=sympy.Symbol('t')), cirq.Z)
     assert cirq.commutes(cirq.Z, cirq.Z(cirq.LineQubit(0)),
                          default=None) is None
-    assert cirq.commutes(cirq.Z ** 0.1, cirq.XPowGate(exponent=0))
+    assert cirq.commutes(cirq.Z**0.1, cirq.XPowGate(exponent=0))
