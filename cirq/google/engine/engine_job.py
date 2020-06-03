@@ -213,8 +213,8 @@ class EngineJob:
             raise ValueError('deserializing a v1 RunContext is not supported')
         if (run_context_type == 'cirq.google.api.v2.RunContext' or
                 run_context_type == 'cirq.api.google.v2.RunContext'):
-            v2_run_context = v2.run_context_pb2.RunContext()
-            v2_run_context.ParseFromString(run_context.value)
+            v2_run_context = v2.run_context_pb2.RunContext.FromString(
+                run_context.value)
             return v2_run_context.parameter_sweeps[0].repetitions, [
                 v2.sweep_from_proto(s.sweep)
                 for s in v2_run_context.parameter_sweeps
@@ -242,8 +242,7 @@ class EngineJob:
         ids = self.context.client._ids_from_calibration_name(
             status.calibration_name)
         response = self.context.client.get_calibration(*ids)
-        metrics = v2.metrics_pb2.MetricsSnapshot()
-        metrics.ParseFromString(response.data.value)
+        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
 
     def cancel(self) -> None:
@@ -279,13 +278,12 @@ class EngineJob:
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
             if (result_type == 'cirq.google.api.v1.Result' or
                     result_type == 'cirq.api.google.v1.Result'):
-                v1_parsed_result = v1.program_pb2.Result()
-                v1_parsed_result.ParseFromString(result.value)
+                v1_parsed_result = v1.program_pb2.Result.FromString(
+                    result.value)
                 self._results = self._get_job_results_v1(v1_parsed_result)
             elif (result_type == 'cirq.google.api.v2.Result' or
                   result_type == 'cirq.api.google.v2.Result'):
-                v2_parsed_result = v2.result_pb2.Result()
-                v2_parsed_result.ParseFromString(result.value)
+                v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
             else:
                 raise ValueError(
