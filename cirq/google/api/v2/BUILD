@@ -3,6 +3,23 @@ package(default_visibility = ["//visibility:public"])
 load("@com_google_protobuf//:protobuf.bzl", "py_proto_library")
 
 proto_library(
+    name = "batch",
+    srcs = ["batch.proto"],
+)
+
+py_proto_library(
+    name = "batch_py_proto",
+    srcs = ["batch.proto"],
+)
+
+cc_proto_library(
+    name = "batch_cc_proto",
+    deps = [
+        ":batch_proto"
+    ],
+)
+
+proto_library(
     name = "device_proto",
     srcs = ["device.proto"],
 )
