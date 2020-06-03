@@ -94,22 +94,13 @@ class XPowGate(eigen_gate.EigenGate,
             q = args.axes[0]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
-                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
-                                                        tableau.xs[:, q].copy())
-                tableau.zs[:, q] ^= tableau.xs[:, q]
-                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
-                                                        tableau.xs[:, q].copy())
+                tableau.xs[:, q] ^= tableau.zs[:, q]
                 tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
             elif effective_exponent == 1:
                 tableau.rs[:] ^= tableau.zs[:, q]
             elif effective_exponent == 1.5:
-                tableau.rs[:] ^= tableau.zs[:, q]
-                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
-                                                        tableau.xs[:, q].copy())
-                tableau.zs[:, q] ^= tableau.xs[:, q]
-                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
-                                                        tableau.xs[:, q].copy())
-                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+                tableau.xs[:, q] ^= tableau.zs[:, q]
             return True
 
         return NotImplemented
@@ -307,17 +298,15 @@ class YPowGate(eigen_gate.EigenGate,
             q = args.axes[0]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
-                tableau.rs[:] ^= tableau.xs[:, q]
                 (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
                                                         tableau.xs[:, q].copy())
-                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+                tableau.rs[:] ^= (tableau.xs[:, q] & (~tableau.zs[:, q]))
             elif effective_exponent == 1:
                 tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
             elif effective_exponent == 1.5:
-                tableau.rs[:] ^= tableau.zs[:, q]
+                tableau.rs[:] ^= (~(tableau.xs[:, q]) & tableau.zs[:, q])
                 (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
                                                         tableau.xs[:, q].copy())
-                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
             return True
 
         return NotImplemented
@@ -483,8 +472,7 @@ class ZPowGate(eigen_gate.EigenGate,
             elif effective_exponent == 1:
                 tableau.rs[:] ^= tableau.xs[:, q]
             elif effective_exponent == 1.5:
-                tableau.rs[:] ^= tableau.xs[:, q] ^ (tableau.xs[:, q] &
-                                                     tableau.zs[:, q])
+                tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
                 tableau.zs[:, q] ^= tableau.xs[:, q]
             return True
 

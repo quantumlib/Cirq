@@ -40,6 +40,7 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
+from cirq.protocols import unitary
 from cirq.sim import simulator
 from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
 from cirq._compat import deprecated, deprecated_parameter
@@ -373,14 +374,14 @@ class CliffordState():
             self._apply_H(qubit)
             return
 
-        u = cirq.unitary(op)
+        u = unitary(op)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is None:
             raise ValueError('%s cannot be run with Clifford simulator.' %
                              str(op.gate))
 
-        h = cirq.unitary(ops.H)
-        s = cirq.unitary(ops.S)
+        h = unitary(ops.H)
+        s = unitary(ops.S)
         applied_unitary = np.eye(2)
         for axis, quarter_turns in clifford_gate.decompose_rotation():
             for _ in range(quarter_turns % 4):

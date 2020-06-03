@@ -259,9 +259,6 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
-    def num_qubits(self) -> int:
-        return len(self.qubits)
-
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
