@@ -12,19 +12,6 @@ message RunContext {
   repeated ParameterSweep parameter_sweeps = 1;
 }
 
-// A batch of contexts for running a bundled batch of programs
-// To be used in conjunction with BatchedProgram
-message BatchedRunContext {
-
-  // Run contexts for each program in the BatchedProgram
-  // Each RunContext should map directly to a Program in the corresponding
-  // Batched Progream.
-  // This message should have one RunContext for each Program in the
-  // BatchedProgram, and the order of the RunContext messages should
-  // match the order of the Programs in the Batched Program.
-  repeated RunContext run_contexts = 1;
-}
-
 // Specifies how to repeatedly sample a circuit, with or without sweeping over
 // varying parameter-dicts.
 message ParameterSweep {

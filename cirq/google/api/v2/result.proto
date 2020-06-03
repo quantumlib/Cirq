@@ -16,17 +16,6 @@ message Result {
   repeated SweepResult sweep_results = 1;
 }
 
-// The result returned by a BatchedProgram
-message BatchedResult {
-
-  // The results of a BatchedProgram
-  // Each result in the message will directly correspond to a Program
-  // in the BatchedProgram request.  There will be one Result for each
-  // Program and the order of the Results will match the order of the Programs
-  // in the request.
-  repeated Result results = 1;
-}
-
 // The measurement results for a particular ParameterSweep.
 message SweepResult {
   // The total number of repetitions that were performed for this sweep.

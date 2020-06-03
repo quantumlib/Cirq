@@ -24,14 +24,6 @@ message Program {
   }
 }
 
-// A Batch of multiple circuits that should be run as one program
-message BatchedProgram {
-
-  // The circuits that should be bundled togather as one program
-  repeated Program programs = 1;
-
-}
-
 // The quantum circuit, specified as a series of moments (abstract
 // slices of times with gates acting on disjoint sets of qubits).
 message Circuit {
