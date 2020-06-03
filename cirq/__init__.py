@@ -320,6 +320,7 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnCliffordTableauArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -407,7 +408,6 @@ from cirq.value import (
 from cirq.protocols import (
     act_on,
     apply_channel,
-    apply_clifford_tableau,
     apply_mixture,
     apply_unitaries,
     apply_unitary,

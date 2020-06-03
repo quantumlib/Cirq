@@ -84,29 +84,35 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        qubit = qubits[0]
-        if self._exponent % 0.5 != 0:
-            return NotImplemented
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            state._apply_H(qubit)
-            state._apply_S(qubit)
-            state._apply_H(qubit)
-        elif effective_exponent == 1:
-            state._apply_X(qubit)
-        elif effective_exponent == 1.5:
-            state._apply_X(qubit)
-            state._apply_H(qubit)
-            state._apply_S(qubit)
-            state._apply_H(qubit)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.zs[:, q]
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        return NotImplemented
 
     def in_su2(self) -> 'XPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -291,27 +297,30 @@ class YPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        qubit = qubits[0]
-        if self._exponent % 0.5 != 0:
-            return NotImplemented
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            state._apply_Z(qubit)
-            state._apply_H(qubit)
-        elif effective_exponent == 1:
-            state._apply_Y(qubit)
-        elif effective_exponent == 1.5:
-            state._apply_Y(qubit)
-            state._apply_Z(qubit)
-            state._apply_H(qubit)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= tableau.xs[:, q]
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.zs[:, q]
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        return NotImplemented
 
     def in_su2(self) -> 'YPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -459,25 +468,27 @@ class ZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        qubit = qubits[0]
-        if self._exponent % 0.5 != 0:
-            return NotImplemented
-        effective_exponent = self._exponent % 2
-        if effective_exponent == 0.5:
-            state._apply_S(qubit)
-        elif effective_exponent == 1:
-            state._apply_Z(qubit)
-        elif effective_exponent == 1.5:
-            state._apply_Z(qubit)
-            state._apply_S(qubit)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.xs[:, q] ^ (tableau.xs[:, q] &
+                                                     tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            return True
+
+        return NotImplemented
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -727,19 +738,23 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        qubit = qubits[0]
-        if self._exponent % 1 != 0:
-            return NotImplemented
-        if self._exponent % 2 == 1:
-            state._apply_H(qubit)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            if self._exponent % 1 != 0:
+                return NotImplemented
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        return NotImplemented
 
     def _decompose_(self, qubits):
         q = qubits[0]
@@ -848,18 +863,29 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        if self._exponent % 1 != 0:
-            return NotImplemented
-        if self._exponent % 2 == 1:
-            state._apply_CZ(qubits)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q2], tableau.zs[:, q2]) = \
+                 (tableau.zs[:, q2].copy(), tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= tableau.xs[:,q1] & tableau.zs[:,q2] & \
+                    (tableau.xs[:,q2] ^ tableau.zs[:,q1])
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+                (tableau.xs[:, q2],
+                 tableau.zs[:, q2]) = (tableau.zs[:, q2].copy(),
+                                       tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q2] & tableau.zs[:, q2])
+            return True
+
+        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -915,8 +941,7 @@ class CZPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-                wire_symbols=('@', '@'),
-                exponent=self._diagram_exponent(args))
+            wire_symbols=('@', '@'), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -1030,18 +1055,23 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
-    def _apply_clifford_tableau_(self, state: 'cirq.CliffordState',
-                                 qubits: Tuple['cirq.Qid', ...]
-                                ) -> Optional['CliffordState']:
-        if protocols.is_parameterized(self):
-            return None
-        if len(qubits) != self.num_qubits():
-            raise ValueError('len(qubits) != num_qubits')
-        if self._exponent % 1 != 0:
-            return NotImplemented
-        if self._exponent % 2 == 1:
-            state._apply_CNOT(qubits)
-        return state
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                tableau.rs[:] ^= (tableau.xs[:, q1] & tableau.zs[:, q2] & \
+                                 (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+            return True
+
+        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
