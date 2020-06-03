@@ -270,6 +270,7 @@ def test_x_act_on():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[1],
+        prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
@@ -315,6 +316,7 @@ def test_y_act_on():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[1],
+        prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
@@ -353,6 +355,7 @@ def test_z_h_act_on():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[1],
+        prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
@@ -401,6 +404,7 @@ def test_cx_act_on():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[0, 1],
+        prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
@@ -445,6 +449,7 @@ def test_cz_act_on():
     args = cirq.ActOnCliffordTableauArgs(
         tableau=original_tableau.copy(),
         axes=[0, 1],
+        prng=np.random.RandomState(),
         log_of_measurement_results={},
     )
 
