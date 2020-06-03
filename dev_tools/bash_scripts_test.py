@@ -64,6 +64,8 @@ def run(
 dir=$(git rev-parse --show-toplevel)
 cd {}
 git init --quiet
+git config --local user.name 'Me'
+git config --local user.email '<>'
 git commit -m init --allow-empty --quiet --no-gpg-sign
 {}
 chmod +x ./test-script.sh
@@ -260,6 +262,8 @@ def test_pytest_changed_files_branch_selection(tmpdir_factory):
                  setup='mkdir alt\n'
                  'cd alt\n'
                  'git init --quiet\n'
+                 'git config --local user.name \'Me\'\n'
+                 'git config --local user.email \'<>\'\n'
                  'git commit -m tes --quiet --allow-empty --no-gpg-sign\n'
                  'cd ..\n'
                  'git remote add origin alt\n'
@@ -506,3 +510,77 @@ def test_incremental_format_branch_selection(tmpdir_factory):
         '\x1b[31mSome formatting needed on changed lines\x1b[0m.\n')
     assert result.err.startswith(
         "Comparing against revision 'master' (merge base ")
+
+
+@only_on_posix
+def test_pylint_changed_files_file_selection(tmpdir_factory):
+
+    result = run(script_file='check/pylint-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD~1',
+                 setup='touch file.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    assert result.exit_code == 0
+    assert result.out == ''
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 0 lintable files associated with changes.\n").split()
+
+    intercepted_prefix = 'INTERCEPTED pylint --rcfile=dev_tools/conf/.pylintrc '
+
+    result = run(script_file='check/pylint-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD~1',
+                 setup='mkdir cirq\n'
+                 'touch cirq/file.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    assert result.exit_code == 0
+    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 1 lintable files associated with changes.\n").split()
+
+    result = run(script_file='check/pylint-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD~1',
+                 setup='mkdir cirq\n'
+                 'touch ignore.py cirq/file.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    assert result.exit_code == 0
+    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 1 lintable files associated with changes.\n").split()
+
+    result = run(script_file='check/pylint-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD',
+                 setup='mkdir cirq\n'
+                 'touch ignore.py cirq/file.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n'
+                 'echo x > cirq/file.py')
+    assert result.exit_code == 0
+    assert result.out == intercepted_prefix + 'cirq/file.py\n'
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD'.\n"
+        "Found 1 lintable files associated with changes.\n").split()
+
+    result = run(script_file='check/pylint-changed-files',
+                 tmpdir_factory=tmpdir_factory,
+                 arg='HEAD~1',
+                 setup='mkdir cirq dev_tools examples ignore\n'
+                 'touch cirq/file.py dev_tools/file.py examples/file.y\n'
+                 'touch ignore/ignore.py\n'
+                 'git add -A\n'
+                 'git commit -m test --quiet --no-gpg-sign\n')
+    print(result)
+    assert result.exit_code == 0
+    assert result.out == intercepted_prefix + ('cirq/file.py dev_tools/file.py '
+                                               'examples/file.y\n')
+    assert result.err.split() == (
+        "Comparing against revision 'HEAD~1'.\n"
+        "Found 3 lintable files associated with changes.\n").split()
