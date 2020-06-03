@@ -27,6 +27,7 @@ message BatchRunContext {
   // Run contexts for each program in the BatchProgram
   // Each RunContext should map directly to a Program in the corresponding
   // BatchProgram.
+  //
   // This message should have one RunContext for each Program in the
   // BatchProgram, and the order of the RunContext messages should
   // match the order of the Programs in the BatchProgram.
