@@ -266,8 +266,11 @@ def test_mixture():
     assert_mixtures_equal(cirq.mixture(op), cirq.mixture(op.gate))
     assert cirq.has_mixture(op)
 
-    assert cirq.mixture(cirq.X(a), None) is None
-    assert not cirq.has_mixture(cirq.X(a))
+    assert cirq.has_mixture(cirq.X(a))
+    m = cirq.mixture(cirq.X(a))
+    assert len(m) == 1
+    assert m[0][0] == 1
+    np.testing.assert_allclose(m[0][1], cirq.unitary(cirq.X))
 
 
 def test_repr():

@@ -83,40 +83,18 @@ class ReturnsNotImplementedUnitary():
         return NotImplemented
 
 
-@pytest.mark.parametrize('val', (
-    NoMethod(),
-    ReturnsNotImplemented(),
-))
-def test_objects_with_no_mixture(val):
-    with pytest.raises(TypeError, match="mixture"):
-        _ = cirq.mixture(val)
-    assert cirq.mixture(val, None) is None
-    assert cirq.mixture(val, NotImplemented) is NotImplemented
-    default = ((0.4, 'a'), (0.6, 'b'))
-    assert cirq.mixture(val, default) == default
-
-
-@pytest.mark.parametrize('val,mixture', (
-    (ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
-    (ReturnsNonnormalizedTuple(), ((0.4, 'a'), (0.4, 'b'))),
-))
-def test_objects_with_mixture(val, mixture):
-    assert cirq.mixture(val) == mixture
-    assert cirq.mixture(val, ((0.3, 'a'), (0.7, 'b'))) == mixture
-
-
 @pytest.mark.parametrize('val,mixture',
                          ((ReturnsValidTuple(), ((0.4, 'a'), (0.6, 'b'))),
                           (ReturnsNonnormalizedTuple(), ((0.4, 'a'),
                                                          (0.4, 'b'))),
                           (ReturnsUnitary(), ((1.0, np.ones((2, 2))),))))
-def test_objects_with_mixture_channel(val, mixture):
+def test_objects_with_mixture(val, mixture):
     expected_keys, expected_values = zip(*mixture)
-    keys, values = zip(*cirq.mixture_channel(val))
+    keys, values = zip(*cirq.mixture(val))
     np.testing.assert_almost_equal(keys, expected_keys)
     np.testing.assert_equal(values, expected_values)
 
-    keys, values = zip(*cirq.mixture_channel(val, ((0.3, 'a'), (0.7, 'b'))))
+    keys, values = zip(*cirq.mixture(val, ((0.3, 'a'), (0.7, 'b'))))
     np.testing.assert_almost_equal(keys, expected_keys)
     np.testing.assert_equal(values, expected_values)
 
@@ -124,9 +102,9 @@ def test_objects_with_mixture_channel(val, mixture):
 @pytest.mark.parametrize(
     'val',
     (NoMethod(), ReturnsNotImplemented(), ReturnsNotImplementedUnitary()))
-def test_objects_with_no_mixture_channel(val):
+def test_objects_with_no_mixture(val):
     with pytest.raises(TypeError, match="mixture"):
-        _ = cirq.mixture_channel(val)
+        _ = cirq.mixture(val)
     assert cirq.mixture(val, None) is None
     assert cirq.mixture(val, NotImplemented) is NotImplemented
     default = ((0.4, 'a'), (0.6, 'b'))
@@ -137,15 +115,8 @@ def test_has_mixture():
     assert cirq.has_mixture(ReturnsValidTuple())
     assert not cirq.has_mixture(ReturnsNotImplemented())
     assert cirq.has_mixture(ReturnsMixtureButNoHasMixture())
-    assert not cirq.has_mixture(ReturnsUnitary())
-
-
-def test_has_mixture_channel():
-    assert cirq.has_mixture_channel(ReturnsValidTuple())
-    assert not cirq.has_mixture_channel(ReturnsNotImplemented())
-    assert cirq.has_mixture_channel(ReturnsMixtureButNoHasMixture())
-    assert cirq.has_mixture_channel(ReturnsUnitary())
-    assert not cirq.has_mixture_channel(ReturnsNotImplementedUnitary())
+    assert cirq.has_mixture(ReturnsUnitary())
+    assert not cirq.has_mixture(ReturnsNotImplementedUnitary())
 
     class NoAtom(cirq.Operation):
 
@@ -186,3 +157,11 @@ def test_invalid_mixture(val, message):
 def test_missing_mixture():
     with pytest.raises(TypeError, match='_mixture_'):
         cirq.validate_mixture(NoMethod)
+
+
+def test_deprecated_mixture_channel():
+    with cirq.testing.assert_logs('"cirq.mixture"', ' mixture_channel '):
+        _ = cirq.mixture_channel(cirq.X)
+    with cirq.testing.assert_logs('"cirq.has_mixture"',
+                                  ' has_mixture_channel '):
+        _ = cirq.has_mixture_channel(cirq.X)

@@ -12,12 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Protocol for objects that are mixtures (probabilistic combinations)."""
-
+import functools
 from typing import Any, Sequence, Tuple, Union
 
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._compat import deprecated
 from cirq._doc import document
 from cirq.protocols.decompose_protocol import \
     _try_decompose_into_operations_and_qubits
@@ -31,23 +32,25 @@ RaiseTypeErrorIfNotProvided = ((0.0, []),)  # type: Sequence[Tuple[float, Any]]
 
 
 class SupportsMixture(Protocol):
-    """An object that may be describable as a probabilistic combination.
+    """An object that decomposes into a probability distribution of unitaries.
     """
 
     @document
     def _mixture_(self
                  ) -> Union[Sequence[Tuple[float, Any]], NotImplementedType]:
-        """Return the probabilistic mixture.
+        """Decompose into a probability distribution of unitaries.
+
+        This method is used by the global `cirq.mixture` method.
 
         A mixture is described by an iterable of tuples of the form
 
-            (probability of object, object)
+            (probability of unitary, unitary as numpy array)
 
         The probability components of the tuples must sum to 1.0 and be between
         0 and 1 (inclusive).
 
         Returns:
-            A tuple of (probability of object, object)
+            A list of (probability, unitary) pairs.
         """
 
     @document
@@ -64,18 +67,18 @@ class SupportsMixture(Protocol):
 
 
 def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-           ) -> Sequence[Tuple[float, Any]]:
-    """Return a sequence of tuples representing a probabilistic combination.
+           ) -> Sequence[Tuple[float, np.ndarray]]:
+    """Return a sequence of tuples representing a probabilistic unitary.
 
     A mixture is described by an iterable of tuples of the form
 
-        (probability of object, object)
+        (probability of unitary, unitary as numpy array)
 
-    The probability components of the tuples must sum to 1.0 and be between
-    0 and 1 (inclusive).
+    The probability components of the tuples must sum to 1.0 and be
+    non-negative.
 
     Args:
-        val: The value whose mixture is being computed.
+        val: The value to decompose into a mixture of unitaries.
         default: A default value if val does not support mixture.
 
     Returns:
@@ -84,63 +87,6 @@ def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
         with that probability in the mixture. The probabilities will sum to 1.0.
     """
 
-    getter = getattr(val, '_mixture_', None)
-    result = NotImplemented if getter is None else getter()
-
-    if result is not NotImplemented:
-        return result
-    if default is not RaiseTypeErrorIfNotProvided:
-        return default
-
-    if getter is None:
-        raise TypeError("object of type '{}' has no _mixture_ method.".format(
-            type(val)))
-
-    raise TypeError("object of type '{}' does have a _mixture_ method, "
-                    "but it returned NotImplemented.".format(type(val)))
-
-
-def has_mixture(val: Any) -> bool:
-    """Returns whether the value has a mixture representation.
-
-    Returns:
-        If `val` has a `_has_mixture_` method and its result is not
-        NotImplemented, that result is returned. Otherwise, if the value
-        has a `_mixture_` method return True if that has a non-default value.
-        Returns False if neither function exists.
-    """
-    getter = getattr(val, '_has_mixture_', None)
-    result = NotImplemented if getter is None else getter()
-    if result is not NotImplemented:
-        return result
-
-    # No _has_mixture_ function, use _mixture_ instead
-    return mixture(val, None) is not None
-
-
-def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
-                   ) -> Sequence[Tuple[float, np.ndarray]]:
-    """Return a sequence of tuples for a channel that is a mixture of unitaries.
-
-    In contrast to `mixture` this method falls back to `unitary` if `_mixture_`
-    is not implemented.
-
-    A mixture channel is described by an iterable of tuples of the form
-
-        (probability of unitary, unitary)
-
-    The probability components of the tuples must sum to 1.0 and be between
-    0 and 1 (inclusive) and the `unitary` must be a unitary matrix.
-
-    Args:
-        val: The value whose mixture_channel is being computed.
-        default: A default value if val does not support mixture.
-
-    Returns:
-        An iterable of tuples of size 2. The first element of the tuple is a
-        probability (between 0 and 1) and the second is the unitary that occurs
-        with that probability. The probabilities will sum to 1.0.
-    """
     mixture_getter = getattr(val, '_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
     if result is not NotImplemented:
@@ -163,11 +109,8 @@ def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
                     "method, but it returned NotImplemented.".format(type(val)))
 
 
-def has_mixture_channel(val: Any, *, allow_decompose: bool = True) -> bool:
-    """Returns whether the value has a mixture channel representation.
-
-    In contrast to `has_mixture` this method falls back to checking whether
-    the value has a unitary representation via `has_channel`.
+def has_mixture(val: Any, *, allow_decompose: bool = True) -> bool:
+    """Returns whether the value has a mixture representation.
 
     Args:
         val: The value to check.
@@ -181,11 +124,9 @@ def has_mixture_channel(val: Any, *, allow_decompose: bool = True) -> bool:
 
     Returns:
         If `val` has a `_has_mixture_` method and its result is not
-        NotImplemented, that result is returned. Otherwise, if `val` has a
-        `_has_unitary_` method and its results is not NotImplemented, that
-        result is returned. Otherwise, if the value has a `_mixture_` method
-        that is not a non-default value, True is returned. Returns False if none
-        of these functions.
+        NotImplemented, that result is returned. Otherwise, if the value
+        has a `_mixture_` method return True if that has a non-default value.
+        Returns False if neither function exists.
     """
     mixture_getter = getattr(val, '_has_mixture_', None)
     result = NotImplemented if mixture_getter is None else mixture_getter()
@@ -198,10 +139,27 @@ def has_mixture_channel(val: Any, *, allow_decompose: bool = True) -> bool:
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return all(has_mixture_channel(val) for val in operations)
+            return all(has_mixture(val) for val in operations)
 
     # No _has_mixture_ or _has_unitary_ function, use _mixture_ instead.
-    return mixture_channel(val, None) is not None
+    return mixture(val, None) is not None
+
+
+@deprecated(deadline='v0.10.0',
+            fix='Use "cirq.mixture" instead.',
+            name='mixture_channel')
+@functools.wraps(mixture)
+def mixture_channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
+                   ) -> Sequence[Tuple[float, np.ndarray]]:
+    return mixture(val, default)
+
+
+@deprecated(deadline='v0.10.0',
+            fix='Use "cirq.has_mixture" instead.',
+            name='has_mixture_channel')
+@functools.wraps(has_mixture)
+def has_mixture_channel(val: Any) -> bool:
+    return has_mixture(val)
 
 
 def validate_mixture(supports_mixture: SupportsMixture):

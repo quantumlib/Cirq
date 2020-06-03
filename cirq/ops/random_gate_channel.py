@@ -53,7 +53,7 @@ class RandomGateChannel(raw_types.Gate):
         return False
 
     def _has_mixture_(self):
-        return not self._is_parameterized_() and protocols.has_mixture_channel(
+        return not self._is_parameterized_() and protocols.has_mixture(
             self.sub_gate)
 
     def _has_channel_(self):
