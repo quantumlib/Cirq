@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.google.api.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.google.api.v2B\017RunContextProtoP\001'),
-  serialized_pb=_b('\n$cirq/google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x42\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n$cirq/google/api/v2/run_context.proto\x12\x12\x63irq.google.api.v2\"J\n\nRunContext\x12<\n\x10parameter_sweeps\x18\x01 \x03(\x0b\x32\".cirq.google.api.v2.ParameterSweep\"I\n\x11\x42\x61tchedRunContext\x12\x34\n\x0crun_contexts\x18\x01 \x03(\x0b\x32\x1e.cirq.google.api.v2.RunContext\"O\n\x0eParameterSweep\x12\x13\n\x0brepetitions\x18\x01 \x01(\x05\x12(\n\x05sweep\x18\x02 \x01(\x0b\x32\x19.cirq.google.api.v2.Sweep\"\x86\x01\n\x05Sweep\x12;\n\x0esweep_function\x18\x01 \x01(\x0b\x32!.cirq.google.api.v2.SweepFunctionH\x00\x12\x37\n\x0csingle_sweep\x18\x02 \x01(\x0b\x32\x1f.cirq.google.api.v2.SingleSweepH\x00\x42\x07\n\x05sweep\"\xc6\x01\n\rSweepFunction\x12\x45\n\rfunction_type\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.SweepFunction.FunctionType\x12)\n\x06sweeps\x18\x02 \x03(\x0b\x32\x19.cirq.google.api.v2.Sweep\"C\n\x0c\x46unctionType\x12\x1d\n\x19\x46UNCTION_TYPE_UNSPECIFIED\x10\x00\x12\x0b\n\x07PRODUCT\x10\x01\x12\x07\n\x03ZIP\x10\x02\"\x8d\x01\n\x0bSingleSweep\x12\x15\n\rparameter_key\x18\x01 \x01(\t\x12,\n\x06points\x18\x02 \x01(\x0b\x32\x1a.cirq.google.api.v2.PointsH\x00\x12\x30\n\x08linspace\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.LinspaceH\x00\x42\x07\n\x05sweep\"\x18\n\x06Points\x12\x0e\n\x06points\x18\x01 \x03(\x02\"G\n\x08Linspace\x12\x13\n\x0b\x66irst_point\x18\x01 \x01(\x02\x12\x12\n\nlast_point\x18\x02 \x01(\x02\x12\x12\n\nnum_points\x18\x03 \x01(\x03\x42\x32\n\x1d\x63om.google.cirq.google.api.v2B\x0fRunContextProtoP\x01\x62\x06proto3')
 )
 
 
@@ -46,8 +46,8 @@ _SWEEPFUNCTION_FUNCTIONTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=486,
-  serialized_end=553,
+  serialized_start=561,
+  serialized_end=628,
 )
 _sym_db.RegisterEnumDescriptor(_SWEEPFUNCTION_FUNCTIONTYPE)
 
@@ -80,6 +80,37 @@ _RUNCONTEXT = _descriptor.Descriptor(
   ],
   serialized_start=60,
   serialized_end=134,
+)
+
+
+_BATCHEDRUNCONTEXT = _descriptor.Descriptor(
+  name='BatchedRunContext',
+  full_name='cirq.google.api.v2.BatchedRunContext',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='run_contexts', full_name='cirq.google.api.v2.BatchedRunContext.run_contexts', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=136,
+  serialized_end=209,
 )
 
 
@@ -116,8 +147,8 @@ _PARAMETERSWEEP = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=136,
-  serialized_end=215,
+  serialized_start=211,
+  serialized_end=290,
 )
 
 
@@ -157,8 +188,8 @@ _SWEEP = _descriptor.Descriptor(
       name='sweep', full_name='cirq.google.api.v2.Sweep.sweep',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=218,
-  serialized_end=352,
+  serialized_start=293,
+  serialized_end=427,
 )
 
 
@@ -196,8 +227,8 @@ _SWEEPFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=355,
-  serialized_end=553,
+  serialized_start=430,
+  serialized_end=628,
 )
 
 
@@ -244,8 +275,8 @@ _SINGLESWEEP = _descriptor.Descriptor(
       name='sweep', full_name='cirq.google.api.v2.SingleSweep.sweep',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=556,
-  serialized_end=697,
+  serialized_start=631,
+  serialized_end=772,
 )
 
 
@@ -275,8 +306,8 @@ _POINTS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=699,
-  serialized_end=723,
+  serialized_start=774,
+  serialized_end=798,
 )
 
 
@@ -320,11 +351,12 @@ _LINSPACE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=725,
-  serialized_end=796,
+  serialized_start=800,
+  serialized_end=871,
 )
 
 _RUNCONTEXT.fields_by_name['parameter_sweeps'].message_type = _PARAMETERSWEEP
+_BATCHEDRUNCONTEXT.fields_by_name['run_contexts'].message_type = _RUNCONTEXT
 _PARAMETERSWEEP.fields_by_name['sweep'].message_type = _SWEEP
 _SWEEP.fields_by_name['sweep_function'].message_type = _SWEEPFUNCTION
 _SWEEP.fields_by_name['single_sweep'].message_type = _SINGLESWEEP
@@ -346,6 +378,7 @@ _SINGLESWEEP.oneofs_by_name['sweep'].fields.append(
   _SINGLESWEEP.fields_by_name['linspace'])
 _SINGLESWEEP.fields_by_name['linspace'].containing_oneof = _SINGLESWEEP.oneofs_by_name['sweep']
 DESCRIPTOR.message_types_by_name['RunContext'] = _RUNCONTEXT
+DESCRIPTOR.message_types_by_name['BatchedRunContext'] = _BATCHEDRUNCONTEXT
 DESCRIPTOR.message_types_by_name['ParameterSweep'] = _PARAMETERSWEEP
 DESCRIPTOR.message_types_by_name['Sweep'] = _SWEEP
 DESCRIPTOR.message_types_by_name['SweepFunction'] = _SWEEPFUNCTION
@@ -354,53 +387,60 @@ DESCRIPTOR.message_types_by_name['Points'] = _POINTS
 DESCRIPTOR.message_types_by_name['Linspace'] = _LINSPACE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), dict(
-  DESCRIPTOR = _RUNCONTEXT,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), {
+  'DESCRIPTOR' : _RUNCONTEXT,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.RunContext)
-  ))
+  })
 _sym_db.RegisterMessage(RunContext)
 
-ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERSWEEP,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+BatchedRunContext = _reflection.GeneratedProtocolMessageType('BatchedRunContext', (_message.Message,), {
+  'DESCRIPTOR' : _BATCHEDRUNCONTEXT,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.BatchedRunContext)
+  })
+_sym_db.RegisterMessage(BatchedRunContext)
+
+ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMETERSWEEP,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ParameterSweep)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterSweep)
 
-Sweep = _reflection.GeneratedProtocolMessageType('Sweep', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEP,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+Sweep = _reflection.GeneratedProtocolMessageType('Sweep', (_message.Message,), {
+  'DESCRIPTOR' : _SWEEP,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Sweep)
-  ))
+  })
 _sym_db.RegisterMessage(Sweep)
 
-SweepFunction = _reflection.GeneratedProtocolMessageType('SweepFunction', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEPFUNCTION,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+SweepFunction = _reflection.GeneratedProtocolMessageType('SweepFunction', (_message.Message,), {
+  'DESCRIPTOR' : _SWEEPFUNCTION,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.SweepFunction)
-  ))
+  })
 _sym_db.RegisterMessage(SweepFunction)
 
-SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), dict(
-  DESCRIPTOR = _SINGLESWEEP,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), {
+  'DESCRIPTOR' : _SINGLESWEEP,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.SingleSweep)
-  ))
+  })
 _sym_db.RegisterMessage(SingleSweep)
 
-Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), dict(
-  DESCRIPTOR = _POINTS,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), {
+  'DESCRIPTOR' : _POINTS,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Points)
-  ))
+  })
 _sym_db.RegisterMessage(Points)
 
-Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), dict(
-  DESCRIPTOR = _LINSPACE,
-  __module__ = 'cirq.google.api.v2.run_context_pb2'
+Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), {
+  'DESCRIPTOR' : _LINSPACE,
+  '__module__' : 'cirq.google.api.v2.run_context_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Linspace)
-  ))
+  })
 _sym_db.RegisterMessage(Linspace)
 
 

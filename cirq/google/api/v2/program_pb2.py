@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.google.api.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.google.api.v2B\014ProgramProtoP\001'),
-  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x42\t\n\x07program\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\xdb\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x82\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"\x82\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xa6\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x42\t\n\x07program\"?\n\x0e\x42\x61tchedProgram\x12-\n\x08programs\x18\x01 \x03(\x0b\x32\x1b.cirq.google.api.v2.Program\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\xdb\x01\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x82\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x42\x05\n\x03\x61rg\"\x82\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3')
 )
 
 
@@ -42,8 +42,8 @@ _CIRCUIT_SCHEDULINGSTRATEGY = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=359,
-  serialized_end=438,
+  serialized_start=424,
+  serialized_end=503,
 )
 _sym_db.RegisterEnumDescriptor(_CIRCUIT_SCHEDULINGSTRATEGY)
 
@@ -96,6 +96,37 @@ _PROGRAM = _descriptor.Descriptor(
 )
 
 
+_BATCHEDPROGRAM = _descriptor.Descriptor(
+  name='BatchedProgram',
+  full_name='cirq.google.api.v2.BatchedProgram',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='programs', full_name='cirq.google.api.v2.BatchedProgram.programs', index=0,
+      number=1, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=225,
+  serialized_end=288,
+)
+
+
 _CIRCUIT = _descriptor.Descriptor(
   name='Circuit',
   full_name='cirq.google.api.v2.Circuit',
@@ -130,8 +161,8 @@ _CIRCUIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=226,
-  serialized_end=438,
+  serialized_start=291,
+  serialized_end=503,
 )
 
 
@@ -161,8 +192,8 @@ _MOMENT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=440,
-  serialized_end=499,
+  serialized_start=505,
+  serialized_end=564,
 )
 
 
@@ -192,8 +223,8 @@ _SCHEDULE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=501,
-  serialized_end=581,
+  serialized_start=566,
+  serialized_end=646,
 )
 
 
@@ -230,8 +261,8 @@ _SCHEDULEDOPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=583,
-  serialized_end=679,
+  serialized_start=648,
+  serialized_end=744,
 )
 
 
@@ -268,8 +299,8 @@ _LANGUAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=681,
-  serialized_end=740,
+  serialized_start=746,
+  serialized_end=805,
 )
 
 
@@ -306,8 +337,8 @@ _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=894,
-  serialized_end=962,
+  serialized_start=959,
+  serialized_end=1027,
 )
 
 _OPERATION = _descriptor.Descriptor(
@@ -350,8 +381,8 @@ _OPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=743,
-  serialized_end=962,
+  serialized_start=808,
+  serialized_end=1027,
 )
 
 
@@ -381,8 +412,8 @@ _GATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=964,
-  serialized_end=982,
+  serialized_start=1029,
+  serialized_end=1047,
 )
 
 
@@ -412,8 +443,8 @@ _QUBIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=984,
-  serialized_end=1003,
+  serialized_start=1049,
+  serialized_end=1068,
 )
 
 
@@ -460,8 +491,8 @@ _ARG = _descriptor.Descriptor(
       name='arg', full_name='cirq.google.api.v2.Arg.arg',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1006,
-  serialized_end=1136,
+  serialized_start=1071,
+  serialized_end=1201,
 )
 
 
@@ -508,8 +539,8 @@ _ARGVALUE = _descriptor.Descriptor(
       name='arg_value', full_name='cirq.google.api.v2.ArgValue.arg_value',
       index=0, containing_type=None, fields=[]),
   ],
-  serialized_start=1139,
-  serialized_end=1269,
+  serialized_start=1204,
+  serialized_end=1334,
 )
 
 
@@ -539,8 +570,8 @@ _REPEATEDBOOLEAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1271,
-  serialized_end=1304,
+  serialized_start=1336,
+  serialized_end=1369,
 )
 
 
@@ -577,8 +608,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1306,
-  serialized_end=1372,
+  serialized_start=1371,
+  serialized_end=1437,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -590,6 +621,7 @@ _PROGRAM.fields_by_name['circuit'].containing_oneof = _PROGRAM.oneofs_by_name['p
 _PROGRAM.oneofs_by_name['program'].fields.append(
   _PROGRAM.fields_by_name['schedule'])
 _PROGRAM.fields_by_name['schedule'].containing_oneof = _PROGRAM.oneofs_by_name['program']
+_BATCHEDPROGRAM.fields_by_name['programs'].message_type = _PROGRAM
 _CIRCUIT.fields_by_name['scheduling_strategy'].enum_type = _CIRCUIT_SCHEDULINGSTRATEGY
 _CIRCUIT.fields_by_name['moments'].message_type = _MOMENT
 _CIRCUIT_SCHEDULINGSTRATEGY.containing_type = _CIRCUIT
@@ -624,6 +656,7 @@ _ARGVALUE.oneofs_by_name['arg_value'].fields.append(
 _ARGVALUE.fields_by_name['string_value'].containing_oneof = _ARGVALUE.oneofs_by_name['arg_value']
 _ARGFUNCTION.fields_by_name['args'].message_type = _ARG
 DESCRIPTOR.message_types_by_name['Program'] = _PROGRAM
+DESCRIPTOR.message_types_by_name['BatchedProgram'] = _BATCHEDPROGRAM
 DESCRIPTOR.message_types_by_name['Circuit'] = _CIRCUIT
 DESCRIPTOR.message_types_by_name['Moment'] = _MOMENT
 DESCRIPTOR.message_types_by_name['Schedule'] = _SCHEDULE
@@ -638,103 +671,110 @@ DESCRIPTOR.message_types_by_name['RepeatedBoolean'] = _REPEATEDBOOLEAN
 DESCRIPTOR.message_types_by_name['ArgFunction'] = _ARGFUNCTION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), dict(
-  DESCRIPTOR = _PROGRAM,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), {
+  'DESCRIPTOR' : _PROGRAM,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Program)
-  ))
+  })
 _sym_db.RegisterMessage(Program)
 
-Circuit = _reflection.GeneratedProtocolMessageType('Circuit', (_message.Message,), dict(
-  DESCRIPTOR = _CIRCUIT,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+BatchedProgram = _reflection.GeneratedProtocolMessageType('BatchedProgram', (_message.Message,), {
+  'DESCRIPTOR' : _BATCHEDPROGRAM,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
+  # @@protoc_insertion_point(class_scope:cirq.google.api.v2.BatchedProgram)
+  })
+_sym_db.RegisterMessage(BatchedProgram)
+
+Circuit = _reflection.GeneratedProtocolMessageType('Circuit', (_message.Message,), {
+  'DESCRIPTOR' : _CIRCUIT,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Circuit)
-  ))
+  })
 _sym_db.RegisterMessage(Circuit)
 
-Moment = _reflection.GeneratedProtocolMessageType('Moment', (_message.Message,), dict(
-  DESCRIPTOR = _MOMENT,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Moment = _reflection.GeneratedProtocolMessageType('Moment', (_message.Message,), {
+  'DESCRIPTOR' : _MOMENT,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Moment)
-  ))
+  })
 _sym_db.RegisterMessage(Moment)
 
-Schedule = _reflection.GeneratedProtocolMessageType('Schedule', (_message.Message,), dict(
-  DESCRIPTOR = _SCHEDULE,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Schedule = _reflection.GeneratedProtocolMessageType('Schedule', (_message.Message,), {
+  'DESCRIPTOR' : _SCHEDULE,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Schedule)
-  ))
+  })
 _sym_db.RegisterMessage(Schedule)
 
-ScheduledOperation = _reflection.GeneratedProtocolMessageType('ScheduledOperation', (_message.Message,), dict(
-  DESCRIPTOR = _SCHEDULEDOPERATION,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+ScheduledOperation = _reflection.GeneratedProtocolMessageType('ScheduledOperation', (_message.Message,), {
+  'DESCRIPTOR' : _SCHEDULEDOPERATION,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ScheduledOperation)
-  ))
+  })
 _sym_db.RegisterMessage(ScheduledOperation)
 
-Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Message,), dict(
-  DESCRIPTOR = _LANGUAGE,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Language = _reflection.GeneratedProtocolMessageType('Language', (_message.Message,), {
+  'DESCRIPTOR' : _LANGUAGE,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Language)
-  ))
+  })
 _sym_db.RegisterMessage(Language)
 
-Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), dict(
+Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), {
 
-  ArgsEntry = _reflection.GeneratedProtocolMessageType('ArgsEntry', (_message.Message,), dict(
-    DESCRIPTOR = _OPERATION_ARGSENTRY,
-    __module__ = 'cirq.google.api.v2.program_pb2'
+  'ArgsEntry' : _reflection.GeneratedProtocolMessageType('ArgsEntry', (_message.Message,), {
+    'DESCRIPTOR' : _OPERATION_ARGSENTRY,
+    '__module__' : 'cirq.google.api.v2.program_pb2'
     # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Operation.ArgsEntry)
-    ))
+    })
   ,
-  DESCRIPTOR = _OPERATION,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+  'DESCRIPTOR' : _OPERATION,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Operation)
-  ))
+  })
 _sym_db.RegisterMessage(Operation)
 _sym_db.RegisterMessage(Operation.ArgsEntry)
 
-Gate = _reflection.GeneratedProtocolMessageType('Gate', (_message.Message,), dict(
-  DESCRIPTOR = _GATE,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Gate = _reflection.GeneratedProtocolMessageType('Gate', (_message.Message,), {
+  'DESCRIPTOR' : _GATE,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Gate)
-  ))
+  })
 _sym_db.RegisterMessage(Gate)
 
-Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), dict(
-  DESCRIPTOR = _QUBIT,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), {
+  'DESCRIPTOR' : _QUBIT,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Qubit)
-  ))
+  })
 _sym_db.RegisterMessage(Qubit)
 
-Arg = _reflection.GeneratedProtocolMessageType('Arg', (_message.Message,), dict(
-  DESCRIPTOR = _ARG,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+Arg = _reflection.GeneratedProtocolMessageType('Arg', (_message.Message,), {
+  'DESCRIPTOR' : _ARG,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Arg)
-  ))
+  })
 _sym_db.RegisterMessage(Arg)
 
-ArgValue = _reflection.GeneratedProtocolMessageType('ArgValue', (_message.Message,), dict(
-  DESCRIPTOR = _ARGVALUE,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+ArgValue = _reflection.GeneratedProtocolMessageType('ArgValue', (_message.Message,), {
+  'DESCRIPTOR' : _ARGVALUE,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgValue)
-  ))
+  })
 _sym_db.RegisterMessage(ArgValue)
 
-RepeatedBoolean = _reflection.GeneratedProtocolMessageType('RepeatedBoolean', (_message.Message,), dict(
-  DESCRIPTOR = _REPEATEDBOOLEAN,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+RepeatedBoolean = _reflection.GeneratedProtocolMessageType('RepeatedBoolean', (_message.Message,), {
+  'DESCRIPTOR' : _REPEATEDBOOLEAN,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.RepeatedBoolean)
-  ))
+  })
 _sym_db.RegisterMessage(RepeatedBoolean)
 
-ArgFunction = _reflection.GeneratedProtocolMessageType('ArgFunction', (_message.Message,), dict(
-  DESCRIPTOR = _ARGFUNCTION,
-  __module__ = 'cirq.google.api.v2.program_pb2'
+ArgFunction = _reflection.GeneratedProtocolMessageType('ArgFunction', (_message.Message,), {
+  'DESCRIPTOR' : _ARGFUNCTION,
+  '__module__' : 'cirq.google.api.v2.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgFunction)
-  ))
+  })
 _sym_db.RegisterMessage(ArgFunction)
 
 

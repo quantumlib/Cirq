@@ -379,53 +379,53 @@ DESCRIPTOR.message_types_by_name['Measurement'] = _MEASUREMENT
 DESCRIPTOR.message_types_by_name['Operation'] = _OPERATION
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), dict(
-  DESCRIPTOR = _QUBIT,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+Qubit = _reflection.GeneratedProtocolMessageType('Qubit', (_message.Message,), {
+  'DESCRIPTOR' : _QUBIT,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Qubit)
-  ))
+  })
 _sym_db.RegisterMessage(Qubit)
 
-ParameterizedFloat = _reflection.GeneratedProtocolMessageType('ParameterizedFloat', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERIZEDFLOAT,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+ParameterizedFloat = _reflection.GeneratedProtocolMessageType('ParameterizedFloat', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMETERIZEDFLOAT,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ParameterizedFloat)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterizedFloat)
 
-ExpW = _reflection.GeneratedProtocolMessageType('ExpW', (_message.Message,), dict(
-  DESCRIPTOR = _EXPW,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+ExpW = _reflection.GeneratedProtocolMessageType('ExpW', (_message.Message,), {
+  'DESCRIPTOR' : _EXPW,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ExpW)
-  ))
+  })
 _sym_db.RegisterMessage(ExpW)
 
-ExpZ = _reflection.GeneratedProtocolMessageType('ExpZ', (_message.Message,), dict(
-  DESCRIPTOR = _EXPZ,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+ExpZ = _reflection.GeneratedProtocolMessageType('ExpZ', (_message.Message,), {
+  'DESCRIPTOR' : _EXPZ,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ExpZ)
-  ))
+  })
 _sym_db.RegisterMessage(ExpZ)
 
-Exp11 = _reflection.GeneratedProtocolMessageType('Exp11', (_message.Message,), dict(
-  DESCRIPTOR = _EXP11,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+Exp11 = _reflection.GeneratedProtocolMessageType('Exp11', (_message.Message,), {
+  'DESCRIPTOR' : _EXP11,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Exp11)
-  ))
+  })
 _sym_db.RegisterMessage(Exp11)
 
-Measurement = _reflection.GeneratedProtocolMessageType('Measurement', (_message.Message,), dict(
-  DESCRIPTOR = _MEASUREMENT,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+Measurement = _reflection.GeneratedProtocolMessageType('Measurement', (_message.Message,), {
+  'DESCRIPTOR' : _MEASUREMENT,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Measurement)
-  ))
+  })
 _sym_db.RegisterMessage(Measurement)
 
-Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), dict(
-  DESCRIPTOR = _OPERATION,
-  __module__ = 'cirq.google.api.v1.operations_pb2'
+Operation = _reflection.GeneratedProtocolMessageType('Operation', (_message.Message,), {
+  'DESCRIPTOR' : _OPERATION,
+  '__module__' : 'cirq.google.api.v1.operations_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Operation)
-  ))
+  })
 _sym_db.RegisterMessage(Operation)
 
 

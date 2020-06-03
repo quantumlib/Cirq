@@ -182,25 +182,25 @@ DESCRIPTOR.message_types_by_name['Metric'] = _METRIC
 DESCRIPTOR.message_types_by_name['Value'] = _VALUE
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-MetricsSnapshot = _reflection.GeneratedProtocolMessageType('MetricsSnapshot', (_message.Message,), dict(
-  DESCRIPTOR = _METRICSSNAPSHOT,
-  __module__ = 'cirq.google.api.v2.metrics_pb2'
+MetricsSnapshot = _reflection.GeneratedProtocolMessageType('MetricsSnapshot', (_message.Message,), {
+  'DESCRIPTOR' : _METRICSSNAPSHOT,
+  '__module__' : 'cirq.google.api.v2.metrics_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.MetricsSnapshot)
-  ))
+  })
 _sym_db.RegisterMessage(MetricsSnapshot)
 
-Metric = _reflection.GeneratedProtocolMessageType('Metric', (_message.Message,), dict(
-  DESCRIPTOR = _METRIC,
-  __module__ = 'cirq.google.api.v2.metrics_pb2'
+Metric = _reflection.GeneratedProtocolMessageType('Metric', (_message.Message,), {
+  'DESCRIPTOR' : _METRIC,
+  '__module__' : 'cirq.google.api.v2.metrics_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Metric)
-  ))
+  })
 _sym_db.RegisterMessage(Metric)
 
-Value = _reflection.GeneratedProtocolMessageType('Value', (_message.Message,), dict(
-  DESCRIPTOR = _VALUE,
-  __module__ = 'cirq.google.api.v2.metrics_pb2'
+Value = _reflection.GeneratedProtocolMessageType('Value', (_message.Message,), {
+  'DESCRIPTOR' : _VALUE,
+  '__module__' : 'cirq.google.api.v2.metrics_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Value)
-  ))
+  })
 _sym_db.RegisterMessage(Value)
 
 
