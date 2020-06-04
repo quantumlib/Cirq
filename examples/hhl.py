@@ -96,7 +96,7 @@ class PhaseEstimation(cirq.Gate):
         qubits = list(qubits)
         yield cirq.H.on_each(*qubits[:-1])
         yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-        yield cirq.QFT(*qubits[:-1], without_reverse=True)**-1
+        yield cirq.qft(*qubits[:-1], without_reverse=True)**-1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):

@@ -147,6 +147,7 @@ class _ResolverCache:
                 'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'VirtualTag': cirq.VirtualTag,
                 'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,

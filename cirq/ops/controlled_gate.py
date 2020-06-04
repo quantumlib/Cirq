@@ -149,6 +149,16 @@ class ControlledGate(raw_types.Gate):
 
         return protocols.unitary(c_op, default=NotImplemented)
 
+    def _has_mixture_(self) -> bool:
+        return protocols.has_mixture(self.sub_gate)
+
+    def _mixture_(self) -> Union[np.ndarray, NotImplementedType]:
+        qubits = cirq.LineQid.for_gate(self)
+        op = self.sub_gate.on(*qubits[self.num_controls():])
+        c_op = cop.ControlledOperation(qubits[:self.num_controls()], op,
+                                       self.control_values)
+        return protocols.mixture(c_op, default=NotImplemented)
+
     def __pow__(self, exponent: Any) -> 'ControlledGate':
         new_sub_gate = protocols.pow(self.sub_gate,
                                      exponent,

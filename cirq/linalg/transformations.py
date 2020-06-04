@@ -138,6 +138,9 @@ def targeted_left_multiply(left_matrix: np.ndarray,
     Returns:
         The output tensor.
     """
+    if out is right_target or out is left_matrix:
+        raise ValueError('out is right_target or out is left_matrix')
+
     k = len(target_axes)
     d = len(right_target.shape)
     work_indices = tuple(range(k))
