@@ -265,46 +265,46 @@ DESCRIPTOR.message_types_by_name['SweepResult'] = _SWEEPRESULT
 DESCRIPTOR.message_types_by_name['Result'] = _RESULT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), dict(
-  DESCRIPTOR = _PROGRAM,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+Program = _reflection.GeneratedProtocolMessageType('Program', (_message.Message,), {
+  'DESCRIPTOR' : _PROGRAM,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Program)
-  ))
+  })
 _sym_db.RegisterMessage(Program)
 
-RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), dict(
-  DESCRIPTOR = _RUNCONTEXT,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+RunContext = _reflection.GeneratedProtocolMessageType('RunContext', (_message.Message,), {
+  'DESCRIPTOR' : _RUNCONTEXT,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.RunContext)
-  ))
+  })
 _sym_db.RegisterMessage(RunContext)
 
-ParameterizedResult = _reflection.GeneratedProtocolMessageType('ParameterizedResult', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERIZEDRESULT,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+ParameterizedResult = _reflection.GeneratedProtocolMessageType('ParameterizedResult', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMETERIZEDRESULT,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ParameterizedResult)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterizedResult)
 
-MeasurementKey = _reflection.GeneratedProtocolMessageType('MeasurementKey', (_message.Message,), dict(
-  DESCRIPTOR = _MEASUREMENTKEY,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+MeasurementKey = _reflection.GeneratedProtocolMessageType('MeasurementKey', (_message.Message,), {
+  'DESCRIPTOR' : _MEASUREMENTKEY,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.MeasurementKey)
-  ))
+  })
 _sym_db.RegisterMessage(MeasurementKey)
 
-SweepResult = _reflection.GeneratedProtocolMessageType('SweepResult', (_message.Message,), dict(
-  DESCRIPTOR = _SWEEPRESULT,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+SweepResult = _reflection.GeneratedProtocolMessageType('SweepResult', (_message.Message,), {
+  'DESCRIPTOR' : _SWEEPRESULT,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.SweepResult)
-  ))
+  })
 _sym_db.RegisterMessage(SweepResult)
 
-Result = _reflection.GeneratedProtocolMessageType('Result', (_message.Message,), dict(
-  DESCRIPTOR = _RESULT,
-  __module__ = 'cirq.google.api.v1.program_pb2'
+Result = _reflection.GeneratedProtocolMessageType('Result', (_message.Message,), {
+  'DESCRIPTOR' : _RESULT,
+  '__module__' : 'cirq.google.api.v1.program_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Result)
-  ))
+  })
 _sym_db.RegisterMessage(Result)
 
 
