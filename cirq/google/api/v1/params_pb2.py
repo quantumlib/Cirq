@@ -339,60 +339,60 @@ DESCRIPTOR.message_types_by_name['Linspace'] = _LINSPACE
 DESCRIPTOR.message_types_by_name['ParameterDict'] = _PARAMETERDICT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), dict(
-  DESCRIPTOR = _PARAMETERSWEEP,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+ParameterSweep = _reflection.GeneratedProtocolMessageType('ParameterSweep', (_message.Message,), {
+  'DESCRIPTOR' : _PARAMETERSWEEP,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ParameterSweep)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterSweep)
 
-ProductSweep = _reflection.GeneratedProtocolMessageType('ProductSweep', (_message.Message,), dict(
-  DESCRIPTOR = _PRODUCTSWEEP,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+ProductSweep = _reflection.GeneratedProtocolMessageType('ProductSweep', (_message.Message,), {
+  'DESCRIPTOR' : _PRODUCTSWEEP,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ProductSweep)
-  ))
+  })
 _sym_db.RegisterMessage(ProductSweep)
 
-ZipSweep = _reflection.GeneratedProtocolMessageType('ZipSweep', (_message.Message,), dict(
-  DESCRIPTOR = _ZIPSWEEP,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+ZipSweep = _reflection.GeneratedProtocolMessageType('ZipSweep', (_message.Message,), {
+  'DESCRIPTOR' : _ZIPSWEEP,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ZipSweep)
-  ))
+  })
 _sym_db.RegisterMessage(ZipSweep)
 
-SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), dict(
-  DESCRIPTOR = _SINGLESWEEP,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+SingleSweep = _reflection.GeneratedProtocolMessageType('SingleSweep', (_message.Message,), {
+  'DESCRIPTOR' : _SINGLESWEEP,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.SingleSweep)
-  ))
+  })
 _sym_db.RegisterMessage(SingleSweep)
 
-Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), dict(
-  DESCRIPTOR = _POINTS,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+Points = _reflection.GeneratedProtocolMessageType('Points', (_message.Message,), {
+  'DESCRIPTOR' : _POINTS,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Points)
-  ))
+  })
 _sym_db.RegisterMessage(Points)
 
-Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), dict(
-  DESCRIPTOR = _LINSPACE,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+Linspace = _reflection.GeneratedProtocolMessageType('Linspace', (_message.Message,), {
+  'DESCRIPTOR' : _LINSPACE,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.Linspace)
-  ))
+  })
 _sym_db.RegisterMessage(Linspace)
 
-ParameterDict = _reflection.GeneratedProtocolMessageType('ParameterDict', (_message.Message,), dict(
+ParameterDict = _reflection.GeneratedProtocolMessageType('ParameterDict', (_message.Message,), {
 
-  AssignmentsEntry = _reflection.GeneratedProtocolMessageType('AssignmentsEntry', (_message.Message,), dict(
-    DESCRIPTOR = _PARAMETERDICT_ASSIGNMENTSENTRY,
-    __module__ = 'cirq.google.api.v1.params_pb2'
+  'AssignmentsEntry' : _reflection.GeneratedProtocolMessageType('AssignmentsEntry', (_message.Message,), {
+    'DESCRIPTOR' : _PARAMETERDICT_ASSIGNMENTSENTRY,
+    '__module__' : 'cirq.google.api.v1.params_pb2'
     # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ParameterDict.AssignmentsEntry)
-    ))
+    })
   ,
-  DESCRIPTOR = _PARAMETERDICT,
-  __module__ = 'cirq.google.api.v1.params_pb2'
+  'DESCRIPTOR' : _PARAMETERDICT,
+  '__module__' : 'cirq.google.api.v1.params_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v1.ParameterDict)
-  ))
+  })
 _sym_db.RegisterMessage(ParameterDict)
 _sym_db.RegisterMessage(ParameterDict.AssignmentsEntry)
 
