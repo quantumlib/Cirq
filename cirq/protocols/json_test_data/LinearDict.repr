@@ -1,0 +1,1 @@
+[cirq.LinearDict({}), cirq.LinearDict({'a': 1}), cirq.LinearDict({'a': 1, 'b': 2}), cirq.LinearDict({cirq.X: 1.0, cirq.Y: 2})]
