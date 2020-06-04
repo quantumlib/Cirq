@@ -31,7 +31,7 @@ message BatchRunContext {
   // Each RunContext should map directly to a Program in the corresponding
   // BatchProgram.
   //
-  // This message should have one RunContext for each Program in the
+  // This message must have one RunContext for each Program in the
   // BatchProgram, and the order of the RunContext messages should
   // match the order of the Programs in the BatchProgram.
   repeated RunContext run_contexts = 1;
@@ -50,6 +50,9 @@ message BatchResult {
   // RunContext pair in the request.  There will be one Result in this message
   // for each corresponding pair in the request and the order of the Results
   // will match the order of the Programs from the request.
+  //
+  // In case of partial results, an empty (default) Result object will be
+  // populated for programs that were not able to be run correctly.
   repeated Result results = 1;
 }
 
