@@ -12,7 +12,7 @@ option java_multiple_files = true;
 
 // A Batch of multiple circuits that should be run together
 // as one QuantumProgram within Quantum Engine.
-// 
+//
 // Note: Batching is done on a best-effort basis.
 // Circuits will be be bundled together, but the size
 // of the total batch and different hardware constraints may
