@@ -18,7 +18,6 @@ def fixup_text(text: str):
         return text.replace('[<virtual>]', '')
     if '[cirq.VirtualTag()]' in text:
         # https://github.com/quantumlib/Cirq/issues/2905
-        # TODO: escape angle brackets when you actually want to display tags
         return text.replace('[cirq.VirtualTag()]', '')
     return text
 
