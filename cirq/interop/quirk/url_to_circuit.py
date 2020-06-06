@@ -184,7 +184,7 @@ def quirk_json_to_circuit(
         extra_makers = [
             CellMaker(identifier=identifier,
                       size=protocols.num_qubits(gate),
-                      maker=lambda args: gate(*args.qubits))
+                      maker=(lambda gate: lambda args: gate(*args.qubits))(gate))
             for identifier, gate in extra_cell_makers.items()
         ]
     else:
