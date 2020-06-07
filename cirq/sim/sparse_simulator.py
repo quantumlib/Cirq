@@ -137,7 +137,7 @@ class Simulator(simulator.SimulatesSamples,
 
         def measure_or_mixture(op):
             return not protocols.has_unitary(op) and (
-                protocols.is_measurement(op) or protocols.has_mixture(op))
+                protocols.is_measurement(op) or protocols.has_channel(op))
 
         if resolved_circuit.are_all_matches_terminal(measure_or_mixture):
             return self._run_sweep_terminal_sample(resolved_circuit,
