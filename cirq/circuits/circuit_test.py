@@ -3786,6 +3786,7 @@ def test_zip():
     assert cirq.Circuit().zip(cirq.Circuit(cirq.Moment())) == cirq.Circuit(
         cirq.Moment())
 
+    # Small cases.
     assert circuit1.zip(circuit2) == circuit2.zip(circuit1) == cirq.Circuit(
         cirq.Moment(
             cirq.H(a),
@@ -3797,7 +3798,6 @@ def test_zip():
         ),
         cirq.Moment(cirq.Z(c),),
     )
-
     assert circuit1.zip(circuit2, circuit3) == cirq.Circuit(
         cirq.Moment(
             cirq.H(a),
