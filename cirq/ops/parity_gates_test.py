@@ -63,22 +63,9 @@ def test_xx_str():
     assert str(cirq.XX**0.5) == 'XX**0.5'
     assert str(cirq.XXPowGate(global_shift=0.1)) == 'XX'
 
-    ms = cirq.XXPowGate(global_shift=-0.5)
-    assert str(ms) == 'MS(π/2)'
-    assert str(ms**0.5) == 'MS(0.5π/2)'
-    assert str(ms**2) == 'MS(2.0π/2)'
-    assert str(ms**-1) == 'MS(-1.0π/2)'
-
-
 def test_xx_repr():
     assert repr(cirq.XXPowGate()) == 'cirq.XX'
     assert repr(cirq.XXPowGate(exponent=0.5)) == '(cirq.XX**0.5)'
-
-    ms = cirq.XXPowGate(global_shift=-0.5)
-    assert (repr(ms) == 'cirq.ms(np.pi/2)')
-    assert (repr(ms**2) == 'cirq.ms(2.0*np.pi/2)')
-    assert (repr(ms**-0.5) == 'cirq.ms(-0.5*np.pi/2)')
-
 
 def test_xx_matrix():
     np.testing.assert_allclose(cirq.unitary(cirq.XX),
@@ -109,13 +96,12 @@ def test_xx_diagrams():
         cirq.XX(a, b),
         cirq.XX(a, b)**3,
         cirq.XX(a, b)**0.5,
-        cirq.XXPowGate(global_shift=-0.5).on(a, b),
     )
     cirq.testing.assert_has_diagram(
         circuit, """
-a: ───XX───XX───XX───────MS(0.5π)───
-      │    │    │        │
-b: ───XX───XX───XX^0.5───MS(0.5π)───
+a: ───XX───XX───XX───────
+      │    │    │
+b: ───XX───XX───XX^0.5───
 """)
 
 
