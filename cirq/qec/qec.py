@@ -5,11 +5,21 @@ import cirq
 class Code:
 
     def __init__(self):
-        self.q0, self.q1, self.q2, self.q3, self.q4, self.q5, self.q6, self.q7, self.q8 = cirq.LineQubit.range(9)
-
+        self.qubit = list(cirq.LineQubit.range(9))
 
     def encode(self):
 
+        yield cirq.CNOT(self.qubits[0], self.qubits[3])
+        yield cirq.CNOT(self.qubits[0], self.qubits[6])
+        yield cirq.H(self.qubit[0])
+        yield cirq.H(self.qubit[3])
+        yield cirq.H(self.qubit[6])
+        yield cirq.CNOT(self.qubit[0], self.qubit[1])
+        yield cirq.CNOT(self.qubit[3], self.qubit[4])
+        yield cirq.CNOT(self.qubit[6], self.qubit[7])
+        yield cirq.CNOT(self.qubit[0], self.qubit[2])
+        yield cirq.CNOT(self.qubit[3], self.qubit[5])
+        yield cirq.CNOT(self.qubit[6], self.qubit[8])
         self.current_circuit = cirq.Circuit(cirq.CNOT(self.q0, self.q3),
                                             cirq.CNOT(self.q0, self.q6),
                                             cirq.H(self.q0),
@@ -24,13 +34,22 @@ class Code:
 
         return self.current_circuit
 
-
     def decode(self):
-        #cirq.CNOT(self.q0, self.q1),
-        #cirq.CNOT(self.q3, self.q4),
-        # cirq.CNOT(self.q6, self.q7)
-        # Can be applied at the same time. Use moment
-        #
+        yield cirq.CNOT(self.qubit[0], self.qubit[1])
+        yield cirq.CNOT(self.qubit[3], self.qubit[4])
+        yield cirq.CNOT(self.qubit[6], self.qubit[7])
+        yield cirq.CNOT(self.qubit[0], self.qubit[2])
+        yield cirq.CNOT(self.qubit[3], self.qubit[5])
+        yield cirq.CNOT(self.qubit[6], self.qubit[8])
+        yield cirq.CCNOT(self.qubit[1], self.qubit[2], self.qubit[0])
+        yield cirq.CCNOT(self.qubit[4], self.qubit[5], self.qubit[3])
+        yield cirq.CCNOT(self.qubit[7], self.qubit[8], self.qubit[6])
+        yield cirq.H(self.qubit[0])
+        yield cirq.H(self.qubit[3])
+        yield cirq.H(self.qubit[6])
+        yield cirq.CNOT(self.qubit[0], self.qubit[3])
+        yield cirq.CNOT(self.qubit[0], self.qubit[6])
+        yield cirq.CCNOT(self.qubit[3], self.qubit[6], self.qubit[0])
         self.decoded_circuit = cirq.Circuit(cirq.CNOT(self.q0, self.q1),
                                             cirq.CNOT(self.q3, self.q4),
                                             cirq.CNOT(self.q6, self.q7),
@@ -56,6 +75,14 @@ class Code:
         return self.current_circuit
 
     def measure(self):
+        yield cirq.measure(self.qubit[0], self.qubit[1])
+        yield cirq.measure(self.qubit[2])
+        yield cirq.measure(self.qubit[3])
+        yield cirq.measure(self.qubit[4])
+        yield cirq.measure(self.qubit[5])
+        yield cirq.measure(self.qubit[6])
+        yield cirq.measure(self.qubit[7])
+        yield cirq.measure(self.qubit[8])
         measure_circuit = cirq.Circuit(cirq.measure(self.q0), cirq.measure(self.q1),
                                     cirq.measure(self.q2),
                                     cirq.measure(self.q3),

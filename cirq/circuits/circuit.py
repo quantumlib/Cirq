@@ -1661,7 +1661,7 @@ class Circuit:
                           max(qubit_map.values(), default=0) + 1,
                           'global phase:')
 
-        moment_groups = []  # type: List[Tuple[int, int]]
+        _groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
             _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
                                     diagram, precision, moment_groups,
