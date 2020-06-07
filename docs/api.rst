@@ -63,16 +63,16 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CSWAP
     cirq.FREDKIN
     cirq.ISWAP
-    cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
     cirq.givens
     cirq.identity_each
+    cirq.qft
     cirq.riswap
-    cirq.CCNotPowGate
+    .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
-    cirq.CNotPowGate
+    .. autoclass:: cirq.CNotPowGate
     cirq.CSwapGate
     cirq.CXPowGate
     cirq.CZPowGate
@@ -138,6 +138,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.PhaseDampingChannel
     cirq.PhaseFlipChannel
     cirq.ResetChannel
+    cirq.VirtualTag
 
 
 Pauli and Clifford Groups
@@ -238,6 +239,7 @@ results.
     cirq.sample_sweep
     cirq.to_resolvers
     cirq.to_sweep
+    cirq.to_sweeps
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
@@ -254,7 +256,7 @@ results.
     cirq.ExpressionMap
     cirq.Linspace
     cirq.ListSweep
-    cirq.ParamDictType
+    .. autoclass:: cirq.ParamDictType
     cirq.ParamResolver
     cirq.ParamResolverOrSimilarType
     cirq.PauliSumCollector
@@ -348,6 +350,7 @@ the magic methods that can be implemented.
     cirq.resolve_parameters
     cirq.to_json
     cirq.trace_distance_bound
+    cirq.trace_distance_from_angle_list
     cirq.unitary
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
@@ -566,6 +569,7 @@ operation.
     cirq.InterchangeableQubitsGate
     cirq.LinearDict
     cirq.PeriodicValue
+    cirq.testing.DEFAULT_GATE_DOMAIN
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
@@ -619,6 +623,7 @@ Algebra and Representation
     cirq.chosen_angle_to_canonical_half_turns
     cirq.chosen_angle_to_half_turns
     cirq.commutes
+    cirq.deconstruct_single_qubit_matrix_into_angles
     cirq.definitely_commutes
     cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
     cirq.diagonalize_real_symmetric_matrix
@@ -642,6 +647,7 @@ Algebra and Representation
     cirq.kron_with_controls
     cirq.map_eigenvalues
     cirq.match_global_phase
+    cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
@@ -673,6 +679,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
@@ -702,6 +709,7 @@ These objects and methods will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
+    cirq.QFT
     cirq.final_wavefunction
     cirq.subwavefunction
     cirq.validate_normalized_state
