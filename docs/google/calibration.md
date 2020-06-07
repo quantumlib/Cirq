@@ -20,7 +20,7 @@ import cirq.google as cg
 
 # Create an Engine object to use.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID, proto_version=cg.ProtoVersion.V2)
+engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 processor = engine.get_processor(processor_id=PROCESSOR_ID)
 
 # Get the latest calibration metrics.

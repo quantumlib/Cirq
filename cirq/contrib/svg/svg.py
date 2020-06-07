@@ -9,6 +9,8 @@ QBLUE = '#1967d2'
 
 
 def _get_text_width(t: str) -> float:
+    if '\n' in t:
+        return _get_text_width('?')
     tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop='Arial')
     bb = tp.get_extents()
     return bb.width + 10
@@ -205,6 +207,10 @@ def tdd_to_svg(
             continue
         if v.text == '×':
             t += _text(x, y + 3, '×', fontsize=40)
+            continue
+        if '\n' in v.text:
+            t += _rect(boxx, boxy, boxwidth, boxheight)
+            t += _text(x, y, '?', fontsize=18)
             continue
 
         t += _rect(boxx, boxy, boxwidth, boxheight)

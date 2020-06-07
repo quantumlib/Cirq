@@ -67,7 +67,7 @@ def assert_url_to_circuit_returns(
         ])
 
         np.testing.assert_allclose(
-            cirq.final_wavefunction(
+            cirq.final_state_vector(
                 parsed,
                 # Match Quirk's endian-ness for comparison purposes.
                 qubit_order=sorted(parsed.all_qubits(), reverse=True),
@@ -97,7 +97,7 @@ def _sparse_computational_basis_map(inputs: Sequence[int],
     input_state = np.zeros(1 << len(circuit.all_qubits()), dtype=np.complex128)
     for k, amp in zip(inputs, amps):
         input_state[k] = amp
-    output_state = cirq.final_wavefunction(circuit, initial_state=input_state)
+    output_state = cirq.final_state_vector(circuit, initial_state=input_state)
 
     # Find where each amplitude went.
     actual_map = {}

@@ -13,18 +13,12 @@
 # limitations under the License.
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_deprecated():
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.eye_tensor', 'deprecated'):
         _ = cirq.linalg.eye_tensor((1,), dtype=float)
-    assert len(log) == 1
-    assert "cirq.eye_tensor" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.one_hot', 'deprecated'):
         _ = cirq.linalg.one_hot(shape=(1,), dtype=float)
-    assert len(log) == 1
-    assert "cirq.one_hot" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()

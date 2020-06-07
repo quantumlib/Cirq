@@ -274,13 +274,13 @@ def cross_entropy_benchmarking(
                                                   circuits_k)
 
         # Simulate each circuit with the Cirq simulator to obtain the
-        # wavefunction at the end of each circuit, from which the
+        # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
         probs_exp_k = []  # type: List[np.ndarray]
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
-            state_probs = np.abs(np.asarray(res.final_state)  # type: ignore
-                                )**2
+            state_probs = np.abs(np.asarray(
+                res.final_state_vector))**2  # type: ignore
             probs_exp_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):

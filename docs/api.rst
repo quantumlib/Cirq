@@ -63,16 +63,16 @@ Unitary effects that can be applied to one or more qubits.
     cirq.CSWAP
     cirq.FREDKIN
     cirq.ISWAP
-    cirq.QFT
     cirq.SWAP
     cirq.TOFFOLI
     cirq.givens
     cirq.identity_each
+    cirq.qft
     cirq.riswap
-    cirq.CCNotPowGate
+    .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
-    cirq.CNotPowGate
+    .. autoclass:: cirq.CNotPowGate
     cirq.CSwapGate
     cirq.CXPowGate
     cirq.CZPowGate
@@ -92,11 +92,13 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
+    cirq.RandomGateChannel
     cirq.SingleQubitGate
     cirq.SwapPowGate
     cirq.TaggedOperation
     cirq.ThreeQubitDiagonalGate
     cirq.ThreeQubitGate
+    cirq.TwoQubitDiagonalGate
     cirq.TwoQubitGate
     cirq.WaitGate
     cirq.XPowGate
@@ -136,6 +138,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.PhaseDampingChannel
     cirq.PhaseFlipChannel
     cirq.ResetChannel
+    cirq.VirtualTag
 
 
 Pauli and Clifford Groups
@@ -221,7 +224,7 @@ results.
     cirq.big_endian_int_to_bits
     cirq.big_endian_int_to_digits
     cirq.final_density_matrix
-    cirq.final_wavefunction
+    cirq.final_state_vector
     cirq.flatten
     cirq.flatten_to_ops
     cirq.flatten_to_ops_or_moments
@@ -236,9 +239,11 @@ results.
     cirq.sample_sweep
     cirq.to_resolvers
     cirq.to_sweep
+    cirq.to_sweeps
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
     cirq.CliffordSimulatorStepResult
@@ -251,7 +256,7 @@ results.
     cirq.ExpressionMap
     cirq.Linspace
     cirq.ListSweep
-    cirq.ParamDictType
+    .. autoclass:: cirq.ParamDictType
     cirq.ParamResolver
     cirq.ParamResolverOrSimilarType
     cirq.PauliSumCollector
@@ -261,20 +266,20 @@ results.
     cirq.SimulatesAmplitudes
     cirq.SimulatesFinalState
     cirq.SimulatesIntermediateState
-    cirq.SimulatesIntermediateWaveFunction
+    cirq.SimulatesIntermediateStateVector
     cirq.SimulatesSamples
     cirq.SimulationTrialResult
     cirq.Simulator
     cirq.SparseSimulatorStep
     cirq.StateVectorMixin
+    cirq.StateVectorSimulatorState
+    cirq.StateVectorStepResult
+    cirq.StateVectorTrialResult
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
-    cirq.WaveFunctionSimulatorState
-    cirq.WaveFunctionStepResult
-    cirq.WaveFunctionTrialResult
     cirq.Zip
 
 
@@ -307,6 +312,7 @@ the magic methods that can be implemented.
     :toctree: generated/
 
     cirq.DEFAULT_RESOLVERS
+    cirq.act_on
     cirq.apply_channel
     cirq.apply_mixture
     cirq.apply_unitaries
@@ -314,7 +320,9 @@ the magic methods that can be implemented.
     cirq.approx_eq
     cirq.channel
     cirq.circuit_diagram_info
+    cirq.compute_cphase_exponents_for_fsim_decomposition
     cirq.decompose
+    cirq.decompose_cphase_into_two_fsim
     cirq.decompose_once
     cirq.decompose_once_with_qubits
     cirq.equal_up_to_global_phase
@@ -327,6 +335,7 @@ the magic methods that can be implemented.
     cirq.is_measurement
     cirq.is_parameterized
     cirq.measurement_key
+    cirq.measurement_keys
     cirq.mixture
     cirq.mixture_channel
     cirq.mul
@@ -336,10 +345,12 @@ the magic methods that can be implemented.
     cirq.pow
     cirq.qasm
     cirq.qid_shape
+    cirq.quil
     cirq.read_json
     cirq.resolve_parameters
     cirq.to_json
     cirq.trace_distance_bound
+    cirq.trace_distance_from_angle_list
     cirq.unitary
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
@@ -348,6 +359,9 @@ the magic methods that can be implemented.
     cirq.CircuitDiagramInfoArgs
     cirq.QasmArgs
     cirq.QasmOutput
+    cirq.QuilFormatter
+    cirq.QuilOutput
+    cirq.SupportsActOn
     cirq.SupportsApplyChannel
     cirq.SupportsApplyMixture
     cirq.SupportsApproximateEquality
@@ -434,6 +448,7 @@ run experiments.
     cirq.experiments.single_qubit_state_tomography
     cirq.experiments.state_tomography
     cirq.experiments.t1_decay
+    cirq.experiments.t2_decay
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
@@ -443,6 +458,7 @@ run experiments.
     cirq.experiments.SingleQubitReadoutCalibrationResult
     cirq.experiments.StateTomographyExperiment
     cirq.experiments.T1DecayResult
+    cirq.experiments.T2DecayResult
     cirq.experiments.TomographyResult
 
 
@@ -553,6 +569,7 @@ operation.
     cirq.InterchangeableQubitsGate
     cirq.LinearDict
     cirq.PeriodicValue
+    cirq.testing.DEFAULT_GATE_DOMAIN
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
@@ -566,6 +583,7 @@ operation.
     cirq.testing.assert_has_diagram
     cirq.testing.assert_implements_consistent_protocols
     cirq.testing.assert_json_roundtrip_works
+    cirq.testing.assert_logs
     cirq.testing.assert_pauli_expansion_is_consistent_with_unitary
     cirq.testing.assert_phase_by_is_consistent_with_unitary
     cirq.testing.assert_qasm_is_consistent_with_unitary
@@ -605,6 +623,7 @@ Algebra and Representation
     cirq.chosen_angle_to_canonical_half_turns
     cirq.chosen_angle_to_half_turns
     cirq.commutes
+    cirq.deconstruct_single_qubit_matrix_into_angles
     cirq.definitely_commutes
     cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
     cirq.diagonalize_real_symmetric_matrix
@@ -628,16 +647,17 @@ Algebra and Representation
     cirq.kron_with_controls
     cirq.map_eigenvalues
     cirq.match_global_phase
+    cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
     cirq.partial_trace
+    cirq.partial_trace_of_state_vector_as_mixture
     cirq.reflection_matrix_pow
     cirq.slice_for_qubits_equal_to
     cirq.so4_to_magic_su2s
-    cirq.subwavefunction
+    cirq.sub_state_vector
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
     cirq.unitary_eig
-    cirq.wavefunction_partial_trace_as_mixture
     cirq.AxisAngleDecomposition
     cirq.Duration
     cirq.KakDecomposition
@@ -659,7 +679,9 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
-    cirq.validate_normalized_state
+    cirq.validate_indices
+    cirq.validate_normalized_state_vector
+    cirq.validate_qid_shape
     cirq.von_neumann_entropy
 
 
@@ -677,3 +699,22 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
     cirq.TParamVal
+
+
+Deprecated
+''''''''''
+
+These objects and methods will be removed in a future version of the library.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq.QFT
+    cirq.final_wavefunction
+    cirq.subwavefunction
+    cirq.validate_normalized_state
+    cirq.wavefunction_partial_trace_as_mixture
+    cirq.SimulatesIntermediateWaveFunction
+    cirq.WaveFunctionSimulatorState
+    cirq.WaveFunctionStepResult
+    cirq.WaveFunctionTrialResult
