@@ -42,39 +42,26 @@ def test_plot_state_histogram():
 
 def test_plot_state_histogram_multi_1():
     pl.switch_backend('PDF')
-    qubits = cirq.LineQubit.range(3)
-    c1 = cirq.Circuit(
-        cirq.X.on_each(*qubits),
+    qubits = cirq.LineQubit.range(4)
+    c = cirq.Circuit(
+        cirq.X.on_each(*qubits[1:]),
         cirq.measure(*qubits),  # One multi-qubit measurement
     )
-    r1 = cirq.sample(c1, repetitions=5)
-    values_plotted = visualize.plot_state_histogram(r1)
-    expected_values = [0, 0, 0, 0, 0, 0, 0, 5]
+    r = cirq.sample(c, repetitions=5)
+    values_plotted = visualize.plot_state_histogram(r)
+    expected_values = [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0]
     np.testing.assert_equal(values_plotted, expected_values)
 
 
 def test_plot_state_histogram_multi_2():
     pl.switch_backend('PDF')
-    qubits = cirq.LineQubit.range(3)
-    c2 = cirq.Circuit(
-        cirq.X.on_each(*qubits),
-        cirq.measure_each(*qubits),  # Many single-qubit measurements
-    )
-    r2 = cirq.sample(c2, repetitions=5)
-    values_plotted = visualize.plot_state_histogram(r2)
-    expected_values = [0, 0, 0, 0, 0, 0, 0, 5]
-    np.testing.assert_equal(values_plotted, expected_values)
-
-
-def test_plot_state_histogram_multi_3():
-    pl.switch_backend('PDF')
-    qubits = cirq.LineQubit.range(3)
-    c3 = cirq.Circuit(
-        cirq.X.on_each(*qubits),
+    qubits = cirq.LineQubit.range(4)
+    c = cirq.Circuit(
+        cirq.X.on_each(*qubits[1:]),
         cirq.measure(*qubits[:2]),  # One multi-qubit measurement
         cirq.measure_each(*qubits[2:]),  # One single-qubit measurement
     )
-    r3 = cirq.sample(c3, repetitions=5)
-    values_plotted = visualize.plot_state_histogram(r3)
-    expected_values = [0, 0, 0, 0, 0, 0, 0, 5]
+    r = cirq.sample(c, repetitions=5)
+    values_plotted = visualize.plot_state_histogram(r)
+    expected_values = [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0]
     np.testing.assert_equal(values_plotted, expected_values)
