@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
 import inspect
 
 import io
@@ -105,12 +104,17 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 # TODO: Include cirq.rx in the Circuit test case file.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2014
 # Note that even the following doesn't work because theta gets
-#       multiplied by 1/pi.
-#       https://github.com/quantumlib/Cirq/issues/2014
-# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
+# multiplied by 1/pi:
+#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
+    # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnStateVectorArgs',
+    'ApplyChannelArgs',
+    'ApplyMixtureArgs',
+    'ApplyUnitaryArgs',
 
     # Circuit optimizers are function-like. Only attributes
     # are ignore_failures, tolerance, and other feature flags
@@ -135,18 +139,22 @@ SHOULDNT_BE_SERIALIZED = [
     'PAULI_BASIS',
 
     # abstract, but not inspect.isabstract():
+    'Device',
     'InterchangeableQubitsGate',
     'Pauli',
     'SingleQubitGate',
     'ThreeQubitGate',
     'TwoQubitGate',
+    'ABCMetaImplementAnyOneOf',
 
     # protocols:
+    'SupportsActOn',
     'SupportsApplyChannel',
     'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
+    'SupportsCommutes',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
@@ -219,11 +227,10 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
         if name.startswith('_'):
             continue
 
-        if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
-             issubclass(type(obj), abc.ABCMeta))):
+        if inspect.isclass(obj) and inspect.isabstract(obj):
             continue
 
+        # assert name != 'XPowGate'
         yield name, obj
 
 
@@ -257,9 +264,6 @@ def test_mutually_exclusive_blacklist():
 
 
 NOT_YET_SERIALIZABLE = [
-    'ApplyChannelArgs',
-    'ApplyMixtureArgs',
-    'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
@@ -301,6 +305,8 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QuilFormatter',
+    'QuilOutput',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
@@ -315,7 +321,10 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
+    'StateVectorSimulatorState',
+    'StateVectorTrialResult',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'XmonDevice',

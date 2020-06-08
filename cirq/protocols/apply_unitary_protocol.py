@@ -190,9 +190,6 @@ class ApplyUnitaryArgs:
                 bit of the integer is the desired bit for the first axis, and
                 so forth in decreasing order. Can't be specified at the same
                 time as `little_endian_bits_int`.
-            value_tuple: The desired value of the qids at the targeted `axes`,
-                packed into a tuple.  Specify either `little_endian_bits_int` or
-                `value_tuple`.
 
         Returns:
             A value that can be used to index into `target_tensor` and
@@ -215,7 +212,8 @@ class ApplyUnitaryArgs:
         return linalg.slice_for_qubits_equal_to(
             self.axes,
             little_endian_qureg_value=little_endian_bits_int,
-            big_endian_qureg_value=big_endian_bits_int)
+            big_endian_qureg_value=big_endian_bits_int,
+            qid_shape=self.target_tensor.shape)
 
 
 class SupportsConsistentApplyUnitary(Protocol):
@@ -265,10 +263,13 @@ class SupportsConsistentApplyUnitary(Protocol):
         """
 
 
-def apply_unitary(unitary_value: Any,
-                  args: ApplyUnitaryArgs,
-                  default: TDefault = RaiseTypeErrorIfNotProvided
-                 ) -> Union[np.ndarray, TDefault]:
+def apply_unitary(
+        unitary_value: Any,
+        args: ApplyUnitaryArgs,
+        default: TDefault = RaiseTypeErrorIfNotProvided,
+        *,
+        allow_decompose: bool = True,
+) -> Union[np.ndarray, TDefault]:
     """High performance left-multiplication of a unitary effect onto a tensor.
 
     Applies the unitary effect of `unitary_value` to the tensor specified in
@@ -290,7 +291,7 @@ def apply_unitary(unitary_value: Any,
         Case c) Method returns a numpy array.
             Multiply the matrix onto the target tensor and return to the caller.
 
-    C. Try to use `unitary_value._decompose_()`.
+    C. Try to use `unitary_value._decompose_()` (if `allow_decompose`).
         Case a) Method not present or returns `NotImplemented` or `None`.
             Continue to next strategy.
         Case b) Method returns an OP_TREE.
@@ -311,6 +312,9 @@ def apply_unitary(unitary_value: Any,
         default: What should be returned if `unitary_value` doesn't have a
             unitary effect. If not specified, a TypeError is raised instead of
             returning a default value.
+        allow_decompose: Defaults to True. If set to False, and applying the
+            unitary effect requires decomposing the object, the method will
+            pretend the object has no unitary effect.
 
     Returns:
         If the receiving object does not have a unitary effect, then the
@@ -341,6 +345,8 @@ def apply_unitary(unitary_value: Any,
             _strat_apply_unitary_from_decompose,
             _strat_apply_unitary_from_unitary
         ]
+    if not allow_decompose:
+        strats.remove(_strat_apply_unitary_from_decompose)
 
     # Try each strategy, stopping if one works.
     for strat in strats:

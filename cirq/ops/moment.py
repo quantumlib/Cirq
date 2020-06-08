@@ -14,10 +14,8 @@
 
 """A simplified time-slice of operations within a sequenced circuit."""
 
-from typing import (Any, Callable, Iterable, TypeVar, Union, Tuple, FrozenSet,
-                    TYPE_CHECKING, Iterator)
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator,
-                    overload, Sequence, Tuple, TYPE_CHECKING, TypeVar, Union)
+                    overload, Tuple, TYPE_CHECKING, TypeVar, Union)
 from cirq import protocols
 from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
@@ -47,7 +45,7 @@ class Moment:
 
     @deprecated_parameter(
         deadline='v0.9',
-        fix="Don't specify a keyword.",
+        fix='Don\'t specify a keyword.',
         match=lambda _, kwargs: 'operations' in kwargs,
         parameter_desc='operations',
         rewrite=lambda args, kwargs: (args + (kwargs['operations'],), {}))

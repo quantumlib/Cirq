@@ -259,6 +259,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=self, probability=probability)
+
     def controlled(self,
                    num_controls: int = None,
                    control_values: Optional[Sequence[
@@ -459,10 +465,21 @@ class Operation(metaclass=abc.ABCMeta):
                 default to 1.
         """
         # Avoids circular import.
-        from cirq.ops import ControlledOperation
+        from cirq.ops.controlled_operation import ControlledOperation
         if len(control_qubits) == 0:
             return self
         return ControlledOperation(control_qubits, self, control_values)
+
+    def with_probability(self,
+                         probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        gate = self.gate
+        if gate is None:
+            raise NotImplementedError("with_probability on gateless operation.")
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=gate,
+                                 probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid

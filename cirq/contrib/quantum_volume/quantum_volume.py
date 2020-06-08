@@ -75,7 +75,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # Classically compute the probabilities of each output bit-string through
     # simulation.
     simulator = cirq.Simulator()
-    results = cast(cirq.WaveFunctionTrialResult,
+    results = cast(cirq.StateVectorTrialResult,
                    simulator.simulate(program=circuit))
 
     # Compute the median probability of the output bit-strings. Note that heavy
@@ -274,6 +274,7 @@ def compile_circuit(
         # TODO: The routing algorithm sometimes does a poor job with the parity
         # qubits, adding SWAP gates that are unnecessary. This should be fixed,
         # or we can add the parity qubits manually after routing.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2967
         routing_algo_name = 'greedy'
 
     swap_networks: List[ccr.SwapNetwork] = []

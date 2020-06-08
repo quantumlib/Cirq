@@ -52,7 +52,7 @@ class SupportsExplicitHasUnitary(Protocol):
         """
 
 
-def has_unitary(val: Any) -> bool:
+def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
     """Determines whether the value has a unitary effect.
 
     Determines whether `val` has a unitary effect by attempting the following
@@ -104,6 +104,8 @@ def has_unitary(val: Any) -> bool:
         _strat_has_unitary_from_has_unitary, _strat_has_unitary_from_decompose,
         _strat_has_unitary_from_apply_unitary, _strat_has_unitary_from_unitary
     ]
+    if not allow_decompose:
+        strats.remove(_strat_has_unitary_from_decompose)
     for strat in strats:
         result = strat(val)
         if result is not None:

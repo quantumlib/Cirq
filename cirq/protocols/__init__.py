@@ -13,6 +13,10 @@
 # limitations under the License.
 
 
+from cirq.protocols.act_on_protocol import (
+    act_on,
+    SupportsActOn,
+)
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
     apply_unitary,
@@ -79,6 +83,7 @@ from cirq.protocols.json_serialization import (
 from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
+    measurement_keys,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (
@@ -104,6 +109,7 @@ from cirq.protocols.qasm import (
     SupportsQasmWithArgs,
     SupportsQasmWithArgsAndQubits,
 )
+from cirq.protocols.quil import (quil, QuilFormatter)
 from cirq.protocols.trace_distance_bound import (
     SupportsTraceDistanceBound,
     trace_distance_bound,

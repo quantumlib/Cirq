@@ -12,46 +12,46 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import Optional, Dict, Sequence, Union, cast
-from random import randint, random, sample, choice
+import random
 
 import numpy as np
 import pytest
 
 import cirq
-from cirq.testing.random_circuit import random_circuit, DEFAULT_GATE_DOMAIN
+import cirq.testing
 
 
 def test_random_circuit_errors():
-    with pytest.raises(ValueError):
-        random_circuit(randint(1, 10), randint(1, 10), -1)
-    with pytest.raises(ValueError):
-        random_circuit(randint(1, 10), randint(1, 10), 1.)
+    with pytest.raises(ValueError, match='but was -1'):
+        _ = cirq.testing.random_circuit(qubits=5, n_moments=5, op_density=-1)
 
-    with pytest.raises(ValueError):
-        random_circuit(randint(1, 10), randint(1, 10), random(), gate_domain={})
+    with pytest.raises(ValueError, match='empty'):
+        _ = cirq.testing.random_circuit(qubits=5,
+                                        n_moments=5,
+                                        op_density=0.5,
+                                        gate_domain={})
 
-    with pytest.raises(ValueError):
-        random_circuit(0, randint(1, 10), random())
+    with pytest.raises(ValueError, match='At least one'):
+        _ = cirq.testing.random_circuit(qubits=0, n_moments=5, op_density=0.5)
 
-    with pytest.raises(ValueError):
-        random_circuit((), randint(1, 10), random())
+    with pytest.raises(ValueError, match='At least one'):
+        _ = cirq.testing.random_circuit(qubits=(), n_moments=5, op_density=0.5)
+
+    with pytest.raises(ValueError, match='had no gates'):
+        _ = cirq.testing.random_circuit(qubits=1,
+                                        n_moments=5,
+                                        op_density=0.5,
+                                        gate_domain={cirq.CNOT: 2})
 
 
 @pytest.mark.parametrize(
     'n_qubits,n_moments,op_density,gate_domain,pass_qubits',
-    [(
-        randint(1, 20),
-        randint(1, 10),
-        random(),
-        (
-            None
-            if randint(0, 1)
-            else dict(sample(tuple(DEFAULT_GATE_DOMAIN.items()),
-                             randint(1, len(DEFAULT_GATE_DOMAIN))))
-        ),
-        choice((True, False))
-    ) for _ in range(10)]
-)
+    [(random.randint(1, 20), random.randint(1, 10), random.random(),
+      (None if random.randint(0, 1) else dict(
+          random.sample(
+              tuple(cirq.testing.DEFAULT_GATE_DOMAIN.items()),
+              random.randint(1, len(cirq.testing.DEFAULT_GATE_DOMAIN))))),
+      random.choice((True, False))) for _ in range(10)])
 def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
                         n_moments: int,
                         op_density: float,
@@ -59,25 +59,26 @@ def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
                         pass_qubits: bool):
     qubit_set = cirq.LineQubit.range(n_qubits)
     qubit_arg = qubit_set if pass_qubits else n_qubits
-    circuit = random_circuit(qubit_arg, n_moments, op_density, gate_domain)
+    circuit = cirq.testing.random_circuit(qubit_arg, n_moments, op_density,
+                                          gate_domain)
     if qubit_arg is qubit_set:
         assert circuit.all_qubits().issubset(qubit_set)
     assert len(circuit) == n_moments
     if gate_domain is None:
-        gate_domain = DEFAULT_GATE_DOMAIN
+        gate_domain = cirq.testing.DEFAULT_GATE_DOMAIN
     assert set(cast(cirq.GateOperation, op).gate
                for op in circuit.all_operations()
                ).issubset(gate_domain)
 
 
-@pytest.mark.parametrize('seed', [randint(0, 2**32) for _ in range(10)])
+@pytest.mark.parametrize('seed', [random.randint(0, 2**32) for _ in range(10)])
 def test_random_circuit_reproducible_with_seed(seed):
     wrappers = (lambda s: s, np.random.RandomState)
     circuits = [
-        random_circuit(qubits=10,
-                       n_moments=10,
-                       op_density=0.7,
-                       random_state=wrapper(seed))
+        cirq.testing.random_circuit(qubits=10,
+                                    n_moments=10,
+                                    op_density=0.7,
+                                    random_state=wrapper(seed))
         for wrapper in wrappers
         for _ in range(2)
     ]
@@ -85,8 +86,19 @@ def test_random_circuit_reproducible_with_seed(seed):
     eq.add_equality_group(*circuits)
 
 
+def test_random_circuit_not_expected_number_of_qubits():
+
+    circuit = cirq.testing.random_circuit(qubits=3,
+                                          n_moments=1,
+                                          op_density=1.0,
+                                          gate_domain={cirq.CNOT: 2})
+    # Despite having an op density of 1, we always only end up acting on
+    # two qubits.
+    assert len(circuit.all_qubits()) == 2
+
+
 def test_random_circuit_reproducible_between_runs():
-    circuit = random_circuit(5, 8, 0.5, random_state=77)
+    circuit = cirq.testing.random_circuit(5, 8, 0.5, random_state=77)
     expected_diagram = """
                   ┌──┐
 0: ────────────────S─────iSwap───────Y───X───

@@ -283,8 +283,7 @@ class EngineProgram:
             raise ValueError('deserializing a v1 Program is not supported')
         if (code_type == 'cirq.google.api.v2.Program' or
                 code_type == 'cirq.api.google.v2.Program'):
-            program = v2.program_pb2.Program()
-            program.ParseFromString(code.value)
+            program = v2.program_pb2.Program.FromString(code.value)
             gate_set_map = {
                 g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS
             }

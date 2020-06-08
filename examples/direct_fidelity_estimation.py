@@ -209,7 +209,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
     pauli_traces: List[PauliTrace] = []
     for dense_pauli_string in dense_pauli_strings:
         # The code below is equivalent to calling
-        # clifford_state.wave_function() and then calling
+        # clifford_state.state_vector() and then calling
         # compute_characteristic_function() on the results (albeit with a
         # wave function instead of a density matrix). It is, however,
         # unncessary to do so. Instead we directly obtain the scalar rho_i.
@@ -420,9 +420,10 @@ def parse_arguments(args):
     """Helper function that parses the given arguments."""
     parser = argparse.ArgumentParser('Direct fidelity estimation.')
 
-    # TODO(#2802): Offer some guidance on how to set this flag. Maybe have an
+    # TODO: Offer some guidance on how to set this flag. Maybe have an
     # option to do an exhaustive sample and do numerical studies to know which
     # choice is the best.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2802
     parser.add_argument('--n_measured_operators',
                         default=10,
                         type=int,

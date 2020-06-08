@@ -35,7 +35,9 @@ from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated
 import cirq._version
 
 if TYPE_CHECKING:
@@ -63,7 +65,7 @@ class Circuit:
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        final_wavefunction
+        final_state_vector
         to_text_diagram
         to_text_diagram_drawer
 
@@ -1296,6 +1298,33 @@ class Circuit:
         self._device.validate_circuit(copy)
         self._moments = copy._moments
 
+    def batch_replace(self, replacements: Iterable[
+            Tuple[int, 'cirq.Operation', 'cirq.Operation']]) -> None:
+        """Replaces several operations in a circuit with new operations.
+
+        Args:
+            replacements: A sequence of (moment_index, old_op, new_op) tuples
+                indicating operations to be replaced in this circuit. All "old"
+                operations must actually be present or the edit will fail
+                (without making any changes to the circuit).
+
+        ValueError:
+            One of the operations to replace wasn't present to start with.
+
+        IndexError:
+            Replaced in a moment that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op, new_op in replacements:
+            if op not in copy._moments[i].operations:
+                raise ValueError(
+                    f"Can't replace {op} @ {i} because it doesn't exist.")
+            copy._moments[i] = ops.Moment(
+                old_op if old_op != op else new_op
+                for old_op in copy._moments[i].operations)
+        self._device.validate_circuit(copy)
+        self._moments = copy._moments
+
     def batch_insert_into(self,
                           insert_intos: Iterable[Tuple[int, ops.Operation]]
                           ) -> None:
@@ -1408,13 +1437,8 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_keys(self) -> List[str]:
-        result = []
-        for op in self.all_operations():
-            key = protocols.measurement_key(op, default=None)
-            if key is not None:
-                result.append(key)
-        return result
+    def all_measurement_keys(self) -> Tuple[str, ...]:
+        return protocols.measurement_keys(self)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
@@ -1498,7 +1522,7 @@ class Circuit:
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
-    def final_wavefunction(
+    def final_state_vector(
             self,
             initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
@@ -1578,6 +1602,22 @@ class Circuit:
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
+
+    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
+    def final_wavefunction(
+            self,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Deprecated. Please use `final_state_vector`."""
+        return self.final_state_vector(
+            initial_state=initial_state,
+            qubit_order=qubit_order,
+            qubits_that_should_be_present=qubits_that_should_be_present,
+            ignore_terminal_measurements=ignore_terminal_measurements,
+            dtype=dtype)
 
     def to_text_diagram(
             self,
@@ -1726,6 +1766,13 @@ class Circuit:
                           precision=precision,
                           version='2.0')
 
+    def _to_quil_output(
+            self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> QuilOutput:
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QuilOutput(operations=self.all_operations(), qubits=qubits)
+
     def to_qasm(
             self,
             header: Optional[str] = None,
@@ -1741,7 +1788,13 @@ class Circuit:
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
+
         return str(self._to_qasm_output(header, precision, qubit_order))
+
+    def to_quil(self,
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+               ) -> str:
+        return str(self._to_quil_output(qubit_order))
 
     def save_qasm(
             self,

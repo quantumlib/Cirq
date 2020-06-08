@@ -20,6 +20,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 _ = 0.0  # Make matrices readable by visually hiding off-diagonal elements.
 q0, q1, q2, q3 = cirq.LineQubit.range(4)
@@ -1058,7 +1059,7 @@ def test_imul_aliasing():
     assert psum1 == psum2
 
 
-def test_expectation_from_wavefunction_invalid_input():
+def test_expectation_from_state_vector_invalid_input():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q3: 2}
@@ -1066,88 +1067,88 @@ def test_expectation_from_wavefunction_invalid_input():
 
     im_psum = (1j + 1) * psum
     with pytest.raises(NotImplementedError, match='non-Hermitian'):
-        im_psum.expectation_from_wavefunction(wf, q_map)
+        im_psum.expectation_from_state_vector(wf, q_map)
 
     with pytest.raises(TypeError, match='dtype'):
-        psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.int),
+        psum.expectation_from_state_vector(np.array([1, 0], dtype=np.int),
                                            q_map)
 
     with pytest.raises(TypeError, match='mapping'):
-        psum.expectation_from_wavefunction(wf, "bad type")
+        psum.expectation_from_state_vector(wf, "bad type")
     with pytest.raises(TypeError, match='mapping'):
-        psum.expectation_from_wavefunction(wf, {"bad key": 1})
+        psum.expectation_from_state_vector(wf, {"bad key": 1})
     with pytest.raises(TypeError, match='mapping'):
-        psum.expectation_from_wavefunction(wf, {q0: "bad value"})
+        psum.expectation_from_state_vector(wf, {q0: "bad value"})
     with pytest.raises(ValueError, match='complete'):
-        psum.expectation_from_wavefunction(wf, {q0: 0})
+        psum.expectation_from_state_vector(wf, {q0: 0})
     with pytest.raises(ValueError, match='complete'):
-        psum.expectation_from_wavefunction(wf, {q0: 0, q2: 2})
+        psum.expectation_from_state_vector(wf, {q0: 0, q2: 2})
     with pytest.raises(ValueError, match='indices'):
-        psum.expectation_from_wavefunction(wf, {q0: -1, q1: 1, q3: 2})
+        psum.expectation_from_state_vector(wf, {q0: -1, q1: 1, q3: 2})
     with pytest.raises(ValueError, match='indices'):
-        psum.expectation_from_wavefunction(wf, {q0: 0, q1: 3, q3: 2})
+        psum.expectation_from_state_vector(wf, {q0: 0, q1: 3, q3: 2})
     with pytest.raises(ValueError, match='indices'):
-        psum.expectation_from_wavefunction(wf, {q0: 0, q1: 0, q3: 2})
+        psum.expectation_from_state_vector(wf, {q0: 0, q1: 0, q3: 2})
 
     with pytest.raises(ValueError, match='9'):
-        psum.expectation_from_wavefunction(np.arange(9, dtype=np.complex64),
+        psum.expectation_from_state_vector(np.arange(9, dtype=np.complex64),
                                            q_map)
     q_map_2 = {q0: 0, q1: 1, q2: 2, q3: 3}
     with pytest.raises(ValueError, match='normalized'):
-        psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+        psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64),
                                            q_map_2)
 
     wf = np.arange(16, dtype=np.complex64) / np.linalg.norm(np.arange(16))
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_wavefunction(wf.reshape((16, 1)), q_map_2)
+        psum.expectation_from_state_vector(wf.reshape((16, 1)), q_map_2)
     with pytest.raises(ValueError, match='shape'):
-        psum.expectation_from_wavefunction(wf.reshape((4, 4, 1)), q_map_2)
+        psum.expectation_from_state_vector(wf.reshape((4, 4, 1)), q_map_2)
 
 
-def test_expectation_from_wavefunction_check_preconditions():
+def test_expectation_from_state_vector_check_preconditions():
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     psum = cirq.X(q0) + 2 * cirq.Y(q1) + 3 * cirq.Z(q3)
     q_map = {q0: 0, q1: 1, q2: 2, q3: 3}
 
     with pytest.raises(ValueError, match='normalized'):
-        psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+        psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64),
                                            q_map)
 
-    _ = psum.expectation_from_wavefunction(np.arange(16, dtype=np.complex64),
+    _ = psum.expectation_from_state_vector(np.arange(16, dtype=np.complex64),
                                            q_map,
                                            check_preconditions=False)
 
 
-def test_expectation_from_wavefunction_basis_states():
+def test_expectation_from_state_vector_basis_states():
     q = cirq.LineQubit.range(2)
     psum = cirq.X(q[0]) + 2 * cirq.Y(q[0]) + 3 * cirq.Z(q[0])
     q_map = {x: i for i, x in enumerate(q)}
 
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([1, 1], dtype=np.complex) /
+        psum.expectation_from_state_vector(np.array([1, 1], dtype=np.complex) /
                                            np.sqrt(2),
                                            qubit_map=q_map), 1)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([1, -1], dtype=np.complex) /
+        psum.expectation_from_state_vector(np.array([1, -1], dtype=np.complex) /
                                            np.sqrt(2),
                                            qubit_map=q_map), -1)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([1, 1j], dtype=np.complex) /
+        psum.expectation_from_state_vector(np.array([1, 1j], dtype=np.complex) /
                                            np.sqrt(2),
                                            qubit_map=q_map), 2)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(
+        psum.expectation_from_state_vector(
             np.array([1, -1j], dtype=np.complex) / np.sqrt(2), qubit_map=q_map),
         -2)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([1, 0], dtype=np.complex),
+        psum.expectation_from_state_vector(np.array([1, 0], dtype=np.complex),
                                            qubit_map=q_map), 3)
     np.testing.assert_allclose(
-        psum.expectation_from_wavefunction(np.array([0, 1], dtype=np.complex),
+        psum.expectation_from_state_vector(np.array([0, 1], dtype=np.complex),
                                            qubit_map=q_map), -3)
 
 
-def test_expectation_from_wavefunction_two_qubit_states():
+def test_expectation_from_state_vector_two_qubit_states():
     q = cirq.LineQubit.range(2)
     q_map = {x: i for i, x in enumerate(q)}
 
@@ -1155,22 +1156,22 @@ def test_expectation_from_wavefunction_two_qubit_states():
     psum2 = -1 * cirq.X(q[0]) + 2 * cirq.X(q[1])
     wf1 = np.array([0, 1, 0, 0], dtype=np.complex)
     for state in [wf1, wf1.reshape(2, 2)]:
-        np.testing.assert_allclose(psum1.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum1.expectation_from_state_vector(
             state, qubit_map=q_map),
                                    -2.2,
                                    atol=1e-7)
-        np.testing.assert_allclose(psum2.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum2.expectation_from_state_vector(
             state, qubit_map=q_map),
                                    0,
                                    atol=1e-7)
 
     wf2 = np.array([1, 1, 1, 1], dtype=np.complex) / 2
     for state in [wf2, wf2.reshape(2, 2)]:
-        np.testing.assert_allclose(psum1.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum1.expectation_from_state_vector(
             state, qubit_map=q_map),
                                    0,
                                    atol=1e-7)
-        np.testing.assert_allclose(psum2.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum2.expectation_from_state_vector(
             state, qubit_map=q_map),
                                    1,
                                    atol=1e-7)
@@ -1179,11 +1180,11 @@ def test_expectation_from_wavefunction_two_qubit_states():
     wf3 = np.array([1, 1, 0, 0], dtype=np.complex) / np.sqrt(2)
     q_map_2 = {q0: 1, q1: 0}
     for state in [wf3, wf3.reshape(2, 2)]:
-        np.testing.assert_allclose(psum3.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum3.expectation_from_state_vector(
             state, qubit_map=q_map),
                                    2,
                                    atol=1e-7)
-        np.testing.assert_allclose(psum3.expectation_from_wavefunction(
+        np.testing.assert_allclose(psum3.expectation_from_state_vector(
             state, qubit_map=q_map_2),
                                    0,
                                    atol=1e-7)
@@ -1321,3 +1322,17 @@ def test_expectation_from_density_matrix_two_qubit_states():
             psum3.expectation_from_density_matrix(state, qubit_map=q_map), 2)
         np.testing.assert_allclose(
             psum3.expectation_from_density_matrix(state, qubit_map=q_map_2), 0)
+
+
+def test_deprecated():
+    q = cirq.LineQubit(0)
+    pauli_sum = cirq.X(q) + 0.2 * cirq.Z(q)
+    state_vector = np.array([1, 1], dtype=np.complex64) / np.sqrt(2)
+    with cirq.testing.assert_logs('expectation_from_wavefunction',
+                                  'expectation_from_state_vector',
+                                  'deprecated'):
+        _ = pauli_sum.expectation_from_wavefunction(state_vector, {q: 0})
+
+    with cirq.testing.assert_logs('state', 'state_vector', 'deprecated'):
+        _ = pauli_sum.expectation_from_state_vector(state=state_vector,
+                                                    qubit_map={q: 0})

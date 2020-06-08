@@ -20,6 +20,7 @@ import sympy
 import cirq
 from cirq import value, _compat
 from cirq.ops import raw_types
+from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -69,7 +70,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         return True
 
     def __str__(self) -> str:
-        return 'QFT[norev]' if self._without_reverse else 'QFT'
+        return 'qft[norev]' if self._without_reverse else 'qft'
 
     def __repr__(self) -> str:
         return ('cirq.QuantumFourierTransformGate('
@@ -168,7 +169,7 @@ class PhaseGradientGate(raw_types.Gate):
             exponent_qubit_index=0)
 
 
-def QFT(*qubits: 'cirq.Qid',
+def qft(*qubits: 'cirq.Qid',
         without_reverse: bool = False,
         inverse: bool = False) -> 'cirq.Operation':
     """The quantum Fourier transform.
@@ -176,23 +177,26 @@ def QFT(*qubits: 'cirq.Qid',
     Transforms a qubit register from the computational basis to the frequency
     basis.
 
-    The inverse quantum Fourier transform is `cirq.QFT(*qubits)**-1` or
-    equivalently `cirq.inverse(cirq.QFT(*qubits))`.
+    The inverse quantum Fourier transform is `cirq.qft(*qubits)**-1` or
+    equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the QFT to.
-        without_reverse: When set, swap gates at the end of the QFT are omitted.
-            This reverses the qubit order relative to the standard QFT effect,
+        qubits: The qubits to apply the qft to.
+        without_reverse: When set, swap gates at the end of the qft are omitted.
+            This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.
-        inverse: If set, the inverse QFT is performed instead of the QFT.
+        inverse: If set, the inverse qft is performed instead of the qft.
             Equivalent to calling `cirq.inverse` on the result, or raising it
             to the -1.
 
     Returns:
-        A `cirq.Operation` applying the QFT to the given qubits.
+        A `cirq.Operation` applying the qft to the given qubits.
     """
     result = QuantumFourierTransformGate(
         len(qubits), without_reverse=without_reverse).on(*qubits)
     if inverse:
         result = cirq.inverse(result)
     return result
+
+
+QFT = deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')(qft)
