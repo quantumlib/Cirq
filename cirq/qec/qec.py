@@ -1,114 +1,58 @@
-#This is demonstration of Shor's code
-
 import cirq
 
-class Code:
+from typing import List
+
+class OneQubitCode:
 
     def __init__(self):
-        self.qubit = list(cirq.LineQubit.range(9))
+        self.num_physical_qubits = NotImplemented
+        self.physical_qubits = cirq.LineQubit.range(self.num_physical_qubits)
 
-    def encode(self):
+    def apply_gate(self, gate: cirq.Gate, pos: int):
+        if pos > self.num_physical_qubits:
+            raise IndexError
+        yield gate(self.physical_qubits[pos])
 
-        yield cirq.CNOT(self.qubits[0], self.qubits[3])
-        yield cirq.CNOT(self.qubits[0], self.qubits[6])
-        yield cirq.H(self.qubit[0])
-        yield cirq.H(self.qubit[3])
-        yield cirq.H(self.qubit[6])
-        yield cirq.CNOT(self.qubit[0], self.qubit[1])
-        yield cirq.CNOT(self.qubit[3], self.qubit[4])
-        yield cirq.CNOT(self.qubit[6], self.qubit[7])
-        yield cirq.CNOT(self.qubit[0], self.qubit[2])
-        yield cirq.CNOT(self.qubit[3], self.qubit[5])
-        yield cirq.CNOT(self.qubit[6], self.qubit[8])
-        self.current_circuit = cirq.Circuit(cirq.CNOT(self.q0, self.q3),
-                                            cirq.CNOT(self.q0, self.q6),
-                                            cirq.H(self.q0),
-                                            cirq.H(self.q3),
-                                            cirq.H(self.q6),
-                                            cirq.CNOT(self.q0, self.q1),
-                                            cirq.CNOT(self.q3, self.q4),
-                                            cirq.CNOT(self.q6, self.q7),
-                                            cirq.CNOT(self.q0, self.q2),
-                                            cirq.CNOT(self.q3, self.q5),
-                                            cirq.CNOT(self.q6, self.q8))
+    def encode(self) -> cirq.Circuit:
+        return NotImplemented
 
-        return self.current_circuit
-
-    def decode(self):
-        yield cirq.CNOT(self.qubit[0], self.qubit[1])
-        yield cirq.CNOT(self.qubit[3], self.qubit[4])
-        yield cirq.CNOT(self.qubit[6], self.qubit[7])
-        yield cirq.CNOT(self.qubit[0], self.qubit[2])
-        yield cirq.CNOT(self.qubit[3], self.qubit[5])
-        yield cirq.CNOT(self.qubit[6], self.qubit[8])
-        yield cirq.CCNOT(self.qubit[1], self.qubit[2], self.qubit[0])
-        yield cirq.CCNOT(self.qubit[4], self.qubit[5], self.qubit[3])
-        yield cirq.CCNOT(self.qubit[7], self.qubit[8], self.qubit[6])
-        yield cirq.H(self.qubit[0])
-        yield cirq.H(self.qubit[3])
-        yield cirq.H(self.qubit[6])
-        yield cirq.CNOT(self.qubit[0], self.qubit[3])
-        yield cirq.CNOT(self.qubit[0], self.qubit[6])
-        yield cirq.CCNOT(self.qubit[3], self.qubit[6], self.qubit[0])
-        self.decoded_circuit = cirq.Circuit(cirq.CNOT(self.q0, self.q1),
-                                            cirq.CNOT(self.q3, self.q4),
-                                            cirq.CNOT(self.q6, self.q7),
-                                            cirq.CNOT(self.q0, self.q2),
-                                            cirq.CNOT(self.q3, self.q5),
-                                            cirq.CNOT(self.q6, self.q8),
-                                            cirq.CCNOT(self.q1, self.q2, self.q0),
-                                            cirq.CCNOT(self.q4, self.q5, self.q3),
-                                            cirq.CCNOT(self.q7, self.q8, self.q6),
-                                            cirq.H(self.q0),
-                                            cirq.H(self.q3),
-                                            cirq.H(self.q6),
-                                            cirq.CNOT(self.q0, self.q3),
-                                            cirq.CNOT(self.q0, self.q6),
-                                            cirq.CCNOT(self.q3, self.q6, self.q0))
-        self.current_circuit = self.current_circuit + self.decoded_circuit
-        return self.current_circuit
-
-
-    def apply_x_error(self):
-        self.current_circuit.append(cirq.Z(self.q5))
-        #print(self.encoded_circuit)
-        return self.current_circuit
+    def decode(self) -> cirq.Circuit:
+        return NotImplemented
 
     def measure(self):
-        yield cirq.measure(self.qubit[0], self.qubit[1])
-        yield cirq.measure(self.qubit[2])
-        yield cirq.measure(self.qubit[3])
-        yield cirq.measure(self.qubit[4])
-        yield cirq.measure(self.qubit[5])
-        yield cirq.measure(self.qubit[6])
-        yield cirq.measure(self.qubit[7])
-        yield cirq.measure(self.qubit[8])
-        measure_circuit = cirq.Circuit(cirq.measure(self.q0), cirq.measure(self.q1),
-                                    cirq.measure(self.q2),
-                                    cirq.measure(self.q3),
-                                    cirq.measure(self.q4),
-                                    cirq.measure(self.q5),
-                                    cirq.measure(self.q6),
-                                    cirq.measure(self.q7),
-                                    cirq.measure(self.q8)
-                                    )
-
-        self.current_circuit = self.current_circuit + measure_circuit
-        return self.current_circuit
+        for i in range(self.num_physical_qubits):
+            yield cirq.measure(self.physical_qubits[i])
 
 
-mycode = Code()
+class MultiQubitCode:
+    def __init__(self, input: List["cirq.Qid"], codetype: OneQubitCode):
+        self.logical_qubits = {}
+        self.encoded_circuit = {}
+        self.currentcircuit = cirq.Circuit()
+        for logical_qubit in input:
+            self.logical_qubits[logical_qubit] = codetype()
+        self.physical_to_logical_ratio = self.logical_qubits[input[0]].num_physical_qubits
 
-my_circuit = mycode.encode()
+    def encode(self):
+        for logical_qubit in self.logical_qubits.values():
+            self.encoded_circuit[logical_qubit] = cirq.Circuit(logical_qubit.encode())
+            self.currentcircuit += self.encoded_circuit[logical_qubit]
+        return self.currentcircuit
 
-my_circuit = mycode.apply_x_error()
+    def operation(self, original_circuit: cirq.Circuit):
+        for op in original_circuit.all_operations:
+            op_on_physical_qubits = ops.apply_on_physical_qubits(
+                op, self.logical_qubits, self.physical_to_logical_ratio)
+            self.currentcircuit.append(cirq.ops.Moment(op_on_physical_qubits))
+        return self.currentcircuit
 
-my_circuit = mycode.decode()
+    def decode(self):
+        for logical_qubit in self.logical_qubits.values():
+            self.currentcircuit.append(cirq.Circuit(logical_qubit.decode()))
+        return self.currentcircuit
 
-my_circuit = mycode.measure()
+    def measure(self):
+        for logical_qubit in self.logical_qubits.values():
+            self.currentcircuit.append(cirq.Circuit(logical_qubit.measure()))
+        return self.currentcircuit
 
-sim1 = cirq.Simulator()
-result = sim1.run(my_circuit, repetitions=20)
-
-print(my_circuit)
-print(result)
