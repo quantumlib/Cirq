@@ -592,7 +592,7 @@ operation.
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
-    cirq.testing.random_circuit
+    .. autofunction:: cirq.testing.random_circuit
     cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal
