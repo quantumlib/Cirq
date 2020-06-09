@@ -77,7 +77,14 @@ def autodoc_skip_member(
 ) -> bool:
     """Public members already kept. Also include members marked as documented.
     """
-    return id(obj) not in _doc.RECORDED_CONST_DOCS
+    # Never skip if explicitly whitelisted.
+    if id(obj) in _doc.RECORDED_CONST_DOCS:
+        return False
+    # Skip all private methods.
+    if name.startswith('_'):
+        return True
+    # Fallback to default.
+    return skip
 
 
 def autodoc_process(app, what: str, name: str, obj: Any, options,
