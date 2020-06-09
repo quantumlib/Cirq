@@ -1235,6 +1235,73 @@ class Circuit:
             self._moments[moment_index] = ops.Moment(
                 self._moments[moment_index].operations + tuple(new_ops))
 
+    def zip(*circuits):
+        """Combines operations from circuits in a moment-by-moment fashion.
+
+        Moment k of the resulting circuit will have all operations from moment
+        k of each of the given circuits.
+
+        When the given circuits have different lengths, the shorter circuits are
+        implicitly padded with empty moments. This differs from the behavior of
+        python's built-in zip function, which would instead truncate the longer
+        circuits.
+
+        The zipped circuits can't have overlapping operations occurring at the
+        same moment index.
+
+        Args:
+            circuits: The circuits to merge together.
+
+        Returns:
+            The merged circuit.
+
+        Raises:
+            ValueError:
+                The zipped circuits have overlapping operations occurring at the
+                same moment index.
+
+        Examples:
+            >>> import cirq
+            >>> a, b, c, d = cirq.LineQubit.range(4)
+            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+            >>> print(circuit1.zip(circuit2))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            >>> print(circuit1.zip(circuit2, circuit3))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+        """
+        circuits = list(circuits)
+        n = max([len(c) for c in circuits], default=0)
+
+        result = cirq.Circuit()
+        for k in range(n):
+            try:
+                result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
+            except ValueError as ex:
+                raise ValueError(
+                    f"Overlapping operations between zipped circuits "
+                    f"at moment index {k}.\n{ex}") from ex
+        return result
+
     def insert_at_frontier(self,
                            operations: 'cirq.OP_TREE',
                            start: int,
