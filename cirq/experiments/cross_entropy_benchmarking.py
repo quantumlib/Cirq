@@ -156,6 +156,88 @@ def cross_entropy_benchmarking(
         simulator: sim.Simulator = None,
 ) -> CrossEntropyResult:
     r"""Cross-entropy benchmarking (XEB) of multiple qubits.
+
+    A total of M random circuits are generated, each of which comprises N
+    layers where N = max('cycles') or 'cycles' if a single value is specified
+    for the 'cycles' parameter. Every layer contains randomly generated
+    single-qubit gates applied to each qubit, followed by a set of
+    user-defined benchmarking operations (e.g. a set of two-qubit gates).
+
+    Each circuit (circuit_m) from the M random circuits is further used to
+    generate a set of circuits {circuit_mn}, where circuit_mn is built from the
+    first n cycles of circuit_m. n spans all the values in 'cycles'.
+
+    For each fixed value n, the experiment performs the following:
+
+    1) Experimentally collect a number of bit-strings for each circuit_mn via
+    projective measurements in the z-basis.
+
+    2) Theoretically compute the expected bit-string probabilities
+    $P^{th, mn}_|...00>$,  $P^{th, mn}_|...01>$, $P^{th, mn}_|...10>$,
+    $P^{th, mn}_|...11>$ ... at the end of circuit_mn for all m and for all
+    possible bit-strings in the Hilbert space.
+
+    3) Compute an experimental XEB function for each circuit_mn:
+
+    $f_{mn}^{meas} = \langle D * P^{th, mn}_q - 1 \rangle$
+
+    where D is the number of states in the Hilbert space, $P^{th, mn}_q$ is the
+    theoretical probability of a bit-string q at the end of circuit_mn, and
+    $\langle \rangle$ corresponds to the ensemble average over all measured
+    bit-strings.
+
+    Then, take the average of $f_{mn}^{meas}$ over all circuit_mn with fixed
+    n to obtain:
+
+    $f_{n} ^ {meas} = (\sum_m f_{mn}^{meas}) / M$
+
+    4) Compute a theoretical XEB function for each circuit_mn:
+
+    $f_{mn}^{th} = D \sum_q (P^{th, mn}_q) ** 2 - 1$
+
+    where the summation goes over all possible bit-strings q in the Hilbert
+    space.
+
+    Similarly, we then average $f_m^{th}$ over all circuit_mn with fixed n to
+    obtain:
+
+    $f_{n} ^ {th} = (\sum_m f_{mn}^{th}) / M$
+
+    5) Calculate the XEB fidelity $\alpha_n$ at fixed n:
+
+    $\alpha_n = f_{n} ^ {meas} / f_{n} ^ {th}$
+
+    Args:
+        sampler: The quantum engine or simulator to run the circuits.
+        qubits: The qubits included in the XEB experiment.
+        benchmark_ops: A sequence of ops.Moment containing gate operations
+            between specific qubits which are to be benchmarked for fidelity.
+            If more than one ops.Moment is specified, the random circuits
+            will rotate between the ops.Moment's. As an example,
+            if benchmark_ops = [Moment([ops.CZ(q0, q1), ops.CZ(q2, q3)]),
+            Moment([ops.CZ(q1, q2)]) where q0, q1, q2 and q3 are instances of
+            Qid (such as GridQubits), each random circuit will apply CZ gate
+            between q0 and q1 plus CZ between q2 and q3 for the first cycle,
+            CZ gate between q1 and q2 for the second cycle, CZ between q0 and
+            q1 and CZ between q2 and q3 for the third cycle and so on. If
+            None, the circuits will consist only of single-qubit gates.
+        num_circuits: The total number of random circuits to be used.
+        repetitions: The number of measurements for each circuit to estimate
+            the bit-string probabilities.
+        cycles: The different numbers of circuit layers in the XEB study.
+            Could be a single or a collection of values.
+        scrambling_gates_per_cycle: If None (by default), the single-qubit
+            gates are chosen from X/2 ($\pi/2$ rotation around the X axis),
+            Y/2 ($\pi/2$ rotation around the Y axis) and (X + Y)/2 ($\pi/2$
+            rotation around an axis $\pi/4$ away from the X on the equator of
+            the Bloch sphere). Otherwise the single-qubit gates for each layer
+            are chosen from a list of possible choices (each choice is a list
+            of one or more single-qubit gates).
+        simulator: A simulator that calculates the bit-string probabilities
+            of the ideal circuit. By default, this is set to sim.Simulator().
+
+    Returns:
+        A CrossEntropyResult object that stores and plots the result.
     """
     simulator = sim.Simulator() if simulator is None else simulator
     num_qubits = len(qubits)
