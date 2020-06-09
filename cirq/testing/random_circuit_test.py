@@ -63,6 +63,7 @@ def _cases_for_random_circuit():
             # number of qubits greater that the number of qubits for the
             # circuit. In this case, try again.
             if all(n > n_qubits for n in gate_domain.values()):
+                # coverage: ignore
                 continue
         else:
             gate_domain = None
