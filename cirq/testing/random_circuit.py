@@ -96,8 +96,8 @@ def random_circuit(qubits: Union[Sequence[ops.Qid], int],
         raise ValueError('At least one qubit must be specified.')
     gate_domain = {k: v for k, v in gate_domain.items() if v <= n_qubits}
     if not gate_domain:
-        raise ValueError(f'After removing gates that act on less that '
-                         '{n_qubits}, gate_domain had no gates.')
+        raise ValueError(f'After removing gates that act on less than '
+                         f'{n_qubits} qubits, gate_domain had no gates.')
     max_arity = max(gate_domain.values())
 
     prng = value.parse_random_state(random_state)
