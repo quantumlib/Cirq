@@ -11,4 +11,4 @@ run experiments.
 .. autosummary::
     :toctree: generated/
 
-    cirq.experiments.cross_entropy_benchmarking
+    .. autofunction:: cirq.experiments.cross_entropy_benchmarking
