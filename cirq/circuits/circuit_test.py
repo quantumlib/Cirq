@@ -3764,3 +3764,56 @@ def test_deprecated():
     circuit = cirq.Circuit([cirq.H(q)])
     with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
         _ = circuit.final_wavefunction()
+
+
+def test_zip():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+    circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+    circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+
+    # Calling works both static-style and instance-style.
+    assert circuit1.zip(circuit2) == cirq.Circuit.zip(circuit1, circuit2)
+
+    # Empty cases.
+    assert cirq.Circuit.zip() == cirq.Circuit()
+    assert cirq.Circuit.zip(cirq.Circuit()) == cirq.Circuit()
+    assert cirq.Circuit().zip(cirq.Circuit()) == cirq.Circuit()
+    assert circuit1.zip(cirq.Circuit()) == circuit1
+    assert cirq.Circuit(cirq.Moment()).zip(cirq.Circuit()) == cirq.Circuit(
+        cirq.Moment())
+    assert cirq.Circuit().zip(cirq.Circuit(cirq.Moment())) == cirq.Circuit(
+        cirq.Moment())
+
+    # Small cases.
+    assert circuit1.zip(circuit2) == circuit2.zip(circuit1) == cirq.Circuit(
+        cirq.Moment(
+            cirq.H(a),
+            cirq.X(c),
+        ),
+        cirq.Moment(
+            cirq.CNOT(a, b),
+            cirq.Y(c),
+        ),
+        cirq.Moment(cirq.Z(c),),
+    )
+    assert circuit1.zip(circuit2, circuit3) == cirq.Circuit(
+        cirq.Moment(
+            cirq.H(a),
+            cirq.X(c),
+        ),
+        cirq.Moment(
+            cirq.CNOT(a, b),
+            cirq.Y(c),
+            cirq.S(d),
+        ),
+        cirq.Moment(cirq.Z(c),),
+    )
+
+    # Overlapping operations.
+    with pytest.raises(ValueError, match="moment index 1.*\n.*CNOT"):
+        _ = cirq.Circuit.zip(
+            cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
+            cirq.Circuit(cirq.X(b), cirq.Z(b)),
+        )
