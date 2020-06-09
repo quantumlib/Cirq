@@ -59,7 +59,7 @@ def test_plot_state_histogram_multi_2():
     c = cirq.Circuit(
         cirq.X.on_each(*qubits[1:]),
         cirq.measure(*qubits[:2]),  # One multi-qubit measurement
-        cirq.measure_each(*qubits[2:]),  # One single-qubit measurement
+        cirq.measure_each(*qubits[2:]),  # Multiple single-qubit measurement
     )
     r = cirq.sample(c, repetitions=5)
     values_plotted = visualize.plot_state_histogram(r)
