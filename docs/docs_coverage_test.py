@@ -50,7 +50,8 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
                 if section:
                     result.append(section)
                     section = []
-            elif '    cirq.' in line or '    .. autoclass:: cirq.' in line:
+            elif ('    cirq.' in line or '    .. autoclass:: cirq.' in line or
+                  '    .. autofunction:: cirq.' in line):
                 fullname = line[line.find('cirq'):].strip()
                 if fullname in seen:
                     # coverage: ignore
@@ -60,6 +61,7 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
         if section:
             result.append(section)
     return result
+
 
 
 def test_public_values_equals_documented_values():
