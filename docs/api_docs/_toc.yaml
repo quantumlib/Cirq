@@ -1,0 +1,2741 @@
+toc:
+- title: cirq
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq
+- title: cirq.circuits
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/circuits
+  - title: Circuit
+    path: /cirq/api_docs/python/cirq/circuits/Circuit
+  - title: CircuitDag
+    path: /cirq/api_docs/python/cirq/circuits/CircuitDag
+  - title: CircuitDag.adjlist_inner_dict_factory
+    path: /cirq/api_docs/python/cirq/circuits/CircuitDag/adjlist_inner_dict_factory
+  - title: InsertStrategy
+    path: /cirq/api_docs/python/cirq/circuits/InsertStrategy
+  - title: PointOptimizationSummary
+    path: /cirq/api_docs/python/cirq/circuits/PointOptimizationSummary
+  - title: PointOptimizer
+    path: /cirq/api_docs/python/cirq/circuits/PointOptimizer
+  - title: QasmOutput
+    path: /cirq/api_docs/python/cirq/circuits/QasmOutput
+  - title: QuilOutput
+    path: /cirq/api_docs/python/cirq/circuits/QuilOutput
+  - title: TextDiagramDrawer
+    path: /cirq/api_docs/python/cirq/circuits/TextDiagramDrawer
+  - title: Unique
+    path: /cirq/api_docs/python/cirq/circuits/Unique
+  - title: circuit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/circuit
+  - title: circuit_dag
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/circuit_dag
+  - title: insert_strategy
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/insert_strategy
+  - title: optimization_pass
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/optimization_pass
+  - title: qasm_output
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/qasm_output
+    - title: QasmTwoQubitGate
+      path: /cirq/api_docs/python/cirq/circuits/qasm_output/QasmTwoQubitGate
+    - title: QasmUGate
+      path: /cirq/api_docs/python/cirq/circuits/qasm_output/QasmUGate
+  - title: quil_output
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/quil_output
+    - title: QuilOneQubitGate
+      path: /cirq/api_docs/python/cirq/circuits/quil_output/QuilOneQubitGate
+    - title: QuilTwoQubitGate
+      path: /cirq/api_docs/python/cirq/circuits/quil_output/QuilTwoQubitGate
+    - title: to_quil_complex_format
+      path: /cirq/api_docs/python/cirq/circuits/quil_output/to_quil_complex_format
+  - title: text_diagram_drawer
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/circuits/text_diagram_drawer
+    - title: pick_charset
+      path: /cirq/api_docs/python/cirq/circuits/text_diagram_drawer/pick_charset
+- title: cirq.contrib
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/contrib
+  - title: circuit_to_latex_using_qcircuit
+    path: /cirq/api_docs/python/cirq/contrib/circuit_to_latex_using_qcircuit
+  - title: acquaintance
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance
+    - title: acquaint
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/acquaint
+    - title: AcquaintanceOperation
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/AcquaintanceOperation
+    - title: AcquaintanceOpportunityGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/AcquaintanceOpportunityGate
+    - title: BipartiteGraphType
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/BipartiteGraphType
+    - title: BipartiteSwapNetworkGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/BipartiteSwapNetworkGate
+    - title: CircularShiftGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/CircularShiftGate
+    - title: complete_acquaintance_strategy
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/complete_acquaintance_strategy
+    - title: cubic_acquaintance_strategy
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/cubic_acquaintance_strategy
+    - title: DECOMPOSE_PERMUTATION_GATES
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/DECOMPOSE_PERMUTATION_GATES
+    - title: display_mapping
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/display_mapping
+    - title: EXPAND_PERMUTATION_GATES
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/EXPAND_PERMUTATION_GATES
+    - title: expose_acquaintance_gates
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/expose_acquaintance_gates
+    - title: get_acquaintance_size
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/get_acquaintance_size
+    - title: get_logical_acquaintance_opportunities
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/get_logical_acquaintance_opportunities
+    - title: get_logical_operations
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/get_logical_operations
+    - title: GreedyExecutionStrategy
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/GreedyExecutionStrategy
+    - title: is_topologically_sorted
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/is_topologically_sorted
+    - title: LinearPermutationGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/LinearPermutationGate
+    - title: PermutationGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/PermutationGate
+    - title: quartic_paired_acquaintance_strategy
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/quartic_paired_acquaintance_strategy
+    - title: random_topological_sort
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/random_topological_sort
+    - title: rectify_acquaintance_strategy
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/rectify_acquaintance_strategy
+    - title: remove_redundant_acquaintance_opportunities
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/remove_redundant_acquaintance_opportunities
+    - title: replace_acquaintance_with_swap_network
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/replace_acquaintance_with_swap_network
+    - title: return_to_initial_mapping
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/return_to_initial_mapping
+    - title: ShiftSwapNetworkGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/ShiftSwapNetworkGate
+    - title: StrategyExecutor
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/StrategyExecutor
+    - title: SwapNetworkGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/SwapNetworkGate
+    - title: SwapPermutationGate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/SwapPermutationGate
+    - title: update_mapping
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/update_mapping
+    - title: uses_consistent_swap_gate
+      path: /cirq/api_docs/python/cirq/contrib/acquaintance/uses_consistent_swap_gate
+    - title: bipartite
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/bipartite
+    - title: devices
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/devices
+      - title: AcquaintanceDevice
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/devices/AcquaintanceDevice
+      - title: is_acquaintance_strategy
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/devices/is_acquaintance_strategy
+    - title: executor
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/executor
+      - title: ExecutionStrategy
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/executor/ExecutionStrategy
+      - title: LogicalGates
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/executor/LogicalGates
+      - title: LogicalIndexSequence
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/executor/LogicalIndexSequence
+      - title: LogicalMapping
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/executor/LogicalMapping
+    - title: gates
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates
+      - title: acquaint_and_shift
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates/acquaint_and_shift
+      - title: acquaint_insides
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates/acquaint_insides
+      - title: Layers
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates/Layers
+      - title: new_layers
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates/new_layers
+      - title: operations_to_part_lens
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/gates/operations_to_part_lens
+    - title: inspection_utils
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/inspection_utils
+      - title: get_acquaintance_dag
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/inspection_utils/get_acquaintance_dag
+      - title: LogicalAnnotator
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/inspection_utils/LogicalAnnotator
+    - title: mutation_utils
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/mutation_utils
+      - title: ExposeAcquaintanceGates
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/mutation_utils/ExposeAcquaintanceGates
+      - title: STRATEGY_GATE
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/mutation_utils/STRATEGY_GATE
+    - title: optimizers
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/optimizers
+    - title: permutation
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/permutation
+      - title: DecomposePermutationGates
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/permutation/DecomposePermutationGates
+      - title: MappingDisplayGate
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/permutation/MappingDisplayGate
+    - title: shift
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/shift
+    - title: shift_swap_network
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/shift_swap_network
+    - title: strategies
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies
+      - title: complete
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies/complete
+      - title: cubic
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies/cubic
+        - title: skip_and_wrap_around
+          path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies/cubic/skip_and_wrap_around
+      - title: quartic_paired
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies/quartic_paired
+        - title: qubit_pairs_to_qubit_order
+          path: /cirq/api_docs/python/cirq/contrib/acquaintance/strategies/quartic_paired/qubit_pairs_to_qubit_order
+    - title: testing
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/testing
+      - title: assert_permutation_decomposition_equivalence
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/testing/assert_permutation_decomposition_equivalence
+    - title: topological_sort
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/acquaintance/topological_sort
+  - title: graph_device
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/contrib/graph_device
+    - title: FixedDurationUndirectedGraphDeviceEdge
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/FixedDurationUndirectedGraphDeviceEdge
+    - title: is_crosstalk_graph
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/is_crosstalk_graph
+    - title: is_undirected_device_graph
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/is_undirected_device_graph
+    - title: UndirectedGraphDevice
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/UndirectedGraphDevice
+    - title: UndirectedHypergraph
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/UndirectedHypergraph
+    - title: uniform_undirected_graph_device
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/uniform_undirected_graph_device
+    - title: uniform_undirected_linear_device
+      path: /cirq/api_docs/python/cirq/contrib/graph_device/uniform_undirected_linear_device
+    - title: graph_device
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/graph_device
+      - title: raise_crosstalk_error
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/graph_device/raise_crosstalk_error
+      - title: UndirectedGraphDeviceEdge
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/graph_device/UndirectedGraphDeviceEdge
+    - title: hypergraph
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/hypergraph
+      - title: AdjacencyList
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/hypergraph/AdjacencyList
+    - title: uniform_graph_device
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/graph_device/uniform_graph_device
+  - title: json
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/contrib/json
+    - title: contrib_class_resolver
+      path: /cirq/api_docs/python/cirq/contrib/json/contrib_class_resolver
+  - title: qcircuit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/contrib/qcircuit
+    - title: escape_text_for_latex
+      path: /cirq/api_docs/python/cirq/contrib/qcircuit/escape_text_for_latex
+    - title: get_multigate_parameters
+      path: /cirq/api_docs/python/cirq/contrib/qcircuit/get_multigate_parameters
+    - title: get_qcircuit_diagram_info
+      path: /cirq/api_docs/python/cirq/contrib/qcircuit/get_qcircuit_diagram_info
+    - title: qcircuit_diagram
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram
+      - title: qcircuit_qubit_namer
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram/qcircuit_qubit_namer
+    - title: qcircuit_diagram_info
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram_info
+      - title: convert_text_diagram_info_to_qcircuit_diagram_info
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram_info/convert_text_diagram_info_to_qcircuit_diagram_info
+      - title: fallback_qcircuit_diagram_info
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram_info/fallback_qcircuit_diagram_info
+      - title: hardcoded_qcircuit_diagram_info
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram_info/hardcoded_qcircuit_diagram_info
+      - title: multigate_qcircuit_diagram_info
+        path: /cirq/api_docs/python/cirq/contrib/qcircuit/qcircuit_diagram_info/multigate_qcircuit_diagram_info
+  - title: quirk
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/contrib/quirk
+    - title: circuit_to_quirk_url
+      path: /cirq/api_docs/python/cirq/contrib/quirk/circuit_to_quirk_url
+    - title: export_to_quirk
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/quirk/export_to_quirk
+    - title: linearize_circuit
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/quirk/linearize_circuit
+      - title: linearize_circuit_qubits
+        path: /cirq/api_docs/python/cirq/contrib/quirk/linearize_circuit/linearize_circuit_qubits
+      - title: QubitMapper
+        path: /cirq/api_docs/python/cirq/contrib/quirk/linearize_circuit/QubitMapper
+    - title: quirk_gate
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate
+      - title: angle_to_exponent_key
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/angle_to_exponent_key
+      - title: ccx_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/ccx_to_quirk_op
+      - title: ccz_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/ccz_to_quirk_op
+      - title: cnot_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/cnot_to_quirk_op
+      - title: controlled_unwrap
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/controlled_unwrap
+      - title: cswap_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/cswap_to_quirk_op
+      - title: cz_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/cz_to_quirk_op
+      - title: h_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/h_to_quirk_op
+      - title: known_quirk_op_for_operation
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/known_quirk_op_for_operation
+      - title: QuirkOp
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/QuirkOp
+      - title: same_half_turns
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/same_half_turns
+      - title: single_qubit_matrix_gate
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/single_qubit_matrix_gate
+      - title: swap_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/swap_to_quirk_op
+      - title: xyz_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/xyz_to_quirk_op
+      - title: x_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/x_to_quirk_op
+      - title: y_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/y_to_quirk_op
+      - title: z_to_quirk_op
+        path: /cirq/api_docs/python/cirq/contrib/quirk/quirk_gate/z_to_quirk_op
+- title: cirq.devices
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/devices
+  - title: ConstantQubitNoiseModel
+    path: /cirq/api_docs/python/cirq/devices/ConstantQubitNoiseModel
+  - title: Device
+    path: /cirq/api_docs/python/cirq/devices/Device
+  - title: GridQid
+    path: /cirq/api_docs/python/cirq/devices/GridQid
+  - title: GridQubit
+    path: /cirq/api_docs/python/cirq/devices/GridQubit
+  - title: LineQid
+    path: /cirq/api_docs/python/cirq/devices/LineQid
+  - title: LineQubit
+    path: /cirq/api_docs/python/cirq/devices/LineQubit
+  - title: NoiseModel
+    path: /cirq/api_docs/python/cirq/devices/NoiseModel
+  - title: NOISE_MODEL_LIKE
+    path: /cirq/api_docs/python/cirq/devices/NOISE_MODEL_LIKE
+  - title: device
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/devices/device
+  - title: grid_qubit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/devices/grid_qubit
+  - title: line_qubit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/devices/line_qubit
+  - title: noise_model
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/devices/noise_model
+  - title: unconstrained_device
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/devices/unconstrained_device
+- title: cirq.experiments
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/experiments
+  - title: build_entangling_layers
+    path: /cirq/api_docs/python/cirq/experiments/build_entangling_layers
+  - title: CrossEntropyResult
+    path: /cirq/api_docs/python/cirq/experiments/CrossEntropyResult
+  - title: cross_entropy_benchmarking
+    path: /cirq/api_docs/python/cirq/experiments/cross_entropy_benchmarking
+  - title: estimate_single_qubit_readout_errors
+    path: /cirq/api_docs/python/cirq/experiments/estimate_single_qubit_readout_errors
+  - title: generate_boixo_2018_supremacy_circuits_v2
+    path: /cirq/api_docs/python/cirq/experiments/generate_boixo_2018_supremacy_circuits_v2
+  - title: generate_boixo_2018_supremacy_circuits_v2_bristlecone
+    path: /cirq/api_docs/python/cirq/experiments/generate_boixo_2018_supremacy_circuits_v2_bristlecone
+  - title: generate_boixo_2018_supremacy_circuits_v2_grid
+    path: /cirq/api_docs/python/cirq/experiments/generate_boixo_2018_supremacy_circuits_v2_grid
+  - title: get_state_tomography_data
+    path: /cirq/api_docs/python/cirq/experiments/get_state_tomography_data
+  - title: GridInteractionLayer
+    path: /cirq/api_docs/python/cirq/experiments/GridInteractionLayer
+  - title: hog_score_xeb_fidelity_from_probabilities
+    path: /cirq/api_docs/python/cirq/experiments/hog_score_xeb_fidelity_from_probabilities
+  - title: linear_xeb_fidelity
+    path: /cirq/api_docs/python/cirq/experiments/linear_xeb_fidelity
+  - title: linear_xeb_fidelity_from_probabilities
+    path: /cirq/api_docs/python/cirq/experiments/linear_xeb_fidelity_from_probabilities
+  - title: log_xeb_fidelity
+    path: /cirq/api_docs/python/cirq/experiments/log_xeb_fidelity
+  - title: log_xeb_fidelity_from_probabilities
+    path: /cirq/api_docs/python/cirq/experiments/log_xeb_fidelity_from_probabilities
+  - title: RabiResult
+    path: /cirq/api_docs/python/cirq/experiments/RabiResult
+  - title: rabi_oscillations
+    path: /cirq/api_docs/python/cirq/experiments/rabi_oscillations
+  - title: RandomizedBenchMarkResult
+    path: /cirq/api_docs/python/cirq/experiments/RandomizedBenchMarkResult
+  - title: random_rotations_between_grid_interaction_layers_circuit
+    path: /cirq/api_docs/python/cirq/experiments/random_rotations_between_grid_interaction_layers_circuit
+  - title: SingleQubitReadoutCalibrationResult
+    path: /cirq/api_docs/python/cirq/experiments/SingleQubitReadoutCalibrationResult
+  - title: single_qubit_randomized_benchmarking
+    path: /cirq/api_docs/python/cirq/experiments/single_qubit_randomized_benchmarking
+  - title: single_qubit_state_tomography
+    path: /cirq/api_docs/python/cirq/experiments/single_qubit_state_tomography
+  - title: StateTomographyExperiment
+    path: /cirq/api_docs/python/cirq/experiments/StateTomographyExperiment
+  - title: state_tomography
+    path: /cirq/api_docs/python/cirq/experiments/state_tomography
+  - title: T1DecayResult
+    path: /cirq/api_docs/python/cirq/experiments/T1DecayResult
+  - title: t1_decay
+    path: /cirq/api_docs/python/cirq/experiments/t1_decay
+  - title: T2DecayResult
+    path: /cirq/api_docs/python/cirq/experiments/T2DecayResult
+  - title: t2_decay
+    path: /cirq/api_docs/python/cirq/experiments/t2_decay
+  - title: TomographyResult
+    path: /cirq/api_docs/python/cirq/experiments/TomographyResult
+  - title: two_qubit_randomized_benchmarking
+    path: /cirq/api_docs/python/cirq/experiments/two_qubit_randomized_benchmarking
+  - title: two_qubit_state_tomography
+    path: /cirq/api_docs/python/cirq/experiments/two_qubit_state_tomography
+  - title: xeb_fidelity
+    path: /cirq/api_docs/python/cirq/experiments/xeb_fidelity
+  - title: fidelity_estimation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/fidelity_estimation
+  - title: google_v2_supremacy_circuit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/google_v2_supremacy_circuit
+  - title: n_qubit_tomography
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/n_qubit_tomography
+  - title: qubit_characterizations
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/qubit_characterizations
+    - title: Cliffords
+      path: /cirq/api_docs/python/cirq/experiments/qubit_characterizations/Cliffords
+  - title: random_quantum_circuit_generation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/random_quantum_circuit_generation
+  - title: single_qubit_readout_calibration
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/single_qubit_readout_calibration
+  - title: t1_decay_experiment
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/t1_decay_experiment
+  - title: t2_decay_experiment
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/experiments/t2_decay_experiment
+    - title: ExperimentType
+      path: /cirq/api_docs/python/cirq/experiments/t2_decay_experiment/ExperimentType
+- title: cirq.google
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/google
+  - title: AnnealSequenceSearchStrategy
+    path: /cirq/api_docs/python/cirq/google/AnnealSequenceSearchStrategy
+  - title: Calibration
+    path: /cirq/api_docs/python/cirq/google/Calibration
+  - title: ConvertToSqrtIswapGates
+    path: /cirq/api_docs/python/cirq/google/ConvertToSqrtIswapGates
+  - title: ConvertToSycamoreGates
+    path: /cirq/api_docs/python/cirq/google/ConvertToSycamoreGates
+  - title: ConvertToXmonGates
+    path: /cirq/api_docs/python/cirq/google/ConvertToXmonGates
+  - title: DeserializingArg
+    path: /cirq/api_docs/python/cirq/google/DeserializingArg
+  - title: Engine
+    path: /cirq/api_docs/python/cirq/google/Engine
+  - title: EngineJob
+    path: /cirq/api_docs/python/cirq/google/EngineJob
+  - title: EngineProcessor
+    path: /cirq/api_docs/python/cirq/google/EngineProcessor
+  - title: EngineProgram
+    path: /cirq/api_docs/python/cirq/google/EngineProgram
+  - title: EngineTimeSlot
+    path: /cirq/api_docs/python/cirq/google/EngineTimeSlot
+  - title: engine_from_environment
+    path: /cirq/api_docs/python/cirq/google/engine_from_environment
+  - title: GateOpDeserializer
+    path: /cirq/api_docs/python/cirq/google/GateOpDeserializer
+  - title: GateOpSerializer
+    path: /cirq/api_docs/python/cirq/google/GateOpSerializer
+  - title: GateTabulation
+    path: /cirq/api_docs/python/cirq/google/GateTabulation
+  - title: GreedySequenceSearchStrategy
+    path: /cirq/api_docs/python/cirq/google/GreedySequenceSearchStrategy
+  - title: is_native_xmon_gate
+    path: /cirq/api_docs/python/cirq/google/is_native_xmon_gate
+  - title: is_native_xmon_op
+    path: /cirq/api_docs/python/cirq/google/is_native_xmon_op
+  - title: LinePlacementStrategy
+    path: /cirq/api_docs/python/cirq/google/LinePlacementStrategy
+  - title: line_on_device
+    path: /cirq/api_docs/python/cirq/google/line_on_device
+  - title: optimized_for_sycamore
+    path: /cirq/api_docs/python/cirq/google/optimized_for_sycamore
+  - title: optimized_for_xmon
+    path: /cirq/api_docs/python/cirq/google/optimized_for_xmon
+  - title: pack_results
+    path: /cirq/api_docs/python/cirq/google/pack_results
+  - title: PhysicalZTag
+    path: /cirq/api_docs/python/cirq/google/PhysicalZTag
+  - title: ProtoVersion
+    path: /cirq/api_docs/python/cirq/google/ProtoVersion
+  - title: QuantumEngineSampler
+    path: /cirq/api_docs/python/cirq/google/QuantumEngineSampler
+  - title: SerializableDevice
+    path: /cirq/api_docs/python/cirq/google/SerializableDevice
+  - title: SerializableGateSet
+    path: /cirq/api_docs/python/cirq/google/SerializableGateSet
+  - title: SerializingArg
+    path: /cirq/api_docs/python/cirq/google/SerializingArg
+  - title: SYC
+    path: /cirq/api_docs/python/cirq/google/SYC
+  - title: SycamoreGate
+    path: /cirq/api_docs/python/cirq/google/SycamoreGate
+  - title: unpack_results
+    path: /cirq/api_docs/python/cirq/google/unpack_results
+  - title: XmonDevice
+    path: /cirq/api_docs/python/cirq/google/XmonDevice
+  - title: api
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/api
+    - title: v1
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/api/v1
+      - title: circuit_as_schedule_to_protos
+        path: /cirq/api_docs/python/cirq/google/api/v1/circuit_as_schedule_to_protos
+      - title: circuit_from_schedule_from_protos
+        path: /cirq/api_docs/python/cirq/google/api/v1/circuit_from_schedule_from_protos
+      - title: gate_to_proto
+        path: /cirq/api_docs/python/cirq/google/api/v1/gate_to_proto
+      - title: sweep_from_proto
+        path: /cirq/api_docs/python/cirq/google/api/v1/sweep_from_proto
+      - title: sweep_to_proto
+        path: /cirq/api_docs/python/cirq/google/api/v1/sweep_to_proto
+      - title: xmon_op_from_proto
+        path: /cirq/api_docs/python/cirq/google/api/v1/xmon_op_from_proto
+      - title: operations_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2
+        - title: Exp11
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/Exp11
+        - title: ExpW
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/ExpW
+        - title: ExpZ
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/ExpZ
+        - title: Measurement
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/Measurement
+        - title: Operation
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/Operation
+        - title: ParameterizedFloat
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/ParameterizedFloat
+        - title: Qubit
+          path: /cirq/api_docs/python/cirq/google/api/v1/operations_pb2/Qubit
+      - title: params
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v1/params
+      - title: params_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2
+        - title: Linspace
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/Linspace
+        - title: ParameterDict
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/ParameterDict
+        - title: ParameterDict.AssignmentsEntry
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/ParameterDict/AssignmentsEntry
+        - title: ParameterSweep
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/ParameterSweep
+        - title: Points
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/Points
+        - title: ProductSweep
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/ProductSweep
+        - title: SingleSweep
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/SingleSweep
+        - title: ZipSweep
+          path: /cirq/api_docs/python/cirq/google/api/v1/params_pb2/ZipSweep
+      - title: program_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2
+        - title: MeasurementKey
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/MeasurementKey
+        - title: ParameterizedResult
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/ParameterizedResult
+        - title: Program
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/Program
+        - title: Result
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/Result
+        - title: RunContext
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/RunContext
+        - title: SweepResult
+          path: /cirq/api_docs/python/cirq/google/api/v1/program_pb2/SweepResult
+      - title: programs
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v1/programs
+    - title: v2
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/api/v2
+      - title: find_measurements
+        path: /cirq/api_docs/python/cirq/google/api/v2/find_measurements
+      - title: grid_qubit_from_proto_id
+        path: /cirq/api_docs/python/cirq/google/api/v2/grid_qubit_from_proto_id
+      - title: line_qubit_from_proto_id
+        path: /cirq/api_docs/python/cirq/google/api/v2/line_qubit_from_proto_id
+      - title: MeasureInfo
+        path: /cirq/api_docs/python/cirq/google/api/v2/MeasureInfo
+      - title: named_qubit_from_proto_id
+        path: /cirq/api_docs/python/cirq/google/api/v2/named_qubit_from_proto_id
+      - title: pack_bits
+        path: /cirq/api_docs/python/cirq/google/api/v2/pack_bits
+      - title: qubit_from_proto_id
+        path: /cirq/api_docs/python/cirq/google/api/v2/qubit_from_proto_id
+      - title: qubit_to_proto_id
+        path: /cirq/api_docs/python/cirq/google/api/v2/qubit_to_proto_id
+      - title: results_from_proto
+        path: /cirq/api_docs/python/cirq/google/api/v2/results_from_proto
+      - title: results_to_proto
+        path: /cirq/api_docs/python/cirq/google/api/v2/results_to_proto
+      - title: sweep_from_proto
+        path: /cirq/api_docs/python/cirq/google/api/v2/sweep_from_proto
+      - title: sweep_to_proto
+        path: /cirq/api_docs/python/cirq/google/api/v2/sweep_to_proto
+      - title: unpack_bits
+        path: /cirq/api_docs/python/cirq/google/api/v2/unpack_bits
+      - title: device_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2
+        - title: ArgDefinition
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/ArgDefinition
+        - title: ArgumentRange
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/ArgumentRange
+        - title: DeviceSpecification
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/DeviceSpecification
+        - title: GateDefinition
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/GateDefinition
+        - title: GateSet
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/GateSet
+        - title: Target
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/Target
+        - title: TargetSet
+          path: /cirq/api_docs/python/cirq/google/api/v2/device_pb2/TargetSet
+      - title: metrics_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/metrics_pb2
+        - title: Metric
+          path: /cirq/api_docs/python/cirq/google/api/v2/metrics_pb2/Metric
+        - title: MetricsSnapshot
+          path: /cirq/api_docs/python/cirq/google/api/v2/metrics_pb2/MetricsSnapshot
+        - title: Value
+          path: /cirq/api_docs/python/cirq/google/api/v2/metrics_pb2/Value
+      - title: program
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/program
+      - title: program_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2
+        - title: Arg
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Arg
+        - title: ArgFunction
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/ArgFunction
+        - title: ArgValue
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/ArgValue
+        - title: Circuit
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Circuit
+        - title: Gate
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Gate
+        - title: Language
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Language
+        - title: Moment
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Moment
+        - title: Operation
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Operation
+        - title: Operation.ArgsEntry
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Operation/ArgsEntry
+        - title: Program
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Program
+        - title: Qubit
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Qubit
+        - title: RepeatedBoolean
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/RepeatedBoolean
+        - title: Schedule
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/Schedule
+        - title: ScheduledOperation
+          path: /cirq/api_docs/python/cirq/google/api/v2/program_pb2/ScheduledOperation
+      - title: result_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2
+        - title: MeasurementResult
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/MeasurementResult
+        - title: ParameterDict
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/ParameterDict
+        - title: ParameterDict.AssignmentsEntry
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/ParameterDict/AssignmentsEntry
+        - title: ParameterizedResult
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/ParameterizedResult
+        - title: QubitMeasurementResult
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/QubitMeasurementResult
+        - title: Result
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/Result
+        - title: SweepResult
+          path: /cirq/api_docs/python/cirq/google/api/v2/result_pb2/SweepResult
+      - title: results
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/results
+      - title: run_context_pb2
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2
+        - title: Linspace
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/Linspace
+        - title: ParameterSweep
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/ParameterSweep
+        - title: Points
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/Points
+        - title: RunContext
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/RunContext
+        - title: SingleSweep
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/SingleSweep
+        - title: Sweep
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/Sweep
+        - title: SweepFunction
+          path: /cirq/api_docs/python/cirq/google/api/v2/run_context_pb2/SweepFunction
+      - title: sweeps
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/api/v2/sweeps
+  - title: arg_func_langs
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/arg_func_langs
+    - title: ARG_LIKE
+      path: /cirq/api_docs/python/cirq/google/arg_func_langs/ARG_LIKE
+  - title: common_serializers
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/common_serializers
+  - title: devices
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/devices
+    - title: known_devices
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/devices/known_devices
+      - title: create_device_proto_for_qubits
+        path: /cirq/api_docs/python/cirq/google/devices/known_devices/create_device_proto_for_qubits
+      - title: create_device_proto_from_diagram
+        path: /cirq/api_docs/python/cirq/google/devices/known_devices/create_device_proto_from_diagram
+    - title: serializable_device
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/devices/serializable_device
+    - title: xmon_device
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/devices/xmon_device
+  - title: engine
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/engine
+    - title: EngineException
+      path: /cirq/api_docs/python/cirq/google/engine/EngineException
+    - title: calibration
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/calibration
+    - title: client
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/client
+      - title: quantum
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/engine/client/quantum
+        - title: QuantumEngineServiceClient
+          path: /cirq/api_docs/python/cirq/google/engine/client/quantum/QuantumEngineServiceClient
+        - title: enums
+          section:
+          - title: Overview
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums
+          - title: ExecutionStatus
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/ExecutionStatus
+          - title: ExecutionStatus.Failure
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/ExecutionStatus/Failure
+          - title: ExecutionStatus.Failure.Code
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/ExecutionStatus/Failure/Code
+          - title: ExecutionStatus.State
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/ExecutionStatus/State
+          - title: QuantumProcessor
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/QuantumProcessor
+          - title: QuantumProcessor.Health
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/QuantumProcessor/Health
+          - title: QuantumTimeSlot
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/QuantumTimeSlot
+          - title: QuantumTimeSlot.TimeSlotType
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/QuantumTimeSlot/TimeSlotType
+          - title: StreamError
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/StreamError
+          - title: StreamError.Code
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/enums/StreamError/Code
+        - title: types
+          section:
+          - title: Overview
+            path: /cirq/api_docs/python/cirq/google/engine/client/quantum/types
+      - title: quantum_v1alpha1
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/engine/client/quantum_v1alpha1
+    - title: engine
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine
+      - title: EngineContext
+        path: /cirq/api_docs/python/cirq/google/engine/engine/EngineContext
+    - title: engine_client
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_client
+      - title: EngineClient
+        path: /cirq/api_docs/python/cirq/google/engine/engine_client/EngineClient
+    - title: engine_job
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_job
+    - title: engine_processor
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_processor
+    - title: engine_program
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_program
+    - title: engine_sampler
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_sampler
+    - title: engine_timeslot
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/engine_timeslot
+    - title: env_config
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/engine/env_config
+  - title: gate_sets
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/gate_sets
+  - title: line
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/line
+    - title: placement
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/line/placement
+      - title: anneal_minimize
+        path: /cirq/api_docs/python/cirq/google/line/placement/anneal_minimize
+      - title: GridQubitLineTuple
+        path: /cirq/api_docs/python/cirq/google/line/placement/GridQubitLineTuple
+      - title: anneal
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/anneal
+        - title: AnnealSequenceSearch
+          path: /cirq/api_docs/python/cirq/google/line/placement/anneal/AnnealSequenceSearch
+        - title: EDGE
+          path: /cirq/api_docs/python/cirq/google/line/placement/anneal/EDGE
+        - title: index_2d
+          path: /cirq/api_docs/python/cirq/google/line/placement/anneal/index_2d
+        - title: LineSequence
+          path: /cirq/api_docs/python/cirq/google/line/placement/anneal/LineSequence
+      - title: chip
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip
+        - title: above
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip/above
+        - title: below
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip/below
+        - title: chip_as_adjacency_list
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip/chip_as_adjacency_list
+        - title: left_of
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip/left_of
+        - title: right_of
+          path: /cirq/api_docs/python/cirq/google/line/placement/chip/right_of
+      - title: greedy
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/greedy
+        - title: GreedySequenceSearch
+          path: /cirq/api_docs/python/cirq/google/line/placement/greedy/GreedySequenceSearch
+      - title: line
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/line
+      - title: optimization
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/optimization
+      - title: place_strategy
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/place_strategy
+      - title: sequence
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/line/placement/sequence
+        - title: NotFoundError
+          path: /cirq/api_docs/python/cirq/google/line/placement/sequence/NotFoundError
+  - title: op_deserializer
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/op_deserializer
+  - title: op_serializer
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/op_serializer
+  - title: ops
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/ops
+    - title: physical_z_tag
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/ops/physical_z_tag
+    - title: sycamore_gate
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/ops/sycamore_gate
+  - title: optimizers
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/optimizers
+    - title: gate_product_tabulation
+      path: /cirq/api_docs/python/cirq/google/optimizers/gate_product_tabulation
+    - title: convert_to_sqrt_iswap
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap
+      - title: cphase_symbols_to_sqrt_iswap
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/cphase_symbols_to_sqrt_iswap
+      - title: cphase_to_sqrt_iswap
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/cphase_to_sqrt_iswap
+      - title: fsim_gate
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/fsim_gate
+      - title: iswap_to_sqrt_iswap
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/iswap_to_sqrt_iswap
+      - title: is_basic_gate
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/is_basic_gate
+      - title: is_sqrt_iswap
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/is_sqrt_iswap
+      - title: is_sqrt_iswap_compatible
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/is_sqrt_iswap_compatible
+      - title: SQRT_ISWAP
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/SQRT_ISWAP
+      - title: SQRT_ISWAP_INV
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/SQRT_ISWAP_INV
+      - title: swap_to_sqrt_iswap
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sqrt_iswap/swap_to_sqrt_iswap
+    - title: convert_to_sycamore_gates
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates
+      - title: cphase
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/cphase
+      - title: create_corrected_circuit
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/create_corrected_circuit
+      - title: decompose_arbitrary_into_syc_analytic
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_arbitrary_into_syc_analytic
+      - title: decompose_arbitrary_into_syc_tabulation
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_arbitrary_into_syc_tabulation
+      - title: decompose_cz_into_syc
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_cz_into_syc
+      - title: decompose_iswap_into_syc
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_iswap_into_syc
+      - title: decompose_phased_iswap_into_syc
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_phased_iswap_into_syc
+      - title: decompose_phased_iswap_into_syc_precomputed
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_phased_iswap_into_syc_precomputed
+      - title: decompose_swap_into_syc
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/decompose_swap_into_syc
+      - title: find_local_equivalents
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/find_local_equivalents
+      - title: known_two_q_operations_to_sycamore_operations
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/known_two_q_operations_to_sycamore_operations
+      - title: rzz
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/rzz
+      - title: swap_rzz
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_sycamore_gates/swap_rzz
+    - title: convert_to_xmon_gates
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/convert_to_xmon_gates
+    - title: optimize_for_sycamore
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/optimize_for_sycamore
+    - title: optimize_for_xmon
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/optimize_for_xmon
+    - title: two_qubit_gates
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates
+      - title: gate_compilation
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/gate_compilation
+        - title: reduce
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/gate_compilation/reduce
+        - title: TwoQubitGateCompilation
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/gate_compilation/TwoQubitGateCompilation
+      - title: math_utils
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils
+        - title: in_weyl_chamber
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/in_weyl_chamber
+        - title: kak_vector_infidelity
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/kak_vector_infidelity
+        - title: kak_vector_to_unitary
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/kak_vector_to_unitary
+        - title: random_qubit_unitary
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/random_qubit_unitary
+        - title: unitary_entanglement_fidelity
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/unitary_entanglement_fidelity
+        - title: vector_kron
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/vector_kron
+        - title: weyl_chamber_mesh
+          path: /cirq/api_docs/python/cirq/google/optimizers/two_qubit_gates/math_utils/weyl_chamber_mesh
+  - title: serializable_gate_set
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/google/serializable_gate_set
+- title: cirq.interop
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/interop
+  - title: quirk_json_to_circuit
+    path: /cirq/api_docs/python/cirq/interop/quirk_json_to_circuit
+  - title: quirk_url_to_circuit
+    path: /cirq/api_docs/python/cirq/interop/quirk_url_to_circuit
+  - title: quirk
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/interop/quirk
+    - title: QuirkArithmeticOperation
+      path: /cirq/api_docs/python/cirq/interop/quirk/QuirkArithmeticOperation
+    - title: QuirkInputRotationOperation
+      path: /cirq/api_docs/python/cirq/interop/quirk/QuirkInputRotationOperation
+    - title: QuirkQubitPermutationGate
+      path: /cirq/api_docs/python/cirq/interop/quirk/QuirkQubitPermutationGate
+    - title: cells
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells
+      - title: Cell
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/Cell
+      - title: CellMaker
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/CellMaker
+      - title: CellMakerArgs
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/CellMakerArgs
+      - title: CompositeCell
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/CompositeCell
+      - title: ExplicitOperationsCell
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/ExplicitOperationsCell
+      - title: generate_all_quirk_cell_makers
+        path: /cirq/api_docs/python/cirq/interop/quirk/cells/generate_all_quirk_cell_makers
+      - title: all_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/all_cells
+      - title: arithmetic_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/arithmetic_cells
+        - title: ArithmeticCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/arithmetic_cells/ArithmeticCell
+        - title: generate_all_arithmetic_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/arithmetic_cells/generate_all_arithmetic_cell_makers
+      - title: cell
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/cell
+      - title: composite_cell
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/composite_cell
+      - title: control_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/control_cells
+        - title: ControlCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/control_cells/ControlCell
+        - title: generate_all_control_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/control_cells/generate_all_control_cell_makers
+        - title: ParityControlCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/control_cells/ParityControlCell
+      - title: frequency_space_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/frequency_space_cells
+        - title: generate_all_frequency_space_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/frequency_space_cells/generate_all_frequency_space_cell_makers
+      - title: ignored_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/ignored_cells
+        - title: generate_all_ignored_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/ignored_cells/generate_all_ignored_cell_makers
+      - title: input_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_cells
+        - title: generate_all_input_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_cells/generate_all_input_cell_makers
+        - title: InputCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_cells/InputCell
+        - title: SetDefaultInputCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_cells/SetDefaultInputCell
+      - title: input_rotation_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_rotation_cells
+        - title: generate_all_input_rotation_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_rotation_cells/generate_all_input_rotation_cell_makers
+        - title: InputRotationCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/input_rotation_cells/InputRotationCell
+      - title: measurement_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/measurement_cells
+        - title: generate_all_measurement_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/measurement_cells/generate_all_measurement_cell_makers
+      - title: parse
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/parse
+        - title: parse_complex
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/parse/parse_complex
+        - title: parse_formula
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/parse/parse_formula
+        - title: parse_matrix
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/parse/parse_matrix
+      - title: qubit_permutation_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/qubit_permutation_cells
+        - title: generate_all_qubit_permutation_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/qubit_permutation_cells/generate_all_qubit_permutation_cell_makers
+      - title: scalar_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/scalar_cells
+        - title: generate_all_scalar_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/scalar_cells/generate_all_scalar_cell_makers
+      - title: single_qubit_rotation_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/single_qubit_rotation_cells
+        - title: generate_all_single_qubit_rotation_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/single_qubit_rotation_cells/generate_all_single_qubit_rotation_cell_makers
+      - title: swap_cell
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/swap_cell
+        - title: generate_all_swap_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/swap_cell/generate_all_swap_cell_makers
+        - title: SwapCell
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/swap_cell/SwapCell
+      - title: unsupported_cells
+        section:
+        - title: Overview
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/unsupported_cells
+        - title: generate_all_unsupported_cell_makers
+          path: /cirq/api_docs/python/cirq/interop/quirk/cells/unsupported_cells/generate_all_unsupported_cell_makers
+    - title: url_to_circuit
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/interop/quirk/url_to_circuit
+- title: cirq.ion
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/ion
+  - title: ConvertToIonGates
+    path: /cirq/api_docs/python/cirq/ion/ConvertToIonGates
+  - title: IonDevice
+    path: /cirq/api_docs/python/cirq/ion/IonDevice
+  - title: ms
+    path: /cirq/api_docs/python/cirq/ion/ms
+  - title: two_qubit_matrix_to_ion_operations
+    path: /cirq/api_docs/python/cirq/ion/two_qubit_matrix_to_ion_operations
+  - title: convert_to_ion_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ion/convert_to_ion_gates
+    - title: is_native_ion_gate
+      path: /cirq/api_docs/python/cirq/ion/convert_to_ion_gates/is_native_ion_gate
+  - title: ion_decomposition
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ion/ion_decomposition
+  - title: ion_device
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ion/ion_device
+  - title: ion_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ion/ion_gates
+    - title: MSGate
+      path: /cirq/api_docs/python/cirq/ion/ion_gates/MSGate
+- title: cirq.linalg
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/linalg
+  - title: allclose_up_to_global_phase
+    path: /cirq/api_docs/python/cirq/linalg/allclose_up_to_global_phase
+  - title: all_near_zero
+    path: /cirq/api_docs/python/cirq/linalg/all_near_zero
+  - title: all_near_zero_mod
+    path: /cirq/api_docs/python/cirq/linalg/all_near_zero_mod
+  - title: apply_matrix_to_slices
+    path: /cirq/api_docs/python/cirq/linalg/apply_matrix_to_slices
+  - title: AxisAngleDecomposition
+    path: /cirq/api_docs/python/cirq/linalg/AxisAngleDecomposition
+  - title: axis_angle
+    path: /cirq/api_docs/python/cirq/linalg/axis_angle
+  - title: bidiagonalize_real_matrix_pair_with_symmetric_products
+    path: /cirq/api_docs/python/cirq/linalg/bidiagonalize_real_matrix_pair_with_symmetric_products
+  - title: bidiagonalize_unitary_with_special_orthogonals
+    path: /cirq/api_docs/python/cirq/linalg/bidiagonalize_unitary_with_special_orthogonals
+  - title: block_diag
+    path: /cirq/api_docs/python/cirq/linalg/block_diag
+  - title: deconstruct_single_qubit_matrix_into_angles
+    path: /cirq/api_docs/python/cirq/linalg/deconstruct_single_qubit_matrix_into_angles
+  - title: diagonalize_real_symmetric_and_sorted_diagonal_matrices
+    path: /cirq/api_docs/python/cirq/linalg/diagonalize_real_symmetric_and_sorted_diagonal_matrices
+  - title: diagonalize_real_symmetric_matrix
+    path: /cirq/api_docs/python/cirq/linalg/diagonalize_real_symmetric_matrix
+  - title: dot
+    path: /cirq/api_docs/python/cirq/linalg/dot
+  - title: expand_matrix_in_orthogonal_basis
+    path: /cirq/api_docs/python/cirq/linalg/expand_matrix_in_orthogonal_basis
+  - title: eye_tensor
+    status: deprecated
+    path: /cirq/api_docs/python/cirq/linalg/eye_tensor
+  - title: hilbert_schmidt_inner_product
+    path: /cirq/api_docs/python/cirq/linalg/hilbert_schmidt_inner_product
+  - title: is_diagonal
+    path: /cirq/api_docs/python/cirq/linalg/is_diagonal
+  - title: is_hermitian
+    path: /cirq/api_docs/python/cirq/linalg/is_hermitian
+  - title: is_normal
+    path: /cirq/api_docs/python/cirq/linalg/is_normal
+  - title: is_orthogonal
+    path: /cirq/api_docs/python/cirq/linalg/is_orthogonal
+  - title: is_special_orthogonal
+    path: /cirq/api_docs/python/cirq/linalg/is_special_orthogonal
+  - title: is_special_unitary
+    path: /cirq/api_docs/python/cirq/linalg/is_special_unitary
+  - title: is_unitary
+    path: /cirq/api_docs/python/cirq/linalg/is_unitary
+  - title: KakDecomposition
+    path: /cirq/api_docs/python/cirq/linalg/KakDecomposition
+  - title: kak_canonicalize_vector
+    path: /cirq/api_docs/python/cirq/linalg/kak_canonicalize_vector
+  - title: kak_decomposition
+    path: /cirq/api_docs/python/cirq/linalg/kak_decomposition
+  - title: kak_vector
+    path: /cirq/api_docs/python/cirq/linalg/kak_vector
+  - title: kron
+    path: /cirq/api_docs/python/cirq/linalg/kron
+  - title: kron_bases
+    path: /cirq/api_docs/python/cirq/linalg/kron_bases
+  - title: kron_factor_4x4_to_2x2s
+    path: /cirq/api_docs/python/cirq/linalg/kron_factor_4x4_to_2x2s
+  - title: kron_with_controls
+    path: /cirq/api_docs/python/cirq/linalg/kron_with_controls
+  - title: map_eigenvalues
+    path: /cirq/api_docs/python/cirq/linalg/map_eigenvalues
+  - title: match_global_phase
+    path: /cirq/api_docs/python/cirq/linalg/match_global_phase
+  - title: matrix_commutes
+    path: /cirq/api_docs/python/cirq/linalg/matrix_commutes
+  - title: matrix_from_basis_coefficients
+    path: /cirq/api_docs/python/cirq/linalg/matrix_from_basis_coefficients
+  - title: one_hot
+    status: deprecated
+    path: /cirq/api_docs/python/cirq/linalg/one_hot
+  - title: partial_trace
+    path: /cirq/api_docs/python/cirq/linalg/partial_trace
+  - title: partial_trace_of_state_vector_as_mixture
+    path: /cirq/api_docs/python/cirq/linalg/partial_trace_of_state_vector_as_mixture
+  - title: pow_pauli_combination
+    path: /cirq/api_docs/python/cirq/linalg/pow_pauli_combination
+  - title: reflection_matrix_pow
+    path: /cirq/api_docs/python/cirq/linalg/reflection_matrix_pow
+  - title: scatter_plot_normalized_kak_interaction_coefficients
+    path: /cirq/api_docs/python/cirq/linalg/scatter_plot_normalized_kak_interaction_coefficients
+  - title: slice_for_qubits_equal_to
+    path: /cirq/api_docs/python/cirq/linalg/slice_for_qubits_equal_to
+  - title: so4_to_magic_su2s
+    path: /cirq/api_docs/python/cirq/linalg/so4_to_magic_su2s
+  - title: subwavefunction
+    status: deprecated
+    path: /cirq/api_docs/python/cirq/linalg/subwavefunction
+  - title: sub_state_vector
+    path: /cirq/api_docs/python/cirq/linalg/sub_state_vector
+  - title: targeted_conjugate_about
+    path: /cirq/api_docs/python/cirq/linalg/targeted_conjugate_about
+  - title: targeted_left_multiply
+    path: /cirq/api_docs/python/cirq/linalg/targeted_left_multiply
+  - title: unitary_eig
+    path: /cirq/api_docs/python/cirq/linalg/unitary_eig
+  - title: wavefunction_partial_trace_as_mixture
+    status: deprecated
+    path: /cirq/api_docs/python/cirq/linalg/wavefunction_partial_trace_as_mixture
+  - title: combinators
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/combinators
+  - title: decompositions
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/decompositions
+  - title: diagonalize
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/diagonalize
+  - title: operator_spaces
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/operator_spaces
+  - title: predicates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/predicates
+  - title: states
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/states
+  - title: tolerance
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/tolerance
+    - title: near_zero
+      path: /cirq/api_docs/python/cirq/linalg/tolerance/near_zero
+    - title: near_zero_mod
+      path: /cirq/api_docs/python/cirq/linalg/tolerance/near_zero_mod
+  - title: transformations
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/linalg/transformations
+- title: cirq.neutral_atoms
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/neutral_atoms
+  - title: ConvertToNeutralAtomGates
+    path: /cirq/api_docs/python/cirq/neutral_atoms/ConvertToNeutralAtomGates
+  - title: is_native_neutral_atom_gate
+    path: /cirq/api_docs/python/cirq/neutral_atoms/is_native_neutral_atom_gate
+  - title: is_native_neutral_atom_op
+    path: /cirq/api_docs/python/cirq/neutral_atoms/is_native_neutral_atom_op
+  - title: NeutralAtomDevice
+    path: /cirq/api_docs/python/cirq/neutral_atoms/NeutralAtomDevice
+  - title: convert_to_neutral_atom_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/neutral_atoms/convert_to_neutral_atom_gates
+  - title: neutral_atom_devices
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/neutral_atoms/neutral_atom_devices
+    - title: sqrt
+      path: /cirq/api_docs/python/cirq/neutral_atoms/neutral_atom_devices/sqrt
+- title: cirq.ops
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/ops
+  - title: AmplitudeDampingChannel
+    path: /cirq/api_docs/python/cirq/ops/AmplitudeDampingChannel
+  - title: amplitude_damp
+    path: /cirq/api_docs/python/cirq/ops/amplitude_damp
+  - title: ArithmeticOperation
+    path: /cirq/api_docs/python/cirq/ops/ArithmeticOperation
+  - title: AsymmetricDepolarizingChannel
+    path: /cirq/api_docs/python/cirq/ops/AsymmetricDepolarizingChannel
+  - title: asymmetric_depolarize
+    path: /cirq/api_docs/python/cirq/ops/asymmetric_depolarize
+  - title: BaseDensePauliString
+    path: /cirq/api_docs/python/cirq/ops/BaseDensePauliString
+  - title: BitFlipChannel
+    path: /cirq/api_docs/python/cirq/ops/BitFlipChannel
+  - title: bit_flip
+    path: /cirq/api_docs/python/cirq/ops/bit_flip
+  - title: CCNOT
+    path: /cirq/api_docs/python/cirq/ops/CCNOT
+  - title: CCNotPowGate
+    path: /cirq/api_docs/python/cirq/ops/CCNotPowGate
+  - title: CCZ
+    path: /cirq/api_docs/python/cirq/ops/CCZ
+  - title: CCZPowGate
+    path: /cirq/api_docs/python/cirq/ops/CCZPowGate
+  - title: CNOT
+    path: /cirq/api_docs/python/cirq/ops/CNOT
+  - title: CNotPowGate
+    path: /cirq/api_docs/python/cirq/ops/CNotPowGate
+  - title: ControlledGate
+    path: /cirq/api_docs/python/cirq/ops/ControlledGate
+  - title: ControlledOperation
+    path: /cirq/api_docs/python/cirq/ops/ControlledOperation
+  - title: CSWAP
+    path: /cirq/api_docs/python/cirq/ops/CSWAP
+  - title: CSwapGate
+    path: /cirq/api_docs/python/cirq/ops/CSwapGate
+  - title: CZ
+    path: /cirq/api_docs/python/cirq/ops/CZ
+  - title: CZPowGate
+    path: /cirq/api_docs/python/cirq/ops/CZPowGate
+  - title: DensePauliString
+    path: /cirq/api_docs/python/cirq/ops/DensePauliString
+  - title: depolarize
+    path: /cirq/api_docs/python/cirq/ops/depolarize
+  - title: DepolarizingChannel
+    path: /cirq/api_docs/python/cirq/ops/DepolarizingChannel
+  - title: EigenGate
+    path: /cirq/api_docs/python/cirq/ops/EigenGate
+  - title: flatten_op_tree
+    path: /cirq/api_docs/python/cirq/ops/flatten_op_tree
+  - title: flatten_to_ops
+    path: /cirq/api_docs/python/cirq/ops/flatten_to_ops
+  - title: flatten_to_ops_or_moments
+    path: /cirq/api_docs/python/cirq/ops/flatten_to_ops_or_moments
+  - title: freeze_op_tree
+    path: /cirq/api_docs/python/cirq/ops/freeze_op_tree
+  - title: FSimGate
+    path: /cirq/api_docs/python/cirq/ops/FSimGate
+  - title: Gate
+    path: /cirq/api_docs/python/cirq/ops/Gate
+  - title: GateOperation
+    path: /cirq/api_docs/python/cirq/ops/GateOperation
+  - title: GeneralizedAmplitudeDampingChannel
+    path: /cirq/api_docs/python/cirq/ops/GeneralizedAmplitudeDampingChannel
+  - title: generalized_amplitude_damp
+    path: /cirq/api_docs/python/cirq/ops/generalized_amplitude_damp
+  - title: givens
+    path: /cirq/api_docs/python/cirq/ops/givens
+  - title: GlobalPhaseOperation
+    path: /cirq/api_docs/python/cirq/ops/GlobalPhaseOperation
+  - title: H
+    path: /cirq/api_docs/python/cirq/ops/H
+  - title: HPowGate
+    path: /cirq/api_docs/python/cirq/ops/HPowGate
+  - title: I
+    path: /cirq/api_docs/python/cirq/ops/I
+  - title: IdentityGate
+    path: /cirq/api_docs/python/cirq/ops/IdentityGate
+  - title: identity_each
+    path: /cirq/api_docs/python/cirq/ops/identity_each
+  - title: InterchangeableQubitsGate
+    path: /cirq/api_docs/python/cirq/ops/InterchangeableQubitsGate
+  - title: ISWAP
+    path: /cirq/api_docs/python/cirq/ops/ISWAP
+  - title: ISwapPowGate
+    path: /cirq/api_docs/python/cirq/ops/ISwapPowGate
+  - title: LinearCombinationOfGates
+    path: /cirq/api_docs/python/cirq/ops/LinearCombinationOfGates
+  - title: LinearCombinationOfOperations
+    path: /cirq/api_docs/python/cirq/ops/LinearCombinationOfOperations
+  - title: MatrixGate
+    path: /cirq/api_docs/python/cirq/ops/MatrixGate
+  - title: measure
+    path: /cirq/api_docs/python/cirq/ops/measure
+  - title: MeasurementGate
+    path: /cirq/api_docs/python/cirq/ops/MeasurementGate
+  - title: measure_each
+    path: /cirq/api_docs/python/cirq/ops/measure_each
+  - title: Moment
+    path: /cirq/api_docs/python/cirq/ops/Moment
+  - title: MutableDensePauliString
+    path: /cirq/api_docs/python/cirq/ops/MutableDensePauliString
+  - title: NamedQubit
+    path: /cirq/api_docs/python/cirq/ops/NamedQubit
+  - title: Operation
+    path: /cirq/api_docs/python/cirq/ops/Operation
+  - title: OP_TREE
+    path: /cirq/api_docs/python/cirq/ops/OP_TREE
+  - title: ParallelGateOperation
+    path: /cirq/api_docs/python/cirq/ops/ParallelGateOperation
+  - title: Pauli
+    path: /cirq/api_docs/python/cirq/ops/Pauli
+  - title: PauliInteractionGate
+    path: /cirq/api_docs/python/cirq/ops/PauliInteractionGate
+  - title: PauliString
+    path: /cirq/api_docs/python/cirq/ops/PauliString
+  - title: PauliStringGateOperation
+    path: /cirq/api_docs/python/cirq/ops/PauliStringGateOperation
+  - title: PauliStringPhasor
+    path: /cirq/api_docs/python/cirq/ops/PauliStringPhasor
+  - title: PauliSum
+    path: /cirq/api_docs/python/cirq/ops/PauliSum
+  - title: PauliSumLike
+    path: /cirq/api_docs/python/cirq/ops/PauliSumLike
+  - title: PauliTransform
+    path: /cirq/api_docs/python/cirq/ops/PauliTransform
+  - title: PAULI_GATE_LIKE
+    path: /cirq/api_docs/python/cirq/ops/PAULI_GATE_LIKE
+  - title: PAULI_STRING_LIKE
+    path: /cirq/api_docs/python/cirq/ops/PAULI_STRING_LIKE
+  - title: PhaseDampingChannel
+    path: /cirq/api_docs/python/cirq/ops/PhaseDampingChannel
+  - title: PhasedISwapPowGate
+    path: /cirq/api_docs/python/cirq/ops/PhasedISwapPowGate
+  - title: PhasedXPowGate
+    path: /cirq/api_docs/python/cirq/ops/PhasedXPowGate
+  - title: PhasedXZGate
+    path: /cirq/api_docs/python/cirq/ops/PhasedXZGate
+  - title: PhaseFlipChannel
+    path: /cirq/api_docs/python/cirq/ops/PhaseFlipChannel
+  - title: PhaseGradientGate
+    path: /cirq/api_docs/python/cirq/ops/PhaseGradientGate
+  - title: phase_damp
+    path: /cirq/api_docs/python/cirq/ops/phase_damp
+  - title: phase_flip
+    path: /cirq/api_docs/python/cirq/ops/phase_flip
+  - title: QFT
+    path: /cirq/api_docs/python/cirq/ops/QFT
+  - title: qft
+    path: /cirq/api_docs/python/cirq/ops/qft
+  - title: Qid
+    path: /cirq/api_docs/python/cirq/ops/Qid
+  - title: QuantumFourierTransformGate
+    path: /cirq/api_docs/python/cirq/ops/QuantumFourierTransformGate
+  - title: QubitOrder
+    path: /cirq/api_docs/python/cirq/ops/QubitOrder
+  - title: QubitOrderOrList
+    path: /cirq/api_docs/python/cirq/ops/QubitOrderOrList
+  - title: RandomGateChannel
+    path: /cirq/api_docs/python/cirq/ops/RandomGateChannel
+  - title: reset
+    path: /cirq/api_docs/python/cirq/ops/reset
+  - title: ResetChannel
+    path: /cirq/api_docs/python/cirq/ops/ResetChannel
+  - title: riswap
+    path: /cirq/api_docs/python/cirq/ops/riswap
+  - title: rx
+    path: /cirq/api_docs/python/cirq/ops/rx
+  - title: ry
+    path: /cirq/api_docs/python/cirq/ops/ry
+  - title: rz
+    path: /cirq/api_docs/python/cirq/ops/rz
+  - title: S
+    path: /cirq/api_docs/python/cirq/ops/S
+  - title: SingleQubitCliffordGate
+    path: /cirq/api_docs/python/cirq/ops/SingleQubitCliffordGate
+  - title: SingleQubitGate
+    path: /cirq/api_docs/python/cirq/ops/SingleQubitGate
+  - title: SingleQubitPauliStringGateOperation
+    path: /cirq/api_docs/python/cirq/ops/SingleQubitPauliStringGateOperation
+  - title: SWAP
+    path: /cirq/api_docs/python/cirq/ops/SWAP
+  - title: SwapPowGate
+    path: /cirq/api_docs/python/cirq/ops/SwapPowGate
+  - title: T
+    path: /cirq/api_docs/python/cirq/ops/T
+  - title: TaggedOperation
+    path: /cirq/api_docs/python/cirq/ops/TaggedOperation
+  - title: ThreeQubitDiagonalGate
+    path: /cirq/api_docs/python/cirq/ops/ThreeQubitDiagonalGate
+  - title: ThreeQubitGate
+    path: /cirq/api_docs/python/cirq/ops/ThreeQubitGate
+  - title: transform_op_tree
+    path: /cirq/api_docs/python/cirq/ops/transform_op_tree
+  - title: TwoQubitDiagonalGate
+    path: /cirq/api_docs/python/cirq/ops/TwoQubitDiagonalGate
+  - title: TwoQubitGate
+    path: /cirq/api_docs/python/cirq/ops/TwoQubitGate
+  - title: VirtualTag
+    path: /cirq/api_docs/python/cirq/ops/VirtualTag
+  - title: WaitGate
+    path: /cirq/api_docs/python/cirq/ops/WaitGate
+  - title: X
+    path: /cirq/api_docs/python/cirq/ops/X
+  - title: XPowGate
+    path: /cirq/api_docs/python/cirq/ops/XPowGate
+  - title: XX
+    path: /cirq/api_docs/python/cirq/ops/XX
+  - title: XXPowGate
+    path: /cirq/api_docs/python/cirq/ops/XXPowGate
+  - title: Y
+    path: /cirq/api_docs/python/cirq/ops/Y
+  - title: YPowGate
+    path: /cirq/api_docs/python/cirq/ops/YPowGate
+  - title: YY
+    path: /cirq/api_docs/python/cirq/ops/YY
+  - title: YYPowGate
+    path: /cirq/api_docs/python/cirq/ops/YYPowGate
+  - title: Z
+    path: /cirq/api_docs/python/cirq/ops/Z
+  - title: ZPowGate
+    path: /cirq/api_docs/python/cirq/ops/ZPowGate
+  - title: ZZ
+    path: /cirq/api_docs/python/cirq/ops/ZZ
+  - title: ZZPowGate
+    path: /cirq/api_docs/python/cirq/ops/ZZPowGate
+  - title: arithmetic_operation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/arithmetic_operation
+  - title: clifford_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/clifford_gate
+  - title: common_channels
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/common_channels
+  - title: common_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/common_gates
+  - title: controlled_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/controlled_gate
+  - title: controlled_operation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/controlled_operation
+  - title: dense_pauli_string
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/dense_pauli_string
+  - title: eigen_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/eigen_gate
+    - title: EigenComponent
+      path: /cirq/api_docs/python/cirq/ops/eigen_gate/EigenComponent
+  - title: fourier_transform
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/fourier_transform
+  - title: fsim_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/fsim_gate
+  - title: gate_features
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/gate_features
+  - title: gate_operation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/gate_operation
+  - title: global_phase_op
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/global_phase_op
+  - title: identity
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/identity
+  - title: linear_combinations
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/linear_combinations
+    - title: UnitPauliStringT
+      path: /cirq/api_docs/python/cirq/ops/linear_combinations/UnitPauliStringT
+  - title: matrix_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/matrix_gates
+  - title: measure_util
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/measure_util
+  - title: measurement_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/measurement_gate
+  - title: moment
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/moment
+  - title: named_qubit
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/named_qubit
+  - title: op_tree
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/op_tree
+    - title: OpTree
+      path: /cirq/api_docs/python/cirq/ops/op_tree/OpTree
+  - title: parallel_gate_operation
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/parallel_gate_operation
+  - title: parity_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/parity_gates
+  - title: pauli_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/pauli_gates
+  - title: pauli_interaction_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/pauli_interaction_gate
+  - title: pauli_string
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/pauli_string
+  - title: pauli_string_phasor
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/pauli_string_phasor
+    - title: xor_nonlocal_decompose
+      path: /cirq/api_docs/python/cirq/ops/pauli_string_phasor/xor_nonlocal_decompose
+  - title: pauli_string_raw_types
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/pauli_string_raw_types
+  - title: phased_iswap_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/phased_iswap_gate
+  - title: phased_x_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/phased_x_gate
+  - title: phased_x_z_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/phased_x_z_gate
+  - title: qubit_order
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/qubit_order
+  - title: qubit_order_or_list
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/qubit_order_or_list
+  - title: random_gate_channel
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/random_gate_channel
+  - title: raw_types
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/raw_types
+  - title: swap_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/swap_gates
+  - title: tags
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/tags
+  - title: three_qubit_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/three_qubit_gates
+  - title: two_qubit_diagonal_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/two_qubit_diagonal_gate
+  - title: wait_gate
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/ops/wait_gate
+- title: cirq.optimizers
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/optimizers
+  - title: compute_cphase_exponents_for_fsim_decomposition
+    path: /cirq/api_docs/python/cirq/optimizers/compute_cphase_exponents_for_fsim_decomposition
+  - title: ConvertToCzAndSingleGates
+    path: /cirq/api_docs/python/cirq/optimizers/ConvertToCzAndSingleGates
+  - title: decompose_cphase_into_two_fsim
+    path: /cirq/api_docs/python/cirq/optimizers/decompose_cphase_into_two_fsim
+  - title: decompose_multi_controlled_rotation
+    path: /cirq/api_docs/python/cirq/optimizers/decompose_multi_controlled_rotation
+  - title: decompose_multi_controlled_x
+    path: /cirq/api_docs/python/cirq/optimizers/decompose_multi_controlled_x
+  - title: decompose_two_qubit_interaction_into_four_fsim_gates_via_b
+    path: /cirq/api_docs/python/cirq/optimizers/decompose_two_qubit_interaction_into_four_fsim_gates_via_b
+  - title: DropEmptyMoments
+    path: /cirq/api_docs/python/cirq/optimizers/DropEmptyMoments
+  - title: DropNegligible
+    path: /cirq/api_docs/python/cirq/optimizers/DropNegligible
+  - title: EjectPhasedPaulis
+    path: /cirq/api_docs/python/cirq/optimizers/EjectPhasedPaulis
+  - title: EjectZ
+    path: /cirq/api_docs/python/cirq/optimizers/EjectZ
+  - title: ExpandComposite
+    path: /cirq/api_docs/python/cirq/optimizers/ExpandComposite
+  - title: is_negligible_turn
+    path: /cirq/api_docs/python/cirq/optimizers/is_negligible_turn
+  - title: MergeInteractions
+    path: /cirq/api_docs/python/cirq/optimizers/MergeInteractions
+  - title: MergeSingleQubitGates
+    path: /cirq/api_docs/python/cirq/optimizers/MergeSingleQubitGates
+  - title: merge_single_qubit_gates_into_phased_x_z
+    path: /cirq/api_docs/python/cirq/optimizers/merge_single_qubit_gates_into_phased_x_z
+  - title: merge_single_qubit_gates_into_phxz
+    path: /cirq/api_docs/python/cirq/optimizers/merge_single_qubit_gates_into_phxz
+  - title: single_qubit_matrix_to_gates
+    path: /cirq/api_docs/python/cirq/optimizers/single_qubit_matrix_to_gates
+  - title: single_qubit_matrix_to_pauli_rotations
+    path: /cirq/api_docs/python/cirq/optimizers/single_qubit_matrix_to_pauli_rotations
+  - title: single_qubit_matrix_to_phased_x_z
+    path: /cirq/api_docs/python/cirq/optimizers/single_qubit_matrix_to_phased_x_z
+  - title: single_qubit_matrix_to_phxz
+    path: /cirq/api_docs/python/cirq/optimizers/single_qubit_matrix_to_phxz
+  - title: single_qubit_op_to_framed_phase_form
+    path: /cirq/api_docs/python/cirq/optimizers/single_qubit_op_to_framed_phase_form
+  - title: stratified_circuit
+    path: /cirq/api_docs/python/cirq/optimizers/stratified_circuit
+  - title: SynchronizeTerminalMeasurements
+    path: /cirq/api_docs/python/cirq/optimizers/SynchronizeTerminalMeasurements
+  - title: two_qubit_matrix_to_operations
+    path: /cirq/api_docs/python/cirq/optimizers/two_qubit_matrix_to_operations
+  - title: controlled_gate_decomposition
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/controlled_gate_decomposition
+  - title: convert_to_cz_and_single_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/convert_to_cz_and_single_gates
+  - title: cphase_to_fsim
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/cphase_to_fsim
+  - title: decompositions
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/decompositions
+  - title: drop_empty_moments
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/drop_empty_moments
+  - title: drop_negligible
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/drop_negligible
+  - title: eject_phased_paulis
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/eject_phased_paulis
+  - title: eject_z
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/eject_z
+  - title: expand_composite
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/expand_composite
+  - title: merge_interactions
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/merge_interactions
+  - title: merge_single_qubit_gates
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/merge_single_qubit_gates
+  - title: stratify
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/stratify
+  - title: synchronize_terminal_measurements
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/synchronize_terminal_measurements
+  - title: two_qubit_decompositions
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/two_qubit_decompositions
+  - title: two_qubit_to_fsim
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/optimizers/two_qubit_to_fsim
+- title: cirq.pasqal
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/pasqal
+  - title: PasqalDevice
+    path: /cirq/api_docs/python/cirq/pasqal/PasqalDevice
+  - title: PasqalNoiseModel
+    path: /cirq/api_docs/python/cirq/pasqal/PasqalNoiseModel
+  - title: PasqalSampler
+    path: /cirq/api_docs/python/cirq/pasqal/PasqalSampler
+  - title: ThreeDGridQubit
+    path: /cirq/api_docs/python/cirq/pasqal/ThreeDGridQubit
+  - title: pasqal_device
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/pasqal/pasqal_device
+  - title: pasqal_noise_model
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/pasqal/pasqal_noise_model
+    - title: get_op_string
+      path: /cirq/api_docs/python/cirq/pasqal/pasqal_noise_model/get_op_string
+  - title: pasqal_qubits
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/pasqal/pasqal_qubits
+  - title: pasqal_sampler
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/pasqal/pasqal_sampler
+- title: cirq.protocols
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/protocols
+  - title: act_on
+    path: /cirq/api_docs/python/cirq/protocols/act_on
+  - title: ApplyChannelArgs
+    path: /cirq/api_docs/python/cirq/protocols/ApplyChannelArgs
+  - title: ApplyMixtureArgs
+    path: /cirq/api_docs/python/cirq/protocols/ApplyMixtureArgs
+  - title: ApplyUnitaryArgs
+    path: /cirq/api_docs/python/cirq/protocols/ApplyUnitaryArgs
+  - title: apply_channel
+    path: /cirq/api_docs/python/cirq/protocols/apply_channel
+  - title: apply_mixture
+    path: /cirq/api_docs/python/cirq/protocols/apply_mixture
+  - title: apply_unitaries
+    path: /cirq/api_docs/python/cirq/protocols/apply_unitaries
+  - title: apply_unitary
+    path: /cirq/api_docs/python/cirq/protocols/apply_unitary
+  - title: approx_eq
+    path: /cirq/api_docs/python/cirq/protocols/approx_eq
+  - title: channel
+    path: /cirq/api_docs/python/cirq/protocols/channel
+  - title: CircuitDiagramInfo
+    path: /cirq/api_docs/python/cirq/protocols/CircuitDiagramInfo
+  - title: CircuitDiagramInfoArgs
+    path: /cirq/api_docs/python/cirq/protocols/CircuitDiagramInfoArgs
+  - title: circuit_diagram_info
+    path: /cirq/api_docs/python/cirq/protocols/circuit_diagram_info
+  - title: commutes
+    path: /cirq/api_docs/python/cirq/protocols/commutes
+  - title: decompose
+    path: /cirq/api_docs/python/cirq/protocols/decompose
+  - title: decompose_once
+    path: /cirq/api_docs/python/cirq/protocols/decompose_once
+  - title: decompose_once_with_qubits
+    path: /cirq/api_docs/python/cirq/protocols/decompose_once_with_qubits
+  - title: definitely_commutes
+    path: /cirq/api_docs/python/cirq/protocols/definitely_commutes
+  - title: equal_up_to_global_phase
+    path: /cirq/api_docs/python/cirq/protocols/equal_up_to_global_phase
+  - title: has_channel
+    path: /cirq/api_docs/python/cirq/protocols/has_channel
+  - title: has_mixture
+    path: /cirq/api_docs/python/cirq/protocols/has_mixture
+  - title: has_mixture_channel
+    path: /cirq/api_docs/python/cirq/protocols/has_mixture_channel
+  - title: has_stabilizer_effect
+    path: /cirq/api_docs/python/cirq/protocols/has_stabilizer_effect
+  - title: has_unitary
+    path: /cirq/api_docs/python/cirq/protocols/has_unitary
+  - title: inverse
+    path: /cirq/api_docs/python/cirq/protocols/inverse
+  - title: is_measurement
+    path: /cirq/api_docs/python/cirq/protocols/is_measurement
+  - title: is_parameterized
+    path: /cirq/api_docs/python/cirq/protocols/is_parameterized
+  - title: json_serializable_dataclass
+    path: /cirq/api_docs/python/cirq/protocols/json_serializable_dataclass
+  - title: measurement_key
+    path: /cirq/api_docs/python/cirq/protocols/measurement_key
+  - title: measurement_keys
+    path: /cirq/api_docs/python/cirq/protocols/measurement_keys
+  - title: mixture
+    path: /cirq/api_docs/python/cirq/protocols/mixture
+  - title: mixture_channel
+    path: /cirq/api_docs/python/cirq/protocols/mixture_channel
+  - title: mul
+    path: /cirq/api_docs/python/cirq/protocols/mul
+  - title: num_qubits
+    path: /cirq/api_docs/python/cirq/protocols/num_qubits
+  - title: obj_to_dict_helper
+    path: /cirq/api_docs/python/cirq/protocols/obj_to_dict_helper
+  - title: pauli_expansion
+    path: /cirq/api_docs/python/cirq/protocols/pauli_expansion
+  - title: phase_by
+    path: /cirq/api_docs/python/cirq/protocols/phase_by
+  - title: pow
+    path: /cirq/api_docs/python/cirq/protocols/pow
+  - title: qasm
+    path: /cirq/api_docs/python/cirq/protocols/qasm
+  - title: QasmArgs
+    path: /cirq/api_docs/python/cirq/protocols/QasmArgs
+  - title: qid_shape
+    path: /cirq/api_docs/python/cirq/protocols/qid_shape
+  - title: quil
+    path: /cirq/api_docs/python/cirq/protocols/quil
+  - title: QuilFormatter
+    path: /cirq/api_docs/python/cirq/protocols/QuilFormatter
+  - title: read_json
+    path: /cirq/api_docs/python/cirq/protocols/read_json
+  - title: resolve_parameters
+    path: /cirq/api_docs/python/cirq/protocols/resolve_parameters
+  - title: SupportsActOn
+    path: /cirq/api_docs/python/cirq/protocols/SupportsActOn
+  - title: SupportsApplyChannel
+    path: /cirq/api_docs/python/cirq/protocols/SupportsApplyChannel
+  - title: SupportsApplyMixture
+    path: /cirq/api_docs/python/cirq/protocols/SupportsApplyMixture
+  - title: SupportsApproximateEquality
+    path: /cirq/api_docs/python/cirq/protocols/SupportsApproximateEquality
+  - title: SupportsChannel
+    path: /cirq/api_docs/python/cirq/protocols/SupportsChannel
+  - title: SupportsCircuitDiagramInfo
+    path: /cirq/api_docs/python/cirq/protocols/SupportsCircuitDiagramInfo
+  - title: SupportsCommutes
+    path: /cirq/api_docs/python/cirq/protocols/SupportsCommutes
+  - title: SupportsConsistentApplyUnitary
+    path: /cirq/api_docs/python/cirq/protocols/SupportsConsistentApplyUnitary
+  - title: SupportsDecompose
+    path: /cirq/api_docs/python/cirq/protocols/SupportsDecompose
+  - title: SupportsDecomposeWithQubits
+    path: /cirq/api_docs/python/cirq/protocols/SupportsDecomposeWithQubits
+  - title: SupportsEqualUpToGlobalPhase
+    path: /cirq/api_docs/python/cirq/protocols/SupportsEqualUpToGlobalPhase
+  - title: SupportsExplicitHasUnitary
+    path: /cirq/api_docs/python/cirq/protocols/SupportsExplicitHasUnitary
+  - title: SupportsExplicitNumQubits
+    path: /cirq/api_docs/python/cirq/protocols/SupportsExplicitNumQubits
+  - title: SupportsExplicitQidShape
+    path: /cirq/api_docs/python/cirq/protocols/SupportsExplicitQidShape
+  - title: SupportsJSON
+    path: /cirq/api_docs/python/cirq/protocols/SupportsJSON
+  - title: SupportsMeasurementKey
+    path: /cirq/api_docs/python/cirq/protocols/SupportsMeasurementKey
+  - title: SupportsMixture
+    path: /cirq/api_docs/python/cirq/protocols/SupportsMixture
+  - title: SupportsParameterization
+    path: /cirq/api_docs/python/cirq/protocols/SupportsParameterization
+  - title: SupportsPhase
+    path: /cirq/api_docs/python/cirq/protocols/SupportsPhase
+  - title: SupportsQasm
+    path: /cirq/api_docs/python/cirq/protocols/SupportsQasm
+  - title: SupportsQasmWithArgs
+    path: /cirq/api_docs/python/cirq/protocols/SupportsQasmWithArgs
+  - title: SupportsQasmWithArgsAndQubits
+    path: /cirq/api_docs/python/cirq/protocols/SupportsQasmWithArgsAndQubits
+  - title: SupportsTraceDistanceBound
+    path: /cirq/api_docs/python/cirq/protocols/SupportsTraceDistanceBound
+  - title: SupportsUnitary
+    path: /cirq/api_docs/python/cirq/protocols/SupportsUnitary
+  - title: to_json
+    path: /cirq/api_docs/python/cirq/protocols/to_json
+  - title: trace_distance_bound
+    path: /cirq/api_docs/python/cirq/protocols/trace_distance_bound
+  - title: trace_distance_from_angle_list
+    path: /cirq/api_docs/python/cirq/protocols/trace_distance_from_angle_list
+  - title: unitary
+    path: /cirq/api_docs/python/cirq/protocols/unitary
+  - title: validate_mixture
+    path: /cirq/api_docs/python/cirq/protocols/validate_mixture
+  - title: act_on_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/act_on_protocol
+  - title: apply_channel_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/apply_channel_protocol
+  - title: apply_mixture_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/apply_mixture_protocol
+  - title: apply_unitary_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/apply_unitary_protocol
+  - title: approximate_equality_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/approximate_equality_protocol
+  - title: circuit_diagram_info_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/circuit_diagram_info_protocol
+  - title: commutes_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/commutes_protocol
+  - title: decompose_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/decompose_protocol
+    - title: DecomposeResult
+      path: /cirq/api_docs/python/cirq/protocols/decompose_protocol/DecomposeResult
+    - title: OpDecomposer
+      path: /cirq/api_docs/python/cirq/protocols/decompose_protocol/OpDecomposer
+  - title: equal_up_to_global_phase_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/equal_up_to_global_phase_protocol
+  - title: has_stabilizer_effect_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/has_stabilizer_effect_protocol
+  - title: has_unitary_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/has_unitary_protocol
+  - title: inverse_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/inverse_protocol
+  - title: json_serialization
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/json_serialization
+    - title: CirqEncoder
+      path: /cirq/api_docs/python/cirq/protocols/json_serialization/CirqEncoder
+  - title: measurement_key_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/measurement_key_protocol
+  - title: mixture_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/mixture_protocol
+  - title: mul_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/mul_protocol
+  - title: pauli_expansion_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/pauli_expansion_protocol
+  - title: phase_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/phase_protocol
+  - title: pow_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/pow_protocol
+  - title: qid_shape_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/qid_shape_protocol
+  - title: unitary_protocol
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/protocols/unitary_protocol
+- title: cirq.qis
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/qis
+  - title: bloch_vector_from_state_vector
+    path: /cirq/api_docs/python/cirq/qis/bloch_vector_from_state_vector
+  - title: density_matrix_from_state_vector
+    path: /cirq/api_docs/python/cirq/qis/density_matrix_from_state_vector
+  - title: dirac_notation
+    path: /cirq/api_docs/python/cirq/qis/dirac_notation
+  - title: eye_tensor
+    path: /cirq/api_docs/python/cirq/qis/eye_tensor
+  - title: fidelity
+    path: /cirq/api_docs/python/cirq/qis/fidelity
+  - title: one_hot
+    path: /cirq/api_docs/python/cirq/qis/one_hot
+  - title: STATE_VECTOR_LIKE
+    path: /cirq/api_docs/python/cirq/qis/STATE_VECTOR_LIKE
+  - title: to_valid_density_matrix
+    path: /cirq/api_docs/python/cirq/qis/to_valid_density_matrix
+  - title: to_valid_state_vector
+    path: /cirq/api_docs/python/cirq/qis/to_valid_state_vector
+  - title: validate_indices
+    path: /cirq/api_docs/python/cirq/qis/validate_indices
+  - title: validate_normalized_state
+    path: /cirq/api_docs/python/cirq/qis/validate_normalized_state
+  - title: validate_normalized_state_vector
+    path: /cirq/api_docs/python/cirq/qis/validate_normalized_state_vector
+  - title: validate_qid_shape
+    path: /cirq/api_docs/python/cirq/qis/validate_qid_shape
+  - title: von_neumann_entropy
+    path: /cirq/api_docs/python/cirq/qis/von_neumann_entropy
+  - title: measures
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/qis/measures
+  - title: states
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/qis/states
+- title: cirq.sim
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/sim
+  - title: ActOnStateVectorArgs
+    path: /cirq/api_docs/python/cirq/sim/ActOnStateVectorArgs
+  - title: CIRCUIT_LIKE
+    path: /cirq/api_docs/python/cirq/sim/CIRCUIT_LIKE
+  - title: CliffordSimulator
+    path: /cirq/api_docs/python/cirq/sim/CliffordSimulator
+  - title: CliffordSimulatorStepResult
+    path: /cirq/api_docs/python/cirq/sim/CliffordSimulatorStepResult
+  - title: CliffordState
+    path: /cirq/api_docs/python/cirq/sim/CliffordState
+  - title: CliffordTableau
+    path: /cirq/api_docs/python/cirq/sim/CliffordTableau
+  - title: CliffordTrialResult
+    path: /cirq/api_docs/python/cirq/sim/CliffordTrialResult
+  - title: DensityMatrixSimulator
+    path: /cirq/api_docs/python/cirq/sim/DensityMatrixSimulator
+  - title: DensityMatrixSimulatorState
+    path: /cirq/api_docs/python/cirq/sim/DensityMatrixSimulatorState
+  - title: DensityMatrixStepResult
+    path: /cirq/api_docs/python/cirq/sim/DensityMatrixStepResult
+  - title: DensityMatrixTrialResult
+    path: /cirq/api_docs/python/cirq/sim/DensityMatrixTrialResult
+  - title: final_density_matrix
+    path: /cirq/api_docs/python/cirq/sim/final_density_matrix
+  - title: final_state_vector
+    path: /cirq/api_docs/python/cirq/sim/final_state_vector
+  - title: final_wavefunction
+    path: /cirq/api_docs/python/cirq/sim/final_wavefunction
+  - title: measure_density_matrix
+    path: /cirq/api_docs/python/cirq/sim/measure_density_matrix
+  - title: measure_state_vector
+    path: /cirq/api_docs/python/cirq/sim/measure_state_vector
+  - title: sample
+    path: /cirq/api_docs/python/cirq/sim/sample
+  - title: sample_density_matrix
+    path: /cirq/api_docs/python/cirq/sim/sample_density_matrix
+  - title: sample_state_vector
+    path: /cirq/api_docs/python/cirq/sim/sample_state_vector
+  - title: sample_sweep
+    path: /cirq/api_docs/python/cirq/sim/sample_sweep
+  - title: SimulatesAmplitudes
+    path: /cirq/api_docs/python/cirq/sim/SimulatesAmplitudes
+  - title: SimulatesFinalState
+    path: /cirq/api_docs/python/cirq/sim/SimulatesFinalState
+  - title: SimulatesIntermediateState
+    path: /cirq/api_docs/python/cirq/sim/SimulatesIntermediateState
+  - title: SimulatesIntermediateStateVector
+    path: /cirq/api_docs/python/cirq/sim/SimulatesIntermediateStateVector
+  - title: SimulatesIntermediateWaveFunction
+    path: /cirq/api_docs/python/cirq/sim/SimulatesIntermediateWaveFunction
+  - title: SimulatesSamples
+    path: /cirq/api_docs/python/cirq/sim/SimulatesSamples
+  - title: SimulationTrialResult
+    path: /cirq/api_docs/python/cirq/sim/SimulationTrialResult
+  - title: Simulator
+    path: /cirq/api_docs/python/cirq/sim/Simulator
+  - title: SparseSimulatorStep
+    path: /cirq/api_docs/python/cirq/sim/SparseSimulatorStep
+  - title: StabilizerStateChForm
+    path: /cirq/api_docs/python/cirq/sim/StabilizerStateChForm
+  - title: StateVectorMixin
+    path: /cirq/api_docs/python/cirq/sim/StateVectorMixin
+  - title: StateVectorSimulatorState
+    path: /cirq/api_docs/python/cirq/sim/StateVectorSimulatorState
+  - title: StateVectorStepResult
+    path: /cirq/api_docs/python/cirq/sim/StateVectorStepResult
+  - title: StateVectorTrialResult
+    path: /cirq/api_docs/python/cirq/sim/StateVectorTrialResult
+  - title: StepResult
+    path: /cirq/api_docs/python/cirq/sim/StepResult
+  - title: WaveFunctionSimulatorState
+    path: /cirq/api_docs/python/cirq/sim/WaveFunctionSimulatorState
+  - title: WaveFunctionStepResult
+    path: /cirq/api_docs/python/cirq/sim/WaveFunctionStepResult
+  - title: WaveFunctionTrialResult
+    path: /cirq/api_docs/python/cirq/sim/WaveFunctionTrialResult
+  - title: act_on_state_vector_args
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/act_on_state_vector_args
+  - title: clifford
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/clifford
+    - title: clifford_simulator
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/sim/clifford/clifford_simulator
+    - title: clifford_tableau
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/sim/clifford/clifford_tableau
+    - title: stabilizer_state_ch_form
+      section:
+      - title: Overview
+        path: /cirq/api_docs/python/cirq/sim/clifford/stabilizer_state_ch_form
+  - title: density_matrix_simulator
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/density_matrix_simulator
+  - title: density_matrix_utils
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/density_matrix_utils
+  - title: mux
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/mux
+  - title: simulator
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/simulator
+  - title: sparse_simulator
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/sparse_simulator
+  - title: state_vector
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/state_vector
+  - title: state_vector_simulator
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/sim/state_vector_simulator
+- title: cirq.study
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/study
+  - title: ExpressionMap
+    path: /cirq/api_docs/python/cirq/study/ExpressionMap
+  - title: flatten
+    path: /cirq/api_docs/python/cirq/study/flatten
+  - title: flatten_with_params
+    path: /cirq/api_docs/python/cirq/study/flatten_with_params
+  - title: flatten_with_sweep
+    path: /cirq/api_docs/python/cirq/study/flatten_with_sweep
+  - title: Linspace
+    path: /cirq/api_docs/python/cirq/study/Linspace
+  - title: ListSweep
+    path: /cirq/api_docs/python/cirq/study/ListSweep
+  - title: ParamDictType
+    path: /cirq/api_docs/python/cirq/study/ParamDictType
+  - title: ParamResolver
+    path: /cirq/api_docs/python/cirq/study/ParamResolver
+  - title: ParamResolverOrSimilarType
+    path: /cirq/api_docs/python/cirq/study/ParamResolverOrSimilarType
+  - title: plot_state_histogram
+    path: /cirq/api_docs/python/cirq/study/plot_state_histogram
+  - title: Points
+    path: /cirq/api_docs/python/cirq/study/Points
+  - title: Product
+    path: /cirq/api_docs/python/cirq/study/Product
+  - title: Sweep
+    path: /cirq/api_docs/python/cirq/study/Sweep
+  - title: Sweepable
+    path: /cirq/api_docs/python/cirq/study/Sweepable
+  - title: to_resolvers
+    path: /cirq/api_docs/python/cirq/study/to_resolvers
+  - title: to_sweep
+    path: /cirq/api_docs/python/cirq/study/to_sweep
+  - title: to_sweeps
+    path: /cirq/api_docs/python/cirq/study/to_sweeps
+  - title: TrialResult
+    path: /cirq/api_docs/python/cirq/study/TrialResult
+  - title: Zip
+    path: /cirq/api_docs/python/cirq/study/Zip
+  - title: flatten_expressions
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/flatten_expressions
+  - title: resolver
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/resolver
+  - title: sweepable
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/sweepable
+  - title: sweeps
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/sweeps
+    - title: Params
+      path: /cirq/api_docs/python/cirq/study/sweeps/Params
+    - title: SingleSweep
+      path: /cirq/api_docs/python/cirq/study/sweeps/SingleSweep
+  - title: trial_result
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/trial_result
+    - title: TMeasurementKey
+      path: /cirq/api_docs/python/cirq/study/trial_result/TMeasurementKey
+  - title: visualize
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/study/visualize
+- title: cirq.testing
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/testing
+  - title: assert_allclose_up_to_global_phase
+    path: /cirq/api_docs/python/cirq/testing/assert_allclose_up_to_global_phase
+  - title: assert_circuits_with_terminal_measurements_are_equivalent
+    path: /cirq/api_docs/python/cirq/testing/assert_circuits_with_terminal_measurements_are_equivalent
+  - title: assert_commutes_magic_method_consistent_with_unitaries
+    path: /cirq/api_docs/python/cirq/testing/assert_commutes_magic_method_consistent_with_unitaries
+  - title: assert_decompose_is_consistent_with_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_decompose_is_consistent_with_unitary
+  - title: assert_eigengate_implements_consistent_protocols
+    path: /cirq/api_docs/python/cirq/testing/assert_eigengate_implements_consistent_protocols
+  - title: assert_equivalent_repr
+    path: /cirq/api_docs/python/cirq/testing/assert_equivalent_repr
+  - title: assert_has_consistent_apply_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_has_consistent_apply_unitary
+  - title: assert_has_consistent_apply_unitary_for_various_exponents
+    path: /cirq/api_docs/python/cirq/testing/assert_has_consistent_apply_unitary_for_various_exponents
+  - title: assert_has_consistent_qid_shape
+    path: /cirq/api_docs/python/cirq/testing/assert_has_consistent_qid_shape
+  - title: assert_has_consistent_trace_distance_bound
+    path: /cirq/api_docs/python/cirq/testing/assert_has_consistent_trace_distance_bound
+  - title: assert_has_diagram
+    path: /cirq/api_docs/python/cirq/testing/assert_has_diagram
+  - title: assert_implements_consistent_protocols
+    path: /cirq/api_docs/python/cirq/testing/assert_implements_consistent_protocols
+  - title: assert_json_roundtrip_works
+    path: /cirq/api_docs/python/cirq/testing/assert_json_roundtrip_works
+  - title: assert_logs
+    path: /cirq/api_docs/python/cirq/testing/assert_logs
+  - title: assert_pauli_expansion_is_consistent_with_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_pauli_expansion_is_consistent_with_unitary
+  - title: assert_phase_by_is_consistent_with_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_phase_by_is_consistent_with_unitary
+  - title: assert_qasm_is_consistent_with_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_qasm_is_consistent_with_unitary
+  - title: assert_same_circuits
+    path: /cirq/api_docs/python/cirq/testing/assert_same_circuits
+  - title: assert_specifies_has_unitary_if_unitary
+    path: /cirq/api_docs/python/cirq/testing/assert_specifies_has_unitary_if_unitary
+  - title: asyncio_pending
+    path: /cirq/api_docs/python/cirq/testing/asyncio_pending
+  - title: EqualsTester
+    path: /cirq/api_docs/python/cirq/testing/EqualsTester
+  - title: highlight_text_differences
+    path: /cirq/api_docs/python/cirq/testing/highlight_text_differences
+  - title: nonoptimal_toffoli_circuit
+    path: /cirq/api_docs/python/cirq/testing/nonoptimal_toffoli_circuit
+  - title: OrderTester
+    path: /cirq/api_docs/python/cirq/testing/OrderTester
+  - title: random_circuit
+    path: /cirq/api_docs/python/cirq/testing/random_circuit
+  - title: random_density_matrix
+    path: /cirq/api_docs/python/cirq/testing/random_density_matrix
+  - title: random_orthogonal
+    path: /cirq/api_docs/python/cirq/testing/random_orthogonal
+  - title: random_special_orthogonal
+    path: /cirq/api_docs/python/cirq/testing/random_special_orthogonal
+  - title: random_special_unitary
+    path: /cirq/api_docs/python/cirq/testing/random_special_unitary
+  - title: random_superposition
+    path: /cirq/api_docs/python/cirq/testing/random_superposition
+  - title: random_unitary
+    path: /cirq/api_docs/python/cirq/testing/random_unitary
+  - title: asynchronous
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/asynchronous
+  - title: circuit_compare
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/circuit_compare
+  - title: consistent_decomposition
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_decomposition
+  - title: consistent_pauli_expansion
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_pauli_expansion
+  - title: consistent_phase_by
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_phase_by
+  - title: consistent_protocols
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_protocols
+    - title: assert_eigen_shifts_is_consistent_with_eigen_components
+      path: /cirq/api_docs/python/cirq/testing/consistent_protocols/assert_eigen_shifts_is_consistent_with_eigen_components
+  - title: consistent_qasm
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_qasm
+    - title: assert_qiskit_parsed_qasm_consistent_with_unitary
+      path: /cirq/api_docs/python/cirq/testing/consistent_qasm/assert_qiskit_parsed_qasm_consistent_with_unitary
+  - title: consistent_specified_has_unitary
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/consistent_specified_has_unitary
+  - title: equals_tester
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/equals_tester
+  - title: equivalent_repr_eval
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/equivalent_repr_eval
+  - title: json
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/json
+  - title: lin_alg_utils
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/lin_alg_utils
+  - title: logs
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/logs
+  - title: order_tester
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/order_tester
+  - title: sample_circuits
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/testing/sample_circuits
+- title: cirq.type_workarounds
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/type_workarounds
+- title: cirq.value
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/value
+  - title: ABCMetaImplementAnyOneOf
+    path: /cirq/api_docs/python/cirq/value/ABCMetaImplementAnyOneOf
+  - title: alternative
+    path: /cirq/api_docs/python/cirq/value/alternative
+  - title: big_endian_bits_to_int
+    path: /cirq/api_docs/python/cirq/value/big_endian_bits_to_int
+  - title: big_endian_digits_to_int
+    path: /cirq/api_docs/python/cirq/value/big_endian_digits_to_int
+  - title: big_endian_int_to_bits
+    path: /cirq/api_docs/python/cirq/value/big_endian_int_to_bits
+  - title: big_endian_int_to_digits
+    path: /cirq/api_docs/python/cirq/value/big_endian_int_to_digits
+  - title: canonicalize_half_turns
+    path: /cirq/api_docs/python/cirq/value/canonicalize_half_turns
+  - title: chosen_angle_to_canonical_half_turns
+    path: /cirq/api_docs/python/cirq/value/chosen_angle_to_canonical_half_turns
+  - title: chosen_angle_to_half_turns
+    path: /cirq/api_docs/python/cirq/value/chosen_angle_to_half_turns
+  - title: Duration
+    path: /cirq/api_docs/python/cirq/value/Duration
+  - title: DURATION_LIKE
+    path: /cirq/api_docs/python/cirq/value/DURATION_LIKE
+  - title: LinearDict
+    path: /cirq/api_docs/python/cirq/value/LinearDict
+  - title: parse_random_state
+    path: /cirq/api_docs/python/cirq/value/parse_random_state
+  - title: PeriodicValue
+    path: /cirq/api_docs/python/cirq/value/PeriodicValue
+  - title: Scalar
+    path: /cirq/api_docs/python/cirq/value/Scalar
+  - title: Timestamp
+    path: /cirq/api_docs/python/cirq/value/Timestamp
+  - title: TParamVal
+    path: /cirq/api_docs/python/cirq/value/TParamVal
+  - title: validate_probability
+    path: /cirq/api_docs/python/cirq/value/validate_probability
+  - title: value_equality
+    path: /cirq/api_docs/python/cirq/value/value_equality
+  - title: abc_alt
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/abc_alt
+  - title: angle
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/angle
+  - title: digits
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/digits
+  - title: duration
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/duration
+  - title: linear_dict
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/linear_dict
+  - title: periodic_value
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/periodic_value
+  - title: probability
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/probability
+  - title: random_state
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/random_state
+  - title: timestamp
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/timestamp
+  - title: type_alias
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/value/type_alias
+- title: cirq.vis
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/vis
+  - title: Heatmap
+    path: /cirq/api_docs/python/cirq/vis/Heatmap
+  - title: heatmap
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/vis/heatmap
+    - title: QubitCoordinate
+      path: /cirq/api_docs/python/cirq/vis/heatmap/QubitCoordinate
+    - title: relative_luminance
+      path: /cirq/api_docs/python/cirq/vis/heatmap/relative_luminance
+    - title: ValueMap
+      path: /cirq/api_docs/python/cirq/vis/heatmap/ValueMap
+- title: cirq.work
+  section:
+  - title: Overview
+    path: /cirq/api_docs/python/cirq/work
+  - title: CircuitSampleJob
+    path: /cirq/api_docs/python/cirq/work/CircuitSampleJob
+  - title: Collector
+    path: /cirq/api_docs/python/cirq/work/Collector
+  - title: PauliSumCollector
+    path: /cirq/api_docs/python/cirq/work/PauliSumCollector
+  - title: Sampler
+    path: /cirq/api_docs/python/cirq/work/Sampler
+  - title: collector
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/work/collector
+    - title: CIRCUIT_SAMPLE_JOB_TREE
+      path: /cirq/api_docs/python/cirq/work/collector/CIRCUIT_SAMPLE_JOB_TREE
+  - title: pauli_sum_collector
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/work/pauli_sum_collector
+  - title: sampler
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/work/sampler
+  - title: work_pool
+    section:
+    - title: Overview
+      path: /cirq/api_docs/python/cirq/work/work_pool
+    - title: CompletionOrderedAsyncWorkPool
+      path: /cirq/api_docs/python/cirq/work/work_pool/CompletionOrderedAsyncWorkPool
