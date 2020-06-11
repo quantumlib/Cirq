@@ -63,7 +63,6 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
     return result
 
 
-
 def test_public_values_equals_documented_values():
     in_actual_api = _all_public()
     in_api_reference = {

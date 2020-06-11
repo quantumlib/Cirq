@@ -68,12 +68,12 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
 
 
 def autodoc_skip_member(
-        app,
-        what: str,
-        name: str,
-        obj: Any,
-        skip: bool,
-        options,
+    app,
+    what: str,
+    name: str,
+    obj: Any,
+    skip: bool,
+    options,
 ) -> bool:
     """Public members already kept. Also include members marked as documented.
     """
@@ -184,7 +184,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-
 # -- Options for HTML output ---------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
@@ -209,12 +208,10 @@ html_static_path = ['_static']
 html_logo = '_static/Cirq_logo_notext.png'
 html_css_files = ['tweak-style.css']
 
-
 # -- Options for HTMLHelp output -----------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Cirqdoc'
-
 
 # -- Options for LaTeX output --------------------------------------------
 
@@ -236,20 +233,15 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Cirq.tex', 'Cirq Documentation',
-     'The Cirq Developers', 'manual'),
+    (master_doc, 'Cirq.tex', 'Cirq Documentation', 'The Cirq Developers',
+     'manual'),
 ]
-
 
 # -- Options for manual page output --------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'cirq', 'Cirq Documentation',
-     [author], 1)
-]
-
+man_pages = [(master_doc, 'cirq', 'Cirq Documentation', [author], 1)]
 
 # -- Options for Texinfo output ------------------------------------------
 
@@ -257,11 +249,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Cirq', 'Cirq Documentation',
-     author, 'Cirq', 'A python library for NISQ circuits.',
-     'Miscellaneous'),
+    (master_doc, 'Cirq', 'Cirq Documentation', author, 'Cirq',
+     'A python library for NISQ circuits.', 'Miscellaneous'),
 ]
-
 
 # -- Extension configuration -------------------------------------------------
 
