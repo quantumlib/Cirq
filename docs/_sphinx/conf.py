@@ -68,12 +68,12 @@ def convert_markdown_mathjax_for_rst(lines: List[str]) -> List[str]:
 
 
 def autodoc_skip_member(
-    app,
-    what: str,
-    name: str,
-    obj: Any,
-    skip: bool,
-    options,
+        app,
+        what: str,
+        name: str,
+        obj: Any,
+        skip: bool,
+        options,
 ) -> bool:
     """Public members already kept. Also include members marked as documented.
     """
