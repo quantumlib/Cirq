@@ -68,8 +68,7 @@ import cirq
 
 def test_can_run_readme_code_snippets():
     # Get the contents of the README.md file at the project root.
-    readme_path = os.path.join(
-        os.path.split(os.path.dirname(__file__))[0], 'README.rst')
+    readme_path = 'README.rst'
     assert readme_path is not None
 
     assert_file_has_working_code_snippets(readme_path, assume_import=False)
