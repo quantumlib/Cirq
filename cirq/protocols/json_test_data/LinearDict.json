@@ -1,0 +1,33 @@
+[
+  {
+    "cirq_type": "LinearDict",
+    "keys": [],
+    "values": []
+  },
+  {
+    "cirq_type": "LinearDict",
+    "keys": ["a"],
+    "values": [1]
+  },
+  {
+    "cirq_type": "LinearDict",
+    "keys": ["a", "b"],
+    "values": [1, 2]
+  },
+  {
+    "cirq_type": "LinearDict",
+    "keys": [
+      {
+        "cirq_type": "_PauliX",
+        "exponent": 1,
+        "global_shift": 0.0
+      },
+      {
+        "cirq_type": "_PauliY",
+        "exponent": 1,
+        "global_shift": 0.0
+      }
+    ],
+    "values": [1.0, 2]
+  }
+]

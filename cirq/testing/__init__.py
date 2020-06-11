@@ -68,11 +68,16 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
 )
 
+from cirq.testing.logs import (
+    assert_logs,)
+
 from cirq.testing.order_tester import (
     OrderTester,)
 
 from cirq.testing.random_circuit import (
-    random_circuit,)
+    DEFAULT_GATE_DOMAIN,
+    random_circuit,
+)
 
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,)

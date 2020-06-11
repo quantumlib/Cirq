@@ -52,9 +52,6 @@ from cirq.linalg.diagonalize import (
     diagonalize_real_symmetric_matrix,
 )
 
-from cirq.linalg.distance_measures import (
-    fidelity,)
-
 from cirq.linalg.operator_spaces import (
     expand_matrix_in_orthogonal_basis,
     hilbert_schmidt_inner_product,
@@ -84,10 +81,12 @@ from cirq.linalg.tolerance import (
 
 from cirq.linalg.transformations import (
     apply_matrix_to_slices,
-    subwavefunction,
     match_global_phase,
     partial_trace,
+    partial_trace_of_state_vector_as_mixture,
     reflection_matrix_pow,
+    subwavefunction,
+    sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
     wavefunction_partial_trace_as_mixture,

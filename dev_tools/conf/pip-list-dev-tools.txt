@@ -2,7 +2,7 @@
 mypy~=0.701.0
 pylint~=2.3.0
 pytest~=5.4.1
-pytest-asyncio~=0.10.0
+pytest-asyncio~=0.12.0
 pytest-cov~=2.5.0
 pytest-benchmark~=3.2.0
 yapf~=0.27.0
@@ -27,6 +27,3 @@ sphinx-markdown-tables
 nbsphinx
 ipython
 ipykernel
-
-# Need to pin pylint's parser to 2.1 instead of 2.2 until https://github.com/PyCQA/astroid/issues/650 is fixed
-astroid~=2.1.0

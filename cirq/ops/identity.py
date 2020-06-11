@@ -88,10 +88,10 @@ class IdentityGate(raw_types.Gate):
                 'gate.')
         operations: List['cirq.Operation'] = []
         for target in targets:
-            if isinstance(target, Iterable) and not isinstance(target, str):
-                operations.extend(self.on_each(*target))
-            elif isinstance(target, raw_types.Qid):
+            if isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))
+            elif isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
             else:
                 raise ValueError(
                     'Gate was called with type different than Qid. Type: {}'.
@@ -166,6 +166,10 @@ class IdentityGate(raw_types.Gate):
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
         args.validate_version('2.0')
         return ''.join([args.format('id {0};\n', qubit) for qubit in qubits])
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        return ''.join(formatter.format('I {0}\n', qubit) for qubit in qubits)
 
     @classmethod
     def _from_json_dict_(cls, num_qubits, qid_shape=None, **kwargs):
