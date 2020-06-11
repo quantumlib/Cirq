@@ -56,10 +56,10 @@ def test_noisy_moments():
         cirq.depolarize(p=0.03).on(NamedQubit('q0')),
         cirq.depolarize(p=0.03).on(NamedQubit('q1'))
     ],
-        [
-        cirq.ops.Z.on(NamedQubit('q1')),
-        cirq.depolarize(p=0.01).on(NamedQubit('q1'))
-    ]]
+                     [
+                         cirq.ops.Z.on(NamedQubit('q1')),
+                         cirq.depolarize(p=0.01).on(NamedQubit('q1'))
+                     ]]
 
 
 def test_default_noise():
@@ -72,8 +72,10 @@ def test_default_noise():
     for moment in circuit._moments:
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
-    assert n_mts == [[cirq.ops.I(ThreeDQubit(0, 0, 0)),
-                      cirq.depolarize(p=0.05).on(ThreeDQubit(0, 0, 0))]]
+    assert n_mts == [[
+        cirq.ops.I(ThreeDQubit(0, 0, 0)),
+        cirq.depolarize(p=0.05).on(ThreeDQubit(0, 0, 0))
+    ]]
 
 
 def test_get_op_string():

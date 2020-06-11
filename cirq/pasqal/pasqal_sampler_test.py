@@ -64,9 +64,7 @@ def test_run_sweep(mock_post, mock_get):
     without noise and checks if the results match.
     """
 
-    qs = [
-        cirq.pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)
-    ]
+    qs = [cirq.pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)

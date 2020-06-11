@@ -52,8 +52,8 @@ def test_distance():
     for x in np.arange(-2, 3):
         for y in np.arange(-2, 3):
             for z in np.arange(-2, 3):
-                assert ThreeDQubit(0, 0, 0).distance(
-                    ThreeDQubit(x, y, z)) == np.sqrt(x**2 + y**2 + z**2)
+                assert ThreeDQubit(0, 0, 0).distance(ThreeDQubit(
+                    x, y, z)) == np.sqrt(x**2 + y**2 + z**2)
 
 
 def test_grid_qubit_eq():
@@ -123,10 +123,9 @@ def test_square():
 
 
 def test_rec():
-    assert TwoDQubit.rect(1, 2, x0=5, y0=6) == [
-        TwoDQubit(5, 6),
-        TwoDQubit(5, 7)
-    ]
+    assert TwoDQubit.rect(1, 2, x0=5,
+                          y0=6) == [TwoDQubit(5, 6),
+                                    TwoDQubit(5, 7)]
     assert TwoDQubit.rect(2, 2) == [
         TwoDQubit(0, 0),
         TwoDQubit(1, 0),
@@ -152,8 +151,7 @@ def test_triangular():
 
 
 def test_repr():
-    assert repr(ThreeDQubit(4, -25,
-                            109)) == 'pasqal.ThreeDQubit(4, -25, 109)'
+    assert repr(ThreeDQubit(4, -25, 109)) == 'pasqal.ThreeDQubit(4, -25, 109)'
     assert repr(TwoDQubit(4, -25)) == 'pasqal.TwoDQubit(4, -25)'
 
 

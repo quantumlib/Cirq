@@ -53,7 +53,7 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
 
     def noisy_moment(self, moment: cirq.ops.Moment,
                      system_qubits: Sequence[cirq.ops.Qid]
-                     ) -> List[cirq.ops.Operation]:
+                    ) -> List[cirq.ops.Operation]:
         """Returns a list of noisy moments.
         The model includes
         - Depolarizing noise with gate-dependent strength

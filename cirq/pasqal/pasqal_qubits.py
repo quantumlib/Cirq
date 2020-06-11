@@ -33,8 +33,8 @@ class ThreeDQubit(cirq.ops.Qid):
         >>> cirq.pasqal.ThreeDQubit(2.5, 3, 4.7) + (3, 1.2, 6)
         pasqal.ThreeDQubit(5.5, 4.2, 10.7)
 
-        >>> cirq.pasqal.ThreeDQubit(2.4, 3.1, 4.8) - (1, 2, 2.1)
-        pasqal.ThreeDQubit(1.4, 1.1, 2.7)
+        >>> cirq.pasqal.ThreeDQubit(2.4, 3.1, 4) - (1, 2, 2.1)
+        pasqal.ThreeDQubit(1.4, 1.1, 1.9)
     """
 
     def __init__(self, x: float, y: float, z: float):
@@ -53,8 +53,8 @@ class ThreeDQubit(cirq.ops.Qid):
         """Returns the distance between two qubits in 3D"""
         if not isinstance(other, ThreeDQubit):
             raise TypeError(
-                "Can compute distance to another ThreeDQubit, but {}".
-                format(other))
+                "Can compute distance to another ThreeDQubit, but {}".format(
+                    other))
         return sqrt((self.x - other.x)**2 + (self.y - other.y)**2 +
                     (self.z - other.z)**2)
 
@@ -100,13 +100,11 @@ class ThreeDQubit(cirq.ops.Qid):
         """
         return [
             ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
-            for y in range(cols)
-            for x in range(rows)
+            for y in range(cols) for x in range(rows)
         ]
 
     def __repr__(self):
-        return 'pasqal.ThreeDQubit({}, {}, {})'.format(
-            self.x, self.y, self.z)
+        return 'pasqal.ThreeDQubit({}, {}, {})'.format(self.x, self.y, self.z)
 
     def __str__(self):
         return '({}, {}, {})'.format(self.x, self.y, self.z)
@@ -178,8 +176,7 @@ class TwoDQubit(ThreeDQubit):
             A list of TwoDQubits filling in a rectangular grid
         """
         return [
-            TwoDQubit(x0 + x, y0 + y) for y in range(cols)
-            for x in range(rows)
+            TwoDQubit(x0 + x, y0 + y) for y in range(cols) for x in range(rows)
         ]
 
     @staticmethod
@@ -194,16 +191,13 @@ class TwoDQubit(ThreeDQubit):
         Returns:
             A list of TwoDQubit filling in a triangular lattice
         """
-        coords = np.array([[x, y] for x in range(l + 1)
-                           for y in range(l + 1)], dtype=float)
+        coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
+                          dtype=float)
         coords[:, 0] += 0.5 * np.mod(coords[:, 1], 2)
         coords[:, 1] *= np.sqrt(3) / 2
         coords += [x0, y0]
 
-        return [
-            TwoDQubit(coord[0], coord[1])
-            for coord in coords
-        ]
+        return [TwoDQubit(coord[0], coord[1]) for coord in coords]
 
     def __repr__(self):
         return 'pasqal.TwoDQubit({}, {})'.format(self.x, self.y)

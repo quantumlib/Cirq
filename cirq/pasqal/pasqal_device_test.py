@@ -45,7 +45,11 @@ def test_init():
     assert d.qubit_list() == [TwoDQubit(0, 0)]
     assert d.control_radius == 1.
     assert d.supported_qubit_type == (
-        ThreeDQubit, TwoDQubit, cirq.GridQubit, cirq.LineQubit,)
+        ThreeDQubit,
+        TwoDQubit,
+        cirq.GridQubit,
+        cirq.LineQubit,
+    )
 
 
 def test_init_errors():
@@ -56,10 +60,10 @@ def test_init_errors():
     with pytest.raises(TypeError, match="Unsupported qubit type"):
         PasqalVirtualDevice(control_radius=1., qubits=[cirq.NamedQubit('q0')])
 
-    with pytest.raises(TypeError,
-                       match="All qubits must be of same type."):
-        PasqalVirtualDevice(control_radius=1., qubits=[
-                            TwoDQubit(0, 0), cirq.GridQubit(1, 0)])
+    with pytest.raises(TypeError, match="All qubits must be of same type."):
+        PasqalVirtualDevice(control_radius=1.,
+                            qubits=[TwoDQubit(0, 0),
+                                    cirq.GridQubit(1, 0)])
 
     with pytest.raises(ValueError,
                        match="Control_radius needs to be a non-negative float"):
@@ -82,7 +86,8 @@ def test_decompose_error():
     # It has to be made into one
     assert d.is_pasqal_device_op(
         cirq.ops.GateOperation(cirq.ops.MeasurementGate(2),
-                               [cirq.NamedQubit('q0'), cirq.NamedQubit('q1')]))
+                               [cirq.NamedQubit('q0'),
+                                cirq.NamedQubit('q1')]))
 
 
 def test_is_pasqal_device():
@@ -96,14 +101,14 @@ def test_is_pasqal_device():
 
     assert d.is_pasqal_device_op(op)
     assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
-    assert not d.is_pasqal_device_op(cirq.ops.CCX(cirq.NamedQubit('q0'),
-                                                  cirq.NamedQubit('q1'),
-                                                  cirq.NamedQubit('q2'))**0.2)
-    assert not d.is_pasqal_device_op(bad_op(cirq.NamedQubit('q0'),
-                                            cirq.NamedQubit('q1')))
+    assert not d.is_pasqal_device_op(
+        cirq.ops.CCX(cirq.NamedQubit('q0'), cirq.NamedQubit('q1'),
+                     cirq.NamedQubit('q2'))**0.2)
+    assert not d.is_pasqal_device_op(
+        bad_op(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
     op1 = cirq.ops.CNotPowGate(exponent=1.)
-    assert d.is_pasqal_device_op(op1(cirq.NamedQubit('q0'),
-                                     cirq.NamedQubit('q1')))
+    assert d.is_pasqal_device_op(
+        op1(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
 
     d2 = square_virtual_device(control_r=1.1, num_qubits=3)
     assert d.is_pasqal_device_op(cirq.ops.X(TwoDQubit(0, 0)))
@@ -166,8 +171,7 @@ def test_validate_operation_errors():
                        match="is not a valid qubit for gate cirq.X"):
         d.validate_operation(cirq.X.on(cirq.LineQubit(0)))
 
-    with pytest.raises(ValueError,
-                       match="is not part of the device."):
+    with pytest.raises(ValueError, match="is not part of the device."):
         d.validate_operation(cirq.X.on(cirq.NamedQubit('q6')))
 
     with pytest.raises(ValueError,
@@ -178,8 +182,8 @@ def test_validate_operation_errors():
     with pytest.raises(NotImplementedError,
                        match="Measurements on Pasqal devices "
                        "don't support invert_mask."):
-        circuit.append(cirq.measure(
-            *d.qubits, invert_mask=(True, False, False)))
+        circuit.append(cirq.measure(*d.qubits,
+                                    invert_mask=(True, False, False)))
 
     d = square_virtual_device(control_r=1., num_qubits=3)
 
@@ -189,8 +193,7 @@ def test_validate_operation_errors():
 
 def test_validate_moment():
     d = square_virtual_device(control_r=1., num_qubits=2)
-    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)),
-                      (cirq.X).on(TwoDQubit(1, 1))])
+    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)), (cirq.X).on(TwoDQubit(1, 1))])
     m2 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
 
     with pytest.raises(ValueError, match="Cannot do simultaneous gates"):
@@ -213,22 +216,23 @@ def test_minimal_distance():
 def test_distance():
     dev = square_virtual_device(control_r=1., num_qubits=2)
 
-    with pytest.raises(ValueError,
-                       match="Qubit not part of the device."):
+    with pytest.raises(ValueError, match="Qubit not part of the device."):
         dev.distance(TwoDQubit(0, 0), TwoDQubit(2, 2))
 
     assert np.isclose(dev.distance(TwoDQubit(0, 0), TwoDQubit(1, 0)), 1.)
 
     dev = PasqalVirtualDevice(control_radius=1.,
-                              qubits=[cirq.LineQubit(0), cirq.LineQubit(1)])
+                              qubits=[cirq.LineQubit(0),
+                                      cirq.LineQubit(1)])
 
     assert np.isclose(dev.distance(cirq.LineQubit(0), cirq.LineQubit(1)), 1.)
 
-    dev = PasqalVirtualDevice(control_radius=1.,
-                              qubits=[cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)])
+    dev = PasqalVirtualDevice(
+        control_radius=1., qubits=[cirq.GridQubit(0, 0),
+                                   cirq.GridQubit(1, 0)])
 
-    assert np.isclose(dev.distance(
-        cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)), 1.)
+    assert np.isclose(dev.distance(cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+                      1.)
 
 
 def test_value_equal():
@@ -238,8 +242,8 @@ def test_value_equal():
 
     dev = PasqalVirtualDevice(control_radius=1., qubits=[TwoDQubit(0, 0)])
 
-    assert PasqalVirtualDevice(control_radius=1.,
-                               qubits=[TwoDQubit(0, 0)]) == dev
+    assert PasqalVirtualDevice(control_radius=1., qubits=[TwoDQubit(0,
+                                                                    0)]) == dev
 
 
 def test_repr():
@@ -255,12 +259,8 @@ def test_repr():
 def test_to_json():
     dev = PasqalDevice(qubits=[cirq.NamedQubit('q4')])
     d = dev._json_dict_()
-    assert d == {
-        "cirq_type": "PasqalDevice",
-        "qubits": [cirq.NamedQubit('q4')]
-    }
-    vdev = PasqalVirtualDevice(control_radius=2,
-                               qubits=[TwoDQubit(0, 0)])
+    assert d == {"cirq_type": "PasqalDevice", "qubits": [cirq.NamedQubit('q4')]}
+    vdev = PasqalVirtualDevice(control_radius=2, qubits=[TwoDQubit(0, 0)])
     d = vdev._json_dict_()
     assert d == {
         "cirq_type": "PasqalVirtualDevice",
@@ -272,26 +272,26 @@ def test_to_json():
 # def test_coverage():
 #    q = cirq.LineQubit.range(3)
 #    g = cirq.ThreeQubitGate()
-
+#
 #    class FakeOperation(cirq.ops.Operation):
 #
 #        def __init__(self, gate, qubits):
 #            self._gate = gate
 #            self._qubits = qubits
-
+#
 #        @property
 #        def qubits(self):
 #            return self._qubits
-
+#
 #        def with_qubits(self, *new_qubits):
 #            return FakeOperation(self._gate, new_qubits)
-
+#
 #    op = FakeOperation(g, q).with_qubits(*q)
-    #c = cirq.Circuit(cirq.X.on(q[0]))
-    # cirq.pasqal.ConvertToNeutralAtomGates().optimize_circuit(c)
-
-    #assert c == cirq.Circuit(cirq.X.on(q[0]))
-    # assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
-    #    cirq.X.on(q[0])) == [cirq.X.on(q[0])])
+#     c = cirq.Circuit(cirq.X.on(q[0]))
+#     cirq.pasqal.ConvertToNeutralAtomGates().optimize_circuit(c)
+#
+#     assert c == cirq.Circuit(cirq.X.on(q[0]))
+#     assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
+#        cirq.X.on(q[0])) == [cirq.X.on(q[0])])
 #    with pytest.raises(TypeError, match="Don't know how to work with"):
 #        cirq.pasqal.PasqalConverter().pasqal_convert(op)

@@ -13,10 +13,14 @@
 # limitations under the License.
 
 from cirq.pasqal.pasqal_qubits import (
-    ThreeDQubit, TwoDQubit,)
+    ThreeDQubit,
+    TwoDQubit,
+)
 
 from cirq.pasqal.pasqal_device import (
-    PasqalDevice, PasqalVirtualDevice,)
+    PasqalDevice,
+    PasqalVirtualDevice,
+)
 
 from cirq.pasqal.pasqal_noise_model import (
     PasqalNoiseModel,)
