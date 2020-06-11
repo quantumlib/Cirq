@@ -44,7 +44,7 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
     result: List[List[str]] = []
     section: List[str] = []
     seen: Set[str] = set()
-    with open(pathlib.Path(__file__).parent / 'api.rst', mode='r') as f:
+    with open(pathlib.Path(__file__).parent / 'sphinx/api.rst', mode='r') as f:
         for line in f.readlines():
             if line.strip() == '.. autosummary::':
                 if section:
@@ -75,10 +75,10 @@ def test_public_values_equals_documented_values():
         if not fullname.startswith('cirq.contrib.')
     }
     assert not unlisted, (
-        'Public class/method/value not listed in docs/api.rst:'
+        'Public class/method/value not listed in docs/sphinx/api.rst:'
         '\n    ' + '\n    '.join(sorted(unlisted)))
     assert not hidden, (
-        'Private or non-existent class/method/value listed in docs/api.rst:'
+        'Private or non-existent class/method/value listed in docs/sphinx/api.rst:'
         '\n    ' + '\n    '.join(sorted(hidden)))
 
 
