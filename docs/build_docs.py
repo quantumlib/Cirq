@@ -28,7 +28,7 @@ from tensorflow_docs.api_generator import public_api
 
 import cirq
 
-flags.DEFINE_string("output_dir", "/tmp/cir_api", "Where to output the docs")
+flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
 
 flags.DEFINE_string("code_url_prefix",
                     ("https://github.com/quantumlib/cirq/tree/master/"
@@ -37,8 +37,7 @@ flags.DEFINE_string("code_url_prefix",
 flags.DEFINE_bool("search_hints", True,
                   "Include metadata search hints in the generated files")
 
-# This might be cirq/docs/api_docs/python instead ?
-flags.DEFINE_string("site_path", "cirq/api_docs/python",
+flags.DEFINE_string("site_path", "quark/cirq/api_docs/python",
                     "Path prefix in the _toc.yaml")
 
 FLAGS = flags.FLAGS

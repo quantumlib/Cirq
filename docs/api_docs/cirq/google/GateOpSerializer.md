@@ -38,7 +38,7 @@ Describes how to serialize a GateOperation for a given Gate type.
     gate_type: Type[<a href="../../cirq/google/op_serializer/Gate.md"><code>cirq.google.op_serializer.Gate</code></a>] = (lambda x: True),
     serialized_gate_id: str,
     args: List[<a href="../../cirq/google/SerializingArg.md"><code>cirq.google.SerializingArg</code></a>],
-    can_serialize_predicate: Callable[['cirq.Operation'], bool] = <function GateOpSerializer.<lambda> at 0x7f2de83818c0>
+    can_serialize_predicate: Callable[['cirq.Operation'], bool] = <function GateOpSerializer.<lambda> at 0x7f038e04d8c0>
 )
 </code></pre>
 

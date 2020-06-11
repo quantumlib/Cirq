@@ -225,7 +225,7 @@ results.
 <code>multi_measurement_histogram(
     *,
     keys: Iterable[<a href="../../cirq/study/trial_result/TMeasurementKey.md"><code>cirq.study.trial_result.TMeasurementKey</code></a>] = _tuple_of_big_endian_int,
-    fold_func: Callable[[Tuple], T] = <function _tuple_of_big_endian_int at 0x7f2de9319320>
+    fold_func: Callable[[Tuple], T] = <function _tuple_of_big_endian_int at 0x7f038efe6320>
 ) -> collections.Counter
 </code></pre>
 
