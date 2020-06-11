@@ -37,21 +37,44 @@ def test_random_circuit_errors():
     with pytest.raises(ValueError, match='At least one'):
         _ = cirq.testing.random_circuit(qubits=(), n_moments=5, op_density=0.5)
 
-    with pytest.raises(ValueError, match='had no gates'):
+    with pytest.raises(
+            ValueError,
+            match=
+            'After removing gates that act on less than 1 qubits, gate_domain '
+            'had no gates'):
         _ = cirq.testing.random_circuit(qubits=1,
                                         n_moments=5,
                                         op_density=0.5,
                                         gate_domain={cirq.CNOT: 2})
 
 
+def _cases_for_random_circuit():
+    i = 0
+    while i < 10:
+        n_qubits = random.randint(1, 20)
+        n_moments = random.randint(1, 10)
+        op_density = random.random()
+        if random.randint(0, 1):
+            gate_domain = dict(
+                random.sample(
+                    tuple(cirq.testing.DEFAULT_GATE_DOMAIN.items()),
+                    random.randint(1, len(cirq.testing.DEFAULT_GATE_DOMAIN))))
+            # Sometimes we generate gate domains whose gates all act on a
+            # number of qubits greater that the number of qubits for the
+            # circuit. In this case, try again.
+            if all(n > n_qubits for n in gate_domain.values()):
+                # coverage: ignore
+                continue
+        else:
+            gate_domain = None
+        pass_qubits = random.choice((True, False))
+        yield (n_qubits, n_moments, op_density, gate_domain, pass_qubits)
+        i += 1
+
+
 @pytest.mark.parametrize(
     'n_qubits,n_moments,op_density,gate_domain,pass_qubits',
-    [(random.randint(1, 20), random.randint(1, 10), random.random(),
-      (None if random.randint(0, 1) else dict(
-          random.sample(
-              tuple(cirq.testing.DEFAULT_GATE_DOMAIN.items()),
-              random.randint(1, len(cirq.testing.DEFAULT_GATE_DOMAIN))))),
-      random.choice((True, False))) for _ in range(10)])
+    _cases_for_random_circuit())
 def test_random_circuit(n_qubits: Union[int, Sequence[cirq.Qid]],
                         n_moments: int,
                         op_density: float,
