@@ -71,7 +71,7 @@ def test_init_errors():
 
     with pytest.raises(ValueError,
                        match="Control_radius cannot be larger than "
-                       "5 times the minimal distance between qubits."):
+                       "3 times the minimal distance between qubits."):
         square_virtual_device(control_r=11., num_qubits=2)
 
 

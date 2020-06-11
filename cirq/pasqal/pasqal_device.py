@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Callable, List, Sequence, Any, Union
+from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
 import numpy as np
 from numpy import sqrt
 
@@ -163,7 +163,7 @@ class PasqalVirtualDevice(PasqalDevice):
             raise ValueError('Control_radius needs to be a non-negative float')
 
         if len(self.qubits) > 1:
-            if control_radius >= 3. * self.minimal_distance():
+            if control_radius > 3. * self.minimal_distance():
                 raise ValueError('Control_radius cannot be larger than 3 times'
                                  ' the minimal distance between qubits.')
 
