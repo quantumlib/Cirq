@@ -97,23 +97,6 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
-  build_docs:
-    name: Build docs
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-          pip install -r cirq/contrib/contrib-requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          sudo apt-get install pandoc
-      - name: Build docs
-        run: dev_tools/build-docs.sh
   build_protos:
     name: Build protos
     runs-on: ubuntu-16.04
