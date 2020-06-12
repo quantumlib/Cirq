@@ -50,7 +50,7 @@ def main(unused_argv):
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter],
         private_map={
-            # Opt to not build docs for these paths for nowsince they error.
+            # Opt to not build docs for these paths for now since they error.
             "cirq.google.engine.client.quantum.QuantumEngineServiceClient":
             ["enums"],
             "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient":
