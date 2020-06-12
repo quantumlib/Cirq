@@ -77,7 +77,8 @@ def test_run_sweep(mock_post, mock_get):
 
     for i, b in enumerate(binary[:-1]):
         if b == '1':
-            ex_circuit.append(cirq.X(qs[-i - 1]))
+            ex_circuit.append(cirq.X(qs[-i - 1]),
+                              strategy=cirq.InsertStrategy.NEW)
     ex_circuit.append(cirq.measure(*qs))
 
     ex_circuit_odd = copy.deepcopy(ex_circuit)

@@ -215,7 +215,7 @@ class PasqalVirtualDevice(PasqalDevice):
 
         super().validate_moment(moment)
 
-        if len(set(operation.gate for operation in moment.operations)) > 1:
+        if len(set(operation for operation in moment.operations)) > 1:
             raise ValueError("Cannot do simultaneous gates. Use "
                              "cirq.InsertStrategy.NEW.")
 
