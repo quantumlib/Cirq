@@ -269,10 +269,10 @@ def some_method(a: int, b: str) -> float:
 Documentation is generated automatically by readthedocs when pushing to `master`, but you can also generated a local copy by running:
 
 ```bash
-dev_tools/build-docs.sh
+dev_tools/docs/sphinx/build-docs.sh
 ```
 
-The HTML output will go into the `docs/_build` directory.
+The HTML output will go into the `dev_tools/docs/sphinx/_build` directory.
 
 
 ### Producing a pypi package

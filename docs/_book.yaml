@@ -1,0 +1,78 @@
+upper_tabs:
+# Tabs left of dropdown menu
+- include: /_upper_tabs_left.yaml
+- include: /api_docs/_upper_tabs_api.yaml
+# Dropdown menu
+- name: Resources
+  path: /resources
+  is_default: true
+  menu:
+  - include: /resources/_menu_toc.yaml
+  lower_tabs:
+    # Subsite tabs
+    other:
+    - name: Tutorials
+      contents:
+      - title: Basics
+        path: /quark/cirq/tutorials/basics
+      - title: Textbook examples
+        path: /quark/cirq/tutorials/examples
+      - title: Quantum variational algorithm
+        path: /quark/cirq/tutorials/variational_algorithm
+      - title: QAOA experiment
+        path: /quark/cirq/tutorials/QAOA_Demo
+      - title: Hidden linear function problem
+        path: /quark/cirq/tutorials/hidden_linear_function
+      - title: Quantum walks
+        path: /quark/cirq/tutorials/Quantum_Walk
+      - title: Rabi oscillation experiment
+        path: /quark/cirq/tutorials/Rabi_Demo
+
+    - name: Guide
+      contents:
+      - title: Install
+        path: /quark/cirq/install
+      - heading: Concepts
+      - title: Gates
+        path: /quark/cirq/gates
+      - title: Circuits
+        path: /quark/cirq/circuits
+      - title: Simulation
+        path: /quark/cirq/simulation
+      - title: Noise
+        path: /quark/cirq/noise
+      - title: Devices
+        path: /quark/cirq/devices
+      - title: Interoperability
+        path: /quark/cirq/interop
+      - title: Qudits
+        path: /quark/cirq/qudits
+      - heading: Google
+      - title: Google devices
+        path: /quark/cirq/google/devices
+      - title: Quantum Engine
+        path: /quark/cirq/google/engine
+      - title: Device Specifications
+        path: /quark/cirq/google/specification
+      - title: Calibration metrics
+        path: /quark/cirq/google/calibration
+      - title: Best practices
+        path: /quark/cirq/google/best_practices
+      - heading: Developers
+      - title: Nomenclature
+        path: /quark/cirq/dev/nomenclature
+      - title: Development
+        path: /quark/cirq/dev/development
+      - title: Gate and operation guidelines
+        path: /quark/cirq/dev/gates
+      - title: Plotting guidelines
+        path: /quark/cirq/dev/plotting
+      - title: Serialization guidelines
+        path: /quark/cirq/dev/serialization
+
+    - name: API
+      skip_translation: true
+      contents:
+      - include: /quark/cirq/api_docs/python/_toc.yaml
+
+- include: /_upper_tabs_right.yaml
