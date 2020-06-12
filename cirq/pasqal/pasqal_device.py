@@ -216,7 +216,8 @@ class PasqalVirtualDevice(PasqalDevice):
         super().validate_moment(moment)
 
         if len(set(operation.gate for operation in moment.operations)) > 1:
-            raise ValueError("Cannot do simultaneous gates")
+            raise ValueError("Cannot do simultaneous gates. Use "
+                             "cirq.InsertStrategy.NEW.")
 
     def minimal_distance(self) -> float:
         """Returns the minimal distance between two qubits in qubits.
