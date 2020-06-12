@@ -79,7 +79,7 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
     """
     def __init__(self,
                  terms: Optional[Mapping[TVector, Scalar]] = None,
-                 validator: Callable[[TVector], bool] = lambda _: True) -> None:
+                 validator: Callable[[TVector], bool] = None) -> None:
         """Initializes linear combination from a collection of terms.
 
         Args:
@@ -91,7 +91,8 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
                 combination raise ValueError exception. By default all vectors
                 are valid.
         """
-        self._is_valid = validator
+        self._has_validator = validator is not None
+        self._is_valid = validator or (lambda x: True)
         self._terms: Dict[TVector, Scalar] = {}
         if terms is not None:
             self.update(terms)
@@ -294,3 +295,17 @@ class LinearDict(Generic[TVector], MutableMapping[TVector, Scalar]):
             p.text('{}(...)'.format(class_name))
         else:
             p.text(str(self))
+
+    def _json_dict_(self) -> Dict[Any, Any]:
+        if self._has_validator:
+            raise ValueError(
+                'LinearDict with a validator is not json serializable.')
+        return {
+            'cirq_type': self.__class__.__name__,
+            'keys': [k for k in self._terms.keys()],
+            'values': [v for v in self._terms.values()]
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, keys, values, **kwargs):
+        return cls(terms=dict(zip(keys, values)))
