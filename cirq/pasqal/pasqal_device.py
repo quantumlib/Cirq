@@ -122,8 +122,9 @@ class PasqalDevice(cirq.devices.Device):
 
         if isinstance(operation.gate, cirq.ops.MeasurementGate):
             if all_qubits:  # We enforce that all qubits are measured at once
-                raise ValueError('All qubits have to be measured at once '
-                                 'on a PasqalDevice.')
+                raise ValueError("All qubits have to be measured at once "
+                                 "on a PasqalDevice. Use 'cirq.measure' on all"
+                                 " the device's qubits.")
             if operation.gate.invert_mask != ():
                 raise NotImplementedError("Measurements on Pasqal devices "
                                           "don't support invert_mask.")
@@ -151,7 +152,7 @@ class PasqalVirtualDevice(PasqalDevice):
                 gate. Distance is measured in units of the coordinates passed
                 into the qubit constructor.
             qubits: Qubits on the device, identified by their x, y, z position.
-                Must be of type ThreeDQubit, LineQubit or GridQubit.
+                Must be of type ThreeDQubit, TwoDQubit, LineQubit or GridQubit.
 
         Raises:
             ValueError: if the wrong qubit type is provided or if invalid
