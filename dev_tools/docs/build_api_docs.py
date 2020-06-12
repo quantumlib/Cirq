@@ -14,10 +14,6 @@
 # ==============================================================================
 """Tool to generate external api_docs for Cirq (Shameless copy from TFQ)."""
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import os
 
 from absl import app
@@ -54,8 +50,12 @@ def main(unused_argv):
         site_path=FLAGS.site_path,
         callbacks=[public_api.local_definitions_filter],
         private_map={
-            "cirq.google.engine.client.quantum.QuantumEngineServiceClient" : ["enums"],
-            "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient":["enums"]
+            # Opt to not build docs for these paths for nowsince they error.
+            "cirq.google.engine.client.quantum.QuantumEngineServiceClient": [
+                "enums"
+            ],
+            "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient":
+                ["enums"]
         })
 
     doc_generator.build(output_dir=FLAGS.output_dir)
