@@ -110,6 +110,32 @@ def test_extra_cell_makers():
         extra_cell_makers={'iswap': cirq.ISWAP}) == cirq.Circuit(
             cirq.ISWAP(*cirq.LineQubit.range(2)))
 
+    assert cirq.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
+        extra_cell_makers=[
+            cirq.interop.quirk.cells.CellMaker(
+                identifier='iswap',
+                size=2,
+                maker=lambda args: cirq.ISWAP(*args.qubits)),
+            cirq.interop.quirk.cells.CellMaker(
+                identifier='toffoli',
+                size=3,
+                maker=lambda args: cirq.TOFFOLI(*args.qubits))
+        ]) == cirq.Circuit([
+            cirq.ISWAP(*cirq.LineQubit.range(2)),
+            cirq.TOFFOLI(*cirq.LineQubit.range(3))
+        ])
+
+    assert cirq.quirk_url_to_circuit(
+        'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',
+        extra_cell_makers={
+            'iswap': cirq.ISWAP,
+            'toffoli': cirq.TOFFOLI
+        }) == cirq.Circuit([
+            cirq.ISWAP(*cirq.LineQubit.range(2)),
+            cirq.TOFFOLI(*cirq.LineQubit.range(3))
+        ])
+
 
 def test_init():
     b, c, d, e, f = cirq.LineQubit.range(1, 6)
