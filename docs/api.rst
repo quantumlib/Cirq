@@ -440,7 +440,7 @@ run experiments.
     cirq.experiments.GRID_ALIGNED_PATTERN
     cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
-    cirq.experiments.cross_entropy_benchmarking
+    .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
     cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
@@ -592,7 +592,7 @@ operation.
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
-    cirq.testing.random_circuit
+    .. autofunction:: cirq.testing.random_circuit
     cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal

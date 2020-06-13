@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
+from typing import Any
 
 import numpy as np
 import pytest
@@ -44,6 +45,25 @@ def test_identity_on_each():
                                           cirq.I(q2)]
     with pytest.raises(ValueError, match='str'):
         cirq.I.on_each('abc')
+
+
+def test_identity_on_each_iter_second():
+
+    class Q(cirq.Qid):
+
+        @property
+        def dimension(self) -> int:
+            return 2
+
+        def _comparison_key(self) -> Any:
+            return 1
+
+        def __iter__(self):
+            # Having this method makes `isinstance(x, Iterable)` return True.
+            raise NotImplementedError()
+
+    q = Q()
+    assert cirq.I.on_each(q) == [cirq.I(q)]
 
 
 def test_identity_on_each_only_single_qubit():
