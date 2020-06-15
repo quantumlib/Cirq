@@ -73,6 +73,8 @@ upper_tabs:
     - name: API
       skip_translation: true
       contents:
+      - title: All Symbols
+        path: /quark/cirq/api_docs/python/
       - include: /quark/cirq/api_docs/python/_toc.yaml
 
 - include: /_upper_tabs_right.yaml
