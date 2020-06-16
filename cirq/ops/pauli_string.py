@@ -266,10 +266,16 @@ class PauliString(raw_types.Operation):
 
         qs = args.known_qubits or list(self._qubit_pauli_map.keys())
         symbols = list(str(self.get(q)) for q in qs)
-        prefix = ('+' if self.coefficient == +1 else '-' if
-                  self.coefficient == -1 else 'i' if self.coefficient == 1j else
-                  '-i' if self.coefficient == -1j else repr(self.coefficient) +
-                  '*')
+        if self.coefficient == 1:
+            prefix = '+'
+        elif self.coefficient == -1:
+            prefix = '-'
+        elif self.coefficient == 1j:
+            prefix = 'i'
+        elif self.coefficient == -1j:
+            prefix = '-i'
+        else:
+            prefix = f'({args.format_complex(self.coefficient)})*'
         symbols[0] = f'PauliString({prefix}{symbols[0]})'
         return symbols
 
