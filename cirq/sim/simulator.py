@@ -475,8 +475,16 @@ class StepResult(metaclass=abc.ABCMeta):
                 raise ValueError(f'Duplicate MeasurementGate with key {key}')
             seen_measurement_keys.add(key)
 
-        # Perform whole-system sampling.
-        measured_qubits = list({q for op in measurement_ops for q in op.qubits})
+        # Find measured qubits, ensuring a consistent ordering.
+        measured_qubits = []
+        seen_qubits = set()
+        for op in measurement_ops:
+            for q in op.qubits:
+                if q not in seen_qubits:
+                    seen_qubits.add(q)
+                    measured_qubits.append(q)
+
+        # Perform whole-system sampling of the measured qubits.
         indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
 
         # Extract results for each measurement.
