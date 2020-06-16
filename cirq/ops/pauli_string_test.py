@@ -1562,6 +1562,9 @@ def test_deprecated():
 
 def test_circuit_diagram_info():
     a, b, c = cirq.LineQubit.range(3)
+
+    assert cirq.circuit_diagram_info(cirq.PauliString(), default=None) is None
+
     cirq.testing.assert_has_diagram(
         cirq.Circuit(
             cirq.PauliString({a: cirq.X}),
