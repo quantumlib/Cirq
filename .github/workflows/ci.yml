@@ -95,7 +95,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
@@ -145,7 +144,6 @@ jobs:
           pip install -r requirements.txt
           pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
@@ -177,6 +175,5 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip
