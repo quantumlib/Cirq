@@ -1558,3 +1558,20 @@ def test_deprecated():
         _ = cirq.PauliString({
             a: 'x'
         }).expectation_from_state_vector(state=state_vector, qubit_map={a: 0})
+
+
+def test_circuit_diagram_info():
+    a, b, c = cirq.LineQubit.range(3)
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.PauliString({a: cirq.X}),
+            -cirq.PauliString({a: cirq.X}),
+            cirq.X(a) * cirq.Z(c),
+            1j * cirq.X(a) * cirq.Y(b),
+        ), """
+0: ───PauliString(+X)───PauliString(-X)───PauliString(+X)───PauliString(iX)───
+                                          │                 │
+1: ───────────────────────────────────────┼─────────────────Y─────────────────
+                                          │
+2: ───────────────────────────────────────Z───────────────────────────────────
+        """)
