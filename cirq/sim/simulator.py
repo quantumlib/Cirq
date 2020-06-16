@@ -477,7 +477,7 @@ class StepResult(metaclass=abc.ABCMeta):
 
         # Find measured qubits, ensuring a consistent ordering.
         measured_qubits = []
-        seen_qubits = set()
+        seen_qubits: Set[cirq.Qid] = set()
         for op in measurement_ops:
             for q in op.qubits:
                 if q not in seen_qubits:
