@@ -23,6 +23,7 @@ import sympy
 
 import cirq
 import cirq.google as cg
+import cirq.testing
 from cirq import ops
 
 
@@ -2373,83 +2374,83 @@ def test_apply_unitary_effect_to_state():
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit(cirq.X(a)**0.5).final_wavefunction(),
+        cirq.Circuit(cirq.X(a)**0.5).final_state_vector(),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit(cirq.X(a)**0.5).final_wavefunction(initial_state=0),
+        cirq.Circuit(cirq.X(a)**0.5).final_state_vector(initial_state=0),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit(cirq.X(a)**0.5).final_wavefunction(initial_state=1),
+        cirq.Circuit(cirq.X(a)**0.5).final_state_vector(initial_state=1),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-8)
 
     # Vector state.
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.X(a)**0.5).final_wavefunction(initial_state=np.array([1j, 1]) *
+        cirq.X(a)**0.5).final_state_vector(initial_state=np.array([1j, 1]) *
                                            np.sqrt(0.5)),
                                                     np.array([0, 1]),
                                                     atol=1e-8)
 
     # Qubit ordering.
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
-        a, b)).final_wavefunction(initial_state=0),
+        a, b)).final_state_vector(initial_state=0),
                                                     np.array([1, 0, 0, 0]),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
-        a, b)).final_wavefunction(initial_state=1),
+        a, b)).final_state_vector(initial_state=1),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
-        a, b)).final_wavefunction(initial_state=2),
+        a, b)).final_state_vector(initial_state=2),
                                                     np.array([0, 0, 0, 1]),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
-        a, b)).final_wavefunction(initial_state=3),
+        a, b)).final_state_vector(initial_state=3),
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
     # Measurements.
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.measure(a)).final_wavefunction(),
+        cirq.measure(a)).final_state_vector(),
                                                     np.array([1, 0]),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.X(a), cirq.measure(a)).final_wavefunction(),
+        cirq.X(a), cirq.measure(a)).final_state_vector(),
                                                     np.array([0, 1]),
                                                     atol=1e-8)
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-            cirq.measure(a), cirq.X(a)).final_wavefunction(),
+            cirq.measure(a), cirq.X(a)).final_state_vector(),
                                                         np.array([1, 0]),
                                                         atol=1e-8)
     with pytest.raises(ValueError):
         cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-            cirq.measure(a)).final_wavefunction(
+            cirq.measure(a)).final_state_vector(
                 ignore_terminal_measurements=False),
                                                         np.array([1, 0]),
                                                         atol=1e-8)
 
     # Extra qubits.
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit().final_wavefunction(), np.array([1]), atol=1e-8)
+        cirq.Circuit().final_state_vector(), np.array([1]), atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        cirq.Circuit().final_wavefunction(qubits_that_should_be_present=[a]),
+        cirq.Circuit().final_state_vector(qubits_that_should_be_present=[a]),
         np.array([1, 0]),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.X(b)).final_wavefunction(qubits_that_should_be_present=[a]),
+        cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
 
     # Qubit order.
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.Z(a), cirq.X(b)).final_wavefunction(qubit_order=[a, b]),
+        cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[a, b]),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-        cirq.Z(a), cirq.X(b)).final_wavefunction(qubit_order=[b, a]),
+        cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[b, a]),
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
@@ -2459,7 +2460,7 @@ def test_apply_unitary_effect_to_state():
         dtypes.append(np.complex256)
     for dt in dtypes:
         cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
-            cirq.X(a)**0.5).final_wavefunction(initial_state=np.array([1j, 1]) *
+            cirq.X(a)**0.5).final_state_vector(initial_state=np.array([1j, 1]) *
                                                np.sqrt(0.5),
                                                dtype=dt),
                                                         np.array([0, 1]),
@@ -3756,3 +3757,63 @@ def test_all_measurement_keys():
             cirq.measure(b, key='y'),
             cirq.measure(a, key='x'),
         ])).all_measurement_keys() == ('y', 'x')
+
+
+def test_deprecated():
+    q = cirq.NamedQubit('q')
+    circuit = cirq.Circuit([cirq.H(q)])
+    with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
+        _ = circuit.final_wavefunction()
+
+
+def test_zip():
+    a, b, c, d = cirq.LineQubit.range(4)
+
+    circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+    circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+    circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+
+    # Calling works both static-style and instance-style.
+    assert circuit1.zip(circuit2) == cirq.Circuit.zip(circuit1, circuit2)
+
+    # Empty cases.
+    assert cirq.Circuit.zip() == cirq.Circuit()
+    assert cirq.Circuit.zip(cirq.Circuit()) == cirq.Circuit()
+    assert cirq.Circuit().zip(cirq.Circuit()) == cirq.Circuit()
+    assert circuit1.zip(cirq.Circuit()) == circuit1
+    assert cirq.Circuit(cirq.Moment()).zip(cirq.Circuit()) == cirq.Circuit(
+        cirq.Moment())
+    assert cirq.Circuit().zip(cirq.Circuit(cirq.Moment())) == cirq.Circuit(
+        cirq.Moment())
+
+    # Small cases.
+    assert circuit1.zip(circuit2) == circuit2.zip(circuit1) == cirq.Circuit(
+        cirq.Moment(
+            cirq.H(a),
+            cirq.X(c),
+        ),
+        cirq.Moment(
+            cirq.CNOT(a, b),
+            cirq.Y(c),
+        ),
+        cirq.Moment(cirq.Z(c),),
+    )
+    assert circuit1.zip(circuit2, circuit3) == cirq.Circuit(
+        cirq.Moment(
+            cirq.H(a),
+            cirq.X(c),
+        ),
+        cirq.Moment(
+            cirq.CNOT(a, b),
+            cirq.Y(c),
+            cirq.S(d),
+        ),
+        cirq.Moment(cirq.Z(c),),
+    )
+
+    # Overlapping operations.
+    with pytest.raises(ValueError, match="moment index 1.*\n.*CNOT"):
+        _ = cirq.Circuit.zip(
+            cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
+            cirq.Circuit(cirq.X(b), cirq.Z(b)),
+        )

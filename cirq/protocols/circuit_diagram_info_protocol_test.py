@@ -183,7 +183,7 @@ def test_circuit_diagram_info_args_repr():
 
 
 def test_format_real():
-    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
     assert args.format_real(1) == '1'
     assert args.format_real(1.1) == '1.1'
     assert args.format_real(1.234567) == '1.23'
@@ -198,6 +198,29 @@ def test_format_real():
     assert args.format_real(1 / 7) == repr(1 / 7)
     assert args.format_real(sympy.Symbol('t')) == 't'
     assert args.format_real(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
+
+
+def test_format_complex():
+    args = cirq.CircuitDiagramInfoArgs.UNINFORMED_DEFAULT.copy()
+    assert args.format_complex(1) == '1+0i'
+    assert args.format_complex(1.1) == '1.1+0i'
+    assert args.format_complex(1.1 + 1j) == '1.1+i'
+    assert args.format_complex(1.1 - 1j) == '1.1-i'
+    assert args.format_complex(1.1 - 2j) == '1.1-2i'
+    assert args.format_complex(-2.2j) == '0-2.2i'
+    assert args.format_complex(1.234567) == '1.23+0i'
+    assert args.format_complex(1 / 7) == '0.143+0i'
+    assert args.format_complex(sympy.Symbol('t')) == 't'
+    assert args.format_complex(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
+
+    args.precision = None
+    assert args.format_complex(1) == '1+0i'
+    assert args.format_complex(1.1) == '1.1+0i'
+    assert args.format_complex(1.234567) == '1.234567+0i'
+    assert args.format_complex(1.234567 + 5.5j) == '1.234567+5.5i'
+    assert args.format_complex(1 / 7) == repr(1 / 7) + '+0i'
+    assert args.format_complex(sympy.Symbol('t')) == 't'
+    assert args.format_complex(sympy.Symbol('t') * 2 + 1) == '2*t + 1'
 
 
 def test_format_radians_without_precision():

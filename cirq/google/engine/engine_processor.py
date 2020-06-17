@@ -104,10 +104,8 @@ class EngineProcessor:
             Device specification proto if present.
         """
         if self._inner_processor().HasField('device_spec'):
-            device_spec = v2.device_pb2.DeviceSpecification()
-            device_spec.ParseFromString(
+            return v2.device_pb2.DeviceSpecification.FromString(
                 self._inner_processor().device_spec.value)
-            return device_spec
         else:
             return None
 
@@ -129,8 +127,8 @@ class EngineProcessor:
     @staticmethod
     def _to_calibration(calibration_any: qtypes.any_pb2.Any
                        ) -> calibration.Calibration:
-        metrics = v2.metrics_pb2.MetricsSnapshot()
-        metrics.ParseFromString(calibration_any.value)
+        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(
+            calibration_any.value)
         return calibration.Calibration(metrics)
 
     def list_calibrations(self,
