@@ -150,6 +150,25 @@ class MeasurementGate(raw_types.Gate):
                             i))
         return ''.join(lines)
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
+        invert_mask = self.invert_mask
+        if len(invert_mask) < len(qubits):
+            invert_mask = (invert_mask + (False,) *
+                           (len(qubits) - len(invert_mask)))
+        lines = []
+        for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
+            if inv:
+                lines.append(
+                    formatter.format(
+                        'X {0} # Inverting for following measurement\n', qubit))
+            lines.append(
+                formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key,
+                                 i))
+        return ''.join(lines)
+
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
@@ -195,6 +214,28 @@ class MeasurementGate(raw_types.Gate):
                    key=key,
                    invert_mask=tuple(invert_mask),
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
+
+    def _act_on_(self, args: Any) -> bool:
+        from cirq import sim
+
+        if isinstance(args, sim.ActOnStateVectorArgs):
+
+            invert_mask = self.full_invert_mask()
+            bits, _ = sim.measure_state_vector(
+                args.target_tensor,
+                args.axes,
+                out=args.target_tensor,
+                qid_shape=args.target_tensor.shape,
+                seed=args.prng)
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
+            args.record_measurement_result(self.key, corrected)
+
+            return True
+
+        return NotImplemented
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

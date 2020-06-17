@@ -47,6 +47,7 @@ def test_via_unitary():
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
     assert cirq.has_unitary(Yes())
+    assert cirq.has_unitary(Yes(), allow_decompose=False)
 
 
 def test_via_apply_unitary():
@@ -82,6 +83,7 @@ def test_via_apply_unitary():
             return args.target_tensor
 
     assert cirq.has_unitary(Yes1())
+    assert cirq.has_unitary(Yes1(), allow_decompose=False)
     assert cirq.has_unitary(Yes2())
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
@@ -121,6 +123,10 @@ def test_via_decompose():
     assert not cirq.has_unitary(No1())
     assert not cirq.has_unitary(No2())
     assert not cirq.has_unitary(No3())
+
+    assert not cirq.has_unitary(Yes1(), allow_decompose=False)
+    assert not cirq.has_unitary(Yes2(), allow_decompose=False)
+    assert not cirq.has_unitary(No1(), allow_decompose=False)
 
 
 def test_via_has_unitary():

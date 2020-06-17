@@ -20,6 +20,7 @@ import freezegun
 from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
+import cirq
 import cirq.google as cg
 from cirq.google.api import v2
 from cirq.google.engine.engine import EngineContext
@@ -105,6 +106,21 @@ valid_targets: [{
     }]
 }]
 """, v2.device_pb2.DeviceSpecification()))
+
+
+_GATE_SET = cg.SerializableGateSet(
+    gate_set_name='x_gate_set',
+    serializers=[
+        cg.GateOpSerializer(gate_type=cirq.XPowGate,
+                            serialized_gate_id='x',
+                            args=[])
+    ],
+    deserializers=[
+        cg.GateOpDeserializer(serialized_gate_id='x',
+                              gate_constructor=cirq.XPowGate,
+                              args=[])
+    ],
+)
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -209,6 +225,30 @@ def test_get_device_specification():
         EngineContext(),
         _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC))
     assert processor.get_device_specification() == expected
+
+
+def test_get_device():
+    processor = cg.EngineProcessor(
+        'a',
+        'p',
+        EngineContext(),
+        _processor=qtypes.QuantumProcessor(device_spec=_DEVICE_SPEC))
+    device = processor.get_device(gate_sets=[_GATE_SET])
+    assert device.qubits == [cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)]
+    device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
+
+
+def test_get_missing_device():
+    processor = cg.EngineProcessor('a',
+                                   'p',
+                                   EngineContext(),
+                                   _processor=qtypes.QuantumProcessor())
+    with pytest.raises(ValueError, match='device specification'):
+        _ = processor.get_device(gate_sets=[_GATE_SET])
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_calibrations')

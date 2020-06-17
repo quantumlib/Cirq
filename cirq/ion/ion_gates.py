@@ -14,12 +14,17 @@
 
 """Operations native to iontrap systems."""
 
+from typing import Union, TYPE_CHECKING
 import numpy as np
 
-from cirq import ops
+from cirq import ops, value
+from cirq import protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
-def ms(rads: float) -> ops.XXPowGate:
+class MSGate(ops.XXPowGate):
     """The Mølmer–Sørensen gate, a native two-qubit operation in ion traps.
 
     A rotation around the XX axis in the two-qubit bloch sphere.
@@ -30,11 +35,42 @@ def ms(rads: float) -> ops.XXPowGate:
                        [ 0        cos(t)  -isin(t)  0      ]
                        [ 0       -isin(t)  cos(t)   0      ]
                        [-isin(t)  0        0        cos(t) ]
+    """
 
+    def __init__(
+            self,
+            *,  # Forces keyword args.
+            rads: float):
+        ops.XXPowGate.__init__(self,
+                               exponent=rads * 2 / np.pi,
+                               global_shift=-0.5)
+
+    def _with_exponent(self: 'MSGate', exponent: value.TParamVal) -> 'MSGate':
+        return type(self)(rads=exponent * np.pi / 2)
+
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Union[str, 'protocols.CircuitDiagramInfo']:
+        angle_str = self._format_exponent_as_angle(args, order=4)
+        symbol = f'MS({angle_str})'
+        return protocols.CircuitDiagramInfo(wire_symbols=(symbol, symbol))
+
+    def __str__(self) -> str:
+        if self._exponent == 1:
+            return 'MS(π/2)'
+        return f'MS({self._exponent!r}π/2)'
+
+    def __repr__(self) -> str:
+        if self._exponent == 1:
+            return 'cirq.ms(np.pi/2)'
+        return f'cirq.ms({self._exponent!r}*np.pi/2)'
+
+
+def ms(rads: float) -> MSGate:
+    """
     Args:
         rads: The rotation angle in radians.
 
     Returns:
         Mølmer–Sørensen gate rotating by the desired amount.
     """
-    return ops.XXPowGate(exponent=rads * 2 / np.pi, global_shift=-0.5)
+    return MSGate(rads=rads)

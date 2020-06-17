@@ -149,7 +149,7 @@ class FSimGate(gate_features.TwoQubitGate,
                               ) -> Tuple[str, ...]:
         t = args.format_radians(self.theta)
         p = args.format_radians(self.phi)
-        return f'fsim({t}, {p})', '#2'
+        return f'FSim({t}, {p})', f'FSim({t}, {p})'
 
     def __pow__(self, power) -> 'FSimGate':
         return FSimGate(cirq.mul(self.theta, power), cirq.mul(self.phi, power))

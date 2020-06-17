@@ -13,12 +13,12 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import (Callable, cast, List, Optional, Type, TypeVar, Union,
+from typing import (Callable, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
 import numpy as np
 
-from cirq import devices, ops
+from cirq import ops
 from cirq.google.api import v2
 from cirq.google import arg_func_langs
 from cirq.google.arg_func_langs import _arg_to_proto
@@ -104,8 +104,6 @@ class GateOpSerializer:
     ) -> Optional[v2.program_pb2.Operation]:
         """Returns the cirq.google.api.v2.Operation message as a proto dict."""
 
-        if not all(isinstance(qubit, devices.GridQubit) for qubit in op.qubits):
-            raise ValueError('All qubits must be GridQubits')
         gate = op.gate
         if not isinstance(gate, self.gate_type):
             raise ValueError(
@@ -120,8 +118,7 @@ class GateOpSerializer:
 
         msg.gate.id = self.serialized_gate_id
         for qubit in op.qubits:
-            msg.qubits.add().id = v2.qubit_to_proto_id(
-                cast(devices.GridQubit, qubit))
+            msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
         for arg in self.args:
             value = self._value_from_gate(op, arg)
             if value is not None:

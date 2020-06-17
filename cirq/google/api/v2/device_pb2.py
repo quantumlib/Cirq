@@ -414,53 +414,53 @@ DESCRIPTOR.message_types_by_name['TargetSet'] = _TARGETSET
 DESCRIPTOR.message_types_by_name['Target'] = _TARGET
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
-DeviceSpecification = _reflection.GeneratedProtocolMessageType('DeviceSpecification', (_message.Message,), dict(
-  DESCRIPTOR = _DEVICESPECIFICATION,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+DeviceSpecification = _reflection.GeneratedProtocolMessageType('DeviceSpecification', (_message.Message,), {
+  'DESCRIPTOR' : _DEVICESPECIFICATION,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.DeviceSpecification)
-  ))
+  })
 _sym_db.RegisterMessage(DeviceSpecification)
 
-GateSet = _reflection.GeneratedProtocolMessageType('GateSet', (_message.Message,), dict(
-  DESCRIPTOR = _GATESET,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+GateSet = _reflection.GeneratedProtocolMessageType('GateSet', (_message.Message,), {
+  'DESCRIPTOR' : _GATESET,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.GateSet)
-  ))
+  })
 _sym_db.RegisterMessage(GateSet)
 
-GateDefinition = _reflection.GeneratedProtocolMessageType('GateDefinition', (_message.Message,), dict(
-  DESCRIPTOR = _GATEDEFINITION,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+GateDefinition = _reflection.GeneratedProtocolMessageType('GateDefinition', (_message.Message,), {
+  'DESCRIPTOR' : _GATEDEFINITION,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.GateDefinition)
-  ))
+  })
 _sym_db.RegisterMessage(GateDefinition)
 
-ArgDefinition = _reflection.GeneratedProtocolMessageType('ArgDefinition', (_message.Message,), dict(
-  DESCRIPTOR = _ARGDEFINITION,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+ArgDefinition = _reflection.GeneratedProtocolMessageType('ArgDefinition', (_message.Message,), {
+  'DESCRIPTOR' : _ARGDEFINITION,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgDefinition)
-  ))
+  })
 _sym_db.RegisterMessage(ArgDefinition)
 
-ArgumentRange = _reflection.GeneratedProtocolMessageType('ArgumentRange', (_message.Message,), dict(
-  DESCRIPTOR = _ARGUMENTRANGE,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+ArgumentRange = _reflection.GeneratedProtocolMessageType('ArgumentRange', (_message.Message,), {
+  'DESCRIPTOR' : _ARGUMENTRANGE,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.ArgumentRange)
-  ))
+  })
 _sym_db.RegisterMessage(ArgumentRange)
 
-TargetSet = _reflection.GeneratedProtocolMessageType('TargetSet', (_message.Message,), dict(
-  DESCRIPTOR = _TARGETSET,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+TargetSet = _reflection.GeneratedProtocolMessageType('TargetSet', (_message.Message,), {
+  'DESCRIPTOR' : _TARGETSET,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.TargetSet)
-  ))
+  })
 _sym_db.RegisterMessage(TargetSet)
 
-Target = _reflection.GeneratedProtocolMessageType('Target', (_message.Message,), dict(
-  DESCRIPTOR = _TARGET,
-  __module__ = 'cirq.google.api.v2.device_pb2'
+Target = _reflection.GeneratedProtocolMessageType('Target', (_message.Message,), {
+  'DESCRIPTOR' : _TARGET,
+  '__module__' : 'cirq.google.api.v2.device_pb2'
   # @@protoc_insertion_point(class_scope:cirq.google.api.v2.Target)
-  ))
+  })
 _sym_db.RegisterMessage(Target)
 
 
