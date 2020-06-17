@@ -156,7 +156,7 @@ class PointOptimizer:
                 if not new_qubits.issubset(set(opt.clear_qubits)):
                     raise ValueError(
                         'New operations in PointOptimizer should not act on new'
-                        'qubits.')
+                        ' qubits.')
 
                 circuit.insert_at_frontier(flat_new_operations, i, frontier)
             i += 1
