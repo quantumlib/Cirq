@@ -11,199 +11,184 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import List, Tuple
-from numpy import sqrt
-import numpy as np
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
+from numpy import sqrt, isclose
 
 import cirq
 
 
-class ThreeDQubit(cirq.ops.Qid):
-    """A qubit in 3d.
+class ThreeDGridQubit(cirq.ops.Qid):
+    """A qubit on a 3d lattice.
 
-    ThreeDQubits use z-y-x ordering:
+    ThreeDGridQubits use row-column-layer ordering:
 
-        ThreeDQubit(0, 0, 0) < ThreeDQubit(1, 0, 0)
-        < ThreeDQubit(0, 1, 0) < ThreeDQubit(0, 0, 1)
-        < ThreeDQubit(1, 1, 0) < ThreeDQubit(1, 0, 1)
-        < ThreeDQubit(0, 1, 1) < ThreeDQubit(1, 1, 1)
+        ThreeDGridQubit(0, 0, 0) < ThreeDGridQubit(0, 0, 1)
+        < ThreeDGridQubit(0, 1, 0)< ThreeDGridQubit(1, 0, 0)
+        < ThreeDGridQubit(0, 1, 1)< ThreeDGridQubit(1, 0, 1)
+        < ThreeDGridQubit(1, 1, 0)< ThreeDGridQubit(1, 1, 1)
 
-    New ThreeDQubit can be constructed by adding or subtracting tuples
+    New ThreeDGridQubit can be constructed by adding or subtracting tuples
 
-        >>> cirq.pasqal.ThreeDQubit(2.5, 3, 4.7) + (3, 1.2, 6)
-        pasqal.ThreeDQubit(5.5, 4.2, 10.7)
+        >>> cirq.pasqal.ThreeDGridQubit(2, 3, 4) + (3, 1, 6)
+        pasqal.ThreeDGridQubit(5, 4, 10)
 
-        >>> cirq.pasqal.ThreeDQubit(2.4, 3.1, 4) - (1, 2, 2.1)
-        pasqal.ThreeDQubit(1.4, 1.1, 1.9)
+        >>> cirq.pasqal.ThreeDGridQubit(2, 3, 4) - (1, 2, 2)
+        pasqal.ThreeDGridQubit(1, 1, 2)
     """
 
-    def __init__(self, x: float, y: float, z: float):
-        self.x = x
-        self.y = y
-        self.z = z
+    def __init__(self, row: int, col: int, lay: int):
+        self.row = row
+        self.col = col
+        self.lay = lay
 
     def _comparison_key(self):
-        return round(self.z, 9), round(self.y, 9), round(self.x, 9)
+        return self.row, self.col, self.lay
 
     @property
     def dimension(self) -> int:
         return 2
 
+    def is_adjacent(self, other: cirq.ops.Qid) -> bool:
+        """Determines if two qubits are adjacent qubits."""
+        return isclose(self.distance(other), 1)
+
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in 3D"""
-        if not isinstance(other, ThreeDQubit):
+        """Returns the distance between two qubits in a 3D grid."""
+        if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
-                "Can compute distance to another ThreeDQubit, but {}".format(
-                    other))
-        return sqrt((self.x - other.x)**2 + (self.y - other.y)**2 +
-                    (self.z - other.z)**2)
+                "Can compute distance to another ThreeDGridQubit, but {}".
+                format(other))
+        return sqrt((self.row - other.row)**2 + (self.col - other.col)**2 +
+                    (self.lay - other.lay)**2)
+
+    def neighbors(self, qids: Optional[Iterable[cirq.ops.Qid]] = None
+                 ) -> Set['ThreeDGridQubit']:
+        """Returns qubits that are potential neighbors to this ThreeDGridQubit
+
+        Args:
+            qids: optional Iterable of qubits to constrain neighbors to.
+        """
+        neighbors = set()
+        for q in [
+                self + (0, 0, 1), self + (0, 1, 0), self + (1, 0, 0),
+                self + (0, 0, -1), self + (0, -1, 0), self + (-1, 0, 0)
+        ]:
+            if qids is None or q in qids:
+                neighbors.add(q)
+        return neighbors
 
     @staticmethod
-    def cube(diameter: int, x0: float = 0, y0: float = 0,
-             z0: float = 0) -> List['ThreeDQubit']:
-        """Returns a cube of ThreeDQubits.
+    def cube(diameter: int, top: int = 0, left: int = 0,
+             upper: int = 0) -> List['ThreeDGridQubit']:
+        """Returns a cube of ThreeDGridQubits.
 
         Args:
             diameter: Length of a side of the square
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
-            z0: z-coordinate of the first qubit
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
+            upper: Column number of the uppermost layer
 
         Returns:
-            A list of ThreeDQubits filling in a square grid
+            A list of ThreeDGridQubits filling in a square grid
         """
-        return ThreeDQubit.parallelep(diameter,
-                                      diameter,
-                                      diameter,
-                                      x0=x0,
-                                      y0=y0,
-                                      z0=z0)
+        return ThreeDGridQubit.parallelep(diameter,
+                                          diameter,
+                                          diameter,
+                                          top=top,
+                                          left=left,
+                                          upper=upper)
 
     @staticmethod
     def parallelep(rows: int,
                    cols: int,
                    lays: int,
-                   x0: float = 0,
-                   y0: float = 0,
-                   z0: float = 0) -> List['ThreeDQubit']:
-        """Returns a parallelepiped of ThreeDQubits.
+                   top: int = 0,
+                   left: int = 0,
+                   upper: int = 0) -> List['ThreeDGridQubit']:
+        """Returns a parallelepiped of ThreeDGridQubits.
 
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
-            z0: z-coordinate of the first qubit
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
 
         Returns:
-            A list of ThreeDQubits filling in a 3D grid
+            A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
-            for y in range(cols) for x in range(rows)
+            ThreeDGridQubit(row, col, lay) for row in range(top, top + rows)
+            for col in range(left, left + cols)
+            for lay in range(upper, upper + lays)
         ]
 
-    def __repr__(self):
-        return 'pasqal.ThreeDQubit({}, {}, {})'.format(self.x, self.y, self.z)
-
-    def __str__(self):
-        return '({}, {}, {})'.format(self.x, self.y, self.z)
-
-    def _json_dict_(self):
-        return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
-
-    def __add__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only add tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x + other[0],
-                           y=self.y + other[1],
-                           z=self.z + other[2])
-
-    def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only subtract tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x - other[0],
-                           y=self.y - other[1],
-                           z=self.z - other[2])
-
-    def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return self + other
-
-    def __rsub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return -self + other
-
-    def __neg__(self) -> 'ThreeDQubit':
-        return ThreeDQubit(x=-self.x, y=-self.y, z=-self.z)
-
-
-class TwoDQubit(ThreeDQubit):
-    """A qubit in 2d."""
-
-    def __init__(self, x: float, y: float):
-        super().__init__(x, y, z=0)
-
     @staticmethod
-    def square(diameter: int, x0: float = 0,
-               y0: float = 0) -> List['TwoDQubit']:
-        """Returns a square of TwoDQubit.
+    def square(diameter: int, top: int = 0,
+               left: int = 0) -> List['ThreeDGridQubit']:
+        """Returns a square of ThreeDGridQubits.
 
         Args:
             diameter: Length of a side of the square
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
 
         Returns:
-            A list of TwoDQubits filling in a square grid
+            A list of ThreeDGridQubits filling in a square grid
         """
-        return TwoDQubit.rect(diameter, diameter, x0=x0, y0=y0)
+        return ThreeDGridQubit.rect(diameter, diameter, top=top, left=left)
 
     @staticmethod
-    def rect(rows: int, cols: int, x0: float = 0,
-             y0: float = 0) -> List['TwoDQubit']:
-        """Returns a rectangle of TwoDQubit.
+    def rect(rows: int, cols: int, top: int = 0,
+             left: int = 0) -> List['ThreeDGridQubit']:
+        """Returns a rectangle of ThreeDGridQubits.
 
         Args:
             rows: Number of rows in the rectangle
             cols: Number of columns in the rectangle
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+            top: Row number of the topmost row
+            left: Column number of the leftmost row
 
         Returns:
-            A list of TwoDQubits filling in a rectangular grid
+            A list of ThreeDGridQubits filling in a rectangular grid
         """
         return [
-            TwoDQubit(x0 + x, y0 + y) for y in range(cols) for x in range(rows)
+            ThreeDGridQubit(row, col, 0)
+            for row in range(top, top + rows)
+            for col in range(left, left + cols)
         ]
 
-    @staticmethod
-    def triangular_lattice(l: int, x0: float = 0, y0: float = 0):
-        """Returns a triangular lattice of TwoDQubit.
+    def __repr__(self) -> str:
+        return f'pasqal.ThreeDGridQubit({self.row}, {self.col}, {self.lay})'
 
-        Args:
-            l: Number of qubits along one direction
-            x0: x-coordinate of the first qubit
-            y0: y-coordinate of the first qubit
+    def __str__(self) -> str:
+        return f'({self.row}, {self.col}, {self.lay})'
 
-        Returns:
-            A list of TwoDQubit filling in a triangular lattice
-        """
-        coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
-                          dtype=float)
-        coords[:, 0] += 0.5 * np.mod(coords[:, 1], 2)
-        coords[:, 1] *= np.sqrt(3) / 2
-        coords += [x0, y0]
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.protocols.obj_to_dict_helper(self, ['row', 'col', 'lay'])
 
-        return [TwoDQubit(coord[0], coord[1]) for coord in coords]
+    def __add__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
+        if not (isinstance(other, tuple) and len(other) == 3 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only add tuples of length 3. Was {}'.format(other))
+        return ThreeDGridQubit(row=self.row + other[0],
+                               col=self.col + other[1],
+                               lay=self.lay + other[2])
 
-    def __repr__(self):
-        return 'pasqal.TwoDQubit({}, {})'.format(self.x, self.y)
+    def __sub__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
+        if not (isinstance(other, tuple) and len(other) == 3 and
+                all(isinstance(x, int) for x in other)):
+            raise TypeError(
+                'Can only subtract tuples of length 3. Was {}'.format(other))
+        return ThreeDGridQubit(row=self.row - other[0],
+                               col=self.col - other[1],
+                               lay=self.lay - other[2])
 
-    def __str__(self):
-        return '({}, {})'.format(self.x, self.y)
+    def __radd__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
+        return self + other
 
-    def _json_dict_(self):
-        return cirq.protocols.obj_to_dict_helper(self, ['x', 'y'])
+    def __rsub__(self, other: Tuple[int, int, int]) -> 'ThreeDGridQubit':
+        return -self + other
+
+    def __neg__(self) -> 'ThreeDGridQubit':
+        return ThreeDGridQubit(row=-self.row, col=-self.col, lay=-self.lay)

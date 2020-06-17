@@ -121,7 +121,6 @@ class _ResolverCache:
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
-                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -141,9 +140,8 @@ class _ResolverCache:
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
-                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
+                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
                 'TrialResult': cirq.TrialResult,
-                'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
