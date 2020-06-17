@@ -962,4 +962,4 @@ def test_separated_measurements():
         cirq.measure(b, key='zero'),
     ])
     sample = cirq.Simulator().sample(c, repetitions=10)
-    np.testing.assert_array_equal(sample['zero'].values, [0]*10)
+    np.testing.assert_array_equal(sample['zero'].values, [0] * 10)
