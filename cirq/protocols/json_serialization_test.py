@@ -289,7 +289,6 @@ NOT_YET_SERIALIZABLE = [
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
-    'LinearDict',
     'Linspace',
     'ListSweep',
     'NeutralAtomDevice',
