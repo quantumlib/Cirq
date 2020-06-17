@@ -15,7 +15,8 @@
 """A simulator that uses numpy's einsum for sparse matrix operations."""
 
 import collections
-from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict
+from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, \
+    Tuple, cast, Set
 
 import numpy as np
 
@@ -134,35 +135,41 @@ class Simulator(simulator.SimulatesSamples,
         param_resolver = param_resolver or study.ParamResolver({})
         resolved_circuit = protocols.resolve_parameters(circuit, param_resolver)
         self._check_all_resolved(resolved_circuit)
+        qubit_order = sorted(resolved_circuit.all_qubits())
 
-        def measure_or_mixture(op):
-            return not protocols.has_unitary(op) and (
-                protocols.is_measurement(op) or protocols.has_channel(op))
-
-        if resolved_circuit.are_all_matches_terminal(measure_or_mixture):
-            return self._run_sweep_terminal_sample(resolved_circuit,
-                                                   repetitions)
-        return self._run_sweep_repeat(resolved_circuit, repetitions)
-
-    def _run_sweep_terminal_sample(self, circuit: circuits.Circuit,
-                                   repetitions: int) -> Dict[str, np.ndarray]:
-        for step_result in self._base_iterator(
-                circuit=circuit,
-                qubit_order=ops.QubitOrder.DEFAULT,
-                initial_state=0,
-                perform_measurements=False):
+        # Simulate as many unitary operations as possible before having to
+        # repeat work for each sample.
+        unitary_prefix, general_suffix = _split_into_unitary_then_general(
+            resolved_circuit)
+        step_result = None
+        for step_result in self._base_iterator(circuit=unitary_prefix,
+                                               qubit_order=qubit_order,
+                                               initial_state=0,
+                                               perform_measurements=False):
             pass
-        # We can ignore the mixtures since this is a run method which
-        # does not return the state.
-        measurement_ops = [op for _, op, _ in
-                           circuit.findall_operations_with_gate_type(
-                                   ops.MeasurementGate)]
-        return step_result.sample_measurement_ops(measurement_ops,
-                                                  repetitions,
-                                                  seed=self._prng)
+        assert step_result is not None
 
-    def _run_sweep_repeat(self, circuit: circuits.Circuit,
-                          repetitions: int) -> Dict[str, np.ndarray]:
+        # When an otherwise unitary circuit ends with non-demolition computation
+        # basis measurements, we can sample the results more efficiently.
+        general_ops = list(general_suffix.all_operations())
+        if all(isinstance(op.gate, ops.MeasurementGate) for op in general_ops):
+            return step_result.sample_measurement_ops(measurement_ops=cast(
+                List[ops.GateOperation], general_ops),
+                                                      repetitions=repetitions,
+                                                      seed=self._prng)
+
+        qid_shape = protocols.qid_shape(qubit_order)
+        intermediate_state = step_result.state_vector().reshape(qid_shape)
+        return self._brute_force_samples(initial_state=intermediate_state,
+                                         circuit=general_suffix,
+                                         repetitions=repetitions,
+                                         qubit_order=qubit_order)
+
+    def _brute_force_samples(self, initial_state: np.ndarray,
+                             circuit: circuits.Circuit,
+                             qubit_order: 'cirq.QubitOrderOrList',
+                             repetitions: int) -> Dict[str, np.ndarray]:
+        """Repeatedly simulate a circuit in order to produce samples."""
         if repetitions == 0:
             return {
                 key: np.empty(shape=[0, 1])
@@ -172,10 +179,9 @@ class Simulator(simulator.SimulatesSamples,
         measurements: DefaultDict[str, List[
             np.ndarray]] = collections.defaultdict(list)
         for _ in range(repetitions):
-            all_step_results = self._base_iterator(
-                    circuit,
-                    qubit_order=ops.QubitOrder.DEFAULT,
-                    initial_state=0)
+            all_step_results = self._base_iterator(circuit,
+                                                   initial_state=initial_state,
+                                                   qubit_order=qubit_order)
 
             for step_result in all_step_results:
                 for k, v in step_result.measurements.items():
@@ -331,3 +337,35 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
                                                     self, None),
                                                 repetitions=repetitions,
                                                 seed=seed)
+
+
+def _split_into_unitary_then_general(circuit: 'cirq.Circuit'
+                                    ) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+    """Splits the circuit into a unitary prefix and non-unitary suffix.
+
+    The splitting happens in a per-qubit fashion. A non-unitary operation on
+    qubit A will cause later operations on A to be part of the non-unitary
+    suffix, but later operations on other qubits will continue to be put into
+    the unitary part (as long as those qubits have had no non-unitary operation
+    up to that point).
+    """
+    blocked_qubits: Set[cirq.Qid] = set()
+    unitary_prefix = circuits.Circuit()
+    general_suffix = circuits.Circuit()
+    for moment in circuit:
+        unitary_part = []
+        general_part = []
+        for op in moment:
+            qs = set(op.qubits)
+            if not protocols.has_unitary(op):
+                blocked_qubits |= qs
+
+            if qs.isdisjoint(blocked_qubits):
+                unitary_part.append(op)
+            else:
+                general_part.append(op)
+        if unitary_part:
+            unitary_prefix.append(ops.Moment(unitary_part))
+        if general_part:
+            general_suffix.append(ops.Moment(general_part))
+    return unitary_prefix, general_suffix
