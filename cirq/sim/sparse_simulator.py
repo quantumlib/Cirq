@@ -160,15 +160,16 @@ class Simulator(simulator.SimulatesSamples,
 
         qid_shape = protocols.qid_shape(qubit_order)
         intermediate_state = step_result.state_vector().reshape(qid_shape)
-        return self._run_sweep_repeat(initial_state=intermediate_state,
-                                      circuit=general_suffix,
-                                      repetitions=repetitions,
-                                      qubit_order=qubit_order)
+        return self._brute_force_samples(initial_state=intermediate_state,
+                                         circuit=general_suffix,
+                                         repetitions=repetitions,
+                                         qubit_order=qubit_order)
 
-    def _run_sweep_repeat(self, initial_state: np.ndarray,
-                          circuit: circuits.Circuit,
-                          qubit_order: 'cirq.QubitOrderOrList',
-                          repetitions: int) -> Dict[str, np.ndarray]:
+    def _brute_force_samples(self, initial_state: np.ndarray,
+                             circuit: circuits.Circuit,
+                             qubit_order: 'cirq.QubitOrderOrList',
+                             repetitions: int) -> Dict[str, np.ndarray]:
+        """Repeatedly simulate a circuit in order to produce samples."""
         if repetitions == 0:
             return {
                 key: np.empty(shape=[0, 1])
@@ -340,6 +341,14 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
 
 def _split_into_unitary_then_general(circuit: 'cirq.Circuit'
                                     ) -> Tuple['cirq.Circuit', 'cirq.Circuit']:
+    """Splits the circuit into a unitary prefix and non-unitary suffix.
+
+    The splitting happens in a per-qubit fashion. A non-unitary operation on
+    qubit A will cause later operations on A to be part of the non-unitary
+    suffix, but later operations on other qubits will continue to be put into
+    the unitary part (as long as those qubits have had no non-unitary operation
+    up to that point).
+    """
     blocked_qubits: Set[cirq.Qid] = set()
     unitary_prefix = circuits.Circuit()
     general_suffix = circuits.Circuit()

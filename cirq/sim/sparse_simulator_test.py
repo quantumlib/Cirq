@@ -101,6 +101,7 @@ def test_run_measure_at_end_no_repetitions(dtype):
                     '1': np.empty([0, 1])
                 })
                 assert result.repetitions == 0
+        # We expect one call per b0,b1.
         assert mock_sim.call_count == 4
 
 
@@ -125,6 +126,7 @@ def test_run_repetitions_measure_at_end(dtype):
                 np.testing.assert_equal(result.measurements,
                                         {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
+        # We expect one call per b0,b1.
         assert mock_sim.call_count == 4
 
 
@@ -147,6 +149,7 @@ def test_run_invert_mask_measure_not_terminal(dtype):
                 np.testing.assert_equal(result.measurements,
                                         {'m': [[1 - b0, b1]] * 3})
                 assert result.repetitions == 3
+        # We expect repeated calls per b0,b1 instead of one call.
         assert mock_sim.call_count > 4
 
 
@@ -169,6 +172,7 @@ def test_run_partial_invert_mask_measure_not_terminal(dtype):
                 np.testing.assert_equal(result.measurements,
                                         {'m': [[1 - b0, b1]] * 3})
                 assert result.repetitions == 3
+        # We expect repeated calls per b0,b1 instead of one call.
         assert mock_sim.call_count > 4
 
 
@@ -190,6 +194,7 @@ def test_run_measurement_not_terminal_no_repetitions(dtype):
                     '1': np.empty([0, 1])
                 })
                 assert result.repetitions == 0
+        # We expect one call per b0,b1 instead of one call.
         assert mock_sim.call_count == 4
 
 
@@ -208,6 +213,7 @@ def test_run_repetitions_measurement_not_terminal(dtype):
                 np.testing.assert_equal(result.measurements,
                                         {'0': [[b0]] * 3, '1': [[b1]] * 3})
                 assert result.repetitions == 3
+        # We expect repeated calls per b0,b1 instead of one call.
         assert mock_sim.call_count > 4
 
 
@@ -902,9 +908,11 @@ def test_random_seed_mixture_deterministic():
 
 
 def test_entangled_reset_does_not_break_randomness():
-    # A previous version made the mistake of assuming that it was okay to cache
-    # the wavefunction produced by general channels on unrelated qubits before
-    # repeatedly sampling measurements. This test checks for that mistake.
+    """
+    A previous version of cirq made the mistake of assuming that it was okay to
+    cache the wavefunction produced by general channels on unrelated qubits
+    before repeatedly sampling measurements. This test checks for that mistake.
+    """
 
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b),
