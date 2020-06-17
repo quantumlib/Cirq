@@ -1,4 +1,0 @@
-cirq.pasqal.PasqalVirtualDevice(
-    control_radius=3,
-    qubits=[cirq.pasqal.ThreeDQubit(1, 1, 1)]
-)

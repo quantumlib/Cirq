@@ -259,6 +259,26 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> List[str]:
+        if not len(self._qubit_pauli_map):
+            return NotImplemented
+
+        qs = args.known_qubits or list(self._qubit_pauli_map.keys())
+        symbols = list(str(self.get(q)) for q in qs)
+        if self.coefficient == 1:
+            prefix = '+'
+        elif self.coefficient == -1:
+            prefix = '-'
+        elif self.coefficient == 1j:
+            prefix = 'i'
+        elif self.coefficient == -1j:
+            prefix = '-i'
+        else:
+            prefix = f'({args.format_complex(self.coefficient)})*'
+        symbols[0] = f'PauliString({prefix}{symbols[0]})'
+        return symbols
+
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
