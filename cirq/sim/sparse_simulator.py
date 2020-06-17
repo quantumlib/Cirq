@@ -357,7 +357,8 @@ def _split_into_unitary_then_general(circuit: 'cirq.Circuit'
         general_part = []
         for op in moment:
             qs = set(op.qubits)
-            if not protocols.has_unitary(op):
+            if (not protocols.has_unitary(op) or
+                    not qs.isdisjoint(blocked_qubits)):
                 blocked_qubits |= qs
 
             if qs.isdisjoint(blocked_qubits):
