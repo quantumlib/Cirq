@@ -147,11 +147,16 @@ class PointOptimizer:
                     cast(Tuple[ops.Operation], opt.new_operations))
 
                 flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
-                start_index = i
+
+                new_qubits = set()
                 for flat_op in flat_new_operations:
                     for q in flat_op.qubits:
-                        if frontier[q] is not None:
-                            start_index = max(start_index, frontier[q])
-                circuit.insert_at_frontier(flat_new_operations, start_index,
-                                           frontier)
+                        new_qubits.add(q)
+
+                if not new_qubits.issubset(set(opt.clear_qubits)):
+                    raise ValueError(
+                        'New operations in PointOptimizer should not act on new'
+                        'qubits.')
+
+                circuit.insert_at_frontier(flat_new_operations, i, frontier)
             i += 1
