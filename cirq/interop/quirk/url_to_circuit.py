@@ -182,10 +182,9 @@ def quirk_json_to_circuit(
     # Collect registry of quirk cell types.
     if isinstance(extra_cell_makers, Mapping):
         extra_makers = [
-            CellMaker(
-                identifier=identifier,
-                size=protocols.num_qubits(gate),
-                maker=(lambda gate: lambda args: gate(*args.qubits))(gate))
+            CellMaker(identifier=identifier,
+                      size=protocols.num_qubits(gate),
+                      maker=lambda args: gate(*args.qubits))
             for identifier, gate in extra_cell_makers.items()
         ]
     else:
