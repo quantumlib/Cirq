@@ -948,3 +948,18 @@ def test_overlapping_measurements_at_end():
     assert len(counts) == 2
     assert 10 <= counts[0] <= 90
     assert 10 <= counts[1] <= 90
+
+
+def test_separated_measurements():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit([
+        cirq.H(a),
+        cirq.H(b),
+        cirq.CZ(a, b),
+        cirq.measure(a, key=''),
+        cirq.CZ(a, b),
+        cirq.H(b),
+        cirq.measure(b, key='zero'),
+    ])
+    sample = cirq.Simulator().sample(c, repetitions=10)
+    np.testing.assert_array_equal(sample['zero'].values, [0] * 10)
