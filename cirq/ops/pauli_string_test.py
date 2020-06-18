@@ -24,6 +24,9 @@ import cirq
 import cirq.testing
 
 
+q0, q1, q2 = cirq.LineQubit.range(3)
+
+
 def _make_qubits(n):
     return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
 
@@ -712,6 +715,29 @@ def test_bool():
     a = cirq.LineQubit(0)
     assert not bool(cirq.PauliString({}))
     assert bool(cirq.PauliString({a: cirq.X}))
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', (
+    (cirq.X(q0) * 2, None, np.array([[0, 2], [2, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q0,), np.array([[0, 1], [1, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q1,), np.array([[0, -1j], [1j, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), None,
+     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q0, q1),
+     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q1, q0),
+     np.array([[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q2,), np.eye(2)),
+    (cirq.X(q0) * cirq.Y(q1), (q2, q1),
+     np.array([[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q2, q0, q1),
+     np.array([[0, 0, 0, -1j, 0, 0, 0, 0], [0, 0, 1j, 0, 0, 0, 0, 0],
+               [0, -1j, 0, 0, 0, 0, 0, 0], [1j, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, -1j], [0, 0, 0, 0, 0, 0, 1j, 0],
+               [0, 0, 0, 0, 0, -1j, 0, 0], [0, 0, 0, 0, 1j, 0, 0, 0]])),
+))
+def test_matrix(pauli_string, qubits, expected_matrix):
+    assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
 
 
 def test_unitary_matrix():

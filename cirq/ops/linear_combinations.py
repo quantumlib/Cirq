@@ -395,18 +395,11 @@ class PauliSum:
         """
         num_qubits = len(self.qubits)
         num_dim = 2**num_qubits
-        qubit_to_axis = {q: i for i, q in enumerate(self.qubits)}
-        result = np.zeros((2,) * (2 * num_qubits), dtype=np.complex128)
+        result = np.zeros((num_dim, num_dim), dtype=np.complex128)
         for vec, coeff in self._linear_dict.items():
             op = _pauli_string_from_unit(vec)
-            identity = np.eye(num_dim,
-                              dtype=np.complex128).reshape(result.shape)
-            workspace = np.empty_like(identity)
-            axes = tuple(qubit_to_axis[q] for q in op.qubits)
-            u = protocols.apply_unitary(
-                op, protocols.ApplyUnitaryArgs(identity, workspace, axes))
-            result += coeff * u
-        return result.reshape((num_dim, num_dim))
+            result += coeff * op.matrix(self.qubits)
+        return result
 
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
