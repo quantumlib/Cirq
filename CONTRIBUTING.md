@@ -65,7 +65,7 @@ into your branch:
 you should see the option to create a new pull request from
 your clone repository.  Alternatively you can create the pull request
 by navigating to the "Pull requests" tab in the page, and selecting
-the appropriate branches. 
+the appropriate branches.
 1. The reviewer will comment on your code and may ask for changes,
 you can perform these locally, and then push the new commit following
 the same process as above.
@@ -75,7 +75,7 @@ the same process as above.
 When a pull request is created or updated, various automatic checks will run to ensure that the change won't break Cirq and meets our coding standards.
 
 Cirq contains a continuous integration tool to verify testing.  See our
-[development page](docs/dev/development.md) on how to run the continuous 
+[development page](docs/dev/development.md) on how to run the continuous
 integration checks locally.
 
 Please be aware of the following code standards that will be applied to any
@@ -100,4 +100,6 @@ Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
 We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
 When type checking produces a false positive, it can be ignored with annotations like `# type: ignore`.
 
+## Request For Comment Process for New Major Features
 
+For larger contributions that will benefit from design reviews, please use the [Request for Comment](https://github.com/quantumlib/cirq/docs/contributions/rfc_process.md) process.
