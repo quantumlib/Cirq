@@ -171,7 +171,7 @@ class PauliString(raw_types.Operation):
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid', default: None = None) -> pauli_gates.Pauli:
         pass
 
     @overload
