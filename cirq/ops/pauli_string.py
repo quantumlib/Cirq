@@ -171,7 +171,7 @@ class PauliString(raw_types.Operation):
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid', default: None = None) -> pauli_gates.Pauli:
         pass
 
     @overload
@@ -344,14 +344,28 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
+    def matrix(self,
+               qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli string is to
+                be computed. Qubits absent from self.qubits are acted on by
+                the identity. Defaults to self.qubits.
+        """
+        qubits = self.qubits if qubits is None else qubits
+        factors = [self.get(q, default=identity.I) for q in qubits]
+        return linalg.kron(self.coefficient,
+                           *[protocols.unitary(f) for f in factors])
+
     def _has_unitary_(self) -> bool:
         return abs(1 - abs(self.coefficient)) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():
             return None
-        return linalg.kron(self.coefficient,
-                           *[protocols.unitary(self[q]) for q in self.qubits])
+        return self.matrix()
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
