@@ -77,5 +77,5 @@ def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
     assert all(
         state_vector_has_stabilizer(state_vector.copy(), stab)
         for stab in tableau.stabilizers()), (
-        "act_on clifford tableau is not consistent with "
-        "final_state_vector simulation.\n\nval: {!r}".format(val))
+            "act_on clifford tableau is not consistent with "
+            "final_state_vector simulation.\n\nval: {!r}".format(val))
