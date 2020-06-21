@@ -143,7 +143,6 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
     assert_decompose_is_consistent_with_unitary(val,
         ignoring_global_phase=ignoring_global_phase)
     assert_phase_by_is_consistent_with_unitary(val)
-    assert_act_on_clifford_tableau_effect_matches_unitary(val)
     assert_pauli_expansion_is_consistent_with_unitary(val)
     assert_equivalent_repr(val,
                            setup_code=setup_code,
