@@ -487,6 +487,40 @@ def test_cz_act_on():
         cirq.act_on(cirq.CZ**1.5, args)
 
 
+@pytest.mark.parametrize(
+    'input_gate',
+    [
+        cirq.X,
+        cirq.Y,
+        cirq.Z,
+        cirq.X**0.5,
+        cirq.Y**0.5,
+        cirq.Z**0.5,
+        cirq.X**3.5,
+        cirq.Y**3.5,
+        cirq.Z**3.5,
+        cirq.X**4,
+        cirq.Y**4,
+        cirq.Z**4,
+        cirq.H,
+        cirq.CX,
+        cirq.CZ,
+        cirq.H**4,
+        cirq.CX**4,
+        cirq.CZ**4,
+        # Gates not supported by CliffordTableau should not fail too.
+        cirq.X**0.25,
+        cirq.Y**0.25,
+        cirq.Z**0.25,
+        cirq.H**0.5,
+        cirq.CX**0.5,
+        cirq.CZ**0.5
+    ])
+def test_act_on_clifford_tableau(input_gate):
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(
+        input_gate)
+
+
 def test_runtime_types_of_rot_gates():
     for gate_type in [lambda p: cirq.CZPowGate(exponent=p),
                       lambda p: cirq.XPowGate(exponent=p),

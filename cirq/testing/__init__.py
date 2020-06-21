@@ -27,6 +27,9 @@ from cirq.testing.circuit_compare import (
     assert_has_consistent_qid_shape,
 )
 
+from cirq.testing.consistent_act_on import (
+    assert_act_on_clifford_tableau_effect_matches_unitary,)
+
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,)
 

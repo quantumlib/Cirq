@@ -298,9 +298,9 @@ class YPowGate(eigen_gate.EigenGate,
             q = args.axes[0]
             effective_exponent = self._exponent % 2
             if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & (~tableau.zs[:, q]))
                 (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
                                                         tableau.xs[:, q].copy())
-                tableau.rs[:] ^= (tableau.xs[:, q] & (~tableau.zs[:, q]))
             elif effective_exponent == 1:
                 tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
             elif effective_exponent == 1.5:
@@ -1053,8 +1053,8 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             q1 = args.axes[0]
             q2 = args.axes[1]
             if self._exponent % 2 == 1:
-                tableau.rs[:] ^= (tableau.xs[:, q1] & tableau.zs[:, q2] & \
-                                 (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
+                tableau.rs[:] ^= (tableau.xs[:, q1] & tableau.zs[:, q2] &
+                                  (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
                 tableau.xs[:, q2] ^= tableau.xs[:, q1]
                 tableau.zs[:, q1] ^= tableau.zs[:, q2]
             return True
