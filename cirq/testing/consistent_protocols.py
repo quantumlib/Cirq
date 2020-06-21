@@ -19,8 +19,6 @@ import numpy as np
 import sympy
 
 from cirq import ops, protocols, value
-from cirq.testing.consistent_act_on import (
-    assert_act_on_clifford_tableau_effect_matches_unitary)
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
                                           assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
