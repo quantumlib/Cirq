@@ -95,7 +95,7 @@ def match_global_phase(a: np.ndarray,
         if math.isclose(i, 0):
             return -1 if r < 0 else 1
         if math.isclose(r, 0):
-            return 1j if i < 0 else -1j
+            return -1j if i < 0 else 1j
 
         return np.exp(-1j * np.arctan2(i, r))
 
