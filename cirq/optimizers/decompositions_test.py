@@ -189,6 +189,9 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
                                                     atol=1e-7)
 
 
+def test_numpy():
+    np.test('full')
+
 @pytest.mark.parametrize('mat', [
     np.eye(2),
     cirq.unitary(cirq.H),
