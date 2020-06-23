@@ -14,8 +14,6 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-import math
-
 from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
 import numpy as np
@@ -91,15 +89,11 @@ def match_global_phase(a: np.ndarray,
         r = np.real(v)
         i = np.imag(v)
 
-        print(v)
         # Avoid introducing floating point error when axis-aligned.
-        if math.isclose(i, 0):
-            print('i is close')
+        if i == 0:
             return -1 if r < 0 else 1
-        if math.isclose(r, 0):
-            print('r is close')
+        if r == 0:
             return 1j if i < 0 else -1j
-        print('neither is close')
 
         return np.exp(-1j * np.arctan2(i, r))
 
