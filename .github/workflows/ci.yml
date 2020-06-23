@@ -84,7 +84,7 @@ jobs:
         run: check/doctest -q
   pytest:
     name: Pytest Ubuntu
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
       - uses: actions/setup-python@v1
