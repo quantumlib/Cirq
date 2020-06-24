@@ -239,6 +239,8 @@ def test_act_on_state_vector():
 def test_act_on_clifford_tableau():
     a, b = cirq.LineQubit.range(2)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    # The below assertion does not fail since it ignores non-unitary operations
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(m)
 
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(m, object())
