@@ -175,7 +175,7 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
     assert len(kept) == 3
 
 
-@pytest.mark.xfail(sys.platform == 'win32',
+@pytest.mark.xfail((sys.platform == 'win32') or (sys.platform == 'linux'),
                    reason='https://github.com/quantumlib/Cirq/issues/2468')
 def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(
@@ -185,6 +185,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
                                                     atol=1e-7)
     assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
     assert abs(g - 1) < 0.00001
+    assert False
 
 
 @pytest.mark.parametrize('mat', [
