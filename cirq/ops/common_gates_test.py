@@ -730,3 +730,8 @@ def test_commutes():
     assert cirq.commutes(cirq.Z, cirq.Z(cirq.LineQubit(0)),
                          default=None) is None
     assert cirq.commutes(cirq.Z**0.1, cirq.XPowGate(exponent=0))
+
+
+def test_approx_eq():
+    assert cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.05)
