@@ -1112,3 +1112,36 @@ def test_simulate_noise_with_terminal_measurements():
     result2 = simulator.run(circuit2, repetitions=10)
 
     assert result1 == result2
+
+
+def test_density_matrix_copy():
+    sim = cirq.DensityMatrixSimulator()
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.H(q), cirq.H(q))
+
+    matrices = []
+    for step in sim.simulate_moment_steps(circuit):
+        matrices.append(step.density_matrix(copy=True))
+    assert all(np.isclose(np.trace(x), 1.0) for x in matrices)
+
+    # If the density matrix is not copied, then applying second Hadamard
+    # causes old state to be modified.
+    matrices = []
+    traces = []
+    for step in sim.simulate_moment_steps(circuit):
+        matrices.append(step.density_matrix(copy=False))
+        traces.append(np.trace(step.density_matrix(copy=False)))
+    assert any(not np.isclose(np.trace(x), 1.0) for x in matrices)
+    assert all(np.isclose(x, 1.0) for x in traces)
+
+
+def test_final_density_matrix_is_not_last_object():
+    sim = cirq.DensityMatrixSimulator()
+
+    q = cirq.LineQubit(0)
+    initial_state = np.array([[1, 0], [0, 0]], dtype=np.complex64)
+    circuit = cirq.Circuit(cirq.WaitGate(0)(q))
+    result = sim.simulate(circuit, initial_state=initial_state)
+    assert result.final_density_matrix is not initial_state
+    np.testing.assert_equal(result.final_density_matrix, initial_state)
