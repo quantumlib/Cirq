@@ -377,7 +377,7 @@ class YPowGate(eigen_gate.EigenGate,
         ).format(proper_repr(self._exponent), self._global_shift)
 
 
-@value.value_equality(approximate=True)
+@value.value_equality
 class ZPowGate(eigen_gate.EigenGate,
                gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.

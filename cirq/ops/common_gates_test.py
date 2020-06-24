@@ -735,3 +735,7 @@ def test_commutes():
 def test_approx_eq():
     assert cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.3)
     assert not cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.05)
+    assert cirq.approx_eq(cirq.Y**0.1, cirq.Y**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.Y**0.1, cirq.Y**0.2, atol=0.05)
+    assert cirq.approx_eq(cirq.X**0.1, cirq.X**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.X**0.1, cirq.X**0.2, atol=0.05)
