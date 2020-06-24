@@ -11,21 +11,21 @@ An RFC is a document that describes a requirement and the proposed changes that 
 The purpose of a Cirq Request for Comments (RFC) is to engage the Cirq community in development, by getting feedback from stakeholders and experts, and communicating design changes broadly.
 
 
-## What constitutes a Major features
+## What constitutes a major features
 
 Major features include the following:
-*   Features that drastically change the user experience or workflow of Cirq
-*   Features that create new library dependencies for Cirq
-*   New simulators, samplers, protocols, devices, or packages
-*   Features that drastically change performance of Cirq
-*   Features that maintainers disagree/debate about
+*   Features that drastically change the user experience or workflow of Cirq.
+*   Features that create new library dependencies for Cirq.
+*   New simulators, samplers, protocols, devices, or packages.
+*   Features that drastically change performance of Cirq.
+*   Features that maintainers disagree/debate about.
 
 Not Major features include the following:
 
 
 
-*   Fixing a bug
-*   Extending the functionality of an existing method in a natural way
+*   Fixing a bug.
+*   Extending the functionality of an existing method in a natural way.
 
 If you are not sure if a feature constitute as a “major feature”, just submit a github issue with a description, and one of the maintainers will flag the issue as a major feature if necessary
 
@@ -75,14 +75,11 @@ A sponsor is a project maintainer responsible for ensuring the best possible out
 
 The review committee decides on a consensus basis whether to approve, reject, or request changes. They are responsible for:
 
-
-
 *   Ensuring that substantive items of public feedback have been accounted for.
 *   Adding their meeting notes as comments to the PR.
 *   Providing reasons for their decisions.
 
-The constitution of a review committee may change according to the particular governance style and leadership of each project. For core TensorFlow, the committee will consist of contributors to the TensorFlow project who have expertise in the domain area concerned.
-
+The constitution of a review committee may change according to the particular governance style and leadership of each project.
 
 ## Implementing new features
 
@@ -93,11 +90,12 @@ If you are working on new code to implement an RFC:
 
 
 *   Make sure you understand the feature and the design approved in the RFC. Ask questions and discuss the approach before beginning work.
-*   New features must include new unit tests that verify the feature works as expected. It's a good idea to write these tests before writing the code.
+*   New features must include new unit tests that verify the feature works as expected.
 *   Add or update relevant API documentation. Reference the RFC in the new documentation.
-*   Follow any other guidelines laid out in the CONTRIBUTING.md file in the project repo you're contributing to.
+*   Follow any other guidelines laid out in the [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) file in the project repo you're contributing to.
 *   Run unit tests before submitting your code.
 *   Work with the RFC sponsor to successfully land the new code. This could include PR / marketing of the new feature as well.
+*   Follow the Cirq process of deprecating code. Please refer to [\_compat.py](https://github.com/quantumlib/Cirq/blob/master/cirq/_compat.py) as an example.
 
 
 ## Keeping the bar high
