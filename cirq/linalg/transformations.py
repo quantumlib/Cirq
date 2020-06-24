@@ -14,6 +14,8 @@
 
 """Utility methods for transforming matrices or vectors."""
 
+import math
+
 from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
 import numpy as np
@@ -95,9 +97,7 @@ def match_global_phase(a: np.ndarray,
         if r == 0:
             return 1j if i < 0 else -1j
 
-        angle = np.arctan2(i, r)
-        return np.cos(angle) - 1j * np.sin(angle)
-        # return np.exp(-1j * np.arctan2(i, r))
+        return np.exp(-1j * np.arctan2(i, r))
 
     # Zero the phase at this entry in both matrices.
     return a * dephase(a[k]), b * dephase(b[k])
