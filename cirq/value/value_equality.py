@@ -203,6 +203,7 @@ def value_equality(cls: type = None,
     if distinct_child_types:
         setattr(cls, '_value_equality_values_cls_', lambda self: type(self))
     elif manual_cls:
+        print('here')
         cls_getter = getattr(cls, '_value_equality_values_cls_', None)
         if cls_getter is None:
             raise TypeError('The @cirq.value_equality decorator requires a '

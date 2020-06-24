@@ -26,7 +26,7 @@ from cirq.ops import gate_features, common_gates
 from cirq.type_workarounds import NotImplementedType
 
 
-@value.value_equality(manual_cls=True)
+@value.value_equality(manual_cls=True, approximate=True)
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
 
@@ -207,6 +207,22 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
                 exponent=self._exponent,
                 global_shift=self._global_shift)._value_equality_values_()
         return self.phase_exponent, self._canonical_exponent, self._global_shift
+
+    def _value_equality_approximate_values_(self):
+        if self.phase_exponent == 0:
+            return common_gates.XPowGate(exponent=self._exponent,
+                                         global_shift=self._global_shift
+                                        )._value_equality_approximate_values_()
+        if self.phase_exponent == 0.5:
+            return common_gates.YPowGate(exponent=self._exponent,
+                                         global_shift=self._global_shift
+                                        )._value_equality_approximate_values_()
+        period = self._period()
+        if not period or protocols.is_parameterized(self._exponent):
+            exponent = self._exponent
+        else:
+            exponent = value.PeriodicValue(self._exponent, period)
+        return self._phase_exponent, exponent, self._global_shift
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(

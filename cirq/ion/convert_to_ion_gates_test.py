@@ -58,14 +58,16 @@ def test_convert_to_ion_gates():
     assert rx == [
         cirq.PhasedXPowGate(phase_exponent=1).on(cirq.GridQubit(0, 0))
     ]
-    assert rop == [
+    expected_rop = [
         cirq.ry(np.pi / 2).on(op.qubits[0]),
         cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
         cirq.rx(-1 * np.pi / 2).on(op.qubits[0]),
         cirq.rx(-1 * np.pi / 2).on(op.qubits[1]),
         cirq.ry(-1 * np.pi / 2).on(op.qubits[0])
     ]
-    assert rcnot == [
+    assert all(cirq.approx_eq(x, y) for x, y in zip(rop, expected_rop))
+
+    expected_rcnot = [
         cirq.PhasedXPowGate(phase_exponent=-0.75,
                             exponent=0.5).on(cirq.GridQubit(0, 0)),
         cirq.PhasedXPowGate(phase_exponent=1,
@@ -73,11 +75,14 @@ def test_convert_to_ion_gates():
         cirq.T.on(cirq.GridQubit(0, 0)),
         cirq.ms(-0.5 * np.pi / 2).on(cirq.GridQubit(0, 0), cirq.GridQubit(0,
                                                                           1)),
-        (cirq.Y**0.5).on(cirq.GridQubit(0, 0)),
+        cirq.YPowGate(exponent=0.5).on(cirq.GridQubit(0, 0)),
         cirq.PhasedXPowGate(phase_exponent=1,
                             exponent=0.25).on(cirq.GridQubit(0, 1)),
         (cirq.Z**-0.75).on(cirq.GridQubit(0, 0))
     ]
+    for x, y in zip(rcnot, expected_rcnot):
+        assert cirq.approx_eq(x, y)
+    assert all(cirq.approx_eq(x, y) for x, y in zip(rcnot, expected_rcnot))
 
 
 def test_convert_to_ion_circuit():
