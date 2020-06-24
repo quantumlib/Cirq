@@ -140,7 +140,6 @@ def single_qubit_op_to_framed_phase_form(
         apply g.
     """
     vals, vecs = np.linalg.eig(mat)
-    print(vals, vecs)
     u = np.conj(vecs).T
     r = vals[1] / vals[0]
     g = vals[0]

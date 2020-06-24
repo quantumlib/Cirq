@@ -14,8 +14,6 @@
 
 """Utility methods for transforming matrices or vectors."""
 
-import math
-
 from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
 import numpy as np
