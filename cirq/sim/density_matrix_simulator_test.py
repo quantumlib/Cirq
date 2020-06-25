@@ -1136,7 +1136,7 @@ def test_density_matrix_copy():
         traces.append(np.trace(step.density_matrix(copy=False)))
     assert any(not np.isclose(np.trace(x), 1.0) for x in matrices)
     assert all(np.isclose(x, 1.0) for x in traces)
-    assert any(not np.shares_memory(x, y)
+    assert all(not np.shares_memory(x, y)
                for x, y in itertools.combinations(matrices, 2))
 
 
