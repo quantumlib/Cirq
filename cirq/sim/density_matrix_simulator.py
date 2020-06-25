@@ -256,8 +256,9 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         initial_matrix = qis.to_valid_density_matrix(initial_state,
                                                      len(qid_shape),
                                                      qid_shape=qid_shape,
-                                                     dtype=self._dtype,
-                                                     copy=True)
+                                                     dtype=self._dtype)
+        if np.may_share_memory(initial_matrix, initial_state):
+            initial_matrix = initial_matrix.copy()
         measured = collections.defaultdict(
             bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
@@ -438,10 +439,10 @@ class DensityMatrixStepResult(simulator.StepResult):
 
         Args:
             copy: If True, then the returned state is a copy of the density
-            matrix. If False, then the density matrix is not copied, potentially
-            saving memory. If one only needs to read derived parameters from the
-            density matrix and store then using False can speed up simulation by
-            eliminating a memory copy.
+                matrix. If False, then the density matrix is not copied,
+                potentially saving memory. If one only needs to read derived
+                parameters from the density matrix and store then using False
+                can speed up simulation by eliminating a memory copy.
         """
         size = np.prod(self._qid_shape, dtype=int)
         matrix = self._density_matrix.copy() if copy else self._density_matrix
@@ -536,7 +537,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
                          final_simulator_state=final_simulator_state)
         size = np.prod(protocols.qid_shape(self), dtype=int)
         self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix, (size, size)).copy()
+            final_simulator_state.density_matrix.copy(), (size, size))
 
     def _value_equality_values_(self) -> Any:
         measurements = {

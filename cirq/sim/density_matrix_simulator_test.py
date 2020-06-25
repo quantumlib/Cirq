@@ -1124,6 +1124,8 @@ def test_density_matrix_copy():
     for step in sim.simulate_moment_steps(circuit):
         matrices.append(step.density_matrix(copy=True))
     assert all(np.isclose(np.trace(x), 1.0) for x in matrices)
+    for x, y in itertools.combinations(matrices, 2):
+        assert not np.shares_memory(x, y)
 
     # If the density matrix is not copied, then applying second Hadamard
     # causes old state to be modified.
@@ -1134,6 +1136,8 @@ def test_density_matrix_copy():
         traces.append(np.trace(step.density_matrix(copy=False)))
     assert any(not np.isclose(np.trace(x), 1.0) for x in matrices)
     assert all(np.isclose(x, 1.0) for x in traces)
+    assert any(not np.shares_memory(x, y) for x, y in
+               itertools.combinations(matrices, 2))
 
 
 def test_final_density_matrix_is_not_last_object():
@@ -1144,4 +1148,5 @@ def test_final_density_matrix_is_not_last_object():
     circuit = cirq.Circuit(cirq.WaitGate(0)(q))
     result = sim.simulate(circuit, initial_state=initial_state)
     assert result.final_density_matrix is not initial_state
+    assert not np.shares_memory(result.final_density_matrix, initial_state)
     np.testing.assert_equal(result.final_density_matrix, initial_state)

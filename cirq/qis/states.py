@@ -464,8 +464,7 @@ def to_valid_density_matrix(
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
         dtype: Type[np.number] = np.complex64,
-        atol: float = 1e-7,
-        copy: bool = False) -> np.ndarray:
+        atol: float = 1e-7) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
     This method is used to support passing a matrix, a state vector,
@@ -484,13 +483,11 @@ def to_valid_density_matrix(
             the state for a computational basis state (int), or validated
             against if density_matrix_rep is a numpy array.
         atol: Numerical tolerance for verifying density matrix properties.
-        copy: Whether to return a copy of the density matrix if the rep is
-            provided as a numpy array. If the rep is a state vector or int, the
-            returned object is always new.
 
     Returns:
         A numpy matrix corresponding to the density matrix on the given number
-        of qubits.
+        of qubits. Note that this matrix may share memory with the input
+        `density_matrix_rep`.
 
     Raises:
         ValueError if the density_matrix_rep is not valid.
@@ -516,7 +513,7 @@ def to_valid_density_matrix(
                     density_matrix_rep.dtype, dtype))
         if not np.all(np.linalg.eigvalsh(density_matrix_rep) > -atol):
             raise ValueError('The density matrix is not positive semidefinite.')
-        return density_matrix_rep.copy() if copy else density_matrix_rep
+        return density_matrix_rep
 
     state_vector = to_valid_state_vector(density_matrix_rep,
                                          len(qid_shape),

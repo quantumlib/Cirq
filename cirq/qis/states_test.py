@@ -369,19 +369,6 @@ def test_to_valid_density_matrix_from_density_matrix():
     assert_valid_density_matrix(np.diag([0.2, 0.8, 0, 0]), qid_shape=(4,))
 
 
-def test_to_valid_density_matrix_copy():
-    matrix = np.array([[1, 0], [0, 0]], dtype=np.complex64)
-    valid_matrix = cirq.to_valid_density_matrix(matrix, qid_shape=(2,))
-    assert matrix is valid_matrix
-
-    matrix = np.array([[1, 0], [0, 0]], dtype=np.complex64)
-    valid_matrix = cirq.to_valid_density_matrix(matrix,
-                                                qid_shape=(2,),
-                                                copy=True)
-    assert matrix is not valid_matrix
-    np.testing.assert_equal(matrix, valid_matrix)
-
-
 def test_to_valid_density_matrix_not_square():
     with pytest.raises(ValueError, match='square'):
         cirq.to_valid_density_matrix(np.array([[1, 0]]), num_qubits=1)
