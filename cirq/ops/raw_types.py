@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
-                    Sequence, Tuple, TYPE_CHECKING, Union)
+                    Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -366,6 +366,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
+TSelf = TypeVar('TSelf', bound='Operation')
+
+
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
@@ -393,7 +396,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -432,8 +435,8 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
-                        ) -> 'Operation':
+    def transform_qubits(self: TSelf,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']) -> TSelf:
         """Returns the same operation, but with different qubits.
 
         Args:
