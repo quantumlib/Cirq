@@ -256,7 +256,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         initial_matrix = qis.to_valid_density_matrix(initial_state,
                                                      len(qid_shape),
                                                      qid_shape=qid_shape,
-                                                     dtype=self._dtype).copy()
+                                                     dtype=self._dtype,
+                                                     copy=True)
         measured = collections.defaultdict(
             bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
