@@ -183,6 +183,35 @@ def test_specialized_control(input_gate, specialized_output):
                 input_gate, num_controls=3, control_qid_shape=(3, 2, 4))
 
 
+@pytest.mark.parametrize(
+    'gate, specialized_type',
+    [(cirq.ZPowGate(global_shift=-0.5, exponent=0.5), cirq.CZPowGate),
+     (cirq.CZPowGate(global_shift=-0.5, exponent=0.5), cirq.CCZPowGate),
+     (cirq.XPowGate(global_shift=-0.5, exponent=0.5), cirq.CXPowGate),
+     (cirq.CXPowGate(global_shift=-0.5, exponent=0.5), cirq.CCXPowGate)])
+def test_no_specialized_control_for_global_shift_non_zero(
+        gate, specialized_type):
+    assert not isinstance(gate.controlled(), specialized_type)
+
+
+@pytest.mark.parametrize(
+    'gate, matrix',
+    [(cirq.ZPowGate(global_shift=-0.5, exponent=1), np.diag([1, 1, -1j, 1j])),
+     (cirq.CZPowGate(global_shift=-0.5,
+                     exponent=1), np.diag([1, 1, 1, 1, -1j, -1j, -1j, 1j])),
+     (cirq.XPowGate(global_shift=-0.5, exponent=1),
+      np.block([[np.eye(2), np.zeros(
+          (2, 2))], [np.zeros(
+              (2, 2)), np.array([[0, -1j], [-1j, 0]])]])),
+     (cirq.CXPowGate(global_shift=-0.5, exponent=1),
+      np.block([[np.diag([1, 1, 1, 1, -1j, -1j]),
+                 np.zeros((6, 2))],
+                [np.zeros(
+                    (2, 6)), np.array([[0, -1j], [-1j, 0]])]]))])
+def test_global_phase_controlled_gate(gate, matrix):
+    np.testing.assert_equal(cirq.unitary(gate.controlled()), matrix)
+
+
 def test_rot_gates_eq():
     eq = cirq.testing.EqualsTester()
     gates = [

@@ -136,11 +136,16 @@ class XPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
+        Note that this only transforms into a CXPowGate (or controlled version
+        of that gate) if the global shift of the XPowGate is 0, otherwise
+        it produces a normal ControlledGate.
+
         (Note that a CXPowGate is, by definition, a controlled-XPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CXPowGate(exponent=self._exponent,
@@ -454,11 +459,16 @@ class ZPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
+        Note that this only transforms into a CZPowGate (or controlled version
+        of that gate) if the global shift of the ZPowGate is 0, otherwise
+        it produces a normal ControlledGate.
+
         (Note that a CZPowGate is, by definition, a controlled-ZPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CZPowGate(exponent=self._exponent,
@@ -805,11 +815,16 @@ class CZPowGate(eigen_gate.EigenGate,
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
+        Note that this only transforms into a CCZPowGate (or controlled version
+        of that gate) if the global shift of the CZPowGate is 0, otherwise
+        it produces a normal ControlledGate.
+
         (Note that a CCZPowGate is, by definition, a controlled-CZPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CCZPowGate(exponent=self._exponent,
@@ -971,11 +986,16 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         a generic qudit) and where the control is satisfied by the qubit being
         ON, as opposed to OFF.
 
+        Note that this only transforms into a CCXPowGate (or controlled version
+        of that gate) if the global shift of the CXPowGate is 0, otherwise
+        it produces a normal ControlledGate.
+
         (Note that a CCXPowGate is, by definition, a controlled-CXPowGate.)
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CCXPowGate(exponent=self._exponent,
