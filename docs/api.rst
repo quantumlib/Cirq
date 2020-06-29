@@ -138,6 +138,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.PhaseDampingChannel
     cirq.PhaseFlipChannel
     cirq.ResetChannel
+    cirq.VirtualTag
 
 
 Pauli and Clifford Groups
@@ -238,6 +239,7 @@ results.
     cirq.sample_sweep
     cirq.to_resolvers
     cirq.to_sweep
+    cirq.to_sweeps
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
@@ -348,6 +350,7 @@ the magic methods that can be implemented.
     cirq.resolve_parameters
     cirq.to_json
     cirq.trace_distance_bound
+    cirq.trace_distance_from_angle_list
     cirq.unitary
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
@@ -437,7 +440,7 @@ run experiments.
     cirq.experiments.GRID_ALIGNED_PATTERN
     cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
-    cirq.experiments.cross_entropy_benchmarking
+    .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
     cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
@@ -589,7 +592,7 @@ operation.
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
     cirq.testing.nonoptimal_toffoli_circuit
-    cirq.testing.random_circuit
+    .. autofunction:: cirq.testing.random_circuit
     cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal
@@ -620,6 +623,7 @@ Algebra and Representation
     cirq.chosen_angle_to_canonical_half_turns
     cirq.chosen_angle_to_half_turns
     cirq.commutes
+    cirq.deconstruct_single_qubit_matrix_into_angles
     cirq.definitely_commutes
     cirq.diagonalize_real_symmetric_and_sorted_diagonal_matrices
     cirq.diagonalize_real_symmetric_matrix
@@ -643,6 +647,7 @@ Algebra and Representation
     cirq.kron_with_controls
     cirq.map_eigenvalues
     cirq.match_global_phase
+    cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
@@ -674,6 +679,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
