@@ -88,7 +88,7 @@ def set_qubits(qubit_count):
 def make_oracle_f(qubits):
     """Implement function {f(x) = Σ_i x_(2i) x_(2i+1)}."""
     return [
-        cirq.CZ(qubits[2 * i ], qubits[2 * i + 1])
+        cirq.CZ(qubits[2 * i], qubits[2 * i + 1])
         for i in range(len(qubits) // 2)
     ]
 
