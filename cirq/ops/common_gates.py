@@ -134,11 +134,9 @@ class XPowGate(eigen_gate.EigenGate,
         This behavior only occurs when the last control qubit is a default-type
         control qubit. A default-type control qubit is one with shape of 2 (not
         a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
-
-        Note that this only transforms into a CXPowGate (or controlled version
-        of that gate) if the global shift of the XPowGate is 0, otherwise
-        it produces a normal ControlledGate.
+        ON, as opposed to OFF. Note also that this only transforms into a
+        CXPowGate (or controlled version of that gate) if the global shift on
+        the XPowGate is 0, otherwise it produces a normal ControlledGate.
 
         (Note that a CXPowGate is, by definition, a controlled-XPowGate.)
         """
@@ -457,11 +455,9 @@ class ZPowGate(eigen_gate.EigenGate,
         This behavior only occurs when the last control qubit is a default-type
         control qubit. A default-type control qubit is one with shape of 2 (not
         a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
-
-        Note that this only transforms into a CZPowGate (or controlled version
-        of that gate) if the global shift of the ZPowGate is 0, otherwise
-        it produces a normal ControlledGate.
+        ON, as opposed to OFF. Note also that this only transforms into a
+        CZPowGate (or controlled version of that gate) if the global shift of
+        the ZPowGate is 0, otherwise it produces a normal ControlledGate.
 
         (Note that a CZPowGate is, by definition, a controlled-ZPowGate.)
         """
@@ -813,11 +809,9 @@ class CZPowGate(eigen_gate.EigenGate,
         This behavior only occurs when the last control qubit is a default-type
         control qubit. A default-type control qubit is one with shape of 2 (not
         a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
-
-        Note that this only transforms into a CCZPowGate (or controlled version
-        of that gate) if the global shift of the CZPowGate is 0, otherwise
-        it produces a normal ControlledGate.
+        ON, as opposed to OFF. Note also that this only transforms into a
+        CCZPowGate (or controlled version of that gate) if the global shift of
+        the CZPowGate is 0, otherwise it produces a normal ControlledGate.
 
         (Note that a CCZPowGate is, by definition, a controlled-CZPowGate.)
         """
@@ -984,11 +978,9 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         This behavior only occurs when the last control qubit is a default-type
         control qubit. A default-type control qubit is one with shape of 2 (not
         a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
-
-        Note that this only transforms into a CCXPowGate (or controlled version
-        of that gate) if the global shift of the CXPowGate is 0, otherwise
-        it produces a normal ControlledGate.
+        ON, as opposed to OFF. Note also that this only transforms into a
+        CCXPowGate (or controlled version of that gate) if the global shift of
+        the CXPowGate is 0, otherwise it produces a normal ControlledGate.
 
         (Note that a CCXPowGate is, by definition, a controlled-CXPowGate.)
         """
