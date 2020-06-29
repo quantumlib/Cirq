@@ -102,6 +102,71 @@ class EngineProgram:
         return engine_job.EngineJob(self.project_id, self.program_id,
                                     created_job_id, self.context, job)
 
+    def run_batch(
+            self,
+            job_id: Optional[str] = None,
+            params_list: List[study.Sweepable] = None,
+            repetitions: int = 1,
+            processor_ids: Sequence[str] = ('xmonsim',),
+            description: Optional[str] = None,
+            labels: Optional[Dict[str, str]] = None,
+    ) -> engine_job.EngineJob:
+        """Runs a batch of circuits on the QuantumEngine.
+
+        This method should only be used if the Program object was created
+        with a BatchProgram.  The number of parameter sweeps should match
+        the number of circuits within that BatchProgram.
+
+        This method does not block until a result is returned.  However,
+        no results will be available until the entire batch is complete.
+
+        Args:
+            job_id: Optional job id to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            params_list: Parameter sweeps to run with the program.  There must
+                be one Sweepable object for each circuit in the batch.
+            repetitions: The number of circuit repetitions to run.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+            description: An optional description to set on the job.
+            labels: Optional set of labels to set on the job.
+
+        Returns:
+            An EngineJob. If this is iterated over it returns a list of
+            TrialResults, one for each parameter sweep.
+        """
+        import cirq.google.engine.engine as engine_base
+        if not job_id:
+            job_id = engine_base._make_random_id('job-')
+        if not params_list:
+            raise ValueError('No parameter list specified')
+
+        # Pack the run contexts into batches
+        batch_context = qtypes.any_pb2.Any()
+        batch = v2.batch_pb2.BatchRunContext()
+        for param in params_list:
+            sweeps = study.to_sweeps(param)
+            current_context = batch.run_contexts.add()
+            for sweep in sweeps:
+                sweep_proto = current_context.parameter_sweeps.add()
+                sweep_proto.repetitions = repetitions
+                v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+        batch_context.Pack(batch)
+
+        created_job_id, job = self.context.client.create_job(
+            project_id=self.project_id,
+            program_id=self.program_id,
+            job_id=job_id,
+            processor_ids=processor_ids,
+            run_context=batch_context,
+            description=description,
+            labels=labels)
+        return engine_job.EngineJob(self.project_id, self.program_id,
+                                    created_job_id, self.context, job)
+
     def run(
             self,
             job_id: Optional[str] = None,

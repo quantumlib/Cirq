@@ -43,6 +43,27 @@ def test_run_sweeps_delegation(create_job):
     assert job._job == qtypes.QuantumJob()
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+def test_run_batch_delegation(create_job):
+    create_job.return_value = ('kittens', qtypes.QuantumJob())
+    program = cg.EngineProgram('my-meow', 'my-meow', EngineContext())
+    resolver_list = [
+        cirq.Points('cats', [1.0, 2.0, 3.0]),
+        cirq.Points('cats', [4.0, 5.0, 6.0])
+    ]
+    job = program.run_batch(job_id='steve',
+                            repetitions=10,
+                            params_list=resolver_list,
+                            processor_ids=['lazykitty'])
+    assert job._job == qtypes.QuantumJob()
+
+
+def test_run_batch_no_sweeps():
+    program = cg.EngineProgram('no-meow', 'no-meow', EngineContext())
+    with pytest.raises(ValueError, match='No parameter list specified'):
+        _ = program.run_batch(repetitions=1, processor_ids=['lazykitty'])
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
 @mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
 def test_run_delegation(create_job, get_results):
