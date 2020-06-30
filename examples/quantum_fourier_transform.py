@@ -37,7 +37,8 @@ def main():
     result = simulator.simulate(qft_circuit)
     print()
     print('FinalState')
-    print(np.around(result.final_state, 3))
+    print(np.around(result.final_state_vector, 3))
+
 
 def _cz_and_swap(q0, q1, rot):
     yield cirq.CZ(q0, q1)**rot

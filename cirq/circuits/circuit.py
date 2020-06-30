@@ -37,6 +37,7 @@ from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
 from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated
 import cirq._version
 
 if TYPE_CHECKING:
@@ -64,7 +65,7 @@ class Circuit:
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        final_wavefunction
+        final_state_vector
         to_text_diagram
         to_text_diagram_drawer
 
@@ -1234,6 +1235,73 @@ class Circuit:
             self._moments[moment_index] = ops.Moment(
                 self._moments[moment_index].operations + tuple(new_ops))
 
+    def zip(*circuits):
+        """Combines operations from circuits in a moment-by-moment fashion.
+
+        Moment k of the resulting circuit will have all operations from moment
+        k of each of the given circuits.
+
+        When the given circuits have different lengths, the shorter circuits are
+        implicitly padded with empty moments. This differs from the behavior of
+        python's built-in zip function, which would instead truncate the longer
+        circuits.
+
+        The zipped circuits can't have overlapping operations occurring at the
+        same moment index.
+
+        Args:
+            circuits: The circuits to merge together.
+
+        Returns:
+            The merged circuit.
+
+        Raises:
+            ValueError:
+                The zipped circuits have overlapping operations occurring at the
+                same moment index.
+
+        Examples:
+            >>> import cirq
+            >>> a, b, c, d = cirq.LineQubit.range(4)
+            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+            >>> print(circuit1.zip(circuit2))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            >>> print(circuit1.zip(circuit2, circuit3))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+        """
+        circuits = list(circuits)
+        n = max([len(c) for c in circuits], default=0)
+
+        result = cirq.Circuit()
+        for k in range(n):
+            try:
+                result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
+            except ValueError as ex:
+                raise ValueError(
+                    f"Overlapping operations between zipped circuits "
+                    f"at moment index {k}.\n{ex}") from ex
+        return result
+
     def insert_at_frontier(self,
                            operations: 'cirq.OP_TREE',
                            start: int,
@@ -1294,6 +1362,33 @@ class Circuit:
                 old_op
                 for old_op in copy._moments[i].operations
                 if op != old_op)
+        self._device.validate_circuit(copy)
+        self._moments = copy._moments
+
+    def batch_replace(self, replacements: Iterable[
+            Tuple[int, 'cirq.Operation', 'cirq.Operation']]) -> None:
+        """Replaces several operations in a circuit with new operations.
+
+        Args:
+            replacements: A sequence of (moment_index, old_op, new_op) tuples
+                indicating operations to be replaced in this circuit. All "old"
+                operations must actually be present or the edit will fail
+                (without making any changes to the circuit).
+
+        ValueError:
+            One of the operations to replace wasn't present to start with.
+
+        IndexError:
+            Replaced in a moment that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op, new_op in replacements:
+            if op not in copy._moments[i].operations:
+                raise ValueError(
+                    f"Can't replace {op} @ {i} because it doesn't exist.")
+            copy._moments[i] = ops.Moment(
+                old_op if old_op != op else new_op
+                for old_op in copy._moments[i].operations)
         self._device.validate_circuit(copy)
         self._moments = copy._moments
 
@@ -1494,7 +1589,7 @@ class Circuit:
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
-    def final_wavefunction(
+    def final_state_vector(
             self,
             initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
@@ -1574,6 +1669,22 @@ class Circuit:
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
+
+    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
+    def final_wavefunction(
+            self,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Deprecated. Please use `final_state_vector`."""
+        return self.final_state_vector(
+            initial_state=initial_state,
+            qubit_order=qubit_order,
+            qubits_that_should_be_present=qubits_that_should_be_present,
+            ignore_terminal_measurements=ignore_terminal_measurements,
+            dtype=dtype)
 
     def to_text_diagram(
             self,

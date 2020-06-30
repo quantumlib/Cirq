@@ -525,3 +525,28 @@ def test_str():
     assert str(C2Y) == 'C2Y'
     assert str(C2C2H) == 'C2C2H'
     assert str(C2Restricted) == 'C2Restricted'
+
+
+def test_controlled_mixture():
+
+    class NoDetails(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+    c_no = cirq.ControlledGate(
+        num_controls=1,
+        sub_gate=NoDetails(),
+    )
+    assert not cirq.has_mixture(c_no)
+    assert cirq.mixture(c_no, None) is None
+
+    c_yes = cirq.ControlledGate(
+        sub_gate=cirq.phase_flip(0.25),
+        num_controls=1,
+    )
+    assert cirq.has_mixture(c_yes)
+    assert cirq.approx_eq(cirq.mixture(c_yes), [
+        (0.75, np.eye(4)),
+        (0.25, cirq.unitary(cirq.CZ)),
+    ])
