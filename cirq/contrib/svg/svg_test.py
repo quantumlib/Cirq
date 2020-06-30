@@ -22,6 +22,15 @@ def test_svg():
     assert '</svg>' in svg_text
 
 
+def test_svg_noise():
+    noise_model = cirq.ConstantQubitNoiseModel(cirq.DepolarizingChannel(p=1e-3))
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(q))
+    circuit = cirq.Circuit(noise_model.noisy_moments(circuit.moments, [q]))
+    svg = circuit_to_svg(circuit)
+    assert '>D(0.001)</text>' in svg
+
+
 def test_validation():
     with pytest.raises(ValueError):
         circuit_to_svg(cirq.Circuit())

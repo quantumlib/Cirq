@@ -189,3 +189,89 @@ def test_op_repr():
         "cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), "
         "key='out', "
         "invert_mask=(False, True))")
+
+
+def test_act_on():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(m, object())
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(shape=(2, 2, 2, 2, 2), dtype=np.complex64),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 0]}
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(0, 1, 0, 0, 0),
+                                   shape=(2, 2, 2, 2, 2),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 1]}
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(0, 1, 0, 1, 0),
+                                   shape=(2, 2, 2, 2, 2),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+
+    with pytest.raises(ValueError, match="already logged to key"):
+        cirq.act_on(m, args)
+
+
+def test_act_on_qutrit():
+    a, b = cirq.LineQid.range(2, dimension=3)
+    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(0, 2, 0, 2, 0),
+                                   shape=(3, 3, 3, 3, 3),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [2, 2]}
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(0, 1, 0, 2, 0),
+                                   shape=(3, 3, 3, 3, 3),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [2, 1]}
+
+    args = cirq.ActOnStateVectorArgs(
+        target_tensor=cirq.one_hot(index=(0, 2, 0, 1, 0),
+                                   shape=(3, 3, 3, 3, 3),
+                                   dtype=np.complex64),
+        available_buffer=np.empty(shape=(3, 3, 3, 3, 3)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 2]}

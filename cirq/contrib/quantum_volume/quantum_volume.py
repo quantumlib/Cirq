@@ -75,7 +75,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # Classically compute the probabilities of each output bit-string through
     # simulation.
     simulator = cirq.Simulator()
-    results = cast(cirq.WaveFunctionTrialResult,
+    results = cast(cirq.StateVectorTrialResult,
                    simulator.simulate(program=circuit))
 
     # Compute the median probability of the output bit-strings. Note that heavy

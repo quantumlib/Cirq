@@ -88,10 +88,10 @@ class IdentityGate(raw_types.Gate):
                 'gate.')
         operations: List['cirq.Operation'] = []
         for target in targets:
-            if isinstance(target, Iterable) and not isinstance(target, str):
-                operations.extend(self.on_each(*target))
-            elif isinstance(target, raw_types.Qid):
+            if isinstance(target, raw_types.Qid):
                 operations.append(self.on(target))
+            elif isinstance(target, Iterable) and not isinstance(target, str):
+                operations.extend(self.on_each(*target))
             else:
                 raise ValueError(
                     'Gate was called with type different than Qid. Type: {}'.
