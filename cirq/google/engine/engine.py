@@ -284,7 +284,7 @@ class Engine:
             job_id: Optional[str] = None,
             params_list: List[study.Sweepable] = None,
             repetitions: int = 1,
-            processor_ids: Sequence[str] = ('xmonsim',),
+            processor_ids: Sequence[str] = (),
             gate_set: serializable_gate_set.SerializableGateSet = None,
             program_description: Optional[str] = None,
             program_labels: Optional[Dict[str, str]] = None,
@@ -331,9 +331,12 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        gate_set = gate_set or gate_sets.XMON
+        if not gate_set:
+            raise ValueError('Gate set must be specified.')
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
+        if not processor_ids:
+            raise ValueError('Processor id must be specified.')
         engine_program = self.create_batch_program(programs, program_id,
                                                    gate_set,
                                                    program_description,
@@ -418,7 +421,7 @@ class Engine:
         code = qtypes.any_pb2.Any()
         batch = v2.batch_pb2.BatchProgram()
         for program in programs:
-            batch.programs.append(gate_set.serialize(program))
+            gate_set.serialize(program, msg=batch.programs.add())
         code.Pack(batch)
 
         new_program_id, new_program = self.context.client.create_program(

@@ -556,10 +556,12 @@ def test_run_batch(client):
         proto_version=cg.engine.engine.ProtoVersion.V2,
     )
     job = engine.run_batch(
+        gate_set=cg.XMON,
         programs=[_CIRCUIT, _CIRCUIT2],
         job_id='job-id',
         params_list=[cirq.Points('a', [1, 2]),
-                     cirq.Points('a', [3, 4])])
+                     cirq.Points('a', [3, 4])],
+        processor_ids=['mysim'])
     results = job.results()
     assert len(results) == 4
     for i, v in enumerate([1, 2, 3, 4]):
@@ -583,7 +585,7 @@ def test_run_batch(client):
     client().get_job_results.assert_called_once()
 
 
-def test_batch_size_not_same():
+def test_batch_size_validation_fails():
     engine = cg.Engine(
         project_id='proj',
         proto_version=cg.engine.engine.ProtoVersion.V2,
@@ -591,12 +593,30 @@ def test_batch_size_not_same():
 
     with pytest.raises(ValueError, match='Number of circuits and sweeps'):
         _ = engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2],
+                             gate_set=cg.XMON,
                              job_id='job-id',
                              params_list=[
                                  cirq.Points('a', [1, 2]),
                                  cirq.Points('a', [3, 4]),
                                  cirq.Points('a', [5, 6])
-                             ])
+                             ],
+                             processor_ids=['mysim'])
+
+    with pytest.raises(ValueError, match='Processor id must be specified'):
+        _ = engine.run_batch(
+            programs=[_CIRCUIT, _CIRCUIT2],
+            gate_set=cg.XMON,
+            job_id='job-id',
+            params_list=[cirq.Points('a', [1, 2]),
+                         cirq.Points('a', [3, 4])])
+
+    with pytest.raises(ValueError, match='Gate set must be specified'):
+        _ = engine.run_batch(
+            programs=[_CIRCUIT, _CIRCUIT2],
+            job_id='job-id',
+            params_list=[cirq.Points('a', [1, 2]),
+                         cirq.Points('a', [3, 4])],
+            processor_ids=['mysim'])
 
 
 def test_bad_sweep_proto():

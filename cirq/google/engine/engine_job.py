@@ -285,7 +285,7 @@ class EngineJob:
                   result_type == 'cirq.api.google.v2.Result'):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
-            elif result_type == 'cirq.google.api.v2.BatchResult':
+            elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
                     result.value)
                 self._results = self._get_batch_results_v2(v2_parsed_result)
@@ -314,16 +314,13 @@ class EngineJob:
                         measurements=measurements))
         return trial_results
 
-    @staticmethod
-    def _get_batch_results_v2(results: v2.batch_pb2.BatchResult
+    @classmethod
+    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
                              ) -> List[study.TrialResult]:
         trial_results = []
         # Flatten to single list to match to sampler api.
         for result in results.results:
-            sweep_results = v2.results_from_proto(result)
-            for sweep_result in sweep_results:
-                for trial_result in sweep_result:
-                    trial_results.append(trial_result)
+            trial_results.extend(cls._get_job_results_v2(result))
         return trial_results
 
     @staticmethod
