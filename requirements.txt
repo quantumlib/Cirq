@@ -10,6 +10,6 @@ pandas
 protobuf~=3.11.0
 requests~=2.18
 sortedcontainers~=2.0
-scipy==1.5.0-rc1
+scipy
 sympy
 typing_extensions
