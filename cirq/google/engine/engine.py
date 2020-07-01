@@ -431,8 +431,11 @@ class Engine:
             description=description,
             labels=labels)
 
-        return engine_program.EngineProgram(self.project_id, new_program_id,
-                                            self.context, new_program)
+        return engine_program.EngineProgram(self.project_id,
+                                            new_program_id,
+                                            self.context,
+                                            new_program,
+                                            batch_mode=True)
 
     def _serialize_program(
             self,

@@ -53,7 +53,8 @@ class EngineJob:
                  program_id: str,
                  job_id: str,
                  context: 'engine_base.EngineContext',
-                 _job: Optional[quantum.types.QuantumJob] = None) -> None:
+                 _job: Optional[quantum.types.QuantumJob] = None,
+                 batch_mode: bool = False) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -69,6 +70,7 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
+        self.batch_mode = batch_mode
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""

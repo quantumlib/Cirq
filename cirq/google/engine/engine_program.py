@@ -40,7 +40,8 @@ class EngineProgram:
                  project_id: str,
                  program_id: str,
                  context: 'engine_base.EngineContext',
-                 _program: Optional[qtypes.QuantumProgram] = None) -> None:
+                 _program: Optional[qtypes.QuantumProgram] = None,
+                 batch_mode: bool = False) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -48,11 +49,13 @@ class EngineProgram:
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
+            batch_mode: Whether the program was created using a BatchProgram.
         """
         self.project_id = project_id
         self.program_id = program_id
         self.context = context
         self._program = _program
+        self.batch_mode = batch_mode
 
     def run_sweep(
             self,
@@ -86,6 +89,8 @@ class EngineProgram:
             TrialResults, one for each parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
+        if self.batch_mode:
+            raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         sweeps = study.to_sweeps(params or study.ParamResolver({}))
@@ -139,6 +144,8 @@ class EngineProgram:
             TrialResults, one for each parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
+        if not self.batch_mode:
+            raise ValueError('Can only use run_batch() in batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         if not params_list:
@@ -164,8 +171,12 @@ class EngineProgram:
             run_context=batch_context,
             description=description,
             labels=labels)
-        return engine_job.EngineJob(self.project_id, self.program_id,
-                                    created_job_id, self.context, job)
+        return engine_job.EngineJob(self.project_id,
+                                    self.program_id,
+                                    created_job_id,
+                                    self.context,
+                                    job,
+                                    batch_mode=True)
 
     def run(
             self,
