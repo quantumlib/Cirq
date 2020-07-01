@@ -63,6 +63,7 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
+            batch_mode: If this was created with a BatchProgram/BatchRunContext.
         """
         self.project_id = project_id
         self.program_id = program_id
