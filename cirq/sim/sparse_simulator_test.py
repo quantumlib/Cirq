@@ -985,7 +985,7 @@ def test_state_vector_copy():
     for x, y in itertools.combinations(vectors, 2):
         assert not np.shares_memory(x, y)
 
-    # If the state vector is not copied, then applying second Hadamard
+    # If the state vector is not copied, then applying second InplaceGate
     # causes old state to be modified.
     vectors = []
     copy_of_vectors = []
