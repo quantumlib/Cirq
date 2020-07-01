@@ -141,13 +141,13 @@ class XPowGate(eigen_gate.EigenGate,
         If these conditions are met, then the returned object is a `CXPowGate`
         or, in the case that there is more than one controlled qudit, a
         `ControlledGate` with the `Gate` being a `CXPowGate`. In the
-        later case the `ControlledGate` is controlled by one less qudits
+        later case the `ControlledGate` is controlled by one less qudit
         than specified in `control_values` and `control_qid_shape` (since
         one of these, the last qubit, is used as the control for the
         `CXPowGate`).
 
         If the above conditions are not met, a `ControlledGate` of this
-        gate will be returned instead.
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -456,7 +456,7 @@ class ZPowGate(eigen_gate.EigenGate,
 
         The `controlled` method of the `Gate` class, of which this class is a
         child, returns a `ControlledGate`. This method overrides this behavior
-        to return a `CZPowGate` or a `ControlledGate` of a `CZPowGate, when
+        to return a `CZPowGate` or a `ControlledGate` of a `CZPowGate`, when
         this is possible.
 
         The conditions for the override to occur are:
@@ -471,13 +471,13 @@ class ZPowGate(eigen_gate.EigenGate,
         If these conditions are met, then the returned object is a `CZPowGate`
         or, in the case that there is more than one controlled qudit, a
         `ControlledGate` with the `Gate` being a `CZPowGate`. In the
-        later case the `ControlledGate` is controlled by one less qudits
+        later case the `ControlledGate` is controlled by one less qudit
         than specified in `control_values` and `control_qid_shape` (since
         one of these, the last qubit, is used as the control for the
         `CZPowGate`).
 
         If the above conditions are not met, a `ControlledGate` of this
-        gate will be returned instead.
+        gate will be returned..
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -834,13 +834,13 @@ class CZPowGate(eigen_gate.EigenGate,
         If these conditions are met, then the returned object is a `CCZPowGate`
         or, in the case that there is more than one controlled qudit, a
         `ControlledGate` with the `Gate` being a `CCZPowGate`. In the
-        later case the `ControlledGate` is controlled by one less qudits
+        later case the `ControlledGate` is controlled by one less qudit
         than specified in `control_values` and `control_qid_shape` (since
         one of these, the last qubit, is used as the control for the
         `CCZPowGate`).
 
         If the above conditions are not met, a `ControlledGate` of this
-        gate will be returned instead.
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
@@ -1012,13 +1012,13 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         If these conditions are met, then the returned object is a `CCXPowGate`
         or, in the case that there is more than one controlled qudit, a
         `ControlledGate` with the `Gate` being a `CCXPowGate`. In the
-        later case the `ControlledGate` is controlled by one less qudits
+        later case the `ControlledGate` is controlled by one less qudit
         than specified in `control_values` and `control_qid_shape` (since
         one of these, the last qubit, is used as the control for the
         `CCXPowGate`).
 
         If the above conditions are not met, a `ControlledGate` of this
-        gate will be returned instead.
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
