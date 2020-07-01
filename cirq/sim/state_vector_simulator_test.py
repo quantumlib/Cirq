@@ -124,6 +124,7 @@ def test_state_vector_trial_state_vector_is_copy():
     assert final_simulator_state.state_vector is final_state_vector
     assert not trial_result.state_vector() is final_state_vector
 
+
 def test_str_big():
     qs = cirq.LineQubit.range(20)
     result = cirq.StateVectorTrialResult(
