@@ -22,7 +22,7 @@ class OneQubitShorsCode(qec.OneQubitCode):
                               cirq.CNOT(self.physical_qubits[3], self.physical_qubits[5]),
                               cirq.CNOT(self.physical_qubits[6], self.physical_qubits[8])])
 
-    def decode(self):
+    def correct(self):
         yield cirq.ops.Moment(
             [cirq.CNOT(self.physical_qubits[0], self.physical_qubits[1]),
              cirq.CNOT(self.physical_qubits[3], self.physical_qubits[4]),

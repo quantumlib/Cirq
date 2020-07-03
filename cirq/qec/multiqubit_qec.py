@@ -1,4 +1,5 @@
 import cirq
+import random
 from typing import List
 import fault_tolerate_operations as ops
 from onequbit_qec import OneQubitCode
@@ -20,6 +21,12 @@ class MultiQubitCode:
             self.currentcircuit += self.encoded_circuit[logical_qubit]
         return self.currentcircuit
 
+    def apply_error(self):
+        logical_qubit_chosen = random.sample(self.logical_qubits.keys(), 1)[0]
+        physical_qubit_chosen = random.sample(self.logical_qubits[logical_qubit_chosen].physical_qubits, 1)[0]
+        self.currentcircuit.append(cirq.X(physical_qubit_chosen))
+        return self.currentcircuit
+
     def operation(self, original_circuit: cirq.Circuit):
         for op in original_circuit.all_operations():
             op_on_physical_qubits = ops.apply_on_physical_qubits(
@@ -27,9 +34,9 @@ class MultiQubitCode:
             self.currentcircuit.append(op_on_physical_qubits)
         return self.currentcircuit
 
-    def decode(self):
+    def correct(self):
         for logical_qubit in self.logical_qubits.values():
-            self.currentcircuit.append(cirq.Circuit(logical_qubit.decode()))
+            self.currentcircuit.append(cirq.Circuit(logical_qubit.correct()))
         return self.currentcircuit
 
     def measure(self):
