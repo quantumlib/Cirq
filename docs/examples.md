@@ -115,3 +115,5 @@ similarities and differences.
 *    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/tutorials/Rabi_Demo.html)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.
+
+## Illustrations of Pauli-String
