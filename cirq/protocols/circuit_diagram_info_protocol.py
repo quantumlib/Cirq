@@ -153,6 +153,19 @@ class CircuitDiagramInfoArgs:
             return str(val)
         return f'{float(val):.{self.precision}}'
 
+    def format_complex(self,
+                       val: Union[sympy.Basic, int, float, complex]) -> str:
+        if isinstance(val, sympy.Basic):
+            return str(val)
+        c = complex(val)
+        joiner = '+'
+        abs_imag = c.imag
+        if abs_imag < 0:
+            joiner = '-'
+            abs_imag *= -1
+        imag_str = '' if abs_imag == 1 else self.format_real(abs_imag)
+        return f'{self.format_real(c.real)}{joiner}{imag_str}i'
+
     def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
         """Returns angle in radians as a human-readable string."""
         if protocols.is_parameterized(radians):
