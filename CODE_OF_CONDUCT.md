@@ -60,9 +60,9 @@ negative impact on the project or its community.
 
 We do not believe that all conflict is bad; healthy debate and disagreement
 often yield positive results. However, it is never okay to be disrespectful or
-to engage in behavior that violates the project’s code of conduct.
+to engage in behavior that violates the project’s Code of Conduct.
 
-If you see someone violating the code of conduct, you are encouraged to address
+If you see someone violating the Code of Conduct, you are encouraged to address
 the behavior directly with those involved. Many issues can be resolved quickly
 and easily, and this gives people more control over the outcome of their
 dispute. If you are unable to resolve the matter for any reason, or if the
@@ -71,7 +71,7 @@ an environment where participants feel welcome and safe.
 
 Reports should be directed to dabacon@google.com, the Project Steward for 
 Cirq. It is the Project Steward’s duty to receive and address reported 
-violations of the code of conduct. They will then work with a committee 
+violations of the Code of Conduct. They will then work with a committee 
 consisting of representatives from the Open Source Programs Office and the 
 Google Open Source Strategy team. If for any reason you are uncomfortable 
 reaching out to the Project Steward, please email opensource@google.com.
