@@ -3,17 +3,16 @@ This program is to apply gates on encoded qubits
 """
 import cirq
 from onequbit_qec import OneQubitCode
-from cirq.ops.raw_types import Operation
+from cirq.ops.raw_types import Operation, Gate
 
-
-def apply_identical_gate(op: Operation, original_qubits, logical_qubits: dict,
+def apply_identical_gate(ga: Gate, original_qubits, logical_qubits: dict,
                          num: int):
     op_on_physical_qubits = cirq.Circuit()
     for i in range(num):
         op_list = []
         for lq in original_qubits:
             op_list.append(logical_qubits[lq].physical_qubits[i])
-        op_on_physical_qubits.append(cirq.Circuit(op(*op_list)))
+        op_on_physical_qubits.append(cirq.Circuit(ga(*op_list)))
     return op_on_physical_qubits
 
 

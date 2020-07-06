@@ -4,32 +4,32 @@ from shors_code import OneQubitShorsCode
 import cirq
 
 # test 1
-mycode = OneQubitShorsCode()
+mycode1 = OneQubitShorsCode()
 
-my_circuit = cirq.Circuit(mycode.encode())
+my_circuit1 = cirq.Circuit(mycode1.encode())
 
-my_circuit += cirq.Circuit(mycode.correct())
+my_circuit1 += cirq.Circuit(mycode1.correct())
 
-my_circuit += cirq.Circuit(mycode.measure())
+my_circuit1 += cirq.Circuit(mycode1.measure())
 
-print(my_circuit)
+print(my_circuit1)
 sim1 = cirq.DensityMatrixSimulator()
-result = sim1.run(my_circuit, repetitions=20)
-print(result)
+result1 = sim1.run(my_circuit1, repetitions=20)
+print(result1)
 
 #test2
 mycode2 = OneQubitShorsCode()
-my_circuit = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
-my_circuit += cirq.Circuit(mycode2.encode())
+my_circuit2 = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
+my_circuit2 += cirq.Circuit(mycode2.encode())
 
-my_circuit += cirq.Circuit(mycode2.correct())
+my_circuit2 += cirq.Circuit(mycode2.correct())
 
-my_circuit += cirq.Circuit(mycode2.measure())
+my_circuit2 += cirq.Circuit(mycode2.measure())
 
-print(my_circuit)
-sim1 = cirq.Simulator()
-result = sim1.run(my_circuit, repetitions=20)
-print(result)
+print(my_circuit2)
+sim2 = cirq.DensityMatrixSimulator()
+result2 = sim2.run(my_circuit2, repetitions=20)
+print(result2)
 
 #test3
 
@@ -46,9 +46,9 @@ mycode3.encode()
 mycode3.operation(original_circuit)
 mycode3.apply_error()
 mycode3.correct()
-my_circuit = mycode3.measure()
+my_circuit3 = mycode3.measure()
 
-print(my_circuit)
-sim1 = cirq.Simulator()
-result = sim1.run(my_circuit)
-print(result)
+print(my_circuit3)
+sim3 = cirq.Simulator()
+result3 = sim3.run(my_circuit3)
+print(result3)

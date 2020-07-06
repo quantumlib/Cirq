@@ -23,10 +23,10 @@ to at least one bit flip and one sign flip or their combination.
 """
 
 import cirq
-import onequbit_qec as qec
+from onequbit_qec import OneQubitCode
 
 
-class OneQubitShorsCode(qec.OneQubitCode):
+class OneQubitShorsCode(OneQubitCode):
 
     def __init__(self, qindex: int = 0):
         self.num_physical_qubits = 9
