@@ -212,7 +212,7 @@ class StateVectorTrialResult(state_vector.StateVectorMixin,
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
         """
-        return self._final_simulator_state.state_vector
+        return self._final_simulator_state.state_vector.copy()
 
     def _value_equality_values_(self):
         measurements = {
