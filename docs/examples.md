@@ -44,6 +44,10 @@ qubit to another.
 *    [Super dense coding](https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py)
 Transmit 2 classical bits using one quantum bit.
 
+## Introductory Error Correction
+
+*   [Shor's Code](https://github.com/quantumlib/Cirq/blob/master/examples/qec)
+How to do error correction and fault tolerant operations with Shor's Code 
 
 ## Intermediate Textbook Algorithms
 

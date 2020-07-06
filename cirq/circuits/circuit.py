@@ -24,7 +24,7 @@ from itertools import groupby
 import math
 
 from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
-                    List, NoReturn, Optional, overload, Sequence, Set, Tuple, Type,
+                    List, Optional, overload, Sequence, Set, Tuple, Type,
                     TYPE_CHECKING, TypeVar, Union)
 
 import re
@@ -1768,7 +1768,7 @@ class Circuit:
                           max(qubit_map.values(), default=0) + 1,
                           'global phase:')
 
-        _groups = []  # type: List[Tuple[int, int]]
+        moment_groups = []  # type: List[Tuple[int, int]]
         for moment in self._moments:
             _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
                                     diagram, precision, moment_groups,

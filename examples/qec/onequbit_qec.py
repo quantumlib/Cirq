@@ -1,4 +1,9 @@
+"""
+This is the base class for code for one physical qubit
+"""
+
 import cirq
+
 
 class OneQubitCode:
 
