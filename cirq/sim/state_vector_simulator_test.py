@@ -113,6 +113,18 @@ def test_state_vector_trial_result_qid_shape():
     assert cirq.qid_shape(trial_result) == (3, 2)
 
 
+def test_state_vector_trial_state_vector_is_copy():
+    final_state_vector = np.array([0, 1])
+    final_simulator_state = cirq.StateVectorSimulatorState(
+        qubit_map={cirq.NamedQubit('a'): 0}, state_vector=final_state_vector)
+    trial_result = cirq.StateVectorTrialResult(
+        params=cirq.ParamResolver({}),
+        measurements={},
+        final_simulator_state=final_simulator_state)
+    assert final_simulator_state.state_vector is final_state_vector
+    assert not trial_result.state_vector() is final_state_vector
+
+
 def test_str_big():
     qs = cirq.LineQubit.range(20)
     result = cirq.StateVectorTrialResult(
