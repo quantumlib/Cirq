@@ -27,8 +27,8 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
-import examples.qec.multiqubit_qec
-import examples.qec.shors_code
+from examples.qec.multiqubit_qec import MultiQubitCode
+from examples.qec.shors_code import OneQubitShorsCode
 
 
 def test_example_runs_bernstein_vazirani():
@@ -271,7 +271,7 @@ def test_example_runs_shor_invalid(n):
 
 
 def test_example_qec_single_qubit():
-    mycode1 = examples.qec.OneQubitShorsCode()
+    mycode1 = OneQubitShorsCode()
     my_circuit1 = cirq.Circuit(mycode1.encode())
     my_circuit1 += cirq.Circuit(mycode1.correct())
     my_circuit1 += cirq.Circuit(mycode1.measure())
@@ -297,7 +297,8 @@ def test_example_qec_multi_qubits():
         cirq.X(original_qubits[1]),
         cirq.Y(original_qubits[2])
     ])
-    mycode3 = MultiQubitCode(original_qubits, OneQubitShorsCode)
+
+    mycode3 = MultiQubitCode(original_qubits, "OneQubitShorsCode")
 
     mycode3.encode()
     mycode3.operation(original_circuit)

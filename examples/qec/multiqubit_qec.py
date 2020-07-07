@@ -2,23 +2,26 @@
 This is code for multiple physical qubits
 """
 import random
-from typing import List
+from typing import List, Dict
 
 import cirq
+
 from examples.qec.fault_tolerate_operations import apply_on_physical_qubits
 from examples.qec.onequbit_qec import OneQubitCode
+from examples.qec.shors_code import OneQubitShorsCode
 
 
 class MultiQubitCode:
 
-    def __init__(self, qinput: List["cirq.Qid"], codetype: OneQubitCode):
-        self.logical_qubits = {}
-        self.encoded_circuit = {}
+    def __init__(self, qinput: List["cirq.Qid"], codetype: str):
+        self.logical_qubits = {}  # type: Dict[cirq.Qid, OneQubitCode]
+        self.encoded_circuit = {}  # type: Dict[cirq.Qid, cirq.Circuit]
         self.currentcircuit = cirq.Circuit()
         self.codetype = codetype
         count = 0
         for logical_qubit in qinput:
-            self.logical_qubits[logical_qubit] = codetype(count)
+            if codetype == "OneQubitShorsCode":
+                self.logical_qubits[logical_qubit] = OneQubitShorsCode(count)
             count += 1
         self.physical_to_logical_ratio = self.logical_qubits[
             qinput[0]].num_physical_qubits

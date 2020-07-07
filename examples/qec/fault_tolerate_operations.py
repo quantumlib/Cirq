@@ -31,6 +31,6 @@ def apply_on_shors_code(op: Operation, logical_qubits: dict, num: int):
 
 
 def apply_on_physical_qubits(op: Operation, logical_qubits: dict, num: int,
-                             codetype: OneQubitCode):
-    if codetype.__name__ == 'OneQubitShorsCode':
+                             codetype: str):
+    if codetype == 'OneQubitShorsCode':
         return apply_on_shors_code(op, logical_qubits, num)
