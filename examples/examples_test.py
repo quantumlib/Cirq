@@ -29,6 +29,7 @@ import examples.superdense_coding
 import examples.swap_networks
 from examples.qec.multiqubit_qec import MultiQubitCode
 from examples.qec.shors_code import OneQubitShorsCode
+from examples.qec.onequbit_qec import OneQubitCode
 
 
 def test_example_runs_bernstein_vazirani():
@@ -281,6 +282,8 @@ def test_example_qec_single_qubit():
 
     mycode2 = OneQubitShorsCode()
     my_circuit2 = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
+    with pytest.raises(IndexError):
+        mycode2.apply_gate(cirq.Z, 89)
     my_circuit2 += cirq.Circuit(mycode2.encode())
     my_circuit2 += cirq.Circuit(mycode2.correct())
     my_circuit2 += cirq.Circuit(mycode2.measure())
@@ -311,3 +314,12 @@ def test_example_qec_multi_qubits():
     assert result3.measurements['(0, 0)'] == [[0]]
     assert result3.measurements['(1, 0)'] == [[1]]
     assert result3.measurements['(2, 0)'] == [[1]]
+
+
+def test_example_qec_base_class():
+    mycode_base = OneQubitCode()
+
+    assert mycode_base.num_physical_qubits == NotImplemented
+    assert mycode_base.physical_qubits == NotImplemented
+    assert mycode_base.encode() == NotImplemented
+    assert mycode_base.decode() == NotImplemented

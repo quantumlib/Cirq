@@ -14,7 +14,8 @@ class OneQubitCode:
     def apply_gate(self, gate: cirq.Gate, pos: int):
         if pos > self.num_physical_qubits:
             raise IndexError
-        yield gate(self.physical_qubits[pos])
+        else:
+            return gate(self.physical_qubits[pos])
 
     def encode(self) -> cirq.Circuit:
         return NotImplemented
