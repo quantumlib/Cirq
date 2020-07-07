@@ -269,6 +269,7 @@ def test_example_runs_shor_invalid(n):
     with pytest.raises(ValueError):
         examples.shor.main(n=n)
 
+
 def test_example_qec_single_qubit():
     mycode1 = examples.qec.OneQubitShorsCode()
     my_circuit1 = cirq.Circuit(mycode1.encode())
@@ -286,6 +287,7 @@ def test_example_qec_single_qubit():
     sim2 = cirq.DensityMatrixSimulator()
     result2 = sim2.run(my_circuit2, repetitions=1)
     assert result2.measurements['(0, 0)'] == [[1]]
+
 
 def test_example_qec_multi_qubits():
     original_qubits = cirq.LineQubit.range(3)

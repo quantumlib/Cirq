@@ -2,8 +2,9 @@
 This program is to apply gates on encoded qubits
 """
 import cirq
-from onequbit_qec import OneQubitCode
+from examples.qec.onequbit_qec import OneQubitCode
 from cirq.ops.raw_types import Operation, Gate
+
 
 def apply_identical_gate(ga: Gate, original_qubits, logical_qubits: dict,
                          num: int):

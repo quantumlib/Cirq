@@ -5,8 +5,8 @@ import random
 from typing import List
 
 import cirq
-from fault_tolerate_operations import apply_on_physical_qubits
-from onequbit_qec import OneQubitCode
+from examples.qec.fault_tolerate_operations import apply_on_physical_qubits
+from examples.qec.onequbit_qec import OneQubitCode
 
 
 class MultiQubitCode:

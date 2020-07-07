@@ -23,7 +23,7 @@ to at least one bit flip and one sign flip or their combination.
 """
 
 import cirq
-from onequbit_qec import OneQubitCode
+from examples.qec.onequbit_qec import OneQubitCode
 
 
 class OneQubitShorsCode(OneQubitCode):
