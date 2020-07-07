@@ -51,7 +51,7 @@ class MeasureInfo(
     """
 
 
-def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
+def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -77,27 +77,17 @@ def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
 def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
-            if (isinstance(op, ops.GateOperation) and
-                    isinstance(op.gate, ops.MeasurementGate)):
+            if isinstance(op.gate, ops.MeasurementGate):
                 yield MeasureInfo(key=op.gate.key,
                                   qubits=_grid_qubits(op),
                                   slot=i,
-                                  invert_mask=_full_mask(op))
+                                  invert_mask=list(op.gate.full_invert_mask()))
 
 
 def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
     if not all(isinstance(q, devices.GridQubit) for q in op.qubits):
         raise ValueError('Expected GridQubits: {}'.format(op.qubits))
     return cast(List['cirq.GridQubit'], list(op.qubits))
-
-
-def _full_mask(op: 'cirq.GateOperation') -> List[bool]:
-    invert_mask = list(cast(ops.MeasurementGate, op.gate).invert_mask)
-    len_missing_mask = len(op.qubits) - len(invert_mask)
-    if len_missing_mask > 0:
-        return invert_mask + [False] * len_missing_mask
-    else:
-        return invert_mask
 
 
 def pack_bits(bits: np.ndarray) -> bytes:
