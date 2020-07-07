@@ -90,15 +90,6 @@ def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
     return cast(List['cirq.GridQubit'], list(op.qubits))
 
 
-def _full_mask(op: 'cirq.GateOperation') -> List[bool]:
-    invert_mask = list(cast(ops.MeasurementGate, op.gate).invert_mask)
-    len_missing_mask = len(op.qubits) - len(invert_mask)
-    if len_missing_mask > 0:
-        return invert_mask + [False] * len_missing_mask
-    else:
-        return invert_mask
-
-
 def pack_bits(bits: np.ndarray) -> bytes:
     """Pack bits given as a numpy array of bools into bytes."""
     # Pad length to multiple of 8 if needed.
