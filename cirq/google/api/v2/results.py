@@ -51,7 +51,7 @@ class MeasureInfo(
     """
 
 
-def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
+def find_measurements(program: 'cirq.Circuit') -> List[MeasureInfo]:
     """Find measurements in the given program (circuit).
 
     Returns:
@@ -77,12 +77,11 @@ def find_measurements(program: 'cirq.Circuit',) -> List[MeasureInfo]:
 def _circuit_measurements(circuit: 'cirq.Circuit') -> Iterator[MeasureInfo]:
     for i, moment in enumerate(circuit):
         for op in moment:
-            if (isinstance(op, ops.GateOperation) and
-                    isinstance(op.gate, ops.MeasurementGate)):
+            if isinstance(op.gate, ops.MeasurementGate):
                 yield MeasureInfo(key=op.gate.key,
                                   qubits=_grid_qubits(op),
                                   slot=i,
-                                  invert_mask=_full_mask(op))
+                                  invert_mask=list(op.gate.full_invert_mask()))
 
 
 def _grid_qubits(op: 'cirq.Operation') -> List['cirq.GridQubit']:
