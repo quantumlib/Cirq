@@ -5,7 +5,7 @@ import random
 from typing import List
 
 import cirq
-import fault_tolerate_operations as ops
+from fault_tolerate_operations import apply_on_physical_qubits
 from onequbit_qec import OneQubitCode
 
 
@@ -39,7 +39,7 @@ class MultiQubitCode:
 
     def operation(self, original_circuit: cirq.Circuit):
         for op in original_circuit.all_operations():
-            op_on_physical_qubits = ops.apply_on_physical_qubits(
+            op_on_physical_qubits = apply_on_physical_qubits(
                 op, self.logical_qubits, self.physical_to_logical_ratio,
                 self.codetype)
             self.currentcircuit.append(op_on_physical_qubits)

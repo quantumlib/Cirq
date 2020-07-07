@@ -14,8 +14,9 @@ my_circuit1 += cirq.Circuit(mycode1.measure())
 
 print(my_circuit1)
 sim1 = cirq.DensityMatrixSimulator()
-result1 = sim1.run(my_circuit1, repetitions=20)
-print(result1)
+result1 = sim1.run(my_circuit1, repetitions=1)
+
+assert result1.measurements['(0, 0)'] == [[0]]
 
 #test2
 mycode2 = OneQubitShorsCode()
@@ -28,8 +29,8 @@ my_circuit2 += cirq.Circuit(mycode2.measure())
 
 print(my_circuit2)
 sim2 = cirq.DensityMatrixSimulator()
-result2 = sim2.run(my_circuit2, repetitions=20)
-print(result2)
+result2 = sim2.run(my_circuit2, repetitions=1)
+print(result2.measurements['(0, 0)'] == [[1]])
 
 #test3
 
@@ -51,4 +52,4 @@ my_circuit3 = mycode3.measure()
 print(my_circuit3)
 sim3 = cirq.Simulator()
 result3 = sim3.run(my_circuit3)
-print(result3)
+print(result3.measurements['(0, 0)'] == [[0]])
