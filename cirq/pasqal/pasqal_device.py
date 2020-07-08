@@ -102,6 +102,7 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             ValueError: If the operation is not valid
         """
+
         if not isinstance(operation,
                           (cirq.GateOperation, cirq.ParallelGateOperation)):
             raise ValueError("Unsupported operation")
@@ -110,24 +111,65 @@ class PasqalDevice(cirq.devices.Device):
             raise ValueError('{!r} is not a supported '
                              'gate'.format(operation.gate))
 
-        all_qubits = self.qubit_list()
         for qub in operation.qubits:
             if not isinstance(qub, self.supported_qubit_type):
                 raise ValueError('{} is not a valid qubit '
                                  'for gate {!r}'.format(qub, operation.gate))
-            try:
-                all_qubits.remove(qub)
-            except ValueError:
+            if qub not in self.qubit_set():
                 raise ValueError('{} is not part of the device.'.format(qub))
 
         if isinstance(operation.gate, cirq.ops.MeasurementGate):
-            if all_qubits:  # We enforce that all qubits are measured at once
-                raise ValueError("All qubits have to be measured at once "
-                                 "on a PasqalDevice. Use 'cirq.measure' on all"
-                                 " the device's qubits.")
             if operation.gate.invert_mask != ():
                 raise NotImplementedError("Measurements on Pasqal devices "
                                           "don't support invert_mask.")
+
+    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+        """Raises an error if the given circuit is invalid on this device.
+
+        A circuit is invalid if any of its moments are invalid or if there
+        is a non-empty moment after a moment with a measurement.
+
+        Args:
+            circuit: The circuit to validate
+
+        Raises:
+            ValueError: If the given circuit can't be run on this device
+        """
+        super().validate_circuit(circuit)
+
+        # Measurements must be in the last non-empty moment
+        has_measurement_occurred = False
+        for moment in circuit:
+            if has_measurement_occurred:
+                if len(moment.operations) > 0:
+                    raise ValueError("Non-empty moment after measurement")
+            for operation in moment.operations:
+                if isinstance(operation.gate, cirq.ops.MeasurementGate):
+                    has_measurement_occurred = True
+
+    def can_add_operation_into_moment(self, operation: cirq.ops.Operation,
+                                      moment: cirq.ops.Moment) -> bool:
+        """
+        Determines if it's possible to add an operation into a moment. An
+        operation can be added if the moment with the operation added is valid.
+
+        Args:
+            operation: The operation being added.
+            moment: The moment being transformed.
+
+        Returns:
+            Whether or not the moment will validate after adding the operation.
+
+        Raises:
+            ValueError: If either of the given moment or operation is invalid
+        """
+        if not super().can_add_operation_into_moment(operation, moment):
+            return False
+        try:
+            self.validate_moment(moment.with_operation(operation))
+        except ValueError:
+            return False
+        return True
 
     def __repr__(self):
         return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
@@ -214,10 +256,11 @@ class PasqalVirtualDevice(PasqalDevice):
         """
 
         super().validate_moment(moment)
-
-        if len(set(operation for operation in moment.operations)) > 1:
-            raise ValueError("Cannot do simultaneous gates. Use "
-                             "cirq.InsertStrategy.NEW.")
+        if len(moment) > 1:
+            for operation in moment:
+                if not isinstance(operation.gate, cirq.ops.MeasurementGate):
+                    raise ValueError("Cannot do simultaneous gates. Use "
+                                     "cirq.InsertStrategy.NEW.")
 
     def minimal_distance(self) -> float:
         """Returns the minimal distance between two qubits in qubits.

@@ -15,6 +15,7 @@ from unittest.mock import patch
 import copy
 import numpy as np
 import sympy
+import pytest
 
 import cirq
 
@@ -79,16 +80,23 @@ def test_run_sweep(mock_post, mock_get):
         if b == '1':
             ex_circuit.append(cirq.X(qs[-i - 1]),
                               strategy=cirq.InsertStrategy.NEW)
-    ex_circuit.append(cirq.measure(*qs))
 
     ex_circuit_odd = copy.deepcopy(ex_circuit)
     ex_circuit_odd.append(cirq.X(qs[0]))
+    ex_circuit_odd.append(cirq.measure(*qs))
 
     xpow = cirq.XPowGate(exponent=par)
     ex_circuit.append([xpow(qs[0])])
+    ex_circuit.append(cirq.measure(*qs))
 
     mock_get.return_value = MockGet(cirq.to_json(ex_circuit_odd))
     sampler = _make_sampler()
+
+    with pytest.raises(ValueError, match="Non-empty moment after measurement"):
+        wrong_circuit = copy.deepcopy(ex_circuit)
+        wrong_circuit.append(cirq.X(qs[0]))
+        sampler.run_sweep(program=wrong_circuit, params=sweep, repetitions=1)
+
     data = sampler.run_sweep(program=ex_circuit, params=sweep, repetitions=1)
 
     submitted_json = mock_post.call_args[1]['data']

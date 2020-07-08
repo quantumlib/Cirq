@@ -174,11 +174,6 @@ def test_validate_operation_errors():
     with pytest.raises(ValueError, match="is not part of the device."):
         d.validate_operation(cirq.X.on(cirq.NamedQubit('q6')))
 
-    with pytest.raises(ValueError,
-                       match="All qubits have to be measured at "
-                       "once on a PasqalDevice."):
-        circuit.append(cirq.measure(cirq.NamedQubit('q0')))
-
     with pytest.raises(NotImplementedError,
                        match="Measurements on Pasqal devices "
                        "don't support invert_mask."):
@@ -186,7 +181,6 @@ def test_validate_operation_errors():
                                     invert_mask=(True, False, False)))
 
     d = square_virtual_device(control_r=1., num_qubits=3)
-
     with pytest.raises(ValueError, match="are too far away"):
         d.validate_operation(cirq.CZ.on(TwoDQubit(0, 0), TwoDQubit(2, 2)))
 
@@ -195,10 +189,34 @@ def test_validate_moment():
     d = square_virtual_device(control_r=1., num_qubits=2)
     m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0)), (cirq.X).on(TwoDQubit(1, 1))])
     m2 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
+    m3 = cirq.Moment(
+        [cirq.measure(TwoDQubit(0, 0)),
+         cirq.measure(TwoDQubit(1, 1))])
 
     with pytest.raises(ValueError, match="Cannot do simultaneous gates"):
         d.validate_moment(m1)
     d.validate_moment(m2)
+    d.validate_moment(m3)
+
+
+def test_validate_circuit():
+    d = generic_device(2)
+    circuit1 = cirq.Circuit(device=d)
+    circuit1.append(cirq.X(cirq.NamedQubit('q1')))
+    circuit1.append(cirq.measure(cirq.NamedQubit('q1')))
+    d.validate_circuit(circuit1)
+    circuit1.append(cirq.CX(cirq.NamedQubit('q1'), cirq.NamedQubit('q0')))
+    with pytest.raises(ValueError, match="Non-empty moment after measurement"):
+        d.validate_circuit(circuit1)
+
+
+def test_can_add_operation_into_moment():
+    d = square_virtual_device(control_r=1., num_qubits=2)
+    m1 = cirq.Moment([cirq.Z.on(TwoDQubit(0, 0))])
+    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(0, 0)), m1)
+    assert not d.can_add_operation_into_moment(cirq.X.on(TwoDQubit(1, 1)), m1)
+    m2 = cirq.Moment([cirq.measure(*d.qubits[:-1])])
+    assert d.can_add_operation_into_moment(cirq.measure(TwoDQubit(1, 1)), m2)
 
 
 def test_minimal_distance():
