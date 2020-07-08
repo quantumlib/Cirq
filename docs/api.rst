@@ -707,9 +707,9 @@ These objects and methods will be removed in a future version of the library.
 .. autosummary::
     :toctree: generated/
 
-    cirq.has_mixture_channel
     cirq.QFT
     cirq.final_wavefunction
+    cirq.has_mixture_channel
     cirq.mixture_channel
     cirq.subwavefunction
     cirq.validate_normalized_state
