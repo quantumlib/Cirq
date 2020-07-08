@@ -63,6 +63,15 @@ class CircuitDiagramInfo:
         self.exponent_qubit_index = exponent_qubit_index
         self.auto_exponent_parens = auto_exponent_parens
 
+    def with_wire_symbols(self, new_wire_symbols: Iterable[str]):
+        return CircuitDiagramInfo(
+            wire_symbols=new_wire_symbols,
+            exponent=self.exponent,
+            connected=self.connected,
+            exponent_qubit_index=self.exponent_qubit_index,
+            auto_exponent_parens=self.auto_exponent_parens,
+        )
+
     def _value_equality_values_(self) -> Any:
         return (
             self.wire_symbols,
@@ -143,6 +152,19 @@ class CircuitDiagramInfoArgs:
         if self.precision is None:
             return str(val)
         return f'{float(val):.{self.precision}}'
+
+    def format_complex(self,
+                       val: Union[sympy.Basic, int, float, complex]) -> str:
+        if isinstance(val, sympy.Basic):
+            return str(val)
+        c = complex(val)
+        joiner = '+'
+        abs_imag = c.imag
+        if abs_imag < 0:
+            joiner = '-'
+            abs_imag *= -1
+        imag_str = '' if abs_imag == 1 else self.format_real(abs_imag)
+        return f'{self.format_real(c.real)}{joiner}{imag_str}i'
 
     def format_radians(self, radians: Union[sympy.Basic, int, float]) -> str:
         """Returns angle in radians as a human-readable string."""

@@ -1,6 +1,6 @@
 # Copyright 2018 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License");l
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Any, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -39,7 +39,7 @@ class XXPowGate(eigen_gate.EigenGate,
               [0 1 0 0]
               [1 0 0 0]
 
-    See also: `cirq.MS` (the Mølmer–Sørensen gate), which is implemented via
+    See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
         this class.
     """
 
@@ -86,13 +86,6 @@ class XXPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        if self._global_shift == -0.5:
-            # Mølmer–Sørensen gate.
-            angle_str = self._format_exponent_as_angle(args, order=4)
-            symbol = f'MS({angle_str})'
-            return protocols.CircuitDiagramInfo(
-                                wire_symbols=(symbol, symbol))
-
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
             exponent=self._diagram_exponent(args))
@@ -105,19 +98,11 @@ class XXPowGate(eigen_gate.EigenGate,
                                 qubits[0], self._exponent, qubits[1])
 
     def __str__(self) -> str:
-        if self._global_shift == -0.5:
-            if self._exponent == 1:
-                return 'MS(π/2)'
-            return f'MS({self._exponent!r}π/2)'
         if self.exponent == 1:
             return 'XX'
         return f'XX**{self._exponent!r}'
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
-            if self._exponent == 1:
-                return 'cirq.ms(np.pi/2)'
-            return f'cirq.ms({self._exponent!r}*np.pi/2)'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'

@@ -15,7 +15,7 @@
 
 import abc
 import itertools
-from typing import Union, Iterable, List, Sequence, cast, TYPE_CHECKING
+from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
 
 import numpy as np
 
@@ -23,6 +23,9 @@ from cirq.ops.raw_types import Operation
 
 if TYPE_CHECKING:
     import cirq
+
+
+TSelf = TypeVar('TSelf', bound='ArithmeticOperation')
 
 
 class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
@@ -100,8 +103,9 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def with_registers(self, *new_registers: Union[int, Sequence['cirq.Qid']]
-                      ) -> 'cirq.ArithmeticOperation':
+    def with_registers(self: TSelf,
+                       *new_registers: Union[int, Sequence['cirq.Qid']]
+                      ) -> TSelf:
         """Returns the same operation targeting different registers.
 
         Args:
@@ -165,7 +169,7 @@ class ArithmeticOperation(Operation, metaclass=abc.ABCMeta):
         return tuple(qubit for register in self.registers()
                      if not isinstance(register, int) for qubit in register)
 
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
         new_registers: List[Union[int, Sequence['cirq.Qid']]] = []
         qs = iter(new_qubits)
         for register in self.registers():

@@ -140,7 +140,7 @@ class ModularExp(cirq.ArithmeticOperation):
     def with_registers(
             self,
             *new_registers: Union[int, Sequence['cirq.Qid']],
-    ) -> cirq.ArithmeticOperation:
+    ) -> 'ModularExp':
         if len(new_registers) != 4:
             raise ValueError(f'Expected 4 registers (target, exponent, base, '
                              f'modulus), but got {len(new_registers)}')
@@ -223,7 +223,7 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
         cirq.X(target[L - 1]),
         cirq.H.on_each(*exponent),
         ModularExp(target, exponent, x, n),
-        cirq.QFT(*exponent, inverse=True),
+        cirq.qft(*exponent, inverse=True),
         cirq.measure(*exponent, key='exponent'),
     )
 

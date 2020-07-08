@@ -19,7 +19,7 @@ import numpy as np
 
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList
-from cirq.sim import final_wavefunction
+from cirq.sim import final_state_vector
 
 
 def linear_xeb_fidelity_from_probabilities(
@@ -165,7 +165,7 @@ def xeb_fidelity(
             each circuit execution as integer array where each integer is
             formed from measured qubit values according to `qubit_order` from
             most to least significant qubit, i.e. in the order consistent with
-            `cirq.final_wavefunction`.
+            `cirq.final_state_vector`.
         qubit_order: Qubit order used to construct bitstrings enumerating
             qubits starting with the most sigificant qubit.
         amplitudes: Optional mapping from bitstring to output amplitude.
@@ -192,7 +192,7 @@ def xeb_fidelity(
                 f'on {len(circuit.qid_shape())} qubits.')
 
     if amplitudes is None:
-        output_state = final_wavefunction(circuit, qubit_order=qubit_order)
+        output_state = final_state_vector(circuit, qubit_order=qubit_order)
         output_probabilities = np.abs(output_state)**2
         bitstring_probabilities = output_probabilities[bitstrings]
     else:

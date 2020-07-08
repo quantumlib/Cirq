@@ -113,6 +113,7 @@ class _ResolverCache:
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
@@ -134,6 +135,7 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
                 'PhysicalZTag': cirq.google.PhysicalZTag,
+                'RandomGateChannel': cirq.RandomGateChannel,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
@@ -151,6 +153,7 @@ class _ResolverCache:
                 'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'VirtualTag': cirq.VirtualTag,
                 'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
