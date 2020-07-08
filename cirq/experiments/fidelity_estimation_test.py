@@ -183,14 +183,19 @@ def test_least_squares_xeb_fidelity_from_expectations():
             np.sum(probabilities * np.log(dim * probabilities)))
         uniform_expectations_log.append(np.mean(np.log(dim * probabilities)))
 
-    f_lin = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
-        measured_expectations_lin, exact_expectations_lin, [1.0] * n_circuits)
-    f_log = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
-        measured_expectations_log, exact_expectations_log,
-        uniform_expectations_log)
+    f_lin, r_lin = (
+        cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+            measured_expectations_lin, exact_expectations_lin,
+            [1.0] * n_circuits))
+    f_log, r_log = (
+        cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+            measured_expectations_log, exact_expectations_log,
+            uniform_expectations_log))
 
     assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log, 1 - depolarization, atol=0.01)
+    np.testing.assert_allclose(np.sum(np.array(r_lin)**2), 0.0, atol=1e-2)
+    np.testing.assert_allclose(np.sum(np.array(r_log)**2), 0.0, atol=1e-2)
 
     np.random.set_state(prng_state)
 
@@ -220,15 +225,18 @@ def test_least_squares_xeb_fidelity_from_probabilities():
         all_probabilities.append(probabilities)
         observed_probabilities.append(probabilities[bitstrings])
 
-    f_lin = cirq.least_squares_xeb_fidelity_from_probabilities(
+    f_lin, r_lin = cirq.least_squares_xeb_fidelity_from_probabilities(
         dim, observed_probabilities, all_probabilities, None, True)
-    f_log_np = cirq.least_squares_xeb_fidelity_from_probabilities(
+    f_log_np, r_log_np = cirq.least_squares_xeb_fidelity_from_probabilities(
         dim, observed_probabilities, all_probabilities, np.log, True)
-    f_log_math = cirq.least_squares_xeb_fidelity_from_probabilities(
+    f_log_math, r_log_math = cirq.least_squares_xeb_fidelity_from_probabilities(
         dim, observed_probabilities, all_probabilities, math.log, False)
 
     assert np.isclose(f_lin, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log_np, 1 - depolarization, atol=0.01)
     assert np.isclose(f_log_math, 1 - depolarization, atol=0.01)
+    np.testing.assert_allclose(np.sum(np.array(r_lin)**2), 0.0, atol=1e-2)
+    np.testing.assert_allclose(np.sum(np.array(r_log_np)**2), 0.0, atol=1e-2)
+    np.testing.assert_allclose(np.sum(np.array(r_log_math)**2), 0.0, atol=1e-2)
 
     np.random.set_state(prng_state)

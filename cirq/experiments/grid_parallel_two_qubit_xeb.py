@@ -486,7 +486,7 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
     for depth in cycles:
         all_probabilities, observed_probabilities = zip(
             *all_and_observed_probabilities[depth])
-        fidelity = least_squares_xeb_fidelity_from_probabilities(
+        fidelity, _ = least_squares_xeb_fidelity_from_probabilities(
             hilbert_space_dimension=4,
             observed_probabilities=observed_probabilities,
             all_probabilities=all_probabilities,

@@ -13,7 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Callable, Mapping, Optional, Sequence, cast
+from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -232,7 +232,7 @@ def log_xeb_fidelity(
 def least_squares_xeb_fidelity_from_expectations(
         measured_expectations: Sequence[float],
         exact_expectations: Sequence[float],
-        uniform_expectations: Sequence[float]) -> float:
+        uniform_expectations: Sequence[float]) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator.
 
     An XEB experiment collects data from the execution of random circuits
@@ -273,6 +273,12 @@ def least_squares_xeb_fidelity_from_expectations(
         uniform_expectations: A list of the u_U, the expectation of the
             observable on a uniformly random bitstring. The order should match
             the order in the other arguments.
+
+    Returns:
+        A tuple of two values. The first value is the estimated fidelity.
+        The second value is a list of the residuals
+            f (e_U - u_U) - (m_U - u_U)
+        of the least squares minimization.
     """
     numerator = 0.0
     denominator = 0.0
@@ -280,7 +286,12 @@ def least_squares_xeb_fidelity_from_expectations(
                        uniform_expectations):
         numerator += (m - u) * (e - u)
         denominator += (e - u)**2
-    return numerator / denominator
+    fidelity = numerator / denominator
+    residuals = [
+        fidelity * (e - u) - (m - u) for m, e, u in zip(
+            measured_expectations, exact_expectations, uniform_expectations)
+    ]
+    return fidelity, residuals
 
 
 def least_squares_xeb_fidelity_from_probabilities(
@@ -317,6 +328,12 @@ def least_squares_xeb_fidelity_from_probabilities(
             a given probability.
         normalize_probabilities: Whether to multiply the probabilities by the
             Hilbert space dimension before computing the observable.
+
+    Returns:
+        A tuple of two values. The first value is the estimated fidelity.
+        The second value is a list of the residuals
+            f (e_U - u_U) - (m_U - u_U)
+        of the least squares minimization.
     """
     if not isinstance(observable_from_probability, np.ufunc):
         if observable_from_probability is None:
