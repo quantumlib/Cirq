@@ -465,6 +465,9 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
                     measurement_results: Sequence[List[np.ndarray]],
                     num_circuits: int, repetitions: int,
                     cycles: List[int]) -> CrossEntropyResult:
+    # pytest-cov is unable to detect that this function is called by a
+    # multiprocessing Pool
+    # coverage: ignore
     simulator = sim.Simulator()
     # Simulate circuits to get bitstring probabilities
     all_and_observed_probabilities = collections.defaultdict(
