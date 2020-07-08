@@ -70,6 +70,19 @@ def test_run_batch_no_sweeps():
         _ = program.run_batch(repetitions=1, processor_ids=['lazykitty'])
 
 
+def test_run_batch_no_processors():
+    program = cg.EngineProgram('no-meow',
+                               'no-meow',
+                               EngineContext(),
+                               batch_mode=True)
+    resolver_list = [
+        cirq.Points('cats', [1.0, 2.0]),
+        cirq.Points('cats', [3.0, 4.0])
+    ]
+    with pytest.raises(ValueError, match='No processors specified'):
+        _ = program.run_batch(repetitions=1, params_list=resolver_list)
+
+
 def test_run_batch_not_in_batch_mode():
     program = cg.EngineProgram('no-meow', 'no-meow', EngineContext())
     resolver_list = [

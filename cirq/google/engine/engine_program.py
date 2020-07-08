@@ -112,7 +112,7 @@ class EngineProgram:
             job_id: Optional[str] = None,
             params_list: List[study.Sweepable] = None,
             repetitions: int = 1,
-            processor_ids: Sequence[str] = ('xmonsim',),
+            processor_ids: Sequence[str] = (),
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
@@ -148,11 +148,12 @@ class EngineProgram:
             raise ValueError('Can only use run_batch() in batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
+        if not processor_ids:
+            raise ValueError('No processors specified')
         if not params_list:
             raise ValueError('No parameter list specified')
 
         # Pack the run contexts into batches
-        batch_context = qtypes.any_pb2.Any()
         batch = v2.batch_pb2.BatchRunContext()
         for param in params_list:
             sweeps = study.to_sweeps(param)
@@ -161,6 +162,7 @@ class EngineProgram:
                 sweep_proto = current_context.parameter_sweeps.add()
                 sweep_proto.repetitions = repetitions
                 v2.sweep_to_proto(sweep, out=sweep_proto.sweep)
+        batch_context = qtypes.any_pb2.Any()
         batch_context.Pack(batch)
 
         created_job_id, job = self.context.client.create_job(

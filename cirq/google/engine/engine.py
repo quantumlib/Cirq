@@ -29,15 +29,18 @@ import random
 import string
 from typing import Dict, List, Optional, Sequence, TypeVar, Union, TYPE_CHECKING
 
+from google.protobuf import any_pb2
+
 from cirq import circuits, study, value
-from cirq.google import gate_sets, serializable_gate_set
+from cirq.google import gate_sets
+from cirq.google import serializable_gate_set as sgs
 from cirq.google.api import v1, v2
 from cirq.google.engine import (engine_client, engine_program, engine_job,
                                 engine_processor, engine_sampler)
-from cirq.google.engine.client.quantum import types as qtypes
 
 if TYPE_CHECKING:
     import cirq
+    import google.protobuf
 
 TYPE_PREFIX = 'type.googleapis.com/'
 
@@ -170,7 +173,7 @@ class Engine:
             param_resolver: study.ParamResolver = study.ParamResolver({}),
             repetitions: int = 1,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
             program_description: Optional[str] = None,
             program_labels: Optional[Dict[str, str]] = None,
             job_description: Optional[str] = None,
@@ -227,7 +230,7 @@ class Engine:
             params: study.Sweepable = None,
             repetitions: int = 1,
             processor_ids: Sequence[str] = ('xmonsim',),
-            gate_set: serializable_gate_set.SerializableGateSet = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
             program_description: Optional[str] = None,
             program_labels: Optional[Dict[str, str]] = None,
             job_description: Optional[str] = None,
@@ -285,7 +288,7 @@ class Engine:
             params_list: List[study.Sweepable] = None,
             repetitions: int = 1,
             processor_ids: Sequence[str] = (),
-            gate_set: serializable_gate_set.SerializableGateSet = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
             program_description: Optional[str] = None,
             program_labels: Optional[Dict[str, str]] = None,
             job_description: Optional[str] = None,
@@ -331,8 +334,6 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        if not gate_set:
-            raise ValueError('Gate set must be specified.')
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
         if not processor_ids:
@@ -352,7 +353,7 @@ class Engine:
             self,
             program: 'cirq.Circuit',
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -392,7 +393,7 @@ class Engine:
             self,
             programs: List['cirq.Circuit'],
             program_id: Optional[str] = None,
-            gate_set: serializable_gate_set.SerializableGateSet = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
@@ -413,21 +414,19 @@ class Engine:
         Returns:
             A EngineProgram for the newly created program.
         """
-        gate_set = gate_set or gate_sets.XMON
-
+        if not gate_set:
+            raise ValueError('Gate set must be specified.')
         if not program_id:
             program_id = _make_random_id('prog-')
 
-        code = qtypes.any_pb2.Any()
         batch = v2.batch_pb2.BatchProgram()
         for program in programs:
             gate_set.serialize(program, msg=batch.programs.add())
-        code.Pack(batch)
 
         new_program_id, new_program = self.context.client.create_program(
             self.project_id,
             program_id,
-            code=code,
+            code=self._pack_any(batch),
             description=description,
             labels=labels)
 
@@ -437,30 +436,36 @@ class Engine:
                                             new_program,
                                             batch_mode=True)
 
-    def _serialize_program(
-            self,
-            program: 'cirq.Circuit',
-            gate_set: serializable_gate_set.SerializableGateSet = None
-    ) -> qtypes.any_pb2.Any:
+    def _serialize_program(self,
+                           program: 'cirq.Circuit',
+                           gate_set: Optional[sgs.SerializableGateSet] = None
+                          ) -> any_pb2.Any:
         gate_set = gate_set or gate_sets.XMON
-        code = qtypes.any_pb2.Any()
 
         if not isinstance(program, circuits.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
         if self.context.proto_version == ProtoVersion.V1:
-            code.Pack(
+            return self._pack_any(
                 v1.program_pb2.Program(operations=[
                     op for op in v1.circuit_as_schedule_to_protos(program)
                 ]))
         elif self.context.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)
-            code.Pack(program)
+            return self._pack_any(program)
         else:
             raise ValueError('invalid program proto version: {}'.format(
                 self.context.proto_version))
-        return code
+
+    def _pack_any(self, message: 'google.protobuf.Message') -> any_pb2.Any:
+        """Packs a message into an Any proto.
+
+        Returns the packed Any proto.
+        """
+        packed = any_pb2.Any()
+        packed.Pack(message)
+        return packed
 
     def get_program(self, program_id: str) -> engine_program.EngineProgram:
         """Returns an EngineProgram for an existing Quantum Engine program.
@@ -505,7 +510,7 @@ class Engine:
                                                 self.context)
 
     def sampler(self, processor_id: Union[str, List[str]],
-                gate_set: serializable_gate_set.SerializableGateSet
+                gate_set: sgs.SerializableGateSet
                ) -> engine_sampler.QuantumEngineSampler:
         """Returns a sampler backed by the engine.
 
