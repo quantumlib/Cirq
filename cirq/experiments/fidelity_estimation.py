@@ -279,6 +279,9 @@ def least_squares_xeb_fidelity_from_expectations(
         The second value is a list of the residuals
             f (e_U - u_U) - (m_U - u_U)
         of the least squares minimization.
+
+    Raises:
+        ValueError: The lengths of the input sequences are not all the same.
     """
     if not (len(measured_expectations) == len(exact_expectations) ==
             len(uniform_expectations)):
@@ -308,7 +311,7 @@ def least_squares_xeb_fidelity_from_probabilities(
 
     Using the notation from the docstring of
     `least_squares_xeb_fidelity_from_expectations`, this function computes the
-    least squares fidelity estimator when the observable O_U has eigenvalue
+    least squares fidelity estimate when the observable O_U has eigenvalue
     corresponding to the computational basis state |z⟩ given by g(p(z)), where
     p(z) = |⟨z|𝜓_U⟩|^2 and g is a function that can be specified. By default,
     g is the identity function, but other choices, such as the logarithm, are
