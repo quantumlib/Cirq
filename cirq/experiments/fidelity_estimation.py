@@ -306,7 +306,7 @@ def least_squares_xeb_fidelity_from_probabilities(
         observed_probabilities: Sequence[Sequence[float]],
         all_probabilities: Sequence[Sequence[float]],
         observable_from_probability: Optional[Callable[[float], float]] = None,
-        normalize_probabilities: bool = True) -> float:
+        normalize_probabilities: bool = True) -> Tuple[float, List[float]]:
     """Least squares fidelity estimator with observable based on probabilities.
 
     Using the notation from the docstring of
