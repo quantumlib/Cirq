@@ -695,7 +695,7 @@ def test_simulate_measurement_inversions():
 
 def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    c = cirq.Circuit(np.exp(0.5j * np.pi * cirq.X(a) * cirq.X(b)))
     sim = cirq.Simulator()
     result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4),
