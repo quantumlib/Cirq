@@ -13,7 +13,7 @@
 # limitations under the License.
 """Estimation of fidelity associated with experimental circuit executions."""
 
-from typing import Callable, Mapping, Optional, Sequence
+from typing import Callable, Mapping, Optional, Sequence, cast
 
 import numpy as np
 
@@ -324,6 +324,7 @@ def least_squares_xeb_fidelity_from_probabilities(
         else:
             observable_from_probability = np.frompyfunc(
                 observable_from_probability, 1, 1)
+    observable_from_probability = cast(Callable, observable_from_probability)
     measured_expectations = []
     exact_expectations = []
     uniform_expectations = []
@@ -331,9 +332,12 @@ def least_squares_xeb_fidelity_from_probabilities(
     for observed, all_ in zip(observed_probabilities, all_probabilities):
         observed = np.array(observed)
         all_ = np.array(all_)
-        observable = observable_from_probability(prefactor * all_)
+        observable = observable_from_probability(prefactor *
+                                                 cast(np.ndarray, all_))
         measured_expectations.append(
-            np.mean(observable_from_probability(prefactor * observed)))
+            np.mean(
+                observable_from_probability(prefactor *
+                                            cast(np.ndarray, observed))))
         exact_expectations.append(np.sum(all_ * observable))
         uniform_expectations.append(
             np.sum(observable) / hilbert_space_dimension)

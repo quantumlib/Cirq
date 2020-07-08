@@ -21,7 +21,7 @@ by executing circuits that act on many pairs simultaneously.
 """
 
 from typing import (Any, Iterable, List, Optional, Sequence, TYPE_CHECKING,
-                    Tuple)
+                    Tuple, cast)
 import collections
 from concurrent.futures import ThreadPoolExecutor
 import dataclasses
@@ -43,6 +43,7 @@ from cirq.experiments.random_quantum_circuit_generation import (
     random_rotations_between_grid_interaction_layers_circuit)
 
 if TYPE_CHECKING:
+    from typing import Dict
     import cirq
 
 DEFAULT_BASE_DIR = os.path.expanduser(
@@ -333,7 +334,7 @@ def collect_grid_parallel_two_qubit_xeb_data(
         truncated_circuit.append(ops.measure(*qubits, key='m'))
         trial_result = sampler.run(truncated_circuit, repetitions=repetitions)
         trial_result_params = GridParallelXEBTrialResultParameters(
-            data_collection_id=data_collection_id,
+            data_collection_id=cast(str, data_collection_id),
             layer=layer,
             depth=depth,
             circuit_index=circuit_index)
@@ -444,10 +445,10 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
                           num_circuits, repetitions, cycles))
     num_processors = min(num_processors, len(arguments))
     with multiprocessing.Pool(num_processors) as pool:
-        xeb_results = pool.starmap(_get_xeb_result, arguments)
+        xeb_result_list = pool.starmap(_get_xeb_result, arguments)
     xeb_results = {
         qubit_pair: result
-        for qubit_pair, result in zip(all_active_qubit_pairs, xeb_results)
+        for qubit_pair, result in zip(all_active_qubit_pairs, xeb_result_list)
     }
 
     # Save results and return
@@ -462,7 +463,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
 def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
                     measurement_results: Sequence[List[np.ndarray]],
                     num_circuits: int, repetitions: int,
-                    cycles: List[int]) -> float:
+                    cycles: List[int]) -> CrossEntropyResult:
     simulator = sim.Simulator()
     # Simulate circuits to get bitstring probabilities
     all_and_observed_probabilities = collections.defaultdict(
@@ -491,7 +492,8 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
             observable_from_probability=None,
             normalize_probabilities=True)
         data.append(CrossEntropyPair(depth, fidelity))
-    return CrossEntropyResult(data=data, repetitions=repetitions)
+    return CrossEntropyResult(data=data,
+                              repetitions=repetitions)  # type: ignore
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
