@@ -122,15 +122,9 @@ def test_decompose_operation():
 
     p_qubits = [cirq.LineQubit(3), cirq.LineQubit(4)]
     d = PasqalVirtualDevice(1., p_qubits)
-    op = (cirq.ops.CNOT).on(*(d.qubit_list()))
+    op = (cirq.ops.CNOT).on(*(d.qubit_list()))**2
 
-    assert d.decompose_operation(op) == [
-        cirq.PhasedXPowGate(phase_exponent=-0.5,
-                            exponent=0.5).on(cirq.LineQubit(4)),
-        (cirq.CZ**-1.0).on(cirq.LineQubit(3), cirq.LineQubit(4)),
-        cirq.PhasedXPowGate(phase_exponent=0.4999999999999998,
-                            exponent=0.5).on(cirq.LineQubit(4))
-    ]
+    assert d.decompose_operation(op) == []
 
 
 def test_pasqal_converter():
@@ -285,31 +279,3 @@ def test_to_json():
         "control_radius": 2,
         "qubits": [cirq.pasqal.TwoDQubit(0, 0)]
     }
-
-
-# def test_coverage():
-#    q = cirq.LineQubit.range(3)
-#    g = cirq.ThreeQubitGate()
-#
-#    class FakeOperation(cirq.ops.Operation):
-#
-#        def __init__(self, gate, qubits):
-#            self._gate = gate
-#            self._qubits = qubits
-#
-#        @property
-#        def qubits(self):
-#            return self._qubits
-#
-#        def with_qubits(self, *new_qubits):
-#            return FakeOperation(self._gate, new_qubits)
-#
-#    op = FakeOperation(g, q).with_qubits(*q)
-#     c = cirq.Circuit(cirq.X.on(q[0]))
-#     cirq.pasqal.ConvertToNeutralAtomGates().optimize_circuit(c)
-#
-#     assert c == cirq.Circuit(cirq.X.on(q[0]))
-#     assert (cirq.neutral_atoms.ConvertToNeutralAtomGates().convert(
-#        cirq.X.on(q[0])) == [cirq.X.on(q[0])])
-#    with pytest.raises(TypeError, match="Don't know how to work with"):
-#        cirq.pasqal.PasqalConverter().pasqal_convert(op)
