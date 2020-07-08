@@ -72,6 +72,13 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
+    def with_key(self, key: str) -> 'MeasurementGate':
+        """Creates a measurement gate with a new key but otherwise identical."""
+        return MeasurementGate(self.num_qubits(),
+                               key=key,
+                               invert_mask=self.invert_mask,
+                               qid_shape=self._qid_shape)
+
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()
@@ -81,7 +88,8 @@ class MeasurementGate(raw_types.Gate):
             new_mask[b] = not new_mask[b]
         return MeasurementGate(self.num_qubits(),
                                key=self.key,
-                               invert_mask=tuple(new_mask))
+                               invert_mask=tuple(new_mask),
+                               qid_shape=self._qid_shape)
 
     def full_invert_mask(self):
         """Returns the invert mask for all qubits.
