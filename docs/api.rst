@@ -433,6 +433,8 @@ run experiments.
     cirq.generate_boixo_2018_supremacy_circuits_v2
     cirq.generate_boixo_2018_supremacy_circuits_v2_bristlecone
     cirq.generate_boixo_2018_supremacy_circuits_v2_grid
+    cirq.least_squares_xeb_fidelity_from_expectations
+    cirq.least_squares_xeb_fidelity_from_probabilities
     cirq.linear_xeb_fidelity
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
@@ -444,7 +446,6 @@ run experiments.
     cirq.experiments.compute_grid_parallel_two_qubit_xeb_results
     .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
-    cirq.experiments.least_squares_xeb_fidelity_from_expectations
     cirq.experiments.rabi_oscillations
     cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
