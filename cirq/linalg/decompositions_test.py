@@ -728,8 +728,12 @@ def test_kak_vector_input_not_unitary():
 
 @pytest.mark.parametrize('unitary', [
     cirq.testing.random_unitary(4),
+    cirq.unitary(cirq.IdentityGate(2)),
+    cirq.unitary(cirq.SWAP),
+    cirq.unitary(cirq.SWAP**0.25),
     cirq.unitary(cirq.ISWAP),
     cirq.unitary(cirq.CZ**0.5),
+    cirq.unitary(cirq.CZ),
 ])
 def test_kak_decompose(unitary: np.ndarray):
     kak = cirq.kak_decomposition(unitary)
