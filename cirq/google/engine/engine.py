@@ -294,7 +294,7 @@ class Engine:
             job_description: Optional[str] = None,
             job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuit via Quantum Engine.Creates
+        """Runs the supplied Circuits via Quantum Engine.Creates
 
         This will combine each Circuit provided in `programs` into
         a BatchProgram.  Each circuit will pair with the associated
