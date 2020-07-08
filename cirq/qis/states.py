@@ -13,8 +13,8 @@
 # limitations under the License.
 """Utility methods for creating vectors and matrices."""
 
-from typing import (Any, Iterable, List, Optional, Sequence, Union,
-                    TYPE_CHECKING, Tuple, Type, cast)
+from typing import (Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING,
+                    Tuple, Type, Union)
 
 import itertools
 
@@ -486,7 +486,8 @@ def to_valid_density_matrix(
 
     Returns:
         A numpy matrix corresponding to the density matrix on the given number
-        of qubits.
+        of qubits. Note that this matrix may share memory with the input
+        `density_matrix_rep`.
 
     Raises:
         ValueError if the density_matrix_rep is not valid.
