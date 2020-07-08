@@ -492,8 +492,8 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
             observable_from_probability=None,
             normalize_probabilities=True)
         data.append(CrossEntropyPair(depth, fidelity))
-    return CrossEntropyResult(data=data,
-                              repetitions=repetitions)  # type: ignore
+    return CrossEntropyResult(data=data,  # type: ignore
+                              repetitions=repetitions)
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
