@@ -200,6 +200,12 @@ def test_least_squares_xeb_fidelity_from_expectations():
     np.random.set_state(prng_state)
 
 
+def test_least_squares_xeb_fidelity_from_expectations_bad_length():
+    with pytest.raises(ValueError):
+        _ = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
+            [1.0], [1.0], [1.0, 2.0])
+
+
 def test_least_squares_xeb_fidelity_from_probabilities():
     prng_state = np.random.get_state()
     np.random.seed(0)

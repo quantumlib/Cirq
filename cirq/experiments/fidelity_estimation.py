@@ -265,12 +265,12 @@ def least_squares_xeb_fidelity_from_expectations(
         f = (∑_U (m_U - u_U) * (e_U - u_U)) / (∑_U (e_U - u_U)^2).
 
     Args:
-        measured_expectations: A list of the m_U, the experimental estimates
+        measured_expectations: A sequence of the m_U, the experimental estimates
             of the observable, one for each circuit U.
-        exact_expectations: A list of the e_U, the exact value of the
+        exact_expectations: A sequence of the e_U, the exact value of the
             observable. The order should match the order of the
             `measured_expectations` argument.
-        uniform_expectations: A list of the u_U, the expectation of the
+        uniform_expectations: A sequence of the u_U, the expectation of the
             observable on a uniformly random bitstring. The order should match
             the order in the other arguments.
 
@@ -280,6 +280,10 @@ def least_squares_xeb_fidelity_from_expectations(
             f (e_U - u_U) - (m_U - u_U)
         of the least squares minimization.
     """
+    if not (len(measured_expectations) == len(exact_expectations) ==
+            len(uniform_expectations)):
+        raise ValueError('The lengths of the sequences of expectations must '
+                         'all be the same.')
     numerator = 0.0
     denominator = 0.0
     for m, e, u in zip(measured_expectations, exact_expectations,
