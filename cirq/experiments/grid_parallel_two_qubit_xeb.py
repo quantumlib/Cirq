@@ -446,6 +446,7 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     num_processors = min(num_processors, len(arguments))
     with multiprocessing.Pool(num_processors) as pool:
         xeb_result_list = pool.starmap(_get_xeb_result, arguments)
+    pool.join()  # needed for pytest-cov to detect coverage
     xeb_results = {
         qubit_pair: result
         for qubit_pair, result in zip(all_active_qubit_pairs, xeb_result_list)
