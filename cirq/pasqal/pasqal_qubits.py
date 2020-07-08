@@ -24,8 +24,8 @@ class ThreeDQubit(cirq.ops.Qid):
     ThreeDQubits use z-y-x ordering:
 
         ThreeDQubit(0, 0, 0) < ThreeDQubit(1, 0, 0)
-        < ThreeDQubit(0, 1, 0) < ThreeDQubit(0, 0, 1)
-        < ThreeDQubit(1, 1, 0) < ThreeDQubit(1, 0, 1)
+        < ThreeDQubit(0, 1, 0) < ThreeDQubit(1, 1, 0)
+        < ThreeDQubit(0, 0, 1) < ThreeDQubit(1, 0, 1)
         < ThreeDQubit(0, 1, 1) < ThreeDQubit(1, 1, 1)
 
     New ThreeDQubit can be constructed by adding or subtracting tuples
@@ -50,7 +50,7 @@ class ThreeDQubit(cirq.ops.Qid):
         return 2
 
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in 3D"""
+        """Returns the distance between two qubits in 3D."""
         if not isinstance(other, ThreeDQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDQubit, but {}".format(
@@ -189,7 +189,7 @@ class TwoDQubit(ThreeDQubit):
             y0: y-coordinate of the first qubit
 
         Returns:
-            A list of TwoDQubit filling in a triangular lattice
+            A list of TwoDQubit filling in a triangular lattice.
         """
         coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
                           dtype=float)
