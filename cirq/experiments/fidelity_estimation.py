@@ -277,7 +277,9 @@ def least_squares_xeb_fidelity_from_expectations(
     Returns:
         A tuple of two values. The first value is the estimated fidelity.
         The second value is a list of the residuals
+
             f (e_U - u_U) - (m_U - u_U)
+
         of the least squares minimization.
 
     Raises:
@@ -339,7 +341,9 @@ def least_squares_xeb_fidelity_from_probabilities(
     Returns:
         A tuple of two values. The first value is the estimated fidelity.
         The second value is a list of the residuals
+
             f (e_U - u_U) - (m_U - u_U)
+
         of the least squares minimization.
     """
     if not isinstance(observable_from_probability, np.ufunc):
