@@ -1,7 +1,7 @@
 # Pasqal Devices
 
 This section describes the devices in Cirq for Pasqal hardware devices and their usage.
-While our hardware is currently under development, this information should give a
+While our hardware is currently under development, this information should provide a
 better understanding of the capabilities of future Pasqal devices, where neutral atoms
 are controlled by lasers. Please contact Pasqal to obtain the latest information
 on devices that you plan to use.
@@ -36,8 +36,7 @@ Any gate appended to a `cirq.Circuit` associated with `PasqalDevice` that is not
 
 ### Measurement limitation
 
-The other restriction is on the measurement operation, which has to occur on all the qubits and at the end of the circuit. This means that it should correspond to a single `cirq.ops.GateOperation` with a `cirq.ops.MeasurementGate` applied on all the qubits in the device, which is easily obtained through the `cirq.measure(*qubits)` where `qubits` should be a `list`or `tuple`
-of all the device's qubits.
+The other restriction is on the measurement operation, which has to occur only once, at the end of the circuit, and simultaneously on all the qubits of interest. It can correspond to a single `cirq.ops.GateOperation` with a `cirq.ops.MeasurementGate` applied on all the qubits of interest (reccomended) or multiple measurement operations, as long as they are all in the same moment.
 
 ### Usage
 
@@ -87,4 +86,4 @@ To the gate set allowed by `PasqalDevice`, `PasqalVirtualDevice` removes the `CN
 
 ### Timing restrictions
 
-Currently, no paralelization is allowed by `PasqalVirtualDevice`, which means that each gate has to be the only one in its `Moment`.
+Currently, no paralelization is allowed by `PasqalVirtualDevice`, which means that each gate is forced to be the only one in its `Moment` (except for Measurement gates on different qubits, which have to cohexist in the final `Moment` of the circuit).
