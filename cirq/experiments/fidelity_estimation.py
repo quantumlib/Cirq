@@ -287,8 +287,12 @@ def least_squares_xeb_fidelity_from_expectations(
     """
     if not (len(measured_expectations) == len(exact_expectations) ==
             len(uniform_expectations)):
-        raise ValueError('The lengths of the sequences of expectations must '
-                         'all be the same.')
+        raise ValueError('The lengths of measured_expectations, '
+                         'exact_expectations, and uniform_expectations must '
+                         'all be the same. Got lengths '
+                         f'{len(measured_expectations)}, '
+                         f'{len(exact_expectations)}, and '
+                         f'{len(uniform_expectations)}.')
     numerator = 0.0
     denominator = 0.0
     for m, e, u in zip(measured_expectations, exact_expectations,

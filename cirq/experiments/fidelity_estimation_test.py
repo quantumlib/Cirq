@@ -201,9 +201,10 @@ def test_least_squares_xeb_fidelity_from_expectations():
 
 
 def test_least_squares_xeb_fidelity_from_expectations_bad_length():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError) as exception_info:
         _ = cirq.experiments.least_squares_xeb_fidelity_from_expectations(
             [1.0], [1.0], [1.0, 2.0])
+    assert '1, 1, and 2' in str(exception_info.value)
 
 
 def test_least_squares_xeb_fidelity_from_probabilities():
