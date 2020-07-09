@@ -289,6 +289,15 @@ def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[float, float]:
         The standard deviation (estimated from the fidelity and a maximum bound
         on the variance regardless of what the true fidelity is)
     """
+
+    # We use the Bhatia Davis inequality to estimate the variance of the
+    # fidelity. This gives that:
+    # Var[\hat{F}] <= (1 - F) . F / N
+    # StdDev[\hat{F}] <= \sqrt{(1 - F) . F / N}
+    #
+    # By further using the fact that 0 <= F <= 1 we get:
+    # StdDev[\hat{F}] <= \frac{1}{2 \sqrt{N}}
+
     fidelity_bounded = max(0.0, min(1.0, fidelity))
     std_dev_estimate = math.sqrt(
         (1.0 - fidelity_bounded) * fidelity_bounded / n)
