@@ -42,6 +42,9 @@ class EngineJob:
     executing on a machine, or it may have entered a terminal state
     (either succeeding or failing).
 
+    `EngineJob`s can be iterated over, returning `TrialResult`s. These
+    `TrialResult`s can also be accessed by index.
+
     Attributes:
       project_id: A project_id of the parent Google Cloud Project.
       program_id: Unique ID of the program within the parent project.
@@ -364,6 +367,9 @@ class EngineJob:
 
     def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
+
+    def __getitem__(self, item) -> study.TrialResult:
+        return list(self.results())[item]
 
     def __str__(self) -> str:
         return (f'EngineJob(project_id=\'{self.project_id}\', '
