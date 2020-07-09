@@ -31,6 +31,11 @@ _CIRCUIT = cirq.Circuit(
     cirq.measure(cirq.GridQubit(5, 2), key='result'))
 
 
+_CIRCUIT2 = cirq.Circuit(
+    cirq.Y(cirq.GridQubit(5, 2))**0.5,
+    cirq.measure(cirq.GridQubit(5, 2), key='result'))
+
+
 def _to_any(proto):
     any_proto = qtypes.any_pb2.Any()
     any_proto.Pack(proto)
@@ -139,6 +144,86 @@ sweep_results: [{
         }]
     }]
 """, v2.result_pb2.Result()))
+
+_BATCH_RESULTS_V2 = _to_any(
+    Merge(
+        """
+results: [{
+    sweep_results: [{
+        repetitions: 1,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 1
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\000\001'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 2
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\000\001'
+                }]
+            }
+        }]
+    }],
+    },{
+    sweep_results: [{
+        repetitions: 1,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 3
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\000\001'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 4
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\000\001'
+                }]
+            }
+        }]
+    }]
+}]
+""", v2.batch_pb2.BatchResult()))
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -460,6 +545,78 @@ def test_run_sweep_v2(client):
     assert sweeps[0].sweep.single_sweep.points.points == [1, 2]
     client().get_job.assert_called_once()
     client().get_job_results.assert_called_once()
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient')
+def test_run_batch(client):
+    setup_run_circuit_with_result_(client, _BATCH_RESULTS_V2)
+
+    engine = cg.Engine(
+        project_id='proj',
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+    job = engine.run_batch(
+        gate_set=cg.XMON,
+        programs=[_CIRCUIT, _CIRCUIT2],
+        job_id='job-id',
+        params_list=[cirq.Points('a', [1, 2]),
+                     cirq.Points('a', [3, 4])],
+        processor_ids=['mysim'])
+    results = job.results()
+    assert len(results) == 4
+    for i, v in enumerate([1, 2, 3, 4]):
+        assert results[i].repetitions == 1
+        assert results[i].params.param_dict == {'a': v}
+        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
+    client().create_program.assert_called_once()
+    client().create_job.assert_called_once()
+    run_context = v2.batch_pb2.BatchRunContext()
+    client().create_job.call_args[1]['run_context'].Unpack(run_context)
+    assert len(run_context.run_contexts) == 2
+    for idx, rc in enumerate(run_context.run_contexts):
+        sweeps = rc.parameter_sweeps
+        assert len(sweeps) == 1
+        assert sweeps[0].repetitions == 1
+        if idx == 0:
+            assert sweeps[0].sweep.single_sweep.points.points == [1.0, 2.0]
+        if idx == 1:
+            assert sweeps[0].sweep.single_sweep.points.points == [3.0, 4.0]
+    client().get_job.assert_called_once()
+    client().get_job_results.assert_called_once()
+
+
+def test_batch_size_validation_fails():
+    engine = cg.Engine(
+        project_id='proj',
+        proto_version=cg.engine.engine.ProtoVersion.V2,
+    )
+
+    with pytest.raises(ValueError, match='Number of circuits and sweeps'):
+        _ = engine.run_batch(programs=[_CIRCUIT, _CIRCUIT2],
+                             gate_set=cg.XMON,
+                             job_id='job-id',
+                             params_list=[
+                                 cirq.Points('a', [1, 2]),
+                                 cirq.Points('a', [3, 4]),
+                                 cirq.Points('a', [5, 6])
+                             ],
+                             processor_ids=['mysim'])
+
+    with pytest.raises(ValueError, match='Processor id must be specified'):
+        _ = engine.run_batch(
+            programs=[_CIRCUIT, _CIRCUIT2],
+            gate_set=cg.XMON,
+            job_id='job-id',
+            params_list=[cirq.Points('a', [1, 2]),
+                         cirq.Points('a', [3, 4])])
+
+    with pytest.raises(ValueError, match='Gate set must be specified'):
+        _ = engine.run_batch(
+            programs=[_CIRCUIT, _CIRCUIT2],
+            job_id='job-id',
+            params_list=[cirq.Points('a', [1, 2]),
+                         cirq.Points('a', [3, 4])],
+            processor_ids=['mysim'])
 
 
 def test_bad_sweep_proto():

@@ -53,7 +53,8 @@ class EngineJob:
                  program_id: str,
                  job_id: str,
                  context: 'engine_base.EngineContext',
-                 _job: Optional[quantum.types.QuantumJob] = None) -> None:
+                 _job: Optional[quantum.types.QuantumJob] = None,
+                 batch_mode: bool = False) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -62,6 +63,7 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
+            batch_mode: If this was created with a BatchProgram/BatchRunContext.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -69,6 +71,7 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
+        self.batch_mode = batch_mode
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -285,6 +288,10 @@ class EngineJob:
                   result_type == 'cirq.api.google.v2.Result'):
                 v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
+            elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
+                v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
+                    result.value)
+                self._results = self._get_batch_results_v2(v2_parsed_result)
             else:
                 raise ValueError(
                     'invalid result proto version: {}'.format(result_type))
@@ -308,6 +315,15 @@ class EngineJob:
                     study.TrialResult.from_single_parameter_set(
                         params=study.ParamResolver(result.params.assignments),
                         measurements=measurements))
+        return trial_results
+
+    @classmethod
+    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
+                             ) -> List[study.TrialResult]:
+        trial_results = []
+        # Flatten to single list to match to sampler api.
+        for result in results.results:
+            trial_results.extend(cls._get_job_results_v2(result))
         return trial_results
 
     @staticmethod
