@@ -72,6 +72,10 @@ upper_tabs:
       - title: Serialization guidelines
         path: /quark/cirq/dev/serialization
 
+    - name: Research
+      contents:
+      - include: /quark/cirq/research/_toc.yaml
+
     - name: API
       skip_translation: true
       contents:
