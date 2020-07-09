@@ -328,7 +328,6 @@ the magic methods that can be implemented.
     cirq.equal_up_to_global_phase
     cirq.has_channel
     cirq.has_mixture
-    cirq.has_mixture_channel
     cirq.has_stabilizer_effect
     cirq.has_unitary
     cirq.inverse
@@ -337,7 +336,6 @@ the magic methods that can be implemented.
     cirq.measurement_key
     cirq.measurement_keys
     cirq.mixture
-    cirq.mixture_channel
     cirq.mul
     cirq.num_qubits
     cirq.pauli_expansion
@@ -711,6 +709,8 @@ These objects and methods will be removed in a future version of the library.
 
     cirq.QFT
     cirq.final_wavefunction
+    cirq.has_mixture_channel
+    cirq.mixture_channel
     cirq.subwavefunction
     cirq.validate_normalized_state
     cirq.wavefunction_partial_trace_as_mixture

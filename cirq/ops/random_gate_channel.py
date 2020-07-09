@@ -76,7 +76,7 @@ class RandomGateChannel(raw_types.Gate):
         if self._is_parameterized_():
             return NotImplemented
 
-        mixture = protocols.mixture_channel(self.sub_gate, None)
+        mixture = protocols.mixture(self.sub_gate, None)
         if mixture is None:
             return None
 
