@@ -371,7 +371,7 @@ class EngineJob:
 
     def __getitem__(self, item: Union[slice, int]
                    ) -> Union[study.TrialResult, Sequence[study.TrialResult]]:
-        return list(self.results())[item]
+        return self.results()[item]
 
     def __str__(self) -> str:
         return (f'EngineJob(project_id=\'{self.project_id}\', '
