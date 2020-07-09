@@ -15,7 +15,8 @@
 
 import time
 
-from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, Sequence, Tuple, \
+    TYPE_CHECKING, Union
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -368,7 +369,8 @@ class EngineJob:
     def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
 
-    def __getitem__(self, item) -> study.TrialResult:
+    def __getitem__(self, item: Union[slice, int]
+                   ) -> Union[study.TrialResult, Sequence[study.TrialResult]]:
         return list(self.results())[item]
 
     def __str__(self) -> str:
