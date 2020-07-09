@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import itertools
 import random
 from unittest import mock
 import numpy as np
@@ -694,7 +695,7 @@ def test_simulate_measurement_inversions():
 
 def test_works_on_pauli_string_phasor():
     a, b = cirq.LineQubit.range(2)
-    c = cirq.Circuit(np.exp(1j * np.pi * cirq.X(a) * cirq.X(b)))
+    c = cirq.Circuit(np.exp(0.5j * np.pi * cirq.X(a) * cirq.X(b)))
     sim = cirq.Simulator()
     result = sim.simulate(c).state_vector()
     np.testing.assert_allclose(result.reshape(4),
@@ -963,3 +964,46 @@ def test_separated_measurements():
     ])
     sample = cirq.Simulator().sample(c, repetitions=10)
     np.testing.assert_array_equal(sample['zero'].values, [0] * 10)
+
+
+def test_state_vector_copy():
+    sim = cirq.Simulator()
+
+    class InplaceGate(cirq.SingleQubitGate):
+        """A gate that modifies the target tensor in place, multiply by -1."""
+
+        def _apply_unitary_(self, args):
+            args.target_tensor *= -1.0
+            return args.target_tensor
+
+    q = cirq.LineQubit(0)
+    circuit = cirq.Circuit(InplaceGate()(q), InplaceGate()(q))
+
+    vectors = []
+    for step in sim.simulate_moment_steps(circuit):
+        vectors.append(step.state_vector(copy=True))
+    for x, y in itertools.combinations(vectors, 2):
+        assert not np.shares_memory(x, y)
+
+    # If the state vector is not copied, then applying second InplaceGate
+    # causes old state to be modified.
+    vectors = []
+    copy_of_vectors = []
+    for step in sim.simulate_moment_steps(circuit):
+        state_vector = step.state_vector(copy=False)
+        vectors.append(state_vector)
+        copy_of_vectors.append(state_vector.copy())
+    assert any(
+        not np.array_equal(x, y) for x, y in zip(vectors, copy_of_vectors))
+
+
+def test_final_state_vector_is_not_last_object():
+    sim = cirq.Simulator()
+
+    q = cirq.LineQubit(0)
+    initial_state = np.array([1, 0], dtype=np.complex64)
+    circuit = cirq.Circuit(cirq.WaitGate(0)(q))
+    result = sim.simulate(circuit, initial_state=initial_state)
+    assert result.state_vector() is not initial_state
+    assert not np.shares_memory(result.state_vector(), initial_state)
+    np.testing.assert_equal(result.state_vector(), initial_state)
