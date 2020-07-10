@@ -46,6 +46,9 @@ from cirq.testing.consistent_protocols import (
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,)
 
+from cirq.testing.consistent_specified_has_unitary import (
+    assert_specifies_has_unitary_if_unitary,)
+
 from cirq.testing.equals_tester import (
     EqualsTester,)
 
@@ -65,11 +68,16 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
 )
 
+from cirq.testing.logs import (
+    assert_logs,)
+
 from cirq.testing.order_tester import (
     OrderTester,)
 
 from cirq.testing.random_circuit import (
-    random_circuit,)
+    DEFAULT_GATE_DOMAIN,
+    random_circuit,
+)
 
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,)

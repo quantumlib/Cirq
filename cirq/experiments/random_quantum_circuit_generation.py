@@ -13,7 +13,7 @@
 # limitations under the License.
 """Code for generating random quantum circuits."""
 
-from typing import (Callable, Container, Dict, Iterable, List, Sequence,
+from typing import (Any, Callable, Container, Dict, Iterable, List, Sequence,
                     TYPE_CHECKING, Tuple, Union)
 
 import dataclasses
@@ -97,11 +97,11 @@ class GridInteractionLayer(
         pos = a.row % 2, (a.col - self.col_offset) % 2
         return pos == (0, 0) or pos == (1, self.stagger)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
             self, ['col_offset', 'vertical', 'stagger'])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.GridInteractionLayer('
                 f'col_offset={self.col_offset}, '
                 f'vertical={self.vertical}, '
@@ -156,7 +156,7 @@ def random_rotations_between_grid_interaction_layers_circuit(
                                                          phase_exponent=0.25,
                                                          exponent=0.5)),
         add_final_single_qubit_layer: bool = True,
-        seed: value.RANDOM_STATE_LIKE = None,
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> 'cirq.Circuit':
     """Generate a random quantum circuit.
 

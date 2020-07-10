@@ -12,13 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
-                    Set, Tuple, Union)
+from typing import (Any, Dict, Iterable, List, Mapping, NamedTuple, Optional,
+                    Sequence, Set, TYPE_CHECKING, Tuple, Union)
 import dataclasses
 import numpy as np
 import scipy
 from matplotlib import pyplot as plt
 from cirq import circuits, devices, ops, protocols, sim, work
+
+if TYPE_CHECKING:
+    import cirq
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
@@ -138,10 +141,48 @@ class CrossEntropyResult:
         return cls(data=[CrossEntropyPair(d, f) for d, f in data],
                    repetitions=repetitions)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.CrossEntropyResult('
                 f'data={[tuple(p) for p in self.data]!r}, '
                 f'repetitions={self.repetitions!r})')
+
+
+@dataclasses.dataclass
+class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
+                            ):
+    """Per-qubit-tuple results from cross-entropy benchmarking.
+
+    Attributes:
+        results: Dictionary from qubit tuple to cross-entropy benchmarking
+            result for that tuple.
+    """
+    results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'results': list(self.results.items()),
+        }
+
+    @classmethod
+    def _from_json_dict_(
+            cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]],
+            **kwargs) -> 'CrossEntropyResultDict':
+        return cls(
+            results={tuple(qubits): result for qubits, result in results})
+
+    def __repr__(self) -> str:
+        return ('cirq.experiments.CrossEntropyResultDict('
+                f'results={self.results!r})')
+
+    def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
+        return self.results[key]
+
+    def __iter__(self):
+        return iter(self.results)
+
+    def __len__(self):
+        return len(self.results)
 
 
 def cross_entropy_benchmarking(
@@ -274,13 +315,13 @@ def cross_entropy_benchmarking(
                                                   circuits_k)
 
         # Simulate each circuit with the Cirq simulator to obtain the
-        # wavefunction at the end of each circuit, from which the
+        # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
         probs_exp_k = []  # type: List[np.ndarray]
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
-            state_probs = np.abs(np.asarray(res.final_state)  # type: ignore
-                                )**2
+            state_probs = np.abs(np.asarray(
+                res.final_state_vector))**2  # type: ignore
             probs_exp_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):

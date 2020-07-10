@@ -94,7 +94,7 @@ class GateOpDeserializer:
                    *,
                    arg_function_language: str = '') -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
-        qubits = [v2.grid_qubit_from_proto_id(q.id) for q in proto.qubits]
+        qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(
             proto, arg_function_language=arg_function_language)
         if self.num_qubits_param is not None:

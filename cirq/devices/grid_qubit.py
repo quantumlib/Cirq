@@ -13,9 +13,12 @@
 # limitations under the License.
 
 import functools
-from typing import Iterable, List, Optional, Tuple, Set, TypeVar, TYPE_CHECKING
+from typing import (Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar,
+                    TYPE_CHECKING)
 
 import abc
+
+import numpy as np
 
 from cirq import ops, protocols
 
@@ -77,8 +80,8 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}")
             return self._with_row_col(row=self.row + other.row,
                                       col=self.col + other.col)
-        if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
+                all(isinstance(x, (int, np.integer)) for x in other)):
             raise TypeError('Can only add integer tuples of length 2 to '
                             f'{type(self).__name__}. Instead was {other}')
         return self._with_row_col(row=self.row + other[0],
@@ -92,8 +95,8 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}")
             return self._with_row_col(row=self.row - other.row,
                                       col=self.col - other.col)
-        if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
+                all(isinstance(x, (int, np.integer)) for x in other)):
             raise TypeError("Can only subtract integer tuples of length 2 to "
                             f"{type(self).__name__}. Instead was {other}")
         return self._with_row_col(row=self.row - other[0],
@@ -117,13 +120,17 @@ class GridQid(_BaseGridQid):
         GridQid(0, 0, dimension=2) < GridQid(0, 1, dimension=2)
         < GridQid(1, 0, dimension=2) < GridQid(1, 1, dimension=2)
 
-    New GridQid can be constructed by adding or subtracting tuples
+    New GridQid can be constructed by adding or subtracting tuples or numpy
+    arrays
 
         >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
         cirq.GridQid(5, 4, dimension=2)
 
         >>> cirq.GridQid(2, 3, dimension=2) - (1, 2)
         cirq.GridQid(1, 1, dimension=2)
+
+        >>> cirq.GridQid(2, 3, dimension=2) + np.array([3, 1], dtype=int)
+        cirq.GridQid(5, 4, dimension=2)
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
@@ -238,14 +245,14 @@ class GridQid(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQid(*c, dimension=dimension) for c in coords]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.GridQid({self.row}, {self.col}, " \
                f"dimension={self.dimension})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.row}, {self.col}) (d={self.dimension})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col', 'dimension'])
 
 
@@ -263,6 +270,9 @@ class GridQubit(_BaseGridQid):
 
         >>> cirq.GridQubit(2, 3) - (1, 2)
         cirq.GridQubit(1, 1)
+
+        >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
+        cirq.GridQubit(5, 4)
     """
 
     @property
@@ -356,13 +366,13 @@ class GridQubit(_BaseGridQid):
         coords = _ascii_diagram_to_coords(diagram)
         return [GridQubit(*c) for c in coords]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"cirq.GridQubit({self.row}, {self.col})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"({self.row}, {self.col})"
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['row', 'col'])
 
 

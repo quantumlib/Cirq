@@ -43,7 +43,7 @@ class ApplyMixtureArgs:
     """Arguments for performing a mixture of unitaries.
 
     The receiving object is expected to mutate `target_tensor` so that it
-    contains the state (wavefunction or density matrix) after applying the
+    contains the state (state vector or density matrix) after applying the
     mixture then return `target_tensor`. Alternatively, if workspace is
     required, the receiving object can overwrite `out_buffer` with the results
     and return `out_buffer`. Or, if the receiving object is attempting to
@@ -54,7 +54,7 @@ class ApplyMixtureArgs:
         target_tensor: The input tensor that needs to be left (and potentially
             right) multiplied and summed, representing the effect of the
             mixture. The tensor will have the shape (2, 2, 2, ..., 2). It can
-            correspond to a wavefunction or a density matrix.
+            correspond to a state vector or a density matrix.
         out_buffer: Pre-allocated workspace with the same shape and
             dtype as the target tensor. If buffers are used, the result should
             end up in this buffer. It is the responsibility of calling code
@@ -66,7 +66,7 @@ class ApplyMixtureArgs:
         left_axes: Which axes to multiply the left action of the mixture upon.
         right_axes: Which axes to multiply the right action of the mixture upon.
             If provided we will assume `target_tensor` is a density matrix,
-            otherwise it will be assuemd `target_tensor` is a wavefunction.
+            otherwise it will be assumed `target_tensor` is a state vector.
     """
 
     def __init__(self,
@@ -82,7 +82,7 @@ class ApplyMixtureArgs:
             target_tensor: The input tensor that needs to be left (and
                 potentially right) multiplied and summed, representing the
                 effect of the mixture. The tensor will have the shape
-                (2, 2, 2, ..., 2). It can  correspond to a wavefunction or a
+                (2, 2, 2, ..., 2). It can  correspond to a state vector or a
                 density matrix.
             out_buffer: Pre-allocated workspace with the same shape and
                 dtype as the target tensor. If buffers are used, the result
@@ -97,7 +97,7 @@ class ApplyMixtureArgs:
             right_axes: Which axes to multiply the right action of the mixture
                 upon. If provided we will assume `target_tensor` is a density
                 matrix, otherwise it will be assuemd `target_tensor` is a
-                wavefunction.
+                state vector.
         """
         self.target_tensor = target_tensor
         self.out_buffer = out_buffer
@@ -275,7 +275,7 @@ def apply_mixture(val: Any,
 def _validate_input(val: Any, args: 'ApplyMixtureArgs'
                    ) -> Tuple[Any, 'ApplyMixtureArgs', bool]:
     """Validate args input and determine if we are operating on a
-    density matrix or a wavefunction.
+    density matrix or a state vector.
     """
 
     is_density_matrix = False

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Any, Dict, Union
 
 import numpy as np
 import sympy
@@ -20,6 +20,7 @@ import sympy
 import cirq
 from cirq import value, _compat
 from cirq.ops import raw_types
+from cirq._compat import deprecated
 
 
 @value.value_equality
@@ -39,7 +40,7 @@ class QuantumFourierTransformGate(raw_types.Gate):
         self._num_qubits = num_qubits
         self._without_reverse = without_reverse
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'num_qubits': self._num_qubits,
@@ -68,15 +69,16 @@ class QuantumFourierTransformGate(raw_types.Gate):
     def _has_unitary_(self):
         return True
 
-    def __str__(self):
-        return 'QFT[norev]' if self._without_reverse else 'QFT'
+    def __str__(self) -> str:
+        return 'qft[norev]' if self._without_reverse else 'qft'
 
-    def __repr__(self):
-        return ('cirq.QuantumFourierTransformGate(num_qubits={!r}, '
-                'without_reverse={!r})'.format(self._num_qubits,
-                                               self._without_reverse))
+    def __repr__(self) -> str:
+        return ('cirq.QuantumFourierTransformGate('
+                f'num_qubits={self._num_qubits!r}, '
+                f'without_reverse={self._without_reverse!r})')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return cirq.CircuitDiagramInfo(
             wire_symbols=(str(self),) +
             tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
@@ -92,7 +94,7 @@ class PhaseGradientGate(raw_types.Gate):
         self._num_qubits = num_qubits
         self.exponent = exponent
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             'num_qubits': self._num_qubits,
@@ -149,15 +151,17 @@ class PhaseGradientGate(raw_types.Gate):
         return PhaseGradientGate(num_qubits=self._num_qubits,
                                  exponent=new_exponent)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Grad[{self._num_qubits}]' + (f'^{self.exponent}'
                                               if self.exponent != 1 else '')
 
-    def __repr__(self):
-        return 'cirq.PhaseGradientGate(num_qubits={!r}, exponent={})'.format(
-            self._num_qubits, _compat.proper_repr(self.exponent))
+    def __repr__(self) -> str:
+        return ('cirq.PhaseGradientGate('
+                f'num_qubits={self._num_qubits!r}, '
+                f'exponent={_compat.proper_repr(self.exponent)})')
 
-    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'):
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         return cirq.CircuitDiagramInfo(
             wire_symbols=('Grad',) +
             tuple(f'#{k+1}' for k in range(1, self._num_qubits)),
@@ -165,7 +169,7 @@ class PhaseGradientGate(raw_types.Gate):
             exponent_qubit_index=0)
 
 
-def QFT(*qubits: 'cirq.Qid',
+def qft(*qubits: 'cirq.Qid',
         without_reverse: bool = False,
         inverse: bool = False) -> 'cirq.Operation':
     """The quantum Fourier transform.
@@ -173,23 +177,26 @@ def QFT(*qubits: 'cirq.Qid',
     Transforms a qubit register from the computational basis to the frequency
     basis.
 
-    The inverse quantum Fourier transform is `cirq.QFT(*qubits)**-1` or
-    equivalently `cirq.inverse(cirq.QFT(*qubits))`.
+    The inverse quantum Fourier transform is `cirq.qft(*qubits)**-1` or
+    equivalently `cirq.inverse(cirq.qft(*qubits))`.
 
     Args:
-        qubits: The qubits to apply the QFT to.
-        without_reverse: When set, swap gates at the end of the QFT are omitted.
-            This reverses the qubit order relative to the standard QFT effect,
+        qubits: The qubits to apply the qft to.
+        without_reverse: When set, swap gates at the end of the qft are omitted.
+            This reverses the qubit order relative to the standard qft effect,
             but makes the gate cheaper to apply.
-        inverse: If set, the inverse QFT is performed instead of the QFT.
+        inverse: If set, the inverse qft is performed instead of the qft.
             Equivalent to calling `cirq.inverse` on the result, or raising it
             to the -1.
 
     Returns:
-        A `cirq.Operation` applying the QFT to the given qubits.
+        A `cirq.Operation` applying the qft to the given qubits.
     """
     result = QuantumFourierTransformGate(
         len(qubits), without_reverse=without_reverse).on(*qubits)
     if inverse:
         result = cirq.inverse(result)
     return result
+
+
+QFT = deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')(qft)

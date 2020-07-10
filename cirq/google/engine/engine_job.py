@@ -15,7 +15,8 @@
 
 import time
 
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, overload, Tuple, \
+    TYPE_CHECKING
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -42,6 +43,10 @@ class EngineJob:
     executing on a machine, or it may have entered a terminal state
     (either succeeding or failing).
 
+    `EngineJob`s can be iterated over, returning `TrialResult`s. These
+    `TrialResult`s can also be accessed by index. Note that this will block
+    until the results are returned from the Engine service.
+
     Attributes:
       project_id: A project_id of the parent Google Cloud Project.
       program_id: Unique ID of the program within the parent project.
@@ -53,7 +58,8 @@ class EngineJob:
                  program_id: str,
                  job_id: str,
                  context: 'engine_base.EngineContext',
-                 _job: Optional[quantum.types.QuantumJob] = None) -> None:
+                 _job: Optional[quantum.types.QuantumJob] = None,
+                 batch_mode: bool = False) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -62,6 +68,7 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
+            batch_mode: If this was created with a BatchProgram/BatchRunContext.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -69,6 +76,7 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
+        self.batch_mode = batch_mode
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -213,8 +221,8 @@ class EngineJob:
             raise ValueError('deserializing a v1 RunContext is not supported')
         if (run_context_type == 'cirq.google.api.v2.RunContext' or
                 run_context_type == 'cirq.api.google.v2.RunContext'):
-            v2_run_context = v2.run_context_pb2.RunContext()
-            v2_run_context.ParseFromString(run_context.value)
+            v2_run_context = v2.run_context_pb2.RunContext.FromString(
+                run_context.value)
             return v2_run_context.parameter_sweeps[0].repetitions, [
                 v2.sweep_from_proto(s.sweep)
                 for s in v2_run_context.parameter_sweeps
@@ -242,8 +250,7 @@ class EngineJob:
         ids = self.context.client._ids_from_calibration_name(
             status.calibration_name)
         response = self.context.client.get_calibration(*ids)
-        metrics = v2.metrics_pb2.MetricsSnapshot()
-        metrics.ParseFromString(response.data.value)
+        metrics = v2.metrics_pb2.MetricsSnapshot.FromString(response.data.value)
         return calibration.Calibration(metrics)
 
     def cancel(self) -> None:
@@ -262,10 +269,15 @@ class EngineJob:
         import cirq.google.engine.engine as engine_base
         if not self._results:
             job = self._refresh_job()
-            for _ in range(1000):
+            total_seconds_waited = 0.0
+            timeout = self.context.timeout
+            while True:
+                if timeout and total_seconds_waited >= timeout:
+                    break
                 if job.execution_status.state in TERMINAL_STATES:
                     break
                 time.sleep(0.5)
+                total_seconds_waited += 0.5
                 job = self._refresh_job()
             self._raise_on_failure(job)
             response = self.context.client.get_job_results(
@@ -274,14 +286,17 @@ class EngineJob:
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
             if (result_type == 'cirq.google.api.v1.Result' or
                     result_type == 'cirq.api.google.v1.Result'):
-                v1_parsed_result = v1.program_pb2.Result()
-                v1_parsed_result.ParseFromString(result.value)
+                v1_parsed_result = v1.program_pb2.Result.FromString(
+                    result.value)
                 self._results = self._get_job_results_v1(v1_parsed_result)
             elif (result_type == 'cirq.google.api.v2.Result' or
                   result_type == 'cirq.api.google.v2.Result'):
-                v2_parsed_result = v2.result_pb2.Result()
-                v2_parsed_result.ParseFromString(result.value)
+                v2_parsed_result = v2.result_pb2.Result.FromString(result.value)
                 self._results = self._get_job_results_v2(v2_parsed_result)
+            elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
+                v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
+                    result.value)
+                self._results = self._get_batch_results_v2(v2_parsed_result)
             else:
                 raise ValueError(
                     'invalid result proto version: {}'.format(result_type))
@@ -305,6 +320,15 @@ class EngineJob:
                     study.TrialResult.from_single_parameter_set(
                         params=study.ParamResolver(result.params.assignments),
                         measurements=measurements))
+        return trial_results
+
+    @classmethod
+    def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
+                             ) -> List[study.TrialResult]:
+        trial_results = []
+        # Flatten to single list to match to sampler api.
+        for result in results.results:
+            trial_results.extend(cls._get_job_results_v2(result))
         return trial_results
 
     @staticmethod
@@ -343,10 +367,26 @@ class EngineJob:
                     format(name,
                            quantum.types.ExecutionStatus.State.Name(state)))
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
 
-    def __str__(self):
-        return str(
-            'EngineJob(project_id=\'{}\', program_id=\'{}\', job_id=\'{}\')'.
-            format(self.project_id, self.program_id, self.job_id))
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, item: int) -> study.TrialResult:
+        pass
+
+    @overload
+    def __getitem__(self, item: slice) -> List[study.TrialResult]:
+        pass
+
+    def __getitem__(self, item):
+        return self.results()[item]
+
+    # pylint: enable=function-redefined
+
+    def __len__(self) -> int:
+        return len(self.results())
+
+    def __str__(self) -> str:
+        return (f'EngineJob(project_id=\'{self.project_id}\', '
+                f'program_id=\'{self.program_id}\', job_id=\'{self.job_id}\')')

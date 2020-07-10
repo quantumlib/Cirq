@@ -23,7 +23,7 @@ import numbers
 
 import numpy as np
 
-from cirq import value, protocols, linalg
+from cirq import value, protocols, linalg, qis
 from cirq._doc import document
 from cirq.ops import (
     clifford_gate,
@@ -37,6 +37,7 @@ from cirq.ops import (
     raw_types,
 )
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated, deprecated_parameter
 
 if TYPE_CHECKING:
     import cirq
@@ -144,7 +145,7 @@ class PauliString(raw_types.Operation):
         return (frozenset(self._qubit_pauli_map.items()),
                 self._coefficient)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
@@ -170,7 +171,7 @@ class PauliString(raw_types.Operation):
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid', default: None = None) -> pauli_gates.Pauli:
         pass
 
     @overload
@@ -258,6 +259,26 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> List[str]:
+        if not len(self._qubit_pauli_map):
+            return NotImplemented
+
+        qs = args.known_qubits or list(self._qubit_pauli_map.keys())
+        symbols = list(str(self.get(q)) for q in qs)
+        if self.coefficient == 1:
+            prefix = '+'
+        elif self.coefficient == -1:
+            prefix = '-'
+        elif self.coefficient == 1j:
+            prefix = 'i'
+        elif self.coefficient == -1j:
+            prefix = '-i'
+        else:
+            prefix = f'({args.format_complex(self.coefficient)})*'
+        symbols[0] = f'PauliString({prefix}{symbols[0]})'
+        return symbols
+
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
@@ -286,7 +307,7 @@ class PauliString(raw_types.Operation):
         else:
             p.text(str(self))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -303,10 +324,10 @@ class PauliString(raw_types.Operation):
 
         fused = prefix + '*'.join(factors)
         if len(factors) > 1:
-            return '({})'.format(fused)
+            return f'({fused})'
         return fused
 
-    def __str__(self):
+    def __str__(self) -> str:
         ordered_qubits = sorted(self.qubits)
         prefix = ''
 
@@ -323,14 +344,28 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
+    def matrix(self,
+               qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli string is to
+                be computed. Qubits absent from self.qubits are acted on by
+                the identity. Defaults to self.qubits.
+        """
+        qubits = self.qubits if qubits is None else qubits
+        factors = [self.get(q, default=identity.I) for q in qubits]
+        return linalg.kron(self.coefficient,
+                           *[protocols.unitary(f) for f in factors])
+
     def _has_unitary_(self) -> bool:
         return abs(1 - abs(self.coefficient)) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():
             return None
-        return linalg.kron(self.coefficient,
-                           *[protocols.unitary(self[q]) for q in self.qubits])
+        return self.matrix()
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
@@ -340,6 +375,8 @@ class PauliString(raw_types.Operation):
         return protocols.apply_unitaries([self[q].on(q) for q in self.qubits],
                                          self.qubits, args)
 
+    @deprecated(deadline='v0.10.0',
+                fix='Use expectation_from_state_vector instead')
     def expectation_from_wavefunction(self,
                                       state: np.ndarray,
                                       qubit_map: Mapping[raw_types.Qid, int],
@@ -347,14 +384,34 @@ class PauliString(raw_types.Operation):
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
-        r"""Evaluate the expectation of this PauliString given a wavefunction.
+        return self.expectation_from_state_vector(
+            state_vector=state,
+            qubit_map=qubit_map,
+            atol=atol,
+            check_preconditions=check_preconditions)
+
+    @deprecated_parameter(deadline='v0.10.0',
+                          fix='Use state_vector instead',
+                          parameter_desc='state',
+                          match=lambda args, kwargs: 'state' in kwargs,
+                          rewrite=lambda args, kwargs: (
+                              args, {('state_vector' if k == 'state' else k): v
+                                     for k, v in kwargs.items()}))
+    def expectation_from_state_vector(self,
+                                      state_vector: np.ndarray,
+                                      qubit_map: Mapping[raw_types.Qid, int],
+                                      *,
+                                      atol: float = 1e-7,
+                                      check_preconditions: bool = True
+                                     ) -> float:
+        r"""Evaluate the expectation of this PauliString given a state vector.
 
         Compute the expectation value of this PauliString with respect to a
-        wavefunction. By convention expectation values are defined for Hermitian
+        state vector. By convention expectation values are defined for Hermitian
         operators, and so this method will fail if this PauliString is
         non-Hermitian.
 
-        `state` must be an array representation of a wavefunction and have
+        `state` must be an array representation of a state vector and have
         shape `(2 ** n, )` or `(2, 2, ..., 2)` (n entries) where `state` is
         expressed over n qubits.
 
@@ -367,12 +424,12 @@ class PauliString(raw_types.Operation):
             cirq.X(q0).expectation(state, qubit_map={q0: 1, q1: 0}) = 1
 
         Args:
-            state: An array representing a valid wavefunction.
+            state_vector: An array representing a valid state vector.
             qubit_map: A map from all qubits used in this PauliString to the
-                indices of the qubits that `state` is defined over.
+                indices of the qubits that `state_vector` is defined over.
             atol: Absolute numerical tolerance.
-            check_preconditions: Whether to check that `state` represents a
-                valid wavefunction.
+            check_preconditions: Whether to check that `state_vector` represents
+                a valid state vector.
 
         Returns:
             The expectation value of the input state.
@@ -382,62 +439,61 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforce specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
-        if state.dtype.kind != 'c':
+        if state_vector.dtype.kind != 'c':
             raise TypeError("Input state dtype must be np.complex64 or "
                             "np.complex128")
 
-        size = state.size
+        size = state_vector.size
         num_qubits = size.bit_length() - 1
-        if len(state.shape) != 1 and state.shape != (2,) * num_qubits:
-            raise ValueError("Input array does not represent a wavefunction "
+        if len(state_vector.shape) != 1 and state_vector.shape != (
+                2,) * num_qubits:
+            raise ValueError("Input array does not represent a state vector "
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state=state,
-                                      qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype,
-                                      atol=atol)
-        return self._expectation_from_wavefunction_no_validation(
-            state, qubit_map)
+            qis.validate_normalized_state_vector(state_vector=state_vector,
+                                                 qid_shape=(2,) * num_qubits,
+                                                 dtype=state_vector.dtype,
+                                                 atol=atol)
+        return self._expectation_from_state_vector_no_validation(
+            state_vector, qubit_map)
 
-    def _expectation_from_wavefunction_no_validation(
-            self, state: np.ndarray,
+    def _expectation_from_state_vector_no_validation(
+            self, state_vector: np.ndarray,
             qubit_map: Mapping[raw_types.Qid, int]) -> float:
-        """Evaluate the expectation of this PauliString given a wavefunction.
+        """Evaluate the expectation of this PauliString given a state vector.
 
         This method does not provide input validation. See
-        `PauliString.expectation_from_wavefunction` for function description.
+        `PauliString.expectation_from_state_vector` for function description.
 
         Args:
-            state: An array representing a valid wavefunction.
+            state_vector: An array representing a valid state vector.
             qubit_map: A map from all qubits used in this PauliString to the
             indices of the qubits that `state` is defined over.
 
         Returns:
             The expectation value of the input state.
         """
-        if len(state.shape) == 1:
-            num_qubits = state.shape[0].bit_length() - 1
-            state = np.reshape(state, (2,) * num_qubits)
+        if len(state_vector.shape) == 1:
+            num_qubits = state_vector.shape[0].bit_length() - 1
+            state_vector = np.reshape(state_vector, (2,) * num_qubits)
 
-        ket = np.copy(state)
+        ket = np.copy(state_vector)
         for qubit, pauli in self.items():
-            buffer = np.empty(ket.shape, dtype=state.dtype)
+            buffer = np.empty(ket.shape, dtype=state_vector.dtype)
             args = protocols.ApplyUnitaryArgs(target_tensor=ket,
                                               available_buffer=buffer,
                                               axes=(qubit_map[qubit],))
             ket = protocols.apply_unitary(pauli, args)
 
         return self.coefficient * (np.tensordot(
-            state.conj(), ket, axes=len(ket.shape)).item())
+            state_vector.conj(), ket, axes=len(ket.shape)).item())
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
@@ -481,8 +537,8 @@ class PauliString(raw_types.Operation):
         """
         if abs(self.coefficient.imag) > 0.0001:
             raise NotImplementedError(
-                "Cannot compute expectation value of a non-Hermitian "
-                "PauliString <{}>. Coefficient must be real.".format(self))
+                'Cannot compute expectation value of a non-Hermitian '
+                f'PauliString <{self}>. Coefficient must be real.')
 
         # FIXME: Avoid enforcing specific complex type. This is necessary to
         # prevent an `apply_unitary` bug (Issue #2041).
@@ -499,14 +555,12 @@ class PauliString(raw_types.Operation):
 
         _validate_qubit_mapping(qubit_map, self.qubits, num_qubits)
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.density_matrix_utils import to_valid_density_matrix
             # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+            _ = qis.to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
-                                        num_qubits=num_qubits,
-                                        dtype=state.dtype,
-                                        atol=atol)
+                                            num_qubits=num_qubits,
+                                            dtype=state.dtype,
+                                            atol=atol)
         return self._expectation_from_density_matrix_no_validation(
             state, qubit_map)
 
@@ -607,10 +661,10 @@ class PauliString(raw_types.Operation):
         if isinstance(base, (int, float)) and base > 0:
             if abs(self.coefficient.real) > 0.0001:
                 raise NotImplementedError(
-                    "Exponentiated to a non-Hermitian PauliString <{}**{}>. "
-                    "Coefficient must be imaginary.".format(base, self))
+                    'Exponentiated to a non-Hermitian PauliString '
+                    f'<{base}**{self}>. Coefficient must be imaginary.')
 
-            half_turns = math.log(base) * (-self.coefficient.imag / math.pi)
+            half_turns = 2 * math.log(base) * (-self.coefficient.imag / math.pi)
 
             if len(self) == 1:
                 q, p = next(iter(self.items()))
@@ -890,8 +944,8 @@ def _validate_qubit_mapping(qubit_map: Mapping[raw_types.Qid, int],
     used_inds = [qubit_map[q] for q in pauli_qubits]
     if len(used_inds) != len(set(used_inds)) or not set(
             range(num_state_qubits)) >= set(sorted(used_inds)):
-        raise ValueError("Input qubit map indices must be valid for a state "
-                         "over {} qubits.".format(num_state_qubits))
+        raise ValueError('Input qubit map indices must be valid for a state '
+                         f'over {num_state_qubits} qubits.')
 
 
 # Ignoring type because mypy believes `with_qubits` methods are incompatible.
@@ -943,7 +997,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     def __neg__(self):
         return -self._as_pauli_string()
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['pauli', 'qubit'])
 
     @classmethod

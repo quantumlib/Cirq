@@ -12,9 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Canonical tags for the TaggedOperation class."""
+from typing import Dict
 
 
-class VirtualTag():
+class VirtualTag:
     """A TaggedOperation tag indicating that the operation is virtual.
 
     Operations marked with this tag are presumed to have zero duration of their
@@ -25,8 +26,11 @@ class VirtualTag():
     def __eq__(self, other):
         return isinstance(other, VirtualTag)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return '<virtual>'
 
-    def __repr__(self):
-        return str(self)
+    def __repr__(self) -> str:
+        return 'cirq.VirtualTag()'
+
+    def _json_dict_(self) -> Dict[str, str]:
+        return {'cirq_type': self.__class__.__name__}

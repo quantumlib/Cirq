@@ -15,11 +15,11 @@
 
 import collections
 
-from typing import Dict, Iterator, List, TYPE_CHECKING, Type, Union
+from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
 import numpy as np
 
-from cirq import circuits, ops, protocols, study, value, devices
+from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
 
 if TYPE_CHECKING:
@@ -120,7 +120,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                  *,
                  dtype: Type[np.number] = np.complex64,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
-                 seed: value.RANDOM_STATE_LIKE = None,
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
                  ignore_measurement_results: bool = False):
         """Density matrix simulator.
 
@@ -253,11 +253,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
         qubit_map = {q: i for i, q in enumerate(qubits)}
-        initial_matrix = density_matrix_utils.to_valid_density_matrix(
-            initial_state,
-            len(qid_shape),
-            qid_shape=qid_shape,
-            dtype=self._dtype)
+        initial_matrix = qis.to_valid_density_matrix(initial_state,
+                                                     len(qid_shape),
+                                                     qid_shape=qid_shape,
+                                                     dtype=self._dtype)
+        if np.may_share_memory(initial_matrix, initial_state):
+            initial_matrix = initial_matrix.copy()
         measured = collections.defaultdict(
             bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
@@ -292,6 +293,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
+                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 if isinstance(op.gate, ops.MeasurementGate):
@@ -319,7 +321,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
-                    # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
             yield DensityMatrixStepResult(density_matrix=state.tensor,
                                           measurements=measurements,
@@ -400,16 +401,15 @@ class DensityMatrixStepResult(simulator.StepResult):
             mixed state it must be correctly sized and positive semidefinite
             with trace one.
         """
-        density_matrix = density_matrix_utils.to_valid_density_matrix(
-            density_matrix_repr,
-            len(self._qubit_map),
-            qid_shape=self._qid_shape,
-            dtype=self._dtype)
+        density_matrix = qis.to_valid_density_matrix(density_matrix_repr,
+                                                     len(self._qubit_map),
+                                                     qid_shape=self._qid_shape,
+                                                     dtype=self._dtype)
         sim_state_matrix = self._simulator_state().density_matrix
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
         np.copyto(dst=sim_state_matrix, src=density_matrix)
 
-    def density_matrix(self):
+    def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
 
         The density matrix that is stored in this result is returned in the
@@ -437,14 +437,21 @@ class DensityMatrixStepResult(simulator.StepResult):
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
 
+        Args:
+            copy: If True, then the returned state is a copy of the density
+                matrix. If False, then the density matrix is not copied,
+                potentially saving memory. If one only needs to read derived
+                parameters from the density matrix and store then using False
+                can speed up simulation by eliminating a memory copy.
         """
         size = np.prod(self._qid_shape, dtype=int)
-        return np.reshape(self._density_matrix, (size, size))
+        matrix = self._density_matrix.copy() if copy else self._density_matrix
+        return np.reshape(matrix, (size, size))
 
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         indices = [self._qubit_map[q] for q in qubits]
         return density_matrix_utils.sample_density_matrix(
             self._simulator_state().density_matrix,
@@ -465,22 +472,21 @@ class DensityMatrixSimulatorState():
     """
 
     def __init__(self, density_matrix: np.ndarray,
-                 qubit_map: Dict[ops.Qid, int]):
+                 qubit_map: Dict[ops.Qid, int]) -> None:
         self.density_matrix = density_matrix
         self.qubit_map = qubit_map
         self._qid_shape = simulator._qubit_map_to_shape(qubit_map)
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.density_matrix.tolist(), self.qubit_map)
 
-    def __repr__(self):
-        return ("cirq.DensityMatrixSimulatorState("
-                "density_matrix=np.array({!r}), "
-                "qubit_map={!r})".format(self.density_matrix.tolist(),
-                                         self.qubit_map))
+    def __repr__(self) -> str:
+        return ('cirq.DensityMatrixSimulatorState('
+                f'density_matrix=np.array({self.density_matrix.tolist()!r}), '
+                f'qubit_map={self.qubit_map!r})')
 
 
 @value.value_equality(unhashable=True)
@@ -531,21 +537,20 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
                          final_simulator_state=final_simulator_state)
         size = np.prod(protocols.qid_shape(self), dtype=int)
         self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix, (size, size))
+            final_simulator_state.density_matrix.copy(), (size, size))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         measurements = {
             k: v.tolist() for k, v in sorted(self.measurements.items())
         }
         return (self.params, measurements, self._final_simulator_state)
 
-    def __str__(self):
+    def __str__(self) -> str:
         samples = super().__str__()
-        return 'measurements: {}\nfinal density matrix:\n{}'.format(
-            samples, self.final_density_matrix)
+        return (f'measurements: {samples}\n'
+                f'final density matrix:\n{self.final_density_matrix}')
 
-    def __repr__(self):
-        return ("cirq.DensityMatrixTrialResult(params={!r}, measurements={!r}, "
-                "final_simulator_state={!r})".format(
-                    self.params, self.measurements,
-                    self._final_simulator_state))
+    def __repr__(self) -> str:
+        return ('cirq.DensityMatrixTrialResult('
+                f'params={self.params!r}, measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')

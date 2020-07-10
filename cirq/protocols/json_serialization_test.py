@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import abc
 import inspect
 
 import io
@@ -105,12 +104,17 @@ QUBITS = cirq.LineQubit.range(5)
 Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 # TODO: Include cirq.rx in the Circuit test case file.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2014
 # Note that even the following doesn't work because theta gets
-#       multiplied by 1/pi.
-#       https://github.com/quantumlib/Cirq/issues/2014
-# cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
+# multiplied by 1/pi:
+#   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
 
 SHOULDNT_BE_SERIALIZED = [
+    # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnStateVectorArgs',
+    'ApplyChannelArgs',
+    'ApplyMixtureArgs',
+    'ApplyUnitaryArgs',
 
     # Circuit optimizers are function-like. Only attributes
     # are ignore_failures, tolerance, and other feature flags
@@ -135,18 +139,22 @@ SHOULDNT_BE_SERIALIZED = [
     'PAULI_BASIS',
 
     # abstract, but not inspect.isabstract():
+    'Device',
     'InterchangeableQubitsGate',
     'Pauli',
     'SingleQubitGate',
     'ThreeQubitGate',
     'TwoQubitGate',
+    'ABCMetaImplementAnyOneOf',
 
     # protocols:
+    'SupportsActOn',
     'SupportsApplyChannel',
     'SupportsApplyMixture',
     'SupportsApproximateEquality',
     'SupportsChannel',
     'SupportsCircuitDiagramInfo',
+    'SupportsCommutes',
     'SupportsConsistentApplyUnitary',
     'SupportsDecompose',
     'SupportsDecomposeWithQubits',
@@ -175,6 +183,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
@@ -218,11 +227,10 @@ def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
         if name.startswith('_'):
             continue
 
-        if (inspect.isclass(obj) and
-            (inspect.isabstract(obj) or issubclass(obj, abc.ABCMeta) or
-             issubclass(type(obj), abc.ABCMeta))):
+        if inspect.isclass(obj) and inspect.isabstract(obj):
             continue
 
+        # assert name != 'XPowGate'
         yield name, obj
 
 
@@ -256,9 +264,6 @@ def test_mutually_exclusive_blacklist():
 
 
 NOT_YET_SERIALIZABLE = [
-    'ApplyChannelArgs',
-    'ApplyMixtureArgs',
-    'ApplyUnitaryArgs',
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
@@ -269,7 +274,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
-    'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
@@ -284,7 +288,6 @@ NOT_YET_SERIALIZABLE = [
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
-    'LinearDict',
     'Linspace',
     'ListSweep',
     'NeutralAtomDevice',
@@ -301,6 +304,8 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QuilFormatter',
+    'QuilOutput',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
@@ -308,7 +313,6 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
-    'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
     'Sycamore',
@@ -316,7 +320,10 @@ NOT_YET_SERIALIZABLE = [
     'TextDiagramDrawer',
     'ThreeQubitDiagonalGate',
     'Timestamp',
+    'TwoQubitDiagonalGate',
     'UnitSweep',
+    'StateVectorSimulatorState',
+    'StateVectorTrialResult',
     'WaveFunctionSimulatorState',
     'WaveFunctionTrialResult',
     'XmonDevice',
@@ -547,6 +554,7 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
         json_from_cirq = cirq.to_json(repr_obj)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
+
         assert json_from_cirq_obj == json_from_file_obj, (
             f'The json produced by cirq no longer agrees with the json in the '
             f'{rel_json_path} test data file.\n'

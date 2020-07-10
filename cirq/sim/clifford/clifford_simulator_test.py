@@ -3,6 +3,7 @@ import pytest
 import sympy
 
 import cirq
+import cirq.testing
 
 
 def test_simulate_no_circuit():
@@ -187,8 +188,7 @@ def test_clifford_trial_result_repr():
                                  final_simulator_state=final_simulator_state))
             == "cirq.SimulationTrialResult(params=cirq.ParamResolver({}), "
             "measurements={'m': array([[1]])}, "
-            "final_simulator_state=StabilizerStateChForm(num_qubits=1, "
-            "initial_state=0))")
+            "final_simulator_state=StabilizerStateChForm(num_qubits=1))")
 
 
 def test_clifford_trial_result_str():
@@ -241,11 +241,11 @@ def test_clifford_state_stabilizers():
     assert (state.destabilizers() == [f('ZII'), f('IZI'), f('IIX')])
 
 
-def test_clifford_state_wave_function():
+def test_clifford_state_state_vector():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
 
-    np.testing.assert_equal(state.wave_function(),
+    np.testing.assert_equal(state.state_vector(),
                             [1. + 0.j, 0. + 0.j, 0. + 0.j, 0. + 0.j])
 
 
@@ -289,7 +289,20 @@ def test_stabilizerStateChForm_H():
 def test_clifford_stabilizerStateChForm_repr():
     (q0, q1) = (cirq.LineQubit(0), cirq.LineQubit(1))
     state = cirq.CliffordState(qubit_map={q0: 0, q1: 1})
-    assert repr(state) == 'StabilizerStateChForm(num_qubits=2, initial_state=0)'
+    assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
+
+
+def test_clifforf_circuit_SHSYSHS():
+    q0 = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.Y(q0),
+                           cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.measure(q0))
+
+    clifford_simulator = cirq.CliffordSimulator()
+    state_vector_simulator = cirq.Simulator()
+
+    np.testing.assert_almost_equal(
+        clifford_simulator.simulate(circuit).final_state.state_vector(),
+        state_vector_simulator.simulate(circuit).final_state_vector)
 
 
 def test_clifford_circuit():
@@ -317,11 +330,11 @@ def test_clifford_circuit():
             circuit.append(cirq.CZ(q0, q1))
 
     clifford_simulator = cirq.CliffordSimulator()
-    wave_function_simulator = cirq.Simulator()
+    state_vector_simulator = cirq.Simulator()
 
     np.testing.assert_almost_equal(
-        clifford_simulator.simulate(circuit).final_state.wave_function(),
-        wave_function_simulator.simulate(circuit).final_state)
+        clifford_simulator.simulate(circuit).final_state.state_vector(),
+        state_vector_simulator.simulate(circuit).final_state_vector)
 
 
 @pytest.mark.parametrize(
@@ -378,11 +391,11 @@ def test_clifford_circuit_3():
             circuit.append(random_clifford_gate()(np.random.choice((q0, q1))))
 
     clifford_simulator = cirq.CliffordSimulator()
-    wave_function_simulator = cirq.Simulator()
+    state_vector_simulator = cirq.Simulator()
 
     np.testing.assert_almost_equal(
-        clifford_simulator.simulate(circuit).final_state.wave_function(),
-        wave_function_simulator.simulate(circuit).final_state)
+        clifford_simulator.simulate(circuit).final_state.state_vector(),
+        state_vector_simulator.simulate(circuit).final_state_vector)
 
 
 def test_non_clifford_circuit():
@@ -434,7 +447,7 @@ def test_simulate_pauli_string():
          cirq.PauliString({q: 'Z'})])
     simulator = cirq.CliffordSimulator()
 
-    result = simulator.simulate(circuit).final_state.wave_function()
+    result = simulator.simulate(circuit).final_state.state_vector()
 
     assert np.allclose(result, [0, -1])
 
@@ -446,6 +459,49 @@ def test_simulate_global_phase_operation():
          cirq.GlobalPhaseOperation(-1j)])
     simulator = cirq.CliffordSimulator()
 
-    result = simulator.simulate(circuit).final_state.wave_function()
+    result = simulator.simulate(circuit).final_state.state_vector()
 
     assert np.allclose(result, [-1j, 0, 0, 0])
+
+
+def test_json_roundtrip():
+    (q0, q1, q2) = (cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))
+    state = cirq.CliffordState(qubit_map={q0: 0, q1: 1, q2: 2})
+
+    # Apply some transformations.
+    state.apply_unitary(cirq.X(q0))
+    state.apply_unitary(cirq.H(q1))
+
+    # Roundtrip serialize, then deserialize.
+    state_roundtrip = cirq.CliffordState._from_json_dict_(**state._json_dict_())
+
+    # Apply the same transformation on both the original object and the one that
+    # went through the roundtrip.
+    state.apply_unitary(cirq.S(q1))
+    state_roundtrip.apply_unitary(cirq.S(q1))
+
+    # The (de)stabilizers should be the same.
+    assert (state.stabilizers() == state_roundtrip.stabilizers())
+    assert (state.destabilizers() == state_roundtrip.destabilizers())
+
+    # Also check that the tableaux are also unchanged.
+    assert (state.tableau._str_full_() == state_roundtrip.tableau._str_full_())
+
+    # And the CH form isn't changed either.
+    assert np.allclose(state.ch_form.state_vector(),
+                       state_roundtrip.ch_form.state_vector())
+
+
+def test_deprecated():
+    q = cirq.LineQubit(0)
+    clifford_state = cirq.CliffordState({q: 0})
+    with cirq.testing.assert_logs('wave_function', 'state_vector',
+                                  'deprecated'):
+        _ = clifford_state.wave_function()
+
+    with cirq.testing.assert_logs('collapse_wave_function',
+                                  'collapse_state_vector', 'deprecated'):
+        # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
+        _ = clifford_state.perform_measurement([q],
+                                               prng=0,
+                                               collapse_wave_function=True)

@@ -14,8 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Hashable, Optional, Sequence,
-                    Tuple, TYPE_CHECKING, Union)
+from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
+                    Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -144,13 +144,13 @@ class _QubitAsQid(Qid):
         # Don't include self._qubit.dimension
         return self._qubit._cmp_tuple()[:-1]
 
-    def __repr__(self):
-        return '{!r}.with_dimension({})'.format(self.qubit, self.dimension)
+    def __repr__(self) -> str:
+        return f'{self.qubit!r}.with_dimension({self.dimension})'
 
-    def __str__(self):
-        return '{!s} (d={})'.format(self.qubit, self.dimension)
+    def __str__(self) -> str:
+        return f'{self.qubit!s} (d={self.dimension})'
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['qubit', 'dimension'])
 
 
@@ -259,6 +259,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=self, probability=probability)
+
     def controlled(self,
                    num_controls: int = None,
                    control_values: Optional[Sequence[
@@ -356,8 +362,11 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         """cirq.GateOperation.__rmul__ delegates to this method."""
         return NotImplemented
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, attribute_names=[])
+
+
+TSelf = TypeVar('TSelf', bound='Operation')
 
 
 class Operation(metaclass=abc.ABCMeta):
@@ -387,7 +396,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -426,8 +435,8 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
-                        ) -> 'Operation':
+    def transform_qubits(self: TSelf,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']) -> TSelf:
         """Returns the same operation, but with different qubits.
 
         Args:
@@ -459,10 +468,21 @@ class Operation(metaclass=abc.ABCMeta):
                 default to 1.
         """
         # Avoids circular import.
-        from cirq.ops import ControlledOperation
+        from cirq.ops.controlled_operation import ControlledOperation
         if len(control_qubits) == 0:
             return self
         return ControlledOperation(control_qubits, self, control_values)
+
+    def with_probability(self,
+                         probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        gate = self.gate
+        if gate is None:
+            raise NotImplementedError("with_probability on gateless operation.")
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=gate,
+                                 probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
@@ -536,21 +556,21 @@ class TaggedOperation(Operation):
         """
         return TaggedOperation(self.sub_operation, *self._tags, *new_tags)
 
-    def __str__(self):
+    def __str__(self) -> str:
         tag_repr = ','.join(repr(t) for t in self._tags)
-        return f"cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})"
+        return f'cirq.TaggedOperation({repr(self.sub_operation)}, {tag_repr})'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         return (self.sub_operation, self._tags)
 
     @classmethod
     def _from_json_dict_(cls, sub_operation, tags, **kwargs):
         return cls(sub_operation, *tags)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_operation', 'tags'])
 
     def _decompose_(self) -> 'cirq.OP_TREE':
@@ -655,6 +675,14 @@ class _InverseCompositeGate(Gate):
         return protocols.inverse(
             protocols.decompose_once_with_qubits(self._original, qubits))
 
+    def _has_unitary_(self):
+        from cirq import protocols, devices
+        qubits = devices.LineQid.for_gate(self)
+        return all(
+            protocols.has_unitary(op)
+            for op in protocols.decompose_once_with_qubits(
+                self._original, qubits))
+
     def _value_equality_values_(self):
         return self._original
 
@@ -667,8 +695,8 @@ class _InverseCompositeGate(Gate):
         sub_info.exponent *= -1
         return sub_info
 
-    def __repr__(self):
-        return '({!r}**-1)'.format(self._original)
+    def __repr__(self) -> str:
+        return f'({self._original!r}**-1)'
 
 
 def _validate_qid_shape(val: Any, qubits: Sequence['cirq.Qid']) -> None:

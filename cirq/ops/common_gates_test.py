@@ -17,7 +17,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq._compat_test import capture_logging
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
@@ -182,6 +181,35 @@ def test_specialized_control(input_gate, specialized_output):
         control_qid_shape=(2,)).controlled(
             control_qid_shape=(4,)) == cirq.ControlledGate(
                 input_gate, num_controls=3, control_qid_shape=(3, 2, 4))
+
+
+@pytest.mark.parametrize(
+    'gate, specialized_type',
+    [(cirq.ZPowGate(global_shift=-0.5, exponent=0.5), cirq.CZPowGate),
+     (cirq.CZPowGate(global_shift=-0.5, exponent=0.5), cirq.CCZPowGate),
+     (cirq.XPowGate(global_shift=-0.5, exponent=0.5), cirq.CXPowGate),
+     (cirq.CXPowGate(global_shift=-0.5, exponent=0.5), cirq.CCXPowGate)])
+def test_no_specialized_control_for_global_shift_non_zero(
+        gate, specialized_type):
+    assert not isinstance(gate.controlled(), specialized_type)
+
+
+@pytest.mark.parametrize(
+    'gate, matrix',
+    [(cirq.ZPowGate(global_shift=-0.5, exponent=1), np.diag([1, 1, -1j, 1j])),
+     (cirq.CZPowGate(global_shift=-0.5,
+                     exponent=1), np.diag([1, 1, 1, 1, -1j, -1j, -1j, 1j])),
+     (cirq.XPowGate(global_shift=-0.5, exponent=1),
+      np.block([[np.eye(2), np.zeros(
+          (2, 2))], [np.zeros(
+              (2, 2)), np.array([[0, -1j], [-1j, 0]])]])),
+     (cirq.CXPowGate(global_shift=-0.5, exponent=1),
+      np.block([[np.diag([1, 1, 1, 1, -1j, -1j]),
+                 np.zeros((6, 2))],
+                [np.zeros(
+                    (2, 6)), np.array([[0, -1j], [-1j, 0]])]]))])
+def test_global_phase_controlled_gate(gate, matrix):
+    np.testing.assert_equal(cirq.unitary(gate.controlled()), matrix)
 
 
 def test_rot_gates_eq():
@@ -601,17 +629,6 @@ def test_cnot_stabilizer():
     assert not cirq.has_stabilizer_effect(gate**foo)
 
 
-@pytest.mark.parametrize('rads', (-1, -0.3, 0.1, 1))
-def test_deprecated_rxyz_rotations(rads):
-    with capture_logging():
-        assert np.all(
-            cirq.unitary(cirq.Rx(rads)) == cirq.unitary(cirq.rx(rads)))
-        assert np.all(
-            cirq.unitary(cirq.Ry(rads)) == cirq.unitary(cirq.ry(rads)))
-        assert np.all(
-            cirq.unitary(cirq.Rz(rads)) == cirq.unitary(cirq.rz(rads)))
-
-
 def test_phase_by_xy():
     assert cirq.phase_by(cirq.X, 0.25, 0) == cirq.Y
     assert cirq.phase_by(cirq.X**0.5, 0.25, 0) == cirq.Y**0.5
@@ -742,3 +759,12 @@ def test_commutes():
     assert cirq.commutes(cirq.Z, cirq.Z(cirq.LineQubit(0)),
                          default=None) is None
     assert cirq.commutes(cirq.Z**0.1, cirq.XPowGate(exponent=0))
+
+
+def test_approx_eq():
+    assert cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.Z**0.1, cirq.Z**0.2, atol=0.05)
+    assert cirq.approx_eq(cirq.Y**0.1, cirq.Y**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.Y**0.1, cirq.Y**0.2, atol=0.05)
+    assert cirq.approx_eq(cirq.X**0.1, cirq.X**0.2, atol=0.3)
+    assert not cirq.approx_eq(cirq.X**0.1, cirq.X**0.2, atol=0.05)

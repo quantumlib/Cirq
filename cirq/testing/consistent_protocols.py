@@ -29,6 +29,8 @@ from cirq.testing.consistent_qasm import (
         assert_qasm_is_consistent_with_unitary)
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
+from cirq.testing.consistent_specified_has_unitary import (
+    assert_specifies_has_unitary_if_unitary,)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
@@ -126,9 +128,12 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                                    global_vals: Optional[Dict[str, Any]],
                                    local_vals: Optional[Dict[str, Any]]
                                   ) -> None:
+
+
     # pylint: disable=unused-variable
     __tracebackhide__ = True
     # pylint: enable=unused-variable
+    assert_specifies_has_unitary_if_unitary(val)
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)

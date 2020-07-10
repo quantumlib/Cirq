@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union
+from typing import Any, Dict, Union
 import numpy as np
 
 import cirq
+from cirq import protocols, value
+from cirq._compat import deprecated
 
 
+@value.value_equality
 class StabilizerStateChForm():
     r"""A representation of stabilizer states using the CH form,
 
@@ -30,7 +33,7 @@ class StabilizerStateChForm():
 
     def __init__(self,
                  num_qubits: int,
-                 initial_state: Union[int, np.ndarray] = 0):
+                 initial_state: Union[int, np.ndarray] = 0) -> None:
         """Initializes StabilizerStateChForm
         Args:
             num_qubits: The number of qubits in the system
@@ -39,7 +42,6 @@ class StabilizerStateChForm():
             If an np.ndarray it is the full initial state.
             """
         self.n = num_qubits
-        self.initial_state = initial_state
 
         # The state is represented by a set of binary matrices and vectors.
         # See Section IVa of Bravyi et al
@@ -64,6 +66,28 @@ class StabilizerStateChForm():
             if val:
                 self._X(self.n - i - 1)
 
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(
+            self, ['n', 'G', 'F', 'M', 'gamma', 'v', 's', 'omega'])
+
+    @classmethod
+    def _from_json_dict_(cls, n, G, F, M, gamma, v, s, omega, **kwargs):
+        copy = StabilizerStateChForm(n)
+
+        copy.G = G.copy()
+        copy.F = F.copy()
+        copy.M = M.copy()
+        copy.gamma = gamma.copy()
+        copy.v = v.copy()
+        copy.s = s.copy()
+        copy.omega = omega
+
+        return copy
+
+    def _value_equality_values_(self) -> Any:
+        return (self.n, self.G, self.F, self.M, self.gamma, self.v, self.v,
+                self.s, self.omega)
+
     def copy(self) -> 'cirq.StabilizerStateChForm':
         copy = StabilizerStateChForm(self.n)
 
@@ -77,18 +101,17 @@ class StabilizerStateChForm():
 
         return copy
 
-    def __str__(self):
-        """Return the wavefunction string representation of the state."""
+    def __str__(self) -> str:
+        """Return the state vector string representation of the state."""
         return cirq.dirac_notation(self.to_state_vector())
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return the CH form representation of the state. """
-        return ('StabilizerStateChForm(num_qubits={!r}, '
-                'initial_state={!r})').format(self.n, self.initial_state)
+        return f'StabilizerStateChForm(num_qubits={self.n!r})'
 
     def inner_product_of_state_and_x(self, x: int) -> Union[float, complex]:
         """ Returns the amplitude of x'th element of
-         the wavefunction, i.e. <x|psi> """
+         the state vector, i.e. <x|psi> """
         if type(x) == int:
             y = cirq.big_endian_int_to_bits(x, bit_count=self.n)
 
@@ -99,16 +122,20 @@ class StabilizerStateChForm():
             if y[p]:
                 u ^= self.F[p, :]
                 mu += 2 * (sum(self.M[p, :] & u) % 2)
-        return self.omega * 2**(-sum(self.v) / 2) * 1j**mu * (
-            -1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s))
+        return (self.omega * 2**(-sum(self.v) / 2) * 1j**mu *
+                (-1)**sum(self.v & u & self.s) * np.all(self.v | (u == self.s)))
 
-    def wave_function(self) -> np.ndarray:
+    def state_vector(self) -> np.ndarray:
         wf = np.zeros(2**self.n, dtype=complex)
 
         for x in range(2**self.n):
             wf[x] = self.inner_product_of_state_and_x(x)
 
         return wf
+
+    @deprecated(deadline='v0.10.0', fix='Use state_vector instead.')
+    def wave_function(self) -> np.ndarray:
+        return self.state_vector()
 
     def _S(self, q, right=False):
         if right:
