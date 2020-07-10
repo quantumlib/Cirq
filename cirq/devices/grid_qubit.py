@@ -131,7 +131,6 @@ class GridQid(_BaseGridQid):
 
         >>> cirq.GridQid(2, 3, dimension=2) + np.array([3, 1], dtype=int)
         cirq.GridQid(5, 4, dimension=2)
-
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
@@ -274,7 +273,6 @@ class GridQubit(_BaseGridQid):
 
         >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
         cirq.GridQubit(5, 4)
-
     """
 
     @property
