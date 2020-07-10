@@ -6,7 +6,6 @@ cache:
 branches:
   only:
   - master
-  - /^feature-dev-.*$/
   - /^v\d+\.\d+\.\d+-dev$/
 before_install:
 - pip install --upgrade pip setuptools wheel
