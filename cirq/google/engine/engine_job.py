@@ -15,7 +15,8 @@
 
 import time
 
-from typing import Dict, Iterator, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Iterator, List, Optional, overload, Tuple, \
+    TYPE_CHECKING
 
 from cirq import study
 from cirq.google.engine import calibration
@@ -41,6 +42,10 @@ class EngineJob:
     This job may be in a variety of states. It may be scheduling, it may be
     executing on a machine, or it may have entered a terminal state
     (either succeeding or failing).
+
+    `EngineJob`s can be iterated over, returning `TrialResult`s. These
+    `TrialResult`s can also be accessed by index. Note that this will block
+    until the results are returned from the Engine service.
 
     Attributes:
       project_id: A project_id of the parent Google Cloud Project.
@@ -364,6 +369,23 @@ class EngineJob:
 
     def __iter__(self) -> Iterator[study.TrialResult]:
         return iter(self.results())
+
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, item: int) -> study.TrialResult:
+        pass
+
+    @overload
+    def __getitem__(self, item: slice) -> List[study.TrialResult]:
+        pass
+
+    def __getitem__(self, item):
+        return self.results()[item]
+
+    # pylint: enable=function-redefined
+
+    def __len__(self) -> int:
+        return len(self.results())
 
     def __str__(self) -> str:
         return (f'EngineJob(project_id=\'{self.project_id}\', '
