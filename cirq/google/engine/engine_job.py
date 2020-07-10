@@ -44,7 +44,8 @@ class EngineJob:
     (either succeeding or failing).
 
     `EngineJob`s can be iterated over, returning `TrialResult`s. These
-    `TrialResult`s can also be accessed by index.
+    `TrialResult`s can also be accessed by index. Note that this will block
+    until the results are returned from the Engine service.
 
     Attributes:
       project_id: A project_id of the parent Google Cloud Project.
@@ -380,6 +381,11 @@ class EngineJob:
 
     def __getitem__(self, item):
         return self.results()[item]
+
+    # pylint: enable=function-redefined
+
+    def __len__(self) -> int:
+        return len(self.results())
 
     def __str__(self) -> str:
         return (f'EngineJob(project_id=\'{self.project_id}\', '

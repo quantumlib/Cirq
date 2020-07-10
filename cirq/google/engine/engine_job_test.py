@@ -397,6 +397,16 @@ def test_results_getitem(get_job_results):
         _ = job[2]
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_results_len(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    assert len(job) == 2
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job')
 @mock.patch('time.sleep', return_value=None)
 def test_timeout(patched_time_sleep, get_job):
