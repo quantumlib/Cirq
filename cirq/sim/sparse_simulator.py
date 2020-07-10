@@ -290,7 +290,7 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
         return state_vector_simulator.StateVectorSimulatorState(
             qubit_map=self.qubit_map, state_vector=self._state_vector)
 
-    def state_vector(self):
+    def state_vector(self, copy: bool = True):
         """Return the state vector at this point in the computation.
 
         The state is returned in the computational basis with these basis
@@ -315,8 +315,16 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
                 |  5  |   1    |   0    |   1    |
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
+
+        Args:
+            copy: If True, then the returned state is a copy of the state
+                vector. If False, then the state vector is not copied,
+                potentially saving memory. If one only needs to read derived
+                parameters from the state vector and store then using False
+                can speed up simulation by eliminating a memory copy.
         """
-        return self._simulator_state().state_vector
+        vector = self._simulator_state().state_vector
+        return vector.copy() if copy else vector
 
     def set_state_vector(self, state: 'cirq.STATE_VECTOR_LIKE'):
         update_state = qis.to_valid_state_vector(state,
