@@ -20,7 +20,6 @@ from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.ops.raw_types import Qid
 from cirq import protocols
 from cirq.sim import act_on_state_vector_args, final_state_vector
 from cirq.sim.clifford import act_on_clifford_tableau_args, clifford_tableau
