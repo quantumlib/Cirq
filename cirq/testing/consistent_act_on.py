@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any
+from typing import Any, List, Optional
 
 import numpy as np
 
@@ -20,6 +20,7 @@ from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
+from cirq.ops.raw_types import Qid
 from cirq import protocols
 from cirq.sim import act_on_state_vector_args, final_state_vector
 from cirq.sim.clifford import act_on_clifford_tableau_args, clifford_tableau
@@ -27,41 +28,71 @@ from cirq.sim.clifford import act_on_clifford_tableau_args, clifford_tableau
 
 def state_vector_has_stabilizer(state_vector: np.ndarray,
                                 stabilizer: DensePauliString) -> bool:
-    original_state_vector = state_vector.copy()
+    """Checks that the stabilizer does not modify the value of the
+    state_vector, including the global phase. Does not mutate the input
+    state_vector."""
+
     args = act_on_state_vector_args.ActOnStateVectorArgs(
-        target_tensor=state_vector,
-        available_buffer=np.empty(state_vector.shape, dtype=np.complex64),
+        target_tensor=state_vector.copy(),
+        available_buffer=np.empty_like(state_vector),
         axes=range(protocols.num_qubits(stabilizer)),
         prng=np.random.RandomState(),
         log_of_measurement_results={})
     protocols.act_on(stabilizer, args)
-    return np.allclose(args.target_tensor, original_state_vector)
+    return np.allclose(args.target_tensor, state_vector)
 
 
 def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
     """Checks that act_on with CliffordTableau generates stabilizers that
-    stabilize the final state vector."""
+    stabilize the final state vector. Does not work with Operations or Gates
+    expecting non-qubit Qids."""
 
     # pylint: disable=unused-variable
     __tracebackhide__ = True
     # pylint: enable=unused-variable
 
-    if not protocols.has_unitary(val):
+    num_qubits_val = protocols.num_qubits(val)
+
+    if not protocols.has_unitary(val) or \
+            protocols.qid_shape(val) != (2,) * num_qubits_val:
         return None
 
-    qubits = LineQubit.range(2 * protocols.num_qubits(val))
+    qubits = LineQubit.range(protocols.num_qubits(val) * 2)
     qubit_map = {qubit: i for i, qubit in enumerate(qubits)}
+
     circuit = Circuit()
-    for i in range(protocols.num_qubits(val)):
+    for i in range(num_qubits_val):
         circuit.append([
-            common_gates.H(qubits[2 * i]),
-            common_gates.CNOT(qubits[2 * i], qubits[2 * i + 1])
+            common_gates.H(qubits[i]),
+            common_gates.CNOT(qubits[i], qubits[-i - 1])
         ])
-    circuit.append(val.on(*qubits[::2]))
+    if hasattr(val, "on"):
+        circuit.append(val.on(*qubits[:num_qubits_val]))
+    else:
+        circuit.append(val.with_qubits(*qubits[:num_qubits_val]))
+
+    tableau = _final_clifford_tableau(circuit, qubit_map)
+    if tableau is None:
+        return None
+
     state_vector = np.reshape(final_state_vector(circuit, qubit_order=qubits),
                               protocols.qid_shape(qubits))
 
-    tableau = clifford_tableau.CliffordTableau(len(qubits))
+    assert all(
+        state_vector_has_stabilizer(state_vector, stab)
+        for stab in tableau.stabilizers()), (
+            "act_on clifford tableau is not consistent with "
+            "final_state_vector simulation.\n\nval: {!r}".format(val))
+
+
+def _final_clifford_tableau(circuit: Circuit, qubit_map
+                           ) -> Optional[clifford_tableau.CliffordTableau]:
+    """Initializes a CliffordTableau with default args for the given qubits and
+    evolves it by having each operation act on the tableau. Returns None if any
+    of the operation can not act on a CliffordTableau, returns the tableau
+    otherwise."""
+
+    tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     for op in circuit.all_operations():
         try:
             args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
@@ -73,9 +104,4 @@ def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
             protocols.act_on(op, args, allow_decompose=True)
         except TypeError:
             return None
-
-    assert all(
-        state_vector_has_stabilizer(state_vector.copy(), stab)
-        for stab in tableau.stabilizers()), (
-            "act_on clifford tableau is not consistent with "
-            "final_state_vector simulation.\n\nval: {!r}".format(val))
+    return tableau

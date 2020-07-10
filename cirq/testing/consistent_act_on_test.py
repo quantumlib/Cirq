@@ -52,6 +52,8 @@ class BadGate(cirq.SingleQubitGate):
 def test_assert_act_on_clifford_tableau_effect_matches_unitary():
     cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(
         GoodGate())
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(
+        GoodGate().on(cirq.LineQubit(1)))
     with pytest.raises(AssertionError,
                        match='act_on clifford tableau is not consistent with '
                        'final_state_vector simulation.'):
