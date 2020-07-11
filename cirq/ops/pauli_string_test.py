@@ -24,6 +24,9 @@ import cirq
 import cirq.testing
 
 
+q0, q1, q2 = cirq.LineQubit.range(3)
+
+
 def _make_qubits(n):
     return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
 
@@ -128,21 +131,21 @@ def test_exponentiation_as_exponent():
         _ = 'test'**p
 
     assert cirq.approx_eq(
-        math.e**(-1j * math.pi * p),
+        math.e**(-0.5j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=-0.5))
 
     assert cirq.approx_eq(
-        math.e**(0.5j * math.pi * p),
+        math.e**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
     assert cirq.approx_eq(
-        2**(0.5j * math.pi * p),
+        2**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p,
                                exponent_neg=-0.25 * math.log(2),
                                exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
-        np.exp(0.5j * math.pi * p),
+        np.exp(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
 
@@ -190,23 +193,24 @@ def test_exponentiation_as_base():
         p**-0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
 
     assert cirq.approx_eq(
-        math.e**(0.5j * math.pi * p),
+        math.e**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
     assert cirq.approx_eq(
-        2**(0.5j * math.pi * p),
+        2**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p,
                                exponent_neg=-0.25 * math.log(2),
                                exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
-        np.exp(0.5j * math.pi * p),
+        np.exp(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
-    assert cirq.approx_eq(
+    np.testing.assert_allclose(
         cirq.unitary(np.exp(0.5j * math.pi * cirq.Z(a))),
         np.diag([np.exp(0.5j * math.pi),
-                 np.exp(-0.5j * math.pi)]))
+                 np.exp(-0.5j * math.pi)]),
+        atol=1e-8)
 
 
 @pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
@@ -529,6 +533,21 @@ def test_pow():
     assert (1j * p)**-1 == -1j * p
 
 
+def test_rpow():
+    a, b = cirq.LineQubit.range(2)
+
+    u = cirq.unitary(np.exp(1j * np.pi / 2 * cirq.Z(a) * cirq.Z(b)))
+    np.testing.assert_allclose(u, np.diag([1j, -1j, -1j, 1j]), atol=1e-8)
+
+    u = cirq.unitary(np.exp(-1j * np.pi / 4 * cirq.Z(a) * cirq.Z(b)))
+    cirq.testing.assert_allclose_up_to_global_phase(u,
+                                                    np.diag([1, 1j, 1j, 1]),
+                                                    atol=1e-8)
+
+    u = cirq.unitary(np.e**(1j * np.pi * cirq.Z(a) * cirq.Z(b)))
+    np.testing.assert_allclose(u, np.diag([-1, -1, -1, -1]), atol=1e-8)
+
+
 def test_numpy_ufunc():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = np.sin(cirq.PauliString())
@@ -712,6 +731,29 @@ def test_bool():
     a = cirq.LineQubit(0)
     assert not bool(cirq.PauliString({}))
     assert bool(cirq.PauliString({a: cirq.X}))
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', (
+    (cirq.X(q0) * 2, None, np.array([[0, 2], [2, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q0,), np.array([[0, 1], [1, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q1,), np.array([[0, -1j], [1j, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), None,
+     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q0, q1),
+     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q1, q0),
+     np.array([[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q2,), np.eye(2)),
+    (cirq.X(q0) * cirq.Y(q1), (q2, q1),
+     np.array([[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]])),
+    (cirq.X(q0) * cirq.Y(q1), (q2, q0, q1),
+     np.array([[0, 0, 0, -1j, 0, 0, 0, 0], [0, 0, 1j, 0, 0, 0, 0, 0],
+               [0, -1j, 0, 0, 0, 0, 0, 0], [1j, 0, 0, 0, 0, 0, 0, 0],
+               [0, 0, 0, 0, 0, 0, 0, -1j], [0, 0, 0, 0, 0, 0, 1j, 0],
+               [0, 0, 0, 0, 0, -1j, 0, 0], [0, 0, 0, 0, 1j, 0, 0, 0]])),
+))
+def test_matrix(pauli_string, qubits, expected_matrix):
+    assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
 
 
 def test_unitary_matrix():
@@ -1558,3 +1600,25 @@ def test_deprecated():
         _ = cirq.PauliString({
             a: 'x'
         }).expectation_from_state_vector(state=state_vector, qubit_map={a: 0})
+
+
+def test_circuit_diagram_info():
+    a, b, c = cirq.LineQubit.range(3)
+
+    assert cirq.circuit_diagram_info(cirq.PauliString(), default=None) is None
+
+    cirq.testing.assert_has_diagram(
+        cirq.Circuit(
+            cirq.PauliString({a: cirq.X}),
+            -cirq.PauliString({a: cirq.X}),
+            cirq.X(a) * cirq.Z(c),
+            1j * cirq.X(a) * cirq.Y(b),
+            -1j * cirq.Y(b),
+            1j**0.5 * cirq.X(a) * cirq.Y(b),
+        ), """
+0: ───PauliString(+X)───PauliString(-X)───PauliString(+X)───PauliString(iX)──────────────────────PauliString((0.707+0.707i)*X)───
+                                          │                 │                                    │
+1: ───────────────────────────────────────┼─────────────────Y─────────────────PauliString(-iY)───Y───────────────────────────────
+                                          │
+2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
+        """)

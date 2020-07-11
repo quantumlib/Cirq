@@ -105,7 +105,12 @@ def test_serialize_sympy_constants():
                                        including_default_value_fields=True,
                                        preserving_proto_field_name=True,
                                        use_integers_for_enums=True)
-    assert packed == {'arg_value': {'float_value': float(np.float32(sympy.pi))}}
+    # protobuf 3.12+ truncates floats to 4 bytes
+    assert packed == {
+        'arg_value': {
+            'float_value': float(str(np.float32(sympy.pi)))
+        }
+    }
 
 
 def test_unsupported_function_language():

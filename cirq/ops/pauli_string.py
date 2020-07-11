@@ -171,7 +171,7 @@ class PauliString(raw_types.Operation):
 
     # pylint: disable=function-redefined
     @overload
-    def get(self, key: 'cirq.Qid') -> pauli_gates.Pauli:
+    def get(self, key: 'cirq.Qid', default: None = None) -> pauli_gates.Pauli:
         pass
 
     @overload
@@ -259,6 +259,26 @@ class PauliString(raw_types.Operation):
     def qubits(self) -> Tuple[raw_types.Qid, ...]:
         return tuple(sorted(self.keys()))
 
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> List[str]:
+        if not len(self._qubit_pauli_map):
+            return NotImplemented
+
+        qs = args.known_qubits or list(self._qubit_pauli_map.keys())
+        symbols = list(str(self.get(q)) for q in qs)
+        if self.coefficient == 1:
+            prefix = '+'
+        elif self.coefficient == -1:
+            prefix = '-'
+        elif self.coefficient == 1j:
+            prefix = 'i'
+        elif self.coefficient == -1j:
+            prefix = '-i'
+        else:
+            prefix = f'({args.format_complex(self.coefficient)})*'
+        symbols[0] = f'PauliString({prefix}{symbols[0]})'
+        return symbols
+
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliString':
         return PauliString(qubit_pauli_map=dict(
             zip(new_qubits, (self[q] for q in self.qubits))),
@@ -324,14 +344,28 @@ class PauliString(raw_types.Operation):
 
         return prefix + '*'.join(factors)
 
+    def matrix(self,
+               qubits: Optional[Iterable[raw_types.Qid]] = None) -> np.ndarray:
+        """Returns the matrix of self in computational basis of qubits.
+
+        Args:
+            qubits: Ordered collection of qubits that determine the subspace
+                in which the matrix representation of the Pauli string is to
+                be computed. Qubits absent from self.qubits are acted on by
+                the identity. Defaults to self.qubits.
+        """
+        qubits = self.qubits if qubits is None else qubits
+        factors = [self.get(q, default=identity.I) for q in qubits]
+        return linalg.kron(self.coefficient,
+                           *[protocols.unitary(f) for f in factors])
+
     def _has_unitary_(self) -> bool:
         return abs(1 - abs(self.coefficient)) < 1e-6
 
     def _unitary_(self) -> Optional[np.ndarray]:
         if not self._has_unitary_():
             return None
-        return linalg.kron(self.coefficient,
-                           *[protocols.unitary(self[q]) for q in self.qubits])
+        return self.matrix()
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'):
         if not self._has_unitary_():
@@ -645,8 +679,8 @@ class PauliString(raw_types.Operation):
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
                 PauliString(qubit_pauli_map=self._qubit_pauli_map),
-                exponent_neg=+half_turns / 4,
-                exponent_pos=-half_turns / 4)
+                exponent_neg=+half_turns / 2,
+                exponent_pos=-half_turns / 2)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]

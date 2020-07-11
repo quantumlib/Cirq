@@ -18,6 +18,8 @@ from typing import (Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar,
 
 import abc
 
+import numpy as np
+
 from cirq import ops, protocols
 
 if TYPE_CHECKING:
@@ -78,8 +80,8 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}")
             return self._with_row_col(row=self.row + other.row,
                                       col=self.col + other.col)
-        if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
+                all(isinstance(x, (int, np.integer)) for x in other)):
             raise TypeError('Can only add integer tuples of length 2 to '
                             f'{type(self).__name__}. Instead was {other}')
         return self._with_row_col(row=self.row + other[0],
@@ -93,8 +95,8 @@ class _BaseGridQid(ops.Qid):
                     f"Got {self.dimension} and {other.dimension}")
             return self._with_row_col(row=self.row - other.row,
                                       col=self.col - other.col)
-        if not (isinstance(other, tuple) and len(other) == 2 and
-                all(isinstance(x, int) for x in other)):
+        if not (isinstance(other, (tuple, np.ndarray)) and len(other) == 2 and
+                all(isinstance(x, (int, np.integer)) for x in other)):
             raise TypeError("Can only subtract integer tuples of length 2 to "
                             f"{type(self).__name__}. Instead was {other}")
         return self._with_row_col(row=self.row - other[0],
@@ -118,13 +120,17 @@ class GridQid(_BaseGridQid):
         GridQid(0, 0, dimension=2) < GridQid(0, 1, dimension=2)
         < GridQid(1, 0, dimension=2) < GridQid(1, 1, dimension=2)
 
-    New GridQid can be constructed by adding or subtracting tuples
+    New GridQid can be constructed by adding or subtracting tuples or numpy
+    arrays
 
         >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)
         cirq.GridQid(5, 4, dimension=2)
 
         >>> cirq.GridQid(2, 3, dimension=2) - (1, 2)
         cirq.GridQid(1, 1, dimension=2)
+
+        >>> cirq.GridQid(2, 3, dimension=2) + np.array([3, 1], dtype=int)
+        cirq.GridQid(5, 4, dimension=2)
     """
 
     def __init__(self, row: int, col: int, *, dimension: int) -> None:
@@ -264,6 +270,9 @@ class GridQubit(_BaseGridQid):
 
         >>> cirq.GridQubit(2, 3) - (1, 2)
         cirq.GridQubit(1, 1)
+
+        >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
+        cirq.GridQubit(5, 4)
     """
 
     @property

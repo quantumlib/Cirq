@@ -137,8 +137,10 @@ def test_has_mixture():
         def _decompose_(self):
             return [cirq.X(cirq.LineQubit(0))]
 
-    assert not cirq.has_mixture_channel(No1())
-    assert cirq.has_mixture_channel(Yes1())
+    with cirq.testing.assert_logs('cirq.has_mixture', ' has_mixture_channel '):
+        assert not cirq.has_mixture_channel(No1())
+    with cirq.testing.assert_logs('cirq.has_mixture', ' has_mixture_channel '):
+        assert cirq.has_mixture_channel(Yes1())
 
 
 def test_valid_mixture():
