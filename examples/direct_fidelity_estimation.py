@@ -298,9 +298,13 @@ def _estimate_std_devs_clifford(fidelity: float, n: int) -> Tuple[float, float]:
     # By further using the fact that 0 <= F <= 1 we get:
     # StdDev[\hat{F}] <= \frac{1}{2 \sqrt{N}}
 
-    fidelity_bounded = max(0.0, min(1.0, fidelity))
-    std_dev_estimate = math.sqrt(
-        (1.0 - fidelity_bounded) * fidelity_bounded / n)
+    if fidelity < 0.0 or fidelity > 1.0:
+      # Because of the noisiness of the simulation, the estimated fidelity can
+      # be outside the [0, 1] range. If that is the case, we just do not use it
+      # to compute the estimate.
+      std_dev_estimate = None
+    else:
+      std_dev_estimate = math.sqrt((1.0 - fidelity) * fidelity / n)
 
     std_dev_bound = 0.5 / math.sqrt(n)
     return std_dev_estimate, std_dev_bound
