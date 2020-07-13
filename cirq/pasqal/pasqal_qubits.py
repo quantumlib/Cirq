@@ -205,7 +205,7 @@ class ThreeDQubit(cirq.ops.Qid):
         < ThreeDQubit(0, 0, 1) < ThreeDQubit(1, 0, 1)
         < ThreeDQubit(0, 1, 1) < ThreeDQubit(1, 1, 1)
 
-    New ThreeDQubit can be constructed by adding or subtracting tuples
+    New ThreeDQubits can be constructed by adding or subtracting tuples
 
         >>> cirq.pasqal.ThreeDQubit(2.5, 3, 4.7) + (3, 1.2, 6)
         pasqal.ThreeDQubit(5.5, 4.2, 10.7)
@@ -227,7 +227,7 @@ class ThreeDQubit(cirq.ops.Qid):
         return 2
 
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in 3D."""
+        """Returns the distance between two qubits in 3d."""
         if not isinstance(other, ThreeDQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDQubit, but {}".format(
@@ -358,7 +358,7 @@ class TwoDQubit(ThreeDQubit):
 
     @staticmethod
     def triangular_lattice(l: int, x0: float = 0, y0: float = 0):
-        """Returns a triangular lattice of TwoDQubit.
+        """Returns a triangular lattice of TwoDQubits.
 
         Args:
             l: Number of qubits along one direction
@@ -366,7 +366,7 @@ class TwoDQubit(ThreeDQubit):
             y0: y-coordinate of the first qubit
 
         Returns:
-            A list of TwoDQubit filling in a triangular lattice.
+            A list of TwoDQubits filling in a triangular lattice.
         """
         coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
                           dtype=float)

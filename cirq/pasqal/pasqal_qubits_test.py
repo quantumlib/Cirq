@@ -220,8 +220,6 @@ def test_to_json():
         'lay': 1,
     }
 
-# NEW QUBITS TESTS
-
 
 def test_pasqal_qubit_init_3D():
     q = ThreeDQubit(3, 4, 5)
