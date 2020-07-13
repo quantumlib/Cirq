@@ -70,8 +70,7 @@ def test_default_noise():
         n_mts.append(noise_model.noisy_moment(moment, p_qubits))
 
     assert n_mts == [[
-        cirq.ops.CZPowGate(exponent=2).on(NamedQubit('q0'),
-                                          NamedQubit('q1')),
+        cirq.ops.CZPowGate(exponent=2).on(NamedQubit('q0'), NamedQubit('q1')),
         cirq.depolarize(p=0.05).on(NamedQubit('q0')),
         cirq.depolarize(p=0.05).on(NamedQubit('q1'))
     ]]
