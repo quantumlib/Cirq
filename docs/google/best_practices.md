@@ -187,7 +187,7 @@ sweep = cirq.Linspace('t', start=0, stop=1, length=5)
 # at every point and store it a new symbol called '<2**t - 1>'
 sweep_for_gate, flat_sweep = cirq.flatten_with_sweep(gate_with_formula, sweep)
 
-print(sweep_for_gate)
+print(repr(sweep_for_gate))
 # prints:
 # (cirq.X**sympy.Symbol('<2**t - 1>'))
 
@@ -200,3 +200,4 @@ print(list(flat_sweep.param_tuples()))
 #  (('<2**t - 1>', 0.681792830507429),),
 #  (('<2**t - 1>', 1.0),)]
 ```
+

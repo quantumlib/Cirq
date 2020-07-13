@@ -36,6 +36,22 @@ You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
 <!---test_substitution
+# Create an Engine object.
+class MockEngine:\n  def run_batch(self, *args, **kwargs):\n    pass
+--->
+<!---test_substitution
+results = job.results.*
+results = None
+--->
+<!---test_substitution
+print.results.idx.*
+print()
+--->
+<!---test_substitution
+engine = cirq.google.Engine(.*)
+engine = MockEngine()
+--->
+<!---test_substitution
 cg.Engine(.*)
 cirq.Simulator()
 --->
@@ -54,7 +70,7 @@ circuit = cirq.Circuit(
     cirq.measure(qubit, key='result')   # Measurement.
 )
 
-# Create an Engine object to use.
+# Creates an Engine object.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
 engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 
@@ -115,8 +131,8 @@ parameter sweep.  If the circuit does not use a sweep, pass in `None`.
 
 
 ```python
+import sympy
 import cirq
-import cirq.google as cg
 
 q = cirq.GridQubit(5, 2)
 
@@ -132,7 +148,7 @@ num_sweeps_in_circuit = 10
 for circuit_num in range(num_circuits_in_batch):
   # Example circuit
   circuit = cirq.Circuit(
-      cirq.YPowGate(exponent=num_circuits / 10.0)(q),
+      cirq.YPowGate(exponent=circuit_num / 10.0)(q),
       cirq.XPowGate(exponent=sympy.Symbol('t'))(q),
       cirq.measure(q, key='m', invert_mask=(True,)))
   # add a sweep for each circuit
@@ -141,14 +157,14 @@ for circuit_num in range(num_circuits_in_batch):
   circuit_list.append(circuit)
   param_list.append(param_sweep)
 
-# Create an Engine object to use.
+# Create an Engine object.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
-engine = cg.Engine(project_id=YOUR_PROJECT_ID)
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
 
 # Create a sampler from the engine
 job = engine.run_batch(circuit_list,
-                       processor_ids=[PROCESSOR_ID],
-                       gate_set=GATE_SET,
+                       processor_ids=['PROCESSOR_ID'],
+                       gate_set=cirq.google.FSIM_GATESET,
                        repetitions=1000,
                        params_list=param_list)
 results = job.results()
