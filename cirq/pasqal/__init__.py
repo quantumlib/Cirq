@@ -16,7 +16,7 @@ from cirq.pasqal.pasqal_qubits import (
     ThreeDGridQubit,
     ThreeDQubit,
     TwoDQubit,
-    )
+)
 
 from cirq.pasqal.pasqal_device import (
     PasqalDevice,)
