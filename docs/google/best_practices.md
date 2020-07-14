@@ -137,7 +137,7 @@ of your program so that more repetitions are completed per second.
 
 In order to efficiently batch circuits, the circuits in these batches must
 measure the same qubits and have the same number of repetitions for each
-circuit.  Otherwise, the circuits will not be able to batched together
+circuit.  Otherwise, the circuits will not be batched together
 on the device, and there will be no gain in efficiency.
 
 ## Keep qubits busy
@@ -201,4 +201,3 @@ print(list(flat_sweep.param_tuples()))
 #  (('<2**t - 1>', 0.681792830507429),),
 #  (('<2**t - 1>', 1.0),)]
 ```
-
