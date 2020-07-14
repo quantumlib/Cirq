@@ -49,7 +49,7 @@ the measurement gate after all optimizers have run.
 
 In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
 have significant error. Both gate errors and T1 decay rate can cause long circuits
-to have noise that overwhelms any signal in the circuit. 
+to have noise that overwhelms any signal in the circuit.
 
 The recommended gate depths vary significantly with the structure of the circuit itself
 and will likely increase as the devices improve. Total circuit fidelity can be roughly
@@ -133,11 +133,12 @@ that they overcome this limit.
 
 The engine has a method called `run_batch()` that can be used to send multiple
 circuits in a single request.  This can be used to increase the efficiency
-and rep rate of your program.
+of your program so that more repetitions are completed per second.
 
 In order to efficiently batch circuits, the circuits in these batches must
 measure the same qubits and have the same number of repetitions for each
-circuit.
+circuit.  Otherwise, the circuits will not be able to batched together
+on the device, and there will be no gain in efficiency.
 
 ## Keep qubits busy
 

@@ -36,7 +36,7 @@ You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
 <!---test_substitution
-# Create an Engine object.
+# Add each circuit to the batch.*
 class MockEngine:\n  def run_batch(self, *args, **kwargs):\n    pass
 --->
 <!---test_substitution
@@ -70,7 +70,7 @@ circuit = cirq.Circuit(
     cirq.measure(qubit, key='result')   # Measurement.
 )
 
-# Creates an Engine object.
+# Create an Engine object.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
 engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 
