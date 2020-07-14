@@ -137,7 +137,7 @@ Next, run automated verification.
 Note: sometimes the first verification from test pypi will fail.
 
 ```bash
-# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might have not yet indexed the version
+# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might not have yet indexed the version
 ./dev_tools/packaging/verify-published-package.sh "${VER}" --test
 ```
 Once this runs, you can create a virtual environment to perform
@@ -183,7 +183,7 @@ twine upload --username="$PROD_TWINE_USERNAME" --password="$PROD_TWINE_PASSWORD"
 Perform automated verification tests:
 
 ```bash
-# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might have not yet indexed the version
+# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might not have yet indexed the version
 ./dev_tools/packaging/verify-published-package.sh "${VER}" --prod
 ```
 
