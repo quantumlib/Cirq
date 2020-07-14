@@ -229,7 +229,7 @@ def test_op_repr():
         "invert_mask=(False, True))")
 
 
-def test_act_on():
+def test_act_on_state_vector():
     a, b = cirq.LineQubit.range(2)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
@@ -263,6 +263,47 @@ def test_act_on():
                                    shape=(2, 2, 2, 2, 2),
                                    dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+
+    with pytest.raises(ValueError, match="already logged to key"):
+        cirq.act_on(m, args)
+
+
+def test_act_on_clifford_tableau():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    # The below assertion does not fail since it ignores non-unitary operations
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(m)
+
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(m, object())
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 0]}
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 1]}
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
         axes=[3, 1],
         prng=np.random.RandomState(),
         log_of_measurement_results={},
