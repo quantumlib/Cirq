@@ -135,7 +135,7 @@ The engine has a method called `run_batch()` that can be used to send multiple
 circuits in a single request.  This can be used to increase the efficiency
 of your program so that more repetitions are completed per second.
 
-In order to efficiently batch circuits, the circuits in these batches must
+The circuits that are grouped into the same batch must
 measure the same qubits and have the same number of repetitions for each
 circuit.  Otherwise, the circuits will not be batched together
 on the device, and there will be no gain in efficiency.
