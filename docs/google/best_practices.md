@@ -49,13 +49,13 @@ the measurement gate after all optimizers have run.
 
 In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
 have significant error. Both gate errors and T1 decay rate can cause long circuits
-to have noise that overwhelms any signal in the circuit. 
+to have noise that overwhelms any signal in the circuit.
 
 The recommended gate depths vary significantly with the structure of the circuit itself
 and will likely increase as the devices improve. Total circuit fidelity can be roughly
 estimated by multiplying the fidelity for all gates in the circuit. For example,
 using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be estimated
-at 0.995^(20*20) = 0.135. Using separate error rates per gates (i.e. based on calibration
+at 0.995^(20 * 20) = 0.135. Using separate error rates per gates (i.e. based on calibration
 metrics) or a more complicated noise model can result in more accurate error estimation.
 
 ## Use sweeps when possible
@@ -65,7 +65,7 @@ to the overall computation time.  Reducing the number of trips and allowing the 
 properly batch circuits can improve the throughput of your calculations.  One way to do this
 is to use parameter sweeps to send multiple variations of a circuit at once.
 
-One example is to turn single-qubit gates on or off by using parameter sweeps.  
+One example is to turn single-qubit gates on or off by using parameter sweeps.
 For instance, the following code illustrates how to combine measuring in the
 Z basis or the X basis in one circuit.
 
@@ -129,9 +129,19 @@ One word of caution is there is a limit to the total number of repetitions.  Tak
 that your parameter sweeps, especially products of sweeps, do not become so excessively large
 that they overcome this limit.
 
+## Use batches if sweeps are not possible
+
+The engine has a method called `run_batch()` that can be used to send multiple
+circuits in a single request.  This can be used to increase the efficiency
+of your program so that more repetitions are completed per second.
+
+The circuits that are grouped into the same batch must
+measure the same qubits and have the same number of repetitions for each
+circuit.  Otherwise, the circuits will not be batched together
+on the device, and there will be no gain in efficiency.
 
 ## Keep qubits busy
- 
+
 Qubits that remain idle for long periods tend to dephase and decohere. Inserting a
 [Spin Echo](https://en.wikipedia.org/wiki/Spin_echo) into your circuit, such as a pair
 of involutions, such as two successive Pauli Y gates, will generally increase
@@ -178,7 +188,7 @@ sweep = cirq.Linspace('t', start=0, stop=1, length=5)
 # at every point and store it a new symbol called '<2**t - 1>'
 sweep_for_gate, flat_sweep = cirq.flatten_with_sweep(gate_with_formula, sweep)
 
-print(sweep_for_gate)
+print(repr(sweep_for_gate))
 # prints:
 # (cirq.X**sympy.Symbol('<2**t - 1>'))
 
