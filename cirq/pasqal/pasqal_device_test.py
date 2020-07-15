@@ -37,6 +37,8 @@ def test_init_errors():
     line = cirq.devices.LineQubit.range(3)
     with pytest.raises(TypeError, match="Unsupported qubit type"):
         PasqalDevice(qubits=line)
+    with pytest.raises(ValueError, match="Too many qubits"):
+        generic_device(101)
 
 
 def test_decompose_error():

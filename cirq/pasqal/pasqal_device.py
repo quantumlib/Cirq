@@ -35,11 +35,19 @@ class PasqalDevice(cirq.devices.Device):
             if not isinstance(q, self.supported_qubit_type):
                 raise TypeError('Unsupported qubit type: {!r}'.format(q))
 
+        if len(qubits) > self.maximum_qubit_number:
+            raise ValueError('Too many qubits. {} accepts at most {} '
+                'qubits.'.format(type(self), self.maximum_qubit_number))
+
         self.qubits = qubits
 
     @property
     def supported_qubit_type(self):
         return (NamedQubit,)
+
+    @property
+    def maximum_qubit_number(self):
+        return 100
 
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
