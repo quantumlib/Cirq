@@ -54,7 +54,7 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return isclose(self.distance(other), 1)
 
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in a 3D grid."""
+        """Returns the distance between two qubits in a 3d grid."""
         if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDGridQubit, but {}".
@@ -220,7 +220,7 @@ class ThreeDQubit(cirq.ops.Qid):
         self.z = z
 
     def _comparison_key(self):
-        return round(self.z, 9), round(self.y, 9), round(self.x, 9)
+        return round(self.z, 15), round(self.y, 15), round(self.x, 15)
 
     @property
     def dimension(self) -> int:
@@ -273,7 +273,7 @@ class ThreeDQubit(cirq.ops.Qid):
             z0: z-coordinate of the first qubit
 
         Returns:
-            A list of ThreeDQubits filling in a 3D grid
+            A list of ThreeDQubits filling in a 3d grid
         """
         return [
             ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
