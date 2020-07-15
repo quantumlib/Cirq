@@ -53,12 +53,12 @@ git pull origin master  # or upstream master
 git status  # should be no pending changes
 ```
 
-For PATCH update: Make sure you're in the last version 
+For PATCH update: Make sure you checked out the version you want to patch. 
+Typically this will be something like `${MAJOR}.${MINOR}.${LAST_PATCH}` 
 
 ```bash
 git fetch origin # or upstream - to fetch all tags
-export LATEST_TAG=$(git tag | tail -n 1) # check with echo $LATEST_TAG 
-git checkout $LATEST_TAG  
+git checkout <desired tag to patch>   
 git status  # should be no pending changes
 ```
 
@@ -86,6 +86,19 @@ Create a release branch called "v${VERSION}-dev":
 
 ```bash
 git checkout -b "v${VER}-dev"
+```
+
+If you are doing a PATCH update, also cherrypick the commits for the fixes 
+you want to include in your update and resolve all potential merge conflicts 
+carefully: 
+
+```bash
+git cherry-pick <commit> 
+```
+
+Bump the version on the release branch: 
+
+```bash
 vi ./cirq/_version.py   # Remove .dev from version
 git add ./cirq/_version.py
 git commit -m "Bump cirq version to ${NEXT_VER}"
