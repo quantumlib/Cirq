@@ -381,33 +381,3 @@ def test_to_json_():
         'x': 1.3,
         'y': 1,
     }
-
-
-def test_pasqal_qubit_add_subtract_():
-    assert ThreeDQubit(1, 2, 3) + (2, 5, 7) == ThreeDQubit(3, 7, 10)
-    assert ThreeDQubit(1, 2, 3) + (0, 0, 0) == ThreeDQubit(1, 2, 3)
-    assert ThreeDQubit(1, 2, 3) + (-1, 0, 0) == ThreeDQubit(0, 2, 3)
-    assert ThreeDQubit(1, 2, 3) - (2, 5, 7) == ThreeDQubit(-1, -3, -4)
-    assert ThreeDQubit(1, 2, 3) - (0, 0, 0) == ThreeDQubit(1, 2, 3)
-    assert ThreeDQubit(1, 2, 3) - (-1, 0, 0) == ThreeDQubit(2, 2, 3)
-
-    assert (2, 5, 7) + ThreeDQubit(1, 2, 3) == ThreeDQubit(3, 7, 10)
-    assert (2, 5, 7) - ThreeDQubit(1, 2, 3) == ThreeDQubit(1, 3, 4)
-
-
-def test_pasqal_qubit_neg_():
-    assert -ThreeDQubit(1, 2, 3) == ThreeDQubit(-1, -2, -3)
-
-
-def test_pasqal_qubit_unsupported_add_():
-    with pytest.raises(TypeError, match='1'):
-        _ = ThreeDQubit(1, 1, 1) + 1
-    with pytest.raises(TypeError, match='(1,)'):
-        _ = ThreeDQubit(1, 1, 1) + (1,)
-    with pytest.raises(TypeError, match='(1, 2)'):
-        _ = ThreeDQubit(1, 1, 1) + (1, 2)
-    with pytest.raises(TypeError, match='(1, 2.0)'):
-        _ = ThreeDQubit(1, 1, 1) + (1, 2.0)
-
-    with pytest.raises(TypeError, match='1'):
-        _ = ThreeDQubit(1, 1, 1) - 1

@@ -204,14 +204,6 @@ class ThreeDQubit(cirq.ops.Qid):
         < ThreeDQubit(0, 1, 0) < ThreeDQubit(1, 1, 0)
         < ThreeDQubit(0, 0, 1) < ThreeDQubit(1, 0, 1)
         < ThreeDQubit(0, 1, 1) < ThreeDQubit(1, 1, 1)
-
-    New ThreeDQubits can be constructed by adding or subtracting tuples
-
-        >>> cirq.pasqal.ThreeDQubit(2.5, 3, 4.7) + (3, 1.2, 6)
-        pasqal.ThreeDQubit(5.5, 4.2, 10.7)
-
-        >>> cirq.pasqal.ThreeDQubit(2.4, 3.1, 4) - (1, 2, 2.1)
-        pasqal.ThreeDQubit(1.4, 1.1, 1.9)
     """
 
     def __init__(self, x: float, y: float, z: float):
@@ -288,33 +280,6 @@ class ThreeDQubit(cirq.ops.Qid):
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
-
-    def __add__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only add tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x + other[0],
-                           y=self.y + other[1],
-                           z=self.z + other[2])
-
-    def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only subtract tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x - other[0],
-                           y=self.y - other[1],
-                           z=self.z - other[2])
-
-    def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return self + other
-
-    def __rsub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return -self + other
-
-    def __neg__(self) -> 'ThreeDQubit':
-        return ThreeDQubit(x=-self.x, y=-self.y, z=-self.z)
 
 
 class TwoDQubit(ThreeDQubit):
