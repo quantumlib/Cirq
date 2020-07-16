@@ -54,7 +54,7 @@ class ThreeDGridQubit(cirq.ops.Qid):
         return isclose(self.distance(other), 1)
 
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in a 3D grid."""
+        """Returns the distance between two qubits in a 3d grid."""
         if not isinstance(other, ThreeDGridQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDGridQubit, but {}".
@@ -204,14 +204,6 @@ class ThreeDQubit(cirq.ops.Qid):
         < ThreeDQubit(0, 1, 0) < ThreeDQubit(1, 1, 0)
         < ThreeDQubit(0, 0, 1) < ThreeDQubit(1, 0, 1)
         < ThreeDQubit(0, 1, 1) < ThreeDQubit(1, 1, 1)
-
-    New ThreeDQubit can be constructed by adding or subtracting tuples
-
-        >>> cirq.pasqal.ThreeDQubit(2.5, 3, 4.7) + (3, 1.2, 6)
-        pasqal.ThreeDQubit(5.5, 4.2, 10.7)
-
-        >>> cirq.pasqal.ThreeDQubit(2.4, 3.1, 4) - (1, 2, 2.1)
-        pasqal.ThreeDQubit(1.4, 1.1, 1.9)
     """
 
     def __init__(self, x: float, y: float, z: float):
@@ -220,14 +212,14 @@ class ThreeDQubit(cirq.ops.Qid):
         self.z = z
 
     def _comparison_key(self):
-        return round(self.z, 9), round(self.y, 9), round(self.x, 9)
+        return round(self.z, 15), round(self.y, 15), round(self.x, 15)
 
     @property
     def dimension(self) -> int:
         return 2
 
     def distance(self, other: cirq.ops.Qid) -> float:
-        """Returns the distance between two qubits in 3D."""
+        """Returns the distance between two qubits in 3d."""
         if not isinstance(other, ThreeDQubit):
             raise TypeError(
                 "Can compute distance to another ThreeDQubit, but {}".format(
@@ -273,7 +265,7 @@ class ThreeDQubit(cirq.ops.Qid):
             z0: z-coordinate of the first qubit
 
         Returns:
-            A list of ThreeDQubits filling in a 3D grid
+            A list of ThreeDQubits filling in a 3d grid
         """
         return [
             ThreeDQubit(x0 + x, y0 + y, z0 + z) for z in range(lays)
@@ -288,33 +280,6 @@ class ThreeDQubit(cirq.ops.Qid):
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['x', 'y', 'z'])
-
-    def __add__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only add tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x + other[0],
-                           y=self.y + other[1],
-                           z=self.z + other[2])
-
-    def __sub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        if not (isinstance(other, tuple) and len(other) == 3 and
-                all(isinstance(x, (float, int)) for x in other)):
-            raise TypeError(
-                'Can only subtract tuples of length 3. Was {}'.format(other))
-        return ThreeDQubit(x=self.x - other[0],
-                           y=self.y - other[1],
-                           z=self.z - other[2])
-
-    def __radd__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return self + other
-
-    def __rsub__(self, other: Tuple[float, float, float]) -> 'ThreeDQubit':
-        return -self + other
-
-    def __neg__(self) -> 'ThreeDQubit':
-        return ThreeDQubit(x=-self.x, y=-self.y, z=-self.z)
 
 
 class TwoDQubit(ThreeDQubit):
@@ -358,7 +323,7 @@ class TwoDQubit(ThreeDQubit):
 
     @staticmethod
     def triangular_lattice(l: int, x0: float = 0, y0: float = 0):
-        """Returns a triangular lattice of TwoDQubit.
+        """Returns a triangular lattice of TwoDQubits.
 
         Args:
             l: Number of qubits along one direction
@@ -366,7 +331,7 @@ class TwoDQubit(ThreeDQubit):
             y0: y-coordinate of the first qubit
 
         Returns:
-            A list of TwoDQubit filling in a triangular lattice.
+            A list of TwoDQubits filling in a triangular lattice.
         """
         coords = np.array([[x, y] for x in range(l + 1) for y in range(l + 1)],
                           dtype=float)
