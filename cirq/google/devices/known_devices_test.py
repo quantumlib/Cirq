@@ -43,7 +43,7 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
-    gate_duration_picos: 20000
+    gate_duration_picos: 15000
   }
   valid_gates {
     id: "z"
@@ -80,7 +80,7 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
-    gate_duration_picos: 50000
+    gate_duration_picos: 45000
     valid_targets: "2_qubit_targets"
   }
   valid_gates {
@@ -249,6 +249,42 @@ valid_targets {
   targets {
     ids: "1_9"
     ids: "1_10"
+  }
+}
+"""
+
+
+def test_create_device_proto_for_irregular_grid():
+    qubits = cirq.GridQubit.rect(2, 2)
+    pairs = [
+        (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)),
+        (cirq.GridQubit(0, 0), cirq.GridQubit(1, 0)),
+        (cirq.GridQubit(1, 0), cirq.GridQubit(1, 1)),
+    ]
+    proto = known_devices.create_device_proto_for_qubits(qubits, pairs)
+    assert str(proto) == """\
+valid_qubits: "0_0"
+valid_qubits: "0_1"
+valid_qubits: "1_0"
+valid_qubits: "1_1"
+valid_targets {
+  name: "meas_targets"
+  target_ordering: SUBSET_PERMUTATION
+}
+valid_targets {
+  name: "2_qubit_targets"
+  target_ordering: SYMMETRIC
+  targets {
+    ids: "0_0"
+    ids: "0_1"
+  }
+  targets {
+    ids: "0_0"
+    ids: "1_0"
+  }
+  targets {
+    ids: "1_0"
+    ids: "1_1"
   }
 }
 """

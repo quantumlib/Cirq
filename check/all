@@ -17,12 +17,13 @@
 # Usage:
 #     check/all revision [BASE_REVISION] [--only-changed-files] [--apply-format-changes]
 #
-# BASE_REVISION is forwarded to format-incremental and to the pytest checks
-# (pytest-and-incremental-coverage or pytest-changed-files). See those
-# checks for how to specify this value.
+# BASE_REVISION is forwarded to format-incremental and to the pytest and pylint
+# checks (pytest-and-incremental-coverage or pytest-changed-files and
+# pylint-changed-files). See those checks for how to specify this value.
 #
 # If --only-changed-files is specified, pytest-changed-files will be run
-# instead of pytest-and-incremental-coverage.
+# instead of pytest-and-incremental-coverage, and pylint-changed-files will
+# be run instead of pylint.
 #
 # If --apply-format-changes is specified the --apply flag will be passed
 # to format-incremental to apply the format changes suggested by the
@@ -39,7 +40,7 @@ only_changed=0
 rev=""
 for arg in $@; do
     if [[ "${arg}" == "--only-changed-files" ]]; then
-        only_change=1
+        only_changed=1
     elif [[ "${arg}" == "--apply-format-changes" ]]; then
         apply_arg="--apply"
     elif [ -z "${rev}" ]; then
@@ -57,8 +58,13 @@ done
 echo "Running misc"
 check/misc
 
-echo "Running pylint"
-check/pylint
+if [ ${only_changed} -ne 0 ]; then
+  echo "Running incremental pylint"
+  check/pylint-changed-files
+else
+  echo "Running pylint"
+  check/pylint
+fi
 
 echo "Running mypy"
 check/mypy
@@ -66,7 +72,7 @@ check/mypy
 echo "Running incremental format"
 check/format-incremental "${rev}" "${apply_arg}"
 
-if [ -z "${only_changed}" ]; then
+if [ ${only_changed} -ne 0 ]; then
     echo "Running pytest and incremental coverage on changed files"
     check/pytest-changed-files-and-incremental-coverage "${rev}"
 else

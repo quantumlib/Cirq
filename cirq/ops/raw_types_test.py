@@ -449,7 +449,7 @@ def test_tagged_operation():
     q1 = cirq.GridQubit(1, 1)
     q2 = cirq.GridQubit(2, 2)
     op = cirq.X(q1).with_tags('tag1')
-    op_repr = "cirq.X.on(cirq.GridQubit(1, 1))"
+    op_repr = "cirq.X(cirq.GridQubit(1, 1))"
     assert repr(op) == f"cirq.TaggedOperation({op_repr}, 'tag1')"
 
     assert op.qubits == (q1,)
@@ -460,8 +460,17 @@ def test_tagged_operation():
 
 
 def test_circuit_diagram():
+
+    class TaggyTag:
+        """Tag with a custom repr function to test circuit diagrams."""
+
+        def __repr__(self):
+            return 'TaggyTag()'
+
     h = cirq.H(cirq.GridQubit(1, 1))
     tagged_h = h.with_tags('tag1')
+    non_string_tag_h = h.with_tags(TaggyTag())
+
     expected = cirq.CircuitDiagramInfo(wire_symbols=("H['tag1']",),
                                        exponent=1.0,
                                        connected=True,
@@ -477,6 +486,11 @@ def test_circuit_diagram():
     diagram_without_tags = "(1, 1): ───H───"
     assert str(cirq.Circuit(tagged_h)) == diagram_with_tags
     assert c.to_text_diagram() == diagram_with_tags
+    assert c.to_text_diagram(include_tags=False) == diagram_without_tags
+
+    c = cirq.Circuit(non_string_tag_h)
+    diagram_with_non_string_tag = "(1, 1): ───H[TaggyTag()]───"
+    assert c.to_text_diagram() == diagram_with_non_string_tag
     assert c.to_text_diagram(include_tags=False) == diagram_without_tags
 
 
@@ -633,3 +647,27 @@ def test_tagged_operation_forwards_protocols():
     assert (cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args))
 
     cirq.testing.assert_has_consistent_apply_unitary(tagged_h)
+
+
+def test_inverse_composite_standards():
+
+    @cirq.value_equality
+    class Gate(cirq.Gate):
+
+        def _decompose_(self, qubits):
+            return cirq.S.on(qubits[0])
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _has_unitary_(self):
+            return True
+
+        def _value_equality_values_(self):
+            return ()
+
+        def __repr__(self):
+            return 'C()'
+
+    cirq.testing.assert_implements_consistent_protocols(cirq.inverse(Gate()),
+                                                        global_vals={'C': Gate})

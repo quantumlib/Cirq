@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
+from typing import Any
 
 import numpy as np
 import pytest
 import sympy
 import cirq
-from cirq._compat_test import capture_logging
 
 
 @pytest.mark.parametrize('num_qubits', [1, 2, 4])
@@ -45,6 +45,25 @@ def test_identity_on_each():
                                           cirq.I(q2)]
     with pytest.raises(ValueError, match='str'):
         cirq.I.on_each('abc')
+
+
+def test_identity_on_each_iter_second():
+
+    class Q(cirq.Qid):
+
+        @property
+        def dimension(self) -> int:
+            return 2
+
+        def _comparison_key(self) -> Any:
+            return 1
+
+        def __iter__(self):
+            # Having this method makes `isinstance(x, Iterable)` return True.
+            raise NotImplementedError()
+
+    q = Q()
+    assert cirq.I.on_each(q) == [cirq.I(q)]
 
 
 def test_identity_on_each_only_single_qubit():
@@ -149,17 +168,6 @@ def test_identity_global():
     with pytest.raises(ValueError, match='Not a cirq.Qid'):
         cirq.identity_each(
             qubits)  # The user forgot to expand the list for example.
-
-
-def test_identity_operation_deprecated():
-    a, b = cirq.LineQubit.range(2)
-    with capture_logging() as log:
-        actual = cirq.IdentityOperation([a, b])
-    assert len(log) == 1  # May fail if deprecated thing is used elsewhere.
-    assert 'IdentityOperation' in log[0].getMessage()
-    assert 'deprecated' in log[0].getMessage()
-
-    assert actual == cirq.IdentityGate(2).on(a, b)
 
 
 def test_identity_mul():

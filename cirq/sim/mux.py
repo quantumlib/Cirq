@@ -24,8 +24,9 @@ import numpy as np
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
 from cirq.sim import (sparse_simulator, density_matrix_simulator,
-                      wave_function_simulator)
+                      state_vector_simulator)
 from cirq.sim.clifford import clifford_simulator
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
@@ -39,11 +40,9 @@ document(
 
 
 def _is_clifford_circuit(program: 'cirq.Circuit') -> bool:
-    supported_ops = clifford_simulator.CliffordSimulator.get_supported_gates()
-    # TODO: Have this method check the decomposition of the circuit into
-    #  clifford operations.
-    return all(op.gate in supported_ops or protocols.is_measurement(op)
-               for op in program.all_operations())
+    return all(
+        clifford_simulator.CliffordSimulator.is_supported_operation(op)
+        for op in program.all_operations())
 
 
 def sample(program: 'cirq.Circuit',
@@ -52,7 +51,7 @@ def sample(program: 'cirq.Circuit',
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: value.RANDOM_STATE_LIKE = None) -> study.TrialResult:
+           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.TrialResult:
     """Simulates sampling from the given circuit.
 
     Args:
@@ -72,7 +71,7 @@ def sample(program: 'cirq.Circuit',
         if _is_clifford_circuit(program):
             # If all non-measurement operations are clifford, use the Clifford
             # simulator.
-            return clifford_simulator.CliffordSimulator().run(
+            return clifford_simulator.CliffordSimulator(seed=seed).run(
                 program, param_resolver=param_resolver, repetitions=repetitions)
         if protocols.has_unitary(program):
             return sparse_simulator.Simulator(dtype=dtype, seed=seed).run(
@@ -101,7 +100,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
     return cast('cirq.Circuit', result)
 
 
-def final_wavefunction(
+def final_state_vector(
         program: 'cirq.CIRCUIT_LIKE',
         *,
         initial_state: Union[int, Sequence[Union[int, float, complex]], np.
@@ -109,7 +108,7 @@ def final_wavefunction(
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
-        seed: value.RANDOM_STATE_LIKE = None) -> 'np.ndarray':
+        seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> 'np.ndarray':
     """Returns the state vector resulting from acting operations on a state.
 
     By default the input state is the computational basis zero state, in which
@@ -132,7 +131,7 @@ def final_wavefunction(
         seed: The random seed to use for this simulator.
 
     Returns:
-        The wavefunction resulting from applying the given unitary operations to
+        The state vector resulting from applying the given unitary operations to
         the desired initial state. Specifically, a numpy array containing the
         the amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
@@ -147,9 +146,9 @@ def final_wavefunction(
     if not protocols.has_unitary(
             protocols.resolve_parameters(circuit_like, param_resolver)):
         raise ValueError(
-            "Program doesn't have a single well defined final wavefunction "
+            "Program doesn't have a single well defined final state vector "
             "because it is not unitary. "
-            "Maybe you wanted `cirq.sample_wavefunction`?\n"
+            "Maybe you wanted `cirq.final_density_matrix`?\n"
             "\n"
             "Program: {!r}".format(circuit_like))
 
@@ -162,13 +161,18 @@ def final_wavefunction(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
+final_wavefunction = deprecated(
+    deadline='v0.10.0',
+    fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
+
+
 def sample_sweep(program: 'cirq.Circuit',
                  params: study.Sweepable,
                  *,
                  noise: 'cirq.NOISE_MODEL_LIKE' = None,
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64,
-                 seed: value.RANDOM_STATE_LIKE = None
+                 seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                 ) -> List[study.TrialResult]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
@@ -217,7 +221,7 @@ def final_density_matrix(
         ignore_measurement_results: bool = True) -> 'np.ndarray':
     """Returns the density matrix resulting from simulating the circuit.
 
-    Note that, unlike `cirq.final_wavefunction`, terminal measurements
+    Note that, unlike `cirq.final_state_vector`, terminal measurements
     are not omitted. Instead, all measurements are treated as sources
     of decoherence (i.e. measurements do not collapse, they dephase). See
     ignore_measurement_results for details.
@@ -277,7 +281,7 @@ def final_density_matrix(
             initial_state=initial_state_like,
             qubit_order=qubit_order,
             param_resolver=param_resolver)
-        return cast(wave_function_simulator.WaveFunctionTrialResult,
+        return cast(state_vector_simulator.StateVectorTrialResult,
                     result).density_matrix_of()
     else:
         # noisy case: use DensityMatrixSimulator with dephasing

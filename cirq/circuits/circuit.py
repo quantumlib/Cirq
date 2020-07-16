@@ -18,7 +18,6 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
-
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
@@ -31,13 +30,14 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
 import re
 import numpy as np
 
-from cirq import devices, linalg, ops, protocols
-from cirq._compat import deprecated, deprecated_parameter
+from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
 from cirq.circuits.qasm_output import QasmOutput
+from cirq.circuits.quil_output import QuilOutput
 from cirq.type_workarounds import NotImplementedType
+from cirq._compat import deprecated
 import cirq._version
 
 if TYPE_CHECKING:
@@ -65,7 +65,7 @@ class Circuit:
         are_all_matches_terminal
         are_all_measurements_terminal
         unitary
-        final_wavefunction
+        final_state_vector
         to_text_diagram
         to_text_diagram_drawer
 
@@ -85,6 +85,13 @@ class Circuit:
     and sliced,
         circuit[1:3] is a new Circuit made up of two moments, the first being
             circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
     and concatenated,
         circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
             followed by the moments in circuit2;
@@ -95,23 +102,6 @@ class Circuit:
         circuit[1:7] = [Moment(...)]
     """
 
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass circuit contents positionally (without a keyword).',
-        func_name='cirq.Circuit',
-        parameter_desc='moments keyword',
-        match=lambda args, kwargs: 'moments' in kwargs,
-        rewrite=lambda args, kwargs: (args + (kwargs[
-            'moments'],), {k: v for k, v in kwargs.items() if k != 'moments'}))
-    @deprecated_parameter(
-        deadline='v0.8',
-        fix='Pass the device using the "device=" keyword.',
-        func_name='cirq.Circuit',
-        parameter_desc='positional device',
-        match=lambda args, kwargs: len(args) == 3 and isinstance(
-            args[2], devices.Device),
-        rewrite=lambda args, kwargs: (
-            args[:2], dict(list(kwargs.items()) + [('device', args[2])])))
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
@@ -142,26 +132,6 @@ class Circuit:
     def device(self, new_device: 'cirq.Device') -> None:
         new_device.validate_circuit(self)
         self._device = new_device
-
-    @staticmethod
-    @deprecated(deadline='v0.8.0', fix='use `cirq.Circuit(*ops)` instead.')
-    def from_ops(*operations: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE
-                ) -> 'Circuit':
-        """Creates an empty circuit and appends the given operations.
-
-        Args:
-            operations: The operations to append to the new circuit.
-            strategy: How to append the operations.
-            device: Hardware that the circuit should be able to run on.
-
-        Returns:
-            The constructed circuit containing the operations.
-        """
-        result = Circuit(device=device)
-        result.append(operations, strategy)
-        return result
 
     def __copy__(self) -> 'Circuit':
         return self.copy()
@@ -204,11 +174,29 @@ class Circuit:
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, key: slice) -> 'Circuit':
+    def __getitem__(self, key: slice) -> 'cirq.Circuit':
         pass
 
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
         pass
 
     def __getitem__(self, key):
@@ -216,10 +204,27 @@ class Circuit:
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if isinstance(key, int):
+        if hasattr(key, '__index__'):
             return self._moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self._moments[moment_idx]
+            # selected_moments - Moment or list[Moment].
+            if isinstance(selected_moments, list):
+                if isinstance(qubit_idx, cirq.Qid):
+                    qubit_idx = [qubit_idx]
+                new_circuit = Circuit(device=self.device)
+                new_circuit._moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return new_circuit
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type slice or int.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
@@ -318,20 +323,20 @@ class Circuit:
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
             return 'cirq.Circuit()'
 
         if not self._moments:
-            return 'cirq.Circuit(device={!r})'.format(self._device)
+            return f'cirq.Circuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit({})'.format(moment_str)
+            return f'cirq.Circuit({moment_str})'
 
-        return 'cirq.Circuit({}, device={!r})'.format(moment_str, self._device)
+        return f'cirq.Circuit({moment_str}, device={self._device!r})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.to_text_diagram()
 
     __hash__ = None  # type: ignore
@@ -784,19 +789,6 @@ class Circuit:
             if q in start_frontier), default=0)
         2) set(operation.qubits).intersection(start_frontier)
 
-        Args:
-            start_frontier: A starting set of reachable locations.
-            is_blocker: A predicate that determines if operations block
-                reachability. Any location covered by an operation that causes
-                `is_blocker` to return True is considered to be an unreachable
-                location.
-
-        Returns:
-            A list of tuples. Each tuple describes an operation found between
-            the start frontier and a blocking operation. The first item of
-            each tuple is the index of the moment containing the operation,
-            and the second item is the operation itself.
-
         Below are some examples, where on the left the opening parentheses show
         `start_frontier` and on the right are the operations included (with
         their moment indices) in the output. `F` and `T` indicate that
@@ -841,6 +833,19 @@ class Circuit:
         ───────F───F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
                    │                  │
         ─(─────────F───    ┄┄┄┄┄┄┄┄┄(─F─)┄
+
+        Args:
+            start_frontier: A starting set of reachable locations.
+            is_blocker: A predicate that determines if operations block
+                reachability. Any location covered by an operation that causes
+                `is_blocker` to return True is considered to be an unreachable
+                location.
+
+        Returns:
+            A list of tuples. Each tuple describes an operation found between
+            the start frontier and a blocking operation. The first item of
+            each tuple is the index of the moment containing the operation,
+            and the second item is the operation itself.
 
         """
         op_list = []  # type: List[Tuple[int, ops.Operation]]
@@ -1070,11 +1075,12 @@ class Circuit:
                 self._moments.insert(k, moment_or_op)
                 k += 1
             else:
+                op = cast(ops.Operation, moment_or_op)
                 p = self._pick_or_create_inserted_op_moment_index(
-                    k, moment_or_op, strategy)
+                    k, op, strategy)
                 while p >= len(self._moments):
                     self._moments.append(ops.Moment())
-                self._moments[p] = self._moments[p].with_operation(moment_or_op)
+                self._moments[p] = self._moments[p].with_operation(op)
                 self._device.validate_moment(self._moments[p])
                 k = max(k, p + 1)
                 if strategy is InsertStrategy.NEW_THEN_INLINE:
@@ -1229,6 +1235,73 @@ class Circuit:
             self._moments[moment_index] = ops.Moment(
                 self._moments[moment_index].operations + tuple(new_ops))
 
+    def zip(*circuits):
+        """Combines operations from circuits in a moment-by-moment fashion.
+
+        Moment k of the resulting circuit will have all operations from moment
+        k of each of the given circuits.
+
+        When the given circuits have different lengths, the shorter circuits are
+        implicitly padded with empty moments. This differs from the behavior of
+        python's built-in zip function, which would instead truncate the longer
+        circuits.
+
+        The zipped circuits can't have overlapping operations occurring at the
+        same moment index.
+
+        Args:
+            circuits: The circuits to merge together.
+
+        Returns:
+            The merged circuit.
+
+        Raises:
+            ValueError:
+                The zipped circuits have overlapping operations occurring at the
+                same moment index.
+
+        Examples:
+            >>> import cirq
+            >>> a, b, c, d = cirq.LineQubit.range(4)
+            >>> circuit1 = cirq.Circuit(cirq.H(a), cirq.CNOT(a, b))
+            >>> circuit2 = cirq.Circuit(cirq.X(c), cirq.Y(c), cirq.Z(c))
+            >>> circuit3 = cirq.Circuit(cirq.Moment(), cirq.Moment(cirq.S(d)))
+            >>> print(circuit1.zip(circuit2))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            >>> print(circuit1.zip(circuit2, circuit3))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+            >>> print(cirq.Circuit.zip(circuit3, circuit2, circuit1))
+            0: ───H───@───────
+                      │
+            1: ───────X───────
+            <BLANKLINE>
+            2: ───X───Y───Z───
+            <BLANKLINE>
+            3: ───────S───────
+        """
+        circuits = list(circuits)
+        n = max([len(c) for c in circuits], default=0)
+
+        result = cirq.Circuit()
+        for k in range(n):
+            try:
+                result.append(cirq.Moment(c[k] for c in circuits if k < len(c)))
+            except ValueError as ex:
+                raise ValueError(
+                    f"Overlapping operations between zipped circuits "
+                    f"at moment index {k}.\n{ex}") from ex
+        return result
+
     def insert_at_frontier(self,
                            operations: 'cirq.OP_TREE',
                            start: int,
@@ -1289,6 +1362,33 @@ class Circuit:
                 old_op
                 for old_op in copy._moments[i].operations
                 if op != old_op)
+        self._device.validate_circuit(copy)
+        self._moments = copy._moments
+
+    def batch_replace(self, replacements: Iterable[
+            Tuple[int, 'cirq.Operation', 'cirq.Operation']]) -> None:
+        """Replaces several operations in a circuit with new operations.
+
+        Args:
+            replacements: A sequence of (moment_index, old_op, new_op) tuples
+                indicating operations to be replaced in this circuit. All "old"
+                operations must actually be present or the edit will fail
+                (without making any changes to the circuit).
+
+        ValueError:
+            One of the operations to replace wasn't present to start with.
+
+        IndexError:
+            Replaced in a moment that doesn't exist.
+        """
+        copy = self.copy()
+        for i, op, new_op in replacements:
+            if op not in copy._moments[i].operations:
+                raise ValueError(
+                    f"Can't replace {op} @ {i} because it doesn't exist.")
+            copy._moments[i] = ops.Moment(
+                old_op if old_op != op else new_op
+                for old_op in copy._moments[i].operations)
         self._device.validate_circuit(copy)
         self._moments = copy._moments
 
@@ -1404,6 +1504,9 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
+    def all_measurement_keys(self) -> Tuple[str, ...]:
+        return protocols.measurement_keys(self)
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1481,12 +1584,12 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         side_len = np.product(qid_shape, dtype=int)
 
-        state = linalg.eye_tensor(qid_shape, dtype=dtype)
+        state = qis.eye_tensor(qid_shape, dtype=dtype)
 
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((side_len, side_len))
 
-    def final_wavefunction(
+    def final_state_vector(
             self,
             initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
@@ -1561,12 +1664,27 @@ class Circuit:
         qid_shape = self.qid_shape(qubit_order=qs)
         state_len = np.product(qid_shape, dtype=int)
 
-        from cirq import sim
-        state = sim.to_valid_state_vector(initial_state,
+        state = qis.to_valid_state_vector(initial_state,
                                           qid_shape=qid_shape,
                                           dtype=dtype).reshape(qid_shape)
         result = _apply_unitary_circuit(self, state, qs, dtype)
         return result.reshape((state_len,))
+
+    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
+    def final_wavefunction(
+            self,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Deprecated. Please use `final_state_vector`."""
+        return self.final_state_vector(
+            initial_state=initial_state,
+            qubit_order=qubit_order,
+            qubits_that_should_be_present=qubits_that_should_be_present,
+            ignore_terminal_measurements=ignore_terminal_measurements,
+            dtype=dtype)
 
     def to_text_diagram(
             self,
@@ -1644,9 +1762,7 @@ class Circuit:
             diagram.write(0, i, qubit_namer(q))
 
         if any(
-                isinstance(op, cirq.GlobalPhaseOperation) or
-            (isinstance(op, cirq.TaggedOperation) and
-             isinstance(op.sub_operation, cirq.GlobalPhaseOperation))
+                isinstance(op.untagged, cirq.GlobalPhaseOperation)
                 for op in self.all_operations()):
             diagram.write(0,
                           max(qubit_map.values(), default=0) + 1,
@@ -1717,6 +1833,13 @@ class Circuit:
                           precision=precision,
                           version='2.0')
 
+    def _to_quil_output(
+            self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> QuilOutput:
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QuilOutput(operations=self.all_operations(), qubits=qubits)
+
     def to_qasm(
             self,
             header: Optional[str] = None,
@@ -1732,7 +1855,13 @@ class Circuit:
             qubit_order: Determines how qubits are ordered in the QASM
                 register.
         """
+
         return str(self._to_qasm_output(header, precision, qubit_order))
+
+    def to_quil(self,
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+               ) -> str:
+        return str(self._to_quil_output(qubit_order))
 
     def save_qasm(
             self,
@@ -1809,12 +1938,8 @@ def _get_operation_circuit_diagram_info_with_fallback(
                     info))
         return info
 
-    # Fallback to a default representation using the operation's __str__.
-    name = str(op)
-
-    # For TaggedOperation, use the sub_operations __str__ instead
-    if isinstance(op, cirq.TaggedOperation):
-        name = str(op.sub_operation)
+    # Use the untagged operation's __str__.
+    name = str(op.untagged)
 
     # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
     # Try to cut off the qubit part, since that would be redundant information.
@@ -1823,7 +1948,7 @@ def _get_operation_circuit_diagram_info_with_fallback(
         name = name[:-len(redundant_tail)]
 
     # Add tags onto the representation, if they exist
-    if isinstance(op, cirq.TaggedOperation):
+    if op.tags:
         name += f'{list(op.tags)}'
 
     # Include ordering in the qubit labels.
@@ -1942,18 +2067,14 @@ def _draw_moment_in_diagram(
         if x > max_x:
             max_x = x
 
-    global_phase = None
+    global_phase: Optional[complex] = None
     tags: List[Any] = []
     for op in moment:
-        if (isinstance(op, ops.TaggedOperation) and
-                isinstance(op.sub_operation, ops.GlobalPhaseOperation)):
+        if isinstance(op.untagged, ops.GlobalPhaseOperation):
             tags.extend(op.tags)
-            op = op.sub_operation
-        if isinstance(op, ops.GlobalPhaseOperation):
-            if global_phase:
-                global_phase *= complex(op.coefficient)
-            else:
-                global_phase = complex(op.coefficient)
+            if global_phase is None:
+                global_phase = complex(1)
+            global_phase *= complex(op.untagged.coefficient)
 
     # Print out global phase, unless it's 1 (phase of 0pi) or it's the only op.
     if global_phase and (global_phase != 1 or not non_global_ops):

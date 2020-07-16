@@ -57,7 +57,7 @@ exceptions.
 An import cycle is where modules need to import each other (perhaps indirectly).
 Sometimes in order to add a type annotation you have to add an import which
 causes a cycle. To avoid this we use the `TYPE_CHECKING` constant provided 
-by `typing':
+by `typing`:
 ```python
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
@@ -69,3 +69,9 @@ Note that if you do this you will need to use the string version of the type,
 def my_func() -> 'module.that.causes.cycle.MyClass':
     pass
 ```
+
+#### Nomenclature
+
+Using consistent wording across Cirq is important for lowering users
+cognitive load. For rule governing naming, see the 
+[nomenclature guidelines](docs/dev/nomenclature.md).

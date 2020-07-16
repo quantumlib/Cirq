@@ -19,6 +19,7 @@ import pytest
 
 import cirq
 from cirq import value
+from cirq import unitary_eig
 
 X = np.array([[0, 1], [1, 0]])
 Y = np.array([[0, -1j], [1j, 0]])
@@ -82,6 +83,45 @@ def test_map_eigenvalues_identity(matrix):
 def test_map_eigenvalues_raise(matrix, exponent, desired):
     exp_mapped = cirq.map_eigenvalues(matrix, lambda e: complex(e)**exponent)
     assert np.allclose(desired, exp_mapped)
+
+
+def _random_unitary_with_close_eigenvalues():
+    U = cirq.testing.random_unitary(4)
+    d = np.diag(np.exp([-0.2312j, -0.2312j, -0.2332j, -0.2322j]))
+    return U @ d @ U.conj().T
+
+
+@pytest.mark.parametrize(
+    'matrix',
+    [
+        X,
+        np.eye(4),
+        np.diag(
+            np.exp([-1j * np.pi * 1.23, -1j * np.pi * 1.23, -1j * np.pi * 1.23
+                   ])),
+
+        # a global phase with a tiny perturbation
+        np.diag(np.exp([-0.2312j, -0.2312j, -0.2312j, -0.2312j])) +
+        np.random.random((4, 4)) * 1e-100,
+
+        # also after a similarity transformation, demonstrating
+        # that the effect is due to close eigenvalues, not diagonality
+        _random_unitary_with_close_eigenvalues(),
+    ])
+def test_unitary_eig(matrix):
+    # np.linalg.eig(matrix) won't work for the perturbed matrix
+    d, vecs = unitary_eig(matrix)
+
+    # test both unitarity and correctness of decomposition
+    np.testing.assert_allclose(matrix,
+                               vecs @ np.diag(d) @ vecs.conj().T,
+                               atol=1e-14)
+
+
+def test_non_unitary_eig():
+    with pytest.raises(Exception):
+        unitary_eig(
+            np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 0, 1, 2], [3, 4, 5, 6]]))
 
 
 @pytest.mark.parametrize('f1,f2', [
@@ -565,7 +605,7 @@ _kak_gens = np.array([np.kron(X, X), np.kron(Y, Y), np.kron(Z, Z)])
 
 
 def _random_two_qubit_unitaries(num_samples: int,
-                                random_state: value.RANDOM_STATE_LIKE):
+                                random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE'):
     # Randomly generated two-qubit unitaries and the KAK vectors (not canonical)
     kl = _local_two_qubit_unitaries(num_samples, random_state)
 
@@ -684,3 +724,20 @@ def test_kak_vector_negative_atol():
 def test_kak_vector_input_not_unitary():
     with pytest.raises(ValueError, match='must correspond to'):
         cirq.kak_vector(np.zeros((4, 4)))
+
+
+@pytest.mark.parametrize('unitary', [
+    cirq.testing.random_unitary(4),
+    cirq.unitary(cirq.IdentityGate(2)),
+    cirq.unitary(cirq.SWAP),
+    cirq.unitary(cirq.SWAP**0.25),
+    cirq.unitary(cirq.ISWAP),
+    cirq.unitary(cirq.CZ**0.5),
+    cirq.unitary(cirq.CZ),
+])
+def test_kak_decompose(unitary: np.ndarray):
+    kak = cirq.kak_decomposition(unitary)
+    circuit = cirq.Circuit(kak._decompose_(cirq.LineQubit.range(2)))
+    np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
+    assert len(circuit) == 5
+    assert len(list(circuit.all_operations())) == 8

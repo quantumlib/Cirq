@@ -26,7 +26,8 @@ SQRT_ISWAP_INV = ops.ISWAP**-0.5
 
 
 # TODO: Combine this with the equivalent functions in google/gate_set.py
-# Or better yet, write a proper gate set so we don't need this in two places
+# Or better yet, write a proper gate set so we don't need this in two places.
+# Github issue: https://github.com/quantumlib/Cirq/issues/2970
 def _near_mod_n(e, t, n, atol=1e-8):
     return abs((e - t + 1) % n - 1) <= atol
 
@@ -101,6 +102,9 @@ class ConvertToSqrtIswapGates(circuits.PointOptimizer):
         return a
 
     def optimization_at(self, circuit, index, op):
+        if isinstance(op.gate, ops.MatrixGate) and len(op.qubits) == 1:
+            return None
+
         converted = self.convert(op)
         if len(converted) == 1 and converted[0] is op:
             return None
@@ -146,8 +150,9 @@ def is_basic_gate(gate: Optional['cirq.Gate']) -> bool:
         Returns:
             True if the gate is native to the gate set, false otherwise.
         """
-    return isinstance(gate, (ops.MeasurementGate, ops.PhasedXPowGate,
-                             ops.XPowGate, ops.YPowGate, ops.ZPowGate))
+    return isinstance(
+        gate, (ops.MeasurementGate, ops.PhasedXZGate, ops.PhasedXPowGate,
+               ops.XPowGate, ops.YPowGate, ops.ZPowGate))
 
 
 def cphase_to_sqrt_iswap(a, b, turns):

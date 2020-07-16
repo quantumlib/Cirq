@@ -12,14 +12,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import (Any, Dict, Iterable, List, NamedTuple, Optional, Sequence,
-                    Set, Tuple, Union)
+from typing import (Any, Dict, Iterable, List, Mapping, NamedTuple, Optional,
+                    Sequence, Set, TYPE_CHECKING, Tuple, Union)
+import dataclasses
 import numpy as np
+import scipy
 from matplotlib import pyplot as plt
 from cirq import circuits, devices, ops, protocols, sim, work
 
+if TYPE_CHECKING:
+    import cirq
+
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
+
+
+@dataclasses.dataclass
+class CrossEntropyDepolarizingModel:
+    """A depolarizing noise model for cross entropy benchmarking.
+
+    The depolarizing channel maps a density matrix ρ as
+
+        ρ → p_eff ρ + (1 - p_eff) I / D
+
+    where I / D is the maximally mixed state and p_eff is between 0 and 1.
+    It is used to model the effect of noise in certain quantum processes.
+    This class models the noise that results from the execution of multiple
+    layers, or cycles, of a random quantum circuit. In this model, p_eff for
+    the whole process is separated into a part that is independent of the number
+    of cycles (representing depolarization from state preparation and
+    measurement errors), and a part that exhibits exponential decay with the
+    number of cycles (representing depolarization from circuit execution
+    errors). So p_eff is modeled as
+
+        p_eff = S * p^d
+
+    where d is the number of cycles, or depth, S is the part that is independent
+    of depth, and p describes the exponential decay with depth. This class
+    stores S and p, as well as possibly the covariance in their estimation from
+    experimental data.
+
+    Attributes:
+        spam_depolarization: The depolarization constant for state preparation
+            and measurement, i.e., S in p_eff = S * p^d.
+        cycle_depolarization: The depolarization constant for circuit execution,
+            i.e., p in p_eff = S * p^d.
+        covariance: The estimated covariance in the estimation of
+            `spam_depolarization` and `cycle_depolarization`, in that order.
+    """
+    spam_depolarization: float
+    cycle_depolarization: float
+    covariance: Optional[np.ndarray] = None
 
 
 @protocols.json_serializable_dataclass(frozen=True)
@@ -61,15 +104,85 @@ class CrossEntropyResult:
             fig.show()
         return ax
 
+    def depolarizing_model(self) -> CrossEntropyDepolarizingModel:
+        """Fit a depolarizing error model for a cycle.
+
+        Fits an exponential model f = S * p^d, where d is the number of cycles
+        and f is the cross entropy fidelity for that number of cycles,
+        using nonlinear least squares.
+
+        Returns:
+            A DepolarizingModel object, which has attributes `coefficient`
+            representing the value S, `decay_constant` representing the value
+            p, and `covariance` representing the covariance in the estimation
+            of S and p in that order.
+        """
+        # Get initial guess by linear least squares with logarithm of model
+        x = [depth for depth, fidelity in self.data if fidelity > 0]
+        y = [np.log(fidelity) for _, fidelity in self.data if fidelity > 0]
+        fit = np.polynomial.polynomial.Polynomial.fit(x, y, 1).convert()
+        p0 = np.exp(fit.coef)
+
+        # Perform nonlinear least squares
+        x = [depth for depth, _ in self.data]
+        y = [fidelity for _, fidelity in self.data]
+
+        def f(d, S, p):
+            return S * p**d
+
+        params, covariance = scipy.optimize.curve_fit(f, x, y, p0=p0)
+
+        return CrossEntropyDepolarizingModel(spam_depolarization=params[0],
+                                             cycle_depolarization=params[1],
+                                             covariance=covariance)
+
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
         return cls(data=[CrossEntropyPair(d, f) for d, f in data],
                    repetitions=repetitions)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ('cirq.experiments.CrossEntropyResult('
                 f'data={[tuple(p) for p in self.data]!r}, '
                 f'repetitions={self.repetitions!r})')
+
+
+@dataclasses.dataclass
+class CrossEntropyResultDict(Mapping[Tuple['cirq.Qid', ...], CrossEntropyResult]
+                            ):
+    """Per-qubit-tuple results from cross-entropy benchmarking.
+
+    Attributes:
+        results: Dictionary from qubit tuple to cross-entropy benchmarking
+            result for that tuple.
+    """
+    results: Dict[Tuple['cirq.Qid', ...], CrossEntropyResult]
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            'results': list(self.results.items()),
+        }
+
+    @classmethod
+    def _from_json_dict_(
+            cls, results: List[Tuple[List['cirq.Qid'], CrossEntropyResult]],
+            **kwargs) -> 'CrossEntropyResultDict':
+        return cls(
+            results={tuple(qubits): result for qubits, result in results})
+
+    def __repr__(self) -> str:
+        return ('cirq.experiments.CrossEntropyResultDict('
+                f'results={self.results!r})')
+
+    def __getitem__(self, key: Tuple['cirq.Qid', ...]) -> CrossEntropyResult:
+        return self.results[key]
+
+    def __iter__(self):
+        return iter(self.results)
+
+    def __len__(self):
+        return len(self.results)
 
 
 def cross_entropy_benchmarking(
@@ -202,13 +315,13 @@ def cross_entropy_benchmarking(
                                                   circuits_k)
 
         # Simulate each circuit with the Cirq simulator to obtain the
-        # wavefunction at the end of each circuit, from which the
+        # state vector at the end of each circuit, from which the
         # theoretically expected bit-string probabilities are obtained.
         probs_exp_k = []  # type: List[np.ndarray]
         for circ_k in circuits_k:
             res = simulator.simulate(circ_k, qubit_order=qubits)
-            state_probs = np.abs(np.asarray(res.final_state)  # type: ignore
-                                )**2
+            state_probs = np.abs(np.asarray(
+                res.final_state_vector))**2  # type: ignore
             probs_exp_k.append(state_probs)
 
         for i, num_cycle in enumerate(cycle_range):

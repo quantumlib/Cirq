@@ -14,6 +14,11 @@
 
 """Circuit transformation utilities."""
 
+from cirq.optimizers.cphase_to_fsim import (
+    compute_cphase_exponents_for_fsim_decomposition,
+    decompose_cphase_into_two_fsim,
+)
+
 from cirq.optimizers.controlled_gate_decomposition import (
     decompose_multi_controlled_x, decompose_multi_controlled_rotation)
 
@@ -40,6 +45,7 @@ from cirq.optimizers.merge_interactions import (
 
 from cirq.optimizers.merge_single_qubit_gates import (
     merge_single_qubit_gates_into_phased_x_z,
+    merge_single_qubit_gates_into_phxz,
     MergeSingleQubitGates,
 )
 
@@ -48,9 +54,12 @@ from cirq.optimizers.decompositions import (
     single_qubit_matrix_to_gates,
     single_qubit_matrix_to_pauli_rotations,
     single_qubit_matrix_to_phased_x_z,
+    single_qubit_matrix_to_phxz,
     single_qubit_op_to_framed_phase_form,
 )
 
+from cirq.optimizers.stratify import (
+    stratified_circuit,)
 from cirq.optimizers.synchronize_terminal_measurements import (
     SynchronizeTerminalMeasurements,)
 

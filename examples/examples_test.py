@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 
 import cirq
 import examples.basic_arithmetic
+import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
@@ -23,6 +24,7 @@ import examples.quantum_fourier_transform
 import examples.quantum_teleportation
 import examples.qubit_characterizations_example
 import examples.shor
+import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
 
@@ -32,10 +34,13 @@ def test_example_runs_bernstein_vazirani():
 
     # Check empty oracle case. Cover both biases.
     a = cirq.NamedQubit('a')
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], False)) == []
-    assert list(examples.bernstein_vazirani.make_oracle(
-        [], a, [], True)) == [cirq.X(a)]
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [], False)) == []
+    assert list(examples.bernstein_vazirani.make_oracle([], a, [],
+                                                        True)) == [cirq.X(a)]
+
+
+def test_example_runs_simon():
+    examples.simon_algorithm.main()
 
 
 def test_example_runs_deutsch():
@@ -52,6 +57,10 @@ def test_example_runs_hello_qubit():
 
 def test_example_runs_bell_inequality():
     examples.bell_inequality.main()
+
+
+def test_example_runs_bb84():
+    examples.bb84.main()
 
 
 def test_example_runs_quantum_fourier_transform():
@@ -84,8 +93,9 @@ def test_example_runs_qaoa():
 
 
 def test_example_runs_quantum_teleportation():
-    expected, teleported = examples.quantum_teleportation.main()
-    assert np.all(np.isclose(expected, teleported, atol=1e-4))
+    _, teleported = examples.quantum_teleportation.main(seed=12)
+    assert np.allclose(np.array([0.07023552, -0.9968105, -0.03788921]),
+                       teleported)
 
 
 def test_example_runs_superdense_coding():

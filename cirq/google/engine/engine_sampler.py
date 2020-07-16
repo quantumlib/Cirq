@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import os
-from typing import List, TYPE_CHECKING, Union, Optional
+from typing import List, TYPE_CHECKING, Union, Optional, cast
 
-from cirq import work
+from cirq import work, circuits
 from cirq.google import engine, gate_sets
 
 if TYPE_CHECKING:
@@ -54,7 +54,8 @@ class QuantumEngineSampler(work.Sampler):
                                     repetitions=repetitions,
                                     processor_ids=self._processor_ids)
         else:
-            job = self._engine.run_sweep(program=program,
+            job = self._engine.run_sweep(program=cast(circuits.Circuit,
+                                                      program),
                                          params=params,
                                          repetitions=repetitions,
                                          processor_ids=self._processor_ids,

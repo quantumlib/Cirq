@@ -27,16 +27,8 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Sequence,
-    Tuple,
-    Optional,
-    TYPE_CHECKING,
-)
+from typing import (Any, Dict, Iterator, List, Sequence, Tuple, Optional,
+                    TYPE_CHECKING, Set, cast)
 
 import abc
 import collections
@@ -183,12 +175,12 @@ class SimulatesAmplitudes(metaclass=abc.ABCMeta):
 
 
 class SimulatesFinalState(metaclass=abc.ABCMeta):
-    """Simulator that allows access to a quantum computer's final state.
+    """Simulator that allows access to the simulator's final state.
 
     Implementors of this interface should implement the simulate_sweep
     method. This simulator only returns the state of the quantum system
-    for the final step of a simulation. This simulator state may be a wave
-    function, the density matrix, or another representation, depending on the
+    for the final step of a simulation. This simulator state may be a state
+    vector, the density matrix, or another representation, depending on the
     implementation.  For simulators that also allow stepping through
     a circuit see `SimulatesIntermediateState`.
     """
@@ -203,7 +195,7 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
-        wave function.
+        simulator's final state.
 
         Args:
             program: The circuit to simulate.
@@ -234,8 +226,8 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
     ) -> List['SimulationTrialResult']:
         """Simulates the supplied Circuit.
 
-        This method returns a result which allows access to the entire
-        wave function. In contrast to simulate, this allows for sweeping
+        This method returns a result which allows access to the entire final
+        simulator state. In contrast to simulate, this allows for sweeping
         over different parameter values.
 
         Args:
@@ -258,12 +250,15 @@ class SimulatesFinalState(metaclass=abc.ABCMeta):
 class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
     """A SimulatesFinalState that simulates a circuit by moments.
 
-    Whereas a general SimulatesFinalState may return the entire wave
-    function at the end of a circuit, a SimulatesIntermediateState can
+    Whereas a general SimulatesFinalState may return the entire simulator
+    state at the end of a circuit, a SimulatesIntermediateState can
     simulate stepping through the moments of a circuit.
 
     Implementors of this interface should implement the _simulator_iterator
     method.
+
+    Note that state here refers to simulator state, which is not necessarily
+    a state vector.
     """
 
     def simulate_sweep(
@@ -276,7 +271,7 @@ class SimulatesIntermediateState(SimulatesFinalState, metaclass=abc.ABCMeta):
         """Simulates the supplied Circuit.
 
         This method returns a result which allows access to the entire
-        wave function. In contrast to simulate, this allows for sweeping
+        state vector. In contrast to simulate, this allows for sweeping
         over different parameter values.
 
         Args:
@@ -417,10 +412,10 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample(self,
                qubits: List[ops.Qid],
                repetitions: int = 1,
-               seed: value.RANDOM_STATE_LIKE = None) -> np.ndarray:
+               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
         """Samples from the system at this point in the computation.
 
-        Note that this does not collapse the wave function.
+        Note that this does not collapse the state vector.
 
         Args:
             qubits: The qubits to be sampled in an order that influence the
@@ -439,11 +434,11 @@ class StepResult(metaclass=abc.ABCMeta):
     def sample_measurement_ops(self,
                                measurement_ops: List[ops.GateOperation],
                                repetitions: int = 1,
-                               seed: value.RANDOM_STATE_LIKE = None
+                               seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                               ) -> Dict[str, np.ndarray]:
         """Samples from the system at this point in the computation.
 
-        Note that this does not collapse the wave function.
+        Note that this does not collapse the state vector.
 
         In contrast to `sample` which samples qubits, this takes a list of
         `cirq.GateOperation` instances whose gates are `cirq.MeasurementGate`
@@ -468,29 +463,43 @@ class StepResult(metaclass=abc.ABCMeta):
                 instances or a qubit is acted upon multiple times by different
                 operations from `measurement_ops`.
         """
-        bounds = {}  # type: Dict[str, Tuple]
-        all_qubits = []  # type: List[ops.Qid]
-        meas_ops = {}
-        current_index = 0
+
+        # Sanity checks.
+        seen_measurement_keys: Set[str] = set()
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
-                raise ValueError('{} was not a MeasurementGate'.format(gate))
+                raise ValueError(f'{op.gate} was not a MeasurementGate')
             key = protocols.measurement_key(gate)
-            meas_ops[key] = gate
-            if key in bounds:
-                raise ValueError(
-                    'Duplicate MeasurementGate with key {}'.format(key))
-            bounds[key] = (current_index, current_index + len(op.qubits))
-            all_qubits.extend(op.qubits)
-            current_index += len(op.qubits)
-        indexed_sample = self.sample(all_qubits, repetitions, seed=seed)
+            if key in seen_measurement_keys:
+                raise ValueError(f'Duplicate MeasurementGate with key {key}')
+            seen_measurement_keys.add(key)
 
-        results = {}
-        for k, (s, e) in bounds.items():
-            before_invert_mask = indexed_sample[:, s:e]
-            results[k] = before_invert_mask ^ (np.logical_and(
-                before_invert_mask < 2, meas_ops[k].full_invert_mask()))
+        # Find measured qubits, ensuring a consistent ordering.
+        measured_qubits = []
+        seen_qubits: Set[cirq.Qid] = set()
+        for op in measurement_ops:
+            for q in op.qubits:
+                if q not in seen_qubits:
+                    seen_qubits.add(q)
+                    measured_qubits.append(q)
+
+        # Perform whole-system sampling of the measured qubits.
+        indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
+
+        # Extract results for each measurement.
+        results: Dict[str, np.ndarray] = {}
+        qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
+        for op in measurement_ops:
+            gate = cast(ops.MeasurementGate, op.gate)
+            out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
+            inv_mask = gate.full_invert_mask()
+            for i, q in enumerate(op.qubits):
+                out[:, i] = indexed_sample[:, qubits_to_index[q]]
+                if inv_mask[i]:
+                    out[:, i] ^= out[:, i] < 2
+            results[gate.key] = out
+
         return results
 
 
@@ -500,8 +509,8 @@ class SimulationTrialResult:
 
     Unlike TrialResult these results contain the final simulator_state of the
     system. This simulator_state is dependent on the simulation implementation
-    and may be, for example, the wave function of the system or the density
-    matrix of the system.
+    and may be, for example, the state vector or the density matrix of the
+    system.
 
     Attributes:
         params: A ParamResolver of settings used for this result.
@@ -519,13 +528,13 @@ class SimulationTrialResult:
         self.measurements = measurements
         self._final_simulator_state = final_simulator_state
 
-    def __repr__(self):
-        return ('cirq.SimulationTrialResult(params={!r}, '
-                'measurements={!r}, '
-                'final_simulator_state={!r})').format(
-                    self.params, self.measurements, self._final_simulator_state)
+    def __repr__(self) -> str:
+        return (f'cirq.SimulationTrialResult(params={self.params!r}, '
+                f'measurements={self.measurements!r}, '
+                f'final_simulator_state={self._final_simulator_state!r})')
 
-    def __str__(self):
+    def __str__(self) -> str:
+
         def bitstring(vals):
             separator = ' ' if np.max(vals) >= 10 else ''
             return separator.join(str(int(v)) for v in vals)
@@ -534,8 +543,7 @@ class SimulationTrialResult:
             [(key, bitstring(val)) for key, val in self.measurements.items()])
         if not results:
             return '(no measurements)'
-        return ' '.join(
-            ['{}={}'.format(key, val) for key, val in results])
+        return ' '.join([f'{key}={val}' for key, val in results])
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Text output in Jupyter."""
@@ -545,7 +553,7 @@ class SimulationTrialResult:
         else:
             p.text(str(self))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         measurements = {k: v.tolist() for k, v in
                         sorted(self.measurements.items())}
         return (self.params, measurements, self._final_simulator_state)
@@ -579,10 +587,10 @@ def _qubit_map_to_shape(qubit_map: Dict[ops.Qid, int]) -> Tuple[int, ...]:
 
 def _verify_unique_measurement_keys(circuit: circuits.Circuit):
     result = collections.Counter(
-        protocols.measurement_key(op, default=None)
-        for op in ops.flatten_op_tree(iter(circuit)))
-    result[None] = 0
-    duplicates = [k for k, v in result.most_common() if v > 1]
-    if duplicates:
-        raise ValueError('Measurement key {} repeated'.format(
-            ",".join(duplicates)))
+        key for op in ops.flatten_op_tree(iter(circuit))
+        for key in protocols.measurement_keys(op))
+    if result:
+        duplicates = [k for k, v in result.most_common() if v > 1]
+        if duplicates:
+            raise ValueError('Measurement key {} repeated'.format(
+                ",".join(duplicates)))

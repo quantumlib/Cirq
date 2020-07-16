@@ -36,7 +36,8 @@ from cirq.google.engine import (
     engine_from_environment,
     EngineJob,
     EngineProgram,
-    JobConfig,
+    EngineProcessor,
+    EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
     get_engine_sampler,
@@ -44,6 +45,7 @@ from cirq.google.engine import (
 
 from cirq.google.gate_sets import (
     XMON,
+    FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
     NAMED_GATESETS,
@@ -66,6 +68,7 @@ from cirq.google.optimizers import (
     ConvertToXmonGates,
     ConvertToSqrtIswapGates,
     ConvertToSycamoreGates,
+    GateTabulation,
     optimized_for_sycamore,
     optimized_for_xmon,
 )

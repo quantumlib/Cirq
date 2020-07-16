@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
@@ -52,15 +51,13 @@ from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
     CX,
+    CXPowGate,
     CZ,
     CZPowGate,
     H,
     HPowGate,
-    Rx,
     rx,
-    Ry,
     ry,
-    Rz,
     rz,
     S,
     T,
@@ -77,6 +74,7 @@ from cirq.ops.eigen_gate import (
 
 from cirq.ops.fourier_transform import (
     PhaseGradientGate,
+    qft,
     QFT,
     QuantumFourierTransformGate,
 )
@@ -92,15 +90,12 @@ from cirq.ops.gate_features import (
 )
 
 from cirq.ops.gate_operation import (
-    GateOperation,
-    op_gate_of_type,
-)
+    GateOperation,)
 
 from cirq.ops.identity import (
     I,
     identity_each,
     IdentityGate,
-    IdentityOperation,
 )
 
 from cirq.ops.global_phase_op import (
@@ -126,10 +121,7 @@ from cirq.ops.qubit_order_or_list import (
     QubitOrderOrList,)
 
 from cirq.ops.matrix_gates import (
-    MatrixGate,
-    SingleQubitMatrixGate,
-    TwoQubitMatrixGate,
-)
+    MatrixGate,)
 
 from cirq.ops.measure_util import (
     measure,
@@ -188,7 +180,6 @@ from cirq.ops.pauli_string_raw_types import (
 
 from cirq.ops.phased_iswap_gate import (
     givens,
-    GivensRotation,
     PhasedISwapPowGate,
 )
 
@@ -197,6 +188,9 @@ from cirq.ops.phased_x_gate import (
 
 from cirq.ops.phased_x_z_gate import (
     PhasedXZGate,)
+
+from cirq.ops.random_gate_channel import (
+    RandomGateChannel,)
 
 from cirq.ops.raw_types import (
     Gate,
@@ -208,14 +202,17 @@ from cirq.ops.raw_types import (
 from cirq.ops.swap_gates import (
     ISWAP,
     ISwapPowGate,
-    ISwapRotation,
     riswap,
     SWAP,
     SwapPowGate,
 )
 
+from cirq.ops.tags import (
+    VirtualTag,)
+
 from cirq.ops.three_qubit_gates import (
     CCNOT,
+    CCNotPowGate,
     CCX,
     CCXPowGate,
     CCZ,
@@ -226,6 +223,9 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.two_qubit_diagonal_gate import (
+    TwoQubitDiagonalGate,)
 
 from cirq.ops.wait_gate import (
     WaitGate,)

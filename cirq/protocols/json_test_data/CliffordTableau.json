@@ -1,0 +1,31 @@
+{
+  "cirq_type": "CliffordTableau",
+  "n": 1,
+  "rs": [
+    false,
+    false,
+    false
+  ],
+  "xs": [
+    [
+      true
+    ],
+    [
+      false
+    ],
+    [
+      false
+    ]
+  ],
+  "zs": [
+    [
+      false
+    ],
+    [
+      true
+    ],
+    [
+      false
+    ]
+  ]
+}

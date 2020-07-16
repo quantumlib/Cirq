@@ -27,6 +27,9 @@ from cirq.testing.circuit_compare import (
     assert_has_consistent_qid_shape,
 )
 
+from cirq.testing.consistent_act_on import (
+    assert_act_on_clifford_tableau_effect_matches_unitary,)
+
 from cirq.testing.consistent_phase_by import (
     assert_phase_by_is_consistent_with_unitary,)
 
@@ -46,6 +49,9 @@ from cirq.testing.consistent_protocols import (
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,)
 
+from cirq.testing.consistent_specified_has_unitary import (
+    assert_specifies_has_unitary_if_unitary,)
+
 from cirq.testing.equals_tester import (
     EqualsTester,)
 
@@ -57,6 +63,7 @@ from cirq.testing.json import (
 
 from cirq.testing.lin_alg_utils import (
     assert_allclose_up_to_global_phase,
+    random_density_matrix,
     random_orthogonal,
     random_special_orthogonal,
     random_special_unitary,
@@ -64,11 +71,16 @@ from cirq.testing.lin_alg_utils import (
     random_unitary,
 )
 
+from cirq.testing.logs import (
+    assert_logs,)
+
 from cirq.testing.order_tester import (
     OrderTester,)
 
 from cirq.testing.random_circuit import (
-    random_circuit,)
+    DEFAULT_GATE_DOMAIN,
+    random_circuit,
+)
 
 from cirq.testing.sample_circuits import (
     nonoptimal_toffoli_circuit,)

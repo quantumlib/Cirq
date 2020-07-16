@@ -15,13 +15,13 @@
 
 """Utility methods for breaking matrices into useful pieces."""
 
-from typing import (Callable, List, Set, Tuple, TypeVar, Union, Iterable,
-                    Optional, TYPE_CHECKING, Sequence)
+from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
+                    Tuple, TYPE_CHECKING, TypeVar, Union)
 
 import math
 import cmath
 import numpy as np
-
+import scipy
 import matplotlib.pyplot as plt
 
 from cirq import value, protocols
@@ -102,59 +102,40 @@ def _group_similar(items: List[T],
     return groups
 
 
-def _perp_eigendecompose(matrix: np.ndarray,
-                         rtol: float = 1e-5,
-                         atol: float = 1e-8,
-                         ) -> Tuple[np.array, List[np.ndarray]]:
-    """An eigendecomposition that ensures eigenvectors are perpendicular.
+def unitary_eig(matrix: np.ndarray,
+                check_preconditions: bool = True,
+                atol: float = 1e-8) -> Tuple[np.array, np.ndarray]:
+    """Gives the guaranteed unitary eigendecomposition of a normal matrix.
 
-    numpy.linalg.eig doesn't guarantee that eigenvectors from the same
-    eigenspace will be perpendicular. This method uses Gram-Schmidt to recover
-    a perpendicular set. It further checks that all eigenvectors are
-    perpendicular and raises an ArithmeticError otherwise.
+    All hermitian and unitary matrices are normal matrices. This method was
+    introduced as for certain classes of unitary matrices (where the eigenvalues
+    are close to each other) the eigenvectors returned by `numpy.linalg.eig` are
+    not guaranteed to be orthogonal.
+    For more information, see https://github.com/numpy/numpy/issues/15461.
 
     Args:
-        matrix: The matrix to decompose.
-        rtol: Relative threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
-        atol: Absolute threshold for determining whether eigenvalues are from
-              the same eigenspace and whether eigenvectors are perpendicular.
+        matrix: a normal matrix. If not normal, this method is not
+            guaranteed to return correct eigenvalues.
+        check_preconditions: when true and matrix is not unitary,
+            a `ValueError` is raised
+        atol: the absolute tolerance when checking whether the original matrix
+            was unitary
 
     Returns:
-        The eigenvalues and column eigenvectors. The i'th eigenvalue is
-        associated with the i'th column eigenvector.
-
-    Raises:
-        ArithmeticError: Failed to find perpendicular eigenvectors.
+         eigvals: the eigenvalues of `matrix`
+         V: the unitary matrix with the eigenvectors as columns
     """
-    vals, cols = np.linalg.eig(matrix)
-    vecs = [cols[:, i] for i in range(len(cols))]
-
-    # Convert list of row arrays to list of column arrays.
-    for i in range(len(vecs)):
-        vecs[i] = np.reshape(vecs[i], (len(vecs[i]), vecs[i].ndim))
-
-    # Group by similar eigenvalue.
-    n = len(vecs)
-    groups = _group_similar(
-        list(range(n)),
-        lambda k1, k2: np.allclose(vals[k1], vals[k2], rtol=rtol))
-
-    # Remove overlap between eigenvectors with the same eigenvalue.
-    for g in groups:
-        q, _ = np.linalg.qr(np.hstack([vecs[i] for i in g]))
-        for i in range(len(g)):
-            vecs[g[i]] = q[:, i]
-
-    return vals, vecs
+    if check_preconditions and not predicates.is_normal(matrix, atol=atol):
+        raise ValueError('Input must correspond to a normal matrix '
+                         f'.Received input:\n{matrix}')
+    R, V = scipy.linalg.schur(matrix, output="complex")
+    return R.diagonal(), V
 
 
-def map_eigenvalues(
-        matrix: np.ndarray,
-        func: Callable[[complex], complex],
-        *,
-        rtol: float = 1e-5,
-        atol: float = 1e-8) -> np.ndarray:
+def map_eigenvalues(matrix: np.ndarray,
+                    func: Callable[[complex], complex],
+                    *,
+                    atol: float = 1e-8) -> np.ndarray:
     """Applies a function to the eigenvalues of a matrix.
 
     Given M = sum_k a_k |v_k><v_k|, returns f(M) = sum_k f(a_k) |v_k><v_k|.
@@ -168,10 +149,8 @@ def map_eigenvalues(
     Returns:
         The transformed matrix.
     """
-    vals, vecs = _perp_eigendecompose(matrix,
-                                      rtol=rtol,
-                                      atol=atol)
-    pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs]
+    vals, vecs = unitary_eig(matrix, atol=atol)
+    pieces = [np.outer(vec, np.conj(vec.T)) for vec in vecs.T]
     out_vals = np.vectorize(func)(vals.astype(complex))
 
     total = np.zeros(shape=matrix.shape)
@@ -331,12 +310,12 @@ class AxisAngleDecomposition:
                                       angle=angle,
                                       global_phase=p)
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
         v = self.canonicalize(atol=0)
         return (value.PeriodicValue(v.angle,
                                     period=math.pi * 2), v.axis, v.global_phase)
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         x, y, z = self.axis
         xm = np.array([[0, 1], [1, 0]])
         ym = np.array([[0, -1j], [1j, 0]])
@@ -346,19 +325,16 @@ class AxisAngleDecomposition:
         s = math.sin(-self.angle / 2)
         return (c * i + 1j * s * (x * xm + y * ym + z * zm)) * self.global_phase
 
-    def __str__(self):
+    def __str__(self) -> str:
         axis_terms = '+'.join('{:.3g}*{}'.format(e, a) if e < 0.9999 else a
                               for e, a in zip(self.axis, ['X', 'Y', 'Z'])
                               if abs(e) >= 1e-8).replace('+-', '-')
-        return '{:.3g}*π around {}'.format(
-            self.angle / np.pi,
-            axis_terms,
-        )
+        half_turns = self.angle / np.pi
+        return f'{half_turns:.3g}*π around {axis_terms}'
 
-    def __repr__(self):
-        return ('cirq.AxisAngleDecomposition('
-                'angle={!r}, axis={!r}, global_phase={!r})'.format(
-                    self.angle, self.axis, self.global_phase))
+    def __repr__(self) -> str:
+        return (f'cirq.AxisAngleDecomposition(angle={self.angle!r}, '
+                f'axis={self.axis!r}, global_phase={self.global_phase!r})')
 
 
 def axis_angle(single_qubit_unitary: np.ndarray) -> AxisAngleDecomposition:
@@ -459,7 +435,8 @@ class KakDecomposition:
                 np.eye(2, dtype=np.complex64),
             ))
 
-    def _value_equality_values_(self):
+    def _value_equality_values_(self) -> Any:
+
         def flatten(x):
             return tuple(tuple(e.flat) for e in x)
 
@@ -467,42 +444,39 @@ class KakDecomposition:
                 flatten(self.single_qubit_operations_before),
                 flatten(self.single_qubit_operations_after))
 
-    def __str__(self):
-        return ('KAK {{\n'
-                '    xyz*(4/π): {:.3g}, {:.3g}, {:.3g}\n'
-                '    before: ({}) ⊗ ({})\n'
-                '    after: ({}) ⊗ ({})\n'
-                '}}').format(self.interaction_coefficients[0] * 4 / np.pi,
-                             self.interaction_coefficients[1] * 4 / np.pi,
-                             self.interaction_coefficients[2] * 4 / np.pi,
-                             axis_angle(self.single_qubit_operations_before[0]),
-                             axis_angle(self.single_qubit_operations_before[1]),
-                             axis_angle(self.single_qubit_operations_after[0]),
-                             axis_angle(self.single_qubit_operations_after[1]))
+    def __str__(self) -> str:
+        xx = self.interaction_coefficients[0] * 4 / np.pi
+        yy = self.interaction_coefficients[1] * 4 / np.pi
+        zz = self.interaction_coefficients[2] * 4 / np.pi
+        before0 = axis_angle(self.single_qubit_operations_before[0])
+        before1 = axis_angle(self.single_qubit_operations_before[1])
+        after0 = axis_angle(self.single_qubit_operations_after[0])
+        after1 = axis_angle(self.single_qubit_operations_after[1])
+        return ('KAK {\n'
+                f'    xyz*(4/π): {xx:.3g}, {yy:.3g}, {zz:.3g}\n'
+                f'    before: ({before0}) ⊗ ({before1})\n'
+                f'    after: ({after0}) ⊗ ({after1})\n'
+                '}')
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        before0 = proper_repr(self.single_qubit_operations_before[0])
+        before1 = proper_repr(self.single_qubit_operations_before[1])
+        after0 = proper_repr(self.single_qubit_operations_after[0])
+        after1 = proper_repr(self.single_qubit_operations_after[1])
         return (
             'cirq.KakDecomposition(\n'
-            '    interaction_coefficients={!r},\n'
+            f'    interaction_coefficients={self.interaction_coefficients!r},\n'
             '    single_qubit_operations_before=(\n'
-            '        {},\n'
-            '        {},\n'
+            f'        {before0},\n'
+            f'        {before1},\n'
             '    ),\n'
             '    single_qubit_operations_after=(\n'
-            '        {},\n'
-            '        {},\n'
+            f'        {after0},\n'
+            f'        {after1},\n'
             '    ),\n'
-            '    global_phase={!r})'
-        ).format(
-            self.interaction_coefficients,
-            proper_repr(self.single_qubit_operations_before[0]),
-            proper_repr(self.single_qubit_operations_before[1]),
-            proper_repr(self.single_qubit_operations_after[0]),
-            proper_repr(self.single_qubit_operations_after[1]),
-            self.global_phase,
-        )
+            f'    global_phase={self.global_phase!r})')
 
-    def _unitary_(self):
+    def _unitary_(self) -> np.ndarray:
         """Returns the decomposition's two-qubit unitary matrix.
 
         U = g · (a1 ⊗ a0) · exp(i·(x·XX + y·YY + z·ZZ)) · (b1 ⊗ b0)
@@ -525,6 +499,20 @@ class KakDecomposition:
             interaction_matrix(y_mat, y),
             interaction_matrix(x_mat, x),
             before)
+
+    def _decompose_(self, qubits):
+        from cirq import ops
+        a, b = qubits
+        return [
+            ops.GlobalPhaseOperation(self.global_phase),
+            ops.MatrixGate(self.single_qubit_operations_before[0]).on(a),
+            ops.MatrixGate(self.single_qubit_operations_before[1]).on(b),
+            np.exp(1j * ops.X(a) * ops.X(b) * self.interaction_coefficients[0]),
+            np.exp(1j * ops.Y(a) * ops.Y(b) * self.interaction_coefficients[1]),
+            np.exp(1j * ops.Z(a) * ops.Z(b) * self.interaction_coefficients[2]),
+            ops.MatrixGate(self.single_qubit_operations_after[0]).on(a),
+            ops.MatrixGate(self.single_qubit_operations_after[1]).on(b),
+        ]
 
 
 def scatter_plot_normalized_kak_interaction_coefficients(
@@ -781,6 +769,8 @@ KAK_GAMMA = np.array([[1, 1, 1, 1],
                       [1, 1, -1, -1],
                       [-1, 1, -1, 1],
                       [1, -1, -1, 1]]) * 0.25
+
+
 # yapf: enable
 
 
