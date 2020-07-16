@@ -483,7 +483,7 @@ class Engine:
         identify devices when scheduling jobs and gathering calibration metrics.
 
         Returns:
-            A list of EngineProcessors to access status, device and calibration
+            A list of EngineProcessors to access statfus, device and calibration
             information.
         """
         response = self.context.client.list_processors(self.project_id)

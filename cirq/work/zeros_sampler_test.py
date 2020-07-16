@@ -13,14 +13,9 @@
 # limitations under the License.
 
 import numpy as np
-import pytest
 import sympy
 
 import cirq
-from cirq import study
-from cirq.google.common_serializers import (SINGLE_QUBIT_SERIALIZERS,
-                                            SINGLE_QUBIT_DESERIALIZERS)
-from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 def test_run_sweep():
@@ -48,25 +43,9 @@ def test_sample():
     c += [cirq.measure(q) for q in qs[0:3]]
     c += cirq.measure(qs[4], qs[5])
     # Z to even power is an identity.
-    params = study.Points(sympy.Symbol('p'), [0, 2, 4, 6])
+    params = cirq.Points(sympy.Symbol('p'), [0, 2, 4, 6])
 
-    result1 = cirq.ZerosSampler().sample(c, repetitions=10,
-                                         params=params).sort_index(axis=1)
-    result2 = cirq.Simulator().sample(c, repetitions=10,
-                                      params=params).sort_index(axis=1)
+    result1 = cirq.ZerosSampler().sample(c, repetitions=10, params=params)
+    result2 = cirq.Simulator().sample(c, repetitions=10, params=params)
 
     assert np.all(result1 == result2)
-
-
-def test_sample_with_gate_set():
-    gate_set = SerializableGateSet('test', SINGLE_QUBIT_SERIALIZERS,
-                                   SINGLE_QUBIT_DESERIALIZERS)
-    sampler = cirq.ZerosSampler(gate_set=gate_set)
-    a, b = cirq.LineQubit.range(2)
-    circuit1 = cirq.Circuit([cirq.X(a)])
-    circuit2 = cirq.Circuit([cirq.CX(a, b)])
-
-    sampler.sample(circuit1)
-
-    with pytest.raises(AssertionError, match='Unsupported operation'):
-        sampler.sample(circuit2)
