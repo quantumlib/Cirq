@@ -37,7 +37,8 @@ class PasqalDevice(cirq.devices.Device):
 
         if len(qubits) > self.maximum_qubit_number:
             raise ValueError('Too many qubits. {} accepts at most {} '
-                'qubits.'.format(type(self), self.maximum_qubit_number))
+                             'qubits.'.format(type(self),
+                                              self.maximum_qubit_number))
 
         self.qubits = qubits
 
