@@ -72,11 +72,12 @@ def get_engine_sampler(processor_id: str, gate_set_name: str,
     """Get an EngineSampler assuming some sensible defaults.
 
     This uses the environment variable GOOGLE_GLOUD_PROJECT for the Engine
-    project_id, unless set explicitly. We assume you are using ProtoVersion.V2.
+    project_id, unless set explicitly.
 
     Args:
-        processor_id: Engine processor ID (from cloud console)
-        gate_set_name: One of ['sqrt-iswap', 'syc'].
+        processor_id: Engine processor ID (from Cloud console or
+            ``Engine.list_processors``).
+        gate_set_name: One of ['sqrt_iswap', 'sycamore'].
             See `cirq.google.NAMED_GATESETS`.
         project_id: Optional explicit Google Cloud project id. Otherwise,
             this defaults to the environment variable GOOGLE_CLOUD_PROJECT.

@@ -63,7 +63,7 @@ def test_get_engine_sampler_explicit_project_id(monkeypatch):
                            'QuantumEngineServiceClient',
                            autospec=True):
         sampler = cg.get_engine_sampler(processor_id='hi mom',
-                                        gate_set_name='sqrt-iswap',
+                                        gate_set_name='sqrt_iswap',
                                         project_id='myproj')
     assert hasattr(sampler, 'run_sweep')
 
@@ -79,7 +79,7 @@ def test_get_engine_sampler(monkeypatch):
                            'QuantumEngineServiceClient',
                            autospec=True):
         sampler = cg.get_engine_sampler(processor_id='hi mom',
-                                        gate_set_name='sqrt-iswap')
+                                        gate_set_name='sqrt_iswap')
     assert hasattr(sampler, 'run_sweep')
 
     with pytest.raises(ValueError):
