@@ -34,7 +34,7 @@ QFT2 = np.array([[1, 1, 1, 1],
 ])
 def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-            eigen_gate_type)
+        eigen_gate_type)
 
 
 @pytest.mark.parametrize('eigen_gate_type', [
@@ -43,7 +43,7 @@ def test_phase_insensitive_eigen_gates_consistent_protocols(eigen_gate_type):
 ])
 def test_phase_sensitive_eigen_gates_consistent_protocols(eigen_gate_type):
     cirq.testing.assert_eigengate_implements_consistent_protocols(
-            eigen_gate_type, ignoring_global_phase=True)
+        eigen_gate_type, ignoring_global_phase=True)
 
 
 def test_cz_init():
@@ -93,23 +93,17 @@ def test_cz_unitary():
                                  [0, 0, 1, 0],
                                  [0, 0, 0, -1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ**0.5),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1j]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**0.5),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1j]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ**0),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, 1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**0),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
 
-    assert np.allclose(cirq.unitary(cirq.CZ**-0.5),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, -1j]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ**-0.5),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1j]]))
 
 
 def test_z_init():
@@ -249,12 +243,9 @@ def test_rot_gates_eq():
 def test_z_unitary():
     assert np.allclose(cirq.unitary(cirq.Z),
                        np.array([[1, 0], [0, -1]]))
-    assert np.allclose(cirq.unitary(cirq.Z**0.5),
-                       np.array([[1, 0], [0, 1j]]))
-    assert np.allclose(cirq.unitary(cirq.Z**0),
-                       np.array([[1, 0], [0, 1]]))
-    assert np.allclose(cirq.unitary(cirq.Z**-0.5),
-                       np.array([[1, 0], [0, -1j]]))
+    assert np.allclose(cirq.unitary(cirq.Z**0.5), np.array([[1, 0], [0, 1j]]))
+    assert np.allclose(cirq.unitary(cirq.Z**0), np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.Z**-0.5), np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_unitary():
@@ -264,8 +255,7 @@ def test_y_unitary():
     assert np.allclose(cirq.unitary(cirq.Y**0.5),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary(cirq.Y**0),
-                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.Y**0), np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(cirq.unitary(cirq.Y**-0.5),
                        np.array([[1 - 1j, 1 - 1j], [-1 + 1j, 1 - 1j]]) / 2)
@@ -278,8 +268,7 @@ def test_x_unitary():
     assert np.allclose(cirq.unitary(cirq.X**0.5),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
 
-    assert np.allclose(cirq.unitary(cirq.X**0),
-                       np.array([[1, 0], [0, 1]]))
+    assert np.allclose(cirq.unitary(cirq.X**0), np.array([[1, 0], [0, 1]]))
 
     assert np.allclose(cirq.unitary(cirq.X**-0.5),
                        np.array([[1 - 1j, 1 + 1j], [1 + 1j, 1 - 1j]]) / 2)
@@ -299,6 +288,266 @@ def test_h_init():
 def test_h_str():
     assert str(cirq.H) == 'H'
     assert str(cirq.H**0.5) == 'H^0.5'
+
+
+def test_x_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.X, object())
+    original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
+    flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.X, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.X**2, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.X**foo, args)
+
+
+class PhaserGate(cirq.SingleQubitGate):
+    """Equivalent to an iZ gate without _act_on_ defined on it."""
+
+    def _unitary_(self):
+        return np.array([[1j, 0], [0, -1j]])
+
+
+def test_y_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.Y, object())
+    original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
+    flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
+    cirq.act_on(PhaserGate(), args)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.Y, args, allow_decompose=False)
+    cirq.act_on(PhaserGate(), args, allow_decompose=True)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
+    cirq.act_on(PhaserGate(), args)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.Y**2, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.Y**foo, args)
+
+
+def test_z_h_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.Y, object())
+    original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
+    flipped_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=23)
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
+    cirq.act_on(cirq.H, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.Z**2, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    cirq.act_on(cirq.H**2, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == flipped_tableau
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.Z**foo, args)
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.H**foo, args)
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.H**1.5, args)
+
+
+def test_cx_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.Y, object())
+    original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[0, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.CX, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert (args.tableau.stabilizers() == [
+        cirq.DensePauliString('ZIIII', coefficient=-1),
+        cirq.DensePauliString('ZZIII', coefficient=-1),
+        cirq.DensePauliString('IIZII', coefficient=-1),
+        cirq.DensePauliString('IIIZI', coefficient=-1),
+        cirq.DensePauliString('IIIIZ', coefficient=-1)
+    ])
+    assert (args.tableau.destabilizers() == [
+        cirq.DensePauliString('XXIII', coefficient=1),
+        cirq.DensePauliString('IXIII', coefficient=1),
+        cirq.DensePauliString('IIXII', coefficient=1),
+        cirq.DensePauliString('IIIXI', coefficient=1),
+        cirq.DensePauliString('IIIIX', coefficient=1)
+    ])
+
+    cirq.act_on(cirq.CX, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    cirq.act_on(cirq.CX**4, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.CX**foo, args)
+
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.CX**1.5, args)
+
+
+def test_cz_act_on():
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(cirq.Y, object())
+    original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=original_tableau.copy(),
+        axes=[0, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(cirq.CZ, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert (args.tableau.stabilizers() == [
+        cirq.DensePauliString('ZIIII', coefficient=-1),
+        cirq.DensePauliString('IZIII', coefficient=-1),
+        cirq.DensePauliString('IIZII', coefficient=-1),
+        cirq.DensePauliString('IIIZI', coefficient=-1),
+        cirq.DensePauliString('IIIIZ', coefficient=-1)
+    ])
+    assert (args.tableau.destabilizers() == [
+        cirq.DensePauliString('XZIII', coefficient=1),
+        cirq.DensePauliString('ZXIII', coefficient=1),
+        cirq.DensePauliString('IIXII', coefficient=1),
+        cirq.DensePauliString('IIIXI', coefficient=1),
+        cirq.DensePauliString('IIIIX', coefficient=1)
+    ])
+
+    cirq.act_on(cirq.CZ, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    cirq.act_on(cirq.CZ**4, args, allow_decompose=False)
+    assert args.log_of_measurement_results == {}
+    assert args.tableau == original_tableau
+
+    foo = sympy.Symbol('foo')
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.CZ**foo, args)
+
+    with pytest.raises(TypeError, match="Failed to act action on state"):
+        cirq.act_on(cirq.CZ**1.5, args)
+
+
+@pytest.mark.parametrize(
+    'input_gate',
+    [
+        cirq.X,
+        cirq.Y,
+        cirq.Z,
+        cirq.X**0.5,
+        cirq.Y**0.5,
+        cirq.Z**0.5,
+        cirq.X**3.5,
+        cirq.Y**3.5,
+        cirq.Z**3.5,
+        cirq.X**4,
+        cirq.Y**4,
+        cirq.Z**4,
+        cirq.H,
+        cirq.CX,
+        cirq.CZ,
+        cirq.H**4,
+        cirq.CX**4,
+        cirq.CZ**4,
+        # Gates not supported by CliffordTableau should not fail too.
+        cirq.X**0.25,
+        cirq.Y**0.25,
+        cirq.Z**0.25,
+        cirq.H**0.5,
+        cirq.CX**0.5,
+        cirq.CZ**0.5
+    ])
+def test_act_on_clifford_tableau(input_gate):
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(
+        input_gate)
 
 
 def test_runtime_types_of_rot_gates():
@@ -376,8 +625,8 @@ def test_cnot_unitary():
         np.array([
             [1, 0, 0, 0],
             [0, 1, 0, 0],
-            [0, 0, 0.5+0.5j, 0.5-0.5j],
-            [0, 0, 0.5-0.5j, 0.5+0.5j],
+            [0, 0, 0.5 + 0.5j, 0.5 - 0.5j],
+            [0, 0, 0.5 - 0.5j, 0.5 + 0.5j],
         ]))
 
 
@@ -451,8 +700,8 @@ def test_repr():
     assert repr(cirq.CNOT) == 'cirq.CNOT'
     assert repr(cirq.CNOT**0.5) == '(cirq.CNOT**0.5)'
 
-    cirq.testing.assert_equivalent_repr(
-        cirq.X**(sympy.Symbol('a') / 2 - sympy.Symbol('c') * 3 + 5))
+    cirq.testing.assert_equivalent_repr(cirq.X**(sympy.Symbol('a') / 2 -
+                                                 sympy.Symbol('c') * 3 + 5))
 
     # There should be no floating point error during initialization, and repr
     # should be using the "shortest decimal value closer to X than any other
