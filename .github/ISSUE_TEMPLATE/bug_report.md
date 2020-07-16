@@ -13,18 +13,18 @@ assignees: ''
 
 \`\`\`
 
-put code in code blocks
+put code in code blocks *like this*
 
 \`\`\`
 
 \<details\>
 
-put long logs in details blocks
+put long logs in details blocks *like this*
 
 \<\/details\>
 
-**Cirq version (optional)**
-You can get the cirq version by printing `cirq.__version__`. From the command line this can be obtained by running 
+**Cirq version**
+You can get the cirq version by printing `cirq.__version__`. From the command line:
 
 ```
 python -c 'import cirq; print(cirq.__version__)'
