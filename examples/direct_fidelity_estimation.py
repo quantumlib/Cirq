@@ -22,6 +22,7 @@ import argparse
 import asyncio
 from dataclasses import dataclass
 import itertools
+import math
 import random
 import sys
 import numpy as np
@@ -276,6 +277,39 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
+def _estimate_std_devs_clifford(fidelity: float,
+                                n: int) -> Tuple[Optional[float], float]:
+    """
+    Estimates the standard deviation of the measurement for Clifford circuits.
+
+    Args:
+        fidelity: The measured fidelity
+        n: the number of measurements
+
+    Returns:
+        The standard deviation (estimated from the fidelity and a maximum bound
+        on the variance regardless of what the true fidelity is)
+    """
+
+    # We use the Bhatia Davis inequality to estimate the variance of the
+    # fidelity. This gives that:
+    # Var[\hat{F}] <= (1 - F) . F / N
+    # StdDev[\hat{F}] <= \sqrt{(1 - F) . F / N}
+    #
+    # By further using the fact that 0 <= F <= 1 we get:
+    # StdDev[\hat{F}] <= \frac{1}{2 \sqrt{N}}
+
+    # Because of the noisiness of the simulation, the estimated fidelity can be
+    # outside the [0, 1] range. If that is the case, we just do not use it to
+    # compute the estimate.
+    in_range = fidelity >= 0 and fidelity <= 1.0
+    std_dev_estimate = math.sqrt(
+        (1.0 - fidelity) * fidelity / n) if in_range else None
+
+    std_dev_bound = 0.5 / math.sqrt(n)
+    return std_dev_estimate, std_dev_bound
+
+
 @dataclass
 class TrialResult:
     """
@@ -304,6 +338,9 @@ class DFEIntermediateResult:
     pauli_traces: List[PauliTrace]
     # Measurement results from sampling the circuit.
     trial_results: List[TrialResult]
+    # Standard deviations (estimate based on fidelity and bound)
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
@@ -408,10 +445,20 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
 
     estimated_fidelity = fidelity / len(pauli_traces)
 
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
+    if clifford_circuit:
+        std_dev_estimate, std_dev_bound = _estimate_std_devs_clifford(
+            estimated_fidelity, len(measured_pauli_traces))
+    else:
+        std_dev_estimate, std_dev_bound = None, None
+
     dfe_intermediate_result = DFEIntermediateResult(
         clifford_state=clifford_state,
         pauli_traces=pauli_traces,
-        trial_results=trial_results)
+        trial_results=trial_results,
+        std_dev_estimate=std_dev_estimate,
+        std_dev_bound=std_dev_bound)
 
     return estimated_fidelity, dfe_intermediate_result
 
