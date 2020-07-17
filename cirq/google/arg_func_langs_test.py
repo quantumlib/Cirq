@@ -99,6 +99,17 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
             assert packed == proto
 
 
+def test_double_value():
+    """Note: due to backwards compatibility, double_val conversion is one-way.
+    double_val can be converted to python float,
+    but a python float is converted into a float_val not a double_val.
+    """
+    msg = v2.program_pb2.Arg()
+    msg.arg_value.double_value = 1.0
+    parsed = _arg_from_proto(msg, arg_function_language='')
+    assert parsed == 1
+
+
 def test_serialize_sympy_constants():
     proto = _arg_to_proto(sympy.pi, arg_function_language='')
     packed = json_format.MessageToDict(proto,
