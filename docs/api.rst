@@ -281,6 +281,7 @@ results.
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
+    cirq.ZerosSampler
     cirq.Zip
 
 
