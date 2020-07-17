@@ -167,6 +167,9 @@ def test_direct_fidelity_estimation_intermediate_results():
     np.testing.assert_equal(len(intermediate_result.trial_results), 1)
     assert np.isclose(intermediate_result.trial_results[0].sigma_i, 1.0)
 
+    assert np.isclose(intermediate_result.std_dev_estimate, 0.0)
+    assert np.isclose(intermediate_result.std_dev_bound, 0.5)
+
 
 def test_parsing_args():
     dfe.parse_arguments(['--samples_per_term=10'])
