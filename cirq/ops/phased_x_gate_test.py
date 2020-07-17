@@ -156,6 +156,24 @@ def test_eq():
                                               global_shift=-0.5))
 
 
+def test_approx_eq():
+    assert cirq.approx_eq(
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
+        atol=1e-4,
+    )
+    assert not cirq.approx_eq(
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.4),
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
+        atol=1e-4,
+    )
+    assert cirq.approx_eq(
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.4),
+        cirq.PhasedXPowGate(phase_exponent=0.1, exponent=0.2, global_shift=0.3),
+        atol=0.2,
+    )
+
+
 def test_str_repr():
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25)) == 'PhX(0.25)'
     assert str(cirq.PhasedXPowGate(phase_exponent=0.25,

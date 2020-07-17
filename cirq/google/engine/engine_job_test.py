@@ -315,57 +315,96 @@ def test_delete(delete_job):
     delete_job.assert_called_once_with('a', 'b', 'steve')
 
 
+RESULTS = qtypes.QuantumResult(result=_to_any(
+    Merge(
+        """
+sweep_results: [{
+        repetitions: 4,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 1
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\006'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 2
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\005'
+                }]
+            }
+        }]
+    }]
+""", v2.result_pb2.Result())))
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
 def test_results(get_job_results):
     qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
         state=qtypes.ExecutionStatus.State.SUCCESS))
-    results = qtypes.QuantumResult(result=_to_any(
-        Merge(
-            """
-    sweep_results: [{
-            repetitions: 4,
-            parameterized_results: [{
-                params: {
-                    assignments: {
-                        key: 'a'
-                        value: 1
-                    }
-                },
-                measurement_results: {
-                    key: 'q'
-                    qubit_measurement_results: [{
-                      qubit: {
-                        id: '1_1'
-                      }
-                      results: '\006'
-                    }]
-                }
-            },{
-                params: {
-                    assignments: {
-                        key: 'a'
-                        value: 2
-                    }
-                },
-                measurement_results: {
-                    key: 'q'
-                    qubit_measurement_results: [{
-                      qubit: {
-                        id: '1_1'
-                      }
-                      results: '\005'
-                    }]
-                }
-            }]
-        }]
-    """, v2.result_pb2.Result())))
-    get_job_results.return_value = results
+    get_job_results.return_value = RESULTS
 
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
     data = job.results()
+    assert len(data) == 2
     assert str(data[0]) == 'q=0110'
     assert str(data[1]) == 'q=1010'
     get_job_results.assert_called_once_with('a', 'b', 'steve')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_results_iter(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    results = [str(r) for r in job]
+    assert len(results) == 2
+    assert results[0] == 'q=0110'
+    assert results[1] == 'q=1010'
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_results_getitem(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    assert str(job[0]) == 'q=0110'
+    assert str(job[1]) == 'q=1010'
+    with pytest.raises(IndexError):
+        _ = job[2]
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_results_len(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    assert len(job) == 2
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job')

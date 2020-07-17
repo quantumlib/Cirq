@@ -19,15 +19,23 @@ from cirq.experiments.cross_entropy_benchmarking import (
     build_entangling_layers,
     cross_entropy_benchmarking,
     CrossEntropyResult,
+    CrossEntropyResultDict,
 )
 
 from cirq.experiments.fidelity_estimation import (
     hog_score_xeb_fidelity_from_probabilities,
+    least_squares_xeb_fidelity_from_expectations,
+    least_squares_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
     log_xeb_fidelity_from_probabilities,
     xeb_fidelity,
+)
+
+from cirq.experiments.grid_parallel_two_qubit_xeb import (
+    collect_grid_parallel_two_qubit_xeb_data,
+    compute_grid_parallel_two_qubit_xeb_results,
 )
 
 from cirq.experiments.random_quantum_circuit_generation import (

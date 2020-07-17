@@ -66,7 +66,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
         if isinstance(op.gate, cirq.MeasurementGate): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
-        u = cirq.unitary(op)
+        u = unitary(op)
         if u.shape == (2, 2):
             return not SingleQubitCliffordGate.from_unitary(u) is None
         else:

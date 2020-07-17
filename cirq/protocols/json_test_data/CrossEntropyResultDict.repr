@@ -1,0 +1,1 @@
+cirq.experiments.CrossEntropyResultDict(results={(cirq.LineQubit(0), cirq.LineQubit(1)): cirq.experiments.CrossEntropyResult(data=[(2, 0.9), (4, 0.5)], repetitions=1000), (cirq.LineQubit(2), cirq.LineQubit(3)): cirq.experiments.CrossEntropyResult(data=[(2, 0.8), (4, 0.4)], repetitions=1000)})
