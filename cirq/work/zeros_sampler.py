@@ -13,15 +13,27 @@
 # limitations under the License.
 
 import abc
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import work, study, protocols
+from cirq import devices, work, study, protocols
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
+
+    def __init__(self, device: devices.Device = None):
+        """Construct a sampler that returns 0 for all measurements.
+
+        Args:
+            device: A device against which to validate the circuit. If None,
+                no validation will be done.
+        """
+        self.device = device
 
     def run_sweep(
             self,
@@ -39,7 +51,13 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             TrialResult list for this run; one for each possible parameter
             resolver.
+
+        Raises:
+            ValueError if this sampler has a device and the circuit is not
+            valid for the device.
         """
+        if self.device:
+            self.device.validate_circuit(program)
         measurements = {}  # type: Dict[str, np.ndarray]
         for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)

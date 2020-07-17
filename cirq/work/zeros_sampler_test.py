@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import numpy as np
+import pytest
 import sympy
 
 import cirq
@@ -49,3 +50,25 @@ def test_sample():
     result2 = cirq.Simulator().sample(c, repetitions=10, params=params)
 
     assert np.all(result1 == result2)
+
+
+class OnlyMeasurementsDevice(cirq.Device):
+
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
+        if not cirq.is_measurement(operation):
+            raise ValueError(f'{operation} is not a measurement and this '
+                             f'device only measures!')
+
+
+def test_validate_device():
+    device = OnlyMeasurementsDevice()
+    sampler = cirq.ZerosSampler(device)
+
+    a, b, c = [cirq.NamedQubit(s) for s in ['a', 'b', 'c']]
+    circuit = cirq.Circuit(cirq.measure(a), cirq.measure(b, c))
+
+    _ = sampler.run_sweep(circuit, None, 3)
+
+    circuit = cirq.Circuit(cirq.measure(a), cirq.X(b))
+    with pytest.raises(ValueError, match=r'X\(b\) is not a measurement'):
+        _ = sampler.run_sweep(circuit, None, 3)
