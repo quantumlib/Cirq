@@ -512,6 +512,7 @@ from cirq.work import (
     PauliSumCollector,
     Sampler,
     Collector,
+    ZerosSampler,
 )
 
 # pylint: enable=redefined-builtin
