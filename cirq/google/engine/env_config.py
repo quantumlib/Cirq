@@ -16,20 +16,27 @@
 
 import os
 
-from cirq.google.engine.engine import Engine
+from typing import TYPE_CHECKING
+
+from cirq.google import engine
+from cirq._compat import deprecated
+
+if TYPE_CHECKING:
+    import cirq
 
 ENV_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
 
 
-def engine_from_environment() -> Engine:
+@deprecated(deadline='v0.10.0', fix='Use cirq.get_engine instead.')
+def engine_from_environment() -> 'cirq.google.Engine':
     """Returns an Engine instance configured using environment variables.
 
     If the environment variables are set, but incorrect, an authentication
     failure will occur when attempting to run jobs on the engine.
 
     Required Environment Variables:
-        QUANTUM_ENGINE_PROJECT: The name of a google cloud project, with the
-            quantum engine enabled, that you have access to.
+        CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID: The name of a google cloud
+            project, with the quantum engine enabled, that you have access to.
 
     Raises:
         EnvironmentError: The environment variables are not set.
@@ -38,5 +45,4 @@ def engine_from_environment() -> Engine:
     if not project_id:
         raise EnvironmentError(
             'Environment variable {} is not set.'.format(ENV_PROJECT_ID))
-
-    return Engine(project_id=project_id)
+    return engine.get_engine(project_id)
