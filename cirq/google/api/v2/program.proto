@@ -146,6 +146,7 @@ message ArgValue {
     float float_value = 1;
     RepeatedBoolean bool_values = 2;
     string string_value = 3;
+    double double_value = 4;
   }
 }
 
