@@ -534,25 +534,22 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
     If the environment variables are set, but incorrect, an authentication
     failure will occur when attempting to run jobs on the engine.
 
-    Required Environment Variables:
-        GOOGLE_CLOUD_PROJECT: The name of a google cloud project, with the
-            quantum engine enabled, that you have access to.
-
     Args:
         project_id: If set overrides the project id obtained from the
             environment variable `GOOGLE_CLOUD_PROJECT`.
-            personal project IDs in shared code.
+
     Returns:
         The Engine instance.
 
     Raises:
-        EnvironmentError: If the environment variables are not set.
+        EnvironmentError: If the environment variable GOOGLE_CLOUD_PROJECT is
+            not set.
     """
     env_project_id = 'GOOGLE_CLOUD_PROJECT'
     if not project_id:
         project_id = os.environ.get(env_project_id)
     if not project_id:
         raise EnvironmentError(
-            'Environment variable {} is not set.'.format(env_project_id))
+            f'Environment variable {env_project_id} is not set.')
 
     return Engine(project_id=project_id)
