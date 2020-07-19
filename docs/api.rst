@@ -495,11 +495,13 @@ Functionality specific to quantum hardware and services from Google.
     :toctree: generated/
 
     cirq.google.FSIM_GATESET
+    cirq.google.NAMED_GATESETS
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
     cirq.google.engine_from_environment
+    cirq.google.get_engine_sampler
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
