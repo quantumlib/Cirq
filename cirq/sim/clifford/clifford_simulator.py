@@ -429,10 +429,9 @@ class CliffordState():
         fix='Use collapse_state_vector instead.',
         parameter_desc='collapse_wavefunction',
         match=lambda args, kwargs: 'collapse_wavefunction' in kwargs,
-        rewrite=lambda args, kwargs:
-        (args, {('collapse_state_vector'
-                 if k == 'collapse_wavefunction' else k): v
-                for k, v in kwargs.items()}))
+        rewrite=lambda args, kwargs: (args, {('collapse_state_vector' if k ==
+                                              'collapse_wavefunction' else k): v
+                                             for k, v in kwargs.items()}))
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
                             prng: np.random.RandomState,
