@@ -78,6 +78,10 @@ class TrialResult:
     representation of measurement outcomes for the measurement key in that
     repitition.
 
+    Referencing a TrialResult by its array index will give you the measurements
+    for that key.  If you instead want the Pandas DataFrame, use
+    TrialResults.data property instead.
+
     Attributes:
         params: A ParamResolver of settings used when sampling result.
     """
@@ -276,6 +280,12 @@ class TrialResult:
         if not isinstance(other, type(self)):
             return NotImplemented
         return self.data.equals(other.data) and self.params == other.params
+
+    def __getitem__(self, key: str) -> np.ndarray:
+        return self._measurements[key]
+
+    def __len__(self) -> int:
+        return len(self._measurements)
 
     def _measurement_shape(self):
         return self.params, {

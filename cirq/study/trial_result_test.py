@@ -45,6 +45,20 @@ def test_str():
     assert str(result) == 'ab=13579, 2 4 6 8 10\nc=01234'
 
 
+def test_getitem():
+    results_ab = np.array([[0, 1], [1, 1], [1, 0], [0, 0]])
+    results_c = np.array([[0], [1], [1], [0]])
+    result = cirq.TrialResult.from_single_parameter_set(
+        params=cirq.ParamResolver({}),
+        measurements={
+            'ab': results_ab,
+            'c': results_c
+        })
+    assert len(result) == 2
+    assert (result['ab'] == results_ab).all()
+    assert (result['c'] == results_c).all()
+
+
 def test_df():
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),
