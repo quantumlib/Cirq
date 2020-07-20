@@ -60,7 +60,7 @@ def simulate(sim_type: str, num_qubits: int, num_gates: int) -> None:
     ])
 
     if sim_type == _UNITARY:
-        circuit.final_wavefunction(initial_state=0)
+        circuit.final_state_vector(initial_state=0)
     elif sim_type == _DENSITY:
         cirq.DensityMatrixSimulator().run(circuit)
 

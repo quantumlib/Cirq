@@ -43,7 +43,7 @@ class AcquaintanceDevice(devices.Device, metaclass=abc.ABCMeta):
                         operation, ops.Operation, self.gate_types))
 
 
-def is_acquaintance_strategy(circuit: 'cirq.Circuit'):
+def is_acquaintance_strategy(circuit: 'cirq.Circuit') -> bool:
     return isinstance(circuit._device, AcquaintanceDevice)
 
 def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
@@ -74,7 +74,7 @@ def get_acquaintance_size(obj: Union[circuits.Circuit, ops.Operation]) -> int:
 class _UnconstrainedAcquaintanceDevice(AcquaintanceDevice):
     "An acquaintance device with no constraints other than of the gate types."
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'UnconstrainedAcquaintanceDevice'  # coverage: ignore
 
 

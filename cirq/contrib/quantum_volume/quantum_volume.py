@@ -16,7 +16,7 @@ import cirq.contrib.routing as ccr
 def generate_model_circuit(num_qubits: int,
                            depth: int,
                            *,
-                           random_state: cirq.value.RANDOM_STATE_LIKE = None
+                           random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
                           ) -> cirq.Circuit:
     """Generates a model circuit with the given number of qubits and depth.
 
@@ -75,7 +75,7 @@ def compute_heavy_set(circuit: cirq.Circuit) -> List[int]:
     # Classically compute the probabilities of each output bit-string through
     # simulation.
     simulator = cirq.Simulator()
-    results = cast(cirq.WaveFunctionTrialResult,
+    results = cast(cirq.StateVectorTrialResult,
                    simulator.simulate(program=circuit))
 
     # Compute the median probability of the output bit-strings. Note that heavy
@@ -274,6 +274,7 @@ def compile_circuit(
         # TODO: The routing algorithm sometimes does a poor job with the parity
         # qubits, adding SWAP gates that are unnecessary. This should be fixed,
         # or we can add the parity qubits manually after routing.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2967
         routing_algo_name = 'greedy'
 
     swap_networks: List[ccr.SwapNetwork] = []
@@ -338,7 +339,7 @@ def prepare_circuits(
         num_qubits: int,
         depth: int,
         num_circuits: int,
-        random_state: cirq.value.RANDOM_STATE_LIKE = None,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
 ) -> List[Tuple[cirq.Circuit, List[int]]]:
     """Generates circuits and computes their heavy set.
 
@@ -432,7 +433,7 @@ def calculate_quantum_volume(
         num_circuits: int,
         device_or_qubits: Union[cirq.google.XmonDevice, List[cirq.GridQubit]],
         samplers: List[cirq.Sampler],
-        random_state: cirq.value.RANDOM_STATE_LIKE = None,
+        random_state: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None,
         compiler: Callable[[cirq.Circuit], cirq.Circuit] = None,
         repetitions=10_000,
         routing_attempts=30,

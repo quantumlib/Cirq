@@ -258,7 +258,7 @@ def test_to_proto_unsupported_type():
         serializer.to_proto(GateWithProperty(b's')(q))
 
 
-def test_to_proto_unsupported_qubit_type():
+def test_to_proto_named_qubit_supported():
     serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
                                      serialized_gate_id='my_gate',
                                      args=[
@@ -268,8 +268,56 @@ def test_to_proto_unsupported_qubit_type():
                                              op_getter='val')
                                      ])
     q = cirq.NamedQubit('a')
-    with pytest.raises(ValueError, match='GridQubit'):
-        serializer.to_proto(GateWithProperty(1.0)(q))
+    arg_value = 1.0
+    result = serializer.to_proto(GateWithProperty(arg_value)(q))
+
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': arg_value
+                }
+            }
+        },
+        'qubits': [{
+            'id': 'a'
+        }]
+    })
+    assert result == expected
+
+
+def test_to_proto_line_qubit_supported():
+    serializer = cg.GateOpSerializer(gate_type=GateWithProperty,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             op_getter='val')
+                                     ])
+    q = cirq.LineQubit('10')
+    arg_value = 1.0
+    result = serializer.to_proto(GateWithProperty(arg_value)(q))
+
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': arg_value
+                }
+            }
+        },
+        'qubits': [{
+            'id': '10'
+        }]
+    })
+    assert result == expected
 
 
 def test_to_proto_required_but_not_present():

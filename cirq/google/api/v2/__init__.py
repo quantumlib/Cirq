@@ -14,6 +14,7 @@
 """Data format v2 for google api."""
 
 from cirq.google.api.v2 import (
+    batch_pb2,
     device_pb2,
     metrics_pb2,
     program_pb2,
@@ -25,6 +26,7 @@ from cirq.google.api.v2.program import (
     grid_qubit_from_proto_id,
     line_qubit_from_proto_id,
     named_qubit_from_proto_id,
+    qubit_from_proto_id,
     qubit_to_proto_id,
 )
 

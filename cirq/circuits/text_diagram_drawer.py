@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import (Any, Callable, cast, Dict, Iterable, List, Mapping,
-                    NamedTuple, Optional, Sequence, Tuple, TYPE_CHECKING, Union)
+                    NamedTuple, Optional, Sequence, Tuple, Union)
 
 import numpy as np
 
@@ -25,10 +25,6 @@ from cirq.circuits._box_drawing_character_data import (
     BOLD_BOX_CHARS,
     ASCII_BOX_CHARS,
 )
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from typing import Tuple, DefaultDict, Dict, Optional
 
 _HorizontalLine = NamedTuple('HorizontalLine', [
     ('y', Union[int, float]),
@@ -69,20 +65,16 @@ class TextDiagramDrawer:
             horizontal_padding: Optional[Mapping[int, int]] = None,
             vertical_padding: Optional[Mapping[int, int]] = None,
     ) -> None:
-        self.entries = (dict() if entries is None else dict(entries)
-                       )  # type: Dict[Tuple[int, int], _DiagramText]
-        self.horizontal_lines = (
-            [] if horizontal_lines is None else list(horizontal_lines)
-        )  # type: List[_HorizontalLine]
-        self.vertical_lines = (
-            [] if vertical_lines is None else list(vertical_lines)
-        )  # type: List[_VerticalLine]
-        self.horizontal_padding = (
-            dict() if horizontal_padding is None else dict(horizontal_padding)
-        )  # type: Dict[int, Union[int, float]]
-        self.vertical_padding = (
-            dict() if vertical_padding is None else dict(vertical_padding)
-        )  # type: Dict[int, Union[int, float]]
+        self.entries: Dict[Tuple[int, int], _DiagramText] = (
+            dict() if entries is None else dict(entries))
+        self.horizontal_lines: List[_HorizontalLine] = (
+            [] if horizontal_lines is None else list(horizontal_lines))
+        self.vertical_lines: List[_VerticalLine] = ([] if vertical_lines is None
+                                                    else list(vertical_lines))
+        self.horizontal_padding: Dict[int, Union[int, float]] = (
+            dict() if horizontal_padding is None else dict(horizontal_padding))
+        self.vertical_padding: Dict[int, Union[int, float]] = (
+            dict() if vertical_padding is None else dict(vertical_padding))
 
     def _value_equality_values_(self):
         attrs = ('entries', 'horizontal_lines', 'vertical_lines',

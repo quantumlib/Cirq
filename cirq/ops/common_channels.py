@@ -14,7 +14,8 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-from typing import Iterable, Optional, Sequence, Tuple, Union, TYPE_CHECKING
+from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
+                    TYPE_CHECKING)
 
 import numpy as np
 
@@ -108,7 +109,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         """The probability that a Pauli Z and no other gate occurs."""
         return self._p_z
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p_x', 'p_y', 'p_z'])
 
 
@@ -197,7 +198,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         """
         return self._p
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
 
 
@@ -338,7 +339,7 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         """The probability of the interaction being dissipative."""
         return self._gamma
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
@@ -466,7 +467,7 @@ class AmplitudeDampingChannel(gate_features.SingleQubitGate):
         """The probability of the interaction being dissipative."""
         return self._gamma
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
@@ -551,6 +552,29 @@ class ResetChannel(gate_features.SingleQubitGate):
     def _qid_shape_(self):
         return (self._dimension,)
 
+    def _act_on_(self, args: Any):
+        from cirq import sim
+
+        if isinstance(args, sim.ActOnStateVectorArgs):
+            # Do a silent measurement.
+            measurements, _ = sim.measure_state_vector(
+                args.target_tensor,
+                args.axes,
+                out=args.target_tensor,
+                qid_shape=args.target_tensor.shape)
+            result = measurements[0]
+
+            # Use measurement result to zero the qid.
+            if result:
+                zero = args.subspace_index(0)
+                other = args.subspace_index(result)
+                args.target_tensor[zero] = args.target_tensor[other]
+                args.target_tensor[other] = 0
+
+            return True
+
+        return NotImplemented
+
     def _channel_(self) -> Iterable[np.ndarray]:
         # The first axis is over the list of channel matrices
         channel = np.zeros((self._dimension,) * 3, dtype=np.complex64)
@@ -581,7 +605,7 @@ class ResetChannel(gate_features.SingleQubitGate):
         """The dimension of the qudit being reset."""
         return self._dimension
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['dimension'])
 
 
@@ -664,7 +688,7 @@ class PhaseDampingChannel(gate_features.SingleQubitGate):
         """The damping constant."""
         return self._gamma
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['gamma'])
 
 
@@ -772,7 +796,7 @@ class PhaseFlipChannel(gate_features.SingleQubitGate):
         """The probability of a phase flip."""
         return self._p
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
 
 
@@ -928,7 +952,7 @@ class BitFlipChannel(gate_features.SingleQubitGate):
         """The probability of a bit flip."""
         return self._p
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['p'])
 
 

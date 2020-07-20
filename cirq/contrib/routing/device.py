@@ -59,6 +59,9 @@ def nx_qubit_layout(graph: nx.Graph) \
 
     >>> import cirq.contrib.routing as ccr
     >>> import networkx as nx
+    >>> import matplotlib.pyplot as plt
+    >>> # Clear plot state to prevent issues with pyplot dimensionality.
+    >>> plt.clf()
     >>> g = ccr.xmon_device_to_graph(cirq.google.Foxtail)
     >>> pos = ccr.nx_qubit_layout(g)
     >>> nx.draw_networkx(g, pos=pos)

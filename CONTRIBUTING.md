@@ -1,8 +1,11 @@
 # How to Contribute
 
 We'd love to accept your patches and contributions to this project.
-We do have some guidelines to follow, covered in this document, but don't worry about (or expect to) get everything right the first time!
-Create a pull request and we'll nudge you in the right direction.
+We do have some guidelines to follow, covered in this document, but don't 
+worry about (or expect to) get everything right the first time!
+Create a pull request and we'll nudge you in the right direction. Please also 
+note that we have a [code of conduct](CODE_OF_CONDUCT.md) to make Cirq an
+open and welcoming environment.
 
 ## Contributor License Agreement
 
@@ -33,7 +36,7 @@ The basic process for setting up a fork is
 Forking creates a new github repo at the location
 ```https://github.com/USERNAME/cirq``` where ```USERNAME``` is
 your github id. Use the directions on the
-[development page](docs/development.md) to download a copy to
+[development page](docs/dev/development.md) to download a copy to
 your local machine. You need only do this once.
 1. Checkout master and create a new branch from this master
     ```shell
@@ -72,32 +75,38 @@ the same process as above.
 
 ## Code Testing Standards
 
-When a pull request is created or updated, various automatic checks will run to ensure that the change won't break Cirq and meets our coding standards.
+When a pull request is created or updated, various automatic checks will 
+run to ensure that the change won't break Cirq and meets our coding standards.
 
 Cirq contains a continuous integration tool to verify testing.  See our
-[development page](docs/development.md) on how to run the continuous integration
-checks locally.
+[development page](docs/dev/development.md) on how to run the continuous 
+integration checks locally.
 
 Please be aware of the following code standards that will be applied to any
 new changes.
 
 - **Tests**.
-Existing tests must continue to pass (or be updated) when new changes are introduced.
-We use [pytest](https://docs.pytest.org/en/latest/) to run our tests.
+Existing tests must continue to pass (or be updated) when new changes are 
+introduced. We use [pytest](https://docs.pytest.org/en/latest/) to run our 
+tests.
 - **Coverage**.
 Code should be covered by tests.
-We use [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) to compute coverage, and custom tooling to filter down the output to only include new or changed code.
-We don't require 100% coverage, but any uncovered code must be annotated with `# coverage: ignore`.
-To ignore coverage of a single line, place `# coverage: ignore` at the end of the line.
-To ignore coverage for an entire block, start the block with a `# coverage: ignore` comment on its own line.
+We use [pytest-cov](https://pytest-cov.readthedocs.io/en/latest/) to compute 
+coverage, and custom tooling to filter down the output to only include new or
+changed code. We don't require 100% coverage, but any uncovered code must 
+be annotated with `# coverage: ignore`. To ignore coverage of a single line, 
+place `# coverage: ignore` at the end of the line. To ignore coverage for 
+an entire block, start the block with a `# coverage: ignore` comment on its 
+own line.
 - **Lint**.
-Code should meet common style standards for python and be free of error-prone constructs.
-We use [pylint](https://www.pylint.org/) to check for lint.
-To see which lint checks we enforce, see the [dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file.
-When pylint produces a false positive, it can be squashed with annotations like `# pylint: disable=unused-import`.
+Code should meet common style standards for python and be free of error-prone 
+constructs. We use [pylint](https://www.pylint.org/) to check for lint.
+To see which lint checks we enforce, see the 
+[dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file. When pylint produces
+a false positive, it can be squashed with annotations like 
+`# pylint: disable=unused-import`.
 - **Types**.
 Code should have [type annotations](https://www.python.org/dev/peps/pep-0484/).
 We use [mypy](http://mypy-lang.org/) to check that type annotations are correct.
-When type checking produces a false positive, it can be ignored with annotations like `# type: ignore`.
-
-
+When type checking produces a false positive, it can be ignored with 
+annotations like `# type: ignore`.

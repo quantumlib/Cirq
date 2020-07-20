@@ -20,7 +20,7 @@ from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.mixture_protocol import has_mixture_channel
+from cirq.protocols.mixture_protocol import has_mixture
 
 
 from cirq.type_workarounds import NotImplementedType
@@ -169,7 +169,7 @@ def has_channel(val: Any) -> bool:
     if result is not NotImplemented:
         return result
 
-    result = has_mixture_channel(val)
+    result = has_mixture(val)
     if result is not NotImplemented and result:
         return result
 

@@ -42,6 +42,7 @@ if TYPE_CHECKING:
     import cirq.ops.pauli_gates
     import cirq.devices.unconstrained_device
 
+
 class _ResolverCache:
     """Lazily import and build registry to avoid circular imports."""
 
@@ -54,7 +55,10 @@ class _ResolverCache:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.experiments import (CrossEntropyResult,
+                                          CrossEntropyResultDict,
                                           GridInteractionLayer)
+            from cirq.experiments.grid_parallel_two_qubit_xeb import (
+                GridParallelXEBMetadata)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -76,15 +80,20 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
+                'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
+                'CXPowGate': cirq.CXPowGate,
                 'CZPowGate': cirq.CZPowGate,
                 'CrossEntropyResult': CrossEntropyResult,
+                'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
+                'CliffordState': cirq.CliffordState,
+                'CliffordTableau': cirq.CliffordTableau,
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
@@ -92,16 +101,19 @@ class _ResolverCache:
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'GateOperation': cirq.GateOperation,
+                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridInteractionLayer': GridInteractionLayer,
+                'GridParallelXEBMetadata': GridParallelXEBMetadata,
                 'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
@@ -123,6 +135,7 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
                 'PhysicalZTag': cirq.google.PhysicalZTag,
+                'RandomGateChannel': cirq.RandomGateChannel,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
@@ -130,14 +143,19 @@ class _ResolverCache:
                 cirq.SingleQubitPauliStringGateOperation,
                 'SingleQubitReadoutCalibrationResult':
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
+                'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
                 'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
+                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'TrialResult': cirq.TrialResult,
+                'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
+                'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'VirtualTag': cirq.VirtualTag,
                 'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
@@ -318,7 +336,7 @@ class CirqEncoder(json.JSONEncoder):
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
-        #       https://github.com/quantumlib/Cirq/issues/2014
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 

@@ -30,7 +30,7 @@ effect as the unitary produced by `_unitary_` or the transformation applied by
 
 If the gate is exposed by `cirq/__init__.py` or another public module, other
 tests will notice it and verify that it is serializable.
-See the [serialization guidelines](/dev/serialization.md).
+See the [serialization guidelines](serialization.md).
 
 There are several other informal constraints:
 

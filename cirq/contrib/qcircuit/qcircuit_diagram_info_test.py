@@ -59,7 +59,7 @@ def test_get_qcircuit_diagram_info():
             precision=3,
             qubit_map=qubit_map)
     actual_info = ccq.get_qcircuit_diagram_info(op, args)
-    expected_info = cirq.CircuitDiagramInfo((r'\gate{\text{swap}}',) * 2)
+    expected_info = cirq.CircuitDiagramInfo((r'\gate{\text{Swap}}',) * 2)
     assert actual_info == expected_info
 
     actual_info = ccq.get_qcircuit_diagram_info(op,
