@@ -11,11 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import List, TYPE_CHECKING, Union, cast
+import os
+from typing import List, TYPE_CHECKING, Union, Optional, cast
 
 from cirq import work, circuits
-from cirq.google import engine
+from cirq.google import engine, gate_sets
 
 if TYPE_CHECKING:
     import cirq
@@ -65,3 +65,35 @@ class QuantumEngineSampler(work.Sampler):
     @property
     def engine(self) -> 'cirq.google.Engine':
         return self._engine
+
+
+def get_engine_sampler(processor_id: str, gate_set_name: str,
+                       project_id: Optional[str] = None) \
+        -> 'cirq.google.QuantumEngineSampler':
+    """Get an EngineSampler assuming some sensible defaults.
+
+    This uses the environment variable GOOGLE_GLOUD_PROJECT for the Engine
+    project_id, unless set explicitly.
+
+    Args:
+        processor_id: Engine processor ID (from Cloud console or
+            ``Engine.list_processors``).
+        gate_set_name: One of ['sqrt_iswap', 'sycamore'].
+            See `cirq.google.NAMED_GATESETS`.
+        project_id: Optional explicit Google Cloud project id. Otherwise,
+            this defaults to the environment variable GOOGLE_CLOUD_PROJECT.
+            By using an environment variable, you can avoid hard-coding
+            personal project IDs in shared code.
+    """
+    try:
+        gate_set = gate_sets.NAMED_GATESETS[gate_set_name]
+    except KeyError:
+        raise ValueError(f"Please use one of the following gateset names: "
+                         f"{sorted(gate_sets.NAMED_GATESETS.keys())}")
+
+    if project_id is None:
+        project_id = os.environ['GOOGLE_CLOUD_PROJECT']
+
+    return engine.Engine(project_id=project_id,
+                         proto_version=engine.ProtoVersion.V2) \
+        .sampler(processor_id=processor_id, gate_set=gate_set)
