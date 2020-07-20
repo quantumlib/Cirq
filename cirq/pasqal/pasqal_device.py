@@ -55,7 +55,7 @@ class PasqalDevice(cirq.devices.Device):
 
     @property
     def supported_qubit_type(self):
-        return (NamedQubit, cirq.GridQubit)
+        return (NamedQubit,)
 
     @property
     def maximum_qubit_number(self):
