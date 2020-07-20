@@ -33,7 +33,7 @@ from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
 from cirq.google import serializable_gate_set as sgs
-from cirq.google.api import v1, v2
+from cirq.google.api import v2
 from cirq.google.engine import (engine_client, engine_program, engine_job,
                                 engine_processor, engine_sampler)
 
@@ -92,6 +92,8 @@ class EngineContext:
                 'either specify service_args and verbose or client')
 
         self.proto_version = proto_version or ProtoVersion.V2
+        if self.proto_version == ProtoVersion.V1:
+            raise ValueError('ProtoVersion V1 no longer supported')
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args,
@@ -444,12 +446,7 @@ class Engine:
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
-        if self.context.proto_version == ProtoVersion.V1:
-            return self._pack_any(
-                v1.program_pb2.Program(operations=[
-                    op for op in v1.circuit_as_schedule_to_protos(program)
-                ]))
-        elif self.context.proto_version == ProtoVersion.V2:
+        if self.context.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)
             return self._pack_any(program)
         else:

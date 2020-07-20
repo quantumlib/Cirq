@@ -180,8 +180,11 @@ def _arg_from_proto(
     if which == 'arg_value':
         arg_value = arg_proto.arg_value
         which_val = arg_value.WhichOneof('arg_value')
-        if which_val == 'float_value':
-            result = float(arg_value.float_value)
+        if which_val == 'float_value' or which_val == 'double_value':
+            if which_val == 'double_value':
+                result = float(arg_value.double_value)
+            else:
+                result = float(arg_value.float_value)
             if math.ceil(result) == math.floor(result):
                 result = int(result)
             return result
