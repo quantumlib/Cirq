@@ -19,7 +19,16 @@ from cirq.ops import NamedQubit
 
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
-    """A generic Pasqal device."""
+    """A generic Pasqal device.
+
+    The most general of Pasqal devices, enforcing only restrictions expected to
+    be shared by all future devices. Serves as the parent class of all Pasqal
+    devices, but can also be used on its own for hosting a nearly unconstrained
+    device. When used as a circuit's device, the qubits have to be of the type
+    cirq.NamedQubit and assumed to be all connected, the idea behind it being
+    that after submission, all optimization and transpilation necessary for its
+    execution on the specified device are handled internally by Pasqal.
+    """
 
     def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
         """Initializes a device with some qubits.
@@ -33,7 +42,9 @@ class PasqalDevice(cirq.devices.Device):
 
         for q in qubits:
             if not isinstance(q, self.supported_qubit_type):
-                raise TypeError('Unsupported qubit type: {!r}'.format(q))
+                raise TypeError('Unsupported qubit type: {!r}. This device '
+                                'supports qubit types: {}'.format(
+                                    q, self.supported_qubit_type))
 
         if len(qubits) > self.maximum_qubit_number:
             raise ValueError('Too many qubits. {} accepts at most {} '
@@ -44,7 +55,7 @@ class PasqalDevice(cirq.devices.Device):
 
     @property
     def supported_qubit_type(self):
-        return (NamedQubit,)
+        return (NamedQubit, cirq.GridQubit)
 
     @property
     def maximum_qubit_number(self):
@@ -103,8 +114,10 @@ class PasqalDevice(cirq.devices.Device):
 
         for qub in operation.qubits:
             if not isinstance(qub, self.supported_qubit_type):
-                raise ValueError('{} is not a valid qubit '
-                                 'for gate {!r}'.format(qub, operation.gate))
+                raise ValueError('{} is not a valid qubit for gate {!r}. This '
+                                 'device accepts gates on qubits of type: '
+                                 '{}'.format(qub, operation.gate,
+                                             self.supported_qubit_type))
             if qub not in self.qubit_set():
                 raise ValueError('{} is not part of the device.'.format(qub))
 
