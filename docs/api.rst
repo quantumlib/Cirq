@@ -243,6 +243,7 @@ results.
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnCliffordTableauArgs
     cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
@@ -280,6 +281,7 @@ results.
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
+    cirq.ZerosSampler
     cirq.Zip
 
 
@@ -431,6 +433,8 @@ run experiments.
     cirq.generate_boixo_2018_supremacy_circuits_v2
     cirq.generate_boixo_2018_supremacy_circuits_v2_bristlecone
     cirq.generate_boixo_2018_supremacy_circuits_v2_grid
+    cirq.least_squares_xeb_fidelity_from_expectations
+    cirq.least_squares_xeb_fidelity_from_probabilities
     cirq.linear_xeb_fidelity
     cirq.linear_xeb_fidelity_from_probabilities
     cirq.log_xeb_fidelity
@@ -438,6 +442,8 @@ run experiments.
     cirq.experiments.GRID_ALIGNED_PATTERN
     cirq.experiments.GRID_STAGGERED_PATTERN
     cirq.experiments.build_entangling_layers
+    cirq.experiments.collect_grid_parallel_two_qubit_xeb_data
+    cirq.experiments.compute_grid_parallel_two_qubit_xeb_results
     .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
     cirq.experiments.rabi_oscillations
@@ -450,6 +456,7 @@ run experiments.
     cirq.experiments.two_qubit_randomized_benchmarking
     cirq.experiments.two_qubit_state_tomography
     cirq.experiments.CrossEntropyResult
+    cirq.experiments.CrossEntropyResultDict
     cirq.experiments.GridInteractionLayer
     cirq.experiments.RabiResult
     cirq.experiments.RandomizedBenchMarkResult
@@ -488,11 +495,13 @@ Functionality specific to quantum hardware and services from Google.
     :toctree: generated/
 
     cirq.google.FSIM_GATESET
+    cirq.google.NAMED_GATESETS
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
     cirq.google.engine_from_environment
+    cirq.google.get_engine_sampler
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
@@ -568,6 +577,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries

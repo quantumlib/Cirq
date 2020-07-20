@@ -32,9 +32,8 @@ from typing import Dict, List, Optional, Sequence, TypeVar, Union, TYPE_CHECKING
 from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
-from cirq.google import gate_sets
 from cirq.google import serializable_gate_set as sgs
-from cirq.google.api import v1, v2
+from cirq.google.api import v2
 from cirq.google.engine import (engine_client, engine_program, engine_job,
                                 engine_processor, engine_sampler)
 
@@ -93,6 +92,8 @@ class EngineContext:
                 'either specify service_args and verbose or client')
 
         self.proto_version = proto_version or ProtoVersion.V2
+        if self.proto_version == ProtoVersion.V1:
+            raise ValueError('ProtoVersion V1 no longer supported')
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args,
@@ -208,7 +209,8 @@ class Engine:
         Returns:
             A single TrialResult for this run.
         """
-        gate_set = gate_set or gate_sets.XMON
+        if not gate_set:
+            raise ValueError('No gate set provided')
         return list(
             self.run_sweep(program=program,
                            program_id=program_id,
@@ -269,7 +271,8 @@ class Engine:
             An EngineJob. If this is iterated over it returns a list of
             TrialResults, one for each parameter sweep.
         """
-        gate_set = gate_set or gate_sets.XMON
+        if not gate_set:
+            raise ValueError('No gate set provided')
         engine_program = self.create_program(program, program_id, gate_set,
                                              program_description,
                                              program_labels)
@@ -374,7 +377,8 @@ class Engine:
         Returns:
             A EngineProgram for the newly created program.
         """
-        gate_set = gate_set or gate_sets.XMON
+        if not gate_set:
+            raise ValueError('No gate set provided')
 
         if not program_id:
             program_id = _make_random_id('prog-')
@@ -436,22 +440,13 @@ class Engine:
                                             new_program,
                                             batch_mode=True)
 
-    def _serialize_program(self,
-                           program: 'cirq.Circuit',
-                           gate_set: Optional[sgs.SerializableGateSet] = None
-                          ) -> any_pb2.Any:
-        gate_set = gate_set or gate_sets.XMON
-
+    def _serialize_program(self, program: 'cirq.Circuit',
+                           gate_set: sgs.SerializableGateSet) -> any_pb2.Any:
         if not isinstance(program, circuits.Circuit):
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
-        if self.context.proto_version == ProtoVersion.V1:
-            return self._pack_any(
-                v1.program_pb2.Program(operations=[
-                    op for op in v1.circuit_as_schedule_to_protos(program)
-                ]))
-        elif self.context.proto_version == ProtoVersion.V2:
+        if self.context.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)
             return self._pack_any(program)
         else:
