@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from cirq.pasqal.pasqal_qubits import (
-    ThreeDGridQubit,
     ThreeDQubit,
     TwoDQubit,
 )
