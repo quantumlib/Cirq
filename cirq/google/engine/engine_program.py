@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
 from cirq import study
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google import gate_sets
-from cirq.google.api import v1, v2
+from cirq.google.api import v2
 from cirq.google.engine import engine_job
 
 if TYPE_CHECKING:
@@ -223,12 +223,7 @@ class EngineProgram:
         import cirq.google.engine.engine as engine_base
         context = qtypes.any_pb2.Any()
         proto_version = self.context.proto_version
-        if proto_version == engine_base.ProtoVersion.V1:
-            context.Pack(
-                v1.program_pb2.RunContext(parameter_sweeps=[
-                    v1.sweep_to_proto(sweep, repetitions) for sweep in sweeps
-                ]))
-        elif proto_version == engine_base.ProtoVersion.V2:
+        if proto_version == engine_base.ProtoVersion.V2:
             run_context = v2.run_context_pb2.RunContext()
             for sweep in sweeps:
                 sweep_proto = run_context.parameter_sweeps.add()
