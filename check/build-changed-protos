@@ -65,7 +65,7 @@ changed=$(git diff --name-only ${rev} -- \
     | sed -e "s/\.proto$//"
 )
 if [[ ! -z "$changed" ]]; then
-    for base in $changed:
+    for base in $changed
     do
         echo -e "Found changed proto: '${base}.proto'"
     done
@@ -94,6 +94,19 @@ do
     (set -x; bazel build "${base}_proto"; \
     bazel build "${base}_py_proto"; \
     bazel build "${base}_cc_proto")
+
+    python -m grpc_tools.protoc -I=. --python_out=. --mypy_out=. ${base}.proto
 done
 
+# Filenames with spaces will be ugly (each part will be listed separately)
+# but the error logic will still work.
+untracked=$(git status --porcelain 2>/dev/null | grep "^?? cirq/google" | cut -d " " -f 2)
 
+if [[ ! -z "$untracked" ]]; then
+    echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files:\033[0m"
+    for generated in $untracked
+    do
+        echo -e "\033[31m   ${generated}\033[0m"
+    done
+    exit 1
+fi
