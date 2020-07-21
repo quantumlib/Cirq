@@ -207,6 +207,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProgram',
     'EngineTimeSlot',
     'QuantumEngineSampler',
+    'NAMED_GATESETS',
 
     # enums
     'ProtoVersion'
@@ -329,6 +330,7 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionTrialResult',
     'XmonDevice',
     'XMON',
+    'ZerosSampler',
     'Zip',
 ]
 
