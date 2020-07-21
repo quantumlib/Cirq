@@ -98,7 +98,9 @@ do
     python -m grpc_tools.protoc -I=. --python_out=. --mypy_out=. ${base}.proto
 done
 
-untracked=$(git status --porcelain 2>/dev/null| grep "^?? cirq/google" | cut -d " " -f 2)
+# Filenames with spaces will be ugly (each part will be listed separately)
+# but the error logic will still work.
+untracked=$(git status --porcelain 2>/dev/null | grep "^?? cirq/google" | cut -d " " -f 2)
 
 if [[ ! -z "$untracked" ]]; then
     echo -e "\033[31mERROR: Uncommitted generated files found! Please generate and commit these files:\033[0m"
