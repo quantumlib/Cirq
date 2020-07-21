@@ -84,6 +84,27 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.xs[:, q] ^= tableau.zs[:, q]
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+                tableau.xs[:, q] ^= tableau.zs[:, q]
+            return True
+
+        return NotImplemented
+
     def in_su2(self) -> 'XPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return XPowGate(exponent=self._exponent, global_shift=-0.5)
@@ -122,25 +143,37 @@ class XPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CXPowGate from controlled XPowGate when applicable.
+        Returns a controlled `XPowGate`, using a `CXPowGate` where possible.
 
-        This method is a specialized controlled method for XPowGate. It
-        overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CXPowGate and
-        removing the last specified control qubit (which acts first
-        semantically).  If this is a gate with multiple control qubits, it will
-        now be a ControlledGate with one less control.
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate`. This method overrides this behavior
+        to return a `CXPowGate` or a `ControlledGate` of a `CXPowGate`, when
+        this is possible.
 
-        This behavior only occurs when the last control qubit is a default-type
-        control qubit. A default-type control qubit is one with shape of 2 (not
-        a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
+        The conditions for the override to occur are:
+            * The `global_shift` of the `XPowGate` is 0.
+            * The `control_values` and `control_qid_shape` are compatible with
+                the `CXPowGate`:
+                * The last value of `control_qid_shape` is a qubit.
+                * The last value of `control_values` corresponds to the
+                    control being satisfied if that last qubit is 1 and
+                    not satisfied if the last qubit is 0.
 
-        (Note that a CXPowGate is, by definition, a controlled-XPowGate.)
+        If these conditions are met, then the returned object is a `CXPowGate`
+        or, in the case that there is more than one controlled qudit, a
+        `ControlledGate` with the `Gate` being a `CXPowGate`. In the
+        latter case the `ControlledGate` is controlled by one less qudit
+        than specified in `control_values` and `control_qid_shape` (since
+        one of these, the last qubit, is used as the control for the
+        `CXPowGate`).
+
+        If the above conditions are not met, a `ControlledGate` of this
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CXPowGate(exponent=self._exponent,
@@ -266,6 +299,29 @@ class YPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.available_buffer *= p
         return args.available_buffer
+
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & (~tableau.zs[:, q]))
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= (~(tableau.xs[:, q]) & tableau.zs[:, q])
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+            return True
+
+        return NotImplemented
 
     def in_su2(self) -> 'YPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
@@ -413,6 +469,27 @@ class ZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            return True
+
+        return NotImplemented
+
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
         if self.exponent % 2 == 0:
@@ -440,25 +517,37 @@ class ZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CZPowGate from controlled ZPowGate when applicable.
+        Returns a controlled `ZPowGate`, using a `CZPowGate` where possible.
 
-        This method is a specialized controlled method for ZPowGate. It
-        overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CZPowGate and
-        removing the last specified control qubit (which acts first
-        semantically).  If this is a gate with multiple control qubits, it will
-        now be a ControlledGate with one less control.
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate`. This method overrides this behavior
+        to return a `CZPowGate` or a `ControlledGate` of a `CZPowGate`, when
+        this is possible.
 
-        This behavior only occurs when the last control qubit is a default-type
-        control qubit. A default-type control qubit is one with shape of 2 (not
-        a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
+        The conditions for the override to occur are:
+            * The `global_shift` of the `ZPowGate` is 0.
+            * The `control_values` and `control_qid_shape` are compatible with
+                the `CZPowGate`:
+                * The last value of `control_qid_shape` is a qubit.
+                * The last value of `control_values` corresponds to the
+                    control being satisfied if that last qubit is 1 and
+                    not satisfied if the last qubit is 0.
 
-        (Note that a CZPowGate is, by definition, a controlled-ZPowGate.)
+        If these conditions are met, then the returned object is a `CZPowGate`
+        or, in the case that there is more than one controlled qudit, a
+        `ControlledGate` with the `Gate` being a `CZPowGate`. In the
+        latter case the `ControlledGate` is controlled by one less qudit
+        than specified in `control_values` and `control_qid_shape` (since
+        one of these, the last qubit, is used as the control for the
+        `CZPowGate`).
+
+        If the above conditions are not met, a `ControlledGate` of this
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CZPowGate(exponent=self._exponent,
@@ -661,6 +750,24 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            if self._exponent % 1 != 0:
+                return NotImplemented
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        return NotImplemented
+
     def _decompose_(self, qubits):
         q = qubits[0]
 
@@ -768,6 +875,30 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q2], tableau.zs[:, q2]) = \
+                 (tableau.zs[:, q2].copy(), tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= tableau.xs[:,q1] & tableau.zs[:,q2] & \
+                    (tableau.xs[:,q2] ^ tableau.zs[:,q1])
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+                (tableau.xs[:, q2],
+                 tableau.zs[:, q2]) = (tableau.zs[:, q2].copy(),
+                                       tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q2] & tableau.zs[:, q2])
+            return True
+
+        return NotImplemented
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -791,25 +922,37 @@ class CZPowGate(eigen_gate.EigenGate,
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CCZPowGate from controlled CZPowGate when applicable.
+        Returns a controlled `CZPowGate`, using a `CCZPowGate` where possible.
 
-        This method is a specialized controlled method for CZPowGate. It
-        overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CCZPowGate and
-        removing the last specified control qubit (which acts first
-        semantically).  If this is a gate with multiple control qubits, it will
-        now be a ControlledGate with one less control.
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate`. This method overrides this behavior
+        to return a `CCZPowGate` or a `ControlledGate` of a `CCZPowGate`, when
+        this is possible.
 
-        This behavior only occurs when the last control qubit is a default-type
-        control qubit. A default-type control qubit is one with shape of 2 (not
-        a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
+        The conditions for the override to occur are:
+            * The `global_shift` of the `CZPowGate` is 0.
+            * The `control_values` and `control_qid_shape` are compatible with
+                the `CCZPowGate`:
+                * The last value of `control_qid_shape` is a qubit.
+                * The last value of `control_values` corresponds to the
+                    control being satisfied if that last qubit is 1 and
+                    not satisfied if the last qubit is 0.
 
-        (Note that a CCZPowGate is, by definition, a controlled-CZPowGate.)
+        If these conditions are met, then the returned object is a `CCZPowGate`
+        or, in the case that there is more than one controlled qudit, a
+        `ControlledGate` with the `Gate` being a `CCZPowGate`. In the
+        latter case the `ControlledGate` is controlled by one less qudit
+        than specified in `control_values` and `control_qid_shape` (since
+        one of these, the last qubit, is used as the control for the
+        `CCZPowGate`).
+
+        If the above conditions are not met, a `ControlledGate` of this
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CCZPowGate(exponent=self._exponent,
@@ -822,8 +965,7 @@ class CZPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-                wire_symbols=('@', '@'),
-                exponent=self._diagram_exponent(args))
+            wire_symbols=('@', '@'), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -937,6 +1079,24 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             args.target_tensor *= p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                tableau.rs[:] ^= (tableau.xs[:, q1] & tableau.zs[:, q2] &
+                                  (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+            return True
+
+        return NotImplemented
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -957,25 +1117,37 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                    control_qid_shape: Optional[Tuple[int, ...]] = None
                   ) -> raw_types.Gate:
         """
-        Constructs CCXPowGate from controlled CXPowGate when applicable.
+        Returns a controlled `CXPowGate`, using a `CCXPowGate` where possible.
 
-        This method is a specialized controlled method for CXPowGate. It
-        overrides the default behavior of returning a ControlledGate by
-        transforming the underlying controlled gate to a CCXPowGate and
-        removing the last specified control qubit (which acts first
-        semantically).  If this is a gate with multiple control qubits, it will
-        now be a ControlledGate with one less control.
+        The `controlled` method of the `Gate` class, of which this class is a
+        child, returns a `ControlledGate`. This method overrides this behavior
+        to return a `CCXPowGate` or a `ControlledGate` of a `CCXPowGate`, when
+        this is possible.
 
-        This behavior only occurs when the last control qubit is a default-type
-        control qubit. A default-type control qubit is one with shape of 2 (not
-        a generic qudit) and where the control is satisfied by the qubit being
-        ON, as opposed to OFF.
+        The conditions for the override to occur are:
+            * The `global_shift` of the `CXPowGate` is 0.
+            * The `control_values` and `control_qid_shape` are compatible with
+                the `CCXPowGate`:
+                * The last value of `control_qid_shape` is a qubit.
+                * The last value of `control_values` corresponds to the
+                    control being satisfied if that last qubit is 1 and
+                    not satisfied if the last qubit is 0.
 
-        (Note that a CCXPowGate is, by definition, a controlled-CXPowGate.)
+        If these conditions are met, then the returned object is a `CCXPowGate`
+        or, in the case that there is more than one controlled qudit, a
+        `ControlledGate` with the `Gate` being a `CCXPowGate`. In the
+        latter case the `ControlledGate` is controlled by one less qudit
+        than specified in `control_values` and `control_qid_shape` (since
+        one of these, the last qubit, is used as the control for the
+        `CCXPowGate`).
+
+        If the above conditions are not met, a `ControlledGate` of this
+        gate will be returned.
         """
         result = super().controlled(num_controls, control_values,
                                     control_qid_shape)
-        if (isinstance(result, controlled_gate.ControlledGate) and
+        if (self._global_shift == 0 and
+                isinstance(result, controlled_gate.ControlledGate) and
                 result.control_values[-1] == (1,) and
                 result.control_qid_shape[-1] == 2):
             return cirq.CCXPowGate(exponent=self._exponent,

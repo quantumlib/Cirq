@@ -131,21 +131,21 @@ def test_exponentiation_as_exponent():
         _ = 'test'**p
 
     assert cirq.approx_eq(
-        math.e**(-1j * math.pi * p),
+        math.e**(-0.5j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=0.5, exponent_pos=-0.5))
 
     assert cirq.approx_eq(
-        math.e**(0.5j * math.pi * p),
+        math.e**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
     assert cirq.approx_eq(
-        2**(0.5j * math.pi * p),
+        2**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p,
                                exponent_neg=-0.25 * math.log(2),
                                exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
-        np.exp(0.5j * math.pi * p),
+        np.exp(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
 
@@ -193,23 +193,24 @@ def test_exponentiation_as_base():
         p**-0.5, cirq.PauliStringPhasor(p, exponent_neg=-0.5, exponent_pos=0))
 
     assert cirq.approx_eq(
-        math.e**(0.5j * math.pi * p),
+        math.e**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
     assert cirq.approx_eq(
-        2**(0.5j * math.pi * p),
+        2**(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p,
                                exponent_neg=-0.25 * math.log(2),
                                exponent_pos=0.25 * math.log(2)))
 
     assert cirq.approx_eq(
-        np.exp(0.5j * math.pi * p),
+        np.exp(0.25j * math.pi * p),
         cirq.PauliStringPhasor(p, exponent_neg=-0.25, exponent_pos=0.25))
 
-    assert cirq.approx_eq(
+    np.testing.assert_allclose(
         cirq.unitary(np.exp(0.5j * math.pi * cirq.Z(a))),
         np.diag([np.exp(0.5j * math.pi),
-                 np.exp(-0.5j * math.pi)]))
+                 np.exp(-0.5j * math.pi)]),
+        atol=1e-8)
 
 
 @pytest.mark.parametrize('pauli', (cirq.X, cirq.Y, cirq.Z))
@@ -530,6 +531,21 @@ def test_pow():
     assert (-p)**-1 == -p
     assert (1j * p)**1 == 1j * p
     assert (1j * p)**-1 == -1j * p
+
+
+def test_rpow():
+    a, b = cirq.LineQubit.range(2)
+
+    u = cirq.unitary(np.exp(1j * np.pi / 2 * cirq.Z(a) * cirq.Z(b)))
+    np.testing.assert_allclose(u, np.diag([1j, -1j, -1j, 1j]), atol=1e-8)
+
+    u = cirq.unitary(np.exp(-1j * np.pi / 4 * cirq.Z(a) * cirq.Z(b)))
+    cirq.testing.assert_allclose_up_to_global_phase(u,
+                                                    np.diag([1, 1j, 1j, 1]),
+                                                    atol=1e-8)
+
+    u = cirq.unitary(np.e**(1j * np.pi * cirq.Z(a) * cirq.Z(b)))
+    np.testing.assert_allclose(u, np.diag([-1, -1, -1, -1]), atol=1e-8)
 
 
 def test_numpy_ufunc():

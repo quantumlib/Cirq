@@ -26,7 +26,7 @@ from cirq.ops import gate_features, common_gates
 from cirq.type_workarounds import NotImplementedType
 
 
-@value.value_equality(manual_cls=True)
+@value.value_equality(manual_cls=True, approximate=True)
 class PhasedXPowGate(gate_features.SingleQubitGate):
     """A gate equivalent to the circuit ───Z^-p───X^t───Z^p───."""
 

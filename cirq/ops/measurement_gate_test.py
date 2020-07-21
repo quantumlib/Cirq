@@ -61,6 +61,44 @@ def test_measurement_full_invert_mask():
         2, 'a', invert_mask=(True,)).full_invert_mask() == (True, False))
 
 
+@pytest.mark.parametrize('gate', [
+    cirq.MeasurementGate(1, 'a'),
+    cirq.MeasurementGate(1, 'a', invert_mask=(True,)),
+    cirq.MeasurementGate(1, 'a', qid_shape=(3,)),
+    cirq.MeasurementGate(2, 'a', invert_mask=(True, False), qid_shape=(2, 3)),
+])
+def test_measurement_with_key(gate):
+    gate1 = gate.with_key('b')
+    assert gate1.key == 'b'
+    assert gate1.num_qubits() == gate.num_qubits()
+    assert gate1.invert_mask == gate.invert_mask
+    assert cirq.qid_shape(gate1) == cirq.qid_shape(gate)
+    gate2 = gate1.with_key('a')
+    assert gate2 == gate
+
+
+@pytest.mark.parametrize('num_qubits, mask, bits, flipped', [
+    (1, (), [0], (True,)),
+    (3, (False,), [1], (False, True)),
+    (3, (False, False), [0, 2], (True, False, True)),
+])
+def test_measurement_with_bits_flipped(num_qubits, mask, bits, flipped):
+    gate = cirq.MeasurementGate(num_qubits,
+                                key='a',
+                                invert_mask=mask,
+                                qid_shape=(3,) * num_qubits)
+
+    gate1 = gate.with_bits_flipped(*bits)
+    assert gate1.key == gate.key
+    assert gate1.num_qubits() == gate.num_qubits()
+    assert gate1.invert_mask == flipped
+    assert cirq.qid_shape(gate1) == cirq.qid_shape(gate)
+
+    # Flipping bits again restores the mask (but may have extended it).
+    gate2 = gate1.with_bits_flipped(*bits)
+    assert gate2.full_invert_mask() == gate.full_invert_mask()
+
+
 def test_qudit_measure_qasm():
     assert cirq.qasm(cirq.measure(cirq.LineQid(0, 3), key='a'),
                      args=cirq.QasmArgs(),
@@ -191,7 +229,7 @@ def test_op_repr():
         "invert_mask=(False, True))")
 
 
-def test_act_on():
+def test_act_on_state_vector():
     a, b = cirq.LineQubit.range(2)
     m = cirq.measure(a, b, key='out', invert_mask=(True,))
 
@@ -225,6 +263,47 @@ def test_act_on():
                                    shape=(2, 2, 2, 2, 2),
                                    dtype=np.complex64),
         available_buffer=np.empty(shape=(2, 2, 2, 2, 2)),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [0, 1]}
+
+    with pytest.raises(ValueError, match="already logged to key"):
+        cirq.act_on(m, args)
+
+
+def test_act_on_clifford_tableau():
+    a, b = cirq.LineQubit.range(2)
+    m = cirq.measure(a, b, key='out', invert_mask=(True,))
+    # The below assertion does not fail since it ignores non-unitary operations
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary(m)
+
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(m, object())
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=0),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 0]}
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=8),
+        axes=[3, 1],
+        prng=np.random.RandomState(),
+        log_of_measurement_results={},
+    )
+
+    cirq.act_on(m, args)
+    assert args.log_of_measurement_results == {'out': [1, 1]}
+
+    args = cirq.ActOnCliffordTableauArgs(
+        tableau=cirq.CliffordTableau(num_qubits=5, initial_state=10),
         axes=[3, 1],
         prng=np.random.RandomState(),
         log_of_measurement_results={},
