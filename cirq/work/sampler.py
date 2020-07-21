@@ -69,9 +69,13 @@ class Sampler(metaclass=abc.ABCMeta):
 
         Returns:
             A `pandas.DataFrame` with a row for each sample, and a column for
-            each measurement result as well as a column for each symbolic
-            parameter. There is an also index column containing the repetition
-            number, for each parameter assignment.
+            each measurement key as well as a column for each symbolic
+            parameter.  Measurement results are stored as a big endian integer
+            representation with one bit for each measured qubit in the key.
+            See `cirq.big_endian_int_to_bits` and similar functions for how
+            to convert this integer into bits.
+            There is an also index column containing the repetition number,
+            for each parameter assignment.
 
         Examples:
             >>> a, b, c = cirq.LineQubit.range(3)
