@@ -51,6 +51,7 @@ User Documentation
     tutorials/hidden_linear_function.ipynb
     tutorials/Quantum_Walk.ipynb
     tutorials/Rabi_Demo.ipynb
+    tutorials/quantum_chess.ipynb
 
 
 .. toctree::
