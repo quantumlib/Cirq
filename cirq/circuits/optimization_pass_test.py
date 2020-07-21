@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 import cirq
 from cirq import PointOptimizer, PointOptimizationSummary
 from cirq.testing import EqualsTester
@@ -140,6 +141,23 @@ z: ─────────────────────────�
     """.strip()
 
     assert actual_text_diagram == expected_text_diagram
+
+
+def test_point_optimizer_raises_on_gates_changing_qubits():
+
+    class EverythingIs42(cirq.PointOptimizer):
+        """Changes all single qubit operations to act on LineQubit(42)"""
+
+        def optimization_at(self, circuit, index, op):
+            if len(op.qubits) == 1:
+                new_op = op.gate(cirq.LineQubit(42))
+                return cirq.PointOptimizationSummary(clear_span=1,
+                                                     clear_qubits=op.qubits,
+                                                     new_operations=new_op)
+
+    c = cirq.Circuit(cirq.X(cirq.LineQubit(0)), cirq.X(cirq.LineQubit(1)))
+    with pytest.raises(ValueError, match='new qubits'):
+        EverythingIs42().optimize_circuit(c)
 
 
 def test_repr():

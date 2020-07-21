@@ -239,10 +239,13 @@ def test_create_context(client):
                        match='specify service_args and verbose or client'):
         EngineContext(cg.engine.engine.ProtoVersion.V1, {'args': 'test'}, True,
                       mock.Mock())
+    with pytest.raises(ValueError, match='no longer supported'):
+        _ = EngineContext(cg.engine.engine.ProtoVersion.V1, {'args': 'test'},
+                          True)
 
-    context = EngineContext(cg.engine.engine.ProtoVersion.V1, {'args': 'test'},
+    context = EngineContext(cg.engine.engine.ProtoVersion.V2, {'args': 'test'},
                             True)
-    assert context.proto_version == cg.engine.engine.ProtoVersion.V1
+    assert context.proto_version == cg.engine.engine.ProtoVersion.V2
     assert client.called_with({'args': 'test'}, True)
 
     assert context.copy().proto_version == context.proto_version
@@ -255,16 +258,16 @@ def test_create_engine(client):
     with pytest.raises(
             ValueError,
             match='provide context or proto_version, service_args and verbose'):
-        cg.Engine('proj', mock.Mock(), cg.engine.engine.ProtoVersion.V1,
+        cg.Engine('proj', mock.Mock(), cg.engine.engine.ProtoVersion.V2,
                   {'args': 'test'}, True)
 
     assert cg.Engine(
         'proj',
-        proto_version=cg.engine.engine.ProtoVersion.V1,
+        proto_version=cg.engine.engine.ProtoVersion.V2,
         service_args={
             'args': 'test'
         },
-        verbose=True).context.proto_version == cg.engine.engine.ProtoVersion.V1
+        verbose=True).context.proto_version == cg.engine.engine.ProtoVersion.V2
     assert client.called_with({'args': 'test'}, True)
 
 
@@ -474,50 +477,21 @@ def test_run_sweep_params(client):
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient')
-def test_run_sweep_v1(client):
-    setup_run_circuit_with_result_(client, _RESULTS)
-
-    engine = cg.Engine(project_id='proj',
-                       proto_version=cg.engine.engine.ProtoVersion.V1)
-    job = engine.run_sweep(program=_CIRCUIT,
-                           job_id='job-id',
-                           params=cirq.Points('a', [1, 2]),
-                           gate_set=cg.XMON)
-    results = job.results()
-    assert engine.context.proto_version == cg.engine.engine.ProtoVersion.V1
-    assert len(results) == 2
-    for i, v in enumerate([1, 2]):
-        assert results[i].repetitions == 1
-        assert results[i].params.param_dict == {'a': v}
-        assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
-    client().create_program.assert_called_once()
-    client().create_job.assert_called_once()
-    run_context = v1.program_pb2.RunContext()
-    client().create_job.call_args[1]['run_context'].Unpack(run_context)
-    sweeps = run_context.parameter_sweeps
-    assert len(sweeps) == 1
-    assert sweeps[0].repetitions == 1
-    assert sweeps[0].sweep.factors[0].sweeps[0].points.points == [1, 2]
-    client().get_job.assert_called_once()
-    client().get_job_results.assert_called_once()
-
-
-@mock.patch('cirq.google.engine.engine_client.EngineClient')
 def test_run_multiple_times(client):
     setup_run_circuit_with_result_(client, _RESULTS)
 
     engine = cg.Engine(project_id='proj',
-                       proto_version=cg.engine.engine.ProtoVersion.V1)
+                       proto_version=cg.engine.engine.ProtoVersion.V2)
     program = engine.create_program(program=_CIRCUIT, gate_set=cg.XMON)
     program.run(param_resolver=cirq.ParamResolver({'a': 1}))
-    run_context = v1.program_pb2.RunContext()
+    run_context = v2.run_context_pb2.RunContext()
     client().create_job.call_args[1]['run_context'].Unpack(run_context)
     sweeps1 = run_context.parameter_sweeps
     job2 = program.run_sweep(repetitions=2, params=cirq.Points('a', [3, 4]))
     client().create_job.call_args[1]['run_context'].Unpack(run_context)
     sweeps2 = run_context.parameter_sweeps
     results = job2.results()
-    assert engine.context.proto_version == cg.engine.engine.ProtoVersion.V1
+    assert engine.context.proto_version == cg.engine.engine.ProtoVersion.V2
     assert len(results) == 2
     for i, v in enumerate([1, 2]):
         assert results[i].repetitions == 1
@@ -525,10 +499,11 @@ def test_run_multiple_times(client):
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert len(sweeps1) == 1
     assert sweeps1[0].repetitions == 1
-    assert sweeps1[0].sweep.factors[0].sweeps[0].points.points == [1]
+    points1 = sweeps1[0].sweep.sweep_function.sweeps[0].single_sweep.points
+    assert points1.points == [1]
     assert len(sweeps2) == 1
     assert sweeps2[0].repetitions == 2
-    assert sweeps2[0].sweep.factors[0].sweeps[0].points.points == [3, 4]
+    assert sweeps2[0].sweep.single_sweep.points.points == [3, 4]
     assert client().get_job.call_count == 2
     assert client().get_job_results.call_count == 2
 
