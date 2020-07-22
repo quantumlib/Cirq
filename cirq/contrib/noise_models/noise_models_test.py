@@ -300,55 +300,55 @@ _CALIBRATION_DATA = Merge(
         }]
     }, {
         name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['q0_0'],
+        targets: ['0_0'],
         values: [{
             double_val: .001
         }]
     }, {
         name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['q0_1'],
+        targets: ['0_1'],
         values: [{
             double_val: .002
         }]
     }, {
         name: 'single_qubit_rb_pauli_error_per_gate',
-        targets: ['q1_0'],
+        targets: ['1_0'],
         values: [{
             double_val: .003
         }]
     }, {
         name: 'single_qubit_readout_separation_error',
-        targets: ['q0_0'],
+        targets: ['0_0'],
         values: [{
             double_val: .004
         }]
     }, {
         name: 'single_qubit_readout_separation_error',
-        targets: ['q0_1'],
+        targets: ['0_1'],
         values: [{
             double_val: .005
         }]
     }, {
         name: 'single_qubit_readout_separation_error',
-        targets: ['q1_0'],
+        targets: ['1_0'],
         values: [{
             double_val: .006
         }]
     }, {
         name: 'single_qubit_idle_t1_micros',
-        targets: ['q0_0'],
+        targets: ['0_0'],
         values: [{
             double_val: .007
         }]
     }, {
         name: 'single_qubit_idle_t1_micros',
-        targets: ['q0_1'],
+        targets: ['0_1'],
         values: [{
             double_val: .008
         }]
     }, {
         name: 'single_qubit_idle_t1_micros',
-        targets: ['q1_0'],
+        targets: ['1_0'],
         values: [{
             double_val: .009
         }]
