@@ -96,6 +96,7 @@ class OneQubitShorsCode:
         for i in range(self.num_physical_qubits):
             yield cirq.measure(self.physical_qubits[i])
 
+
 if __name__ == '__main__':
     # coverage: ignore
     #create circuit
