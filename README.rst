@@ -83,7 +83,7 @@ Cirq Contributors Community
 We welcome contributions! Before opening your first PR, a good place to start is to read our
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
 
-We are dedicated to cultivate an open and inclusive community to build software for near term quantum computers.
+We are dedicated to cultivating an open and inclusive community to build software for near term quantum computers.
 Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/master/CODE_OF_CONDUCT.md>`__ for the rules of engagement within our community.
 
 For real time informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev>`__ Gitter channel, come hangout with us!
