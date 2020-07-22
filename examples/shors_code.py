@@ -1,4 +1,4 @@
-"""
+""" Text of the example
 Shor's code is a stabilizer code for quantum error correction.
 It uses 9 qubits to encode 1 logic qubit and is resistant
 to at least one bit flip and one sign flip or their combination.
