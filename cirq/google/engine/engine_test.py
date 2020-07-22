@@ -13,6 +13,7 @@
 # limitations under the License.
 
 """Tests for engine."""
+import os
 from unittest import mock
 import numpy as np
 import pytest
@@ -258,8 +259,11 @@ def test_create_engine(client):
     with pytest.raises(
             ValueError,
             match='provide context or proto_version, service_args and verbose'):
-        cg.Engine('proj', mock.Mock(), cg.engine.engine.ProtoVersion.V2,
-                  {'args': 'test'}, True)
+        cg.Engine('proj',
+                  proto_version=cg.engine.engine.ProtoVersion.V2,
+                  service_args={'args': 'test'},
+                  verbose=True,
+                  context=mock.Mock())
 
     assert cg.Engine(
         'proj',
@@ -269,6 +273,14 @@ def test_create_engine(client):
         },
         verbose=True).context.proto_version == cg.engine.engine.ProtoVersion.V2
     assert client.called_with({'args': 'test'}, True)
+
+
+def test_engine_str():
+    engine = cg.Engine('proj',
+                       proto_version=cg.engine.engine.ProtoVersion.V2,
+                       service_args={'args': 'test'},
+                       verbose=True)
+    assert str(engine) == 'Engine(project_id=\'proj\')'
 
 
 def setup_run_circuit_with_result_(client, result):
@@ -692,3 +704,20 @@ def test_sampler(client):
         assert results[i].params.param_dict == {'a': v}
         assert results[i].measurements == {'q': np.array([[0]], dtype='uint8')}
     assert client().create_program.call_args[0][0] == 'proj'
+
+
+@mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
+def test_get_engine(build):
+    # Default project id present.
+    with mock.patch.dict(os.environ, {
+            'GOOGLE_CLOUD_PROJECT': 'project!',
+    },
+                         clear=True):
+        eng = cirq.google.get_engine()
+        assert eng.project_id == 'project!'
+
+    # Nothing present.
+    with mock.patch.dict(os.environ, {}, clear=True):
+        with pytest.raises(EnvironmentError, match='GOOGLE_CLOUD_PROJECT'):
+            _ = cirq.google.get_engine()
+        _ = cirq.google.get_engine('project!')
