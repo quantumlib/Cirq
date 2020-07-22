@@ -13,26 +13,27 @@
 # limitations under the License.
 
 import abc
-from typing import (Dict, List, TYPE_CHECKING)
+from typing import Dict, List, TYPE_CHECKING
 
 import numpy as np
 
-from cirq import work, study, protocols
+from cirq import devices, work, study, protocols
 
 if TYPE_CHECKING:
-    import cirq.google
+    import cirq
 
 
 class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
     """A dummy sampler for testing. Immediately returns zeroes."""
 
-    def __init__(self, gate_set: 'cirq.google.SerializableGateSet' = None):
-        """
+    def __init__(self, device: devices.Device = None):
+        """Construct a sampler that returns 0 for all measurements.
+
         Args:
-            gate_set: `SerializableGateSet`. If set, sampler will validate that
-                all gates in the circuit are from the given gate set.
+            device: A device against which to validate the circuit. If None,
+                no validation will be done.
         """
-        self.gate_set = gate_set
+        self.device = device
 
     def run_sweep(
             self,
@@ -50,20 +51,20 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             TrialResult list for this run; one for each possible parameter
             resolver.
-        """
-        if self.gate_set is not None:
-            for op in program.all_operations():
-                assert self.gate_set.is_supported_operation(op), (
-                    "Unsupported operation: %s" % op)
 
+        Raises:
+            ValueError if this sampler has a device and the circuit is not
+            valid for the device.
+        """
+        if self.device:
+            self.device.validate_circuit(program)
         measurements = {}  # type: Dict[str, np.ndarray]
         for op in program.all_operations():
             key = protocols.measurement_key(op, default=None)
             if key is not None:
                 measurements[key] = np.zeros((repetitions, len(op.qubits)),
-                                             dtype=np.int8)
+                                             dtype=int)
         return [
-            study.TrialResult.from_single_parameter_set(
-                params=param_resolver, measurements=measurements)
+            study.TrialResult(params=param_resolver, measurements=measurements)
             for param_resolver in study.to_resolvers(params)
         ]

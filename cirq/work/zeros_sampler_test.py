@@ -17,10 +17,6 @@ import pytest
 import sympy
 
 import cirq
-from cirq import study
-from cirq.google.common_serializers import (SINGLE_QUBIT_SERIALIZERS,
-                                            SINGLE_QUBIT_DESERIALIZERS)
-from cirq.google.serializable_gate_set import SerializableGateSet
 
 
 def test_run_sweep():
@@ -48,25 +44,31 @@ def test_sample():
     c += [cirq.measure(q) for q in qs[0:3]]
     c += cirq.measure(qs[4], qs[5])
     # Z to even power is an identity.
-    params = study.Points(sympy.Symbol('p'), [0, 2, 4, 6])
+    params = cirq.Points(sympy.Symbol('p'), [0, 2, 4, 6])
 
-    result1 = cirq.ZerosSampler().sample(c, repetitions=10,
-                                         params=params).sort_index(axis=1)
-    result2 = cirq.Simulator().sample(c, repetitions=10,
-                                      params=params).sort_index(axis=1)
+    result1 = cirq.ZerosSampler().sample(c, repetitions=10, params=params)
+    result2 = cirq.Simulator().sample(c, repetitions=10, params=params)
 
     assert np.all(result1 == result2)
 
 
-def test_sample_with_gate_set():
-    gate_set = SerializableGateSet('test', SINGLE_QUBIT_SERIALIZERS,
-                                   SINGLE_QUBIT_DESERIALIZERS)
-    sampler = cirq.ZerosSampler(gate_set=gate_set)
-    a, b = cirq.LineQubit.range(2)
-    circuit1 = cirq.Circuit([cirq.X(a)])
-    circuit2 = cirq.Circuit([cirq.CX(a, b)])
+class OnlyMeasurementsDevice(cirq.Device):
 
-    sampler.sample(circuit1)
+    def validate_operation(self, operation: 'cirq.Operation') -> None:
+        if not cirq.is_measurement(operation):
+            raise ValueError(f'{operation} is not a measurement and this '
+                             f'device only measures!')
 
-    with pytest.raises(AssertionError, match='Unsupported operation'):
-        sampler.sample(circuit2)
+
+def test_validate_device():
+    device = OnlyMeasurementsDevice()
+    sampler = cirq.ZerosSampler(device)
+
+    a, b, c = [cirq.NamedQubit(s) for s in ['a', 'b', 'c']]
+    circuit = cirq.Circuit(cirq.measure(a), cirq.measure(b, c))
+
+    _ = sampler.run_sweep(circuit, None, 3)
+
+    circuit = cirq.Circuit(cirq.measure(a), cirq.X(b))
+    with pytest.raises(ValueError, match=r'X\(b\) is not a measurement'):
+        _ = sampler.run_sweep(circuit, None, 3)
