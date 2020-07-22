@@ -21,11 +21,12 @@ to at least one bit flip and one sign flip or their combination.
 (0, 8): ───────────────────X───────X───@───────────────────M───
 """
 
+import random
+
 import cirq
-from examples.qec.onequbit_qec import OneQubitCode
 
 
-class OneQubitShorsCode(OneQubitCode):
+class OneQubitShorsCode:
 
     def __init__(self):
         self.num_physical_qubits = 9
@@ -94,3 +95,22 @@ class OneQubitShorsCode(OneQubitCode):
     def measure(self):
         for i in range(self.num_physical_qubits):
             yield cirq.measure(self.physical_qubits[i])
+
+if __name__ == '__main__':
+    #create circuit
+    mycode1 = OneQubitShorsCode()
+    my_circuit1 = cirq.Circuit(mycode1.encode())
+
+    #create error
+    my_circuit1 += cirq.Circuit(
+        mycode1.apply_gate(cirq.X,
+                           random.randint(0, mycode1.num_physical_qubits-1)))
+
+    #correct error
+    my_circuit1 += cirq.Circuit(mycode1.correct())
+
+    #decode
+    my_circuit1 += cirq.Circuit(mycode1.measure())
+    sim1 = cirq.Simulator()
+    result1 = sim1.run(my_circuit1, repetitions=1)
+    print(result1.measurements['0'])
