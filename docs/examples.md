@@ -46,8 +46,8 @@ Transmit 2 classical bits using one quantum bit.
 
 ## Introductory Error Correction
 
-*   [Shor's Code](https://github.com/quantumlib/Cirq/blob/master/examples/qec)
-How to do error correction and fault tolerant operations with Shor's Code 
+*   [Shor's Code](https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py)
+Quantum error correction with Shor's Code 
 
 ## Intermediate Textbook Algorithms
 
