@@ -105,7 +105,7 @@ For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensor
 
 For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
 
-Finally
+Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
 
 Alpha Disclaimer
 ----------------
