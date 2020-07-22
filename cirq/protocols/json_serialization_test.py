@@ -207,6 +207,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProgram',
     'EngineTimeSlot',
     'QuantumEngineSampler',
+    'NAMED_GATESETS',
 
     # enums
     'ProtoVersion'

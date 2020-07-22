@@ -43,11 +43,11 @@ def _make_sampler() -> cirq.pasqal.PasqalSampler:
 
 
 def test_pasqal_circuit_init():
-    qs = cirq.pasqal.ThreeDGridQubit.square(3)
+    qs = cirq.NamedQubit.range(3, prefix='q')
     ex_circuit = cirq.Circuit()
     ex_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
                         cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
-    device = cirq.pasqal.PasqalDevice(control_radius=3, qubits=qs)
+    device = cirq.pasqal.PasqalDevice(qubits=qs)
     test_circuit = cirq.Circuit(device=device)
     test_circuit.append([[cirq.CZ(qs[i], qs[i + 1]),
                           cirq.X(qs[i + 1])] for i in range(len(qs) - 1)])
@@ -64,9 +64,7 @@ def test_run_sweep(mock_post, mock_get):
     without noise and checks if the results match.
     """
 
-    qs = [
-        cirq.pasqal.ThreeDGridQubit(i, j, 0) for i in range(3) for j in range(3)
-    ]
+    qs = cirq.NamedQubit.range(9, prefix='q')
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -74,7 +72,7 @@ def test_run_sweep(mock_post, mock_get):
     num = np.random.randint(0, 2**9)
     binary = bin(num)[2:].zfill(9)
 
-    device = cirq.pasqal.PasqalDevice(control_radius=1, qubits=qs)
+    device = cirq.pasqal.PasqalDevice(qubits=qs)
     ex_circuit = cirq.Circuit(device=device)
 
     for i, b in enumerate(binary[:-1]):

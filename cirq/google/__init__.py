@@ -40,6 +40,8 @@ from cirq.google.engine import (
     EngineTimeSlot,
     ProtoVersion,
     QuantumEngineSampler,
+    get_engine,
+    get_engine_sampler,
 )
 
 from cirq.google.gate_sets import (
@@ -47,6 +49,7 @@ from cirq.google.gate_sets import (
     FSIM_GATESET,
     SQRT_ISWAP_GATESET,
     SYC_GATESET,
+    NAMED_GATESETS,
 )
 
 from cirq.google.line import (
