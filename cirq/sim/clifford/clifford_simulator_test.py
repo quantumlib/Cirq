@@ -499,9 +499,9 @@ def test_deprecated():
                                   'deprecated'):
         _ = clifford_state.wave_function()
 
-    with cirq.testing.assert_logs('collapse_wave_function',
+    with cirq.testing.assert_logs('collapse_wavefunction',
                                   'collapse_state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q],
                                                prng=0,
-                                               collapse_wave_function=True)
+                                               collapse_wavefunction=True)

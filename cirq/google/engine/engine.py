@@ -25,6 +25,7 @@ API is (as of June 22, 2018) restricted to invitation only.
 
 import datetime
 import enum
+import os
 import random
 import string
 from typing import Dict, List, Optional, Sequence, TypeVar, Union, TYPE_CHECKING
@@ -33,7 +34,7 @@ from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
 from cirq.google import serializable_gate_set as sgs
-from cirq.google.api import v1, v2
+from cirq.google.api import v2
 from cirq.google.engine import (engine_client, engine_program, engine_job,
                                 engine_processor, engine_sampler)
 
@@ -92,6 +93,8 @@ class EngineContext:
                 'either specify service_args and verbose or client')
 
         self.proto_version = proto_version or ProtoVersion.V2
+        if self.proto_version == ProtoVersion.V1:
+            raise ValueError('ProtoVersion V1 no longer supported')
 
         if not client:
             client = engine_client.EngineClient(service_args=service_args,
@@ -105,7 +108,6 @@ class EngineContext:
 
     def _value_equality_values_(self):
         return self.proto_version, self.client
-
 
 class Engine:
     """Runs programs via the Quantum Engine API.
@@ -131,8 +133,8 @@ class Engine:
             proto_version: Optional[ProtoVersion] = None,
             service_args: Optional[Dict] = None,
             verbose: Optional[bool] = None,
-            context: Optional[EngineContext] = None,
             timeout: Optional[int] = None,
+            context: Optional[EngineContext] = None,
     ) -> None:
         """Supports creating and running programs against the Quantum Engine.
 
@@ -141,7 +143,6 @@ class Engine:
                 API interactions will be attributed to this project and any
                 resources created will be owned by the project. See
                 https://cloud.google.com/resource-manager/docs/creating-managing-projects#identifying_projects
-            context: Engine configuration and context to use.
             proto_version: The version of cirq protos to use. If None, then
                 ProtoVersion.V2 will be used.
             service_args: A dictionary of arguments that can be used to
@@ -150,11 +151,13 @@ class Engine:
                 true.
             timeout: Timeout for polling for results, in seconds.  Default is
                 to never timeout.
+            context: Engine configuration and context to use. For most users
+                this should never be specified.
         """
         if context and (proto_version or service_args or verbose):
             raise ValueError(
-                'either provide context or proto_version, service_args'
-                ' and verbose')
+                'Either provide context or proto_version, service_args'
+                ' and verbose.')
 
         self.project_id = project_id
         if not context:
@@ -163,6 +166,9 @@ class Engine:
                                     verbose=verbose,
                                     timeout=timeout)
         self.context = context
+
+    def __str__(self) -> str:
+        return f'Engine(project_id={self.project_id!r})'
 
     def run(
             self,
@@ -444,12 +450,7 @@ class Engine:
             raise TypeError(f'Unrecognized program type: {type(program)}')
         program.device.validate_circuit(program)
 
-        if self.context.proto_version == ProtoVersion.V1:
-            return self._pack_any(
-                v1.program_pb2.Program(operations=[
-                    op for op in v1.circuit_as_schedule_to_protos(program)
-                ]))
-        elif self.context.proto_version == ProtoVersion.V2:
+        if self.context.proto_version == ProtoVersion.V2:
             program = gate_set.serialize(program)
             return self._pack_any(program)
         else:
@@ -521,3 +522,34 @@ class Engine:
         return engine_sampler.QuantumEngineSampler(engine=self,
                                                    processor_id=processor_id,
                                                    gate_set=gate_set)
+
+
+def get_engine(project_id: Optional[str] = None) -> Engine:
+    """Get an Engine instance assuming some sensible defaults.
+
+    This uses the environment variable GOOGLE_CLOUD_PROJECT for the Engine
+    project_id, unless set explicitly. By using an environment variable,
+    you can avoid hard-coding the project_id in shared code.
+
+    If the environment variables are set, but incorrect, an authentication
+    failure will occur when attempting to run jobs on the engine.
+
+    Args:
+        project_id: If set overrides the project id obtained from the
+            environment variable `GOOGLE_CLOUD_PROJECT`.
+
+    Returns:
+        The Engine instance.
+
+    Raises:
+        EnvironmentError: If the environment variable GOOGLE_CLOUD_PROJECT is
+            not set.
+    """
+    env_project_id = 'GOOGLE_CLOUD_PROJECT'
+    if not project_id:
+        project_id = os.environ.get(env_project_id)
+    if not project_id:
+        raise EnvironmentError(
+            f'Environment variable {env_project_id} is not set.')
+
+    return Engine(project_id=project_id)
