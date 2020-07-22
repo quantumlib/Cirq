@@ -76,7 +76,8 @@ class TrialResult:
     attribute. The repetition number is the row index and measurement keys
     are the columns of the DataFrame. Each element is a big endian integer
     representation of measurement outcomes for the measurement key in that
-    repitition.
+    repetition.  See `cirq.big_endian_int_to_bits` and similar functions
+    for how to convert this integer into bits.
 
     Attributes:
         params: A ParamResolver of settings used when sampling result.

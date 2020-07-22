@@ -42,11 +42,23 @@ release.
 
 ### Preparation
 
-Make sure you're on an up-to-date master branch and in cirq's root directory.
+System requirements: Linux, python3.7
+
+For MINOR / MAJOR release: Make sure you're on an up-to-date master branch and 
+in cirq's root directory.
 
 ```bash
 git checkout master
 git pull origin master  # or upstream master
+git status  # should be no pending changes
+```
+
+For PATCH update: Make sure you checked out the version you want to patch. 
+Typically this will be something like `${MAJOR}.${MINOR}.${LAST_PATCH}` 
+
+```bash
+git fetch origin # or upstream - to fetch all tags
+git checkout <desired tag to patch>   
 git status  # should be no pending changes
 ```
 
@@ -55,8 +67,8 @@ This can be done by visiting test.pypi.org, logging in, and accessing the cirq
 distribution.
 
 For the following script to work, you will need the following env variables
-defined: TEST_TWINE_USERNAME, TEST_TWINE_PASSWORD, PROD_TWINE_USERNAME,
-PROD_TWINE_PASSWORD.
+defined: `TEST_TWINE_USERNAME`, `TEST_TWINE_PASSWORD`, `PROD_TWINE_USERNAME`,
+`PROD_TWINE_PASSWORD`.
 
 It is highly recommended to use different passwords for test and prod to avoid
 accidentally pushing to prod.
@@ -65,7 +77,7 @@ Also define these variables for the versions you are releasing:
 
 ```bash
 VER=VERSION_YOU_WANT_TO_RELEASE  # e.g. "0.7.0"
-NEXT_VER=NEXT_VERSION  # e.g. "0.8.0"
+NEXT_VER=NEXT_VERSION  # e.g. "0.8.0" (skip for PATCH releases)
 ```
 
 ### Create release branch
@@ -73,20 +85,36 @@ NEXT_VER=NEXT_VERSION  # e.g. "0.8.0"
 Create a release branch called "v${VERSION}-dev":
 
 ```bash
-git checkout master -b "v${VER}-dev"
-vi _version.py   # Remove .dev from version
-git add _version.py
-git commit -m "bla bla"
+git checkout -b "v${VER}-dev"
+```
+
+If you are doing a PATCH update, also cherrypick the commits for the fixes 
+you want to include in your update and resolve all potential merge conflicts 
+carefully: 
+
+```bash
+git cherry-pick <commit> 
+```
+
+Bump the version on the release branch: 
+
+```bash
+vi ./cirq/_version.py   # Remove .dev from version
+git add ./cirq/_version.py
+git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "v${VER}-dev"
 ```
 
-### Bump the master version
+### Bump the master version 
+
+WARNING: Only bump the master version for minor and major releases, for PATCH
+updates, leave it as it is.  
 
 ```bash
 git checkout master -b "version_bump_${NEXT_VER}"
-vi _version.py # Bump version to next version.  KEEP .dev!
-git add _version.py
-git commit -m "bla bla"
+vi ./cirq/_version.py # Bump version to next version.  KEEP .dev!
+git add ./cirq/_version.py
+git commit -m "Bump cirq version to ${NEXT_VER}"
 git push origin "version_bump_${NEXT_VER}"
 ```
 
@@ -122,7 +150,7 @@ Next, run automated verification.
 Note: sometimes the first verification from test pypi will fail.
 
 ```bash
-# NOTE: THE FIRST RUN WILL LIKELY FAIL
+# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might not have yet indexed the version
 ./dev_tools/packaging/verify-published-package.sh "${VER}" --test
 ```
 Once this runs, you can create a virtual environment to perform
@@ -145,8 +173,12 @@ release and for an announcement email.
 You can model the release notes on the previous release from the
 [Release page](https://github.com/quantumlib/Cirq/releases).
 
+1. Fill out the new version in "Tag Version" and choose your release 
+branch to create the tag from.   
+2. Attach the generated whl file to the release 
+
 Retrieve all commits since the last release with:
-```git log "--pretty=%h %s```.
+```git log "--pretty=%h %s"```.
 
 You can get the changes to the top-level objects and protocols by
 checking the history of the
@@ -164,7 +196,7 @@ twine upload --username="$PROD_TWINE_USERNAME" --password="$PROD_TWINE_PASSWORD"
 Perform automated verification tests:
 
 ```bash
-# NOTE: FIRST RUN WILL LIKELY FAIL
+# NOTE: FIRST RUN WILL LIKELY FAIL - pypi might not have yet indexed the version
 ./dev_tools/packaging/verify-published-package.sh "${VER}" --prod
 ```
 
