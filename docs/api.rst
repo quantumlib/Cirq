@@ -500,7 +500,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
-    cirq.google.engine_from_environment
+    cirq.google.get_engine
     cirq.google.get_engine_sampler
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
@@ -728,3 +728,4 @@ These objects and methods will be removed in a future version of the library.
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
+    cirq.google.engine_from_environment
