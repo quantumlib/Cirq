@@ -31,7 +31,7 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
 
-For the latest announcements, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
+For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
 Hello Qubit
 -----------
