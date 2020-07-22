@@ -97,6 +97,7 @@ class OneQubitShorsCode:
             yield cirq.measure(self.physical_qubits[i])
 
 if __name__ == '__main__':
+    # coverage: ignore
     #create circuit
     mycode1 = OneQubitShorsCode()
     my_circuit1 = cirq.Circuit(mycode1.encode())
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     #create error
     my_circuit1 += cirq.Circuit(
         mycode1.apply_gate(cirq.X,
-                           random.randint(0, mycode1.num_physical_qubits-1)))
+                           random.randint(0, mycode1.num_physical_qubits - 1)))
 
     #correct error
     my_circuit1 += cirq.Circuit(mycode1.correct())
