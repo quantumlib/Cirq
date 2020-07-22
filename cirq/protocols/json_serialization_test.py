@@ -111,6 +111,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnCliffordTableauArgs',
     'ActOnStateVectorArgs',
     'ApplyChannelArgs',
     'ApplyMixtureArgs',
@@ -206,6 +207,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProgram',
     'EngineTimeSlot',
     'QuantumEngineSampler',
+    'NAMED_GATESETS',
 
     # enums
     'ProtoVersion'
@@ -328,6 +330,7 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionTrialResult',
     'XmonDevice',
     'XMON',
+    'ZerosSampler',
     'Zip',
 ]
 
