@@ -39,19 +39,19 @@ _CALIBRATION_DATA = Merge(
         }]
     }, {
         name: 't1',
-        targets: ['q0_0'],
+        targets: ['0_0'],
         values: [{
             double_val: 321
         }]
     }, {
         name: 't1',
-        targets: ['q0_1'],
+        targets: ['0_1'],
         values: [{
             double_val: 911
         }]
     }, {
         name: 't1',
-        targets: ['q1_0'],
+        targets: ['1_0'],
         values: [{
             double_val: 505
         }]
