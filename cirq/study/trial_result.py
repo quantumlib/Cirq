@@ -324,12 +324,30 @@ class TrialResult:
             })
 
 
-def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
+def _pack_digits(digits: np.ndarray, pack_bits='auto') -> Tuple[str, bool]:
     """Returns a string of packed digits and a boolean indicating whether the
-    digits were packed as binary values."""
+    digits were packed as binary values.
+
+    Args:
+        digits: A numpy array.
+        pack_bits: If 'auto' (the default), automatically pack binary digits
+            using `np.packbits` to save space. If 'never', do not pack binary
+            digits. If 'force', use `np.packbits` without checking for
+            compatibility.
+    """
     # If digits are binary, pack them better to save space
-    if np.array_equal(digits, digits.astype(np.bool)):
+
+    if pack_bits == 'force':
         return _pack_bits(digits), True
+    if pack_bits not in ['auto', 'never']:
+        raise ValueError("Please set `pack_bits` to 'auto', "
+                         "'always', or 'never'.")
+        # Do error checking here, otherwise the following logic will work
+        # for both "auto" and "never".
+
+    if pack_bits == 'auto' and np.array_equal(digits, digits.astype(np.bool)):
+        return _pack_bits(digits), True
+
     buffer = io.BytesIO()
     np.save(buffer, digits, allow_pickle=False)
     buffer.seek(0)
@@ -346,6 +364,7 @@ def _unpack_digits(packed_digits: str, binary: bool, dtype: str,
                    shape: Sequence[int]) -> np.ndarray:
     if binary:
         return _unpack_bits(packed_digits, dtype, shape)
+    # TODO: `dtype` and `shape` are unused if `binary` is False.
     buffer = io.BytesIO()
     buffer.write(bytes.fromhex(packed_digits))
     buffer.seek(0)

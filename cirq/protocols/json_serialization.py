@@ -80,6 +80,7 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
+                'BitstringAccumulator': cirq.BitstringAccumulator,
                 'ProductState': cirq.ProductState,
                 'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
@@ -115,11 +116,13 @@ class _ResolverCache:
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'InitObsSetting': cirq.InitObsSetting,
                 'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
+                'MeasurementSpec': cirq.MeasurementSpec,
                 'Moment': cirq.Moment,
                 '_XEigenState':
                 cirq.value.product_state._XEigenState,  # type: ignore

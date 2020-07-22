@@ -28,6 +28,9 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
+import examples.measure_observables_readout
+import examples.measure_observables_vqe
+import examples.measure_observables_tomography
 from examples.shors_code import OneQubitShorsCode
 
 
@@ -272,6 +275,18 @@ def test_example_runs_shor_valid(n):
 def test_example_runs_shor_invalid(n):
     with pytest.raises(ValueError):
         examples.shor.main(n=n)
+
+def test_example_measure_observables_readout(monkeypatch):
+    monkeypatch.delenv('GOOGLE_CLOUD_PROJECT')
+    examples.measure_observables_readout.main(cache=False)
+
+def test_example_measure_observables_vqe(monkeypatch):
+    monkeypatch.delenv('GOOGLE_CLOUD_PROJECT')
+    examples.measure_observables_vqe.main(cache=False, quick=True)
+
+def test_example_measure_observables_tomography(monkeypatch):
+    monkeypatch.delenv('GOOGLE_CLOUD_PROJECT')
+    examples.measure_observables_tomography.main()
 
 
 def test_example_qec_single_qubit():

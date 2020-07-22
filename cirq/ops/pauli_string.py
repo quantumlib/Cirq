@@ -134,6 +134,10 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             self._qubit_pauli_map = m._qubit_pauli_map
             self._coefficient = m._coefficient
 
+    def copy(self):
+        return PauliString(qubit_pauli_map=self._qubit_pauli_map.copy(),
+                           coefficient=self.coefficient)
+
     @property
     def coefficient(self) -> complex:
         return self._coefficient
@@ -356,6 +360,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         factors = []
         if self._coefficient == -1:
             prefix = '-'
+        elif self._coefficient == 1 and len(ordered_qubits) == 1:
+            factors.append('1')
         elif self._coefficient != 1:
             factors.append(repr(self._coefficient))
 

@@ -532,6 +532,11 @@ from cirq.work import (
     PauliSumCollector,
     Sampler,
     Collector,
+    InitObsSetting,
+    BitstringAccumulator,
+    MeasurementSpec,
+    group_settings_greedy,
+    observables_to_settings,
     ZerosSampler,
 )
 
