@@ -28,10 +28,9 @@ from examples.qec.onequbit_qec import OneQubitCode
 
 class OneQubitShorsCode(OneQubitCode):
 
-    def __init__(self, qindex: int = 0):
+    def __init__(self):
         self.num_physical_qubits = 9
-        self.physical_qubits = cirq.GridQubit.rect(1, self.num_physical_qubits,
-                                                   qindex, 0)
+        self.physical_qubits = cirq.LineQubit.range(self.num_physical_qubits)
 
     def encode(self):
         yield cirq.ops.Moment(
@@ -53,6 +52,12 @@ class OneQubitShorsCode(OneQubitCode):
             cirq.CNOT(self.physical_qubits[3], self.physical_qubits[5]),
             cirq.CNOT(self.physical_qubits[6], self.physical_qubits[8])
         ])
+
+    def apply_gate(self, gate: cirq.Gate, pos: int):
+        if pos > self.num_physical_qubits:
+            raise IndexError
+        else:
+            return gate(self.physical_qubits[pos])
 
     def correct(self):
         yield cirq.ops.Moment([
@@ -86,3 +91,7 @@ class OneQubitShorsCode(OneQubitCode):
             cirq.CCNOT(self.physical_qubits[3], self.physical_qubits[6],
                        self.physical_qubits[0])
         ])
+
+    def measure(self):
+        for i in range(self.num_physical_qubits):
+            yield cirq.measure(self.physical_qubits[i])
