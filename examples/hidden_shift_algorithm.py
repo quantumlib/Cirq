@@ -24,15 +24,15 @@ While a classical algorithm requires 2^(N/2) queries, the Hidden Shift
 Algorithm solves the problem in O(N) quantum operations. We describe below the
 steps of the algorithm:
 
-(1) Prepare the quantum state in the initial state |0 >^N
+(1) Prepare the quantum state in the initial state |0⟩^N
 
-(2) Make a superposition of all inputs |x > with  a set of Hadamard gates, which
+(2) Make a superposition of all inputs |x⟩ with  a set of Hadamard gates, which
 act as a (Quantum) Fourier Transform.
 
 (3) Compute the shifted function g(x) = f(x ⨁ s) into the phase with a proper
-set of gates. This is done first by shifting the state |x > with X gates, then
+set of gates. This is done first by shifting the state |x⟩ with X gates, then
 implementing the bent function as a series of Controlled-Z gates, and finally
-recovering the |x > states with another set of X gates.
+recovering the |x⟩ states with another set of X gates.
 
 (4) Apply a Fourier Transform to generate another superposition of states with
 an extra phase that is added to f(x ⨁ s).
@@ -42,7 +42,7 @@ One can then prove that the phases simplify giving just a superposition with
 a phase depending directly on the shift.
 
 (6) Apply another set of Hadamard gates which act now as an Inverse Fourier
-Transform to get the state |s >
+Transform to get the state |s⟩
 
 (7) Measure the resulting state to get s.
 
