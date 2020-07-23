@@ -1,0 +1,25 @@
+{
+  "cirq_type": "TensorProductState",
+  "states": [
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 5,
+        "col": 2
+      },
+      {
+        "cirq_type": "_KetZero"
+      }
+    ],
+    [
+      {
+        "cirq_type": "GridQubit",
+        "row": 7,
+        "col": 8
+      },
+      {
+        "cirq_type": "_KetMinus"
+      }
+    ]
+  ]
+}

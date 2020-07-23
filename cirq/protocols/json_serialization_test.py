@@ -138,6 +138,7 @@ SHOULDNT_BE_SERIALIZED = [
     # global objects
     'CONTROL_TAG',
     'PAULI_BASIS',
+    'PAULI_STATES',
 
     # abstract, but not inspect.isabstract():
     'Device',
