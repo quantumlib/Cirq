@@ -15,6 +15,7 @@ def test_name():
         '-Z',
     ]
 
+
 def test_repr():
     for o in cirq.PAULI_STATES:
         assert o == eval(repr(o))
