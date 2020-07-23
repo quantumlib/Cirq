@@ -10,7 +10,7 @@ to modify this list or open an issue.
 
 ### Quantum computing terms
 
-Use `state_vector` to describe a pure state  **Do not** use `wavefunction`, 
+Use `state_vector` to describe a pure state.  **Do not** use `wavefunction`, 
 `wave_function`, or `state` for this object (`state` is too overloaded).  
 If the object is an array or possibly a computational basis state 
 (given by an `int`), use `state_rep` or, if it is the initial state of 
