@@ -611,9 +611,11 @@ class TaggedOperation(Operation):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
 
-    def _resolve_parameters_(self, resolver):
-        return protocols.resolve_parameters(self.sub_operation, resolver).\
-            with_tags(self._tags)
+    def _resolve_parameters_(self, resolver, preserve_tags: bool = False):
+        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)
+        if preserve_tags:
+            return resolved_op.with_tags(*self._tags)
+        return resolved_op
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':

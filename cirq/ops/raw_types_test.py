@@ -458,6 +458,8 @@ def test_tagged_operation():
     assert op.with_qubits(q2) == cirq.X(q2).with_tags('tag1')
     assert op.with_qubits(q2).qubits == (q2,)
 
+    assert op._resolve_parameters_({}, preserve_tags=True)._tags == op._tags
+
 
 def test_circuit_diagram():
 

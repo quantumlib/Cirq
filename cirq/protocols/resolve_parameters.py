@@ -18,6 +18,7 @@ import sympy
 
 from cirq import study
 from cirq._doc import document
+from cirq.ops.raw_types import TaggedOperation
 
 if TYPE_CHECKING:
     import cirq
@@ -69,7 +70,9 @@ def is_parameterized(val: Any) -> bool:
 
 def resolve_parameters(
         val: Any,
-        param_resolver: 'cirq.ParamResolverOrSimilarType') -> Any:
+        param_resolver: 'cirq.ParamResolverOrSimilarType',
+        preserve_tags: bool = False,
+) -> Any:
     """Resolves symbol parameters in the effect using the param resolver.
 
     This function will use the `_resolve_parameters_` magic method
@@ -79,6 +82,8 @@ def resolve_parameters(
     Args:
         val: The object to resolve (e.g. the gate, operation, etc)
         param_resolver: the object to use for resolving all symbols
+        preserve_tags: If true, keeps TaggedOperations tagged, otherwise
+            returns the sub operation.
 
     Returns:
         a gate or operation of the same type, but with all Symbols
@@ -97,9 +102,9 @@ def resolve_parameters(
         return type(val)(resolve_parameters(e, param_resolver) for e in val)
 
     getter = getattr(val, '_resolve_parameters_', None)
-    result = NotImplemented if getter is None else getter(param_resolver)
-
-    if result is not NotImplemented:
-        return result
-    else:
+    if getter is None:
         return val
+    elif isinstance(val, TaggedOperation):
+        return getter(param_resolver, preserve_tags=preserve_tags)
+    else:
+        return getter(param_resolver)
