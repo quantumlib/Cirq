@@ -76,11 +76,27 @@ def f(a, b):
     return a + b
 
 
-def test_deprecated():
+def test_deprecated_with_name():
     with cirq.testing.assert_logs('test_func was used',
                                   'will be removed in cirq vNever',
                                   'Roll some dice.'):
         assert f(1, 2) == 3
+
+
+def new_func(a, b):
+    return a + b
+
+
+@deprecated(deadline='vNever', fix='Roll some dice.')
+def resolved_name(*args, **kwargs):
+    return new_func(*args, **kwargs)
+
+
+def test_deprecated_with_name_resolution():
+    with cirq.testing.assert_logs('resolved_name was used',
+                                  'will be removed in cirq vNever',
+                                  'Roll some dice.'):
+        assert resolved_name(1, 2) == 3
 
 
 def test_deprecated_parameter():
