@@ -75,14 +75,14 @@ def test_tensor_product_state():
 
 
 def test_tensor_product_state_2():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
 
     with pytest.raises(ValueError):
         # No coefficient
-        tps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * -1
+        _ = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * -1
     with pytest.raises(ValueError):
         # Not a state
-        tps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO
+        _ = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO
 
 
 def test_tensor_product_qubits():
@@ -138,7 +138,7 @@ def test_tp_state_vector():
 
 
 def test_tp_initial_state():
-    q0, q1, q2 = cirq.LineQubit.range(3)
+    q0, q1 = cirq.LineQubit.range(2)
     psi1 = cirq.final_state_vector(
         cirq.Circuit([cirq.I.on_each(q0, q1),
                       cirq.X(q1)]))
