@@ -23,12 +23,15 @@ from cirq._compat import deprecated
 if TYPE_CHECKING:
     import cirq
 
-to_valid_density_matrix = deprecated(
-    deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')(
-        qis.to_valid_density_matrix)
-von_neumann_entropy = deprecated(deadline='v0.9',
-                                 fix='Use cirq.von_neumann_entropy instead.')(
-                                     qis.von_neumann_entropy)
+
+@deprecated(deadline='v0.9', fix='Use cirq.to_valid_density_matrix instead.')
+def to_valid_density_matrix(*args, **kwargs):
+    return qis.to_valid_density_matrix(*args, **kwargs)
+
+
+@deprecated(deadline='v0.9', fix='Use cirq.von_neumann_entropy instead.')
+def von_neumann_entropy(*args, **kwargs):
+    return qis.von_neumann_entropy(*args, **kwargs)
 
 
 def sample_density_matrix(
