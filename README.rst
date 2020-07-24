@@ -17,6 +17,7 @@ circuits and running them against quantum computers and simulators.
     :target: https://readthedocs.org/projects/cirq/versions/
     :alt: Documentation Status
 
+
 Installation and Documentation
 ------------------------------
 
@@ -32,6 +33,7 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
+
 
 Hello Qubit
 -----------
@@ -68,8 +70,9 @@ Example output:
   Results:
   m=11000111111011001000
 
+
 Feature requests / Bugs / Questions
---------------------------------
+-----------------------------------
 
 If you have feature requests or you found a bug, please `file them on Github <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
 
@@ -77,8 +80,9 @@ For questions about how to use Cirq post to
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with the
 `cirq <https://quantumcomputing.stackexchange.com/questions/tagged/cirq>`__ tag.
 
+
 Cirq Contributors Community
-------------------
+---------------------------
 
 We welcome contributions! Before opening your first PR, a good place to start is to read our
 `guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
@@ -106,6 +110,7 @@ For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensor
 For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
 
 Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
+
 
 Alpha Disclaimer
 ----------------
