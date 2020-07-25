@@ -30,4 +30,4 @@ ipython
 ipykernel
 
 # For verifying rst
-rstcheck
+rstcheck~=3.3.1
