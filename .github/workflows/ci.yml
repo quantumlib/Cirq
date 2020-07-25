@@ -84,6 +84,8 @@ jobs:
           pip install -r requirements.txt
           python -m pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - name: RST check
+        run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
       - name: Doc check
         run: check/doctest -q
   pytest:

@@ -63,7 +63,7 @@ A simple example to get you up and running:
 
 Example output:
 
-.. code-block:: bash
+.. code-block::
 
   Circuit:
   (0, 0): ───X^0.5───M('m')───
