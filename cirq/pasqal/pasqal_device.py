@@ -13,6 +13,7 @@
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence
 import numpy as np
+import sympy
 
 import cirq
 from cirq.ops import NamedQubit
@@ -100,7 +101,8 @@ class PasqalDevice(cirq.devices.Device):
                 (cirq.ops.HPowGate, cirq.ops.CNotPowGate, cirq.ops.CZPowGate,
                  cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)):
                 expo = op.gate.exponent
-                valid_op = np.isclose(expo, np.around(expo, decimals=0))
+                if not isinstance(expo, sympy.Basic):
+                    valid_op = np.isclose(expo, np.around(expo, decimals=0))
 
         return valid_op
 

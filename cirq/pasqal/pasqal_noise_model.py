@@ -81,8 +81,8 @@ class PasqalNoiseModel(cirq.devices.NoiseModel):
         Returns:
             String representing the gate operations
         """
-        if not self.device.is_pasqal_device_op(cirq_op) \
-                or isinstance(cirq_op.gate, cirq.ops.MeasurementGate):
+        if (not self.device.is_pasqal_device_op(cirq_op) or
+                isinstance(cirq_op.gate, cirq.ops.MeasurementGate)):
             raise ValueError('Got unknown operation:', cirq_op)
 
         return str(cirq_op.gate)

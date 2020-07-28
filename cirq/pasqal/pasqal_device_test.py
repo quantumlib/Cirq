@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-
+import sympy
 import cirq
 
 from cirq.pasqal import PasqalDevice
@@ -46,6 +46,10 @@ def test_decompose_error():
     op = (cirq.ops.CZ).on(*(d.qubit_list()))
     assert d.decompose_operation(op) == [op]
 
+    op = op**sympy.Symbol('exp')
+    with pytest.raises(TypeError, match="Don't know how to work with "):
+        d.decompose_operation(op)
+
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
         d.decompose_operation(cirq.ops.MeasurementGate(num_qubits=2))
@@ -75,6 +79,13 @@ def test_is_pasqal_device():
     op1 = cirq.ops.CNotPowGate(exponent=1.)
     assert d.is_pasqal_device_op(
         op1(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
+
+    op2 = (cirq.ops.H**sympy.Symbol('exp')).on(d.qubit_list()[0])
+    assert not d.is_pasqal_device_op(op2)
+
+    decomp = d.decompose_operation(op2)
+    for op_ in decomp:
+        assert d.is_pasqal_device_op(op_)
 
 
 def test_decompose_operation():
