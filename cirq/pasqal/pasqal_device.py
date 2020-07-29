@@ -203,7 +203,13 @@ class PasqalDevice(cirq.devices.Device):
 
 
 class PasqalVirtualDevice(PasqalDevice):
-    """A Pasqal virtual device with qubits in 3D."""
+    """A Pasqal virtual device with qubits in 3d.
+
+    A virtual representation of a Pasqal device, enforcing the constraints
+    typically found in a physical device. The qubits can be positioned in 3d
+    space, although 2d layouts will be supported sooner and are thus
+    recommended. Only accepts qubits with physical placement.
+    """
 
     def __init__(self, control_radius: float,
                  qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
