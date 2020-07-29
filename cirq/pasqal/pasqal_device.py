@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Sequence
+from typing import FrozenSet, Callable, List, Sequence
+import numpy as np
 
 import cirq
 from cirq.ops import NamedQubit
@@ -77,21 +78,32 @@ class PasqalDevice(cirq.devices.Device):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
         # Try to decompose the operation into elementary device operations
-        if not PasqalDevice.is_pasqal_device_op(operation):
-            decomposition = cirq.protocols.decompose(
-                operation, keep=PasqalDevice.is_pasqal_device_op)
+        if not self.is_pasqal_device_op(operation):
+            decomposition = PasqalConverter().pasqal_convert(
+                operation, keep=self.is_pasqal_device_op)
 
         return decomposition
 
-    @staticmethod
-    def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
 
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
-        return (len(op.qubits) > 1) or isinstance(
-            op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
-                      cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
-                      cirq.ops.YPowGate, cirq.ops.ZPowGate))
+
+        valid_op = isinstance(op.gate,
+                              (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
+                               cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
+                               cirq.ops.YPowGate, cirq.ops.ZPowGate))
+
+        if not valid_op:  # To prevent further checking if already passed
+            if (isinstance(
+                    op.gate,
+                (cirq.ops.HPowGate, cirq.ops.CNotPowGate, cirq.ops.CZPowGate,
+                 cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)) and
+                    not cirq.is_parameterized(op)):
+                expo = op.gate.exponent
+                valid_op = np.isclose(expo, np.around(expo, decimals=0))
+
+        return valid_op
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """
@@ -158,3 +170,27 @@ class PasqalDevice(cirq.devices.Device):
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['qubits'])
+
+
+class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
+    """A gate converter for compatibility with Pasqal processors.
+
+    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method
+    'pasqal_convert' takes the 'keep' function as an input.
+    """
+
+    def pasqal_convert(self, op: cirq.ops.Operation,
+                       keep: Callable[[cirq.ops.Operation], bool]
+                      ) -> List[cirq.ops.Operation]:
+
+        def on_stuck_raise(bad):
+            return TypeError("Don't know how to work with {!r}. "
+                             "It isn't a native PasqalDevice operation, "
+                             "a 1 or 2 qubit gate with a known unitary, "
+                             "or composite.".format(bad))
+
+        return cirq.protocols.decompose(
+            op,
+            keep=keep,
+            intercepting_decomposer=self._convert_one,
+            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)

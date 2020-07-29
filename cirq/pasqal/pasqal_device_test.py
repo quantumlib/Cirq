@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import pytest
-
+import sympy
 import cirq
 
 from cirq.pasqal import PasqalDevice
@@ -42,18 +42,13 @@ def test_init_errors():
 
 
 def test_decompose_error():
-    d = generic_device(3)
-    op = (cirq.ops.CCZ**1.5).on(*(d.qubit_list()))
+    d = generic_device(2)
+    op = (cirq.ops.CZ).on(*(d.qubit_list()))
     assert d.decompose_operation(op) == [op]
 
-    op = cirq.H.on(cirq.NamedQubit('q0'))
-    decomposition = d.decompose_operation(op)
-    assert len(decomposition) == 2
-    assert decomposition == [
-        (cirq.Y**0.5).on(cirq.NamedQubit('q0')),
-        cirq.XPowGate(exponent=1.0,
-                      global_shift=-0.25).on(cirq.NamedQubit('q0'))
-    ]
+    op = op**sympy.Symbol('exp')
+    with pytest.raises(TypeError, match="Don't know how to work with "):
+        d.decompose_operation(op)
 
     # MeasurementGate is not a GateOperation
     with pytest.raises(TypeError):
@@ -64,7 +59,63 @@ def test_decompose_error():
                                [cirq.NamedQubit('q0'),
                                 cirq.NamedQubit('q1')]))
 
-    assert PasqalDevice.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
+
+def test_is_pasqal_device():
+    d = generic_device(2)
+
+    with pytest.raises(ValueError, match="Got unknown operation"):
+        d.is_pasqal_device_op(cirq.NamedQubit('q0'))
+
+    op = (cirq.ops.CZ).on(*(d.qubit_list()))
+    bad_op = cirq.ops.CNotPowGate(exponent=0.5)
+
+    assert d.is_pasqal_device_op(op)
+    assert d.is_pasqal_device_op(cirq.ops.X(cirq.NamedQubit('q0')))
+    assert not d.is_pasqal_device_op(
+        cirq.ops.CCX(cirq.NamedQubit('q0'), cirq.NamedQubit('q1'),
+                     cirq.NamedQubit('q2'))**0.2)
+    assert not d.is_pasqal_device_op(
+        bad_op(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
+    op1 = cirq.ops.CNotPowGate(exponent=1.)
+    assert d.is_pasqal_device_op(
+        op1(cirq.NamedQubit('q0'), cirq.NamedQubit('q1')))
+
+    op2 = (cirq.ops.H**sympy.Symbol('exp')).on(d.qubit_list()[0])
+    assert not d.is_pasqal_device_op(op2)
+
+    decomp = d.decompose_operation(op2)
+    for op_ in decomp:
+        assert d.is_pasqal_device_op(op_)
+
+
+def test_decompose_operation():
+    d = generic_device(3)
+    for op in d.decompose_operation((cirq.CCZ**1.5).on(*(d.qubit_list()))):
+        d.validate_operation(op)
+
+
+def test_pasqal_converter():
+    q = cirq.NamedQubit.range(2, prefix='q')
+    g = cirq.TwoQubitGate()
+
+    class FakeOperation(cirq.ops.GateOperation):
+
+        def __init__(self, gate, qubits):
+            self._gate = gate
+            self._qubits = qubits
+
+        @property
+        def qubits(self):
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            return FakeOperation(self._gate, new_qubits)
+
+    op = FakeOperation(g, q).with_qubits(*q)
+    d = PasqalDevice(q)
+
+    with pytest.raises(TypeError, match="Don't know how to work with"):
+        d.decompose_operation(op)
 
 
 def test_validate_operation_errors():
