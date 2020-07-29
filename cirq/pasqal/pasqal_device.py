@@ -13,7 +13,6 @@
 # limitations under the License.
 from typing import FrozenSet, Callable, List, Sequence
 import numpy as np
-import sympy
 
 import cirq
 from cirq.ops import NamedQubit
