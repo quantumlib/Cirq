@@ -601,7 +601,8 @@ def test_tagged_operation_forwards_protocols():
     assert cirq.is_parameterized(parameterized_op)
     resolver = cirq.study.ParamResolver({'t': 0.25})
     assert (cirq.resolve_parameters(
-        parameterized_op, resolver) == cirq.XPowGate(exponent=0.25)(q1))
+        parameterized_op,
+        resolver) == cirq.XPowGate(exponent=0.25)(q1).with_tags(tag))
 
     y = cirq.Y(q1)
     tagged_y = cirq.Y(q1).with_tags(tag)
@@ -647,6 +648,32 @@ def test_tagged_operation_forwards_protocols():
     assert (cirq.qasm(h, args=qasm_args) == cirq.qasm(tagged_h, args=qasm_args))
 
     cirq.testing.assert_has_consistent_apply_unitary(tagged_h)
+
+
+class ParameterizableTag:
+
+    def __init__(self, value):
+        self.value = value
+
+    def __eq__(self, other):
+        return self.value == other.value
+
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.value)
+
+    def _resolve_parameters_(self, resolver) -> 'ParameterizableTag':
+        return ParameterizableTag(cirq.resolve_parameters(self.value, resolver))
+
+
+def test_tagged_operation_resolves_parameterized_tags():
+    q = cirq.GridQubit(0, 0)
+    tag = ParameterizableTag(sympy.Symbol('t'))
+    assert cirq.is_parameterized(tag)
+    op = cirq.Z(q).with_tags(tag)
+    assert cirq.is_parameterized(op)
+    resolved_op = cirq.resolve_parameters(op, {'t': 10})
+    assert resolved_op == cirq.Z(q).with_tags(ParameterizableTag(10))
+    assert not cirq.is_parameterized(resolved_op)
 
 
 def test_inverse_composite_standards():

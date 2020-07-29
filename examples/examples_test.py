@@ -16,6 +16,7 @@ import examples.deutsch
 import examples.grover
 import examples.hello_qubit
 import examples.hhl
+import examples.hidden_shift_algorithm
 import examples.noisy_simulation_example
 import examples.phase_estimator
 import examples.place_on_bristlecone
@@ -41,6 +42,10 @@ def test_example_runs_bernstein_vazirani():
 
 def test_example_runs_simon():
     examples.simon_algorithm.main()
+
+
+def test_example_runs_hidden_shift():
+    examples.hidden_shift_algorithm.main()
 
 
 def test_example_runs_deutsch():
@@ -242,7 +247,7 @@ def test_example_shor_find_factor_with_composite_n_and_naive_order_finder(n):
 
 @pytest.mark.parametrize('n', (4, 6, 15, 125))
 def test_example_shor_find_factor_with_composite_n_and_quantum_order_finder(n):
-    d = examples.shor.find_factor(n, examples.shor.naive_order_finder)
+    d = examples.shor.find_factor(n, examples.shor.quantum_order_finder)
     assert 1 < d < n
     assert n % d == 0
 
