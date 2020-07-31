@@ -1,7 +1,7 @@
 # Quantum Engine
 
 The Quantum Engine, via the `cirq.google.Engine` class, executes programs and jobs using the
-Quantum Engine API. 
+Quantum Engine API.
 
 Note that the Quantum Engine API is not yet open for public access.
 
@@ -36,6 +36,22 @@ You can use this instance to run quantum circuits or sweeps (parameterized
 variants of a general circuit).
 
 <!---test_substitution
+# Add each circuit to the batch.*
+class MockEngine:\n  def run_batch(self, *args, **kwargs):\n    pass
+--->
+<!---test_substitution
+results = job.results.*
+results = None
+--->
+<!---test_substitution
+print.results.idx.*
+print()
+--->
+<!---test_substitution
+engine = cirq.google.Engine(.*)
+engine = MockEngine()
+--->
+<!---test_substitution
 cg.Engine(.*)
 cirq.Simulator()
 --->
@@ -54,7 +70,7 @@ circuit = cirq.Circuit(
     cirq.measure(qubit, key='result')   # Measurement.
 )
 
-# Create an Engine object to use.
+# Create an Engine object.
 # Replace YOUR_PROJECT_ID with the id from your cloud project.
 engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 
@@ -94,10 +110,10 @@ device specifications.
 ## Calibration Metrics
 
 Metrics from the current status of the device can be retrieved using the\
-`get_current_calibration` method of an `EngineProcessor` object.  
+`get_current_calibration` method of an `EngineProcessor` object.
 `EngineProcessor` objects can be retrieved from `Engine` using `get_processor`.
-This will return a Python dictionary where each key is the metric name.  The 
-value of the dictionary will be the value of the metric, which can also be 
+This will return a Python dictionary where each key is the metric name.  The
+value of the dictionary will be the value of the metric, which can also be
 a dictionary.
 
 For example, the key may refer to a two-qubit gate error, and the value may
@@ -105,3 +121,62 @@ be a dictionary from 2-tuples of `cirq.GridQubits` to an error rate represented
 as a float value.
 
 See the [Calibration Metrics](calibration.md) page for more information.
+
+## Running circuits in batch
+
+Circuits can be batched together for improved performance.  The engine object
+has a method `run_batch()` that functions similar to `run()` but accepts a
+list of circuits and parameter sweeps.  Each circuit must have a corresponding
+parameter sweep.  If the circuit does not use a sweep, pass in `None`.
+
+
+```python
+import sympy
+import cirq
+
+q = cirq.GridQubit(5, 2)
+
+# Create a list of example circuits
+circuit_list = []
+param_list = []
+
+# Create a list of 5 circuits with 10 sweeps each
+num_circuits_in_batch = 5
+num_sweeps_in_circuit = 10
+
+# Add each circuit to the batch
+for circuit_num in range(num_circuits_in_batch):
+  # Example circuit
+  circuit = cirq.Circuit(
+      cirq.YPowGate(exponent=circuit_num / 10.0)(q),
+      cirq.XPowGate(exponent=sympy.Symbol('t'))(q),
+      cirq.measure(q, key='m', invert_mask=(True,)))
+  # add a sweep for each circuit
+  param_sweep = cirq.Linspace('t', start=0, stop=1, length=num_sweeps_in_circuit)
+  # Add the circuit/sweep pair to the list
+  circuit_list.append(circuit)
+  param_list.append(param_sweep)
+
+# Create an Engine object.
+# Replace YOUR_PROJECT_ID with the id from your cloud project.
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+# Create a sampler from the engine
+job = engine.run_batch(circuit_list,
+                       processor_ids=['PROCESSOR_ID'],
+                       gate_set=cirq.google.FSIM_GATESET,
+                       repetitions=1000,
+                       params_list=param_list)
+results = job.results()
+
+# The results will be flattened into one list
+# You will need to iterate through each circuit and each sweep value
+idx = 0
+for b in range(num_circuits_in_batch):
+  for s in range(num_sweeps_in_circuit):
+     print(f'Batch #{b}, Sweep #{s}')
+     print(results[idx].histogram(key='m'))
+     idx+=1
+```
+
+

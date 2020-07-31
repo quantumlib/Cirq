@@ -269,7 +269,7 @@ def test_get_calibration(get_calibration):
         }]
     }, {
         name: 't1',
-        targets: ['q0_0'],
+        targets: ['0_0'],
         values: [{
             double_val: 321
         }]

@@ -327,6 +327,7 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnCliffordTableauArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -511,6 +512,7 @@ from cirq.work import (
     PauliSumCollector,
     Sampler,
     Collector,
+    ZerosSampler,
 )
 
 # pylint: enable=redefined-builtin

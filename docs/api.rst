@@ -243,6 +243,7 @@ results.
     cirq.validate_mixture
     cirq.validate_probability
     cirq.xeb_fidelity
+    cirq.ActOnCliffordTableauArgs
     cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
@@ -280,6 +281,7 @@ results.
     cirq.Sweepable
     cirq.TrialResult
     cirq.UnitSweep
+    cirq.ZerosSampler
     cirq.Zip
 
 
@@ -493,11 +495,13 @@ Functionality specific to quantum hardware and services from Google.
     :toctree: generated/
 
     cirq.google.FSIM_GATESET
+    cirq.google.NAMED_GATESETS
     cirq.google.SQRT_ISWAP_GATESET
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
-    cirq.google.engine_from_environment
+    cirq.google.get_engine
+    cirq.google.get_engine_sampler
     cirq.google.is_native_xmon_gate
     cirq.google.is_native_xmon_op
     cirq.google.line_on_device
@@ -573,6 +577,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
+    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
@@ -723,3 +728,4 @@ These objects and methods will be removed in a future version of the library.
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
+    cirq.google.engine_from_environment
