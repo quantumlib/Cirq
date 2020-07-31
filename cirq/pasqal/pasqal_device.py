@@ -170,9 +170,10 @@ class PasqalDevice(cirq.devices.Device):
 
     def can_add_operation_into_moment(self, operation: cirq.ops.Operation,
                                       moment: cirq.ops.Moment) -> bool:
-        """
-        Determines if it's possible to add an operation into a moment. An
-        operation can be added if the moment with the operation added is valid.
+        """Determines if it's possible to add an operation into a moment.
+
+        An operation can be added if the moment with the operation added is
+        valid.
 
         Args:
             operation: The operation being added.
@@ -312,13 +313,15 @@ class PasqalVirtualDevice(PasqalDevice):
         ])
 
     def distance(self, p: Any, q: Any) -> float:
-        """
-        Returns the distance between two qubits.
+        """Returns the distance between two qubits.
+
         Args:
             p: qubit involved in the distance computation
             q: qubit involved in the distance computation
+
         Raises:
             ValueError: If p or q not part of the device
+
         Returns:
             The distance between qubits p and q.
         """
