@@ -11,11 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import FrozenSet, Callable, List, Sequence
+from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
 import numpy as np
 
 import cirq
+from cirq import GridQubit, LineQubit
 from cirq.ops import NamedQubit
+from cirq.pasqal import ThreeDQubit, TwoDQubit
 
 
 @cirq.value.value_equality
@@ -40,12 +42,16 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             TypeError: if the wrong qubit type is provided.
         """
+        if len(qubits) > 0:
+            q_type = type(qubits[0])
 
         for q in qubits:
             if not isinstance(q, self.supported_qubit_type):
                 raise TypeError('Unsupported qubit type: {!r}. This device '
                                 'supports qubit types: {}'.format(
                                     q, self.supported_qubit_type))
+            if not type(q) is q_type:
+                raise TypeError("All qubits must be of same type.")
 
         if len(qubits) > self.maximum_qubit_number:
             raise ValueError('Too many qubits. {} accepts at most {} '
@@ -162,6 +168,31 @@ class PasqalDevice(cirq.devices.Device):
                 if isinstance(operation.gate, cirq.ops.MeasurementGate):
                     has_measurement_occurred = True
 
+    def can_add_operation_into_moment(self, operation: cirq.ops.Operation,
+                                      moment: cirq.ops.Moment) -> bool:
+        """Determines if it's possible to add an operation into a moment.
+
+        An operation can be added if the moment with the operation added is
+        valid.
+
+        Args:
+            operation: The operation being added.
+            moment: The moment being transformed.
+
+        Returns:
+            Whether or not the moment will validate after adding the operation.
+
+        Raises:
+            ValueError: If either of the given moment or operation is invalid
+        """
+        if not super().can_add_operation_into_moment(operation, moment):
+            return False
+        try:
+            self.validate_moment(moment.with_operation(operation))
+        except ValueError:
+            return False
+        return True
+
     def __repr__(self):
         return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
 
@@ -170,6 +201,152 @@ class PasqalDevice(cirq.devices.Device):
 
     def _json_dict_(self):
         return cirq.protocols.obj_to_dict_helper(self, ['qubits'])
+
+
+class PasqalVirtualDevice(PasqalDevice):
+    """A Pasqal virtual device with qubits in 3d.
+
+    A virtual representation of a Pasqal device, enforcing the constraints
+    typically found in a physical device. The qubits can be positioned in 3d
+    space, although 2d layouts will be supported sooner and are thus
+    recommended. Only accepts qubits with physical placement.
+    """
+
+    def __init__(self, control_radius: float,
+                 qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
+                ) -> None:
+        """Initializes a device with some qubits.
+
+        Args:
+            control_radius: the maximum distance between qubits for a controlled
+                gate. Distance is measured in units of the coordinates passed
+                into the qubit constructor.
+            qubits: Qubits on the device, identified by their x, y, z position.
+                Must be of type ThreeDQubit, TwoDQubit, LineQubit or GridQubit.
+
+        Raises:
+            ValueError: if the wrong qubit type is provided or if invalid
+                parameter is provided for control_radius. """
+
+        super().__init__(qubits)
+
+        if not control_radius >= 0:
+            raise ValueError('Control_radius needs to be a non-negative float.')
+
+        if len(self.qubits) > 1:
+            if control_radius > 3. * self.minimal_distance():
+                raise ValueError('Control_radius cannot be larger than 3 times'
+                                 ' the minimal distance between qubits.')
+
+        self.control_radius = control_radius
+
+    @property
+    def supported_qubit_type(self):
+        return (
+            ThreeDQubit,
+            TwoDQubit,
+            GridQubit,
+            LineQubit,
+        )
+
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
+        return (super().is_pasqal_device_op(op) and not isinstance(
+            op.gate,
+            (cirq.ops.CNotPowGate, cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)))
+
+    def validate_operation(self, operation: cirq.ops.Operation):
+        """Raises an error if the given operation is invalid on this device.
+
+        Args:
+            operation: the operation to validate
+        Raises:
+            ValueError: If the operation is not valid
+        """
+        super().validate_operation(operation)
+
+        # Verify that a controlled gate operation is valid
+        if isinstance(operation, cirq.ops.GateOperation):
+            if (len(operation.qubits) > 1 and
+                    not isinstance(operation.gate, cirq.ops.MeasurementGate)):
+                for p in operation.qubits:
+                    for q in operation.qubits:
+                        if self.distance(p, q) > self.control_radius:
+                            raise ValueError("Qubits {!r}, {!r} are too "
+                                             "far away".format(p, q))
+
+    def validate_moment(self, moment: cirq.ops.Moment):
+        """Raises an error if the given moment is invalid on this device.
+
+        Args:
+            moment: The moment to validate.
+        Raises:
+            ValueError: If the given moment is invalid.
+        """
+
+        super().validate_moment(moment)
+        if len(moment) > 1:
+            for operation in moment:
+                if not isinstance(operation.gate, cirq.ops.MeasurementGate):
+                    raise ValueError("Cannot do simultaneous gates. Use "
+                                     "cirq.InsertStrategy.NEW.")
+
+    def minimal_distance(self) -> float:
+        """Returns the minimal distance between two qubits in qubits.
+
+        Args:
+            qubits: qubit involved in the distance computation
+
+        Raises:
+            ValueError: If the device has only one qubit
+
+        Returns:
+            The minimal distance between qubits, in spacial coordinate units.
+        """
+        if len(self.qubits) <= 1:
+            raise ValueError("Two qubits to compute a minimal distance.")
+
+        return min([
+            self.distance(q1, q2)
+            for q1 in self.qubits
+            for q2 in self.qubits
+            if q1 != q2
+        ])
+
+    def distance(self, p: Any, q: Any) -> float:
+        """Returns the distance between two qubits.
+
+        Args:
+            p: qubit involved in the distance computation
+            q: qubit involved in the distance computation
+
+        Raises:
+            ValueError: If p or q not part of the device
+
+        Returns:
+            The distance between qubits p and q.
+        """
+        all_qubits = self.qubit_list()
+        if p not in all_qubits or q not in all_qubits:
+            raise ValueError("Qubit not part of the device.")
+
+        if isinstance(p, GridQubit):
+            return np.sqrt((p.row - q.row)**2 + (p.col - q.col)**2)
+
+        if isinstance(p, LineQubit):
+            return abs(p.x - q.x)
+
+        return np.sqrt((p.x - q.x)**2 + (p.y - q.y)**2 + (p.z - q.z)**2)
+
+    def __repr__(self):
+        return ('pasqal.PasqalVirtualDevice(control_radius={!r}, '
+                'qubits={!r})').format(self.control_radius, sorted(self.qubits))
+
+    def _value_equality_values_(self) -> Any:
+        return (self.control_radius, self.qubits)
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return cirq.protocols.obj_to_dict_helper(self,
+                                                 ['control_radius', 'qubits'])
 
 
 class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
