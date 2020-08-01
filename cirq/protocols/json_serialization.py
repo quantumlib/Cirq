@@ -140,6 +140,7 @@ class _ResolverCache:
                 cirq.value.tensor_product_state._KetZero,  # type: ignore
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
+                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,

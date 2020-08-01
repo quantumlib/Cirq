@@ -15,6 +15,7 @@ from unittest.mock import patch
 import copy
 import numpy as np
 import sympy
+import pytest
 
 import cirq
 
@@ -64,7 +65,7 @@ def test_run_sweep(mock_post, mock_get):
     without noise and checks if the results match.
     """
 
-    qs = cirq.NamedQubit.range(9, prefix='q')
+    qs = [cirq.pasqal.ThreeDQubit(i, j, 0) for i in range(3) for j in range(3)]
 
     par = sympy.Symbol('par')
     sweep = cirq.Linspace(key='par', start=0.0, stop=1.0, length=2)
@@ -72,22 +73,30 @@ def test_run_sweep(mock_post, mock_get):
     num = np.random.randint(0, 2**9)
     binary = bin(num)[2:].zfill(9)
 
-    device = cirq.pasqal.PasqalDevice(qubits=qs)
+    device = cirq.pasqal.PasqalVirtualDevice(control_radius=1, qubits=qs)
     ex_circuit = cirq.Circuit(device=device)
 
     for i, b in enumerate(binary[:-1]):
         if b == '1':
-            ex_circuit.append(cirq.X(qs[-i - 1]))
-    ex_circuit.append([cirq.measure(q) for q in qs])
+            ex_circuit.append(cirq.X(qs[-i - 1]),
+                              strategy=cirq.InsertStrategy.NEW)
 
     ex_circuit_odd = copy.deepcopy(ex_circuit)
     ex_circuit_odd.append(cirq.X(qs[0]))
+    ex_circuit_odd.append(cirq.measure(*qs))
 
     xpow = cirq.XPowGate(exponent=par)
     ex_circuit.append([xpow(qs[0])])
+    ex_circuit.append(cirq.measure(*qs))
 
     mock_get.return_value = MockGet(cirq.to_json(ex_circuit_odd))
     sampler = _make_sampler()
+
+    with pytest.raises(ValueError, match="Non-empty moment after measurement"):
+        wrong_circuit = copy.deepcopy(ex_circuit)
+        wrong_circuit.append(cirq.X(qs[0]))
+        sampler.run_sweep(program=wrong_circuit, params=sweep, repetitions=1)
+
     data = sampler.run_sweep(program=ex_circuit, params=sweep, repetitions=1)
 
     submitted_json = mock_post.call_args[1]['data']

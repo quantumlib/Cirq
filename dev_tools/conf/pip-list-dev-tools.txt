@@ -23,7 +23,11 @@ recommonmark >= 0.4.0
 Sphinx
 sphinx_rtd_theme
 sphinx-markdown-tables
+
 # For generating notebooks in documentation
 nbsphinx
 ipython
 ipykernel
+
+# For verifying rst
+rstcheck~=3.3.1

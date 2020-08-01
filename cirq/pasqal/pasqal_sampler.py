@@ -114,6 +114,7 @@ class PasqalSampler(cirq.work.Sampler):
             resolver.
         """
         assert isinstance(program.device, cirq.pasqal.PasqalDevice)
+        program.device.validate_circuit(program)
         trial_results = []
 
         for param_resolver in cirq.study.to_resolvers(params):
