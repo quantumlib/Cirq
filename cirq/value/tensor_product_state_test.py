@@ -173,3 +173,14 @@ def test_tp_projector():
         cirq.Circuit([cirq.H.on_each(q0, q1),
                       cirq.Z(q1)]))
     np.testing.assert_allclose(rho, ppm, atol=1e-7)
+
+    pii = (cirq.KET_IMAG(q0) * cirq.KET_IMAG(q1)).projector()
+    rho = cirq.final_density_matrix(
+        cirq.Circuit(cirq.rx(-np.pi / 2).on_each(q0, q1)))
+    np.testing.assert_allclose(rho, pii, atol=1e-7)
+
+    pij = (cirq.KET_IMAG(q0) * cirq.KET_MINUS_IMAG(q1)).projector()
+    rho = cirq.final_density_matrix(
+        cirq.Circuit(cirq.rx(-np.pi / 2)(q0),
+                     cirq.rx(np.pi / 2)(q1)))
+    np.testing.assert_allclose(rho, pij, atol=1e-7)

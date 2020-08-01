@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-class _Named1QState(metaclass=abc.ABCMeta):
+class _NamedOneQubitState(metaclass=abc.ABCMeta):
     """Abstract class representing a one-qubit state of note."""
 
     def on(self, qubit) -> 'TensorProductState':
@@ -42,7 +42,7 @@ class _Named1QState(metaclass=abc.ABCMeta):
         """Return a state vector representation of the named state."""
 
     def projector(self):
-        """Return |s><s| as a matrix for the named state."""
+        """Return |s⟩⟨s| as a matrix for the named state."""
         vec = self.state_vector()[:, np.newaxis]
         return vec @ vec.conj().T
 
@@ -66,11 +66,11 @@ class _Named1QState(metaclass=abc.ABCMeta):
 class TensorProductState:
     """A quantum state that is a tensor product of one qubit states.
 
-    For example, the |00> state is `cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)`.
-    The |+> state is a length-1 tensor product state and can be constructed
+    For example, the |00⟩ state is `cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)`.
+    The |+⟩ state is a length-1 tensor product state and can be constructed
     with `cirq.KET_PLUS(q0)`.
     """
-    states: Dict['cirq.Qid', _Named1QState]
+    states: Dict['cirq.Qid', _NamedOneQubitState]
 
     def __init__(self, states=None):
         if states is None:
@@ -155,7 +155,7 @@ class TensorProductState:
     def projector(self, qubit_order: 'cirq.QubitOrder' = None):
         """The projector associated with this state expressed as a matrix.
 
-        This is |s><s| where |s> is this state.
+        This is |s⟩⟨s| where |s⟩ is this state.
         """
         from cirq import ops
         if qubit_order is None:
@@ -171,7 +171,7 @@ class TensorProductState:
         return mat
 
 
-class _KetPlus(_Named1QState):
+class _KetPlus(_NamedOneQubitState):
 
     def __str__(self):
         return '+X'
@@ -183,11 +183,12 @@ class _KetPlus(_Named1QState):
         return np.array([1, 1]) / np.sqrt(2)
 
     def stabilized_by(self):
+        # Prevent circular import from `value.value_equality`
         from cirq import ops
         return 1, ops.X
 
 
-class _KetMinus(_Named1QState):
+class _KetMinus(_NamedOneQubitState):
 
     def __str__(self):
         return '-X'
@@ -203,7 +204,7 @@ class _KetMinus(_Named1QState):
         return -1, ops.X
 
 
-class _KetImag(_Named1QState):
+class _KetImag(_NamedOneQubitState):
 
     def __str__(self):
         return '+Y'
@@ -219,7 +220,7 @@ class _KetImag(_Named1QState):
         return 1, ops.Y
 
 
-class _KetMinusImag(_Named1QState):
+class _KetMinusImag(_NamedOneQubitState):
 
     def __str__(self):
         return '-Y'
@@ -235,7 +236,7 @@ class _KetMinusImag(_Named1QState):
         return -1, ops.Y
 
 
-class _KetZero(_Named1QState):
+class _KetZero(_NamedOneQubitState):
 
     def __str__(self):
         return '+Z'
@@ -251,7 +252,7 @@ class _KetZero(_Named1QState):
         return 1, ops.Z
 
 
-class _KetOne(_Named1QState):
+class _KetOne(_NamedOneQubitState):
 
     def __str__(self):
         return '-Z'
@@ -269,9 +270,9 @@ class _KetOne(_Named1QState):
 
 KET_PLUS = _KetPlus()
 document(
-    KET_PLUS, """The |+> State
+    KET_PLUS, """The |+⟩ State
     
-    This is the state such that X|+> = +1 |+>
+    This is the state such that X|+⟩ = +1 |+⟩
 
     Vector:
 
@@ -280,9 +281,9 @@ document(
 
 KET_MINUS = _KetMinus()
 document(
-    KET_MINUS, """The |-> State
+    KET_MINUS, """The |-⟩ State
     
-    This is the state such that X|-> = -1 |->
+    This is the state such that X|-⟩ = -1 |-⟩
 
     Vector:
 
@@ -291,9 +292,9 @@ document(
 
 KET_IMAG = _KetImag()
 document(
-    KET_IMAG, """The |i> State
+    KET_IMAG, """The |i⟩ State
     
-    This is the state such that Y|i> = +1 |i>
+    This is the state such that Y|i⟩ = +1 |i⟩
 
     Vector:
 
@@ -302,9 +303,9 @@ document(
 
 KET_MINUS_IMAG = _KetMinusImag()
 document(
-    KET_MINUS_IMAG, """The |-i> State
+    KET_MINUS_IMAG, """The |-i⟩ State
 
-    This is the state such that Y|-i> = -1 |-i>
+    This is the state such that Y|-i⟩ = -1 |-i⟩
 
     Vector:
 
@@ -313,9 +314,9 @@ document(
 
 KET_ZERO = _KetZero()
 document(
-    KET_ZERO, """The |0> State
+    KET_ZERO, """The |0⟩ State
 
-    This is the state such that Z|0> = +1 |0>
+    This is the state such that Z|0⟩ = +1 |0⟩
 
     Vector:
 
@@ -324,9 +325,9 @@ document(
 
 KET_ONE = _KetOne()
 document(
-    KET_ONE, """The |1> State
+    KET_ONE, """The |1⟩ State
 
-    This is the state such that Z|1> = -1 |1>
+    This is the state such that Z|1⟩ = -1 |1⟩
 
     Vector:
 
