@@ -73,6 +73,9 @@ def test_tensor_product_state():
     assert e.match(r'.*both contain factors for these qubits: '
                    r'\[cirq.LineQubit\(2\)\]')
 
+    tps2 = eval(repr(tps))
+    assert tps == tps2
+
 
 def test_tensor_product_state_2():
     q0, q1 = cirq.LineQubit.range(2)
