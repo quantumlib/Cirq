@@ -37,6 +37,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
     w = diagram.width()
     h = diagram.height()
 
+    # potential places to place \qwx and \qw
     qwx = {(x, y + 1)
            for x, y1, y2, _ in diagram.vertical_lines
            for y in range(int(y1), int(y2))}
@@ -47,15 +48,33 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
 
     diagram2 = circuits.TextDiagramDrawer()
     for y in range(h):
+        # have a none wire item on this row
+        row_has_item = False
+        # current horizontal line has something that need to be connected
         for x in range(max(0, w - 1)):
             key = (x, y)
             diagram_text = diagram.entries.get(key)
-            v = '&' + (diagram_text.text if diagram_text else  '') + ' '
+            v = '&' + (diagram_text.text if diagram_text else '') + ' '
+            if diagram_text:
+                row_has_item = True
             diagram2.write(2*x + 1, y, v)
-            post1 = r'\qw' if key in qw else ''
-            post2 = r'\qwx' if key in qwx else ''
+            # if has none wire before, should draw wire
+            post1 = r'\qw' if key in qw and row_has_item else ''
+            post2 = ''
+            if key in qwx:
+                # see if the item in row below can be connected by line
+                lower_item = diagram.entries.get((x, y + 1))
+                # see if the upper row needs to be connected
+                upper_item = diagram2.entries.get((2*x + 2, y - 1)).text
+                req_qwx = r'\qwx' in upper_item
+                if lower_item is not None or req_qwx:
+                    post2 = r'\qwx'
             diagram2.write(2*x + 2, y, post1 + post2)
-        diagram2.write(2*w - 1, y, r'&\qw\\')
+        # end also needs to be different whether the row has item
+        if row_has_item:
+            diagram2.write(2*w - 1, y, r'&\qw\\')
+        else:
+            diagram2.write(2*w - 1, y, r'& \\')
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
     output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
