@@ -75,12 +75,12 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
                            r'\control' in upper_item_t)
                 if lower_item is not None or req_qwx:
                     post2 = r'\qwx'
-            diagram2.write(2*x + 2, y, post1 + post2)
+            diagram2.write(2 * x + 2, y, post1 + post2)
         # end also needs to be different whether the row has item
         if row_has_item:
-            diagram2.write(2*w - 1, y, r'&\qw\\')
+            diagram2.write(2 * w - 1, y, r'&\qw\\')
         else:
-            diagram2.write(2*w - 1, y, r'& \\')  # coverage: ignore
+            diagram2.write(2 * w - 1, y, r'& \\')  # coverage: ignore
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
     output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
