@@ -65,12 +65,12 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
                 # see if the item in row below can be connected by line
                 lower_item = diagram.entries.get((x, y + 1))
                 # see if the upper row needs to be connected
-                upper_wire = diagram2.entries.get((2*x + 2, y - 1))
-                upper_wire_t = (upper_wire.text if upper_wire is not None
-                                else '')
-                upper_item = diagram2.entries.get((2*x + 1, y - 1))
-                upper_item_t = (upper_item.text if upper_item is not None
-                                else '')
+                upper_wire = diagram2.entries.get((2 * x + 2, y - 1))
+                upper_wire_t = (upper_wire.text
+                                if upper_wire is not None else '')
+                upper_item = diagram2.entries.get((2 * x + 1, y - 1))
+                upper_item_t = (upper_item.text if
+                                upper_item is not None else '')
                 req_qwx = (r'\qwx' in upper_wire_t or
                            r'\control' in upper_item_t)
                 if lower_item is not None or req_qwx:
@@ -80,7 +80,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
         if row_has_item:
             diagram2.write(2*w - 1, y, r'&\qw\\')
         else:
-            diagram2.write(2*w - 1, y, r'& \\')
+            diagram2.write(2*w - 1, y, r'& \\')  # coverage: ignore
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
     output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
