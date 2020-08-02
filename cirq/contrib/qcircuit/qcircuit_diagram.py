@@ -66,13 +66,13 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
                 lower_item = diagram.entries.get((x, y + 1))
                 # see if the upper row needs to be connected
                 upper_wire = diagram2.entries.get((2*x + 2, y - 1))
-                upper_wire = (upper_wire.text if upper_wire is not None
-                              else '')
+                upper_wire_t = (upper_wire.text if upper_wire is not None
+                                else '')
                 upper_item = diagram2.entries.get((2*x + 1, y - 1))
-                upper_item = (upper_item.text if upper_item is not None
-                              else '')
-                req_qwx = (r'\qwx' in upper_wire or
-                           r'\control' in upper_item)
+                upper_item_t = (upper_item.text if upper_item is not None
+                                else '')
+                req_qwx = (r'\qwx' in upper_wire_t or
+                           r'\control' in upper_item_t)
                 if lower_item is not None or req_qwx:
                     post2 = r'\qwx'
             diagram2.write(2*x + 2, y, post1 + post2)
