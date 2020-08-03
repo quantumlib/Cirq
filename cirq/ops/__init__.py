@@ -206,4 +206,3 @@ from cirq.ops.three_qubit_gates import (
 from cirq.ops.two_qubit_diagonal_gate import TwoQubitDiagonalGate
 
 from cirq.ops.wait_gate import WaitGate
-
