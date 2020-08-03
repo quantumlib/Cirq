@@ -16,7 +16,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
 
 import abc
 
-from cirq import protocols, ops
+from cirq import protocols
 from cirq.ops import raw_types
 
 
@@ -41,8 +41,8 @@ class _BaseNamedQid(raw_types.Qid):
     def name(self) -> str:
         return self._name
 
-    def with_dimension(self, dimension: int) -> "NamedQid":
-        return NamedQid(self._name, dimension)
+    def with_dimension(self, dimension: int) -> 'NamedQid':
+        return NamedQid(self._name, dimension=dimension)
 
     @abc.abstractmethod
     def _with_name(self: TSelf, name: str) -> TSelf:
@@ -186,7 +186,6 @@ def _pad_digits(text: str) -> str:
             handle_transition_at(i)
             was_on_digits = on_digits
             last_transition = i
-
+    
     handle_transition_at(len(text))
     return "".join(chunks)
-
