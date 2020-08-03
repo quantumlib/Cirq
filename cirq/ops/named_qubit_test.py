@@ -16,6 +16,15 @@ import cirq
 from cirq.ops.named_qubit import _pad_digits
 
 
+def test_init():
+    q = cirq.NamedQubit("a")
+    assert q.name == "a"
+
+    q = cirq.NamedQid("a", dimension=3)
+    assert q.name == "a"
+    assert q.dimension == 3
+
+
 def test_named_qubit_str():
     q = cirq.NamedQubit("a")
     assert q.name == "a"
@@ -123,4 +132,17 @@ def test_named_qid_range():
         cirq.NamedQid("a1", dimension=4),
         cirq.NamedQid("a3", dimension=4),
     ]
+
+
+def test_to_json():
+    assert cirq.NamedQubit("c")._json_dict_() == {
+        "cirq_type": "NamedQubit",
+        "name": "c",
+    }
+
+    assert cirq.NamedQid("c", dimension=3)._json_dict_() == {
+        "cirq_type": "NamedQid",
+        "name": "c",
+        "dimension": 3,
+    }
 

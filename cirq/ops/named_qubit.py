@@ -46,7 +46,9 @@ class _BaseNamedQid(raw_types.Qid):
 
     @abc.abstractmethod
     def _with_name(self: TSelf, name: str) -> TSelf:
-        """Returns a qubit with the same type but a different value of `name`."""
+        """
+        Returns a qubit with the same type but a different value of `name`
+        """
 
 
 class NamedQid(_BaseNamedQid):
@@ -72,7 +74,7 @@ class NamedQid(_BaseNamedQid):
         return self._name
 
     def _with_name(self, name: str) -> "NamedQid":
-        return NamedQid(name)
+        return NamedQid(name, dimension=self.dimension)
 
     def __repr__(self) -> str:
         return f"cirq.NamedQid({self.name!r}, " f"dimension={self.dimension})"
@@ -96,7 +98,7 @@ class NamedQid(_BaseNamedQid):
 
         Returns:
             A list of NamedQids.
-        """
+            """
         return [NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -121,7 +123,7 @@ class NamedQubit(_BaseNamedQid):
         # Must be same as Qid._cmp_tuple but with cls in place of type(self).
         return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
-    def _with_name(self, name: str) -> "NamedQid":
+    def _with_name(self, name: str) -> "NamedQubit":
         return NamedQubit(name)
 
     def __str__(self) -> str:
