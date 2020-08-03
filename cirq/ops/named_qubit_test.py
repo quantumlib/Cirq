@@ -30,7 +30,7 @@ def test_with_name():
     assert p.name == "b"
 
     q = cirq.NamedQid("a", dimension=3)
-    p=q._with_name("b")
+    p = q._with_name("b")
     assert p.name == "b"
     assert p.dimension == 3
 
