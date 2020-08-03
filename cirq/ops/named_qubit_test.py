@@ -24,6 +24,16 @@ def test_init():
     assert q.name == "a"
     assert q.dimension == 3
 
+def test_with_name():
+    q = cirq.NamedQubit("a")
+    p = q._with_name("b")
+    assert p.name == "b"
+
+    q = cirq.NamedQid("a", dimension=3)
+    p._with_name("b")
+    assert p.name == "b"
+    assert p.dimension == 3
+
 
 def test_named_qubit_str():
     q = cirq.NamedQubit("a")
