@@ -16,7 +16,7 @@ from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
 
 import abc
 
-from cirq import protocols, ops
+from cirq import protocols
 from cirq.ops import raw_types
 
 
