@@ -41,8 +41,8 @@ class _BaseNamedQid(raw_types.Qid):
     def name(self) -> str:
         return self._name
 
-    def with_dimension(self, dimension: int) -> "NamedQid":
-        return NamedQid(self._name, dimension)
+    def with_dimension(self, dimension: int) -> 'NamedQid':
+        return NamedQid(self._name, dimension=dimension)
 
     @abc.abstractmethod
     def _with_name(self: TSelf, name: str) -> TSelf:
