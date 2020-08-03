@@ -189,4 +189,3 @@ def _pad_digits(text: str) -> str:
     
     handle_transition_at(len(text))
     return "".join(chunks)
-
