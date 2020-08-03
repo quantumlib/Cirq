@@ -151,4 +151,3 @@ def test_to_json():
         "name": "c",
         "dimension": 3,
     }
-
