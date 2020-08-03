@@ -99,7 +99,9 @@ class NamedQid(_BaseNamedQid):
         Returns:
             A list of NamedQids.
             """
-        return [NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)]
+        return [
+            NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)
+        ]
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ["name", "dimension"])
