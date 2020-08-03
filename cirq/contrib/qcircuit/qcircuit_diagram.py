@@ -80,7 +80,7 @@ def _render(diagram: circuits.TextDiagramDrawer) -> str:
         if row_has_item:
             diagram2.write(2 * w - 1, y, r'&\qw\\')
         else:
-            diagram2.write(2 * w - 1, y, r'& \\')  # coverage: ignore
+            diagram2.write(2 * w - 1, y, r'& \\')
     grid = diagram2.render(horizontal_spacing=0, vertical_spacing=0)
 
     output = '\\Qcircuit @R=1em @C=0.75em {\n \\\\\n' + grid + '\n \\\\\n}'
