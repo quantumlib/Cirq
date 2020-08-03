@@ -14,8 +14,7 @@
 """Types for representing and methods for manipulating circuit operation trees.
 """
 
-from cirq.ops.arithmetic_operation import (
-    ArithmeticOperation,)
+from cirq.ops.arithmetic_operation import ArithmeticOperation
 
 from cirq.ops.clifford_gate import (
     PauliTransform,
@@ -66,11 +65,9 @@ from cirq.ops.common_gates import (
     ZPowGate,
 )
 
-from cirq.ops.controlled_gate import (
-    ControlledGate,)
+from cirq.ops.controlled_gate import ControlledGate
 
-from cirq.ops.eigen_gate import (
-    EigenGate,)
+from cirq.ops.eigen_gate import EigenGate
 
 from cirq.ops.fourier_transform import (
     PhaseGradientGate,
@@ -79,8 +76,7 @@ from cirq.ops.fourier_transform import (
     QuantumFourierTransformGate,
 )
 
-from cirq.ops.fsim_gate import (
-    FSimGate,)
+from cirq.ops.fsim_gate import FSimGate
 
 from cirq.ops.gate_features import (
     InterchangeableQubitsGate,
@@ -89,8 +85,7 @@ from cirq.ops.gate_features import (
     TwoQubitGate,
 )
 
-from cirq.ops.gate_operation import (
-    GateOperation,)
+from cirq.ops.gate_operation import GateOperation
 
 from cirq.ops.identity import (
     I,
@@ -98,8 +93,7 @@ from cirq.ops.identity import (
     IdentityGate,
 )
 
-from cirq.ops.global_phase_op import (
-    GlobalPhaseOperation,)
+from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 from cirq.ops.linear_combinations import (
     LinearCombinationOfGates,
@@ -108,34 +102,27 @@ from cirq.ops.linear_combinations import (
     PauliSumLike,
 )
 
-from cirq.ops.parallel_gate_operation import (
-    ParallelGateOperation,)
+from cirq.ops.parallel_gate_operation import ParallelGateOperation
 
-from cirq.ops.controlled_operation import (
-    ControlledOperation,)
+from cirq.ops.controlled_operation import ControlledOperation
 
-from cirq.ops.qubit_order import (
-    QubitOrder,)
+from cirq.ops.qubit_order import QubitOrder
 
-from cirq.ops.qubit_order_or_list import (
-    QubitOrderOrList,)
+from cirq.ops.qubit_order_or_list import QubitOrderOrList
 
-from cirq.ops.matrix_gates import (
-    MatrixGate,)
+from cirq.ops.matrix_gates import MatrixGate
 
 from cirq.ops.measure_util import (
     measure,
     measure_each,
 )
 
-from cirq.ops.measurement_gate import (
-    MeasurementGate,)
+from cirq.ops.measurement_gate import MeasurementGate
 
-from cirq.ops.moment import (
-    Moment,)
+from cirq.ops.moment import Moment
 
-from cirq.ops.named_qubit import (
-    NamedQubit,)
+from cirq.ops.named_qubit import NamedQubit, NamedQid
+
 
 from cirq.ops.op_tree import (
     flatten_op_tree,
@@ -162,8 +149,7 @@ from cirq.ops.pauli_gates import (
     Z,
 )
 
-from cirq.ops.pauli_interaction_gate import (
-    PauliInteractionGate,)
+from cirq.ops.pauli_interaction_gate import PauliInteractionGate
 
 from cirq.ops.pauli_string import (
     PAULI_GATE_LIKE,
@@ -172,25 +158,20 @@ from cirq.ops.pauli_string import (
     SingleQubitPauliStringGateOperation,
 )
 
-from cirq.ops.pauli_string_phasor import (
-    PauliStringPhasor,)
+from cirq.ops.pauli_string_phasor import PauliStringPhasor
 
-from cirq.ops.pauli_string_raw_types import (
-    PauliStringGateOperation,)
+from cirq.ops.pauli_string_raw_types import PauliStringGateOperation
 
 from cirq.ops.phased_iswap_gate import (
     givens,
     PhasedISwapPowGate,
 )
 
-from cirq.ops.phased_x_gate import (
-    PhasedXPowGate,)
+from cirq.ops.phased_x_gate import PhasedXPowGate
 
-from cirq.ops.phased_x_z_gate import (
-    PhasedXZGate,)
+from cirq.ops.phased_x_z_gate import PhasedXZGate
 
-from cirq.ops.random_gate_channel import (
-    RandomGateChannel,)
+from cirq.ops.random_gate_channel import RandomGateChannel
 
 from cirq.ops.raw_types import (
     Gate,
@@ -207,8 +188,7 @@ from cirq.ops.swap_gates import (
     SwapPowGate,
 )
 
-from cirq.ops.tags import (
-    VirtualTag,)
+from cirq.ops.tags import VirtualTag
 
 from cirq.ops.three_qubit_gates import (
     CCNOT,
@@ -224,8 +204,7 @@ from cirq.ops.three_qubit_gates import (
     TOFFOLI,
 )
 
-from cirq.ops.two_qubit_diagonal_gate import (
-    TwoQubitDiagonalGate,)
+from cirq.ops.two_qubit_diagonal_gate import TwoQubitDiagonalGate
 
-from cirq.ops.wait_gate import (
-    WaitGate,)
+from cirq.ops.wait_gate import WaitGate
+
