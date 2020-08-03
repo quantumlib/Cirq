@@ -186,7 +186,7 @@ def _pad_digits(text: str) -> str:
             handle_transition_at(i)
             was_on_digits = on_digits
             last_transition = i
-
+    
     handle_transition_at(len(text))
     return "".join(chunks)
 
