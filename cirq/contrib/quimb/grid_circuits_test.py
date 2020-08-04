@@ -64,17 +64,18 @@ def test_circuit_to_tensors(simplify):
     if simplify:
         ccq.simplify_expectation_value_circuit(circuit_sand)
     qubits = sorted(circuit_sand.all_qubits())
-    tensors, qubit_frontier, fix = ccq.circuit_to_tensors(circuit=circuit_sand,
-                                                          qubits=qubits,
-                                                          initial_state=None)
+    tensors, _, _ = ccq.circuit_to_tensors(circuit=circuit_sand,
+                                           qubits=qubits,
+                                           initial_state=None)
     tn = qtn.TensorNetwork(tensors)
     u_tn = tn.contract()
-    # Important! Re-order indices. Rows index output legs, cols index input legs
-    # however, within the {input, output} block, qubits are ordered lexicographically
+    # Important! Re-order indices. Rows index output legs, cols index input
+    # legs. however, within the {input, output} block,
+    # qubits are ordered lexicographically
     inds = u_tn.inds
     desired_inds = inds[len(inds) // 2:] + inds[:len(inds) // 2]
     u_tn.transpose(*desired_inds, inplace=True)
-    u_tn = u_tn.data.reshape((2**len(qubits), 2**len(qubits)))
+    u_tn = u_tn.data.reshape((2 ** len(qubits), 2 ** len(qubits)))
     u_cirq = cirq.unitary(circuit_sand)
     # print()
     # print(np.round(u_tn, 3))

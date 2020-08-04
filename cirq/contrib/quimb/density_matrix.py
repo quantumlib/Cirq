@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple
+from typing import Sequence, Dict, Union, Tuple, List
 
 import numpy as np
 import quimb
@@ -87,8 +87,8 @@ def circuit_to_density_matrix_tensors(circuit: cirq.Circuit,
     """
     qubit_frontier = {q: 0 for q in qubits}
     kraus_frontier = 0
-    positions = {}
-    tensors = []
+    positions: Dict[Tuple[str, str], Tuple[float, float]] = {}
+    tensors: List[qtn.Tensor] = []
 
     x_scale = 2
     y_scale = 3
@@ -180,7 +180,7 @@ def tensor_density_matrix(circuit, qubits):
     longer than doing the contraction. Your mileage may vary and benchmarking
     is encouraged for your particular problem if performance is important.
     """
-    tensors, qubit_frontier, fix = circuit_to_density_matrix_tensors(
+    tensors, qubit_frontier, _ = circuit_to_density_matrix_tensors(
         circuit=circuit, qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
     f_inds = tuple(f'nf{qubit_frontier[q]}_q{q.x}' for q in qubits)

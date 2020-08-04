@@ -1,4 +1,4 @@
-from typing import Sequence, Union
+from typing import Sequence, Union, List
 
 import quimb
 import quimb.tensor as qtn
@@ -35,7 +35,7 @@ def circuit_to_tensors(circuit: cirq.Circuit,
     """
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
-    tensors = []
+    tensors: List[qtn.Tensor] = []
 
     if initial_state == 0:
         for q in qubits:
@@ -51,7 +51,7 @@ def circuit_to_tensors(circuit: cirq.Circuit,
         raise ValueError("Right now, only |0> or `None` "
                          "initial states are supported.")
 
-    for mi, moment in enumerate(circuit.moments):
+    for moment in circuit.moments:
         for op in moment.operations:
             assert op.gate._has_unitary_()
             start_inds = [f'i{qubit_frontier[q]}_q{q}' for q in op.qubits]
@@ -71,8 +71,8 @@ def circuit_to_tensors(circuit: cirq.Circuit,
 def tensor_state_vector(circuit, qubits):
     """Given a circuit contract a tensor network into a final state vector.
     """
-    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit,
-                                                      qubits=qubits)
+    tensors, qubit_frontier, _ = circuit_to_tensors(circuit=circuit,
+                                                    qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
     f_inds = tuple(f'i{qubit_frontier[q]}_q{q}' for q in qubits)
     tn.contract(inplace=True)
@@ -80,11 +80,11 @@ def tensor_state_vector(circuit, qubits):
 
 
 def tensor_unitary(circuit, qubits):
-    """Given a circuit contract a tensor network into a dense unitary of the circuit.
-    """
-    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit,
-                                                      qubits=qubits,
-                                                      initial_state=None)
+    """Given a circuit contract a tensor network into a dense unitary
+    of the circuit."""
+    tensors, qubit_frontier, _ = circuit_to_tensors(circuit=circuit,
+                                                    qubits=qubits,
+                                                    initial_state=None)
     tn = qtn.TensorNetwork(tensors)
     i_inds = tuple(f'i0_q{q}' for q in qubits)
     f_inds = tuple(f'i{qubit_frontier[q]}_q{q}' for q in qubits)
@@ -98,9 +98,10 @@ def circuit_for_expectation_value(circuit: cirq.Circuit,
     copy of a circuit.
 
     This is a circuit representation of the expectation value of an operator
-    <A> = <psi|A|psi> = <0|U^dag A U|0>. You can either extract the 0..0 amplitude
-    of the final state vector (assuming starting from the |0..0> state or
-    extract the [0, 0] entry of the unitary matrix of this combined circuit.
+    <A> = <psi|A|psi> = <0|U^dag A U|0>. You can either extract the 0..0
+    amplitude of the final state vector (assuming starting from the |0..0>
+    state or extract the [0, 0] entry of the unitary matrix of this combined
+    circuit.
     """
     assert pauli_string.coefficient == 1
     return cirq.Circuit([
@@ -114,7 +115,8 @@ def tensor_expectation_value(circuit: cirq.Circuit,
                              pauli_string: cirq.PauliString,
                              max_ram_gb=16,
                              tol=1e-6):
-    """Compute an expectation value for an operator and a circuit via tensor contraction.
+    """Compute an expectation value for an operator and a circuit via tensor
+    contraction.
 
     This will give up if it looks like the computation will take too much RAM.
     """
@@ -122,8 +124,8 @@ def tensor_expectation_value(circuit: cirq.Circuit,
         circuit, pauli_string / pauli_string.coefficient)
     qubits = sorted(circuit_sand.all_qubits())
 
-    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit_sand,
-                                                      qubits=qubits)
+    tensors, qubit_frontier, _ = circuit_to_tensors(circuit=circuit_sand,
+                                                    qubits=qubits)
     end_bras = [
         qtn.Tensor(data=quimb.up().squeeze(),
                    inds=(f'i{qubit_frontier[q]}_q{q}',),
@@ -136,7 +138,7 @@ def tensor_expectation_value(circuit: cirq.Circuit,
     if ram_gb > max_ram_gb:
         raise MemoryError("We estimate that this contraction "
                           "will take too much RAM! {} GB".format(ram_gb))
-    eval = tn.contract(inplace=True)
-    assert eval.imag < tol
+    e_val = tn.contract(inplace=True)
+    assert e_val.imag < tol
     assert pauli_string.coefficient.imag < tol
-    return eval.real * pauli_string.coefficient
+    return e_val.real * pauli_string.coefficient

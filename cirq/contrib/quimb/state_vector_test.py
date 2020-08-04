@@ -1,5 +1,4 @@
 import numpy as np
-import quimb.tensor as qtn
 
 import cirq
 import cirq.contrib.quimb as ccq
