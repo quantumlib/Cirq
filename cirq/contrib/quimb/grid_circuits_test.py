@@ -1,7 +1,6 @@
 import networkx as nx
 import numpy as np
 import pytest
-import quimb.tensor as qtn
 
 import cirq
 import cirq.contrib.quimb as ccq
