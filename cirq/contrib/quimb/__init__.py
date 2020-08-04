@@ -6,10 +6,9 @@ from cirq.contrib.quimb.state_vector import (
     tensor_unitary,
 )
 
-from cirq.contrib.quimb.density_matrix import (
-    tensor_density_matrix,
-    circuit_to_density_matrix_tensors
-)
+from cirq.contrib.quimb.density_matrix import (tensor_density_matrix,
+                                               circuit_to_density_matrix_tensors
+                                              )
 
 from cirq.contrib.quimb.grid_circuits import (
     simplify_expectation_value_circuit,

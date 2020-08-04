@@ -21,7 +21,8 @@ def _qpos_tag(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]]):
 
 
 @lru_cache()
-def _qpos_y(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]], n_qubits: int):
+def _qpos_y(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]],
+            n_qubits: int):
     """Given a qubit or qubits, return the position y value (used for drawing).
 
     For multiple qubits, the position is the mean of the qubit indices.
@@ -34,8 +35,8 @@ def _qpos_y(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]], n_qubits: int)
 
 
 def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
-                      mi: int, qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]],
-                      *,
+                      mi: int,
+                      qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]], *,
                       n_qubits: int, x_scale, y_scale, x_nudge, yb_offset):
     """Helper function to update the `positions` dictionary.
 
@@ -59,7 +60,8 @@ def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
         (mi * x_scale, y_scale * qy + yb_offset)
 
 
-def circuit_to_density_matrix_tensors(circuit: cirq.Circuit, qubits: Sequence[cirq.LineQubit]):
+def circuit_to_density_matrix_tensors(circuit: cirq.Circuit,
+                                      qubits: Sequence[cirq.LineQubit]):
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
 
@@ -95,24 +97,25 @@ def circuit_to_density_matrix_tensors(circuit: cirq.Circuit, qubits: Sequence[ci
     yb_offset = (n_qubits + 0.5) * y_scale
 
     def _positions(mi, qubits):
-        return _add_to_positions(positions, mi, qubits, n_qubits=n_qubits,
-                                 x_scale=x_scale, y_scale=y_scale,
-                                 x_nudge=x_nudge, yb_offset=yb_offset)
+        return _add_to_positions(positions,
+                                 mi,
+                                 qubits,
+                                 n_qubits=n_qubits,
+                                 x_scale=x_scale,
+                                 y_scale=y_scale,
+                                 x_nudge=x_nudge,
+                                 yb_offset=yb_offset)
 
     # Initialize forwards and backwards qubits into the 0 state, i.e. prepare
     # rho_0 = |0><0|.
     for q in qubits:
         tensors += [
-            qtn.Tensor(
-                data=quimb.up().squeeze(),
-                inds=(f'nf0_q{q.x}',),
-                tags={'Q0', 'i0f', _qpos_tag(q)}
-            ),
-            qtn.Tensor(
-                data=quimb.up().squeeze(),
-                inds=(f'nb0_q{q.x}',),
-                tags={'Q0', 'i0b', _qpos_tag(q)}
-            )
+            qtn.Tensor(data=quimb.up().squeeze(),
+                       inds=(f'nf0_q{q.x}',),
+                       tags={'Q0', 'i0f', _qpos_tag(q)}),
+            qtn.Tensor(data=quimb.up().squeeze(),
+                       inds=(f'nb0_q{q.x}',),
+                       tags={'Q0', 'i0b', _qpos_tag(q)})
         ]
         _positions(0, q)
 
@@ -126,30 +129,39 @@ def circuit_to_density_matrix_tensors(circuit: cirq.Circuit, qubits: Sequence[ci
             end_inds_b = [f'nb{qubit_frontier[q]}_q{q.x}' for q in op.qubits]
 
             if cirq.has_unitary(op):
-                U = cirq.unitary(op).reshape((2,) * 2 * len(op.qubits)).astype(np.complex128)
-                tensors.append(qtn.Tensor(
-                    data=U,
-                    inds=end_inds_f + start_inds_f,
-                    tags={f'Q{len(op.qubits)}', f'i{mi + 1}f', _qpos_tag(op.qubits)})
-                )
-                tensors.append(qtn.Tensor(
-                    data=np.conj(U),
-                    inds=end_inds_b + start_inds_b,
-                    tags={f'Q{len(op.qubits)}', f'i{mi + 1}b', _qpos_tag(op.qubits)})
-                )
+                U = cirq.unitary(op).reshape(
+                    (2,) * 2 * len(op.qubits)).astype(np.complex128)
+                tensors.append(
+                    qtn.Tensor(data=U,
+                               inds=end_inds_f + start_inds_f,
+                               tags={
+                                   f'Q{len(op.qubits)}', f'i{mi + 1}f',
+                                   _qpos_tag(op.qubits)
+                               }))
+                tensors.append(
+                    qtn.Tensor(data=np.conj(U),
+                               inds=end_inds_b + start_inds_b,
+                               tags={
+                                   f'Q{len(op.qubits)}', f'i{mi + 1}b',
+                                   _qpos_tag(op.qubits)
+                               }))
             elif cirq.has_channel(op):
                 K = np.asarray(cirq.channel(op), dtype=np.complex128)
                 kraus_inds = [f'k{kraus_frontier}']
-                tensors.append(qtn.Tensor(
-                    data=K,
-                    inds=kraus_inds + end_inds_f + start_inds_f,
-                    tags={f'kQ{len(op.qubits)}', f'i{mi + 1}f', _qpos_tag(op.qubits)})
-                )
-                tensors.append(qtn.Tensor(
-                    data=np.conj(K),
-                    inds=kraus_inds + end_inds_b + start_inds_b,
-                    tags={f'kQ{len(op.qubits)}', f'i{mi + 1}b', _qpos_tag(op.qubits)})
-                )
+                tensors.append(
+                    qtn.Tensor(data=K,
+                               inds=kraus_inds + end_inds_f + start_inds_f,
+                               tags={
+                                   f'kQ{len(op.qubits)}', f'i{mi + 1}f',
+                                   _qpos_tag(op.qubits)
+                               }))
+                tensors.append(
+                    qtn.Tensor(data=np.conj(K),
+                               inds=kraus_inds + end_inds_b + start_inds_b,
+                               tags={
+                                   f'kQ{len(op.qubits)}', f'i{mi + 1}b',
+                                   _qpos_tag(op.qubits)
+                               }))
                 kraus_frontier += 1
             else:
                 raise ValueError(repr(op))
@@ -168,7 +180,8 @@ def tensor_density_matrix(circuit, qubits):
     longer than doing the contraction. Your mileage may vary and benchmarking
     is encouraged for your particular problem if performance is important.
     """
-    tensors, qubit_frontier, fix = circuit_to_density_matrix_tensors(circuit=circuit, qubits=qubits)
+    tensors, qubit_frontier, fix = circuit_to_density_matrix_tensors(
+        circuit=circuit, qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
     f_inds = tuple(f'nf{qubit_frontier[q]}_q{q.x}' for q in qubits)
     b_inds = tuple(f'nb{qubit_frontier[q]}_q{q.x}' for q in qubits)

@@ -6,7 +6,8 @@ import quimb.tensor as qtn
 import cirq
 
 
-def circuit_to_tensors(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid],
+def circuit_to_tensors(circuit: cirq.Circuit,
+                       qubits: Sequence[cirq.Qid],
                        initial_state: Union[int, None] = 0):
     """Given a circuit, construct a tensor network representation.
 
@@ -38,10 +39,10 @@ def circuit_to_tensors(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid],
 
     if initial_state == 0:
         for q in qubits:
-            tensors += [qtn.Tensor(
-                data=quimb.up().squeeze(),
-                inds=(f'i0_q{q}',),
-                tags={'Q0'})
+            tensors += [
+                qtn.Tensor(data=quimb.up().squeeze(),
+                           inds=(f'i0_q{q}',),
+                           tags={'Q0'})
             ]
     elif initial_state is None:
         # no input tensors, return a network representing the unitary
@@ -59,10 +60,9 @@ def circuit_to_tensors(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid],
             end_inds = [f'i{qubit_frontier[q]}_q{q}' for q in op.qubits]
 
             U = cirq.unitary(op).reshape((2,) * 2 * len(op.qubits))
-            t = qtn.Tensor(
-                data=U,
-                inds=end_inds + start_inds,
-                tags={f'Q{len(op.qubits)}'})
+            t = qtn.Tensor(data=U,
+                           inds=end_inds + start_inds,
+                           tags={f'Q{len(op.qubits)}'})
             tensors.append(t)
 
     return tensors, qubit_frontier, positions
@@ -71,7 +71,8 @@ def circuit_to_tensors(circuit: cirq.Circuit, qubits: Sequence[cirq.Qid],
 def tensor_state_vector(circuit, qubits):
     """Given a circuit contract a tensor network into a final state vector.
     """
-    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit, qubits=qubits)
+    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit,
+                                                      qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
     f_inds = tuple(f'i{qubit_frontier[q]}_q{q}' for q in qubits)
     tn.contract(inplace=True)
@@ -81,8 +82,9 @@ def tensor_state_vector(circuit, qubits):
 def tensor_unitary(circuit, qubits):
     """Given a circuit contract a tensor network into a dense unitary of the circuit.
     """
-    tensors, qubit_frontier, fix = circuit_to_tensors(
-        circuit=circuit, qubits=qubits, initial_state=None)
+    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit,
+                                                      qubits=qubits,
+                                                      initial_state=None)
     tn = qtn.TensorNetwork(tensors)
     i_inds = tuple(f'i0_q{q}' for q in qubits)
     f_inds = tuple(f'i{qubit_frontier[q]}_q{q}' for q in qubits)
@@ -90,7 +92,8 @@ def tensor_unitary(circuit, qubits):
     return tn.to_dense(f_inds, i_inds)
 
 
-def circuit_for_expectation_value(circuit: cirq.Circuit, pauli_string: cirq.PauliString):
+def circuit_for_expectation_value(circuit: cirq.Circuit,
+                                  pauli_string: cirq.PauliString):
     """Sandwich a PauliString operator between a forwards and backwards
     copy of a circuit.
 
@@ -107,21 +110,24 @@ def circuit_for_expectation_value(circuit: cirq.Circuit, pauli_string: cirq.Paul
     ])
 
 
-def tensor_expectation_value(circuit: cirq.Circuit, pauli_string: cirq.PauliString,
-                             max_ram_gb=16, tol=1e-6):
+def tensor_expectation_value(circuit: cirq.Circuit,
+                             pauli_string: cirq.PauliString,
+                             max_ram_gb=16,
+                             tol=1e-6):
     """Compute an expectation value for an operator and a circuit via tensor contraction.
 
     This will give up if it looks like the computation will take too much RAM.
     """
-    circuit_sand = circuit_for_expectation_value(circuit, pauli_string / pauli_string.coefficient)
+    circuit_sand = circuit_for_expectation_value(
+        circuit, pauli_string / pauli_string.coefficient)
     qubits = sorted(circuit_sand.all_qubits())
 
-    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit_sand, qubits=qubits)
+    tensors, qubit_frontier, fix = circuit_to_tensors(circuit=circuit_sand,
+                                                      qubits=qubits)
     end_bras = [
-        qtn.Tensor(
-            data=quimb.up().squeeze(),
-            inds=(f'i{qubit_frontier[q]}_q{q}',),
-            tags={'Q0', 'bra0'}) for q in qubits
+        qtn.Tensor(data=quimb.up().squeeze(),
+                   inds=(f'i{qubit_frontier[q]}_q{q}',),
+                   tags={'Q0', 'bra0'}) for q in qubits
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
     tn.rank_simplify(inplace=True)
