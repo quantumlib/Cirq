@@ -88,7 +88,7 @@ class MergeNQubitGates(cirq.PointOptimizer):
 
     def optimization_at(self, circuit: cirq.Circuit, index: int,
                         op: cirq.Operation
-                        ) -> Optional[cirq.PointOptimizationSummary]:
+                       ) -> Optional[cirq.PointOptimizationSummary]:
         if len(op.qubits) != self.n_qubits:
             return None
 
