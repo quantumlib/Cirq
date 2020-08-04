@@ -27,16 +27,8 @@ Simulator types include:
         as the simulation iterates through the moments of a cirq.
 """
 
-from typing import (
-    Any,
-    Dict,
-    Iterator,
-    List,
-    Sequence,
-    Tuple,
-    Optional,
-    TYPE_CHECKING,
-)
+from typing import (Any, Dict, Iterator, List, Sequence, Tuple, Optional,
+                    TYPE_CHECKING, Set, cast)
 
 import abc
 import collections
@@ -471,29 +463,43 @@ class StepResult(metaclass=abc.ABCMeta):
                 instances or a qubit is acted upon multiple times by different
                 operations from `measurement_ops`.
         """
-        bounds = {}  # type: Dict[str, Tuple]
-        all_qubits = []  # type: List[ops.Qid]
-        meas_ops = {}
-        current_index = 0
+
+        # Sanity checks.
+        seen_measurement_keys: Set[str] = set()
         for op in measurement_ops:
             gate = op.gate
             if not isinstance(gate, ops.MeasurementGate):
-                raise ValueError('{} was not a MeasurementGate'.format(gate))
+                raise ValueError(f'{op.gate} was not a MeasurementGate')
             key = protocols.measurement_key(gate)
-            meas_ops[key] = gate
-            if key in bounds:
-                raise ValueError(
-                    'Duplicate MeasurementGate with key {}'.format(key))
-            bounds[key] = (current_index, current_index + len(op.qubits))
-            all_qubits.extend(op.qubits)
-            current_index += len(op.qubits)
-        indexed_sample = self.sample(all_qubits, repetitions, seed=seed)
+            if key in seen_measurement_keys:
+                raise ValueError(f'Duplicate MeasurementGate with key {key}')
+            seen_measurement_keys.add(key)
 
-        results = {}
-        for k, (s, e) in bounds.items():
-            before_invert_mask = indexed_sample[:, s:e]
-            results[k] = before_invert_mask ^ (np.logical_and(
-                before_invert_mask < 2, meas_ops[k].full_invert_mask()))
+        # Find measured qubits, ensuring a consistent ordering.
+        measured_qubits = []
+        seen_qubits: Set[cirq.Qid] = set()
+        for op in measurement_ops:
+            for q in op.qubits:
+                if q not in seen_qubits:
+                    seen_qubits.add(q)
+                    measured_qubits.append(q)
+
+        # Perform whole-system sampling of the measured qubits.
+        indexed_sample = self.sample(measured_qubits, repetitions, seed=seed)
+
+        # Extract results for each measurement.
+        results: Dict[str, np.ndarray] = {}
+        qubits_to_index = {q: i for i, q in enumerate(measured_qubits)}
+        for op in measurement_ops:
+            gate = cast(ops.MeasurementGate, op.gate)
+            out = np.zeros(shape=(repetitions, len(op.qubits)), dtype=np.int8)
+            inv_mask = gate.full_invert_mask()
+            for i, q in enumerate(op.qubits):
+                out[:, i] = indexed_sample[:, qubits_to_index[q]]
+                if inv_mask[i]:
+                    out[:, i] ^= out[:, i] < 2
+            results[gate.key] = out
+
         return results
 
 

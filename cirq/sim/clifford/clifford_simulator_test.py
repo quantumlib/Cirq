@@ -429,6 +429,27 @@ def test_sample_seed():
 
 
 def test_is_supported_operation():
+
+    class MultiQubitOp(cirq.Operation):
+        """Multi-qubit operation with unitary.
+
+        Used to verify that `is_supported_operation` does not attempt to
+        allocate the unitary for multi-qubit operations.
+        """
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(100)
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        def _has_unitary_(self):
+            return True
+
+        def _unitary_(self):
+            assert False
+
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))
     assert cirq.CliffordSimulator.is_supported_operation(cirq.H(q1))
@@ -438,6 +459,7 @@ def test_is_supported_operation():
         cirq.GlobalPhaseOperation(1j))
 
     assert not cirq.CliffordSimulator.is_supported_operation(cirq.T(q1))
+    assert not cirq.CliffordSimulator.is_supported_operation(MultiQubitOp())
 
 
 def test_simulate_pauli_string():
@@ -499,9 +521,9 @@ def test_deprecated():
                                   'deprecated'):
         _ = clifford_state.wave_function()
 
-    with cirq.testing.assert_logs('collapse_wave_function',
+    with cirq.testing.assert_logs('collapse_wavefunction',
                                   'collapse_state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q],
                                                prng=0,
-                                               collapse_wave_function=True)
+                                               collapse_wavefunction=True)

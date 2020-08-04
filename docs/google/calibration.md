@@ -174,12 +174,12 @@ An exponential curve is then fit to the resulting data to determine the T1 time,
 which is reported in microseconds.
 
 ### 2-qubit Isolated XEB error
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_average_error_per_cycle
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_pauli_error_per_cycle
-*   Metric key: two_qubit_sqrt_iswap_gate_xeb_cycle_incoherent_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_average_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_pauli_error_per_cycle
-*   Metric key: two_qubit_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_average_error_per_cycle
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_pauli_error_per_cycle
+*   Metric key: two_qubit_sqrt_iswap_gate_xeb_incoherent_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_average_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_pauli_error_per_cycle
+*   Metric key: two_qubit_sycamore_gate_xeb_incoherent_error_per_cycle
 
 Two qubit error is primarily characterized by applying cross-entropy
 benchmarking (XEB).  This procedure repeatedly performs a "cycle" of a
@@ -195,17 +195,17 @@ pair of qubits being considered is active.  All other qubits are idle.
 
 ### 2-qubit Parallel XEB error
 *   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_average_error_per_cycle
+    two_qubit_parallel_sqrt_iswap_gate_xeb_average_error_per_cycle
 *   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_pauli_error_per_cycle
+    two_qubit_parallel_sqrt_iswap_gate_xeb_pauli_error_per_cycle
 *   Metric key:
-    two_qubit_parallel_sqrt_iswap_gate_xeb_cycle_incoherent_error_per_cycle
+    two_qubit_parallel_sqrt_iswap_gate_xeb_incoherent_error_per_cycle
 *   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_cycle_average_error_per_cycle
+    two_qubit_parallel_sycamore_gate_xeb_average_error_per_cycle
 *   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_cycle_pauli_error_per_cycle
+    two_qubit_parallel_sycamore_gate_xeb_pauli_error_per_cycle
 *   Metric key:
-    two_qubit_parallel_sycamore_gate_xeb_cycle_incoherent_error_per_cycle
+    two_qubit_parallel_sycamore_gate_xeb_incoherent_error_per_cycle
 
 These metrics are calculated the same way as the 2-qubit isolated XEB error
 metrics.  However, this metric quantifies the error of multiple parallel 2-qubit

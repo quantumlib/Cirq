@@ -161,9 +161,12 @@ def final_state_vector(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-final_wavefunction = deprecated(
+@deprecated(
     deadline='v0.10.0',
-    fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
+    fix='Use `cirq.final_state_vector` instead.',
+)
+def final_wavefunction(*args, **kwargs):
+    return final_state_vector(*args, **kwargs)
 
 
 def sample_sweep(program: 'cirq.Circuit',

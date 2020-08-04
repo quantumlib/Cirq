@@ -11,51 +11,62 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, FrozenSet, Iterable
-from numpy import sqrt
+from typing import FrozenSet, Callable, List, Sequence, Any, Union, Dict
+import numpy as np
 
 import cirq
-
-from cirq.pasqal import ThreeDGridQubit
+from cirq import GridQubit, LineQubit
+from cirq.ops import NamedQubit
+from cirq.pasqal import ThreeDQubit, TwoDQubit
 
 
 @cirq.value.value_equality
 class PasqalDevice(cirq.devices.Device):
-    """A Pasqal Device with qubits placed on a 3D grid."""
+    """A generic Pasqal device.
 
-    def __init__(self, control_radius: float,
-                 qubits: Iterable[ThreeDGridQubit]) -> None:
-        """ Initializes the description of the device.
+    The most general of Pasqal devices, enforcing only restrictions expected to
+    be shared by all future devices. Serves as the parent class of all Pasqal
+    devices, but can also be used on its own for hosting a nearly unconstrained
+    device. When used as a circuit's device, the qubits have to be of the type
+    cirq.NamedQubit and assumed to be all connected, the idea behind it being
+    that after submission, all optimization and transpilation necessary for its
+    execution on the specified device are handled internally by Pasqal.
+    """
+
+    def __init__(self, qubits: Sequence[cirq.ops.Qid]) -> None:
+        """Initializes a device with some qubits.
 
         Args:
-            control_radius: the maximum distance between qubits for a controlled
-                gate. Distance is measured in units of the indices passed into
-                the qubit constructor.
-            qubits: Qubits on the device, identified by their x, y, z position.
-                Must be of type ThreeDGridQubit.
-
+            qubits (NamedQubit): Qubits on the device, exclusively unrelated to
+                a physical position.
         Raises:
-            ValueError: if the wrong qubit type is provided or if invalid
-                parameter is provided for control_radius. """
-        us = cirq.value.Duration(micros=1)
-        ms = cirq.value.Duration(millis=1)
-
-        self._measurement_duration = 5 * ms
-        self._gate_duration = 2 * us
-        self._max_parallel_z = 2
-        self._max_parallel_xy = 2
-        self._max_parallel_c = 10
-        self._max_parallel_t = 1
+            TypeError: if the wrong qubit type is provided.
+        """
+        if len(qubits) > 0:
+            q_type = type(qubits[0])
 
         for q in qubits:
-            if not isinstance(q, ThreeDGridQubit):
-                raise TypeError('Unsupported qubit type: {!r}'.format(q))
+            if not isinstance(q, self.supported_qubit_type):
+                raise TypeError('Unsupported qubit type: {!r}. This device '
+                                'supports qubit types: {}'.format(
+                                    q, self.supported_qubit_type))
+            if not type(q) is q_type:
+                raise TypeError("All qubits must be of same type.")
 
-        if not control_radius >= 0:
-            raise ValueError("control_radius needs to be a non-negative float")
+        if len(qubits) > self.maximum_qubit_number:
+            raise ValueError('Too many qubits. {} accepts at most {} '
+                             'qubits.'.format(type(self),
+                                              self.maximum_qubit_number))
 
-        self.control_radius = control_radius
         self.qubits = qubits
+
+    @property
+    def supported_qubit_type(self):
+        return (NamedQubit,)
+
+    @property
+    def maximum_qubit_number(self):
+        return 100
 
     def qubit_set(self) -> FrozenSet[cirq.Qid]:
         return frozenset(self.qubits)
@@ -73,21 +84,32 @@ class PasqalDevice(cirq.devices.Device):
             raise TypeError("{!r} is not a gate operation.".format(operation))
 
         # Try to decompose the operation into elementary device operations
-        if not PasqalDevice.is_pasqal_device_op(operation):
-            decomposition = cirq.protocols.decompose(
-                operation, keep=PasqalDevice.is_pasqal_device_op)
+        if not self.is_pasqal_device_op(operation):
+            decomposition = PasqalConverter().pasqal_convert(
+                operation, keep=self.is_pasqal_device_op)
 
         return decomposition
 
-    @staticmethod
-    def is_pasqal_device_op(op: cirq.ops.Operation) -> bool:
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
 
         if not isinstance(op, cirq.ops.Operation):
             raise ValueError('Got unknown operation:', op)
-        return (len(op.qubits) > 1) or isinstance(
-            op.gate, (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
-                      cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
-                      cirq.ops.YPowGate, cirq.ops.ZPowGate))
+
+        valid_op = isinstance(op.gate,
+                              (cirq.ops.IdentityGate, cirq.ops.MeasurementGate,
+                               cirq.ops.PhasedXPowGate, cirq.ops.XPowGate,
+                               cirq.ops.YPowGate, cirq.ops.ZPowGate))
+
+        if not valid_op:  # To prevent further checking if already passed
+            if (isinstance(
+                    op.gate,
+                (cirq.ops.HPowGate, cirq.ops.CNotPowGate, cirq.ops.CZPowGate,
+                 cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)) and
+                    not cirq.is_parameterized(op)):
+                expo = op.gate.exponent
+                valid_op = np.isclose(expo, np.around(expo, decimals=0))
+
+        return valid_op
 
     def validate_operation(self, operation: cirq.ops.Operation):
         """
@@ -99,92 +121,225 @@ class PasqalDevice(cirq.devices.Device):
         Raises:
             ValueError: If the operation is not valid
         """
+
         if not isinstance(operation,
                           (cirq.GateOperation, cirq.ParallelGateOperation)):
             raise ValueError("Unsupported operation")
 
-        if not PasqalDevice.is_pasqal_device_op(operation):
+        if not self.is_pasqal_device_op(operation):
             raise ValueError('{!r} is not a supported '
                              'gate'.format(operation.gate))
 
         for qub in operation.qubits:
-            if not isinstance(qub, ThreeDGridQubit):
-                raise ValueError('{} is not a 3D grid qubit '
-                                 'for gate {!r}'.format(qub, operation.gate))
+            if not isinstance(qub, self.supported_qubit_type):
+                raise ValueError('{} is not a valid qubit for gate {!r}. This '
+                                 'device accepts gates on qubits of type: '
+                                 '{}'.format(qub, operation.gate,
+                                             self.supported_qubit_type))
+            if qub not in self.qubit_set():
+                raise ValueError('{} is not part of the device.'.format(qub))
 
-        if isinstance(operation.gate,
-                      (cirq.ops.MeasurementGate, cirq.ops.IdentityGate)):
-            return
+        if isinstance(operation.gate, cirq.ops.MeasurementGate):
+            if operation.gate.invert_mask != ():
+                raise NotImplementedError("Measurements on Pasqal devices "
+                                          "don't support invert_mask.")
+
+    def validate_circuit(self, circuit: 'cirq.Circuit') -> None:
+        """Raises an error if the given circuit is invalid on this device.
+
+        A circuit is invalid if any of its moments are invalid or if there
+        is a non-empty moment after a moment with a measurement.
+
+        Args:
+            circuit: The circuit to validate
+
+        Raises:
+            ValueError: If the given circuit can't be run on this device
+        """
+        super().validate_circuit(circuit)
+
+        # Measurements must be in the last non-empty moment
+        has_measurement_occurred = False
+        for moment in circuit:
+            if has_measurement_occurred:
+                if len(moment.operations) > 0:
+                    raise ValueError("Non-empty moment after measurement")
+            for operation in moment.operations:
+                if isinstance(operation.gate, cirq.ops.MeasurementGate):
+                    has_measurement_occurred = True
+
+    def can_add_operation_into_moment(self, operation: cirq.ops.Operation,
+                                      moment: cirq.ops.Moment) -> bool:
+        """Determines if it's possible to add an operation into a moment.
+
+        An operation can be added if the moment with the operation added is
+        valid.
+
+        Args:
+            operation: The operation being added.
+            moment: The moment being transformed.
+
+        Returns:
+            Whether or not the moment will validate after adding the operation.
+
+        Raises:
+            ValueError: If either of the given moment or operation is invalid
+        """
+        if not super().can_add_operation_into_moment(operation, moment):
+            return False
+        try:
+            self.validate_moment(moment.with_operation(operation))
+        except ValueError:
+            return False
+        return True
+
+    def __repr__(self):
+        return 'pasqal.PasqalDevice(qubits={!r})'.format(sorted(self.qubits))
+
+    def _value_equality_values_(self):
+        return (self.qubits)
+
+    def _json_dict_(self):
+        return cirq.protocols.obj_to_dict_helper(self, ['qubits'])
+
+
+class PasqalVirtualDevice(PasqalDevice):
+    """A Pasqal virtual device with qubits in 3d.
+
+    A virtual representation of a Pasqal device, enforcing the constraints
+    typically found in a physical device. The qubits can be positioned in 3d
+    space, although 2d layouts will be supported sooner and are thus
+    recommended. Only accepts qubits with physical placement.
+    """
+
+    def __init__(self, control_radius: float,
+                 qubits: Sequence[Union[ThreeDQubit, GridQubit, LineQubit]]
+                ) -> None:
+        """Initializes a device with some qubits.
+
+        Args:
+            control_radius: the maximum distance between qubits for a controlled
+                gate. Distance is measured in units of the coordinates passed
+                into the qubit constructor.
+            qubits: Qubits on the device, identified by their x, y, z position.
+                Must be of type ThreeDQubit, TwoDQubit, LineQubit or GridQubit.
+
+        Raises:
+            ValueError: if the wrong qubit type is provided or if invalid
+                parameter is provided for control_radius. """
+
+        super().__init__(qubits)
+
+        if not control_radius >= 0:
+            raise ValueError('Control_radius needs to be a non-negative float.')
+
+        if len(self.qubits) > 1:
+            if control_radius > 3. * self.minimal_distance():
+                raise ValueError('Control_radius cannot be larger than 3 times'
+                                 ' the minimal distance between qubits.')
+
+        self.control_radius = control_radius
+
+    @property
+    def supported_qubit_type(self):
+        return (
+            ThreeDQubit,
+            TwoDQubit,
+            GridQubit,
+            LineQubit,
+        )
+
+    def is_pasqal_device_op(self, op: cirq.ops.Operation) -> bool:
+        return (super().is_pasqal_device_op(op) and not isinstance(
+            op.gate,
+            (cirq.ops.CNotPowGate, cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)))
+
+    def validate_operation(self, operation: cirq.ops.Operation):
+        """Raises an error if the given operation is invalid on this device.
+
+        Args:
+            operation: the operation to validate
+        Raises:
+            ValueError: If the operation is not valid
+        """
+        super().validate_operation(operation)
 
         # Verify that a controlled gate operation is valid
         if isinstance(operation, cirq.ops.GateOperation):
-            if len(operation.qubits) > self._max_parallel_c + \
-                    self._max_parallel_t:
-                raise ValueError("Too many qubits acted on in parallel by a"
-                                 "controlled gate operation")
-            if len(operation.qubits) > 1:
+            if (len(operation.qubits) > 1 and
+                    not isinstance(operation.gate, cirq.ops.MeasurementGate)):
                 for p in operation.qubits:
                     for q in operation.qubits:
                         if self.distance(p, q) > self.control_radius:
                             raise ValueError("Qubits {!r}, {!r} are too "
                                              "far away".format(p, q))
 
-        # Verify that a valid number of Z gates are applied in parallel
-        if isinstance(operation.gate, cirq.ops.ZPowGate):
-            if len(operation.qubits) > self._max_parallel_z:
-                raise ValueError("Too many Z gates in parallel")
-
-        # Verify that a valid number of XY gates are applied in parallel
-        if isinstance(
-                operation.gate,
-            (cirq.ops.XPowGate, cirq.ops.YPowGate, cirq.ops.PhasedXPowGate)):
-            if (len(operation.qubits) > self._max_parallel_xy and
-                    len(operation.qubits) != len(self.qubit_list())):
-                raise ValueError("Bad number of X/Y gates in parallel")
-
-    def duration_of(self, operation: cirq.ops.Operation):
-        """
-        Provides the duration of the given operation on this device.
+    def validate_moment(self, moment: cirq.ops.Moment):
+        """Raises an error if the given moment is invalid on this device.
 
         Args:
-            operation: the operation to get the duration of
+            moment: The moment to validate.
+        Raises:
+            ValueError: If the given moment is invalid.
+        """
 
-        Returns:
-            The duration of the given operation on this device
+        super().validate_moment(moment)
+        if len(moment) > 1:
+            for operation in moment:
+                if not isinstance(operation.gate, cirq.ops.MeasurementGate):
+                    raise ValueError("Cannot do simultaneous gates. Use "
+                                     "cirq.InsertStrategy.NEW.")
+
+    def minimal_distance(self) -> float:
+        """Returns the minimal distance between two qubits in qubits.
+
+        Args:
+            qubits: qubit involved in the distance computation
 
         Raises:
-            ValueError: If the operation provided doesn't correspond to a native
-                gate
-        """
-        self.validate_operation(operation)
-        if isinstance(operation,
-                      (cirq.ops.GateOperation, cirq.ops.ParallelGateOperation)):
-            if isinstance(operation.gate, cirq.ops.MeasurementGate):
-                return self._measurement_duration
-        return self._gate_duration
+            ValueError: If the device has only one qubit
 
-    def distance(self, p: 'cirq.Qid', q: 'cirq.Qid') -> float:
+        Returns:
+            The minimal distance between qubits, in spacial coordinate units.
         """
-        Returns the distance between two qubits.
+        if len(self.qubits) <= 1:
+            raise ValueError("Two qubits to compute a minimal distance.")
+
+        return min([
+            self.distance(q1, q2)
+            for q1 in self.qubits
+            for q2 in self.qubits
+            if q1 != q2
+        ])
+
+    def distance(self, p: Any, q: Any) -> float:
+        """Returns the distance between two qubits.
 
         Args:
             p: qubit involved in the distance computation
             q: qubit involved in the distance computation
 
+        Raises:
+            ValueError: If p or q not part of the device
+
         Returns:
-            The distance between qubits p and q, in lattice spacing units.
-
+            The distance between qubits p and q.
         """
-        if not isinstance(q, ThreeDGridQubit):
-            raise TypeError('Unsupported qubit type: {!r}'.format(q))
-        if not isinstance(p, ThreeDGridQubit):
-            raise TypeError('Unsupported qubit type: {!r}'.format(p))
-        return sqrt((p.row - q.row)**2 + (p.col - q.col)**2 +
-                    (p.lay - q.lay)**2)
+        all_qubits = self.qubit_list()
+        if p not in all_qubits or q not in all_qubits:
+            raise ValueError("Qubit not part of the device.")
 
-    def __repr__(self) -> str:
-        return (f'pasqal.PasqalDevice(control_radius={self.control_radius!r}, '
-                f'qubits={sorted(self.qubits)!r})')
+        if isinstance(p, GridQubit):
+            return np.sqrt((p.row - q.row)**2 + (p.col - q.col)**2)
+
+        if isinstance(p, LineQubit):
+            return abs(p.x - q.x)
+
+        return np.sqrt((p.x - q.x)**2 + (p.y - q.y)**2 + (p.z - q.z)**2)
+
+    def __repr__(self):
+        return ('pasqal.PasqalVirtualDevice(control_radius={!r}, '
+                'qubits={!r})').format(self.control_radius, sorted(self.qubits))
 
     def _value_equality_values_(self) -> Any:
         return (self.control_radius, self.qubits)
@@ -192,3 +347,27 @@ class PasqalDevice(cirq.devices.Device):
     def _json_dict_(self) -> Dict[str, Any]:
         return cirq.protocols.obj_to_dict_helper(self,
                                                  ['control_radius', 'qubits'])
+
+
+class PasqalConverter(cirq.neutral_atoms.ConvertToNeutralAtomGates):
+    """A gate converter for compatibility with Pasqal processors.
+
+    Modified version of ConvertToNeutralAtomGates, where a new 'convert' method
+    'pasqal_convert' takes the 'keep' function as an input.
+    """
+
+    def pasqal_convert(self, op: cirq.ops.Operation,
+                       keep: Callable[[cirq.ops.Operation], bool]
+                      ) -> List[cirq.ops.Operation]:
+
+        def on_stuck_raise(bad):
+            return TypeError("Don't know how to work with {!r}. "
+                             "It isn't a native PasqalDevice operation, "
+                             "a 1 or 2 qubit gate with a known unitary, "
+                             "or composite.".format(bad))
+
+        return cirq.protocols.decompose(
+            op,
+            keep=keep,
+            intercepting_decomposer=self._convert_one,
+            on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
