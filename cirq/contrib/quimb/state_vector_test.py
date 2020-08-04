@@ -1,4 +1,8 @@
+import functools
+import operator
+
 import numpy as np
+import pytest
 
 import cirq
 import cirq.contrib.quimb as ccq
@@ -21,7 +25,7 @@ def test_tensor_state_vector_2():
     rs = np.random.RandomState(52)
     for _ in range(10):
         g = cirq.MatrixGate(
-            cirq.testing.random_unitary(dim=2**len(q), random_state=rs))
+            cirq.testing.random_unitary(dim=2 ** len(q), random_state=rs))
         c = cirq.Circuit(g.on(*q))
         psi1 = cirq.final_state_vector(c, dtype=np.complex128)
         psi2 = ccq.tensor_state_vector(c, q)
@@ -58,7 +62,7 @@ def test_sandwich_operator_identity():
                                           op_density=0.8)
     tot_c = ccq.circuit_for_expectation_value(circuit, cirq.PauliString({}))
     np.testing.assert_allclose(cirq.unitary(tot_c),
-                               np.eye(2**len(qubits)),
+                               np.eye(2 ** len(qubits)),
                                atol=1e-6)
 
 
@@ -122,3 +126,20 @@ def test_tensor_expectation_value():
                 assert eval_normal.imag < 1e-6
                 eval_normal = eval_normal.real
                 np.testing.assert_allclose(eval_tn, eval_normal, atol=1e-3)
+
+
+def test_bad_init_state():
+    qubits = cirq.LineQubit.range(5)
+    circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=10, op_density=0.8)
+    with pytest.raises(ValueError):
+        ccq.circuit_to_tensors(circuit=circuit, qubits=qubits, initial_state=1)
+
+
+def test_too_much_ram():
+    qubits = cirq.LineQubit.range(30)
+    circuit = cirq.testing.random_circuit(qubits=qubits, n_moments=20, op_density=0.8)
+    op = functools.reduce(operator.mul, [cirq.Z(q) for q in qubits], 1)
+    with pytest.raises(MemoryError) as e:
+        ccq.tensor_expectation_value(circuit=circuit, pauli_string=op)
+
+    assert e.match(r'.*too much RAM!.*')

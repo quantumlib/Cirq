@@ -40,12 +40,12 @@ def get_grid_moments(problem_graph: nx.Graph,
                              col_end + col_end_offset, col_step):
                 node1 = (row, col)
                 if node1 not in problem_graph.nodes:
-                    continue
+                    continue  # coverage: ignore
                 node2 = get_neighbor(row, col)
                 if node2 not in problem_graph.nodes:
-                    continue
+                    continue  # coverage: ignore
                 if (node1, node2) not in problem_graph.edges:
-                    continue
+                    continue  # coverage: ignore
 
                 weight = problem_graph.edges[node1, node2].get('weight', 1)
                 yield two_qubit_gate(exponent=weight, global_shift=-0.5) \
@@ -88,7 +88,7 @@ class MergeNQubitGates(cirq.PointOptimizer):
 
     def optimization_at(self, circuit: cirq.Circuit, index: int,
                         op: cirq.Operation
-                       ) -> Optional[cirq.PointOptimizationSummary]:
+                        ) -> Optional[cirq.PointOptimizationSummary]:
         if len(op.qubits) != self.n_qubits:
             return None
 

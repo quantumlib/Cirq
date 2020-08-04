@@ -7,13 +7,7 @@ import cirq
 import cirq.contrib.quimb as ccq
 
 
-def _get_circuit(width=3, height=None, rs=None, p=2):
-    if height is None:
-        height = width
-
-    if rs is None:
-        rs = np.random.RandomState(52)
-
+def _get_circuit(width, height, rs, p=2):
     graph = nx.grid_2d_graph(width, height)
     nx.set_edge_attributes(
         graph,
@@ -53,7 +47,7 @@ def test_simplify_sandwich():
 @pytest.mark.parametrize('simplify', [False, True])
 def test_circuit_to_tensors(simplify):
     rs = np.random.RandomState(52)
-    qubits = cirq.LineQubit.range(5)
+    qubits = cirq.LineQubit.range(2)
     circuit = cirq.testing.random_circuit(qubits=qubits,
                                           n_moments=10,
                                           op_density=0.8)
@@ -64,18 +58,7 @@ def test_circuit_to_tensors(simplify):
     if simplify:
         ccq.simplify_expectation_value_circuit(circuit_sand)
     qubits = sorted(circuit_sand.all_qubits())
-    tensors, _, _ = ccq.circuit_to_tensors(circuit=circuit_sand,
-                                           qubits=qubits,
-                                           initial_state=None)
-    tn = qtn.TensorNetwork(tensors)
-    u_tn = tn.contract()
-    # Important! Re-order indices. Rows index output legs, cols index input
-    # legs. however, within the {input, output} block,
-    # qubits are ordered lexicographically
-    inds = u_tn.inds
-    desired_inds = inds[len(inds) // 2:] + inds[:len(inds) // 2]
-    u_tn.transpose(*desired_inds, inplace=True)
-    u_tn = u_tn.data.reshape((2 ** len(qubits), 2 ** len(qubits)))
+    u_tn = ccq.tensor_unitary(circuit=circuit_sand, qubits=qubits)
     u_cirq = cirq.unitary(circuit_sand)
     # print()
     # print(np.round(u_tn, 3))

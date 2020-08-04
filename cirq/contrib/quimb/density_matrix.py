@@ -164,7 +164,7 @@ def circuit_to_density_matrix_tensors(circuit: cirq.Circuit,
                                }))
                 kraus_frontier += 1
             else:
-                raise ValueError(repr(op))
+                raise ValueError(repr(op))  # coverage: ignore
 
             _positions(mi + 1, op.qubits)
     return tensors, qubit_frontier, positions
