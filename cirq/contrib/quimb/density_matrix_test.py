@@ -10,9 +10,6 @@ def test_tensor_density_matrix_1():
 
     rho1 = cirq.final_density_matrix(c, qubit_order=q, dtype=np.complex128)
     rho2 = ccq.tensor_density_matrix(c, q)
-    # print()
-    # print(np.real_if_close(np.round(rho1, 4)))
-    # print(np.real_if_close(np.round(rho2, 4)))
     np.testing.assert_allclose(rho1, rho2, atol=1e-15)
 
 
@@ -22,9 +19,6 @@ def test_tensor_density_matrix_optional_qubits():
 
     rho1 = cirq.final_density_matrix(c, dtype=np.complex128)
     rho2 = ccq.tensor_density_matrix(c)
-    # print()
-    # print(np.real_if_close(np.round(rho1, 4)))
-    # print(np.real_if_close(np.round(rho2, 4)))
     np.testing.assert_allclose(rho1, rho2, atol=1e-15)
 
 
@@ -37,9 +31,6 @@ def test_tensor_density_matrix_noise_1():
 
     rho1 = cirq.final_density_matrix(c, qubit_order=q, dtype=np.complex128)
     rho2 = ccq.tensor_density_matrix(c, q)
-    # print()
-    # print(np.real_if_close(np.round(rho1, 4)))
-    # print(np.real_if_close(np.round(rho2, 4)))
     np.testing.assert_allclose(rho1, rho2, atol=1e-15)
 
 
@@ -52,9 +43,6 @@ def test_tensor_density_matrix_2():
         c = cirq.Circuit(g.on(*q))
         rho1 = cirq.final_density_matrix(c, dtype=np.complex128)
         rho2 = ccq.tensor_density_matrix(c, q)
-        # print()
-        # print(np.real_if_close(np.round(rho1, 4)))
-        # print(np.real_if_close(np.round(rho2, 4)))
         np.testing.assert_allclose(rho1, rho2, atol=1e-8)
 
 

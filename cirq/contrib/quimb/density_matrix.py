@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple, List, Optional
+from typing import Sequence, Dict, Union, Tuple, List, Optional, cast, Iterable
 
 import numpy as np
 import quimb
@@ -94,9 +94,10 @@ def circuit_to_density_matrix_tensors(
             quantum circuit.
     """
     if qubits is None:
-        qubits = sorted(circuit.all_qubits())  # coverage: ignore
+        # coverage: ignore
+        qubits = sorted(cast(Iterable[cirq.LineQubit], circuit.all_qubits()))
 
-    qubit_frontier = {q: 0 for q in qubits}
+    qubit_frontier: Dict[cirq.Qid, int] = {q: 0 for q in qubits}
     kraus_frontier = 0
     positions: Dict[Tuple[str, str], Tuple[float, float]] = {}
     tensors: List[qtn.Tensor] = []
@@ -194,7 +195,7 @@ def tensor_density_matrix(circuit: cirq.Circuit,
     is encouraged for your particular problem if performance is important.
     """
     if qubits is None:
-        qubits = sorted(circuit.all_qubits())
+        qubits = sorted(cast(Iterable[cirq.LineQubit], circuit.all_qubits()))
 
     tensors, qubit_frontier, _ = circuit_to_density_matrix_tensors(
         circuit=circuit, qubits=qubits)

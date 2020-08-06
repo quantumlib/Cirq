@@ -59,11 +59,6 @@ def test_circuit_to_tensors(simplify):
     qubits = sorted(circuit_sand.all_qubits())
     u_tn = ccq.tensor_unitary(circuit=circuit_sand, qubits=qubits)
     u_cirq = cirq.unitary(circuit_sand)
-    # print()
-    # print(np.round(u_tn, 3))
-    # print()
-    # print(np.round(u_cirq, 3))
-    # print()
     np.testing.assert_allclose(u_tn, u_cirq, atol=1e-6)
 
 
@@ -72,7 +67,6 @@ def test_tensor_expectation_value():
         for width in [2, 3]:
             for height in [1, 3]:
                 for p in [1, 2]:
-                    # print(_, width, height, p)
                     rs = np.random.RandomState(52)
                     circuit, qubits = _get_circuit(width=width,
                                                    height=height,

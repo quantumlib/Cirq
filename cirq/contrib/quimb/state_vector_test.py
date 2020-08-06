@@ -14,9 +14,6 @@ def test_tensor_state_vector_1():
 
     psi1 = cirq.final_state_vector(c, qubit_order=q, dtype=np.complex128)
     psi2 = ccq.tensor_state_vector(c, q)
-    # print()
-    # print(np.real_if_close(np.round(psi1, 4)))
-    # print(np.real_if_close(np.round(psi2, 4)))
     np.testing.assert_allclose(psi1, psi2, atol=1e-15)
 
 
@@ -26,9 +23,6 @@ def test_tensor_state_vector_implicit_qubits():
 
     psi1 = cirq.final_state_vector(c, dtype=np.complex128)
     psi2 = ccq.tensor_state_vector(c)
-    # print()
-    # print(np.real_if_close(np.round(psi1, 4)))
-    # print(np.real_if_close(np.round(psi2, 4)))
     np.testing.assert_allclose(psi1, psi2, atol=1e-15)
 
 
@@ -41,9 +35,6 @@ def test_tensor_state_vector_2():
         c = cirq.Circuit(g.on(*q))
         psi1 = cirq.final_state_vector(c, dtype=np.complex128)
         psi2 = ccq.tensor_state_vector(c, q)
-        # print()
-        # print(np.real_if_close(np.round(psi1, 4)))
-        # print(np.real_if_close(np.round(psi2, 4)))
         np.testing.assert_allclose(psi1, psi2, atol=1e-8)
 
 
