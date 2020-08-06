@@ -66,8 +66,10 @@ def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
         (mi * x_scale, y_scale * qy + yb_offset)
 
 
-def circuit_to_density_matrix_tensors(circuit: cirq.Circuit,
-                                      qubits: Sequence[cirq.LineQubit]):
+def circuit_to_density_matrix_tensors(
+        circuit: cirq.Circuit,
+        qubits: Sequence[cirq.LineQubit]
+) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
 
