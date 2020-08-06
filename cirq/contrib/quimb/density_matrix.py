@@ -73,7 +73,7 @@ def circuit_to_density_matrix_tensors(
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
 
-    This assumes you start in the |0..0><0..| state. Indices are named
+    This assumes you start in the |0..0><0..0| state. Indices are named
     "nf{i}_q{x}" and "nb{i}_q{x}" where i is a time index and x is a
     qubit index. nf- and nb- refer to the "forwards" and "backwards"
     copies of the circuit. Kraus indices are named "k{j}" where j is an
