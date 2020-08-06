@@ -158,10 +158,6 @@ def test_approx_eq_symbol():
     s = sympy.Symbol("s")
     t = sympy.Symbol("t")
 
-    no_symbol_1 = cirq.Circuit(cirq.rz(1.515)(q))
-    no_symbol_2 = cirq.Circuit(cirq.rz(1.510)(q))
-    assert cirq.approx_eq(no_symbol_1, no_symbol_2, atol=0.1)
-
     symbol_1 = cirq.Circuit(cirq.rz(1.515 + s)(q))
     symbol_2 = cirq.Circuit(cirq.rz(1.510 + s)(q))
     assert cirq.approx_eq(symbol_1, symbol_2, atol=0.1)
