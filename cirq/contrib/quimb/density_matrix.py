@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Sequence, Dict, Union, Tuple, List
+from typing import Sequence, Dict, Union, Tuple, List, Optional
 
 import numpy as np
 import quimb
@@ -68,7 +68,7 @@ def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
 
 def circuit_to_density_matrix_tensors(
         circuit: cirq.Circuit,
-        qubits: Sequence[cirq.LineQubit]
+        qubits: Optional[Sequence[cirq.LineQubit]] = None
 ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
@@ -93,6 +93,9 @@ def circuit_to_density_matrix_tensors(
             `fix` argument to draw the resulting tensor network similar to a
             quantum circuit.
     """
+    if qubits is None:
+        qubits = sorted(circuit.all_qubits())
+
     qubit_frontier = {q: 0 for q in qubits}
     kraus_frontier = 0
     positions: Dict[Tuple[str, str], Tuple[float, float]] = {}
@@ -178,7 +181,10 @@ def circuit_to_density_matrix_tensors(
     return tensors, qubit_frontier, positions
 
 
-def tensor_density_matrix(circuit, qubits):
+def tensor_density_matrix(
+        circuit: cirq.Circuit,
+        qubits: Optional[List[cirq.LineQubit]] = None
+) -> np.ndarray:
     """Given a circuit with mixtures or channels, contract a tensor network
     representing the resultant density matrix.
 
@@ -188,6 +194,9 @@ def tensor_density_matrix(circuit, qubits):
     longer than doing the contraction. Your mileage may vary and benchmarking
     is encouraged for your particular problem if performance is important.
     """
+    if qubits is None:
+        qubits = sorted(circuit.all_qubits())
+
     tensors, qubit_frontier, _ = circuit_to_density_matrix_tensors(
         circuit=circuit, qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
