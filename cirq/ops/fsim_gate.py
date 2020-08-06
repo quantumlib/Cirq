@@ -97,6 +97,14 @@ class FSimGate(gate_features.TwoQubitGate,
             [0, 0, 0, c],
         ])
 
+    def _eigen_components(self):
+        return [
+            (1, np.diag([1, 0, 0, 0])),
+            (cmath.exp(-1j * self.theta), np.diag([0, 1, 1, 0])),
+            (cmath.exp(1j * self.theta), np.diag([0, 1, -1, 0])),
+            (cmath.exp(-1j * self.phi), np.diag([0, 0, 0, 1])),
+        ]
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented

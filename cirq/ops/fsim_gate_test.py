@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import math
 import numpy as np
 import pytest
 import sympy
@@ -234,6 +235,33 @@ def test_fsim_iswap_cphase(theta, phi):
     iswap_cphase = cirq.Circuit((iswap.on(q0, q1), cphase.on(q0, q1)))
     fsim = cirq.FSimGate(theta=theta, phi=phi)
     assert np.allclose(cirq.unitary(iswap_cphase), cirq.unitary(fsim))
+
+
+def test_eigen_components():
+    f = cirq.FSimGate(theta=np.pi / 6, phi=np.pi / 4)
+    actual = f._eigen_components()
+
+    assert cirq.approx_eq(actual[0][0], 1, atol=1e-6)
+    np.testing.assert_allclose(
+        actual[0][1],
+        np.array([[1, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]))
+
+    assert cirq.approx_eq(actual[1][0], math.sqrt(3) / 2 - 0.5j, atol=1e-6)
+    np.testing.assert_allclose(
+        actual[1][1],
+        np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 0]]))
+
+    assert cirq.approx_eq(actual[2][0], math.sqrt(3) / 2 + 0.5j, atol=1e-6)
+    np.testing.assert_allclose(
+        actual[2][1],
+        np.array([[0, 0, 0, 0], [0, 1, 0, 0], [0, 0, -1, 0], [0, 0, 0, 0]]))
+
+    assert cirq.approx_eq(actual[3][0],
+                          math.sqrt(2) / 2 - 1j * math.sqrt(2) / 2,
+                          atol=1e-6)
+    np.testing.assert_allclose(
+        actual[3][1],
+        np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 1]]))
 
 
 def test_repr():
