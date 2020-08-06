@@ -67,9 +67,9 @@ def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
 
 
 def circuit_to_density_matrix_tensors(
-        circuit: cirq.Circuit,
-        qubits: Optional[Sequence[cirq.LineQubit]] = None
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], Dict[Tuple[str, str], Tuple[float, float]]]:
+        circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.LineQubit]] = None
+) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int],
+           Dict[Tuple[str, str], Tuple[float, float]]]:
     """Given a circuit with mixtures or channels, construct a tensor network
     representation of the density matrix.
 
@@ -94,7 +94,7 @@ def circuit_to_density_matrix_tensors(
             quantum circuit.
     """
     if qubits is None:
-        qubits = sorted(circuit.all_qubits())
+        qubits = sorted(circuit.all_qubits())  # coverage: ignore
 
     qubit_frontier = {q: 0 for q in qubits}
     kraus_frontier = 0
@@ -181,10 +181,9 @@ def circuit_to_density_matrix_tensors(
     return tensors, qubit_frontier, positions
 
 
-def tensor_density_matrix(
-        circuit: cirq.Circuit,
-        qubits: Optional[List[cirq.LineQubit]] = None
-) -> np.ndarray:
+def tensor_density_matrix(circuit: cirq.Circuit,
+                          qubits: Optional[List[cirq.LineQubit]] = None
+                         ) -> np.ndarray:
     """Given a circuit with mixtures or channels, contract a tensor network
     representing the resultant density matrix.
 

@@ -1,17 +1,16 @@
 from typing import Sequence, Union, List, Tuple, Dict, Optional
 
+import numpy as np
 import quimb
 import quimb.tensor as qtn
 
 import cirq
-import numpy as np
 
 
-def circuit_to_tensors(
-        circuit: cirq.Circuit,
-        qubits: Optional[Sequence[cirq.Qid]] = None,
-        initial_state: Union[int, None] = 0
-) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
+def circuit_to_tensors(circuit: cirq.Circuit,
+                       qubits: Optional[Sequence[cirq.Qid]] = None,
+                       initial_state: Union[int, None] = 0
+                      ) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a
@@ -37,7 +36,7 @@ def circuit_to_tensors(
             layout.
     """
     if qubits is None:
-        qubits = sorted(circuit.all_qubits())
+        qubits = sorted(circuit.all_qubits())  # coverage: ignore
 
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
@@ -74,9 +73,9 @@ def circuit_to_tensors(
     return tensors, qubit_frontier, positions
 
 
-def tensor_state_vector(
-        circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
-) -> np.ndarray:
+def tensor_state_vector(circuit: cirq.Circuit,
+                        qubits: Optional[Sequence[cirq.Qid]] = None
+                       ) -> np.ndarray:
     """Given a circuit contract a tensor network into a final state vector.
     """
     if qubits is None:
@@ -90,10 +89,8 @@ def tensor_state_vector(
     return tn.to_dense(f_inds)
 
 
-def tensor_unitary(
-        circuit: cirq.Circuit,
-        qubits: Optional[Sequence[cirq.Qid]] = None
-) -> np.ndarray:
+def tensor_unitary(circuit: cirq.Circuit,
+                   qubits: Optional[Sequence[cirq.Qid]] = None) -> np.ndarray:
     """Given a circuit contract a tensor network into a dense unitary
     of the circuit."""
     if qubits is None:
@@ -109,10 +106,9 @@ def tensor_unitary(
     return tn.to_dense(f_inds, i_inds)
 
 
-def circuit_for_expectation_value(
-        circuit: cirq.Circuit,
-        pauli_string: cirq.PauliString
-) -> cirq.Circuit:
+def circuit_for_expectation_value(circuit: cirq.Circuit,
+                                  pauli_string: cirq.PauliString
+                                 ) -> cirq.Circuit:
     """Sandwich a PauliString operator between a forwards and backwards
     copy of a circuit.
 
