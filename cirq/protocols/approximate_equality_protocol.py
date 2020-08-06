@@ -95,10 +95,11 @@ def approx_eq(val: Any, other: Any, *, atol: Union[int, float] = 1e-8) -> bool:
     if isinstance(val, str):
         return val == other
 
-    if isinstance(val, sympy.core.mul.Mul) or isinstance(
-            other, sympy.core.mul.Mul):
-        delta = sympy.simplify(sympy.Abs(other - val))
-        return sympy.LessThan(delta, atol) == True
+    if isinstance(val, sympy.Basic) or isinstance(other, sympy.Basic):
+        delta = sympy.Abs(other - val).simplify()
+        if not delta.is_number:
+            return False
+        return sympy.LessThan(delta, atol) == sympy.true
 
     # If the values are iterable, try comparing recursively on items.
     if isinstance(val, Iterable) and isinstance(other, Iterable):
