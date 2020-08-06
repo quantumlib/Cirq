@@ -1,14 +1,17 @@
-from typing import Sequence, Union, List
+from typing import Sequence, Union, List, Tuple, Dict, Optional
 
 import quimb
 import quimb.tensor as qtn
 
 import cirq
+import numpy as np
 
 
-def circuit_to_tensors(circuit: cirq.Circuit,
-                       qubits: Sequence[cirq.Qid],
-                       initial_state: Union[int, None] = 0):
+def circuit_to_tensors(
+        circuit: cirq.Circuit,
+        qubits: Optional[Sequence[cirq.Qid]] = None,
+        initial_state: Union[int, None] = 0
+) -> Tuple[List[qtn.Tensor], Dict['cirq.Qid', int], None]:
     """Given a circuit, construct a tensor network representation.
 
     Indices are named "i{i}_q{x}" where i is a time index and x is a
@@ -33,6 +36,9 @@ def circuit_to_tensors(circuit: cirq.Circuit,
             `fix=None` will draw the resulting tensor network using a spring
             layout.
     """
+    if qubits is None:
+        qubits = sorted(circuit.all_qubits())
+
     qubit_frontier = {q: 0 for q in qubits}
     positions = None
     tensors: List[qtn.Tensor] = []
@@ -68,9 +74,14 @@ def circuit_to_tensors(circuit: cirq.Circuit,
     return tensors, qubit_frontier, positions
 
 
-def tensor_state_vector(circuit, qubits):
+def tensor_state_vector(
+        circuit: cirq.Circuit, qubits: Optional[Sequence[cirq.Qid]] = None
+) -> np.ndarray:
     """Given a circuit contract a tensor network into a final state vector.
     """
+    if qubits is None:
+        qubits = sorted(circuit.all_qubits())
+
     tensors, qubit_frontier, _ = circuit_to_tensors(circuit=circuit,
                                                     qubits=qubits)
     tn = qtn.TensorNetwork(tensors)
@@ -79,9 +90,15 @@ def tensor_state_vector(circuit, qubits):
     return tn.to_dense(f_inds)
 
 
-def tensor_unitary(circuit, qubits):
+def tensor_unitary(
+        circuit: cirq.Circuit,
+        qubits: Optional[Sequence[cirq.Qid]] = None
+) -> np.ndarray:
     """Given a circuit contract a tensor network into a dense unitary
     of the circuit."""
+    if qubits is None:
+        qubits = sorted(circuit.all_qubits())
+
     tensors, qubit_frontier, _ = circuit_to_tensors(circuit=circuit,
                                                     qubits=qubits,
                                                     initial_state=None)
@@ -92,8 +109,10 @@ def tensor_unitary(circuit, qubits):
     return tn.to_dense(f_inds, i_inds)
 
 
-def circuit_for_expectation_value(circuit: cirq.Circuit,
-                                  pauli_string: cirq.PauliString):
+def circuit_for_expectation_value(
+        circuit: cirq.Circuit,
+        pauli_string: cirq.PauliString
+) -> cirq.Circuit:
     """Sandwich a PauliString operator between a forwards and backwards
     copy of a circuit.
 
@@ -114,7 +133,7 @@ def circuit_for_expectation_value(circuit: cirq.Circuit,
 def tensor_expectation_value(circuit: cirq.Circuit,
                              pauli_string: cirq.PauliString,
                              max_ram_gb=16,
-                             tol=1e-6):
+                             tol=1e-6) -> float:
     """Compute an expectation value for an operator and a circuit via tensor
     contraction.
 

@@ -20,12 +20,24 @@ def test_tensor_state_vector_1():
     np.testing.assert_allclose(psi1, psi2, atol=1e-15)
 
 
+def test_tensor_state_vector_implicit_qubits():
+    q = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.YPowGate(exponent=0.25).on(q[0]))
+
+    psi1 = cirq.final_state_vector(c, dtype=np.complex128)
+    psi2 = ccq.tensor_state_vector(c)
+    # print()
+    # print(np.real_if_close(np.round(psi1, 4)))
+    # print(np.real_if_close(np.round(psi2, 4)))
+    np.testing.assert_allclose(psi1, psi2, atol=1e-15)
+
+
 def test_tensor_state_vector_2():
     q = cirq.LineQubit.range(2)
     rs = np.random.RandomState(52)
     for _ in range(10):
         g = cirq.MatrixGate(
-            cirq.testing.random_unitary(dim=2**len(q), random_state=rs))
+            cirq.testing.random_unitary(dim=2 ** len(q), random_state=rs))
         c = cirq.Circuit(g.on(*q))
         psi1 = cirq.final_state_vector(c, dtype=np.complex128)
         psi2 = ccq.tensor_state_vector(c, q)
@@ -62,7 +74,7 @@ def test_sandwich_operator_identity():
                                           op_density=0.8)
     tot_c = ccq.circuit_for_expectation_value(circuit, cirq.PauliString({}))
     np.testing.assert_allclose(cirq.unitary(tot_c),
-                               np.eye(2**len(qubits)),
+                               np.eye(2 ** len(qubits)),
                                atol=1e-6)
 
 
