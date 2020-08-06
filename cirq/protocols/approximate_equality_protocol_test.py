@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
+
 from fractions import Fraction
 from decimal import Decimal
 from numbers import Number
@@ -161,14 +163,18 @@ def test_approx_eq_symbol():
     assert not cirq.approx_eq(t + 1.51 + s, t + 1.50 + s, atol=0.005)
     assert cirq.approx_eq(t + 1.51 + s, t + 1.50 + s, atol=0.020)
 
-    assert not cirq.approx_eq(t, 0.0, atol=0.005)
+    with pytest.raises(AttributeError,
+                       match="Cannot reduce Sympy expression to number."):
+        cirq.approx_eq(t, 0.0, atol=0.005)
 
     symbol_1 = cirq.Circuit(cirq.rz(1.515 + s)(q))
     symbol_2 = cirq.Circuit(cirq.rz(1.510 + s)(q))
-    assert cirq.approx_eq(symbol_1, symbol_2, atol=0.1)
+    assert cirq.approx_eq(symbol_1, symbol_2, atol=0.2)
 
     symbol_3 = cirq.Circuit(cirq.rz(1.510 + t)(q))
-    assert not cirq.approx_eq(symbol_1, symbol_3, atol=0.1)
+    with pytest.raises(AttributeError,
+                       match="Cannot reduce Sympy expression to number."):
+        cirq.approx_eq(symbol_1, symbol_3, atol=0.2)
 
 
 def test_approx_eq_default():
