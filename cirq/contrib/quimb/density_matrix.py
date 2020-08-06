@@ -22,29 +22,35 @@ def _qpos_tag(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]]):
 
 @lru_cache()
 def _qpos_y(qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]],
-            n_qubits: int):
+            tot_n_qubits: int):
     """Given a qubit or qubits, return the position y value (used for drawing).
 
     For multiple qubits, the position is the mean of the qubit indices.
     This "flips" the coordinate so qubit 0 is at the maximal y position.
+
+    Args:
+        qubits: The qubits involved in the tensor.
+        tot_n_qubits: The total number of qubits in the circuit, allowing us
+            to position the zero'th qubit at the top.
     """
     if isinstance(qubits, cirq.LineQubit):
-        return _qpos_y((qubits,), n_qubits)
+        return _qpos_y((qubits,), tot_n_qubits)
     x = np.mean([q.x for q in qubits]).item()
-    return n_qubits - x - 1
+    return tot_n_qubits - x - 1
 
 
 def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
                       mi: int,
                       qubits: Union[cirq.LineQubit, Tuple[cirq.LineQubit]], *,
-                      n_qubits: int, x_scale, y_scale, x_nudge, yb_offset):
+                      tot_n_qubits: int, x_scale, y_scale, x_nudge, yb_offset):
     """Helper function to update the `positions` dictionary.
 
     Args:
         positions: The dictionary to update. Quimb will consume this for drawing
         mi: Moment index (used for x-positioning)
         qubits: The qubits (used for y-positioning)
-        n_qubits: Total number of qubits, used for putting zero'th qubit on top
+        tot_n_qubits: The total number of qubits in the circuit, allowing us
+            to position the zero'th qubit at the top.
         x_scale: Stretch coordinates in the x direction
         y_scale: Stretch coordinates in the y direction
         x_nudge: Kraus operators will have vertical lines connecting the
@@ -53,7 +59,7 @@ def _add_to_positions(positions: Dict[Tuple[str, str], Tuple[float, float]],
             the lines.
         yb_offset: Offset the "backwards" circuit by this much.
     """
-    qy = _qpos_y(qubits, n_qubits)
+    qy = _qpos_y(qubits, tot_n_qubits)
     positions[(f'i{mi}f', _qpos_tag(qubits))] = \
         (mi * x_scale + qy * x_nudge, y_scale * qy)
     positions[(f'i{mi}b', _qpos_tag(qubits))] = \
@@ -100,7 +106,7 @@ def circuit_to_density_matrix_tensors(circuit: cirq.Circuit,
         return _add_to_positions(positions,
                                  mi,
                                  qubits,
-                                 n_qubits=n_qubits,
+                                 tot_n_qubits=n_qubits,
                                  x_scale=x_scale,
                                  y_scale=y_scale,
                                  x_nudge=x_nudge,
