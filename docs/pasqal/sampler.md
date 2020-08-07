@@ -1,4 +1,4 @@
-# Pasqal sampler
+# Pasqal Sampler
 
 The Pasqal sampler, via the `cirq.pasqal.PasqalSampler` class, executes programs and jobs using the
 API of Pasqal.
