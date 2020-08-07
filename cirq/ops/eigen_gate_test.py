@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import re
 import sympy
 
 import cirq
@@ -132,22 +133,26 @@ def test_approx_eq():
         ZGateDef(exponent=1.5),
         atol=0.1
     )
-    assert not cirq.approx_eq(
-        ZGateDef(exponent=1.5),
-        ZGateDef(exponent=sympy.Symbol('a')),
-        atol=0.1
-    )
+    with pytest.raises(
+            TypeError,
+            match=re.escape(
+                "unsupported operand type(s) for -: 'Symbol' and 'PeriodicValue'"
+            )):
+        cirq.approx_eq(ZGateDef(exponent=1.5),
+                       ZGateDef(exponent=sympy.Symbol('a')),
+                       atol=0.1)
 
     assert cirq.approx_eq(
         CExpZinGate(sympy.Symbol('a')),
         CExpZinGate(sympy.Symbol('a')),
         atol=0.1
     )
-    assert not cirq.approx_eq(
-        CExpZinGate(sympy.Symbol('a')),
-        CExpZinGate(sympy.Symbol('b')),
-        atol=0.1
-    )
+
+    with pytest.raises(AttributeError,
+                       match="Cannot reduce Sympy expression to number."):
+        assert not cirq.approx_eq(CExpZinGate(sympy.Symbol('a')),
+                                  CExpZinGate(sympy.Symbol('b')),
+                                  atol=0.1)
 
 
 def test_approx_eq_periodic():
