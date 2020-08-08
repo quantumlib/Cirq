@@ -69,3 +69,40 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     """
     eigenvalues = np.linalg.eigvalsh(density_matrix)
     return scipy.stats.entropy(abs(eigenvalues), base=2)
+
+
+def process_fidelity(U: np.ndarray, V: np.ndarray) -> float:
+    """Process fidelity of two quantum processes.
+
+    The process fidelity of two transorms U and V can be computed with equation
+    (4) of "A note on the measures of process fidelity for non-unitary quantum
+    operations" by Joydip Ghosh.
+    https://arxiv.org/pdf/1111.2478.pdf
+
+    The given processes are two square matrices of the same dimension.
+
+    Args:
+        U: The first process.
+        V: The second process.
+    """
+    if len(U.shape) != 2:
+        raise ValueError(f'U must be a matrix, got shape {U.shape}')
+    if len(V.shape) != 2:
+        raise ValueError(f'V must be a matrix, got shape {V.shape}')
+
+    if U.shape[0] != U.shape[1]:
+        raise ValueError(f'U must be square, got shape {U.shape}')
+    if V.shape[0] != V.shape[1]:
+        raise ValueError(f'V must be square, got shape {V.shape}')
+
+    if U.shape[0] != V.shape[0]:
+        raise ValueError('U and V must be the same dimension, '
+                         f'got shapes {U.shape} {V.shape}')
+
+    d = U.shape[0]
+
+    UTV = np.matmul(U.conj().T, V)
+
+    return (np.trace(np.matmul(UTV,
+                               UTV.conj().T)) +
+            abs(np.trace(UTV))**2) / (d * (d + 1))

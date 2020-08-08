@@ -316,6 +316,7 @@ from cirq.qis import (
     eye_tensor,
     fidelity,
     one_hot,
+    process_fidelity,
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,

@@ -129,3 +129,44 @@ def test_von_neumann_entropy():
         np.diag([0, 0, 0.1, 0, 0.2, 0.3, 0.4, 0])),
                       1.8464,
                       atol=1e-04)
+
+
+def test_process_fidelity_bad_shape():
+    with pytest.raises(ValueError, match='U must be a matrix'):
+        _ = cirq.process_fidelity(np.array([1.0]), np.array([[1.0]]))
+    with pytest.raises(ValueError, match='V must be a matrix'):
+        _ = cirq.process_fidelity(np.array([[1.0]]), np.array([1.0]))
+
+    with pytest.raises(ValueError, match='U must be square'):
+        _ = cirq.process_fidelity(np.array([[1.0, 2.0]]), np.array([[1.0]]))
+    with pytest.raises(ValueError, match='V must be square'):
+        _ = cirq.process_fidelity(np.array([[1.0]]), np.array([[1.0, 2.0]]))
+
+    with pytest.raises(ValueError, match='U and V must be the same dimension'):
+        _ = cirq.process_fidelity(np.array([[1.0]]),
+                                  np.array([[1.0, 2.0], [3.0, 4.0]]))
+
+    # Good shape passes:
+    _ = cirq.process_fidelity(np.array([[1.0]]), np.array([[1.0]]))
+
+
+def test_process_fidelity():
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1.0]]), np.array([[1.0]])), 1.0)
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[0.5]]), np.array([[1.0]])), 0.25)
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1j]]), np.array([[1.0]])), 1.0)
+
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1.0, 0.0], [0.0, 1.0]]),
+                              np.array([[1.0, 0.0], [0.0, 1.0]])), 1.0)
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1.0, 0.0], [0.0, 1.0]]),
+                              np.array([[1j, 0.0], [0.0, 1j]])), 1.0)
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1.0, 0.0], [0.0, 1.0]]),
+                              np.array([[0.5, 0.0], [0.0, 0.5]])), 0.25)
+    assert np.isclose(
+        cirq.process_fidelity(np.array([[1.0, 0.0], [0.0, 1.0]]),
+                              np.array([[0.0, 1.0], [1.0, 0.0]])), 1 / 3)

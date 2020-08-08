@@ -685,6 +685,7 @@ Quantum Information Science
     cirq.eye_tensor
     cirq.fidelity
     cirq.one_hot
+    cirq.process_fidelity,
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
     cirq.validate_indices
