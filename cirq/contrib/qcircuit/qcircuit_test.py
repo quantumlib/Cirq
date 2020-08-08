@@ -136,6 +136,7 @@ def test_qcircuit_qubit_namer():
 
 
 def test_two_cx_diagram():
+    # test for no moment indication
     q0, q1, q2, q3 = cirq.LineQubit.range(4)
     circuit = cirq.Circuit(cirq.CX(q0, q2), cirq.CX(q1, q3), cirq.CX(q0, q2),
                            cirq.CX(q1, q3))
