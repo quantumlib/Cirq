@@ -1733,8 +1733,8 @@ class Circuit:
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info: Optional[
                 Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                         'cirq.CircuitDiagramInfo']] = None
-    ) -> TextDiagramDrawer:
+                         'cirq.CircuitDiagramInfo']] = None,
+            draw_moment_groups: bool = True) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
@@ -1746,6 +1746,8 @@ class Circuit:
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
                 protocol with fallback.
+            draw_moment_groups: Determines if we draw the angle
+                brackets used to indicate two gates are in the same moment.
 
         Returns:
             The TextDiagramDrawer instance.
@@ -1778,10 +1780,9 @@ class Circuit:
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
-        if moment_groups:
+        if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
-                                           use_unicode_characters,
-                                           diagram)
+                                           use_unicode_characters, diagram)
 
         if transpose:
             diagram = diagram.transpose()
