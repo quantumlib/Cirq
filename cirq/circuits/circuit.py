@@ -1723,21 +1723,23 @@ class Circuit:
             use_unicode_characters=use_unicode_characters)
 
     def to_text_diagram_drawer(
-            self,
-            *,
-            use_unicode_characters: bool = True,
-            qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
-            transpose: bool = False,
-            include_tags: bool = True,
-            precision: Optional[int] = 3,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-            get_circuit_diagram_info: Optional[
-                Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                         'cirq.CircuitDiagramInfo']] = None,
-            draw_moment_groups: bool = True) -> TextDiagramDrawer:
+        self,
+        *,
+        draw_moment_groups: bool = True,
+        use_unicode_characters: bool = True,
+        qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
+        transpose: bool = False,
+        include_tags: bool = True,
+        precision: Optional[int] = 3,
+        qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+        get_circuit_diagram_info: Optional[
+            Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
+                     'cirq.CircuitDiagramInfo']] = None
+    ) -> TextDiagramDrawer:
         """Returns a TextDiagramDrawer with the circuit drawn into it.
 
         Args:
+            draw_moment_groups: Whether to draw moment symbol or not
             use_unicode_characters: Determines if unicode characters are
                 allowed (as opposed to ascii-only diagrams).
             qubit_namer: Names qubits in diagram. Defaults to str.
@@ -1746,8 +1748,6 @@ class Circuit:
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
                 protocol with fallback.
-            draw_moment_groups: Determines if we draw the angle
-                brackets used to indicate two gates are in the same moment.
 
         Returns:
             The TextDiagramDrawer instance.
