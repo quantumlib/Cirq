@@ -1780,7 +1780,7 @@ class Circuit:
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
-        if moment_groups:
+        if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
                                            use_unicode_characters,
                                            diagram)
