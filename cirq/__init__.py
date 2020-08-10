@@ -25,8 +25,7 @@ from cirq import (
     _doc,
     type_workarounds,
 )
-
-with _import.delay_import("cirq.protocols"):
+with _import.delay_import('cirq.protocols'):
     from cirq import (
         # Core
         protocols,
@@ -56,10 +55,11 @@ from cirq import (
     testing,
     contrib,
 )
-
 # End dependency order list of sub-modules
 
-from cirq._version import __version__
+from cirq._version import (
+    __version__,
+)
 
 # Flattened sub-modules.
 
@@ -505,7 +505,8 @@ from cirq.neutral_atoms import (
     NeutralAtomDevice,
 )
 
-from cirq.vis import Heatmap
+from cirq.vis import (
+    Heatmap,)
 
 from cirq.work import (
     CircuitSampleJob,
