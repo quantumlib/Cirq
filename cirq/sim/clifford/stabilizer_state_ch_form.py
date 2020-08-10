@@ -295,4 +295,4 @@ class StabilizerStateChForm():
         if np.all(t == u):
             self.omega /= np.sqrt(2)
 
-        self._update_sum(t, u, delta=delta)
+        self.update_sum(t, u, delta=delta)
