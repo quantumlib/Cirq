@@ -43,7 +43,7 @@ class XXPowGate(eigen_gate.EigenGate,
 
         c = f cos(πt / 2)
         s = -i f sin(πt / 2)
-        f = e^{iπt/2}.
+        f = e^{iπt / 2}.
 
     See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
     this class.
@@ -133,7 +133,7 @@ class YYPowGate(eigen_gate.EigenGate,
 
         c = f cos(πt / 2)
         s = -i f sin(πt / 2)
-        f = e^{iπt/2}.
+        f = e^{iπt / 2}.
     """
 
     def _eigen_components(self):
