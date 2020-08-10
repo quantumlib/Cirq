@@ -51,6 +51,7 @@ User Documentation
     tutorials/hidden_linear_function.ipynb
     tutorials/Quantum_Walk.ipynb
     tutorials/Rabi_Demo.ipynb
+    tutorials/quantum_chess.ipynb
 
 
 .. toctree::
@@ -62,6 +63,15 @@ User Documentation
     google/specification
     google/calibration
     google/best_practices
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Pasqal Documentation
+
+    pasqal/getting_started.ipynb
+    pasqal/devices
+    pasqal/sampler
 
 
 .. toctree::

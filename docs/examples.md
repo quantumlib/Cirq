@@ -96,7 +96,7 @@ Quantum circuit to prepare the BCS ground states for superconductors/superfluids
 
 ## Advanced Tutorials
 
-*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/tutorials/variational_algorithms.html)
+*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/tutorials/variational_algorithm.html)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 

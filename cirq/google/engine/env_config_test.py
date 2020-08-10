@@ -14,6 +14,7 @@
 
 import os
 from unittest import mock
+import warnings
 import pytest
 
 import cirq
@@ -21,16 +22,24 @@ import cirq
 
 @mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
 def test_engine_from_environment(build):
-    # Default project id present.
-    with mock.patch.dict(os.environ, {
-            'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!',
-    },
-                         clear=True):
-        eng = cirq.google.engine_from_environment()
-        assert eng.project_id == 'project!'
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        # Default project id present.
+        env_dict = {'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'}
+        with mock.patch.dict(os.environ, env_dict, clear=True):
+            eng = cirq.google.engine_from_environment()
+            assert eng.project_id == 'project!'
 
-    # Nothing present.
-    with mock.patch.dict(os.environ, {}, clear=True):
-        with pytest.raises(EnvironmentError,
-                           match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
+        # Nothing present.
+        with mock.patch.dict(os.environ, {}, clear=True):
+            with pytest.raises(EnvironmentError,
+                               match='CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'):
+                _ = cirq.google.engine_from_environment()
+
+
+def test_deprecation():
+    with cirq.testing.assert_logs('engine_from_environment', 'get_engine',
+                                  'deprecated'):
+        env_dict = {'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'}
+        with mock.patch.dict(os.environ, env_dict, clear=True):
             _ = cirq.google.engine_from_environment()
