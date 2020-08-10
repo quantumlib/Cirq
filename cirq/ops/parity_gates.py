@@ -32,15 +32,21 @@ class XXPowGate(eigen_gate.EigenGate,
                 gate_features.InterchangeableQubitsGate):
     """The X-parity gate, possibly raised to a power.
 
-    At exponent=1, this gate implements the following unitary:
+    The XX**t gate implements the following unitary:
 
-        X⊗X = [0 0 0 1]
-              [0 0 1 0]
-              [0 1 0 0]
-              [1 0 0 0]
+        (X⊗X)^t = [c . . s]
+                  [. c s .]
+                  [. s c .]
+                  [s . . c]
+
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
 
     See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
-        this class.
+    this class.
     """
 
     def _eigen_components(self):
@@ -114,7 +120,21 @@ class XXPowGate(eigen_gate.EigenGate,
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Y-parity gate, possibly raised to a power."""
+    """The Y-parity gate, possibly raised to a power.
+
+    The YY**t gate implements the following unitary:
+
+        (Y⊗Y)^t = [ c . . -s]
+                  [ . c s  .]
+                  [ . s c  .]
+                  [-s . .  c]
+
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
+    """
 
     def _eigen_components(self):
         return [
@@ -197,7 +217,7 @@ class ZZPowGate(eigen_gate.EigenGate,
                   [. . w .]
                   [. . . 1]
 
-        where w = e^{i \pi t} and '.' means '0'.
+    where w = e^{iπt} and '.' means '0'.
     """
 
     def _decompose_(self, qubits):
