@@ -109,9 +109,6 @@ NAMED_GATESETS = {
     'sycamore': SYC_GATESET,
     'fsim': FSIM_GATESET,
 }
-document(NAMED_GATESETS,
-         """Gate sets that can be used with the Google engine.""")
-
 
 GOOGLE_GATESETS = [
     SYC_GATESET,
