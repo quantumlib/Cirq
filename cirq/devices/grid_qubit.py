@@ -139,8 +139,8 @@ class GridQid(_BaseGridQid):
         Args:
             row: the row coordinate
             col: the column coordinate
-            dimension: The dimension of the qid, e.g. the number of quantum
-                levels.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
         """
         super().__init__(row, col)
         self._dimension = dimension
@@ -162,8 +162,8 @@ class GridQid(_BaseGridQid):
             diameter: Length of a side of the square
             top: Row number of the topmost row
             left: Column number of the leftmost row
-            dimension: The dimension of the qid, e.g. the number of quantum
-                levels.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
 
         Returns:
             A list of GridQid filling in a square grid
@@ -188,8 +188,8 @@ class GridQid(_BaseGridQid):
             cols: Number of columns in the rectangle
             top: Row number of the topmost row
             left: Column number of the leftmost row
-            dimension: The dimension of the qid, e.g. the number of quantum
-                levels.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
 
         Returns:
             A list of GridQid filling in a rectangular grid

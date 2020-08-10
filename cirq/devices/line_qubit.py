@@ -121,8 +121,8 @@ class LineQid(_BaseLineQid):
 
         Args:
             x: The x coordinate.
-            dimension: The dimension of the qid, e.g. the number of quantum
-                levels.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
         """
         super().__init__(x)
         self._dimension = dimension
@@ -141,8 +141,8 @@ class LineQid(_BaseLineQid):
 
         Args:
             *range_args: Same arguments as python's built-in range method.
-            dimension: The dimension of the qid, e.g. the number of quantum
-                levels.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
 
         Returns:
             A list of line qids.
