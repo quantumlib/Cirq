@@ -145,8 +145,10 @@ def test_approx_eq():
         CExpZinGate(sympy.Symbol('a')),
         atol=0.1
     )
-    with pytest.raises(AttributeError,
-                       match="Cannot reduce Sympy expression to number."):
+    with pytest.raises(
+            AttributeError,
+            match="Insufficient information to decide whether expressions are "
+            "approximately equal .* vs .*"):
         assert not cirq.approx_eq(CExpZinGate(sympy.Symbol('a')),
                                   CExpZinGate(sympy.Symbol('b')),
                                   atol=0.1)
