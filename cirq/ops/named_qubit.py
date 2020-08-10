@@ -23,7 +23,7 @@ from cirq.ops import raw_types
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar("TSelf", bound="_BaseNamedQid")
+TSelf = TypeVar('TSelf', bound='_BaseNamedQid')
 
 
 @functools.total_ordering
@@ -73,24 +73,24 @@ class NamedQid(_BaseNamedQid):
     def name(self) -> str:
         return self._name
 
-    def _with_name(self, name: str) -> "NamedQid":
+    def _with_name(self, name: str) -> 'NamedQid':
         return NamedQid(name, dimension=self.dimension)
 
     def __repr__(self) -> str:
-        return f"cirq.NamedQid({self.name!r}, " f"dimension={self.dimension})"
+        return f'cirq.NamedQid({self.name!r}, ' f'dimension={self.dimension})'
 
     def __str__(self) -> str:
-        return f"{self.name} (d={self.dimension})"
+        return f'{self.name} (d={self.dimension})'
 
     @staticmethod
-    def range(*args, prefix: str, dimension: int) -> List["NamedQid"]:
+    def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
         """Returns a range of NamedQids.
 
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
 
-        NamedQid.range(3, prefix="a") -> ["a1", "a2", "a3]
-        NamedQid.range(2, 4, prefix="a") -> ["a2", "a3]
+        NamedQid.range(3, prefix='a') -> ['a1', 'a2', 'a3']
+        NamedQid.range(2, 4, prefix='a') -> ['a2', 'a3']
 
         Args:
             *args: Args to be passed to Python's standard range function.
@@ -104,7 +104,7 @@ class NamedQid(_BaseNamedQid):
         ]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ["name", "dimension"])
+        return protocols.obj_to_dict_helper(self, ['name', 'dimension'])
 
 
 class NamedQubit(_BaseNamedQid):
@@ -125,24 +125,24 @@ class NamedQubit(_BaseNamedQid):
         # Must be same as Qid._cmp_tuple but with cls in place of type(self).
         return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
-    def _with_name(self, name: str) -> "NamedQubit":
+    def _with_name(self, name: str) -> 'NamedQubit':
         return NamedQubit(name)
 
     def __str__(self) -> str:
         return self._name
 
     def __repr__(self) -> str:
-        return f"cirq.NamedQubit({self._name!r})"
+        return f'cirq.NamedQubit({self._name!r})'
 
     @staticmethod
-    def range(*args, prefix: str) -> List["NamedQubit"]:
+    def range(*args, prefix: str) -> List['NamedQubit']:
         """Returns a range of NamedQubits.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
 
-        NamedQubit.range(3, prefix="a") -> ["a1", "a2", "a3]
-        NamedQubit.range(2, 4, prefix="a") -> ["a2", "a3]
+        NamedQubit.range(3, prefix='a') -> ['a1', 'a2', 'a3']
+        NamedQubit.range(2, 4, prefix='a') -> ['a2', 'a3']
 
         Args:
             *args: Args to be passed to Python's standard range function.
@@ -154,7 +154,7 @@ class NamedQubit(_BaseNamedQid):
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ["name"])
+        return protocols.obj_to_dict_helper(self, ['name'])
 
 
 def _pad_digits(text: str) -> str:
@@ -177,7 +177,7 @@ def _pad_digits(text: str) -> str:
     def handle_transition_at(k):
         chunk = text[last_transition:k]
         if was_on_digits:
-            chunk = chunk.rjust(8, "0") + ":" + str(len(chunk))
+            chunk = chunk.rjust(8, '0') + ':' + str(len(chunk))
         chunks.append(chunk)
 
     for i in range(len(text)):
@@ -188,4 +188,4 @@ def _pad_digits(text: str) -> str:
             last_transition = i
 
     handle_transition_at(len(text))
-    return "".join(chunks)
+    return ''.join(chunks)
