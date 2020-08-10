@@ -54,7 +54,13 @@ class StabilizerStateChForm():
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        self.omega = 1
+        # Keep initial state positive by transferring the negative part to the
+        # global phase.
+        if initial_state < 0:
+            self.omega = -1
+            initial_state = -initial_state
+        else:
+            self.omega = 1
 
         def bits(s):
             while s > 0:
@@ -137,13 +143,9 @@ class StabilizerStateChForm():
     def wave_function(self) -> np.ndarray:
         return self.state_vector()
 
-    def _S(self, q, right=False):
-        if right:
-            self.M[:, q] ^= self.F[:, q]
-            self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
-        else:
-            self.M[q, :] ^= self.G[q, :]
-            self.gamma[q] = (self.gamma[q] - 1) % 4
+    def _S(self, q):
+        self.M[q, :] ^= self.G[q, :]
+        self.gamma[q] = (self.gamma[q] - 1) % 4
 
     def _Z(self, q):
         self._S(q)
@@ -159,27 +161,16 @@ class StabilizerStateChForm():
         self._X(q)
         self.omega *= 1j
 
-    def _CZ(self, q, r, right=False):
-        if right:
-            self.M[:, q] ^= self.F[:, r]
-            self.M[:, r] ^= self.F[:, q]
-            self.gamma[:] = (self.gamma[:] +
-                             2 * self.F[:, q] * self.F[:, r]) % 4
-        else:
-            self.M[q, :] ^= self.G[r, :]
-            self.M[r, :] ^= self.G[q, :]
+    def _CZ(self, q, r):
+        self.M[q, :] ^= self.G[r, :]
+        self.M[r, :] ^= self.G[q, :]
 
-    def _CNOT(self, q, r, right=False):
-        if right:
-            self.G[:, q] ^= self.G[:, r]
-            self.F[:, r] ^= self.F[:, q]
-            self.M[:, q] ^= self.M[:, r]
-        else:
-            self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
-                             (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
-            self.G[r, :] ^= self.G[q, :]
-            self.F[q, :] ^= self.F[r, :]
-            self.M[q, :] ^= self.M[r, :]
+    def _CNOT(self, q, r):
+        self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
+                         (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
+        self.G[r, :] ^= self.G[q, :]
+        self.F[q, :] ^= self.F[r, :]
+        self.M[q, :] ^= self.M[r, :]
 
     def _H(self, p):
         t = self.s ^ (self.G[p, :] & self.v)
@@ -193,9 +184,9 @@ class StabilizerStateChForm():
 
         delta = (self.gamma[p] + 2 * (alpha + beta)) % 4
 
-        self._update_sum(t, u, delta=delta, alpha=alpha)
+        self.update_sum(t, u, delta=delta, alpha=alpha)
 
-    def _update_sum(self, t, u, delta=0, alpha=0):
+    def update_sum(self, t, u, delta=0, alpha=0):
         """ Implements the transformation (Proposition 4 in Bravyi et al)
 
                 i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>
@@ -212,14 +203,21 @@ class StabilizerStateChForm():
             q = set0[0]
             for i in set0:
                 if i != q:
-                    self._CNOT(q, i, right=True)
+                    self.G[:, q] ^= self.G[:, i]
+                    self.F[:, i] ^= self.F[:, q]
+                    self.M[:, q] ^= self.M[:, i]
             for i in set1:
-                self._CZ(q, i, right=True)
+                self.M[:, q] ^= self.F[:, i]
+                self.M[:, i] ^= self.F[:, q]
+                self.gamma[:] = (self.gamma[:] +
+                                 2 * self.F[:, q] * self.F[:, i]) % 4
         elif len(set1) > 0:
             q = set1[0]
             for i in set1:
                 if i != q:
-                    self._CNOT(i, q, right=True)
+                    self.G[:, i] ^= self.G[:, q]
+                    self.F[:, q] ^= self.F[:, i]
+                    self.M[:, i] ^= self.M[:, q]
 
         e = np.zeros(self.n, dtype=bool)
         e[q] = True
@@ -238,7 +236,8 @@ class StabilizerStateChForm():
         self.omega *= (-1)**alpha * omega
 
         if a:
-            self._S(q, right=True)
+            self.M[:, q] ^= self.F[:, q]
+            self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
         self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):

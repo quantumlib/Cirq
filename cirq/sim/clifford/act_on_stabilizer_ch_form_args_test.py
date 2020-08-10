@@ -36,27 +36,23 @@ def test_unitary_fallback():
         def _unitary_(self):
             return np.array([[0, -1j], [1j, 0]])
 
-    original_tableau = cirq.CliffordTableau(num_qubits=3)
-    args = cirq.ActOnCliffordTableauArgs(tableau=original_tableau.copy(),
-                                         axes=[1],
-                                         prng=np.random.RandomState(),
-                                         log_of_measurement_results={})
+    def assert_state_equals(a: cirq.StabilizerStateChForm,
+                            b: cirq.StabilizerStateChForm):
+        np.testing.assert_allclose(a.state_vector(), b.state_vector())
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
 
     cirq.act_on(UnitaryXGate(), args)
-    assert args.tableau == cirq.CliffordTableau(num_qubits=3, initial_state=2)
+    assert_state_equals(
+        args.state, cirq.StabilizerStateChForm(num_qubits=3, initial_state=2))
 
-    args = cirq.ActOnCliffordTableauArgs(tableau=original_tableau.copy(),
-                                         axes=[1],
-                                         prng=np.random.RandomState(),
-                                         log_of_measurement_results={})
+    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
     cirq.act_on(UnitaryYGate(), args)
-    expected_args = cirq.ActOnCliffordTableauArgs(
-        tableau=original_tableau.copy(),
-        axes=[1],
-        prng=np.random.RandomState(),
-        log_of_measurement_results={})
+    expected_args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
+                                                   axes=[1])
     cirq.act_on(cirq.Y, expected_args)
-    assert args.tableau == expected_args.tableau
+    assert_state_equals(args.state, expected_args.state)
 
 
 def test_cannot_act():
@@ -66,11 +62,8 @@ def test_cannot_act():
         def _num_qubits_(self):
             return 1
 
-    args = cirq.ActOnCliffordTableauArgs(
-        tableau=cirq.CliffordTableau(num_qubits=3),
-        axes=[1],
-        prng=np.random.RandomState(),
-        log_of_measurement_results={})
+    args = cirq.ActOnStabilizerCHFormArgs(
+        state=cirq.StabilizerStateChForm(num_qubits=3), axes=[1])
 
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(NoDetails(), args)

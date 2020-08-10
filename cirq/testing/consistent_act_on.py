@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -21,14 +21,17 @@ from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import protocols
+from cirq import testing
 from cirq.sim import act_on_state_vector_args, final_state_vector
-from cirq.sim.clifford import act_on_clifford_tableau_args, clifford_tableau
+from cirq.sim.clifford import (act_on_clifford_tableau_args, clifford_tableau,
+                               stabilizer_state_ch_form,
+                               act_on_stabilizer_ch_form_args)
 
 
 def state_vector_has_stabilizer(state_vector: np.ndarray,
                                 stabilizer: DensePauliString) -> bool:
     """Checks that the stabilizer does not modify the value of the
-    state_vector, including the global phase. Does not mutate the input
+    state_vector, up to the global phase. Does not mutate the input
     state_vector."""
 
     args = act_on_state_vector_args.ActOnStateVectorArgs(
@@ -41,10 +44,17 @@ def state_vector_has_stabilizer(state_vector: np.ndarray,
     return np.allclose(args.target_tensor, state_vector)
 
 
-def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
-    """Checks that act_on with CliffordTableau generates stabilizers that
-    stabilize the final state vector. Does not work with Operations or Gates
-    expecting non-qubit Qids."""
+def assert_all_implemented_act_on_effects_match_unitary(
+        val: Any,
+        assert_tableau_implemented: bool = False,
+        assert_ch_form_implemented: bool = False) -> None:
+    """
+    Checks that act_on with CliffordTableau or StabilizerStateCHForm behaves
+    consistently with act_on through final state vector. Does not work with
+    Operations or Gates expecting non-qubit Qids. If either of the
+    assert_*_implmented args is true, fails if the corresponding method is not
+    implemented for the test circuit.
+    """
 
     # pylint: disable=unused-variable
     __tracebackhide__ = True
@@ -54,6 +64,11 @@ def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
 
     if not protocols.has_unitary(val) or \
             protocols.qid_shape(val) != (2,) * num_qubits_val:
+        if assert_tableau_implemented or assert_ch_form_implemented:
+            assert False, ("Could not assert if any act_on methods were "
+                           "implemented. Operating on qudits or with a "
+                           "non-unitary operation is unsupported.\n\n"
+                           "val: {!r}".format(val))
         return None
 
     qubits = LineQubit.range(protocols.num_qubits(val) * 2)
@@ -70,18 +85,32 @@ def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
     else:
         circuit.append(val.with_qubits(*qubits[:num_qubits_val]))
 
-    tableau = _final_clifford_tableau(circuit, qubit_map)
-    if tableau is None:
-        return None
-
     state_vector = np.reshape(final_state_vector(circuit, qubit_order=qubits),
                               protocols.qid_shape(qubits))
 
-    assert all(
-        state_vector_has_stabilizer(state_vector, stab)
-        for stab in tableau.stabilizers()), (
-            "act_on clifford tableau is not consistent with "
-            "final_state_vector simulation.\n\nval: {!r}".format(val))
+    tableau = _final_clifford_tableau(circuit, qubit_map)
+    if tableau is None:
+        assert not assert_tableau_implemented, ("Failed to generate final "
+                                                "tableau for the test circuit."
+                                                "\n\nval: {!r}".format(val))
+    else:
+        assert all(
+            state_vector_has_stabilizer(state_vector, stab)
+            for stab in tableau.stabilizers()), (
+                "act_on clifford tableau is not consistent with "
+                "final_state_vector simulation.\n\nval: {!r}".format(val))
+
+    stabilizer_ch_form = _final_stabilizer_state_ch_form(circuit, qubit_map)
+    if stabilizer_ch_form is None:
+        assert not assert_ch_form_implemented, ("Failed to generate final "
+                                                "stabilizer state CH form "
+                                                "for the test circuit."
+                                                "\n\nval: {!r}".format(val))
+    else:
+        testing.assert_allclose_up_to_global_phase(np.reshape(
+            stabilizer_ch_form.state_vector(), protocols.qid_shape(qubits)),
+                                                   state_vector,
+                                                   atol=1e-07)
 
 
 def _final_clifford_tableau(circuit: Circuit, qubit_map
@@ -104,3 +133,24 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map
         except TypeError:
             return None
     return tableau
+
+
+def _final_stabilizer_state_ch_form(
+        circuit: Circuit,
+        qubit_map) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
+    """Initializes a CliffordTableau with default args for the given qubits and
+    evolves it by having each operation act on the tableau. Returns None if any
+    of the operation can not act on a CliffordTableau, returns the tableau
+    otherwise."""
+
+    stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
+        len(qubit_map))
+    for op in circuit.all_operations():
+        try:
+            args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
+                state=stabilizer_ch_form,
+                axes=[qubit_map[qid] for qid in op.qubits])
+            protocols.act_on(op, args, allow_decompose=True)
+        except TypeError:
+            return None
+    return stabilizer_ch_form

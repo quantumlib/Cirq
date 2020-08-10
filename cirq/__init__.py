@@ -328,6 +328,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,

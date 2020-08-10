@@ -103,6 +103,18 @@ class XPowGate(eigen_gate.EigenGate,
                 tableau.xs[:, q] ^= tableau.zs[:, q]
             return True
 
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            if H._act_on_(args) is True:
+                if ZPowGate(exponent=self._exponent)._act_on_(args) is True:
+                    if H._act_on_(args) is True:
+                        return True
+                # At least one, but not all, of the delegated _act_on_
+                # succeeded, so the state might have been corrupted, return
+                # False instead of NotImplemented.
+                return False  # coverage: ignore
+
         return NotImplemented
 
     def in_su2(self) -> 'XPowGate':
@@ -321,6 +333,43 @@ class YPowGate(eigen_gate.EigenGate,
                                                         tableau.xs[:, q].copy())
             return True
 
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            effective_exponent = self._exponent % 2
+            state = args.state
+            if effective_exponent == 0.5:
+                if ZPowGate()._act_on_(args) is True:
+                    if H._act_on_(args) is True:
+                        state.omega *= (1 + 1j) / (2**0.5)  # type: ignore
+                        return True
+                    # Only one of the delegated _act_on_ succeeded, so the
+                    # state might have been corrupted, return False instead of
+                    # NotImplemented.
+                    return False  # coverage: ignore
+            elif effective_exponent == 1:
+                if ZPowGate()._act_on_(args) is True:
+                    if H._act_on_(args) is True:
+                        if ZPowGate()._act_on_(args) is True:
+                            if H._act_on_(args) is True:
+                                state.omega *= 1j  # type: ignore
+                                return True
+                    # At least one, but not all, of the delegated _act_on_
+                    # succeeded, so the state might have been corrupted, return
+                    # False instead of NotImplemented.
+                    return False  # coverage: ignore
+            elif effective_exponent == 1.5:
+                if H._act_on_(args) is True:
+                    if ZPowGate()._act_on_(args) is True:
+                        state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
+                        return True
+                    # Only one of the delegated _act_on_ succeeded, so the
+                    # state might have been corrupted, return False instead of
+                    # NotImplemented.
+                    return False  # coverage: ignore
+            else:
+                return True
+
         return NotImplemented
 
     def in_su2(self) -> 'YPowGate':
@@ -486,6 +535,17 @@ class ZPowGate(eigen_gate.EigenGate,
             elif effective_exponent == 1.5:
                 tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
                 tableau.zs[:, q] ^= tableau.xs[:, q]
+            return True
+
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            state = args.state
+            for _ in range(int(effective_exponent * 2)):
+                state.M[q, :] ^= state.G[q, :]
+                state.gamma[q] = (state.gamma[q] - 1) % 4
             return True
 
         return NotImplemented
@@ -754,16 +814,35 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         from cirq.sim import clifford
 
         if isinstance(args, clifford.ActOnCliffordTableauArgs):
-            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
                 return NotImplemented
             tableau = args.tableau
             q = args.axes[0]
-            if self._exponent % 1 != 0:
-                return NotImplemented
             if self._exponent % 2 == 1:
                 (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
                                                         tableau.xs[:, q].copy())
                 tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            q = args.axes[0]
+            state = args.state
+            if self._exponent % 2 == 1:
+                t = state.s ^ (state.G[q, :] & state.v)
+                u = state.s ^ (state.F[q, :] &
+                               (~state.v)) ^ (state.M[q, :] & state.v)
+
+                alpha = sum(state.G[q, :] & (~state.v) & state.s) % 2
+                beta = sum(state.M[q, :] & (~state.v) & state.s)
+                beta += sum(state.F[q, :] & state.v & state.M[q, :])
+                beta += sum(state.F[q, :] & state.v & state.s)
+                beta %= 2
+
+                delta = (state.gamma[q] + 2 * (alpha + beta)) % 4
+
+                state.update_sum(t, u, delta=delta, alpha=alpha)
             return True
 
         return NotImplemented
@@ -895,6 +974,17 @@ class CZPowGate(eigen_gate.EigenGate,
                  tableau.zs[:, q2]) = (tableau.zs[:, q2].copy(),
                                        tableau.xs[:, q2].copy())
                 tableau.rs[:] ^= (tableau.xs[:, q2] & tableau.zs[:, q2])
+            return True
+
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            state = args.state
+            if self._exponent % 2 == 1:
+                state.M[q1, :] ^= state.G[q2, :]
+                state.M[q2, :] ^= state.G[q1, :]
             return True
 
         return NotImplemented
@@ -1093,6 +1183,21 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                                   (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
                 tableau.xs[:, q2] ^= tableau.xs[:, q1]
                 tableau.zs[:, q1] ^= tableau.zs[:, q2]
+            return True
+
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            state = args.state
+            if self._exponent % 2 == 1:
+                state.gamma[q1] = (
+                    state.gamma[q1] + state.gamma[q2] + 2 *
+                    (sum(state.M[q1, :] & state.F[q2, :]) % 2)) % 4
+                state.G[q2, :] ^= state.G[q1, :]
+                state.F[q1, :] ^= state.F[q2, :]
+                state.M[q1, :] ^= state.M[q2, :]
             return True
 
         return NotImplemented
