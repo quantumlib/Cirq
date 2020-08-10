@@ -117,7 +117,7 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map
                            ) -> Optional[clifford_tableau.CliffordTableau]:
     """Initializes a CliffordTableau with default args for the given qubits and
     evolves it by having each operation act on the tableau. Returns None if any
-    of the operation can not act on a CliffordTableau, returns the tableau
+    of the operations can not act on a CliffordTableau, returns the tableau
     otherwise."""
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
@@ -138,10 +138,10 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map
 def _final_stabilizer_state_ch_form(
         circuit: Circuit,
         qubit_map) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
-    """Initializes a CliffordTableau with default args for the given qubits and
-    evolves it by having each operation act on the tableau. Returns None if any
-    of the operation can not act on a CliffordTableau, returns the tableau
-    otherwise."""
+    """Initializes a StabilizerStateChForm with default args for the given
+    qubits and evolves it by having each operation act on the tableau. Returns
+    None if any of the operations can not act on a StabilizerStateChForm,
+    returns the stabilizer state otherwise."""
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
         len(qubit_map))

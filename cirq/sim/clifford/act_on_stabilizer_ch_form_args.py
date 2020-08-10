@@ -30,10 +30,9 @@ if TYPE_CHECKING:
 
 class ActOnStabilizerCHFormArgs:
     """State and context for an operation acting on a stabilizer state in CH
-    form. There are two common ways to act on this object:
-    1. Directly edit the `state` property, which is storing the stabilizer
-       state of the quantum system with one axis per qubit.
-    2. Call `record_measurement_result(key, val)` to log a measurement result.
+    form. To act on this object, directly edit the `state` property, which is
+    storing the stabilizer state of the quantum system with one axis per qubit.
+    Measurements are currently not supported on this object.
     """
 
     def __init__(self, state: StabilizerStateChForm, axes: Iterable[int]):
@@ -43,9 +42,6 @@ class ActOnStabilizerCHFormArgs:
                 to perform inplace edits of this object.
             axes: The indices of axes corresponding to the qubits that the
                 operation is supposed to act upon.
-            log_of_measurement_results: A mutable object that measurements are
-                being recorded into. Edit it easily by calling
-                `ActOnStabilizerCHFormArgs.record_measurement_result`.
         """
         self.state = state
         self.axes = tuple(axes)
