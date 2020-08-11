@@ -15,7 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
-import math
+import numpy as np
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -128,10 +128,10 @@ class ParamResolver:
                 product *= self.value_of(factor)
             return product
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
-            return math.pow(self.value_of(value.args[0]),
+            return np.power(self.value_of(value.args[0]),
                             self.value_of(value.args[1]))
         if value == sympy.pi:
-            return math.pi
+            return np.pi
         if value == sympy.S.NegativeOne:
             return -1
 
