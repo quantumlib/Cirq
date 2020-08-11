@@ -65,7 +65,7 @@ class ConvertToXmonGates(PointOptimizer):
         return NotImplemented
 
     def _is_native_xmon_op(self, op: 'cirq.Operation') -> bool:
-        """Check if the gate corresponding to an operation is a native xmon gate.
+        """Check if the gate within an operation is a native xmon gate.
 
         Args:
             op: Input operation.
@@ -73,10 +73,9 @@ class ConvertToXmonGates(PointOptimizer):
         Returns:
             True if the operation is native to the xmon, false otherwise.
         """
-        return (isinstance(op, ops.GateOperation) and
-                isinstance(op.gate,
-                      (ops.CZPowGate, ops.MeasurementGate, ops.PhasedXPowGate,
-                       ops.XPowGate, ops.YPowGate, ops.ZPowGate)))
+        return (isinstance(op, ops.GateOperation) and isinstance(
+            op.gate, (ops.CZPowGate, ops.MeasurementGate, ops.PhasedXPowGate,
+                      ops.XPowGate, ops.YPowGate, ops.ZPowGate)))
 
     def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
 
