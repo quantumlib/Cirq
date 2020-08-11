@@ -62,13 +62,14 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
     num_qubits_val = protocols.num_qubits(val)
 
-    if not protocols.has_unitary(val) or \
+    if protocols.is_parameterized(val) or \
+            not protocols.has_unitary(val) or \
             protocols.qid_shape(val) != (2,) * num_qubits_val:
         if assert_tableau_implemented or assert_ch_form_implemented:
             assert False, ("Could not assert if any act_on methods were "
                            "implemented. Operating on qudits or with a "
-                           "non-unitary operation is unsupported.\n\n"
-                           "val: {!r}".format(val))
+                           "non-unitary or parameterized operation is "
+                           "unsupported.\n\nval: {!r}".format(val))
         return None
 
     qubits = LineQubit.range(protocols.num_qubits(val) * 2)
