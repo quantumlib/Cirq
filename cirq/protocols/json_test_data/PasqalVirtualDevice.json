@@ -1,0 +1,12 @@
+{
+  "cirq_type": "PasqalVirtualDevice",
+  "control_radius": 3,
+  "qubits": [
+    {
+      "cirq_type": "ThreeDQubit",
+      "x": 1,
+      "y": 1,
+      "z": 1
+    }
+  ]
+}

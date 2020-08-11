@@ -127,6 +127,7 @@ class _ResolverCache:
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
+                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,

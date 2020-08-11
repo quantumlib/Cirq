@@ -67,6 +67,15 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
+    :caption: Pasqal Documentation
+
+    pasqal/getting_started.ipynb
+    pasqal/devices
+    pasqal/sampler
+
+
+.. toctree::
+    :maxdepth: 1
     :caption: Developer Documentation
 
     dev/index.rst
