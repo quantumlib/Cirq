@@ -2,9 +2,8 @@
   "cirq_type": "_QubitAsQid",
   "qubit": {
     "cirq_type": "NoIdentifierQubit",
-    "name": "a"
+    "dimension": 2
   },
   "cirq_type": "NoIdentifierQubit",
-  "name": "a",
   "dimension": 5
 }
