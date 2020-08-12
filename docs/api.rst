@@ -596,9 +596,9 @@ operation.
     cirq.testing.assert_specifies_has_unitary_if_unitary
     cirq.testing.asyncio_pending
     cirq.testing.highlight_text_differences
+    cirq.testing.no_identifier_qubit
     cirq.testing.nonoptimal_toffoli_circuit
     .. autofunction:: cirq.testing.random_circuit
-    cirq.testing.no_identifier_qubit
     cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
     cirq.testing.random_special_orthogonal
