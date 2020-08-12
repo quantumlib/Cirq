@@ -19,6 +19,7 @@ def test_named_qubit_repr():
     q = cirq.testing.NoIdentifierQubit()
     assert repr(q) == "cirq.testing.NoIdentifierQubit()"
 
+
 def test_comparsion_key():
     assert NoIdentifierQubit() == NoIdentifierQubit()
 
