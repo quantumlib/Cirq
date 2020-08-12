@@ -32,7 +32,7 @@ class NoIdentifierQubit(raw_types.Qid):
         return 2
 
     def __repr__(self) -> str:
-        return f'cirq.NoIdentifierQubit()'
+        return f'cirq.testing.NoIdentifierQubit()'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, [])
