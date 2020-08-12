@@ -21,7 +21,9 @@ def test_named_qubit_repr():
 
 
 def test_comparsion_key():
-    assert NoIdentifierQubit() == NoIdentifierQubit()
+    q = cirq.testing.NoIdentifierQubit()
+    p = cirq.testing.NoIdentifierQubit()
+    assert p == q
 
 def test_to_json():
     assert cirq.testing.NoIdentifierQubit()._json_dict_() == {
