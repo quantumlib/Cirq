@@ -44,23 +44,23 @@ class _BaseNamedQid(raw_types.Qid):
     def with_dimension(self, dimension: int) -> 'NamedQid':
         return NamedQid(self._name, dimension=dimension)
 
-    @abc.abstractmethod
-    def _with_name(self: TSelf, name: str) -> TSelf:
-        """
-        Returns a qubit with the same type but a different value of `name`
-        """
-
-
 class NamedQid(_BaseNamedQid):
     """A qid identified by name.
 
-    By default, NamedQid has a lexicographic order. However, numbers within
+    By default, `NamedQid` has a lexicographic order. However, numbers within
     the name are handled correctly. So, for example, if you print a circuit
-    containing `cirq.NamedQid('qid22')` and `cirq.NamedQid('qid3')`, the
+    containing `cirq.NamedQid('qid22', dimension=3)` and `cirq.NamedQid('qid3', dimension=3)`, the
     wire for 'qid3' will correctly come before 'qid22'.
     """
 
     def __init__(self, name: str, dimension: int) -> None:
+        """Initializes a Named Qid with a given name and dimension
+
+            Args:
+            name: The name.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
+        """
         super().__init__(name)
         self._dimension = dimension
         self.validate_dimension(dimension)
@@ -69,35 +69,31 @@ class NamedQid(_BaseNamedQid):
     def dimension(self) -> int:
         return self._dimension
 
-    @property
-    def name(self) -> str:
-        return self._name
-
-    def _with_name(self, name: str) -> 'NamedQid':
-        return NamedQid(name, dimension=self.dimension)
-
     def __repr__(self) -> str:
-        return f'cirq.NamedQid({self.name!r}, ' f'dimension={self.dimension})'
+        return f'cirq.NamedQid({self.name!r}, dimension={self.dimension})'
 
     def __str__(self) -> str:
         return f'{self.name} (d={self.dimension})'
 
     @staticmethod
     def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
-        """Returns a range of NamedQids.
+        """Returns a range of `NamedQids`.
 
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
 
-        NamedQid.range(3, prefix='a') -> ['a1', 'a2', 'a3']
-        NamedQid.range(2, 4, prefix='a') -> ['a2', 'a3']
-
+            >>>> NamedQid.range(3, prefix='a', dimension=3)
+            ['a1', 'a2', 'a3']
+            >>> NamedQid.range(2, 4, prefix='a', dimension=3)
+            ['a2', 'a3']
+        
         Args:
             *args: Args to be passed to Python's standard range function.
             prefix: A prefix for constructed NamedQids.
-
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
         Returns:
-            A list of NamedQids.
+            A list of `NamedQids`.
             """
         return [
             NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)
@@ -110,7 +106,7 @@ class NamedQid(_BaseNamedQid):
 class NamedQubit(_BaseNamedQid):
     """A qubit identified by name.
 
-    By default, NamedQubit has a lexicographic order. However, numbers within
+    By default, `NamedQubit` has a lexicographic order. However, numbers within
     the name are handled correctly. So, for example, if you print a circuit
     containing `cirq.NamedQubit('qubit22')` and `cirq.NamedQubit('qubit3')`, the
     wire for 'qubit3' will correctly come before 'qubit22'.
@@ -125,9 +121,6 @@ class NamedQubit(_BaseNamedQid):
         # Must be same as Qid._cmp_tuple but with cls in place of type(self).
         return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
-    def _with_name(self, name: str) -> 'NamedQubit':
-        return NamedQubit(name)
-
     def __str__(self) -> str:
         return self._name
 
@@ -136,13 +129,15 @@ class NamedQubit(_BaseNamedQid):
 
     @staticmethod
     def range(*args, prefix: str) -> List['NamedQubit']:
-        """Returns a range of NamedQubits.
+        """Returns a range of `NamedQubits`.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
 
-        NamedQubit.range(3, prefix='a') -> ['a1', 'a2', 'a3']
-        NamedQubit.range(2, 4, prefix='a') -> ['a2', 'a3']
+            >>>> NamedQubit.range(3, prefix='a')
+            ['a1', 'a2', 'a3']
+            >>> NamedQubit.range(2, 4, prefix='a')
+            ['a2', 'a3']
 
         Args:
             *args: Args to be passed to Python's standard range function.

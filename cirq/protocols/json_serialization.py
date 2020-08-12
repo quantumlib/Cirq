@@ -158,7 +158,7 @@ class _ResolverCache:
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
                 'VirtualTag': cirq.VirtualTag,
                 'WaitGate': cirq.WaitGate,
-                '_QubitAsQid': cirq.NamedQid,
+                '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
                 'XXPowGate': cirq.XXPowGate,
                 'YPowGate': cirq.YPowGate,

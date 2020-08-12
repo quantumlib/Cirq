@@ -134,7 +134,14 @@ from cirq.ops.measurement_gate import (
 from cirq.ops.moment import (
     Moment,)
 
-from cirq.ops.named_qubit import (NamedQubit, NamedQid)
+from cirq.ops.named_qubit import (
+    NamedQubit,
+    NamedQid,
+)
+
+from cirq.ops.no_identifier_qubit import (
+    NoIdentifierQubit
+)
 
 from cirq.ops.op_tree import (
     flatten_op_tree,

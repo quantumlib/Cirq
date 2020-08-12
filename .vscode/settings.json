@@ -1,0 +1,11 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.pythonPath": "C:\\Users\\olive\\Anaconda2\\envs\\py36\\python.exe",
+    "python.linting.pylintArgs": [
+        "--max-line-length=80"
+    ],
+    "python.formatting.autopep8Args": [
+        "--max-line-length=80"
+    ],
+    "python.linting.enabled": true,
+}
