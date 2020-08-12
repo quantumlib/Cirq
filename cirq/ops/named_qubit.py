@@ -48,8 +48,8 @@ class NamedQid(_BaseNamedQid):
 
     By default, `NamedQid` has a lexicographic order. However, numbers within
     the name are handled correctly. So, for example, if you print a circuit
-    containing `cirq.NamedQid('qid22', dimension=3)` and 
-    `cirq.NamedQid('qid3', dimension=3)`, the wire for 'qid3' will 
+    containing `cirq.NamedQid('qid22', dimension=3)` and
+    `cirq.NamedQid('qid3', dimension=3)`, the wire for 'qid3' will
     correctly come before 'qid22'.
     """
 
@@ -86,7 +86,7 @@ class NamedQid(_BaseNamedQid):
             ['a1', 'a2', 'a3']
             >>> NamedQid.range(2, 4, prefix='a', dimension=3)
             ['a2', 'a3']
-        
+
         Args:
             *args: Args to be passed to Python's standard range function.
             prefix: A prefix for constructed NamedQids.
