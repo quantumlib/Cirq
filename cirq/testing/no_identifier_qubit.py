@@ -18,7 +18,7 @@ from cirq.ops import raw_types
 
 
 class NoIdentifierQubit(raw_types.Qid):
-    """A singleton qubit type that does not have a qudit variant. 
+    """A singleton qubit type that does not have a qudit variant.
     This is useful for testing code that wraps qubits as qudits.
     """
 

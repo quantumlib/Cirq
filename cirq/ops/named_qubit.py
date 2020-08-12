@@ -82,9 +82,9 @@ class NamedQid(_BaseNamedQid):
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
 
-            >>> cirq.NamedQid.range(3, prefix='a', dimension=3) 
+            >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
             ... # doctest: +NORMALIZE_WHITESPACE
-            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3) \
+            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3)\
                 , cirq.NamedQid('a2', dimension=3)]
             >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
             [cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
