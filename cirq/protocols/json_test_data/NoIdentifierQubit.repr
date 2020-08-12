@@ -1,1 +1,1 @@
-cirq.NoIdentifierQubit()
+cirq.testing.NoIdentifierQubit()
