@@ -37,6 +37,7 @@ def test_value_of():
 
     assert r.value_of(sympy.pi) == np.pi
     assert r.value_of(2 * sympy.pi) == 2 * np.pi
+    assert r.value_of(4**sympy.Symbol('a') + sympy.Symbol('b') * 10) == 3
     assert r.value_of('c') == 1 + 1j
     assert r.value_of(sympy.I * sympy.pi) == np.pi * 1j
 

@@ -34,8 +34,7 @@ class GreedySequenceSearch:
     method.
     """
 
-    def __init__(self,
-                 device: 'cirq.google.XmonDevice',
+    def __init__(self, device: 'cirq.google.XmonDevice',
                  start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
