@@ -14,13 +14,6 @@
 
 from cirq.google import api
 
-from cirq.google.api.v1.programs import (
-    is_native_xmon_gate,
-    is_native_xmon_op,
-    pack_results,
-    unpack_results,
-)
-
 from cirq.google.devices import (
     Bristlecone,
     Foxtail,
