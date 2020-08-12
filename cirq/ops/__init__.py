@@ -139,8 +139,6 @@ from cirq.ops.named_qubit import (
     NamedQid,
 )
 
-from cirq.ops.no_identifier_qubit import (NoIdentifierQubit)
-
 from cirq.ops.op_tree import (
     flatten_op_tree,
     freeze_op_tree,
