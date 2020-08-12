@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import copy
+import unittest.mock as mock
+
 import pytest
 
 import cirq
@@ -48,6 +50,14 @@ _JUST_MEAS = cg.SerializableGateSet(
                               args=[])
     ],
 )
+
+
+@pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])
+def test_repr_pretty(cycle, func):
+    device = cg.Sycamore
+    printer = mock.Mock()
+    device._repr_pretty_(printer, cycle)
+    printer.text.assert_called_once_with(func(device))
 
 
 def test_gate_definition_equality():
