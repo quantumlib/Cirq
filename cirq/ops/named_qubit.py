@@ -83,9 +83,9 @@ class NamedQid(_BaseNamedQid):
         each number in the range, e.g.:
 
             >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
-            ['a1', 'a2', 'a3']
+            [cirq.NamedQid('a1', dimension=3), cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
             >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
-            ['a2', 'a3']
+            [cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
 
         Args:
             *args: Args to be passed to Python's standard range function.
@@ -135,9 +135,9 @@ class NamedQubit(_BaseNamedQid):
         each number in the range, e.g.:
 
             >>> cirq.NamedQubit.range(3, prefix='a')
-            ['a1', 'a2', 'a3']
+            [cirq.NamedQubit('a1'), cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
             >>> cirq.NamedQubit.range(2, 4, prefix='a')
-            ['a2', 'a3']
+            [cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
 
         Args:
             *args: Args to be passed to Python's standard range function.
