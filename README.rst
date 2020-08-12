@@ -17,6 +17,7 @@ circuits and running them against quantum computers and simulators.
     :target: https://readthedocs.org/projects/cirq/versions/
     :alt: Documentation Status
 
+
 Installation and Documentation
 ------------------------------
 
@@ -30,8 +31,8 @@ Documentation for the latest **stable** version of cirq (what you get if you ``p
 - `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
 - `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
-- `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`_
 
+For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
 
 Hello Qubit
@@ -62,7 +63,7 @@ A simple example to get you up and running:
 
 Example output:
 
-.. code-block:: bash
+.. code-block::
 
   Circuit:
   (0, 0): ───X^0.5───M('m')───
@@ -70,18 +71,30 @@ Example output:
   m=11000111111011001000
 
 
-Contributing
-------------
+Feature requests / Bugs / Questions
+-----------------------------------
 
-We welcome contributions. Please follow these
-`guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
+If you have feature requests or you found a bug, please `file them on Github <https://github.com/quantumlib/Cirq/issues/new/choose>`__.
 
-We use
-`Github issues <https://github.com/quantumlib/Cirq/issues>`__
-for tracking requests and bugs. Please post questions to the
+For questions about how to use Cirq post to
 `Quantum Computing Stack Exchange <https://quantumcomputing.stackexchange.com/>`__ with the
 `cirq <https://quantumcomputing.stackexchange.com/questions/tagged/cirq>`__ tag.
-For informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev>`__ Gitter channel.
+
+
+Cirq Contributors Community
+---------------------------
+
+We welcome contributions! Before opening your first PR, a good place to start is to read our
+`guidelines <https://github.com/quantumlib/cirq/blob/master/CONTRIBUTING.md>`__.
+
+We are dedicated to cultivating an open and inclusive community to build software for near term quantum computers.
+Please read our `code of conduct <https://github.com/quantumlib/cirq/blob/master/CODE_OF_CONDUCT.md>`__ for the rules of engagement within our community.
+
+For real time informal discussions about Cirq, join our `cirqdev <https://gitter.im/cirqdev>`__ Gitter channel, come hangout with us!
+
+**Cirq Cynque** is our weekly meeting for contributors to discuss upcoming features, designs, issues, community and status of different efforts.
+To get an invitation please join the `cirq-dev email list <https://groups.google.com/forum/#!forum/cirq-dev>`__ which also serves as yet another platform to discuss contributions and design ideas.
+
 
 See Also
 --------
@@ -91,6 +104,13 @@ chemistry and materials science, we encourage exploring
 `OpenFermion <https://github.com/quantumlib/openfermion>`__ and
 its sister library for compiling quantum simulation algorithms in Cirq,
 `OpenFermion-Cirq <https://github.com/quantumlib/openfermion-cirq>`__.
+
+For machine learning enthusiasts, `Tensorflow Quantum <https://github.com/tensorflow/quantum>`__ is a great project to check out!
+
+For a powerful quantum circuit simulator that integrates well with Cirq, we recommend looking at `qsim <https://github.com/quantumlib/qsim>`__.
+
+Finally, `ReCirq <https://github.com/quantumlib/ReCirq>`__ contains real world experiments using Cirq.
+
 
 Alpha Disclaimer
 ----------------

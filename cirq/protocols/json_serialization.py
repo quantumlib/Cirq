@@ -55,7 +55,10 @@ class _ResolverCache:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.experiments import (CrossEntropyResult,
+                                          CrossEntropyResultDict,
                                           GridInteractionLayer)
+            from cirq.experiments.grid_parallel_two_qubit_xeb import (
+                GridParallelXEBMetadata)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -87,6 +90,7 @@ class _ResolverCache:
                 'CXPowGate': cirq.CXPowGate,
                 'CZPowGate': cirq.CZPowGate,
                 'CrossEntropyResult': CrossEntropyResult,
+                'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
                 'CliffordState': cirq.CliffordState,
                 'CliffordTableau': cirq.CliffordTableau,
@@ -102,6 +106,7 @@ class _ResolverCache:
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridInteractionLayer': GridInteractionLayer,
+                'GridParallelXEBMetadata': GridParallelXEBMetadata,
                 'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
@@ -122,6 +127,7 @@ class _ResolverCache:
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
+                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -142,8 +148,9 @@ class _ResolverCache:
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
-                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
+                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'TrialResult': cirq.TrialResult,
+                'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':

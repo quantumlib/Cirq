@@ -32,15 +32,21 @@ class XXPowGate(eigen_gate.EigenGate,
                 gate_features.InterchangeableQubitsGate):
     """The X-parity gate, possibly raised to a power.
 
-    At exponent=1, this gate implements the following unitary:
+    The XX**t gate implements the following unitary:
 
-        X⊗X = [0 0 0 1]
-              [0 0 1 0]
-              [0 1 0 0]
-              [1 0 0 0]
+        (X⊗X)^t = [c . . s]
+                  [. c s .]
+                  [. s c .]
+                  [s . . c]
+
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
 
     See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
-        this class.
+    this class.
     """
 
     def _eigen_components(self):
@@ -94,8 +100,9 @@ class XXPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\nX {1}\n', qubits[0], qubits[1])
-        return formatter.format('RX({0}) {1}\nRX({2}) {3}\n', self._exponent,
-                                qubits[0], self._exponent, qubits[1])
+        return formatter.format('RX({0}) {1}\nRX({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
 
     def __str__(self) -> str:
         if self.exponent == 1:
@@ -114,7 +121,21 @@ class XXPowGate(eigen_gate.EigenGate,
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Y-parity gate, possibly raised to a power."""
+    """The Y-parity gate, possibly raised to a power.
+
+    The YY**t gate implements the following unitary:
+
+        (Y⊗Y)^t = [ c . . -s]
+                  [ . c s  .]
+                  [ . s c  .]
+                  [-s . .  c]
+
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
+    """
 
     def _eigen_components(self):
         return [
@@ -168,8 +189,9 @@ class YYPowGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return formatter.format('Y {0}\nY {1}\n', qubits[0], qubits[1])
 
-        return formatter.format('RY({0}) {1}\nRY({2}) {3}\n', self._exponent,
-                                qubits[0], self._exponent, qubits[1])
+        return formatter.format('RY({0}) {1}\nRY({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:
@@ -197,7 +219,7 @@ class ZZPowGate(eigen_gate.EigenGate,
                   [. . w .]
                   [. . . 1]
 
-        where w = e^{i \pi t} and '.' means '0'.
+    where w = e^{iπt} and '.' means '0'.
     """
 
     def _decompose_(self, qubits):
@@ -249,8 +271,9 @@ class ZZPowGate(eigen_gate.EigenGate,
         if self._exponent == 1:
             return formatter.format('Z {0}\nZ {1}\n', qubits[0], qubits[1])
 
-        return formatter.format('RZ({0}) {1}\nRZ({2}) {3}\n', self._exponent,
-                                qubits[0], self._exponent, qubits[1])
+        return formatter.format('RZ({0}) {1}\nRZ({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:

@@ -14,16 +14,23 @@ mypy-protobuf==1.10
 # For uploading packages to pypi.
 twine
 
+# For verifying behavior of Quil output.
+pyquil~=2.21.0
+
 # For verifying behavior of qasm output.
 qiskit~=0.13.0
 
 # For generating documentation.
 pypandoc
 recommonmark >= 0.4.0
-Sphinx
+Sphinx~=3.1.0
 sphinx_rtd_theme
 sphinx-markdown-tables
+
 # For generating notebooks in documentation
 nbsphinx
 ipython
 ipykernel
+
+# For verifying rst
+rstcheck~=3.3.1

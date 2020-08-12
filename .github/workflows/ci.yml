@@ -7,7 +7,7 @@ jobs:
     name: Misc check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -18,7 +18,9 @@ jobs:
     name: Format check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -31,7 +33,7 @@ jobs:
     name: Type check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -44,7 +46,9 @@ jobs:
     name: Changed files test
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -57,7 +61,7 @@ jobs:
     name: Lint check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -66,27 +70,11 @@ jobs:
         run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
       - name: Lint
         run: check/pylint
-  doc_test:
-    name: Doc test
-    runs-on: ubuntu-16.04
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-python@v1
-        with:
-          python-version: '3.6'
-          architecture: 'x64'
-      - name: Install requirements
-        run: |
-          pip install -r requirements.txt
-          python -m pip install -r cirq/contrib/contrib-requirements.txt
-          pip install -r dev_tools/conf/pip-list-dev-tools.txt
-      - name: Doc check
-        run: check/doctest -q
   pytest:
     name: Pytest Ubuntu
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -101,7 +89,9 @@ jobs:
     name: Build protos
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -117,7 +107,9 @@ jobs:
     name: Coverage check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -133,7 +125,7 @@ jobs:
     name: Pytest Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -149,7 +141,7 @@ jobs:
     name: Pytest MacOS
     runs-on: macos-10.15
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'

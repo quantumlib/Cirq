@@ -199,4 +199,6 @@ def qft(*qubits: 'cirq.Qid',
     return result
 
 
-QFT = deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')(qft)
+@deprecated(deadline='v0.10.0', fix='Use cirq.qft instead.')
+def QFT(*args, **kwargs):
+    return qft(*args, **kwargs)

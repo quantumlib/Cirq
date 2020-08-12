@@ -1,4 +1,3 @@
 cirq.pasqal.PasqalDevice(
-    control_radius=5,
-    qubits=[cirq.pasqal.ThreeDGridQubit(1, 1, 1)]
+    qubits=[cirq.NamedQubit('q0')]
 )

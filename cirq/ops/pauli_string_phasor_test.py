@@ -482,8 +482,8 @@ def test_str():
         }, -1))**-0.5
     assert str(ps) == '(X(q0)*Y(q1)*Z(q2))**0.5'
 
-    assert str(np.exp(1j * np.pi * cirq.X(q0) *
-                      cirq.Y(q1))) == 'exp(iπ*X(q0)*Y(q1))'
-    assert str(np.exp(-0.5j * np.pi * cirq.X(q0) *
-                      cirq.Y(q1))) == 'exp(-iπ0.5*X(q0)*Y(q1))'
-    assert str(np.exp(1j * np.pi * cirq.PauliString())) == 'exp(iπ*I)'
+    assert str(np.exp(0.5j * np.pi * cirq.X(q0) *
+                      cirq.Y(q1))) == 'exp(iπ0.5*X(q0)*Y(q1))'
+    assert str(np.exp(-0.25j * np.pi * cirq.X(q0) *
+                      cirq.Y(q1))) == 'exp(-iπ0.25*X(q0)*Y(q1))'
+    assert str(np.exp(0.5j * np.pi * cirq.PauliString())) == 'exp(iπ0.5*I)'

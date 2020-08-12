@@ -388,10 +388,10 @@ def partial_trace_of_state_vector_as_mixture(
                   if not protocols.approx_eq(p[0], 0.0)])
 
 
-wavefunction_partial_trace_as_mixture = deprecated(
-    deadline='v0.10.0',
-    fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')(
-        partial_trace_of_state_vector_as_mixture)
+@deprecated(deadline='v0.10.0',
+            fix='Use `cirq.partial_trace_of_state_vector_as_mixture` instead.')
+def wavefunction_partial_trace_as_mixture(*args, **kwargs):
+    return partial_trace_of_state_vector_as_mixture(*args, **kwargs)
 
 
 @deprecated_parameter(deadline='v0.10.0',
@@ -501,6 +501,6 @@ def sub_state_vector(state_vector: np.ndarray,
         "indices {}".format(keep_indices))
 
 
-subwavefunction = deprecated(
-    deadline='v0.10.0',
-    fix='Use `cirq.sub_state_vector` instead.')(sub_state_vector)
+@deprecated(deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')
+def subwavefunction(*args, **kwargs):
+    return sub_state_vector(*args, **kwargs)
