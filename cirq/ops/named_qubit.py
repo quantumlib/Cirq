@@ -83,7 +83,8 @@ class NamedQid(_BaseNamedQid):
         each number in the range, e.g.:
 
             >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
-            [cirq.NamedQid('a1', dimension=3), cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
+            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3)\
+            , cirq.NamedQid('a2', dimension=3)]
             >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
             [cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
 
@@ -135,7 +136,8 @@ class NamedQubit(_BaseNamedQid):
         each number in the range, e.g.:
 
             >>> cirq.NamedQubit.range(3, prefix='a')
-            [cirq.NamedQubit('a1'), cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
+            [cirq.NamedQubit('a0'), cirq.NamedQubit('a1'), \
+                cirq.NamedQubit('2')]
             >>> cirq.NamedQubit.range(2, 4, prefix='a')
             [cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
 
