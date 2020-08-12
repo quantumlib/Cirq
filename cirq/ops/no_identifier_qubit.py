@@ -24,6 +24,9 @@ class NoIdentifierQubit(raw_types.Qid):
     def __init__(self) -> None:
         return None
 
+    def _comparison_key(self):
+        return 0
+
     @property
     def dimension(self) -> int:
         return 2
