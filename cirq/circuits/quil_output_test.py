@@ -36,9 +36,9 @@ X 0\n""")
 def test_single_gate_with_parameter():
     q0, = _make_qubits(1)
     output = cirq.QuilOutput((cirq.X(q0)**0.5,), (q0,))
-    assert (str(output) == """# Created using Cirq.
+    assert (str(output) == f"""# Created using Cirq.
 
-RX(0.5) 0\n""")
+RX({np.pi / 2}) 0\n""")
 
 
 def test_single_gate_named_qubit():
@@ -52,11 +52,11 @@ X 0\n""")
 def test_h_gate_with_parameter():
     q0, = _make_qubits(1)
     output = cirq.QuilOutput((cirq.H(q0)**0.25,), (q0,))
-    assert (str(output) == """# Created using Cirq.
+    assert (str(output) == f"""# Created using Cirq.
 
-RY(0.25) 0
-RX(0.25) 0
-RY(-0.25) 0\n""")
+RY({np.pi / 4}) 0
+RX({np.pi / 4}) 0
+RY({-np.pi / 4}) 0\n""")
 
 
 def test_save_to_file(tmpdir):
@@ -184,16 +184,9 @@ def test_i_swap_with_power():
         q0,
         q1,
     ))
-    assert str(output) == """# Created using Cirq.
+    assert str(output) == f"""# Created using Cirq.
 
-CNOT 0 1
-H 0
-CNOT 1 0
-RZ(0.125) 0
-CNOT 1 0
-RZ(-0.125) 0
-H 0
-CNOT 0 1
+XY({np.pi / 4}) 0 1
 """
 
 
@@ -201,7 +194,7 @@ def test_all_operations():
     qubits = tuple(_make_qubits(5))
     operations = _all_operations(*qubits, include_measurements=False)
     output = cirq.QuilOutput(operations, qubits)
-    assert (str(output) == """# Created using Cirq.
+    assert (str(output) == f"""# Created using Cirq.
 
 DECLARE m0 BIT[1]
 DECLARE m1 BIT[1]
@@ -209,83 +202,83 @@ DECLARE m2 BIT[1]
 DECLARE m3 BIT[3]
 
 Z 0
-RZ(0.625) 0
+RZ({5 * np.pi / 8}) 0
 Y 0
-RY(0.375) 0
+RY({3 * np.pi / 8}) 0
 X 0
-RX(0.875) 0
+RX({7 * np.pi / 8}) 0
 H 1
 CZ 0 1
-CPHASE(0.25) 0 1
+CPHASE({np.pi / 4}) 0 1
 CNOT 0 1
-RY(-0.5) 1
-CPHASE(0.5) 0 1
-RY(0.5) 1
+RY({-np.pi / 2}) 1
+CPHASE({np.pi / 2}) 0 1
+RY({np.pi / 2}) 1
 SWAP 0 1
-PSWAP(0.75) 0 1
+PSWAP({3 * np.pi / 4}) 0 1
 H 2
 CCNOT 0 1 2
 H 2
 CCNOT 0 1 2
-RZ(0.125) 0
-RZ(0.125) 1
-RZ(0.125) 2
+RZ({np.pi / 8}) 0
+RZ({np.pi / 8}) 1
+RZ({np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 1
-RZ(0.125) 2
+RZ({-np.pi / 8}) 1
+RZ({np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 2
+RZ({-np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 2
+RZ({-np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
 H 2
-RZ(0.125) 0
-RZ(0.125) 1
-RZ(0.125) 2
+RZ({np.pi / 8}) 0
+RZ({np.pi / 8}) 1
+RZ({np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 1
-RZ(0.125) 2
+RZ({-np.pi / 8}) 1
+RZ({np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 2
+RZ({-np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
-RZ(-0.125) 2
+RZ({-np.pi / 8}) 2
 CNOT 0 1
 CNOT 1 2
 H 2
 CSWAP 0 1 2
 X 0
 X 1
-RX(0.75) 0
-RX(0.75) 1
+RX({3 * np.pi / 4}) 0
+RX({3 * np.pi / 4}) 1
 Y 0
 Y 1
-RY(0.75) 0
-RY(0.75) 1
+RY({3 * np.pi / 4}) 0
+RY({3 * np.pi / 4}) 1
 Z 0
 Z 1
-RZ(0.75) 0
-RZ(0.75) 1
+RZ({3 * np.pi / 4}) 0
+RZ({3 * np.pi / 4}) 1
 I 0
 I 0
 I 1
 I 2
 ISWAP 2 0
-RZ(-0.111) 1
-RX(0.25) 1
-RZ(0.111) 1
-RZ(-0.333) 1
-RX(0.5) 1
-RZ(0.333) 1
-RZ(-0.777) 1
-RX(-0.5) 1
-RZ(0.777) 1
+RZ({-0.111 * np.pi}) 1
+RX({np.pi / 4}) 1
+RZ({0.111 * np.pi}) 1
+RZ({-0.333 * np.pi}) 1
+RX({np.pi / 2}) 1
+RZ({0.333 * np.pi}) 1
+RZ({-0.777 * np.pi}) 1
+RX({-np.pi / 2}) 1
+RZ({0.777 * np.pi}) 1
 WAIT
 MEASURE 0 m0[0]
 MEASURE 2 m1[0]
@@ -358,3 +351,30 @@ def test_pauli_interaction_gate():
 
 CZ 0 1
 """
+
+
+def test_equivalent_unitaries():
+    """This test covers the factor of pi change. However, it will be skipped
+    if pyquil is unavailable for import.
+
+    References:
+        https://docs.pytest.org/en/latest/skipping.html#skipping-on-a-missing-import-dependency
+    """
+    pyquil = pytest.importorskip("pyquil")
+    pyquil_simulation_tools = pytest.importorskip("pyquil.simulation.tools")
+    q0, q1 = _make_qubits(2)
+    operations = [
+        cirq.XPowGate(exponent=0.5, global_shift=-0.5)(q0),
+        cirq.YPowGate(exponent=0.5, global_shift=-0.5)(q0),
+        cirq.ZPowGate(exponent=0.5, global_shift=-0.5)(q0),
+        cirq.CZPowGate(exponent=0.5)(q0, q1),
+        cirq.ISwapPowGate(exponent=0.5)(q0, q1),
+    ]
+    output = cirq.QuilOutput(operations, (q0, q1))
+    program = pyquil.Program(str(output))
+    pyquil_unitary = pyquil_simulation_tools.program_unitary(program,
+                                                             n_qubits=2)
+    # Qubit ordering differs between pyQuil and Cirq.
+    cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations,
+                                cirq.SWAP(q0, q1)).unitary()
+    assert np.allclose(pyquil_unitary, cirq_unitary)
