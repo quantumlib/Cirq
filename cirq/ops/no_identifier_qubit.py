@@ -33,4 +33,3 @@ class NoIdentifierQubit(raw_types.Qid):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self)
-

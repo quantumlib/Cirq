@@ -44,6 +44,7 @@ class _BaseNamedQid(raw_types.Qid):
     def with_dimension(self, dimension: int) -> 'NamedQid':
         return NamedQid(self._name, dimension=dimension)
 
+
 class NamedQid(_BaseNamedQid):
     """A qid identified by name.
 
