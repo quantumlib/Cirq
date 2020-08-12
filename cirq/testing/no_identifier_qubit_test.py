@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,3 +18,6 @@ import cirq
 def test_named_qubit_repr():
     q = cirq.testing.NoIdentifierQubit()
     assert repr(q) == "cirq.testing.NoIdentifierQubit()"
+
+def test_comparsion_key():
+    assert NoIdentifierQubit() == NoIdentifierQubit()

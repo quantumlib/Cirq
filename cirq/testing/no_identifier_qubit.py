@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,14 +18,15 @@ from cirq.ops import raw_types
 
 
 class NoIdentifierQubit(raw_types.Qid):
-    """A qubit with no identifier - created to test QubitAsQid
+    """A singleton qubit type that does not have a qudit variant. 
+    This is useful for testing code that wraps qubits as qudits.
     """
 
     def __init__(self) -> None:
-        return None
+        pass
 
     def _comparison_key(self):
-        return 0
+        return ()
 
     @property
     def dimension(self) -> int:
