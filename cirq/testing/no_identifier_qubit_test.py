@@ -16,5 +16,5 @@ import cirq
 
 
 def test_named_qubit_repr():
-    q = cirq.NoIdentifierQubit()
-    assert repr(q) == "cirq.NoIdentifierQubit()"
+    q = cirq.testing.NoIdentifierQubit()
+    assert repr(q) == "cirq.testing.NoIdentifierQubit()"
