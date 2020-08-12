@@ -1,1 +1,1 @@
-cirq.NoIdentifierQubit().with_dimension(5)
+cirq.testing.NoIdentifierQubit().with_dimension(5)
