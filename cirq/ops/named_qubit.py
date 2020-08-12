@@ -14,8 +14,6 @@
 import functools
 from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
 
-import abc
-
 from cirq import protocols
 from cirq.ops import raw_types
 
@@ -50,8 +48,9 @@ class NamedQid(_BaseNamedQid):
 
     By default, `NamedQid` has a lexicographic order. However, numbers within
     the name are handled correctly. So, for example, if you print a circuit
-    containing `cirq.NamedQid('qid22', dimension=3)` and `cirq.NamedQid('qid3', dimension=3)`, the
-    wire for 'qid3' will correctly come before 'qid22'.
+    containing `cirq.NamedQid('qid22', dimension=3)` and 
+    `cirq.NamedQid('qid3', dimension=3)`, the wire for 'qid3' will 
+    correctly come before 'qid22'.
     """
 
     def __init__(self, name: str, dimension: int) -> None:
@@ -83,11 +82,10 @@ class NamedQid(_BaseNamedQid):
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
 
-            >>>> NamedQid.range(3, prefix='a', dimension=3)
+            >>> NamedQid.range(3, prefix='a', dimension=3)
             ['a1', 'a2', 'a3']
             >>> NamedQid.range(2, 4, prefix='a', dimension=3)
             ['a2', 'a3']
-        
         Args:
             *args: Args to be passed to Python's standard range function.
             prefix: A prefix for constructed NamedQids.
