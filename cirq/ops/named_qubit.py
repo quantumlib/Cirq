@@ -86,6 +86,7 @@ class NamedQid(_BaseNamedQid):
             ['a1', 'a2', 'a3']
             >>> NamedQid.range(2, 4, prefix='a', dimension=3)
             ['a2', 'a3']
+        
         Args:
             *args: Args to be passed to Python's standard range function.
             prefix: A prefix for constructed NamedQids.
