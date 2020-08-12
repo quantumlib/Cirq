@@ -123,6 +123,7 @@ class _ResolverCache:
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
                 'NamedQid': cirq.NamedQid,
+                'NoIdentifierQubit': cirq.NoIdentifierQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
