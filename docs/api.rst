@@ -18,6 +18,7 @@ Classes for identifying the qubits and hardware you want to operate on.
     cirq.LineQubit
     cirq.NamedQid
     cirq.NamedQubit
+    cirq.NoIdentifierQubit
     cirq.Qid
 
 

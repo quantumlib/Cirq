@@ -1,1 +1,1 @@
-cirq.NamedQid("a",dimension=3)
+cirq.NamedQid("a", dimension=3)
