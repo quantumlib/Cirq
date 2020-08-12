@@ -131,7 +131,7 @@ class SwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('SWAP {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('PSWAP({0}) {1} {2}\n', self._exponent,
+        return formatter.format('PSWAP({0}) {1} {2}\n', self._exponent * np.pi,
                                 qubits[0], qubits[1])
 
     def __str__(self) -> str:
@@ -262,7 +262,8 @@ class ISwapPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
-        return None  #ISwap with rotation not supported in Quil
+        return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi,
+                                qubits[0], qubits[1])
 
 
 def riswap(rads: value.TParamVal) -> ISwapPowGate:
