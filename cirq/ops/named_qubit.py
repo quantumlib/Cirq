@@ -84,7 +84,7 @@ class NamedQid(_BaseNamedQid):
 
             >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
             ... # doctest: +NORMALIZE_WHITESPACE
-            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3)\
+            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3)
                 , cirq.NamedQid('a2', dimension=3)]
             >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
             [cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
@@ -138,7 +138,7 @@ class NamedQubit(_BaseNamedQid):
 
             >>> cirq.NamedQubit.range(3, prefix='a')
             ... # doctest: +NORMALIZE_WHITESPACE
-            [cirq.NamedQubit('a0'), cirq.NamedQubit('a1'), \
+            [cirq.NamedQubit('a0'), cirq.NamedQubit('a1'),
                 cirq.NamedQubit('a2')]
             >>> cirq.NamedQubit.range(2, 4, prefix='a')
             [cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
