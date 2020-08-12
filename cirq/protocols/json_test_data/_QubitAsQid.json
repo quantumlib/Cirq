@@ -1,7 +1,7 @@
 {
   "cirq_type": "_QubitAsQid",
   "qubit": {
-    "cirq_type": "NoIdentifierQubit",
+    "cirq_type": "NoIdentifierQubit"
   },
   "cirq_type": "NoIdentifierQubit",
   "dimension": 5
