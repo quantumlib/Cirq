@@ -17,6 +17,8 @@ upper_tabs:
         path: /quark/cirq/tutorials/basics
       - title: Textbook examples
         path: /quark/cirq/tutorials/examples
+      - title: Quantum chess
+        path: /quark/cirq/tutorials/quantum_chess
       - title: Quantum variational algorithm
         path: /quark/cirq/tutorials/variational_algorithm
       - title: QAOA experiment
