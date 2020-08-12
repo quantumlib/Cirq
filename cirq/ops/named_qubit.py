@@ -82,9 +82,9 @@ class NamedQid(_BaseNamedQid):
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
 
-            >>> NamedQid.range(3, prefix='a', dimension=3)
+            >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
             ['a1', 'a2', 'a3']
-            >>> NamedQid.range(2, 4, prefix='a', dimension=3)
+            >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
             ['a2', 'a3']
 
         Args:
@@ -134,9 +134,9 @@ class NamedQubit(_BaseNamedQid):
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
 
-            >>> NamedQubit.range(3, prefix='a')
+            >>> cirq.NamedQubit.range(3, prefix='a')
             ['a1', 'a2', 'a3']
-            >>> NamedQubit.range(2, 4, prefix='a')
+            >>> cirq.NamedQubit.range(2, 4, prefix='a')
             ['a2', 'a3']
 
         Args:
