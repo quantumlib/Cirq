@@ -378,3 +378,50 @@ def test_equivalent_unitaries():
     cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations,
                                 cirq.SWAP(q0, q1)).unitary()
     assert np.allclose(pyquil_unitary, cirq_unitary)
+
+
+QUIL_CPHASES_PROGRAM = """
+CPHASE00(pi/2) 0 1
+CPHASE01(pi/2) 0 1
+CPHASE10(pi/2) 0 1
+CPHASE(pi/2) 0 1
+"""
+
+QUIL_DIAGONAL_DEFGATE_PROGRAM = """
+DEFGATE USERGATE1:
+    1.0, 0.0, 0.0, 0.0
+    0.0, 1.0, 0.0, 0.0
+    0.0, 0.0, 1.0, 0.0
+    0.0, 0.0, 0.0, 1.0
+
+USERGATE1 0 1
+"""
+
+
+def test_two_qubit_diagonal_gate_quil_output():
+    pyquil = pytest.importorskip("pyquil")
+    pyquil_simulation_tools = pytest.importorskip("pyquil.simulation.tools")
+    q0, q1 = _make_qubits(2)
+    operations = [
+        cirq.TwoQubitDiagonalGate([np.pi / 2, 0, 0, 0])(q0, q1),
+        cirq.TwoQubitDiagonalGate([0, np.pi / 2, 0, 0])(q0, q1),
+        cirq.TwoQubitDiagonalGate([0, 0, np.pi / 2, 0])(q0, q1),
+        cirq.TwoQubitDiagonalGate([0, 0, 0, np.pi / 2])(q0, q1),
+    ]
+    output = cirq.QuilOutput(operations, (q0, q1))
+    program = pyquil.Program(str(output))
+    assert f"\n{program.out()}" == QUIL_CPHASES_PROGRAM
+
+    pyquil_unitary = pyquil_simulation_tools.program_unitary(program,
+                                                             n_qubits=2)
+    # Qubit ordering differs between pyQuil and Cirq.
+    cirq_unitary = cirq.Circuit(cirq.SWAP(q0, q1), operations,
+                                cirq.SWAP(q0, q1)).unitary()
+    assert np.allclose(pyquil_unitary, cirq_unitary)
+    # Also test non-CPHASE case.
+    operations = [
+        cirq.TwoQubitDiagonalGate([0, 0, 0, 0])(q0, q1),
+    ]
+    output = cirq.QuilOutput(operations, (q0, q1))
+    program = pyquil.Program(str(output))
+    assert f"\n{program.out()}" == QUIL_DIAGONAL_DEFGATE_PROGRAM
