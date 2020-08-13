@@ -549,7 +549,6 @@ contrib may change without notice.
     cirq.contrib.acquaintance
     cirq.contrib.paulistring
     cirq.contrib.qcircuit
-    cirq.contrib.quil_import
     cirq.contrib.quirk
 
 
