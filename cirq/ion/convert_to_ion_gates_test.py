@@ -37,6 +37,7 @@ class OtherCNOT(cirq.TwoQubitGate):
 
 
 def test_convert_to_ion_gates():
+    # assert np.__version__ >= '1.19.1', just so I could create PR
     q0 = cirq.GridQubit(0, 0)
     q1 = cirq.GridQubit(0, 1)
     op = cirq.CNOT(q0, q1)
