@@ -39,6 +39,3 @@ docs/generated
 
 # Default pycharm virtual env
 .venv/
-
-# pyenv configuration
-.python-version

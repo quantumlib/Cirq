@@ -216,8 +216,7 @@ class XPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\n', qubits[0])
-        return formatter.format('RX({0}) {1}\n', self._exponent * np.pi,
-                                qubits[0])
+        return formatter.format('RX({0}) {1}\n', self._exponent, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -388,8 +387,7 @@ class YPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Y {0}\n', qubits[0])
-        return formatter.format('RY({0}) {1}\n', self._exponent * np.pi,
-                                qubits[0])
+        return formatter.format('RY({0}) {1}\n', self._exponent, qubits[0])
 
     @property
     def phase_exponent(self):
@@ -622,8 +620,8 @@ class ZPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Z {0}\n', qubits[0])
-        return formatter.format('RZ({0}) {1}\n', self._exponent * np.pi,
-                                qubits[0])
+
+        return formatter.format('RZ({0}) {1}\n', self._exponent, qubits[0])
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -803,9 +801,8 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('H {0}\n', qubits[0])
-        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n',
-                                0.25 * np.pi, self._exponent * np.pi,
-                                -0.25 * np.pi, qubits[0])
+        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25,
+                                self._exponent, -0.25, qubits[0])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -981,7 +978,7 @@ class CZPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent * np.pi,
+        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent,
                                 qubits[0], qubits[1])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
