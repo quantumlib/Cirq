@@ -122,4 +122,4 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
                 return formatter.format('CPHASE({0}) {1} {2}\n',
                                         self._diag_angles_radians[3], qubits[0],
                                         qubits[1])
-        return
+        return None
