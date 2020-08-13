@@ -23,6 +23,7 @@ import sympy
 import cirq
 import cirq.testing
 
+
 q0, q1, q2 = cirq.LineQubit.range(3)
 
 
