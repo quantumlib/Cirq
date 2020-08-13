@@ -259,7 +259,7 @@ class ISwapPowGate(eigen_gate.EigenGate,
                 f'global_shift={self._global_shift!r})')
 
     def _quil_(self, qubits: Tuple['cirq.Qid', ...],
-               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+               formatter: 'cirq.QuilFormatter') -> str:
         if self._exponent == 1:
             return formatter.format('ISWAP {0} {1}\n', qubits[0], qubits[1])
         return formatter.format('XY({0}) {1} {2}\n', self._exponent * np.pi,

@@ -17,7 +17,7 @@ The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import Any, Tuple, List, TYPE_CHECKING
+from typing import Any, Tuple, List, Optional, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -102,3 +102,24 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     def __repr__(self) -> str:
         return 'cirq.TwoQubitDiagonalGate([{}])'.format(','.join(
             proper_repr(angle) for angle in self._diag_angles_radians))
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if np.count_nonzero(self._diag_angles_radians) == 1:
+            if self._diag_angles_radians[0] != 0:
+                return formatter.format('CPHASE00({0}) {1} {2}\n',
+                                        self._diag_angles_radians[0], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[1] != 0:
+                return formatter.format('CPHASE01({0}) {1} {2}\n',
+                                        self._diag_angles_radians[1], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[2] != 0:
+                return formatter.format('CPHASE10({0}) {1} {2}\n',
+                                        self._diag_angles_radians[2], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[3] != 0:
+                return formatter.format('CPHASE({0}) {1} {2}\n',
+                                        self._diag_angles_radians[3], qubits[0],
+                                        qubits[1])
+        return None
