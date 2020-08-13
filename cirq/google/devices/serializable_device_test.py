@@ -13,6 +13,9 @@
 # limitations under the License.
 
 import copy
+import textwrap
+import unittest.mock as mock
+
 import pytest
 
 import cirq
@@ -20,6 +23,7 @@ import cirq.google as cg
 import cirq.google.api.v2 as v2
 import cirq.google.api.v2.device_pb2 as device_pb2
 import cirq.google.common_serializers as cgc
+import cirq.google.devices.known_devices as cgdk
 
 _JUST_CZ = cg.SerializableGateSet(
     gate_set_name='cz_gate_set',
@@ -48,6 +52,34 @@ _JUST_MEAS = cg.SerializableGateSet(
                               args=[])
     ],
 )
+
+
+def test_str_with_grid_qubits():
+    qubits = cirq.GridQubit.rect(2, 3, left=1, top=1)
+    device_proto = cgdk.create_device_proto_for_qubits(
+        qubits=qubits,
+        pairs=[
+            (qubits[0], qubits[1]),
+            (qubits[0], qubits[3]),
+            (qubits[1], qubits[4]),
+            (qubits[4], qubits[5]),
+        ],
+        gate_sets=[cg.FSIM_GATESET])
+    device = cgdk.SerializableDevice.from_proto(device_proto,
+                                                gate_sets=[cg.FSIM_GATESET])
+    assert str(device) == textwrap.dedent("""\
+        (1, 1)───(1, 2)   (1, 3)
+        │        │
+        │        │
+        (2, 1)   (2, 2)───(2, 3)""")
+
+
+@pytest.mark.parametrize('cycle,func', [(False, str), (True, repr)])
+def test_repr_pretty(cycle, func):
+    device = cg.Sycamore
+    printer = mock.Mock()
+    device._repr_pretty_(printer, cycle)
+    printer.text.assert_called_once_with(func(device))
 
 
 def test_gate_definition_equality():

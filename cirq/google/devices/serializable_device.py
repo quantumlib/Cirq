@@ -13,8 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (Callable, cast, Dict, Iterable, Optional, List, Set, Tuple,
-                    Type, TYPE_CHECKING, FrozenSet)
+from typing import (Any, Callable, cast, Dict, Iterable, Optional, List, Set,
+                    Tuple, Type, TYPE_CHECKING, FrozenSet)
 
 from cirq import circuits, devices
 from cirq.google import serializable_gate_set
@@ -234,6 +234,11 @@ class SerializableDevice(devices.Device):
                                   use_unicode_characters=True)
 
         return super().__str__()
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Creates ASCII diagram for Jupyter, IPython, etc."""
+        # There should never be a cycle, but just in case use the default repr.
+        p.text(repr(self) if cycle else str(self))
 
     def _find_operation_type(self,
                              op: 'cirq.Operation') -> Optional[_GateDefinition]:
