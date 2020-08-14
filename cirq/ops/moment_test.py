@@ -278,6 +278,28 @@ def test_add():
     with pytest.raises(ValueError, match='Overlap'):
         _ = m1 + m2
 
+    assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert m1 + [] == m1
+
+
+def test_sub():
+    a, b, c = cirq.LineQubit.range(3)
+    m = cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert m - [] == m
+    assert m - cirq.X(a) == cirq.Moment(cirq.Y(b))
+    assert m - [[[[cirq.X(a)]], []]] == cirq.Moment(cirq.Y(b))
+    assert m - [cirq.X(a), cirq.Y(b)] == cirq.Moment()
+    assert m - [cirq.Y(b)] == cirq.Moment(cirq.X(a))
+
+    with pytest.raises(ValueError, match="missing operations"):
+        _ = m - cirq.X(b)
+    with pytest.raises(ValueError, match="missing operations"):
+        _ = m - [cirq.X(a), cirq.Z(c)]
+
+    # Preserves relative order.
+    m2 = cirq.Moment(cirq.X(a), cirq.Y(b), cirq.Z(c))
+    assert m2 - cirq.Y(b) == cirq.Moment(cirq.X(a), cirq.Z(c))
+
 
 def test_op_tree():
     eq = cirq.testing.EqualsTester()
