@@ -80,7 +80,7 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
-                'TensorProductState': cirq.TensorProductState,
+                'ProductState': cirq.ProductState,
                 'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
@@ -120,11 +120,11 @@ class _ResolverCache:
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 '_KetMinus':
-                cirq.value.tensor_product_state._KetMinus,  # type: ignore
+                cirq.value.product_state._KetMinus,  # type: ignore
                 '_KetMinusImag':
-                cirq.value.tensor_product_state._KetMinusImag,  # type: ignore
+                cirq.value.product_state._KetMinusImag,  # type: ignore
                 '_KetOne':
-                cirq.value.tensor_product_state._KetOne,  # type: ignore
+                cirq.value.product_state._KetOne,  # type: ignore
                 'Moment': cirq.Moment,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
@@ -133,11 +133,11 @@ class _ResolverCache:
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 '_KetPlus':
-                cirq.value.tensor_product_state._KetPlus,  # type: ignore
+                cirq.value.product_state._KetPlus,  # type: ignore
                 '_KetImag':
-                cirq.value.tensor_product_state._KetImag,  # type: ignore
+                cirq.value.product_state._KetImag,  # type: ignore
                 '_KetZero':
-                cirq.value.tensor_product_state._KetZero,  # type: ignore
+                cirq.value.product_state._KetZero,  # type: ignore
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
                 'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,

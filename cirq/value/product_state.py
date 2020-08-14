@@ -27,12 +27,12 @@ if TYPE_CHECKING:
 class _NamedOneQubitState(metaclass=abc.ABCMeta):
     """Abstract class representing a one-qubit state of note."""
 
-    def on(self, qubit) -> 'TensorProductState':
+    def on(self, qubit) -> 'ProductState':
         """Associates one qubit with this named state.
 
-        The returned object is a TensorProductState of length 1.
+        The returned object is a ProductState of length 1.
         """
-        return TensorProductState({qubit: self})
+        return ProductState({qubit: self})
 
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
@@ -63,7 +63,7 @@ class _NamedOneQubitState(metaclass=abc.ABCMeta):
 
 
 @dataclass(frozen=True)
-class TensorProductState:
+class ProductState:
     """A quantum state that is a tensor product of one qubit states.
 
     For example, the |00⟩ state is `cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)`.
@@ -84,7 +84,7 @@ class TensorProductState:
         return sorted(self.states.keys())
 
     def __mul__(self, other):
-        if not isinstance(other, TensorProductState):
+        if not isinstance(other, ProductState):
             raise ValueError("Multiplication is only supported "
                              "with other TensorProductStates.")
 
@@ -97,7 +97,7 @@ class TensorProductState:
 
         new_states = self.states
         new_states.update(other.states)
-        return TensorProductState(new_states)
+        return ProductState(new_states)
 
     def __str__(self):
         return ' * '.join(f'{st}({q})' for q, st in self.states.items())
@@ -105,7 +105,7 @@ class TensorProductState:
     def __repr__(self):
         states_dict_repr = ', '.join(
             f'{repr(key)}: {repr(val)}' for key, val in self.states.items())
-        return 'cirq.TensorProductState({%s})' % states_dict_repr
+        return 'cirq.ProductState({%s})' % states_dict_repr
 
     def __getitem__(self, qubit):
         """Return the NamedState at the given qubit."""
@@ -118,7 +118,7 @@ class TensorProductState:
         return len(self.states)
 
     def __eq__(self, other):
-        if not isinstance(other, TensorProductState):
+        if not isinstance(other, ProductState):
             return False
 
         return self.states == other.states

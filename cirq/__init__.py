@@ -417,7 +417,7 @@ from cirq.value import (
     KET_ZERO,
     KET_ONE,
     PAULI_STATES,
-    TensorProductState,
+    ProductState,
 )
 
 # pylint: disable=redefined-builtin

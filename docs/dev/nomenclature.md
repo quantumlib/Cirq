@@ -19,7 +19,7 @@ A function argument (`state_vector`, `state_rep`, or `initial_state`)
 should permit any of the possible representations of a state: A numpy
 array, a numpy tensor, an integer representing a qubit-system's computational
 basis state, a sequence of n integers representing a qudit's basis state,
-or a `cirq.TensorProductState`. The type annotation should be
+or a `cirq.ProductState`. The type annotation should be
 `cirq.STATE_VECTOR_LIKE` and you should use `cirq.to_valid_state_vector`
 to canonicalize as a numpy array of amplitudes.
 If a function expects a numpy array of amplitudes, its type annotation

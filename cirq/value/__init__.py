@@ -43,8 +43,8 @@ from cirq.value.linear_dict import (
 from cirq.value.probability import (
     validate_probability,)
 
-from cirq.value.tensor_product_state import (
-    TensorProductState,
+from cirq.value.product_state import (
+    ProductState,
     KET_PLUS,
     KET_MINUS,
     KET_IMAG,

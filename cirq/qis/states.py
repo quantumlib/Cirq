@@ -34,7 +34,7 @@ STATE_VECTOR_LIKE = Union[
     # Explicit state vector or state tensor.
     np.ndarray, Sequence[Union[int, float, complex]],
     # Tensor-product state
-    'cirq.TensorProductState',]
+    'cirq.ProductState',]
 
 
 @deprecated_parameter(
@@ -261,7 +261,7 @@ def to_valid_state_vector(
         ValueError: if `state_vector` is not valid or
             num_qubits != len(qid_shape).
     """
-    if isinstance(state_rep, value.TensorProductState):
+    if isinstance(state_rep, value.ProductState):
         num_qubits = len(state_rep)
 
     # Check shape.
@@ -294,7 +294,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                                           qid_shape=qid_shape,
                                                           dtype=dtype)
 
-    if isinstance(state_like, value.TensorProductState):
+    if isinstance(state_like, value.ProductState):
         return state_like.state_vector()
 
     if isinstance(state_like, Sequence):

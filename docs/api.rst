@@ -698,7 +698,7 @@ Quantum Information Science
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
-    cirq.TensorProductState
+    cirq.ProductState
 
 
 Internal Implementation Details
