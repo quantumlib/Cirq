@@ -10,7 +10,7 @@ The simplest way to get a local copy of cirq that you can edit is by cloning Cir
 
 ```bash
 git clone git@github.com:quantumlib/cirq.git
-cd cirq
+cd Cirq
 ```
 
 To do your development in a Docker image, you can build one with Cirq/dev_tools/Dockerfile or pull an existing image:
@@ -35,7 +35,7 @@ your github id.
 where you would like to store your local copy of the code, and `cd` into the newly created directory.
     ```bash
     git clone git@github.com:USERNAME/cirq.git
-    cd cirq
+    cd Cirq
     ```
     (Alternatively, you can clone the repository using the URL provided
     on your repo page under the green "Clone or Download" button)
