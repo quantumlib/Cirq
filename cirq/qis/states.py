@@ -33,7 +33,7 @@ STATE_VECTOR_LIKE = Union[
     Sequence[int],
     # Explicit state vector or state tensor.
     np.ndarray, Sequence[Union[int, float, complex]],
-    # Tensor-product state
+    # Product state object
     'cirq.ProductState',]
 
 

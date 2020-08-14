@@ -371,7 +371,7 @@ def test_deprecated():
         _ = cirq.final_wavefunction([cirq.H(a)])
 
 
-def test_tps_initial_state_wfn():
+def test_ps_initial_state_wfn():
     q0, q1 = cirq.LineQubit.range(2)
     s00 = cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)
     sp0 = cirq.KET_PLUS(q0) * cirq.KET_ZERO(q1)
@@ -387,7 +387,7 @@ def test_tps_initial_state_wfn():
                                 initial_state=sp0))
 
 
-def test_tps_initial_state_dmat():
+def test_ps_initial_state_dmat():
     q0, q1 = cirq.LineQubit.range(2)
     s00 = cirq.KET_ZERO(q0) * cirq.KET_ZERO(q1)
     sp0 = cirq.KET_PLUS(q0) * cirq.KET_ZERO(q1)

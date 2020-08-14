@@ -2411,7 +2411,7 @@ def test_apply_unitary_effect_to_state():
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
-    # Tensor product state
+    # Product state
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
         a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
                                   cirq.KET_ZERO(b)),

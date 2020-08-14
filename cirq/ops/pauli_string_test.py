@@ -592,7 +592,7 @@ def test_to_z_basis_ops():
                     z_basis_state, expected_state, rtol=1e-7, atol=1e-7)
 
 
-def test_to_z_basis_ops_tps():
+def test_to_z_basis_ops_product_state():
     q0, q1, q2, q3, q4, q5 = _make_qubits(6)
     pauli_string = cirq.PauliString({
         q0: cirq.X,
