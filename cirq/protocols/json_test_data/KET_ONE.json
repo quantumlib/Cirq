@@ -1,3 +1,4 @@
 {
-  "cirq_type": "_KetOne"
+  "cirq_type": "_ZEigenState",
+  "eigenvalue": -1
 }

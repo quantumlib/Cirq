@@ -46,21 +46,6 @@ class _NamedOneQubitState(metaclass=abc.ABCMeta):
         vec = self.state_vector()[:, np.newaxis]
         return vec @ vec.conj().T
 
-    def _json_dict_(self):
-        # Descendants should be singletons determined solely by the class name.
-        # Otherwise, you must override this method.
-        return protocols.obj_to_dict_helper(self, [])
-
-    def __eq__(self, other):
-        # Descendants should be singletons determined solely by the class name.
-        # Otherwise, you must override this method.
-        return self.__class__ == other.__class__
-
-    def __hash__(self):
-        # Descendants should be singletons determined solely by the class name.
-        # Otherwise, you must override this method.
-        return hash(self.__class__.__name__)
-
 
 @dataclass(frozen=True)
 class ProductState:
@@ -171,104 +156,92 @@ class ProductState:
         return mat
 
 
-class _KetPlus(_NamedOneQubitState):
+class _PauliEigenState(_NamedOneQubitState):
+
+    def __init__(self, eigenvalue):
+        self.eigenvalue = eigenvalue
+        self._eigen_index = (1 - eigenvalue) / 2
+
+    @property
+    @abc.abstractmethod
+    def _symbol(self):
+        pass
 
     def __str__(self):
-        return '+X'
+        sign = {1: '+', -1: '-'}[self.eigenvalue]
+        return f'{sign}{self._symbol}'
 
     def __repr__(self):
-        return 'cirq.KET_PLUS'
+        return f'cirq.{self._symbol}.basis[{self.eigenvalue:+d}]'
+
+    @abc.abstractmethod
+    def stabilized_by(self):
+        pass
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        return self.eigenvalue == other.eigenvalue
+
+    def __hash__(self):
+        return hash((self.__class__.__name__, self.eigenvalue))
+
+    def _json_dict_(self):
+        # Descendants should be singletons determined solely by the class name.
+        # Otherwise, you must override this method.
+        return protocols.obj_to_dict_helper(self, ['eigenvalue'])
+
+
+class _XEigenState(_PauliEigenState):
+    _symbol = 'X'
 
     def state_vector(self):
-        return np.array([1, 1]) / np.sqrt(2)
+        if self.eigenvalue == 1:
+            return np.array([1, 1]) / np.sqrt(2)
+        elif self.eigenvalue == -1:
+            return np.array([1, -1]) / np.sqrt(2)
+        # coverage: ignore
+        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
 
     def stabilized_by(self):
         # Prevent circular import from `value.value_equality`
         from cirq import ops
-        return 1, ops.X
+        return self.eigenvalue, ops.X
 
 
-class _KetMinus(_NamedOneQubitState):
-
-    def __str__(self):
-        return '-X'
-
-    def __repr__(self):
-        return 'cirq.KET_MINUS'
+class _YEigenState(_PauliEigenState):
+    _symbol = 'Y'
 
     def state_vector(self):
-        return np.array([1, -1]) / np.sqrt(2)
+        if self.eigenvalue == 1:
+            return np.array([1, 1j]) / np.sqrt(2)
+        elif self.eigenvalue == -1:
+            return np.array([1, -1j]) / np.sqrt(2)
+        # coverage: ignore
+        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
 
     def stabilized_by(self):
         from cirq import ops
-        return -1, ops.X
+        return self.eigenvalue, ops.Y
 
 
-class _KetImag(_NamedOneQubitState):
-
-    def __str__(self):
-        return '+Y'
-
-    def __repr__(self):
-        return 'cirq.KET_IMAG'
+class _ZEigenState(_PauliEigenState):
+    _symbol = 'Z'
 
     def state_vector(self):
-        return np.array([1, 1j]) / np.sqrt(2)
+        if self.eigenvalue == 1:
+            return np.array([1, 0])
+        elif self.eigenvalue == -1:
+            return np.array([0, 1])
+        # coverage: ignore
+        raise ValueError("Bad eigenvalue: {}".format(self.eigenvalue))
 
     def stabilized_by(self):
         from cirq import ops
-        return 1, ops.Y
+        return self.eigenvalue, ops.Z
 
 
-class _KetMinusImag(_NamedOneQubitState):
-
-    def __str__(self):
-        return '-Y'
-
-    def __repr__(self):
-        return 'cirq.KET_MINUS_IMAG'
-
-    def state_vector(self):
-        return np.array([1, -1j]) / np.sqrt(2)
-
-    def stabilized_by(self):
-        from cirq import ops
-        return -1, ops.Y
-
-
-class _KetZero(_NamedOneQubitState):
-
-    def __str__(self):
-        return '+Z'
-
-    def __repr__(self):
-        return 'cirq.KET_ZERO'
-
-    def state_vector(self):
-        return np.array([1, 0])
-
-    def stabilized_by(self):
-        from cirq import ops
-        return 1, ops.Z
-
-
-class _KetOne(_NamedOneQubitState):
-
-    def __str__(self):
-        return '-Z'
-
-    def __repr__(self):
-        return 'cirq.KET_ONE'
-
-    def state_vector(self):
-        return np.array([0, 1])
-
-    def stabilized_by(self):
-        from cirq import ops
-        return -1, ops.Z
-
-
-KET_PLUS = _KetPlus()
+KET_PLUS = _XEigenState(eigenvalue=+1)
 document(
     KET_PLUS, """The |+⟩ State
     
@@ -279,7 +252,7 @@ document(
         [1, 1] / sqrt(2)
     """)
 
-KET_MINUS = _KetMinus()
+KET_MINUS = _XEigenState(eigenvalue=-1)
 document(
     KET_MINUS, """The |-⟩ State
     
@@ -290,7 +263,7 @@ document(
         [1, -1] / sqrt(2)
     """)
 
-KET_IMAG = _KetImag()
+KET_IMAG = _YEigenState(eigenvalue=+1)
 document(
     KET_IMAG, """The |i⟩ State
     
@@ -301,7 +274,7 @@ document(
         [1, i] / sqrt(2)
     """)
 
-KET_MINUS_IMAG = _KetMinusImag()
+KET_MINUS_IMAG = _YEigenState(eigenvalue=-1)
 document(
     KET_MINUS_IMAG, """The |-i⟩ State
 
@@ -312,7 +285,7 @@ document(
         [1, -i] / sqrt(2)
     """)
 
-KET_ZERO = _KetZero()
+KET_ZERO = _ZEigenState(eigenvalue=+1)
 document(
     KET_ZERO, """The |0⟩ State
 
@@ -323,7 +296,7 @@ document(
         [1, 0]
     """)
 
-KET_ONE = _KetOne()
+KET_ONE = _ZEigenState(eigenvalue=-1)
 document(
     KET_ONE, """The |1⟩ State
 

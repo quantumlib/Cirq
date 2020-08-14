@@ -117,6 +117,14 @@ class _PauliX(Pauli, common_gates.XPowGate):
         assert exponent == 1
         return Pauli._XYZ[0]
 
+    @property
+    def basis(self):
+        from cirq.value.product_state import _XEigenState
+        return {
+            +1: _XEigenState(+1),
+            -1: _XEigenState(-1),
+        }
+
 
 class _PauliY(Pauli, common_gates.YPowGate):
 
@@ -138,6 +146,14 @@ class _PauliY(Pauli, common_gates.YPowGate):
         assert exponent == 1
         return Pauli._XYZ[1]
 
+    @property
+    def basis(self):
+        from cirq.value.product_state import _YEigenState
+        return {
+            +1: _YEigenState(+1),
+            -1: _YEigenState(-1),
+        }
+
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
 
@@ -158,6 +174,14 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         assert global_shift == 0
         assert exponent == 1
         return Pauli._XYZ[2]
+
+    @property
+    def basis(self):
+        from cirq.value.product_state import _ZEigenState
+        return {
+            +1: _ZEigenState(+1),
+            -1: _ZEigenState(-1),
+        }
 
 
 X = _PauliX()

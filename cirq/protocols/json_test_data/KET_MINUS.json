@@ -1,3 +1,4 @@
 {
-  "cirq_type": "_KetMinus"
+  "cirq_type": "_XEigenState",
+  "eigenvalue": -1
 }

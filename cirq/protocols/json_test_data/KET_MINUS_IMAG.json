@@ -1,3 +1,4 @@
 {
-  "cirq_type": "_KetMinusImag"
+  "cirq_type": "_YEigenState",
+  "eigenvalue": -1
 }

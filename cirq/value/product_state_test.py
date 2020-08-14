@@ -29,12 +29,22 @@ def test_equality():
     assert hash(cirq.KET_PLUS) == hash(cirq.KET_PLUS)
 
 
+def test_basis_construction():
+    states = []
+    for gate in [cirq.X, cirq.Y, cirq.Z]:
+        for e_val in [+1, -1]:
+            states.append(gate.basis[e_val])
+
+    assert states == cirq.PAULI_STATES
+
+
 def test_stabilized():
     for state in cirq.PAULI_STATES:
         val, gate = state.stabilized_by()
         matrix = cirq.unitary(gate)
         vec = state.state_vector()
 
+        print(state)
         np.testing.assert_allclose(matrix @ vec, val * vec)
 
 
@@ -45,6 +55,14 @@ def test_projector():
                                np.array([[1, 1], [1, 1]]) / 2)
     np.testing.assert_allclose(cirq.KET_MINUS.projector(),
                                np.array([[1, -1], [-1, 1]]) / 2)
+
+
+def test_projector_2():
+    for gate in [cirq.X, cirq.Y, cirq.Z]:
+        for eigen_index in [0, 1]:
+            eigenvalue = {0: +1, 1: -1}[eigen_index]
+            np.testing.assert_allclose(gate.basis[eigenvalue].projector(),
+                                       gate._eigen_components()[eigen_index][1])
 
 
 def test_oneq_state():
@@ -58,26 +76,26 @@ def test_oneq_state():
     assert st0 == cirq.KET_PLUS.on(q0)
 
 
-def test_tensor_product_state():
+def test_product_state():
     q0, q1, q2 = cirq.LineQubit.range(3)
 
-    tps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
-    assert str(tps) == "+X(0) * +X(1)"
+    ps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1)
+    assert str(ps) == "+X(0) * +X(1)"
 
-    tps *= cirq.KET_ONE(q2)
-    assert str(tps) == "+X(0) * +X(1) * -Z(2)"
+    ps *= cirq.KET_ONE(q2)
+    assert str(ps) == "+X(0) * +X(1) * -Z(2)"
 
     with pytest.raises(ValueError) as e:
         # Re-use q2
-        tps *= cirq.KET_PLUS(q2)
+        ps *= cirq.KET_PLUS(q2)
     assert e.match(r'.*both contain factors for these qubits: '
                    r'\[cirq.LineQubit\(2\)\]')
 
-    tps2 = eval(repr(tps))
-    assert tps == tps2
+    ps2 = eval(repr(ps))
+    assert ps == ps2
 
 
-def test_tensor_product_state_2():
+def test_product_state_2():
     q0, q1 = cirq.LineQubit.range(2)
 
     with pytest.raises(ValueError):
@@ -88,27 +106,27 @@ def test_tensor_product_state_2():
         _ = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO
 
 
-def test_tensor_product_qubits():
+def test_product_qubits():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    tps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO(q2)
-    assert tps.qubits == [q0, q1, q2]
-    assert tps[q0] == cirq.KET_PLUS
+    ps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO(q2)
+    assert ps.qubits == [q0, q1, q2]
+    assert ps[q0] == cirq.KET_PLUS
 
 
-def test_tensor_product_iter():
+def test_product_iter():
     q0, q1, q2 = cirq.LineQubit.range(3)
-    tps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO(q2)
+    ps = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ZERO(q2)
 
     should_be = [
         (q0, cirq.KET_PLUS),
         (q1, cirq.KET_PLUS),
         (q2, cirq.KET_ZERO),
     ]
-    assert list(tps) == should_be
-    assert len(tps) == 3
+    assert list(ps) == should_be
+    assert len(ps) == 3
 
 
-def test_tensor_product_state_equality():
+def test_product_state_equality():
     q0, q1, q2 = cirq.LineQubit.range(3)
 
     assert cirq.KET_PLUS(q0) == cirq.KET_PLUS(q0)

@@ -119,25 +119,19 @@ class _ResolverCache:
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
-                '_KetMinus':
-                cirq.value.product_state._KetMinus,  # type: ignore
-                '_KetMinusImag':
-                cirq.value.product_state._KetMinusImag,  # type: ignore
-                '_KetOne':
-                cirq.value.product_state._KetOne,  # type: ignore
                 'Moment': cirq.Moment,
+                '_XEigenState':
+                cirq.value.product_state._XEigenState,  # type: ignore
+                '_YEigenState':
+                cirq.value.product_state._YEigenState,  # type: ignore
+                '_ZEigenState':
+                cirq.value.product_state._ZEigenState,  # type: ignore
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
-                '_KetPlus':
-                cirq.value.product_state._KetPlus,  # type: ignore
-                '_KetImag':
-                cirq.value.product_state._KetImag,  # type: ignore
-                '_KetZero':
-                cirq.value.product_state._KetZero,  # type: ignore
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
                 'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
