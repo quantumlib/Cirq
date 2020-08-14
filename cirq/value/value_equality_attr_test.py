@@ -18,6 +18,7 @@ import cirq
 
 @cirq.value_equality
 class BasicC:
+
     def __init__(self, x):
         self.x = x
 
@@ -27,6 +28,7 @@ class BasicC:
 
 @cirq.value_equality
 class BasicD:
+
     def __init__(self, x):
         self.x = x
 
@@ -81,6 +83,7 @@ def test_value_equality_manual():
 
 @cirq.value_equality(unhashable=True)
 class UnhashableC:
+
     def __init__(self, x):
         self.x = x
 
@@ -90,6 +93,7 @@ class UnhashableC:
 
 @cirq.value_equality(unhashable=True)
 class UnhashableD:
+
     def __init__(self, x):
         self.x = x
 
@@ -112,9 +116,7 @@ def test_value_equality_unhashable():
 
     # Equality works as expected.
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(UnhashableC(1),
-                          UnhashableC(1),
-                          UnhashableCa(1),
+    eq.add_equality_group(UnhashableC(1), UnhashableC(1), UnhashableCa(1),
                           UnhashableCb(1))
     eq.add_equality_group(UnhashableC(2))
     eq.add_equality_group(UnhashableD(1))
@@ -122,6 +124,7 @@ def test_value_equality_unhashable():
 
 @cirq.value_equality(distinct_child_types=True)
 class DistinctC:
+
     def __init__(self, x):
         self.x = x
 
@@ -131,6 +134,7 @@ class DistinctC:
 
 @cirq.value_equality(distinct_child_types=True)
 class DistinctD:
+
     def __init__(self, x):
         self.x = x
 
@@ -164,6 +168,7 @@ def test_value_equality_distinct_child_types():
 
 @cirq.value_equality(approximate=True)
 class ApproxE:
+
     def __init__(self, x):
         self.x = x
 
@@ -179,6 +184,7 @@ def test_value_equality_approximate():
 
 @cirq.value_equality(approximate=True)
 class PeriodicF:
+
     def __init__(self, x, n):
         self.x = x
         self.n = n
@@ -210,6 +216,7 @@ class ApproxEb(ApproxE):
 
 @cirq.value_equality(distinct_child_types=True, approximate=True)
 class ApproxG:
+
     def __init__(self, x):
         self.x = x
 
@@ -235,6 +242,7 @@ def test_value_equality_approximate_typing():
 
 def test_value_equality_forgot_method():
     with pytest.raises(TypeError, match='_value_equality_values_'):
+
         @cirq.value_equality
         class _:
             pass
