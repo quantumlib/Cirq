@@ -376,9 +376,8 @@ class Circuit:
 
     def _repr_html_(self) -> str:
         """Print ASCII diagram in Jupyter notebook without wrapping lines."""
-        return ('<pre style="overflow: auto; white-space: pre;">'
-                + html.escape(self.to_text_diagram())
-                + '</pre>')
+        return ('<pre style="overflow: auto; white-space: pre;">' +
+                html.escape(self.to_text_diagram()) + '</pre>')
 
     def _first_moment_operating_on(self, qubits: Iterable['cirq.Qid'],
                                    indices: Iterable[int]) -> Optional[int]:
