@@ -77,7 +77,7 @@ class NamedQid(_BaseNamedQid):
 
     @staticmethod
     def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
-        """Returns a range of `NamedQid`s.
+        """Returns a range of ``NamedQid``\s.
 
         The range returned starts with the prefix, and followed by a qid for
         each number in the range, e.g.:
@@ -95,7 +95,7 @@ class NamedQid(_BaseNamedQid):
             dimension: The dimension of the qid's Hilbert space, i.e.
                 the number of quantum levels.
         Returns:
-            A list of `NamedQid`s.
+            A list of ``NamedQid``\s.
             """
         return [
             NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)
@@ -131,7 +131,7 @@ class NamedQubit(_BaseNamedQid):
 
     @staticmethod
     def range(*args, prefix: str) -> List['NamedQubit']:
-        """Returns a range of `NamedQubits`.
+        """Returns a range of ``NamedQubit``\s.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
@@ -148,7 +148,7 @@ class NamedQubit(_BaseNamedQid):
             prefix: A prefix for constructed NamedQubits.
 
         Returns:
-            A list of NamedQubits.
+            A list of ``NamedQubit``\s.
         """
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
 
