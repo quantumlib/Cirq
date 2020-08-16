@@ -3819,6 +3819,7 @@ def test_zip():
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
 
+
 def test_repr_html_escaping():
 
     class TestGate(cirq.Gate):
