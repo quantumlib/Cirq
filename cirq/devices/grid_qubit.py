@@ -25,10 +25,10 @@ from cirq import ops, protocols
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseGridQid')
+TSelf = TypeVar('TSelf', bound='_BaseGridQid')  # type: ignore
 
 
-@functools.total_ordering
+@functools.total_ordering  # type: ignore
 class _BaseGridQid(ops.Qid):
     """The Base class for `GridQid` and `GridQubit`."""
 
