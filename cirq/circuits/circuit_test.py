@@ -17,6 +17,7 @@ from typing import Tuple
 from collections import defaultdict
 from random import randint, random, sample, randrange
 import os
+import html
 import numpy as np
 import pytest
 import sympy
@@ -3817,3 +3818,47 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+def test_repr_html_escaping():
+
+    class TestGate(cirq.Gate):
+
+        def __init__(self, n_qubits, label):
+            self.n_qubits = n_qubits
+            self.label = label
+
+        def num_qubits(self):
+            return self.n_qubits
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(wire_symbols=[self.label] *
+                                        self.n_qubits)
+
+    F2 = TestGate(2, "< ' F ' > ")
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.NamedQubit("|c>")
+
+    circuit = cirq.Circuit([F2(a, b), F2(b, c), F2(a, c)])
+    original_diagram = """
+0: ─────< ' F ' > ────────────────< ' F ' > ───
+        │                         │
+1: ─────< ' F ' > ───< ' F ' > ───┼────────────
+                     │            │
+|c>: ────────────────< ' F ' > ───< ' F ' > ───
+""".strip()
+
+    escaped_diagram = ('<pre style="overflow: auto; '
+    'white-space: pre;">0: ─────&lt; &#x27; F &#x27; '
+    '&gt; ────────────────&lt; &#x27; F &#x27; &gt; ──'
+    '─\n        │                         │\n1: ─────'
+    '&lt; &#x27; F &#x27; &gt; ───&lt; &#x27; F &#x27;'
+    ' &gt; ───┼────────────\n                     │    '
+    '        │\n|c&gt;: ────────────────&lt; &#x27;'
+    ' F &#x27; &gt; ───&lt; &#x27; F &#x27; &gt; ───</pre>')
+    cleaned_escaped_diagram = escaped_diagram.replace(('<pre style="overflow:'
+    ' auto; white-space: pre;">'), '')
+    cleaned_escaped_diagram = cleaned_escaped_diagram.replace('</pre>', '')
+
+    cirq.testing.assert_has_diagram(circuit, original_diagram)
+    assert circuit._repr_html_() == escaped_diagram
+    assert cleaned_escaped_diagram == html.escape(original_diagram.strip())
