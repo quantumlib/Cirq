@@ -3848,15 +3848,16 @@ def test_repr_html_escaping():
 """.strip()
 
     escaped_diagram = ('<pre style="overflow: auto; '
-    'white-space: pre;">0: ─────&lt; &#x27; F &#x27; '
-    '&gt; ────────────────&lt; &#x27; F &#x27; &gt; ──'
-    '─\n        │                         │\n1: ─────'
-    '&lt; &#x27; F &#x27; &gt; ───&lt; &#x27; F &#x27;'
-    ' &gt; ───┼────────────\n                     │    '
-    '        │\n|c&gt;: ────────────────&lt; &#x27;'
-    ' F &#x27; &gt; ───&lt; &#x27; F &#x27; &gt; ───</pre>')
-    cleaned_escaped_diagram = escaped_diagram.replace(('<pre style="overflow:'
-    ' auto; white-space: pre;">'), '')
+                       'white-space: pre;">0: ─────&lt; &#x27; F &#x27; '
+                       '&gt; ────────────────&lt; &#x27; F &#x27; &gt; ──'
+                       '─\n        │                         │\n1: ─────'
+                       '&lt; &#x27; F &#x27; &gt; ───&lt; &#x27; F &#x27;'
+                       ' &gt; ───┼────────────\n                     │   '
+                       '         │\n|c&gt;: ────────────────&lt; &#x27;'
+                       ' F &#x27; &gt; ───&lt; &#x27; F &#x27; &gt; ───</pre>')
+    cleaned_escaped_diagram = escaped_diagram.replace(
+        ('<pre style="overflow:'
+         ' auto; white-space: pre;">'), '')
     cleaned_escaped_diagram = cleaned_escaped_diagram.replace('</pre>', '')
 
     cirq.testing.assert_has_diagram(circuit, original_diagram)
