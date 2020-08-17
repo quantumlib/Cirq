@@ -481,11 +481,10 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
-def read_json(
-        file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-        *,
-        json_text: Optional[str] = None,
-        resolvers: Optional[Sequence[JsonResolver]] = None):
+def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+              *,
+              json_text: Optional[str] = None,
+              resolvers: Optional[Sequence[JsonResolver]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
