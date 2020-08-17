@@ -6,3 +6,5 @@ python:
   extra_requirements:
       - contrib
       - dev_env
+sphinx:
+  configuration: rtd-docs/conf.py
