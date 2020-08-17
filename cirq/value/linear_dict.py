@@ -13,12 +13,12 @@
 # limitations under the License.
 
 """Linear combination represented as mapping of things to coefficients."""
-
+import numbers
 from typing import (Any, Callable, Dict, ItemsView, Iterable, Iterator,
                     KeysView, Mapping, MutableMapping, overload, Tuple, TypeVar,
                     Union, ValuesView, Generic, Optional)
 
-Scalar = Union[complex, float]
+Scalar = Union[complex, float, numbers.Complex]
 TVector = TypeVar('TVector')
 
 TDefault = TypeVar('TDefault')

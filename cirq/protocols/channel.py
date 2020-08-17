@@ -85,9 +85,8 @@ class SupportsChannel(Protocol):
         """
 
 
-def channel(val: Any,
-            default: Any = RaiseTypeErrorIfNotProvided
-            ) -> Union[Tuple[np.ndarray], Sequence[TDefault]]:
+def channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
+           ) -> Union[Tuple[np.ndarray, ...], TDefault]:
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of

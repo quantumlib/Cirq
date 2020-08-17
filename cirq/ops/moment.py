@@ -228,13 +228,26 @@ class Moment:
     def _from_json_dict_(cls, operations, **kwargs):
         return Moment(operations)
 
-    def __add__(self,
-                other: Union['cirq.Operation', 'cirq.Moment']) -> 'cirq.Moment':
-        if isinstance(other, raw_types.Operation):
-            return self.with_operation(other)
-        if isinstance(other, Moment):
-            return Moment(self.operations + other.operations)
-        return NotImplemented
+    def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+        from cirq.circuits import circuit
+        if isinstance(other, circuit.Circuit):
+            return NotImplemented  # Delegate to Circuit.__radd__.
+        return Moment([self.operations, other])
+
+    def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+        from cirq.ops import op_tree
+        must_remove = set(op_tree.flatten_to_ops(other))
+        new_ops = []
+        for op in self.operations:
+            if op in must_remove:
+                must_remove.remove(op)
+            else:
+                new_ops.append(op)
+        if must_remove:
+            raise ValueError(f"Subtracted missing operations from a moment.\n"
+                             f"Missing operations: {must_remove!r}\n"
+                             f"Moment: {self!r}")
+        return Moment(new_ops)
 
     # pylint: disable=function-redefined
     @overload
