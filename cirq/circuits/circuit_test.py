@@ -3817,3 +3817,27 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+
+def test_repr_html_escaping():
+
+    class TestGate(cirq.Gate):
+
+        def num_qubits(self):
+            return 2
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(
+                wire_symbols=["< ' F ' >", "< ' F ' >"])
+
+    F2 = TestGate()
+    a = cirq.LineQubit(1)
+    c = cirq.NamedQubit("|c>")
+
+    circuit = cirq.Circuit([F2(a, c)])
+
+    # Escaping Special Characters in Gate names.
+    assert '&lt; &#x27; F &#x27; &gt;' in circuit._repr_html_()
+
+    # Escaping Special Characters in Qubit names.
+    assert '|c&gt;' in circuit._repr_html_()
