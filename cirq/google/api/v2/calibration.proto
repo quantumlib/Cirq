@@ -28,15 +28,16 @@ message FocusedCalibration {
 // of a calibration procedure.
 message CalibrationLayer {
      // The type of the calibration procedure to execute.
-     // There will be a number of calibration types that can be run,
-     // so this will need to be in a set of acceptable values.
+     // The value of this field must be in one of the acceptable
+     // values found in the cirq enum TBD.
+     // TODO(dstrain): Point to the cirq enum once it exists.
      string calibration_type = 1;
 
      // A circuit that identifies the layer or circuit to optimize
      // if the calibration requires this.  For many calibrations,
      // this will be a single moment representing the layer to
      // optimize for.
-     Circuit circuit = 2;
+     Program layer = 2;
 }
 
 // The results returned by a FocusedCalibration request.
