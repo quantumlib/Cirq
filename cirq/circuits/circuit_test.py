@@ -3830,7 +3830,7 @@ def test_repr_html_escaping():
         def _circuit_diagram_info_(self, args):
             self.label = "< ' F ' >"
             return cirq.CircuitDiagramInfo(wire_symbols=[self.label] *
-                                          self.n_qubits)
+                                           self.n_qubits)
 
     F2 = TestGate()
     a = cirq.LineQubit(1)
