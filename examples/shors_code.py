@@ -109,9 +109,8 @@ if __name__ == '__main__':
 
     # create error
     circuit += cirq.Circuit(
-        code.apply_gate(cirq.X,
-                        random.randint(0,
-                                       code.num_physical_qubits - 1)))
+        code.apply_gate(cirq.X, random.randint(0,
+                                               code.num_physical_qubits - 1)))
     print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
 
     # correct error and decode
