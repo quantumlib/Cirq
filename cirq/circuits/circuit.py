@@ -28,7 +28,6 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
                     TYPE_CHECKING, TypeVar, Union)
 
 import html
-
 import re
 import numpy as np
 
