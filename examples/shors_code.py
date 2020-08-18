@@ -20,7 +20,7 @@ at most one bit flip and one sign flip or their combination.
                            │       │   │
 (0, 8): ───────────────────X───────X───@───────────────────M───
 
-P. W. Shor, Phys. Rev. A, 52, R2493 (1995).
+reference: P. W. Shor, Phys. Rev. A, 52, R2493 (1995).
 """
 
 import random
