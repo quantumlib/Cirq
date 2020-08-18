@@ -442,6 +442,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    JsonResolver,
     json_serializable_dataclass,
     measurement_key,
     measurement_keys,
