@@ -3827,8 +3827,8 @@ def test_repr_html_escaping():
             return 2
 
         def _circuit_diagram_info_(self, args):
-            return cirq.CircuitDiagramInfo(wire_symbols=["< ' F ' >",
-                                                     "< ' F ' >"])
+            return cirq.CircuitDiagramInfo(
+                wire_symbols=["< ' F ' >", "< ' F ' >"])
 
     F2 = TestGate()
     a = cirq.LineQubit(1)
