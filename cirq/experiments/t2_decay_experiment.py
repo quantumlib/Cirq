@@ -13,7 +13,7 @@
 # limitations under the License.
 import enum
 
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, List, Optional, TYPE_CHECKING, Union
 
 import pandas as pd
 import sympy
@@ -35,17 +35,18 @@ class ExperimentType(enum.Enum):
 _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
-def t2_decay(
-        sampler: work.Sampler,
-        *,
-        qubit: devices.GridQubit,
-        experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
-        num_points: int,
-        max_delay: 'cirq.DURATION_LIKE',
-        min_delay: 'cirq.DURATION_LIKE' = None,
-        repetitions: int = 1000,
-        delay_sweep: Optional[study.Sweep] = None,
-) -> 'cirq.experiments.T2DecayResult':
+def t2_decay(sampler: work.Sampler,
+             *,
+             qubit: devices.GridQubit,
+             experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
+             num_points: int,
+             max_delay: 'cirq.DURATION_LIKE',
+             min_delay: 'cirq.DURATION_LIKE' = None,
+             repetitions: int = 1000,
+             delay_sweep: Optional[study.Sweep] = None,
+             num_pulses: List[int] = None
+            ) -> Union['cirq.experiments.T2DecayResult',
+                       List['cirq.experiments.T2DecayResult']]:
     """Runs a t2 transverse relaxation experiment.
 
     Initializes a qubit into a superposition state, evolves the system using
@@ -70,8 +71,20 @@ def t2_decay(
     The same method of measuring the final state as Ramsey experiment is applied
     after the second half of the delay period.
 
-    CPMG, or the Carr-Purcell-Meiboom-Gill sequence, is currently not
-    implemented.
+    CPMG, or the Carr-Purcell-Meiboom-Gill sequence, involves sending a sequence
+    of pi pulses (X gates) in a specific timing pattern:
+    π/2, t, π, 2t, π, ... 2t, π, t
+    This pattern has two variables that can be adjusted.  The first, denoted t
+    in the above sequence, is delay, which can be specified as per the other
+    experiments.  The second is the number of pulses.  This can be specified as
+    a list of integers using the `num_pulses` parameter.  If multiple different
+    pulses are specified, the data will presented in a data frame with two
+    indices (delay_ns and num_pulses).
+
+    Note that interpreting T2 data is fairly tricky and subtle, as it can
+    include other effects that need to be accounted for.  For instance,
+    amplitude damping (T1) will present as T2 noise and needs to be
+    appropriately compensated for to find a true measure of T2.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
@@ -87,6 +100,8 @@ def t2_decay(
              of nanoseconds.  If specified, this will override the max_delay and
              min_delay parameters.  If not specified, the experiment will sweep
              from min_delay to max_delay with linear steps.
+        num_pulses: For CPMG, a list of the number of pulses to use.
+             If multiple pulses are specified, each will be swept on.
     Returns:
         A T2DecayResult object that stores and can plot the data.
     """
@@ -155,6 +170,28 @@ def t2_decay(
             study.Points('inv_y', [-0.5, 0.0]),
         )
         sweep = study.Product(delay_sweep, tomography_sweep)
+    elif experiment_type == ExperimentType.CPMG:
+        # Carr-Purcell-Meiboom-Gill sequence.
+        # Performs the following sequence
+        # π/2 - wait(t) - π - wait(2t) - ... - π - wait(t)
+        # There will be N π pulses (X gates)
+        # where N sweeps over the values of num_pulses
+        #
+        if num_pulses is None:
+            raise ValueError('At least one value must be given '
+                             'for num_pulses in a CPMG experiment')
+        max_pulses = max(num_pulses)
+        circuit = _cpmg_circuit(qubit, delay_var, max_pulses)
+        circuit.append(ops.X(qubit)**inv_x_var)
+        circuit.append(ops.Y(qubit)**inv_y_var)
+        circuit.append(ops.measure(qubit, key='output'))
+        tomography_sweep = study.Zip(
+            study.Points('inv_x', [0.0, 0.5]),
+            study.Points('inv_y', [-0.5, 0.0]),
+        )
+        pulse_sweep = _cpmg_sweep(num_pulses)
+        sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
+
     else:
         raise ValueError(f'Experiment type {experiment_type} not supported')
 
@@ -163,19 +200,75 @@ def t2_decay(
 
     y_basis_measurements = results[abs(results.inv_y) > 0]
     x_basis_measurements = results[abs(results.inv_x) > 0]
-    x_basis_tabulation = pd.crosstab(x_basis_measurements.delay_ns,
-                                     x_basis_measurements.output).reset_index()
-    y_basis_tabulation = pd.crosstab(y_basis_measurements.delay_ns,
-                                     y_basis_measurements.output).reset_index()
 
-    # If all measurements are 1 or 0, fill in the missing column with all zeros.
-    for tab in [x_basis_tabulation, y_basis_tabulation]:
-        for col_index, name in [(1, 0), (2, 1)]:
-            if name not in tab:
-                tab.insert(col_index, name, [0] * tab.shape[0])
+    if num_pulses and len(num_pulses) > 1:
+        max_pulses = max(num_pulses)
+        cols = [f'pulse_{t}' for t in range(max_pulses)]
+        x_basis_measurements['num_pulses'] = x_basis_measurements[cols].sum(
+            axis=1)
+        y_basis_measurements['num_pulses'] = y_basis_measurements[cols].sum(
+            axis=1)
+
+    x_basis_tabulation = _create_tabulation(x_basis_measurements)
+    y_basis_tabulation = _create_tabulation(y_basis_measurements)
 
     # Return the results in a container object
     return T2DecayResult(x_basis_tabulation, y_basis_tabulation)
+
+
+def _create_tabulation(measurements):
+    """Returns a sum of 0 and 1 results per index from a list of measurements.
+    """
+    if 'num_pulses' in measurements.columns:
+        cols = [measurements.delay_ns, measurements.num_pulses]
+    else:
+        cols = [measurements.delay_ns]
+    tabulation = pd.crosstab(cols, measurements.output).reset_index()
+    # If all measurements are 1 or 0, fill in the missing column with all zeros.
+    for col_index, name in [(1, 0), (2, 1)]:
+        if name not in tabulation:
+            tabulation.insert(col_index, name, [0] * tabulation.shape[0])
+    return tabulation
+
+
+def _cpmg_circuit(qubit: devices.GridQubit, delay_var: sympy.Symbol,
+                  max_pulses: int):
+    """Creates a CPMG circuit for a given qubit.
+
+    The circuit will look like:
+      sqrt(X) - wait(delay_var)  - X - wait(2*delay_var) - ... - wait(delay_var)
+    with max_pulses number of X gates.
+
+    The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
+    turned on and off.  This is done to combine circuits with different pulses
+    into the same paramterized circuit.
+    """
+    circuit = circuits.Circuit(
+        ops.Y(qubit)**0.5,
+        ops.WaitGate(value.Duration(nanos=delay_var))(qubit), ops.X(qubit))
+    for n in range(max_pulses):
+        pulse_n_on = sympy.Symbol(f'pulse_{n}')
+        circuit.append(
+            ops.WaitGate(value.Duration(nanos=2 * delay_var *
+                                        pulse_n_on))(qubit))
+        circuit.append(ops.X(qubit)**pulse_n_on)
+    circuit.append(ops.WaitGate(value.Duration(nanos=delay_var))(qubit))
+    return circuit
+
+
+def _cpmg_sweep(num_pulses: List[int]):
+    """Returns a sweep for a circuit created by _cpmg_circuit.
+
+    The circuit in _cpmg_circuit parameterizes the pulses, so this function
+    fills in the parameters for each pulse.  For instance, if we want 3 pulses,
+    pulse_0, pulse_1, and pulse_2 should be 1 and the rest of the pulses should
+    be 0.
+    """
+    pulse_points = []
+    for n in range(max(num_pulses)):
+        pulse_points.append(
+            study.Points(f'pulse_{n}', [1 if p > n else 0 for p in num_pulses]))
+    return study.Zip(*pulse_points)
 
 
 class T2DecayResult:
@@ -214,13 +307,21 @@ class T2DecayResult:
         measurement is all ones and -1 if the measurement is all zeros.
 
         Returns:
-            Data frame with two columns 'delay_ns' and 'value'
+            Data frame with columns 'delay_ns', 'num_pulses' and 'value'
+            The num_pulses column will only exist if multiple pulses
+            were requestd in the T2 experiment.
         """
-        xs = data['delay_ns']
+        delay = data['delay_ns']
         ones = data[1]
         zeros = data[0]
         pauli_expectation = (2 * (ones / (ones + zeros))) - 1.0
-        return pd.DataFrame({'delay_ns': xs, 'value': pauli_expectation})
+        if 'num_pulses' in data.columns:
+            return pd.DataFrame({
+                'delay_ns': delay,
+                'num_pulses': data['num_pulses'],
+                'value': pauli_expectation
+            })
+        return pd.DataFrame({'delay_ns': delay, 'value': pauli_expectation})
 
     @property
     def expectation_pauli_x(self) -> pd.DataFrame:
