@@ -267,7 +267,7 @@ def some_method(a: int, b: str) -> float:
 ```
 
 Currently the docs folder serves two sites: the new site that is under construction and the current site that is deployed to readthedocs.io. 
-The new site is currently not available for preview just yet. For the current site, documentation is generated automatically by readthedocs when pushing to `master`, but you can also generated a local copy by running:
+The new site is currently not available for preview just yet. For the current site, documentation is generated automatically by readthedocs when pushing to `master`, but you can also generate a local copy by running:
 
 ```bash
 dev_tools/docs/build-rtd-docs.sh

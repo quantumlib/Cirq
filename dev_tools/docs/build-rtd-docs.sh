@@ -24,7 +24,7 @@
 # which is cleared before and after this command runs.
 #
 # Usage:
-#     dev_tools/docs/sphinx/build-docs.sh
+#     dev_tools/docs/build-rtd-docs.sh
 ################################################################################
 
 set -e
@@ -50,7 +50,7 @@ rm -rf "${out_dir}"
 cp -R ${new_docs_dir} ${docs_conf_dir}/
 
 # Regenerate docs.
-sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W --keep-going -j auto
+sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W --keep-going
 
 # Cleanup newly generated temporary files.
 rm -rf "${docs_conf_dir}/generated"
