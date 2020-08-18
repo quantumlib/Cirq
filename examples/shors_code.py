@@ -94,10 +94,6 @@ class OneQubitShorsCode:
                        self.physical_qubits[0])
         ])
 
-    def measure(self):
-        for i in range(self.num_physical_qubits):
-            yield cirq.measure(self.physical_qubits[i])
-
 
 if __name__ == '__main__':
     # coverage: ignore
