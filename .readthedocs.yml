@@ -7,4 +7,4 @@ python:
       - contrib
       - dev_env
 sphinx:
-  configuration: rtd-docs/conf.py
+  configuration: rtd_docs/conf.py

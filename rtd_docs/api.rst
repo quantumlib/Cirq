@@ -570,6 +570,7 @@ operation.
     cirq.ABCMetaImplementAnyOneOf
     cirq.ArithmeticOperation
     cirq.InterchangeableQubitsGate
+    cirq.JsonResolver
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
