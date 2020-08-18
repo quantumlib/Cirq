@@ -49,7 +49,7 @@ message FocusedCalibrationResults {
      repeated CalibrationLayerResults results = 1;
 }
 
-// Error codes 
+// Response codes for Calibration requests
 enum CalibrationLayerCode {
 
      // For backwards compatibility.
