@@ -20,6 +20,7 @@ from cirq.experiments.cross_entropy_benchmarking import (
     cross_entropy_benchmarking,
     CrossEntropyResult,
     CrossEntropyResultDict,
+    purity_from_probabilities,
 )
 
 from cirq.experiments.fidelity_estimation import (
