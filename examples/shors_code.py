@@ -19,6 +19,8 @@ at most one bit flip and one sign flip or their combination.
 (0, 7): ───────────────X───┼───X───┼───@───────────────────M───
                            │       │   │
 (0, 8): ───────────────────X───────X───@───────────────────M───
+
+P. W. Shor, Phys. Rev. A, 52, R2493 (1995).
 """
 
 import random
@@ -99,20 +101,23 @@ class OneQubitShorsCode:
 
 if __name__ == '__main__':
     # coverage: ignore
-    #create circuit
-    mycode1 = OneQubitShorsCode()
-    my_circuit1 = cirq.Circuit(mycode1.encode())
 
-    #create error
-    my_circuit1 += cirq.Circuit(
-        mycode1.apply_gate(cirq.X,
-                           random.randint(0, mycode1.num_physical_qubits - 1)))
+    # create circuit with 9 physical qubits
+    code = OneQubitShorsCode()
 
-    #correct error
-    my_circuit1 += cirq.Circuit(mycode1.correct())
+    circuit = cirq.Circuit(code.apply_gate(cirq.X ** (1 / 4), 0))
+    print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
 
-    #decode
-    my_circuit1 += cirq.Circuit(mycode1.measure())
-    sim1 = cirq.Simulator()
-    result1 = sim1.run(my_circuit1, repetitions=1)
-    print(result1.measurements['0'])
+    circuit += cirq.Circuit(code.encode())
+    print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
+
+    # create error
+    circuit += cirq.Circuit(
+        code.apply_gate(cirq.X,
+                        random.randint(0, code.num_physical_qubits - 1)))
+    print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
+
+    # correct error and decode
+    circuit += cirq.Circuit(code.correct())
+    print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
+
