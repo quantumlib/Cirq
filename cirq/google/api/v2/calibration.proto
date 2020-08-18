@@ -19,7 +19,7 @@ message FocusedCalibration {
      // calibrated using parallel_xeb.  In this case,
      // each moment would have its own CalibrationLayer.
      //
-     // Some calibrations, such as readout calibration,
+     // Some calibrations, such as a readout calibration,
      // will only have one layer.
      repeated CalibrationLayer layers = 1;
 }
