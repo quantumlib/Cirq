@@ -21,7 +21,7 @@ __pycache__
 
 # Sphinx
 _build
-rtd-docs/generated
+rtd_docs/generated
 
 # swap files
 *.swp
