@@ -116,4 +116,3 @@ if __name__ == '__main__':
     # correct error and decode
     circuit += cirq.Circuit(code.correct())
     print(cirq.dirac_notation(circuit.final_state_vector(initial_state=0)))
-
