@@ -3823,22 +3823,20 @@ def test_repr_html_escaping():
 
     class TestGate(cirq.Gate):
 
-        def __init__(self, n_qubits, label):
-            self.n_qubits = n_qubits
-            self.label = label
-
         def num_qubits(self):
+            self.n_qubits = 2
             return self.n_qubits
 
         def _circuit_diagram_info_(self, args):
+            self.label = "< ' F ' >"
             return cirq.CircuitDiagramInfo(wire_symbols=[self.label] *
-                                           self.n_qubits)
+                                          self.n_qubits)
 
-    F2 = TestGate(2, "< ' F ' > ")
-    a, b = cirq.LineQubit.range(2)
+    F2 = TestGate()
+    a = cirq.LineQubit(1)
     c = cirq.NamedQubit("|c>")
 
-    circuit = cirq.Circuit([F2(a, b), F2(b, c), F2(a, c)])
+    circuit = cirq.Circuit([F2(a, c)])
 
     # Escaping Special Characters in Gate names.
     assert '&lt; &#x27; F &#x27; &gt;' in circuit._repr_html_()
