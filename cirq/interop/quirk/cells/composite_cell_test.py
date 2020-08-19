@@ -71,6 +71,7 @@ def test_iterator_to_iterable():
     assert k == 10
 
 
+# noinspection SpellCheckingInspection
 def test_custom_circuit_gate():
     a, b, c, d, e = cirq.LineQubit.range(5)
 
@@ -157,6 +158,7 @@ def test_custom_circuit_gate():
 
     # Nested custom gate wrong order.
     with pytest.raises(ValueError, match='Unrecognized column entry'):
+        # noinspection SpellCheckingInspection
         _ = quirk_json_to_circuit({
             "cols": [["~gtnd"]],
             "gates": [

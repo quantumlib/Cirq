@@ -247,9 +247,9 @@ def apply_channel(val: Any,
         return result
 
     # Fallback to using the object's `_channel_` matrices.
-    krauss = channel(val, None)
-    if krauss is not None:
-        return _apply_krauss(krauss, args)
+    kraus = channel(val, None)
+    if kraus is not None:
+        return _apply_kraus(kraus, args)
 
     # Don't know how to apply channel. Fallback to specified default behavior.
     if default is not RaiseTypeErrorIfNotProvided:
@@ -279,8 +279,8 @@ def _apply_unitary(val: Any, args: 'ApplyChannelArgs') -> Optional[np.ndarray]:
     return right_result
 
 
-def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
-                  args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus(kraus: Union[Tuple[np.ndarray], Sequence[Any]],
+                 args: 'ApplyChannelArgs') -> np.ndarray:
     """Directly apply the kraus operators to the target tensor."""
     # Initialize output.
     args.out_buffer[:] = 0
@@ -288,49 +288,49 @@ def _apply_krauss(krauss: Union[Tuple[np.ndarray], Sequence[Any]],
     np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
 
     # Special case for single-qubit operations.
-    if len(args.left_axes) == 1 and krauss[0].shape == (2, 2):
-        return _apply_krauss_single_qubit(krauss, args)
+    if len(args.left_axes) == 1 and kraus[0].shape == (2, 2):
+        return _apply_kraus_single_qubit(kraus, args)
     # Fallback to np.einsum for the general case.
-    return _apply_krauss_multi_qubit(krauss, args)
+    return _apply_kraus_multi_qubit(kraus, args)
 
 
-def _apply_krauss_single_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
-                               args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus_single_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
+                              args: 'ApplyChannelArgs') -> np.ndarray:
     """Use slicing to apply single qubit channel.  Only for two-level qubits."""
     zero_left = linalg.slice_for_qubits_equal_to(args.left_axes, 0)
     one_left = linalg.slice_for_qubits_equal_to(args.left_axes, 1)
     zero_right = linalg.slice_for_qubits_equal_to(args.right_axes, 0)
     one_right = linalg.slice_for_qubits_equal_to(args.right_axes, 1)
-    for krauss_op in krauss:
+    for kraus_op in kraus:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
         linalg.apply_matrix_to_slices(args.target_tensor,
-                                      krauss_op, [zero_left, one_left],
+                                      kraus_op, [zero_left, one_left],
                                       out=args.auxiliary_buffer1)
         # No need to transpose as we are acting on the tensor
         # representation of matrix, so transpose is done for us.
         linalg.apply_matrix_to_slices(args.auxiliary_buffer1,
-                                      np.conjugate(krauss_op),
+                                      np.conjugate(kraus_op),
                                       [zero_right, one_right],
                                       out=args.target_tensor)
         args.out_buffer += args.target_tensor
     return args.out_buffer
 
 
-def _apply_krauss_multi_qubit(krauss: Union[Tuple[Any], Sequence[Any]],
-                              args: 'ApplyChannelArgs') -> np.ndarray:
+def _apply_kraus_multi_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
+                             args: 'ApplyChannelArgs') -> np.ndarray:
     """Use numpy's einsum to apply a multi-qubit channel."""
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
-    for krauss_op in krauss:
+    for kraus_op in kraus:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
-        krauss_tensor = np.reshape(krauss_op.astype(args.target_tensor.dtype),
-                                   qid_shape * 2)
-        linalg.targeted_left_multiply(krauss_tensor,
+        kraus_tensor = np.reshape(kraus_op.astype(args.target_tensor.dtype),
+                                  qid_shape * 2)
+        linalg.targeted_left_multiply(kraus_tensor,
                                       args.target_tensor,
                                       args.left_axes,
                                       out=args.auxiliary_buffer1)
         # No need to transpose as we are acting on the tensor
         # representation of matrix, so transpose is done for us.
-        linalg.targeted_left_multiply(np.conjugate(krauss_tensor),
+        linalg.targeted_left_multiply(np.conjugate(kraus_tensor),
                                       args.auxiliary_buffer1,
                                       args.right_axes,
                                       out=args.target_tensor)

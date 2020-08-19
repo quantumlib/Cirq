@@ -32,7 +32,7 @@ Demonstration of a Bell inequality which shows impossibility of local hidden var
 Textbook algorithm for Quantum Key Distribution.
 
 *    [Noisy simulation](https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py)
-How to use a noisy simulator to generate results with amplitiude damping.
+How to use a noisy simulator to generate results with amplitude damping.
 
 *    [Line placement](https://github.com/quantumlib/Cirq/blob/master/examples/place_on_bristlecone.py)
 How to find a line of adjacent qubits on a device.
@@ -77,7 +77,7 @@ max-cut problem.
 Fidelity estimation using cross-entropy benchmarking (XEB).
 
 *    [Direct fidelity](https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py)
-Direct fideltiy estimation to distinguish a desired state from the actual state
+Direct fidelity estimation to distinguish a desired state from the actual state
 using few Pauli measurements.
 
 *    [Qubit Characterization](https://github.com/quantumlib/Cirq/blob/master/examples/qubit_characterizations_example.py)
