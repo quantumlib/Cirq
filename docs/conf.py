@@ -270,6 +270,4 @@ texinfo_documents = [
 autosummary_generate = True
 
 # to resolve name clashes between the generated files
-autosummary_filename_map = {
-    "cirq.QFT": "cirq.QFT_deprecated"
-}
+autosummary_filename_map = {"cirq.QFT": "cirq.QFT_deprecated"}
