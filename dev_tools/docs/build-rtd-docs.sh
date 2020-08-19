@@ -44,18 +44,11 @@ rm -rf "${docs_conf_dir}/generated"
 # Cleanup previous output.
 rm -rf "${out_dir}"
 
-# Stage files from the new structure to the ReadTheDocs one. 
-# This should go away as QPolish gets published (ETA October 2020)
-
-cp -R ${new_docs_dir} ${docs_conf_dir}/
-
 # Regenerate docs.
-sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W --keep-going
+sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W --keep-going -j auto
 
 # Cleanup newly generated temporary files.
 rm -rf "${docs_conf_dir}/generated"
-
-rm -rf ${docs_conf_dir}/docs
 
 echo
 echo Index Page:

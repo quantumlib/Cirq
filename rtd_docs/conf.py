@@ -16,6 +16,7 @@ from typing import List, Any
 
 import os
 import sys
+import shutil
 
 import pypandoc
 
@@ -25,6 +26,8 @@ from cirq import _doc
 
 
 def setup(app):
+    shutil.rmtree("rtd_docs/docs", ignore_errors=True)
+    shutil.copytree(src="docs", dst="rtd_docs/docs")
     app.add_config_value('pandoc_use_parser', 'markdown', True)
     app.connect('autodoc-process-docstring', autodoc_process)
     app.connect('autodoc-skip-member', autodoc_skip_member)
