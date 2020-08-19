@@ -13,6 +13,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This file defines the menu structure for the Cirq sub-site within the larger
+# Google Quantum site.
+# It is used by "devsite", a Google internal CMS platform for documentation.
+
 upper_tabs:
 # Tabs left of dropdown menu
 - include: /_upper_tabs_left.yaml

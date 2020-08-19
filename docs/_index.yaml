@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This file desribes the main splash page for the Cirq sub-site on the 
+# larger Google Quantum site. 
+# It is used by "devsite", a Google internal CMS platform for documentation. 
+
 book_path: /quark/cirq/_book.yaml
 project_path: /quark/cirq/_project.yaml
 description: >
