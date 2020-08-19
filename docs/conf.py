@@ -268,3 +268,6 @@ texinfo_documents = [
 # Generate subpages for reference docs automatically.
 # http://www.sphinx-doc.org/en/master/ext/autosummary.html#generating-stub-pages-automatically
 autosummary_generate = True
+
+# to resolve name clashes between the generated files
+autosummary_filename_map = {"cirq.QFT": "cirq.QFT_deprecated"}
