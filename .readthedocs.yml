@@ -3,9 +3,9 @@ build:
   image: latest
 python:
   version: 3.6
-  install: true
-  extra_requirements:
-      - contrib
-      - dev_env
+  install:
+      - requirements: requirements.txt
+      - requirements: dev_tools/conf/pip-list-dev-tools.txt
+      - requirements: cirq/contrib/contrib-requirements.txt
 sphinx:
   configuration: rtd_docs/conf.py
