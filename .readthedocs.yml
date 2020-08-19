@@ -3,7 +3,7 @@ build:
   image: latest
 python:
   version: 3.6
-  pip_install: true
+  install: true
   extra_requirements:
       - contrib
       - dev_env
