@@ -1,5 +1,5 @@
 # For testing and analyzing code.
-mypy~=0.701.0
+mypy~=0.782.0
 pylint~=2.3.0
 pytest~=5.4.1
 pytest-asyncio~=0.12.0
@@ -23,7 +23,7 @@ qiskit~=0.13.0
 # For generating documentation.
 pypandoc
 recommonmark >= 0.4.0
-Sphinx~=3.1.0
+Sphinx~=3.2.0
 sphinx_rtd_theme
 sphinx-markdown-tables
 
