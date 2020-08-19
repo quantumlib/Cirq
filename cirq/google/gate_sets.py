@@ -110,6 +110,9 @@ NAMED_GATESETS = {
     'fsim': FSIM_GATESET,
 }
 
+document(NAMED_GATESETS,
+         """"A convenience mapping from gateset names to gatesets""")
+
 GOOGLE_GATESETS = [
     SYC_GATESET,
     SQRT_ISWAP_GATESET,
