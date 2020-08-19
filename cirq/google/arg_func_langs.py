@@ -31,7 +31,7 @@ from cirq.google.api import v2
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
     'linear': frozenset({'add', 'mul'}),
-    'poly': frozenset({'add', 'mul', 'pow'}),
+    'exp': frozenset({'add', 'mul', 'pow'}),
     # None means any. Is used when inferring the language during serialization.
     None: frozenset({'add', 'mul', 'pow'}),
 }
@@ -48,7 +48,7 @@ ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
 LANGUAGE_ORDER = [
     '',
     'linear',
-    'poly',
+    'exp',
 ]
 
 
@@ -88,7 +88,7 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
             for a in arg_proto.func.args:
                 yield from _function_languages_from_arg(a)
         if arg_proto.func.type in ['pow']:
-            yield 'poly'
+            yield 'exp'
             for a in arg_proto.func.args:
                 yield from _function_languages_from_arg(a)
 

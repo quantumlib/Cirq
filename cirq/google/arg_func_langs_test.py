@@ -74,7 +74,7 @@ from cirq.google.api import v2
             }]
         }
     }),
-    ('poly', sympy.Symbol('x')**sympy.Symbol('y'), {
+    ('exp', sympy.Symbol('x')**sympy.Symbol('y'), {
         'func': {
             'type': 'pow',
             'args': [{
@@ -181,6 +181,6 @@ def test_infer_language():
     packed = cirq.google.XMON.serialize(c_empty)
     assert packed.language.arg_function_language == ''
 
-    c_poly = cirq.Circuit(cirq.X(q)**(b**a))
-    packed = cirq.google.XMON.serialize(c_poly)
-    assert packed.language.arg_function_language == 'poly'
+    c_exp = cirq.Circuit(cirq.X(q)**(b**a))
+    packed = cirq.google.XMON.serialize(c_exp)
+    assert packed.language.arg_function_language == 'exp'
