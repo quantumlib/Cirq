@@ -301,6 +301,18 @@ def test_run_sweeps_param_resolvers(dtype):
             assert results[1].params == params[1]
 
 
+def test_run_sweep_sweep():
+    sim = cirq.Simulator()
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
+                           cirq.measure(a, key='m'))
+    params = {'t': [0.3, 0.5]}
+    results = sim.run_sweep(circuit, params=params)
+    assert len(results) == 2
+    for result, param in zip(results, params['t']):
+        assert result.params.param_dict == {'t': param}
+
+
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
 def test_simulate_random_unitary(dtype):
     q0, q1 = cirq.LineQubit.range(2)
@@ -523,6 +535,18 @@ def test_simulate_sweeps_param_resolver(dtype):
 
             assert results[0].params == params[0]
             assert results[1].params == params[1]
+
+
+def test_simulate_sweep_sweep():
+    sim = cirq.Simulator()
+    a = cirq.LineQubit(0)
+    circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
+                           cirq.measure(a, key='m'))
+    params = {'t': [0.3, 0.5]}
+    results = sim.simulate_sweep(circuit, params=params)
+    assert len(results) == 2
+    for result, param in zip(results, params['t']):
+        assert result.params.param_dict == {'t': param}
 
 
 @pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
