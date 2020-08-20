@@ -160,8 +160,8 @@ def get_all(url_func: Callable[[int], str]) -> List[Any]:
 
         if response.status_code != 200:
             raise RuntimeError(
-                f'Request failed to {url}. Code: {response.status_code!r}.'
-                f' Content: {response.content}.')
+                f'Request failed to {url}. Code: {response.status_code}.'
+                f' Content: {response.content!r}.')
 
         payload = json.JSONDecoder().decode(response.content.decode())
         results += payload
