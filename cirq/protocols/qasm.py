@@ -139,8 +139,8 @@ def qasm(val: Any,
             needed for `cirq.Gate` values, which otherwise wouldn't know what
             qubits to talk about.
         default: A default result to use if the value doesn't have a
-            `_qasm_` method or that method returns `NotImplemented` or
-            `None`. If not specified, undecomposable values cause a `TypeError`.
+            `_qasm_` method or that method returns `NotImplemented` or `None`.
+            If not specified, non-decomposable values cause a `TypeError`.
 
     Returns:
         The result of `val._qasm_(...)`, if `val` has a `_qasm_`

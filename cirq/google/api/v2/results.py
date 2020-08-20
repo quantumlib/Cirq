@@ -179,10 +179,10 @@ def _trial_sweep_from_proto(
 
     Args:
         msg: v2 Result message to convert.
-        measure_map: A mapping of measurement keys to a mesurement configuration
-            containing qubit ordering. If no measurement config is provided,
-            then all results will be returned in the order specified within the
-            result.
+        measure_map: A mapping of measurement keys to a measurement
+            configuration containing qubit ordering. If no measurement config is
+            provided, then all results will be returned in the order specified
+            within the result.
 
     Returns:
         A list containing a list of trial results for the sweep.
