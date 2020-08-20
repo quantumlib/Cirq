@@ -165,8 +165,8 @@ def get_all(url_func: Callable[[int], str]) -> List[Any]:
 
         payload = json.JSONDecoder().decode(response.content.decode())
         results += payload
-        has_next = ('link' in response.headers
-                    and 'rel="next"' in response.headers['link'])
+        has_next = ('link' in response.headers and
+                    'rel="next"' in response.headers['link'])
         page += 1
     return results
 
