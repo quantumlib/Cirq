@@ -199,3 +199,40 @@ class Sampler(metaclass=abc.ABCMeta):
             An awaitable TrialResult.
         """
         return self.run_sweep(program, params=params, repetitions=repetitions)
+
+    def run_batch(
+            self,
+            programs: List['cirq.Circuit'],
+            params_list: List['cirq.Sweepable'] = None,
+            repetitions: int = 1,
+    ) -> List['cirq.TrialResult']:
+        """Runs the supplied circuits.
+
+        Each circuit provided in `programs` will pair with the associated
+        parameter sweep provided in the `params_list`. The number of circuits
+        is required to match the number of sweeps.
+
+        By default, this method simply invokes `run_sweep` sequentially for
+        each (circuit, parameter sweep) pair. Child classes that are capable of
+        sampling batches more efficiently should override it to use other
+        strategies.
+
+        Args:
+            programs: The circuits to execute as a batch.
+            params_list: Parameter sweeps to use with the circuits. The number
+                of sweeps should match the number of circuits and will be
+                paired in order with the circuits.
+            repetitions: Number of circuit repetitions to run. Each sweep value
+                of each circuit in the batch will run with the same repetitions.
+
+        Returns:
+            A list of TrialResults. All TrialResults for the first circuit are
+            listed first, then the TrialResults for the second, etc.
+            The TrialResults for a circuit are listed in the order imposed by
+            the associated parameter sweep.
+        """
+        if not params_list or len(programs) != len(params_list):
+            raise ValueError('Number of circuits and sweeps must match')
+        return [trial_result
+                for circuit, params in zip(programs, params_list)
+                for trial_result in self.run_sweep(circuit, params=params, repetitions=repetitions)]
