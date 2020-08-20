@@ -251,7 +251,7 @@ def test_serialize_deserialize_op_subclass():
             'id': '1_1'
         }]
     })
-    # cirq.X is a sublcass of XPowGate.
+    # cirq.X is a subclass of XPowGate.
     assert proto == MY_GATE_SET.serialize_op(cirq.X(q0))
     assert MY_GATE_SET.deserialize_op(proto) == cirq.X(q0)
 

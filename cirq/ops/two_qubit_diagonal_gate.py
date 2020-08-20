@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Creates the gate instrance for a two qubit diagonal gate.
+"""Creates the gate instance for a two qubit diagonal gate.
 
 The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.

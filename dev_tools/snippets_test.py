@@ -44,13 +44,13 @@ In addition to checking that the code executes:
             substitution
             --->
 
-      and for `.rst` ithe substitution is of the form
+      and for `.rst` the substitution is of the form
 
-            .. test-subsitution::
+            .. test-substitution::
                 pattern
                 substitution
 
-      where pattern is the regex matchin pattern (passed to re.compile) and
+      where pattern is the regex matching pattern (passed to re.compile) and
       substitution is the replacement string.
 """
 import inspect

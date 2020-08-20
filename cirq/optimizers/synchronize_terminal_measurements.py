@@ -20,7 +20,7 @@ from cirq import circuits, ops, protocols
 class SynchronizeTerminalMeasurements():
     """Move measurements to the end of the circuit.
 
-    Move all measurements in a circuit to the final moment if it can accomodate
+    Move all measurements in a circuit to the final moment if it can accommodate
     them (without overlapping with other operations). If
     self._after_other_operations is true then a new moment will be added to the
     end of the circuit containing all the measurements that should be brought
