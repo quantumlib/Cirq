@@ -30,7 +30,7 @@ def test_run_simulator_run():
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
-    param_resolver = mock.Mock(cirq.ParamResolver)
+    param_resolver = cirq.ParamResolver()
     expected_result = cirq.TrialResult.from_single_parameter_set(
         measurements=expected_measurements, params=param_resolver)
     assert expected_result == simulator.run(program=circuit,
@@ -50,8 +50,8 @@ def test_run_simulator_sweeps():
     simulator._run.return_value = expected_measurements
     circuit = mock.Mock(cirq.Circuit)
     circuit.__iter__ = mock.Mock(return_value=iter([]))
-    param_resolvers = [mock.Mock(cirq.ParamResolver),
-                       mock.Mock(cirq.ParamResolver)]
+    param_resolvers = [cirq.ParamResolver({'a': 1}),
+                       cirq.ParamResolver({'b': 2})]
     expected_results = [
         cirq.TrialResult.from_single_parameter_set(
             measurements=expected_measurements, params=param_resolvers[0]),
@@ -85,7 +85,7 @@ def test_intermediate_simulator():
 
     simulator._simulator_iterator.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
-    param_resolver = mock.Mock(cirq.ParamResolver)
+    param_resolver = cirq.ParamResolver()
     qubit_order = mock.Mock(cirq.QubitOrder)
     result = simulator.simulate(program=circuit,
                                 param_resolver=param_resolver,
@@ -114,8 +114,8 @@ def test_intermediate_sweeps():
 
     simulator._simulator_iterator.side_effect = steps
     circuit = mock.Mock(cirq.Circuit)
-    param_resolvers = [mock.Mock(cirq.ParamResolver),
-                       mock.Mock(cirq.ParamResolver)]
+    param_resolvers = [cirq.ParamResolver({'a': 1}),
+                       cirq.ParamResolver({'b': 2})]
     qubit_order = mock.Mock(cirq.QubitOrder)
     results = simulator.simulate_sweep(program=circuit,
                                        params=param_resolvers,
