@@ -340,7 +340,10 @@ class Engine:
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
         """
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
