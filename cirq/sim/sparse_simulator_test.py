@@ -304,8 +304,8 @@ def test_run_sweeps_param_resolvers(dtype):
 def test_run_sweep_sweep():
     sim = cirq.Simulator()
     a = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
-                           cirq.measure(a, key='m'))
+    circuit = cirq.Circuit(
+        cirq.X(a)**sympy.Symbol('t'), cirq.measure(a, key='m'))
     params = {'t': [0.3, 0.5]}
     results = sim.run_sweep(circuit, params=params)
     assert len(results) == 2
@@ -540,8 +540,8 @@ def test_simulate_sweeps_param_resolver(dtype):
 def test_simulate_sweep_sweep():
     sim = cirq.Simulator()
     a = cirq.LineQubit(0)
-    circuit = cirq.Circuit(cirq.X(a)**sympy.Symbol('t'),
-                           cirq.measure(a, key='m'))
+    circuit = cirq.Circuit(
+        cirq.X(a)**sympy.Symbol('t'), cirq.measure(a, key='m'))
     params = {'t': [0.3, 0.5]}
     results = sim.simulate_sweep(circuit, params=params)
     assert len(results) == 2

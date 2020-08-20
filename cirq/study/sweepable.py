@@ -23,7 +23,8 @@ from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
 
-SweepDictType = Dict[Union[str, sympy.Symbol], Iterable[Union[float, str, sympy.Basic]]]
+SweepDictType = Dict[Union[str, sympy.Symbol], Iterable[Union[float, str, sympy.
+                                                              Basic]]]
 document(
     SweepDictType,  # type: ignore
     """Dictionary from symbols to sequence of values taken.""")
@@ -33,10 +34,8 @@ document(
     SweepOrSimilarType,  # type: ignore
     """Something that can turned into a list of parameter resolvers.""")
 
-Sweepable = Union[ParamResolverOrSimilarType,
-                  SweepOrSimilarType,
-                  Iterable[
-                      Union[ParamResolverOrSimilarType, SweepOrSimilarType]], None]
+Sweepable = Union[ParamResolverOrSimilarType, SweepOrSimilarType, Iterable[
+    Union[ParamResolverOrSimilarType, SweepOrSimilarType]], None]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
