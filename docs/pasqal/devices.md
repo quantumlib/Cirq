@@ -25,7 +25,7 @@ One of the restrictions is on the supported gate set, which is composed of the f
     * `ZPowGate`
     * `HPowGate(exponent=1)`
 
-  * Mulit-qubit gates
+  * Multi-qubit gates
 
     * `CNotPowGate(exponent=1)`
     * `CZPowGate(exponent=1)`
@@ -36,7 +36,7 @@ Any gate appended to a `cirq.Circuit` associated with `PasqalDevice` that is not
 
 ### Measurement limitation
 
-The other restriction is on the measurement operation, which has to occur only once, at the end of the circuit, and simultaneously on all the qubits of interest. It can correspond to a single `cirq.ops.GateOperation` with a `cirq.ops.MeasurementGate` applied on all the qubits of interest (reccomended) or multiple measurement operations, as long as they are all in the same moment.
+The other restriction is on the measurement operation, which has to occur only once, at the end of the circuit, and simultaneously on all the qubits of interest. It can correspond to a single `cirq.ops.GateOperation` with a `cirq.ops.MeasurementGate` applied on all the qubits of interest (recommended) or multiple measurement operations, as long as they are all in the same moment.
 
 ### Usage
 
@@ -86,4 +86,4 @@ To the gate set allowed by `PasqalDevice`, `PasqalVirtualDevice` removes the `CN
 
 ### Timing restrictions
 
-Currently, no paralelization is allowed by `PasqalVirtualDevice`, which means that each gate is forced to be the only one in its `Moment` (except for Measurement gates on different qubits, which have to coexist in the final `Moment` of the circuit).
+Currently, no parallelization is allowed by `PasqalVirtualDevice`, which means that each gate is forced to be the only one in its `Moment` (except for Measurement gates on different qubits, which have to coexist in the final `Moment` of the circuit).

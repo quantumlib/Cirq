@@ -210,7 +210,7 @@ class AnnealSequenceSearch:
             seqs.append(part[0][other[c0]])
             seqs.append(part[1][other[c1]])
         else:
-            # Swap nodes so that n0 always preceeds n1 on sequence.
+            # Swap nodes so that n0 always precedes n1 on sequence.
             if j0 > j1:
                 j0, j1 = j1, j0
                 n0, n1 = n1, n0
@@ -252,7 +252,7 @@ class AnnealSequenceSearch:
         """
 
         def extract_sequences() -> List[List[GridQubit]]:
-            """Creates list of sequcenes for initial state.
+            """Creates list of sequences for initial state.
 
             Returns:
               List of lists of sequences constructed on the chip.

@@ -476,7 +476,7 @@ def test_from_unitary():
     _test(cirq.SingleQubitCliffordGate.X_nsqrt)
 
 
-def test_from_untary_with_phase_shift():
+def test_from_unitary_with_phase_shift():
     u = np.exp(0.42j) * cirq.unitary(cirq.SingleQubitCliffordGate.Y_sqrt)
     gate = cirq.SingleQubitCliffordGate.from_unitary(u)
 
