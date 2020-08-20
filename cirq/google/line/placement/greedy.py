@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class GreedySequenceSearch:
     """Base class for greedy search heuristics.
 
-    Specialized greedy heuristics should implement abstrace _sequence_search
+    Specialized greedy heuristics should implement abstract _sequence_search
     method.
     """
 
@@ -108,7 +108,7 @@ class GreedySequenceSearch:
         sequences that begin and end on this qubit are searched for.
 
         Args:
-            start: The first qubit, where search should be trigerred from.
+            start: The first qubit, where search should be triggered from.
             current: Previously found linear sequence, which qubits are
                      forbidden to use during the search.
 

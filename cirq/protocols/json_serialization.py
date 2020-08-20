@@ -307,7 +307,7 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
         return cls
 
     # _cls is used to deduce if we're being called as
-    # @json_serialiable_dataclass or @json_serializable_dataclass().
+    # @json_serializable_dataclass or @json_serializable_dataclass().
     if _cls is None:
         # We're called with parens.
         return wrap
