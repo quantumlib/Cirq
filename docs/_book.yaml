@@ -1,0 +1,105 @@
+# 
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file defines the menu structure for the Cirq sub-site within the larger
+# Google Quantum site.
+# It is used by "devsite", a Google internal CMS platform for documentation.
+
+upper_tabs:
+# Tabs left of dropdown menu
+- include: /_upper_tabs_left.yaml
+- include: /api_docs/_upper_tabs_api.yaml
+# Dropdown menu
+- name: Resources
+  path: /resources
+  is_default: true
+  menu:
+  - include: /resources/_menu_toc.yaml
+  lower_tabs:
+    # Subsite tabs
+    other:
+    - name: Tutorials
+      contents:
+      - title: Basics
+        path: /quark/cirq/tutorials/basics
+      - title: Textbook examples
+        path: /quark/cirq/tutorials/examples
+      - title: Quantum chess
+        path: /quark/cirq/tutorials/quantum_chess
+      - title: Quantum variational algorithm
+        path: /quark/cirq/tutorials/variational_algorithm
+      - title: QAOA experiment
+        path: /quark/cirq/tutorials/QAOA_Demo
+      - title: Hidden linear function problem
+        path: /quark/cirq/tutorials/hidden_linear_function
+      - title: Quantum walks
+        path: /quark/cirq/tutorials/Quantum_Walk
+      - title: Rabi oscillation experiment
+        path: /quark/cirq/tutorials/Rabi_Demo
+
+    - name: Guide
+      contents:
+      - title: Install
+        path: /quark/cirq/install
+      - heading: Concepts
+      - title: Gates
+        path: /quark/cirq/gates
+      - title: Circuits
+        path: /quark/cirq/circuits
+      - title: Simulation
+        path: /quark/cirq/simulation
+      - title: Noise
+        path: /quark/cirq/noise
+      - title: Devices
+        path: /quark/cirq/devices
+      - title: Interoperability
+        path: /quark/cirq/interop
+      - title: Qudits
+        path: /quark/cirq/qudits
+      - heading: Google
+      - title: Google devices
+        path: /quark/cirq/google/devices
+      - title: Quantum Engine
+        path: /quark/cirq/google/engine
+      - title: Device Specifications
+        path: /quark/cirq/google/specification
+      - title: Calibration metrics
+        path: /quark/cirq/google/calibration
+      - title: Best practices
+        path: /quark/cirq/google/best_practices
+      - heading: Developers
+      - title: Nomenclature
+        path: /quark/cirq/dev/nomenclature
+      - title: Development
+        path: /quark/cirq/dev/development
+      - title: Gate and operation guidelines
+        path: /quark/cirq/dev/gates
+      - title: Plotting guidelines
+        path: /quark/cirq/dev/plotting
+      - title: Serialization guidelines
+        path: /quark/cirq/dev/serialization
+
+    - name: Research
+      contents:
+      - include: /quark/cirq/research/_toc.yaml
+
+    - name: API
+      skip_translation: true
+      contents:
+      - title: All Symbols
+        path: /quark/cirq/api_docs/python/
+      - include: /quark/cirq/api_docs/python/_toc.yaml
+
+- include: /_upper_tabs_right.yaml

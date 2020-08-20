@@ -1,6 +1,5 @@
 import inspect
 import pathlib
-import re
 from typing import Set, Dict, Tuple, Any, List
 
 import cirq
@@ -61,7 +60,6 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
         if section:
             result.append(section)
     return result
-
 
 
 def test_public_values_equals_documented_values():
