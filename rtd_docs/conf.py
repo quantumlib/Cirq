@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 # coverage: ignore
 
-# Configuration file for the Sphinx documentation builder.
+# The content for all documentation lives in ../docs. That folder is
+# following the structure for the Google Quantum site configured for the
+# internal CMS, devsite. The readthedocs layer is a secondary, which generates
+# the content using sphinx to readthedocs.io until we go live with the devsite.
+#
+# This is the configuration file for the Sphinx documentation builder.
 # See http://www.sphinx-doc.org/en/master/config for help
 
 # -- Path setup --------------------------------------------------------------
@@ -26,7 +31,10 @@ from cirq import _doc
 
 
 def setup(app):
+    # just in case it exists (locally) remove the copied docs folder
     shutil.rmtree("rtd_docs/docs", ignore_errors=True)
+    # copy recursively the actual content from the devsite folder
+    # to rtd_docs/docs
     shutil.copytree(src="../docs", dst="./docs")
     app.add_config_value('pandoc_use_parser', 'markdown', True)
     app.connect('autodoc-process-docstring', autodoc_process)
