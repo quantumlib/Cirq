@@ -6,7 +6,7 @@ import "cirq/google/api/v2/program.proto";
 package cirq.google.api.v2;
 
 option java_package = "com.google.cirq.google.api.v2";
-option java_outer_classname = "BatchProto";
+option java_outer_classname = "FocusedCalibrationProto";
 option java_multiple_files = true;
 
 //  This message represents a request to execute a custom calibration routine.
@@ -86,8 +86,10 @@ message CalibrationLayerResults {
      string error_message = 2;
 
      // A token identifying the calibration result.
-     // This could be used to tag focused circuits that use parameters
+     // If a token exists in the response, it can be used to tag
+     // focused circuits that use parameters
      // derived from this calibration.
+     // If no token exists, then the calibration was purely diagnostic.
      string token = 3;
 
      // Results, such as gate fidelities, gate angles, etc
