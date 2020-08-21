@@ -23,14 +23,14 @@ from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
 
-SweepableDictType = Dict[Union[str, sympy.Symbol], Iterable[Union[float, str, sympy.
-                                                              Basic]]]
+SweepableDictType = Dict[Union[str, sympy.Symbol], Iterable[
+    Union[float, str, sympy.Basic]]]
 document(
     SweepableDictType,  # type: ignore
     """Dictionary from symbols to sequence of values taken.""")
 
-Sweepable = Union[ParamResolverOrSimilarType, Sweep, SweepableDictType, Iterable[
-    Union[ParamResolverOrSimilarType, Sweep]], None]
+Sweepable = Union[ParamResolverOrSimilarType, Sweep, SweepableDictType,
+                  Iterable[Union[ParamResolverOrSimilarType, Sweep]], None]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
@@ -83,8 +83,9 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
-                cast(Union[Sweep, ParamResolverOrSimilarType,
-                                           Iterable[ParamResolverOrSimilarType]], item))
+                cast(
+                    Union[Sweep, ParamResolverOrSimilarType,
+                          Iterable[ParamResolverOrSimilarType]], item))
         ]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
                     f'sweepable: {sweepable}')
