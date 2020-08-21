@@ -119,7 +119,7 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           sudo apt-get install pandoc
       - name: Build docs
-        run: dev_tools/build-docs.sh
+        run: dev_tools/docs/build-rtd-docs.sh
   build_protos:
     name: Build protos
     runs-on: ubuntu-16.04

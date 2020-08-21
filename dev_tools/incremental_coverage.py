@@ -46,6 +46,8 @@ IGNORED_LINE_PATTERNS = [
     r'plt\.show\(\)',
     r'fig(ure)?\.show\(\)',
     r'=\s*plt.subplots?\(',
+    # Body of mypy Protocol methods.
+    r'\.\.\.',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 

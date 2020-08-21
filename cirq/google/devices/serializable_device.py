@@ -51,7 +51,7 @@ class _GateDefinition:
     def with_can_serialize_predicate(
             self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
     ) -> '_GateDefinition':
-        """Creates a new _GateDefintion as a copy of the existing definition
+        """Creates a new _GateDefinition as a copy of the existing definition
         but with a new with_can_serialize_predicate.  This is useful if multiple
         definitions exist for the same gate, but with different conditions.
 
@@ -120,7 +120,7 @@ class SerializableDevice(devices.Device):
                 into cirq Gates.
         """
 
-        # Store target sets, since they are refered to by name later
+        # Store target sets, since they are referred to by name later
         allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = {}
         permutation_ids: Set[str] = set()
         for ts in proto.valid_targets:

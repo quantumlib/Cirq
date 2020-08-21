@@ -501,6 +501,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC_GATESET
     cirq.google.XMON
     cirq.google.get_engine
+    cirq.google.get_engine_device
     cirq.google.get_engine_sampler
     cirq.google.line_on_device
     cirq.google.optimized_for_sycamore
@@ -571,6 +572,7 @@ operation.
     cirq.ABCMetaImplementAnyOneOf
     cirq.ArithmeticOperation
     cirq.InterchangeableQubitsGate
+    cirq.JsonResolver
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN

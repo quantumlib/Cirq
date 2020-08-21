@@ -34,6 +34,7 @@ from cirq.google.engine import (
     ProtoVersion,
     QuantumEngineSampler,
     get_engine,
+    get_engine_device,
     get_engine_sampler,
 )
 
