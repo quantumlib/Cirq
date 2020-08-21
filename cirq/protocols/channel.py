@@ -50,7 +50,7 @@ class SupportsChannel(Protocol):
         These matrices are required to satisfy the trace preserving condition
             \sum_{k=0}^{r-1} A_i^\dagger A_i = I
         where I is the identity matrix. The matrices A_i are sometimes called
-        Krauss or noise operators.
+        Kraus or noise operators.
 
         This method is used by the global `cirq.channel` method. If this method
         or the _unitary_ method is not present, or returns NotImplement,
@@ -67,7 +67,7 @@ class SupportsChannel(Protocol):
         than the qubit B.
 
         Returns:
-            A list of matrices describing the channel (Krauss operators), or
+            A list of matrices describing the channel (Kraus operators), or
             NotImplemented if there is no such matrix.
         """
     def _has_channel_(self) -> bool:
@@ -85,9 +85,8 @@ class SupportsChannel(Protocol):
         """
 
 
-def channel(val: Any,
-            default: Any = RaiseTypeErrorIfNotProvided
-            ) -> Union[Tuple[np.ndarray], Sequence[TDefault]]:
+def channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
+           ) -> Union[Tuple[np.ndarray, ...], TDefault]:
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
@@ -97,7 +96,7 @@ def channel(val: Any,
     These matrices are required to satisfy the trace preserving condition
         \sum_{k=0}^{r-1} A_i^\dagger A_i = I
     where I is the identity matrix. The matrices A_i are sometimes called
-    Krauss or noise operators.
+    Kraus or noise operators.
 
     Args:
         val: The value to describe by a channel.

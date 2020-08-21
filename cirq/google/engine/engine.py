@@ -28,7 +28,8 @@ import enum
 import os
 import random
 import string
-from typing import Dict, List, Optional, Sequence, TypeVar, Union, TYPE_CHECKING
+from typing import (Dict, Iterable, List, Optional, Sequence, TypeVar, Union,
+                    TYPE_CHECKING)
 
 from google.protobuf import any_pb2
 
@@ -339,7 +340,10 @@ class Engine:
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
         """
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
@@ -553,3 +557,11 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
             f'Environment variable {env_project_id} is not set.')
 
     return Engine(project_id=project_id)
+
+
+def get_engine_device(processor_id: str,
+                      project_id: Optional[str] = None,
+                      gatesets: Iterable[sgs.SerializableGateSet] = ()
+                     ) -> 'cirq.Device':
+    return get_engine(project_id).get_processor(processor_id).get_device(
+        gatesets)

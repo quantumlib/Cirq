@@ -129,7 +129,7 @@ def optimized_for_sycamore(
 
     Uses a set of optimizers that will compile to the proper gateset for the
     device (xmon, sqrt_iswap, or sycamore gates) and then use optimizers to
-    compresss the gate depth down as much as is easily algorithmically possible
+    compress the gate depth down as much as is easily algorithmically possible
     by merging rotations, ejecting Z gates, etc.
 
     Args:

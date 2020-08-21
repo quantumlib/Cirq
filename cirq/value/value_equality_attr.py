@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines `@cirq.value_equality`, for easy __eq__/__hash__ methods."""
 
 from typing import Union, Callable, overload, Any
@@ -89,8 +88,8 @@ def _value_equality_ne(self: _SupportsValueEquality,
 
 
 def _value_equality_hash(self: _SupportsValueEquality) -> int:
-    return hash((self._value_equality_values_cls_(),
-                 self._value_equality_values_()))
+    return hash(
+        (self._value_equality_values_cls_(), self._value_equality_values_()))
 
 
 def _value_equality_approx_eq(self: _SupportsValueEquality,
@@ -220,4 +219,6 @@ def value_equality(cls: type = None,
         setattr(cls, '_approx_eq_', _value_equality_approx_eq)
 
     return cls
+
+
 # pylint: enable=function-redefined
