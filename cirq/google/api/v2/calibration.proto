@@ -53,8 +53,8 @@ message FocusedCalibrationResults {
 // Response codes for Calibration requests
 enum CalibrationLayerCode {
 
-     // For backwards compatibility.
-     UNKNOWN = 0;
+     // Zero is a default value and means the value was unknown or unset.
+     CALIBRATION_RESULT_UNSPECIFIED = 0;
 
      // Successful run of the calibration.
      SUCCESS = 1;
