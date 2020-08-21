@@ -27,6 +27,7 @@ def test_deprecated():
         _ = cirq.StabilizerStateChForm(initial_state=0,
                                        num_qubits=1).wave_function()
 
+
 def test_negative_initial_state():
     state = cirq.StabilizerStateChForm(initial_state=-31, num_qubits=5)
     expected_state_vector = np.zeros(32)
