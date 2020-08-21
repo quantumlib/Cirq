@@ -86,8 +86,10 @@ message CalibrationLayerResults {
      string error_message = 2;
 
      // A token identifying the calibration result.
-     // This could be used to tag focused circuits that use parameters
+     // If a token exists in the response, it can be used to tag
+     // focused circuits that use parameters
      // derived from this calibration.
+     // If no token exists, then the calibration was purely diagnostic.
      string token = 3;
 
      // Results, such as gate fidelities, gate angles, etc
