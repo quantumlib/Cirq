@@ -30,7 +30,7 @@ document(
     """Dictionary from symbols to sequence of values taken.""")
 
 Sweepable = Union[ParamResolverOrSimilarType, Sweep, SweepableDictType,
-                  Iterable[Union[ParamResolverOrSimilarType, Sweep]], None]
+                  Iterable[Union[ParamResolverOrSimilarType, Sweep, SweepableDictType]], None]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
@@ -83,9 +83,7 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
-                cast(
-                    Union[Sweep, ParamResolverOrSimilarType,
-                          Iterable[ParamResolverOrSimilarType]], item))
+                cast(Sweepable, item))
         ]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
                     f'sweepable: {sweepable}')
