@@ -563,5 +563,26 @@ def get_engine_device(processor_id: str,
                       project_id: Optional[str] = None,
                       gatesets: Iterable[sgs.SerializableGateSet] = ()
                      ) -> 'cirq.Device':
+    """Returns a `Device` object for a given processor.
+
+    This is a short-cut for creating an engine object, getting the
+    processor object, and retrieving the device.  Note that the
+    gateset is required in order to match the serialized specification
+    back into cirq objects.
+    """
     return get_engine(project_id).get_processor(processor_id).get_device(
         gatesets)
+
+
+def get_engine_calibration(
+        processor_id: str,
+        project_id: Optional[str] = None,
+) -> Optional['cirq.google.Calibration']:
+    """Returns calibration metrics for a given processor.
+
+    This is a short-cut for creating an engine object, getting the
+    processor object, and retrieving the current calibration.
+    May return None if no calibration metrics exist for the device.
+    """
+    return get_engine(project_id).get_processor(
+        processor_id).get_current_calibration()
