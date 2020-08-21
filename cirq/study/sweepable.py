@@ -83,13 +83,14 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(
-                cast(Union[Dict[str, float], ParamResolver, Sweep], item))
+                cast(Union[Sweep, ParamResolverOrSimilarType,
+                                           Iterable[ParamResolverOrSimilarType]], item))
         ]
     raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
                     f'sweepable: {sweepable}')
 
 
-def to_sweep(sweep_or_resolver_list: Union['Sweep', ParamResolverOrSimilarType,
+def to_sweep(sweep_or_resolver_list: Union[Sweep, ParamResolverOrSimilarType,
                                            Iterable[ParamResolverOrSimilarType]]
             ) -> 'Sweep':
     """Converts the argument into a ``cirq.Sweep``.
