@@ -13,9 +13,14 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
+from typing import List
 import numpy as np
 import scipy
 import scipy.stats
+
+
+from cirq import linalg
+from cirq import protocols
 
 
 def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
@@ -69,3 +74,53 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
     """
     eigenvalues = np.linalg.eigvalsh(density_matrix)
     return scipy.stats.entropy(abs(eigenvalues), base=2)
+
+
+def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
+    """Calculates the average fidelity of a noisy circuit.
+
+    The code uses the Kraus representation for open circuits, when decomposing
+    into noisy channels. The formula for process fidelity can be found at
+    equation (2) of "Quantum Gate Fidelity in Terms of Choi Matrices" by
+    Nathaniel Johnston and David W. Kribs which can be found at:
+    https://arxiv.org/pdf/1102.0948.pdf
+
+    Another useful reference is "A simple formula for the average gate fidelity
+    of a quantum dynamical operation" by Michael A. Nielsen which can be found
+    at:
+    https://arxiv.org/pdf/quant-ph/0205035.pdf
+
+    Args:
+        clean_circuit: The perfect circuit (no noise, closed).
+        noisy_circuit: The circuit with noise gates (open circuit).
+        qubits: The list of qubits.
+    Returns:
+        A scalar that is the average (process) entropy
+    """
+    n = len(qubits)
+    d = 2**n
+    qubit_map = {q.with_dimension(1): i for i, q in enumerate(qubits)}
+
+    kraus_operations = [clean_circuit.unitary().reshape([2] * (2 * n))]
+    for op in noisy_circuit.all_operations():
+        target_axes = [qubit_map[q.with_dimension(1)] for q in op.qubits]
+
+        next_kraus_operations = []
+
+        for op_kraus in protocols.channel(op, default=None):
+            op_kraus_reshaped = np.conjugate(np.transpose(op_kraus)).reshape(
+                [2] * (len(target_axes) * 2))
+            for kraus_operation in kraus_operations:
+                next_kraus_operation = linalg.targeted_left_multiply(
+                    left_matrix=op_kraus_reshaped,
+                    right_target=kraus_operation,
+                    target_axes=target_axes)
+                next_kraus_operations.append(next_kraus_operation)
+
+        kraus_operations = next_kraus_operations
+
+    EiT = [x.reshape(d, d) for x in kraus_operations]
+
+    sum_traces = sum([abs(np.trace(x))**2 for x in EiT])
+
+    return (d + sum_traces) / (d * (d + 1))

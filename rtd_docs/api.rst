@@ -501,6 +501,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC_GATESET
     cirq.google.XMON
     cirq.google.get_engine
+    cirq.google.get_engine_calibration
     cirq.google.get_engine_device
     cirq.google.get_engine_sampler
     cirq.google.line_on_device
@@ -684,6 +685,7 @@ Quantum Information Science
     cirq.eye_tensor
     cirq.fidelity
     cirq.one_hot
+    cirq.process_fidelity
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
     cirq.validate_indices

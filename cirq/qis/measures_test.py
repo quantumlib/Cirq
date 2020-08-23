@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Tests for measures."""
+import math
 import numpy as np
 import pytest
 
@@ -129,3 +130,36 @@ def test_von_neumann_entropy():
         np.diag([0, 0, 0.1, 0, 0.2, 0.3, 0.4, 0])),
                       1.8464,
                       atol=1e-04)
+
+
+def test_process_fidelity_one_qubit():
+    q = cirq.LineQubit(0)
+
+    clean_circuit = cirq.Circuit(cirq.X(q)**0.123)
+
+    noise_model = cirq.ConstantQubitNoiseModel(
+        cirq.AmplitudeDampingChannel(0.5))
+    noisy_circuit = cirq.Circuit(
+        noise_model.noisy_moments(clean_circuit.moments, [q]))
+
+    assert np.isclose(cirq.process_fidelity(clean_circuit, clean_circuit, [q]),
+                      1.0)
+    assert np.isclose(cirq.process_fidelity(clean_circuit, noisy_circuit, [q]),
+                      (2 + (1 + math.sqrt(0.5))**2) / (2 * 3))
+
+
+def test_process_fidelity_two_qubits():
+    qubits = cirq.LineQubit.range(2)
+
+    clean_circuit = cirq.Circuit(cirq.CNOT(qubits[1], qubits[0]))
+
+    noise_model = cirq.ConstantQubitNoiseModel(
+        cirq.AmplitudeDampingChannel(0.5))
+    noisy_circuit = cirq.Circuit(
+        noise_model.noisy_moments(clean_circuit.moments, qubits))
+
+    assert np.isclose(
+        cirq.process_fidelity(clean_circuit, clean_circuit, qubits), 1.0)
+    assert np.isclose(
+        cirq.process_fidelity(clean_circuit, noisy_circuit, qubits),
+        (4 + 17 / 4 + 6 * math.sqrt(0.5)) / (4 * 5))
