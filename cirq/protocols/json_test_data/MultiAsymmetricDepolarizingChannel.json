@@ -1,0 +1,8 @@
+{
+  "cirq_type": "MultiAsymmetricDepolarizingChannel",
+  "num_qubits": 2,
+  "pis": {
+      "II": 0.8,
+      "XX": 0.2
+  }
+}

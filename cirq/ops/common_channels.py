@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Quantum channels that are commonly used in the literature."""
 
 from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
@@ -25,6 +24,127 @@ from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
 
 if TYPE_CHECKING:
     import cirq
+
+
+@value.value_equality
+class MultiAsymmetricDepolarizingChannel(raw_types.Gate):
+    """A channel that depolarizes multiple qubits asymmetrically along different
+    directions."""
+
+    def __init__(self, num_qubits: int, pis: Dict[str, float]) -> None:
+        r"""The multi-qubit asymmetric depolarizing channel.
+
+        This channel applies one of four disjoint possibilities: nothing (the
+        identity channel) or one of the 2**n pauli gates. The disjoint
+        probabilities of the 2**n gates are p and the identity is done with the
+        first entry. The supplied probabilities must be valid probabilities and
+        the sum must be a valid probability or else this constructor will raise
+        a ValueError.
+
+        This channel evolves a density matrix via
+
+            $$
+            \sum_i p_I Pi \rho Pi
+            $$
+
+        Args:
+            num_qubits: Number of qubits
+            pis: Dictionary of string (Pauli operator) to its probability
+
+        Raises:
+            ValueError: if the args or the sum of args are not probabilities.
+        """
+        for pauli, p in pis.items():
+            assert len(pauli) == num_qubits
+            for gate in pauli:
+                assert gate == 'I' or gate == 'X' or gate == 'Y' or gate == 'Z'
+            value.validate_probability(p, 'p')
+        value.validate_probability(sum(pis.values()), 'sum(p)')
+
+        self._num_qubits = num_qubits
+        self._pis = pis
+
+    def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
+        Pis = []
+        for pauli in self._pis.keys():
+            Pi = np.identity(1)
+            for gate in pauli:
+                if gate == 'I':
+                    Pi = np.kron(Pi, protocols.unitary(identity.I))
+                elif gate == 'X':
+                    Pi = np.kron(Pi, protocols.unitary(pauli_gates.X))
+                elif gate == 'Y':
+                    Pi = np.kron(Pi, protocols.unitary(pauli_gates.Y))
+                elif gate == 'Z':
+                    Pi = np.kron(Pi, protocols.unitary(pauli_gates.Z))
+            Pis.append(Pi)
+        return tuple(zip(self._pis.values(), Pis))
+
+    def _num_qubits_(self) -> int:
+        return self._num_qubits
+
+    def _has_mixture_(self) -> bool:
+        return True
+
+    def _value_equality_values_(self):
+        return self._num_qubits, self._pis
+
+    def __repr__(self) -> str:
+        return (
+            'cirq.multi_asymmetric_depolarize' +
+            '(num_qubits={!r},pis={!r})'.format(self._num_qubits, self._pis))
+
+    def __str__(self) -> str:
+        return 'multi_asymmetric_depolarize(num_qubits={!r},pis={!r})'.format(
+            self._num_qubits, self._pis)
+
+    def _circuit_diagram_info_(self,
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        if args.precision is not None:
+            f = '{:.' + str(args.precision) + 'g}'
+            ps = [
+                pauli + ':' + '{}'.format(f).format(p)
+                for pauli, p in self._pis.items()
+            ]
+        else:
+            ps = [
+                pauli + ':' + '{!r}'.format(p)
+                for pauli, p in self._pis.items()
+            ]
+        return 'MA({})'.format(', '.join(ps))
+
+    @property
+    def num_qubits(self) -> int:
+        """The number of qubits"""
+        return self._num_qubits
+
+    @property
+    def pis(self) -> Dict[str, float]:
+        """A dictionary from Pauli gates to probability"""
+        return self._pis
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['num_qubits', 'pis'])
+
+
+def multi_asymmetric_depolarize(num_qubits: int, pis: Dict[str, float]
+                               ) -> MultiAsymmetricDepolarizingChannel:
+    r"""Returns a MultiAsymmetricDepolarizingChannel with given parameter.
+
+    This channel evolves a density matrix via
+
+            $$
+            \sum_i p_I Pi \rho Pi
+            $$
+
+    Args:
+        num_qubits: Number of qubits
+        pis: Dictionary of string (Pauli operator) to its probability
+
+    Raises:
+        ValueError: if the args or the sum of the args are not probabilities.
+    """
+    return MultiAsymmetricDepolarizingChannel(num_qubits, pis)
 
 
 @value.value_equality
@@ -63,12 +183,16 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         self._p_z = value.validate_probability(p_z, 'p_z')
         self._p_i = 1 - value.validate_probability(p_x + p_y + p_z,
                                                    'p_x + p_y + p_z')
+        self._delegate = MultiAsymmetricDepolarizingChannel(num_qubits=1,
+                                                            pis={
+                                                                'I': self._p_i,
+                                                                'X': self._p_x,
+                                                                'Y': self._p_y,
+                                                                'Z': self._p_z
+                                                            })
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        return ((self._p_i, protocols.unitary(identity.I)),
-                (self._p_x, protocols.unitary(pauli_gates.X)),
-                (self._p_y, protocols.unitary(pauli_gates.Y)),
-                (self._p_z, protocols.unitary(pauli_gates.Z)))
+        return self._delegate._mixture_()
 
     def _has_mixture_(self) -> bool:
         return True
@@ -78,13 +202,11 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
     def __repr__(self) -> str:
         return 'cirq.asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'.format(
-            self._p_x, self._p_y, self._p_z
-        )
+            self._p_x, self._p_y, self._p_z)
 
     def __str__(self) -> str:
         return 'asymmetric_depolarize(p_x={!r},p_y={!r},p_z={!r})'.format(
-            self._p_x, self._p_y, self._p_z
-        )
+            self._p_x, self._p_y, self._p_z)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -113,9 +235,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p_x', 'p_y', 'p_z'])
 
 
-def asymmetric_depolarize(
-    p_x: float, p_y: float, p_z: float
-) -> AsymmetricDepolarizingChannel:
+def asymmetric_depolarize(p_x: float, p_y: float,
+                          p_z: float) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
     This channel evolves a density matrix via
@@ -314,13 +435,11 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
 
     def __repr__(self) -> str:
         return 'cirq.generalized_amplitude_damp(p={!r},gamma={!r})'.format(
-            self._p, self._gamma
-        )
+            self._p, self._gamma)
 
     def __str__(self) -> str:
         return 'generalized_amplitude_damp(p={!r},gamma={!r})'.format(
-            self._p, self._gamma
-        )
+            self._p, self._gamma)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -343,9 +462,8 @@ class GeneralizedAmplitudeDampingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['p', 'gamma'])
 
 
-def generalized_amplitude_damp(
-    p: float, gamma: float
-) -> GeneralizedAmplitudeDampingChannel:
+def generalized_amplitude_damp(p: float, gamma: float
+                              ) -> GeneralizedAmplitudeDampingChannel:
     r"""
     Returns a GeneralizedAmplitudeDampingChannel with the given
     probabilities gamma and p.
@@ -992,9 +1110,8 @@ def _bit_flip(p: float) -> BitFlipChannel:
     return BitFlipChannel(p)
 
 
-def bit_flip(
-    p: Optional[float] = None
-) -> Union[common_gates.XPowGate, BitFlipChannel]:
+def bit_flip(p: Optional[float] = None
+            ) -> Union[common_gates.XPowGate, BitFlipChannel]:
     r"""
     Construct a BitFlipChannel that flips a qubit state
     with probability of a flip given by p. If p is None, return

@@ -21,6 +21,12 @@ X = np.array([[0, 1], [1, 0]])
 Y = np.array( [[0, -1j], [1j, 0]])
 Z = np.array( [[1, 0], [0, -1]])
 
+no_precision = cirq.CircuitDiagramInfoArgs(known_qubits=None,
+                                           known_qubit_count=None,
+                                           use_unicode_characters=True,
+                                           precision=None,
+                                           qubit_map=None)
+
 round_to_6_prec = cirq.CircuitDiagramInfoArgs(known_qubits=None,
                                               known_qubit_count=None,
                                               use_unicode_characters=True,
@@ -504,3 +510,65 @@ def test_bit_flip_channel_text_diagram():
     assert (cirq.circuit_diagram_info(
         bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
             wire_symbols=('BF(0.12)',)))
+
+
+def test_multi_asymmetric_depolarizing_channel():
+    d = cirq.multi_asymmetric_depolarize(num_qubits=2,
+                                         pis={
+                                             'II': 0.8,
+                                             'XX': 0.2
+                                         })
+    np.testing.assert_almost_equal(
+        cirq.channel(d),
+        (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X)))
+    assert cirq.has_channel(d)
+    np.testing.assert_equal(d._num_qubits_(), 2)
+
+
+def test_multi_asymmetric_depolarizing_mixture():
+    d = cirq.multi_asymmetric_depolarize(num_qubits=2,
+                                         pis={
+                                             'II': 0.8,
+                                             'XX': 0.2
+                                         })
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.8, np.eye(4)), (0.2, np.kron(X, X))))
+    assert cirq.has_mixture(d)
+    np.testing.assert_equal(d._num_qubits_(), 2)
+
+
+def test_multi_asymmetric_depolarizing_channel_repr():
+    cirq.testing.assert_equivalent_repr(
+        cirq.MultiAsymmetricDepolarizingChannel(num_qubits=2,
+                                                pis={
+                                                    'II': 0.8,
+                                                    'XX': 0.2
+                                                }))
+
+
+def test_multi_asymmetric_depolarizing_channel_str():
+    assert (str(
+        cirq.multi_asymmetric_depolarize(
+            num_qubits=2, pis={
+                'II': 0.8,
+                'XX': 0.2
+            })) == (
+                "multi_asymmetric_depolarize(num_qubits=2,pis={'II': 0.8, " +
+                "'XX': 0.2})"))
+
+
+def test_multi_asymmetric_depolarizing_channel_text_diagram():
+    a = cirq.multi_asymmetric_depolarize(num_qubits=1,
+                                         pis={
+                                             'I': 2 / 3,
+                                             'X': 1 / 3
+                                         })
+    assert (cirq.circuit_diagram_info(
+        a, args=no_precision) == cirq.CircuitDiagramInfo(
+            wire_symbols=('MA(I:0.6666666666666666, X:0.3333333333333333)',)))
+    assert (cirq.circuit_diagram_info(
+        a, args=round_to_6_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('MA(I:0.666667, X:0.333333)',)))
+    assert (cirq.circuit_diagram_info(
+        a, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
+            wire_symbols=('MA(I:0.67, X:0.33)',)))

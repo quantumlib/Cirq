@@ -126,6 +126,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.bit_flip
     cirq.depolarize
     cirq.generalized_amplitude_damp
+    cirq.multi_asymmetric_depolarize
     cirq.phase_damp
     cirq.phase_flip
     cirq.reset
@@ -134,6 +135,7 @@ the more general concept of a noisy open system quantum evolution.
     cirq.BitFlipChannel
     cirq.DepolarizingChannel
     cirq.GeneralizedAmplitudeDampingChannel
+    cirq.MultiAsymmetricDepolarizingChannel
     cirq.NoiseModel
     cirq.PhaseDampingChannel
     cirq.PhaseFlipChannel

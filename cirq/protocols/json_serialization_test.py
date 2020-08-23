@@ -293,6 +293,7 @@ NOT_YET_SERIALIZABLE = [
     'LinearCombinationOfOperations',
     'Linspace',
     'ListSweep',
+    'MultiAsymmetricDepolarizingChannel',
     'NeutralAtomDevice',
     'ParallelGateOperation',
     'PauliInteractionGate',
