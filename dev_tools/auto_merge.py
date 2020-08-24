@@ -1,6 +1,6 @@
 import datetime
 import traceback
-from typing import Optional, List, Any, Dict, Set, Union
+from typing import Callable, Optional, List, Any, Dict, Set, Union
 
 import json
 import os
@@ -150,30 +150,42 @@ def check_collaborator_has_write(repo: GithubRepository, username: str
     return None
 
 
+def get_all(url_func: Callable[[int], str]) -> List[Any]:
+    results = []
+    page = 0
+    has_next = True
+    while has_next:
+        url = url_func(page)
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            raise RuntimeError(
+                f'Request failed to {url}. Code: {response.status_code}.'
+                f' Content: {response.content!r}.')
+
+        payload = json.JSONDecoder().decode(response.content.decode())
+        results += payload
+        has_next = ('link' in response.headers and
+                    'rel="next"' in response.headers['link'])
+        page += 1
+    return results
+
+
 def check_auto_merge_labeler(repo: GithubRepository, pull_id: int
                              ) -> Optional[CannotAutomergeError]:
     """
     References:
         https://developer.github.com/v3/issues/events/#list-events-for-an-issue
     """
-    url = ("https://api.github.com/repos/{}/{}/issues/{}/events"
-           "?access_token={}".format(repo.organization,
-                                     repo.name,
-                                     pull_id,
-                                     repo.access_token))
+    events = get_all(lambda page: (
+        "https://api.github.com/repos/{}/{}/issues/{}/events"
+        "?access_token={}&per_page=100&page={}".format(
+            repo.organization, repo.name, pull_id, repo.access_token, page)))
 
-    response = requests.get(url)
-
-    if response.status_code != 200:
-        raise RuntimeError(
-            'Event check failed. Code: {}. Content: {!r}.'.format(
-                response.status_code, response.content))
-
-    payload = json.JSONDecoder().decode(response.content.decode())
-    relevant = [event
-                for event in payload
-                if event['event'] == 'labeled' and
-                event['label']['name'] in AUTO_MERGE_LABELS]
+    relevant = [
+        event for event in events if event['event'] == 'labeled' and
+        event['label']['name'] in AUTO_MERGE_LABELS
+    ]
     if not relevant:
         return CannotAutomergeError('"automerge" label was never added.')
 
@@ -331,7 +343,7 @@ def get_pr_review_status(pr: PullRequestDetails, per_page: int = 100) -> Any:
     """
     url = (f"https://api.github.com/repos/{pr.repo.organization}/{pr.repo.name}"
            f"/pulls/{pr.pull_id}/reviews"
-           f"?per_page={per_page};access_token={pr.repo.access_token}")
+           f"?per_page={per_page}&access_token={pr.repo.access_token}")
     response = requests.get(url)
 
     if response.status_code != 200:
