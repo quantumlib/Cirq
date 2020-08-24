@@ -74,6 +74,16 @@ from cirq.google.api import v2
             }]
         }
     }),
+    ('exp', sympy.Symbol('x')**sympy.Symbol('y'), {
+        'func': {
+            'type': 'pow',
+            'args': [{
+                'symbol': 'x'
+            }, {
+                'symbol': 'y'
+            }]
+        }
+    }),
 ])
 def test_correspondence(min_lang: str, value: ARG_LIKE,
                         proto: v2.program_pb2.Arg):
@@ -170,3 +180,7 @@ def test_infer_language():
     c_empty = cirq.Circuit(cirq.X(q)**b)
     packed = cirq.google.XMON.serialize(c_empty)
     assert packed.language.arg_function_language == ''
+
+    c_exp = cirq.Circuit(cirq.X(q)**(b**a))
+    packed = cirq.google.XMON.serialize(c_exp)
+    assert packed.language.arg_function_language == 'exp'

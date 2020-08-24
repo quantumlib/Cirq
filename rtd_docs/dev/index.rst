@@ -4,7 +4,7 @@ Internal Documentation for Cirq Developers
 .. toctree::
     :maxdepth: 1
 
-    gates
-    nomenclature
-    plotting
-    serialization
+    ../docs/dev/gates
+    ../docs/dev/nomenclature
+    ../docs/dev/plotting
+    ../docs/dev/serialization

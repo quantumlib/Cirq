@@ -82,17 +82,17 @@ def test_apply_mixture_simple():
                 cast(Tuple[int], args.right_axes), 1)
             args.out_buffer[:] = 0
             np.copyto(dst=args.auxiliary_buffer0, src=args.target_tensor)
-            for krauss_op in [
+            for kraus_op in [
                     np.sqrt(0.5) * np.eye(2, dtype=np.complex128),
                     np.sqrt(0.5) * x
             ]:
                 np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)
                 cirq.apply_matrix_to_slices(args.target_tensor,
-                                            krauss_op, [zero_left, one_left],
+                                            kraus_op, [zero_left, one_left],
                                             out=args.auxiliary_buffer1)
 
                 cirq.apply_matrix_to_slices(args.auxiliary_buffer1,
-                                            np.conjugate(krauss_op),
+                                            np.conjugate(kraus_op),
                                             [zero_right, one_right],
                                             out=args.target_tensor)
                 args.out_buffer += args.target_tensor
@@ -312,7 +312,7 @@ def test_apply_mixture_apply_unitary():
 
 def test_apply_mixture_apply_unitary_not_implemented():
 
-    class ApplyUnitaryNotImplemeneted:
+    class ApplyUnitaryNotImplemented:
 
         def _apply_unitary_(self, args: cirq.ApplyUnitaryArgs):
             return NotImplemented
@@ -321,7 +321,7 @@ def test_apply_mixture_apply_unitary_not_implemented():
     out_buf, aux_buf0, aux_buf1 = make_buffers((2, 2, 2, 2), dtype=rho.dtype)
 
     with pytest.raises(TypeError, match='has no'):
-        cirq.apply_mixture(ApplyUnitaryNotImplemeneted(),
+        cirq.apply_mixture(ApplyUnitaryNotImplemented(),
                            args=cirq.ApplyMixtureArgs(
                                target_tensor=rho,
                                left_axes=[1],

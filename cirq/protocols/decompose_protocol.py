@@ -176,9 +176,9 @@ def decompose(
             to raise. `on_stuck_raise` can either directly be an `Exception`, or
             a method that takes the problematic operation and returns an
             `Exception`. If `on_stuck_raise` is set to `None` or a method that
-            returns `None`, undecomposable operations are simply silently kept.
-            `on_stuck_raise` defaults to a `ValueError` describing the unwanted
-            undecomposable operation.
+            returns `None`, non-decomposable operations are simply silently
+            kept. `on_stuck_raise` defaults to a `ValueError` describing the
+            unwanted non-decomposable operation.
 
     Returns:
         A list of operations that the given value was decomposed into. If
@@ -191,11 +191,11 @@ def decompose(
             (So it's not possible to return a list of operations.)
 
         ValueError:
-            Default type of error raised if there's an undecomposable operation
-            that doesn't satisfy the given `keep` predicate.
+            Default type of error raised if there's an non-decomposable
+            operation that doesn't satisfy the given `keep` predicate.
 
         TError:
-            Custom type of error raised if there's an undecomposable operation
+            Custom type of error raised if there's an non-decomposable operation
             that doesn't satisfy the given `keep` predicate.
     """
 
@@ -274,7 +274,8 @@ def decompose_once(val: Any,
         val: The value to call `_decompose_` on, if possible.
         default: A default result to use if the value doesn't have a
             `_decompose_` method or that method returns `NotImplemented` or
-            `None`. If not specified, undecomposable values cause a `TypeError`.
+            `None`. If not specified, non-decomposable values cause a
+            `TypeError`.
         args: Positional arguments to forward into the `_decompose_` method of
             `val`.  For example, this is used to tell gates what qubits they are
             being applied to.
@@ -340,7 +341,8 @@ def decompose_once_with_qubits(val: Any,
             `val._decompose_`.
         default: A default result to use if the value doesn't have a
             `_decompose_` method or that method returns `NotImplemented` or
-            `None`. If not specified, undecomposable values cause a `TypeError`.
+            `None`. If not specified, non-decomposable values cause a
+            `TypeError`.
 
     Returns:
         The result of `val._decompose_(qubits)`, if `val` has a

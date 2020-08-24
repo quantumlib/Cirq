@@ -46,7 +46,7 @@ def test_qelib_inc():
     assert token.value == 'include "qelib1.inc";'
 
 
-def test_measurment():
+def test_measurement():
     lexer = QasmLexer()
     lexer.input("measure q -> c;")
     token = lexer.token()
