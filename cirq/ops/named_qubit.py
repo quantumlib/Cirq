@@ -21,10 +21,10 @@ from cirq.ops import raw_types
 if TYPE_CHECKING:
     import cirq
 
-TSelf = TypeVar('TSelf', bound='_BaseNamedQid') # type: ignore
+TSelf = TypeVar('TSelf', bound='_BaseNamedQid')  # type: ignore
 
 
-@functools.total_ordering # type: ignore
+@functools.total_ordering  # type: ignore
 class _BaseNamedQid(raw_types.Qid):
     """The base class for `NamedQid` and `NamedQubit`."""
 
