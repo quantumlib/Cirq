@@ -80,10 +80,16 @@ class StateTomographyExperiment:
 
         self.rot_circuit = circuits.Circuit(operations)
         self.rot_sweep = study.Product(*sweeps)
-        self.mat = self._make_state_tomography_matrix()
+        self.mat = self._make_state_tomography_matrix(qubits)
 
-    def _make_state_tomography_matrix(self) -> np.ndarray:
+    def _make_state_tomography_matrix(
+            self,
+            qubits: Sequence['cirq.Qid'],
+    ) -> np.ndarray:
         """Gets the matrix used for solving the linear system of the tomography.
+
+        Args:
+            qubits: Qubits to do the tomography on.
 
         Returns:
             A matrix of dimension ((number of rotations)**n * 2**n, 4**n)
@@ -96,8 +102,8 @@ class StateTomographyExperiment:
 
         # Unitary matrices of each rotation circuit.
         unitaries = np.array([
-            protocols.unitary(
-                protocols.resolve_parameters(self.rot_circuit, rots))
+            protocols.resolve_parameters(self.rot_circuit,
+                                         rots).unitary(qubit_order=qubits)
             for rots in self.rot_sweep
         ])
         mat = np.einsum('jkm,jkn->jkmn', unitaries, unitaries.conj())

@@ -16,6 +16,7 @@ import pytest
 
 import cirq
 from cirq import Moment
+from cirq._compat_test import capture_logging
 
 
 def test_validation():
@@ -230,8 +231,10 @@ def test_bool():
 def test_repr():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    original = Moment([cirq.CZ(a, b)])
-    cirq.testing.assert_equivalent_repr(original)
+
+    cirq.testing.assert_equivalent_repr(cirq.Moment())
+    cirq.testing.assert_equivalent_repr(cirq.Moment(cirq.CZ(a, b)))
+    cirq.testing.assert_equivalent_repr(cirq.Moment(cirq.X(a), cirq.Y(b)))
 
 
 def test_json_dict():
@@ -264,7 +267,7 @@ def test_immutable_moment():
 
 
 def test_add():
-    a, b = cirq.LineQubit.range(2)
+    a, b, c = cirq.LineQubit.range(3)
     expected_circuit = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a), cirq.Y(b)])
 
     circuit1 = cirq.Circuit([cirq.CNOT(a, b), cirq.X(a)])
@@ -274,3 +277,76 @@ def test_add():
     circuit2 = cirq.Circuit(cirq.CNOT(a, b), cirq.Y(b))
     circuit2[1] += cirq.X(a)
     assert circuit2 == expected_circuit
+
+    m1 = cirq.Moment([cirq.X(a)])
+    m2 = cirq.Moment([cirq.CNOT(a, b)])
+    m3 = cirq.Moment([cirq.X(c)])
+    assert m1 + m3 == cirq.Moment([cirq.X(a), cirq.X(c)])
+    assert m2 + m3 == cirq.Moment([cirq.CNOT(a, b), cirq.X(c)])
+    with pytest.raises(ValueError, match='Overlap'):
+        _ = m1 + m2
+
+
+def test_op_tree():
+    eq = cirq.testing.EqualsTester()
+    a, b = cirq.LineQubit.range(2)
+
+    eq.add_equality_group(
+        cirq.Moment(),
+        cirq.Moment([]),
+        cirq.Moment([[], [[[]]]]),
+    )
+
+    eq.add_equality_group(
+        cirq.Moment(cirq.X(a)),
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment({cirq.X(a)}),
+    )
+
+    eq.add_equality_group(
+        cirq.Moment(cirq.X(a), cirq.Y(b)),
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    )
+
+
+def test_deprecated_operations_parameter():
+    with capture_logging() as log:
+        op = cirq.X(cirq.LineQubit(0))
+        assert not log
+        # pylint: disable=unexpected-keyword-arg
+        m = cirq.Moment(operations=[op])
+        # pylint: enable=unexpected-keyword-arg
+        assert log
+    assert m == cirq.Moment(op)
+
+
+def test_indexes_by_qubit():
+    a, b, c = cirq.LineQubit.range(3)
+    moment = cirq.Moment([cirq.H(a), cirq.CNOT(b, c)])
+
+    assert moment[a] == cirq.H(a)
+    assert moment[b] == cirq.CNOT(b, c)
+    assert moment[c] == cirq.CNOT(b, c)
+
+
+def test_throws_when_indexed_by_unused_qubit():
+    a, b = cirq.LineQubit.range(2)
+    moment = cirq.Moment([cirq.H(a)])
+
+    with pytest.raises(KeyError, match="Moment doesn't act on given qubit"):
+        _ = moment[b]
+
+
+def test_indexes_by_list_of_qubits():
+    q = cirq.LineQubit.range(4)
+    moment = cirq.Moment([cirq.Z(q[0]), cirq.CNOT(q[1], q[2])])
+
+    assert moment[[q[0]]] == Moment([cirq.Z(q[0])])
+    assert moment[[q[1]]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[2]]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[3]]] == Moment([])
+    assert moment[q[0:2]] == moment
+    assert moment[q[1:3]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[q[2:4]] == Moment([cirq.CNOT(q[1], q[2])])
+    assert moment[[q[0], q[3]]] == Moment([cirq.Z(q[0])])
+    assert moment[q] == moment

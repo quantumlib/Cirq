@@ -166,6 +166,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsUnitary',
 
     # mypy types:
+    'CIRCUIT_LIKE',
     'DURATION_LIKE',
     'NOISE_MODEL_LIKE',
     'OP_TREE',
@@ -174,6 +175,7 @@ SHOULDNT_BE_SERIALIZED = [
     'ParamResolverOrSimilarType',
     'PauliSumLike',
     'QubitOrderOrList',
+    'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
     'TParamVal',
@@ -187,11 +189,14 @@ SHOULDNT_BE_SERIALIZED = [
     'GreedySequenceSearchStrategy',
     'SerializingArg',
     'Unique',
+    'DEFAULT_RESOLVERS',
 
     # Quantum Engine
     'Engine',
     'EngineJob',
+    'EngineProcessor',
     'EngineProgram',
+    'EngineTimeSlot',
     'QuantumEngineSampler',
 
     # enums
@@ -265,7 +270,6 @@ NOT_YET_SERIALIZABLE = [
     'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
-    'CliffordTableau',
     'CliffordTrialResult',
     'ConstantQubitNoiseModel',
     'DensityMatrixSimulator',
@@ -273,10 +277,10 @@ NOT_YET_SERIALIZABLE = [
     'DensityMatrixStepResult',
     'DensityMatrixTrialResult',
     'ExpressionMap',
+    'FSIM_GATESET',
     'Heatmap',
     'InsertStrategy',
     'IonDevice',
-    'JobConfig',
     'KakDecomposition',
     'LinearCombinationOfGates',
     'LinearCombinationOfOperations',
@@ -304,7 +308,6 @@ NOT_YET_SERIALIZABLE = [
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
-    'StabilizerStateChForm',
     'StateVectorMixin',
     'SYC_GATESET',
     'Sycamore',
@@ -456,7 +459,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
                 f"To get this to work you likely need "
                 f"to add {cirq_obj_name} to the "
                 f"`cirq_class_resolver_dictionary` method in "
-                f"the cirq/protocols/json.py source file. "
+                f"the cirq/protocols/json_serialization.py source file. "
                 f"You may also need to add a _json_dict_ method to "
                 f"{cirq_obj_name}. In some cases you will also need to add a "
                 f"_from_json_dict_ method to {cirq_obj_name}."
@@ -543,6 +546,7 @@ def assert_repr_and_json_test_data_agree(repr_path: pathlib.Path,
         json_from_cirq = cirq.to_json(repr_obj)
         json_from_cirq_obj = json.loads(json_from_cirq)
         json_from_file_obj = json.loads(json_from_file)
+
         assert json_from_cirq_obj == json_from_file_obj, (
             f'The json produced by cirq no longer agrees with the json in the '
             f'{rel_json_path} test data file.\n'
@@ -585,3 +589,68 @@ def test_pathlib_paths(tmpdir):
     path = pathlib.Path(tmpdir) / 'op.json'
     cirq.to_json(cirq.X, path)
     assert cirq.read_json(path) == cirq.X
+
+
+def test_json_serializable_dataclass():
+
+    @cirq.json_serializable_dataclass
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    assert_json_roundtrip_works(my_dc,
+                                text_should_be="\n".join([
+                                    '{',
+                                    '  "cirq_type": "MyDC",',
+                                    '  "q": {',
+                                    '    "cirq_type": "LineQubit",',
+                                    '    "x": 4',
+                                    '  },',
+                                    '  "desc": "hi mom"',
+                                    '}',
+                                ]),
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)
+
+
+def test_json_serializable_dataclass_parenthesis():
+
+    @cirq.json_serializable_dataclass()
+    class MyDC:
+        q: cirq.LineQubit
+        desc: str
+
+    def custom_resolver(name):
+        if name == 'MyDC':
+            return MyDC
+
+    my_dc = MyDC(cirq.LineQubit(4), 'hi mom')
+
+    assert_json_roundtrip_works(my_dc,
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)
+
+
+def test_json_serializable_dataclass_namespace():
+
+    @cirq.json_serializable_dataclass(namespace='cirq.experiments')
+    class QuantumVolumeParams:
+        width: int
+        depth: int
+        circuit_i: int
+
+    qvp = QuantumVolumeParams(width=5, depth=5, circuit_i=0)
+
+    def custom_resolver(name):
+        if name == 'cirq.experiments.QuantumVolumeParams':
+            return QuantumVolumeParams
+
+    assert_json_roundtrip_works(qvp,
+                                resolvers=[custom_resolver] +
+                                cirq.DEFAULT_RESOLVERS)

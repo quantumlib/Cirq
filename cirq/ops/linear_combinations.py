@@ -18,7 +18,7 @@ import numbers
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import protocols, qis, value
 from cirq._doc import document
 from cirq.linalg import operator_spaces
 from cirq.ops import identity, raw_types, pauli_gates, pauli_string
@@ -392,12 +392,10 @@ class PauliSum:
                              "with shape `(2 ** n,)` or `(2, ..., 2)`.")
 
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.wave_function import validate_normalized_state
-            validate_normalized_state(state=state,
-                                      qid_shape=(2,) * num_qubits,
-                                      dtype=state.dtype,
-                                      atol=atol)
+            qis.validate_normalized_state(state=state,
+                                          qid_shape=(2,) * num_qubits,
+                                          dtype=state.dtype,
+                                          atol=atol)
         return sum(
             p._expectation_from_wavefunction_no_validation(state, qubit_map)
             for p in self)
@@ -445,14 +443,12 @@ class PauliSum:
                              "with shape `(2 ** n, 2 ** n)` or `(2, ..., 2)`.")
 
         if check_preconditions:
-            # HACK: avoid circular import
-            from cirq.sim.density_matrix_utils import to_valid_density_matrix
             # Do not enforce reshaping if the state all axes are dimension 2.
-            _ = to_valid_density_matrix(density_matrix_rep=state.reshape(
+            _ = qis.to_valid_density_matrix(density_matrix_rep=state.reshape(
                 dim, dim),
-                                        num_qubits=num_qubits,
-                                        dtype=state.dtype,
-                                        atol=atol)
+                                            num_qubits=num_qubits,
+                                            dtype=state.dtype,
+                                            atol=atol)
         return sum(
             p._expectation_from_density_matrix_no_validation(state, qubit_map)
             for p in self)
@@ -566,12 +562,12 @@ class PauliSum:
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return 'cirq.{}({!r})'.format(class_name, self._linear_dict)
+        return f'cirq.{class_name}({self._linear_dict!r})'
 
     def __format__(self, format_spec: str) -> str:
         terms = [(_pauli_string_from_unit(v), self._linear_dict[v])
                  for v in self._linear_dict.keys()]
         return _format_terms(terms=terms, format_spec=format_spec)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__format__('.3f')

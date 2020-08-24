@@ -29,20 +29,21 @@ from cirq.testing.consistent_qasm import (
         assert_qasm_is_consistent_with_unitary)
 from cirq.testing.consistent_pauli_expansion import (
         assert_pauli_expansion_is_consistent_with_unitary)
+from cirq.testing.consistent_specified_has_unitary import (
+    assert_specifies_has_unitary_if_unitary,)
 from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
 
 
 def assert_implements_consistent_protocols(
         val: Any,
         *,
-        exponents: Sequence[Any] = (
-            0, 1, -1, 0.5, 0.25, -0.5, 0.1, sympy.Symbol('s')),
+        exponents: Sequence[Any] = (0, 1, -1, 0.25, -0.5, 0.1,
+                                    sympy.Symbol('s')),
         qubit_count: Optional[int] = None,
-        ignoring_global_phase: bool=False,
+        ignoring_global_phase: bool = False,
         setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
-        local_vals: Optional[Dict[str, Any]] = None
-        ) -> None:
+        local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
     global_vals = global_vals or {}
     local_vals = local_vals or {}
@@ -127,9 +128,12 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
                                    global_vals: Optional[Dict[str, Any]],
                                    local_vals: Optional[Dict[str, Any]]
                                   ) -> None:
+
+
     # pylint: disable=unused-variable
     __tracebackhide__ = True
     # pylint: enable=unused-variable
+    assert_specifies_has_unitary_if_unitary(val)
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)

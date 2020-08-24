@@ -24,7 +24,7 @@ def assert_json_roundtrip_works(obj, text_should_be=None, resolvers=None):
     if text_should_be is not None:
         buffer.seek(0)
         text = buffer.read()
-        assert text == text_should_be
+        assert text == text_should_be, text
 
     buffer.seek(0)
     restored_obj = cirq.protocols.read_json(buffer, resolvers=resolvers)

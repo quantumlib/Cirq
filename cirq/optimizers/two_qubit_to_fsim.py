@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
         *,
-        fsim_gate: 'cirq.FSimGate',
+        fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
         qubits: Sequence['cirq.Qid'] = None) -> 'cirq.Circuit':
     """Decomposes operations into an FSimGate near theta=pi/2, phi=0.
 
@@ -50,9 +50,13 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         list will include four operations of the given fsim gate, various single
         qubit operations, and a global phase operation.
     """
-    if not 3 / 8 * np.pi <= fsim_gate.theta <= 5 / 8 * np.pi:
-        raise ValueError('Must have 3π/8 ≤ fsim_gate.theta ≤ 5π/8')
-    if abs(fsim_gate.phi) > np.pi / 4:
+    if isinstance(fsim_gate, ops.ISwapPowGate):
+        mapped_gate = ops.FSimGate(-fsim_gate.exponent * np.pi / 2, 0)
+    else:
+        mapped_gate = fsim_gate
+    if not 3 / 8 * np.pi <= abs(mapped_gate.theta) <= 5 / 8 * np.pi:
+        raise ValueError('Must have 3π/8 ≤ |fsim_gate.theta| ≤ 5π/8')
+    if abs(mapped_gate.phi) > np.pi / 4:
         raise ValueError('Must have abs(fsim_gate.phi) ≤ π/4')
     if qubits is None:
         if isinstance(interaction, ops.Operation):
@@ -66,7 +70,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
     result_using_b_gates = _decompose_two_qubit_interaction_into_two_b_gates(
         kak, qubits=qubits)
 
-    b_decomposition = _decompose_b_gate_into_two_fsims(fsim_gate=fsim_gate,
+    b_decomposition = _decompose_b_gate_into_two_fsims(fsim_gate=mapped_gate,
                                                        qubits=qubits)
     result = []
     for op in result_using_b_gates:
@@ -75,7 +79,9 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
         else:
             result.append(op)
 
-    circuit = circuits.Circuit(result)
+    circuit = circuits.Circuit(
+        fsim_gate(*op.qubits) if op.gate == mapped_gate else op
+        for op in result)
     merge_single_qubit_gates.MergeSingleQubitGates().optimize_circuit(circuit)
     drop_empty_moments.DropEmptyMoments().optimize_circuit(circuit)
     return circuit
@@ -242,7 +248,8 @@ def _fix_single_qubit_gates_around_kak_interaction(
         A list of operations whose kak decomposition approximately equals the
         desired kak decomposition.
     """
-    actual = linalg.kak_decomposition(circuits.Circuit(operations))
+    actual = linalg.kak_decomposition(
+        circuits.Circuit(operations).unitary(qubit_order=qubits))
 
     def dag(a: np.ndarray) -> np.ndarray:
         return np.transpose(np.conjugate(a))
