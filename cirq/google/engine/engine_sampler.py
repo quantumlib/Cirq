@@ -61,6 +61,19 @@ class QuantumEngineSampler(work.Sampler):
                                          gate_set=self._gate_set)
         return job.results()
 
+    def run_batch(
+            self,
+            programs: List['cirq.Circuit'],
+            params_list: List['cirq.Sweepable'] = None,
+            repetitions: int = 1,
+    ) -> List['cirq.TrialResult']:
+        job = self._engine.run_batch(programs=programs,
+                                     params_list=params_list,
+                                     repetitions=repetitions,
+                                     processor_ids=self._processor_ids,
+                                     gate_set=self._gate_set)
+        return job.results()
+
     @property
     def engine(self) -> 'cirq.google.Engine':
         return self._engine

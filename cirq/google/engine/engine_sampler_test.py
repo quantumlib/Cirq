@@ -50,6 +50,26 @@ def test_run_engine_program():
     engine.run_sweep.assert_not_called()
 
 
+def test_run_batch():
+    engine = mock.Mock()
+    sampler = cg.QuantumEngineSampler(engine=engine,
+                                      processor_id='tmp',
+                                      gate_set=cg.XMON)
+    a = cirq.LineQubit(0)
+    circuit1 = cirq.Circuit(cirq.X(a))
+    circuit2 = cirq.Circuit(cirq.Y(a))
+    params1 = [cirq.ParamResolver({'t': 1})]
+    params2 = [cirq.ParamResolver({'t': 2})]
+    circuits = [circuit1, circuit2]
+    params_list = [params1, params2]
+    sampler.run_batch(circuits, params_list, 5)
+    engine.run_batch.assert_called_with(gate_set=cg.XMON,
+                                        params_list=params_list,
+                                        processor_ids=['tmp'],
+                                        programs=circuits,
+                                        repetitions=5)
+
+
 def test_engine_sampler_engine_property():
     engine = mock.Mock()
     sampler = cg.QuantumEngineSampler(engine=engine,
