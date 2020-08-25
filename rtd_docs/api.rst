@@ -16,6 +16,7 @@ Classes for identifying the qubits and hardware you want to operate on.
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
+    cirq.NamedQid
     cirq.NamedQubit
     cirq.Qid
 
@@ -608,6 +609,7 @@ operation.
     cirq.testing.random_superposition
     cirq.testing.random_unitary
     cirq.testing.EqualsTester
+    cirq.testing.NoIdentifierQubit
     cirq.testing.OrderTester
 
 
