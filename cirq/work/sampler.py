@@ -233,6 +233,8 @@ class Sampler(metaclass=abc.ABCMeta):
         """
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
-        return [trial_result
-                for circuit, params in zip(programs, params_list)
-                for trial_result in self.run_sweep(circuit, params=params, repetitions=repetitions)]
+        return [
+            trial_result for circuit, params in zip(programs, params_list)
+            for trial_result in self.run_sweep(
+                circuit, params=params, repetitions=repetitions)
+        ]
