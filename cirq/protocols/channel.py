@@ -20,8 +20,8 @@ from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq.protocols.decompose_protocol import \
-    _try_decompose_into_operations_and_qubits
+from cirq.protocols.decompose_protocol import (
+    _try_decompose_into_operations_and_qubits,)
 from cirq.protocols.mixture_protocol import has_mixture
 
 
@@ -161,7 +161,7 @@ def has_channel(val: Any, *, allow_decompose: bool = True) -> bool:
             decompose an object to check if it is unitary as part of determining
             if the object is a quantum channel, when the quantum channel check
             will already be doing a more general decomposition check). Defaults
-            to True. When false, the decomposition strategy for determining
+            to True. When False, the decomposition strategy for determining
             the result is skipped.
 
     Returns:
