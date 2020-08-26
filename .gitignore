@@ -4,6 +4,7 @@ __pycache__
 
 # ignore idea SDK
 .idea/*
+.vscode
 
 # ignore cache
 .cache/*
@@ -20,7 +21,7 @@ __pycache__
 
 # Sphinx
 _build
-docs/generated
+rtd_docs/generated
 
 # swap files
 *.swp

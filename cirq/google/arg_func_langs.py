@@ -31,11 +31,12 @@ from cirq.google.api import v2
 SUPPORTED_FUNCTIONS_FOR_LANGUAGE: Dict[Optional[str], FrozenSet[str]] = {
     '': frozenset(),
     'linear': frozenset({'add', 'mul'}),
+    'exp': frozenset({'add', 'mul', 'pow'}),
     # None means any. Is used when inferring the language during serialization.
-    None: frozenset({'add', 'mul'}),
+    None: frozenset({'add', 'mul', 'pow'}),
 }
 
-SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul)
+SUPPORTED_SYMPY_OPS = (sympy.Symbol, sympy.Add, sympy.Mul, sympy.Pow)
 
 # Argument types for gates.
 ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
@@ -47,6 +48,7 @@ ARG_LIKE = Union[int, float, List[bool], str, sympy.Symbol, sympy.Add, sympy.
 LANGUAGE_ORDER = [
     '',
     'linear',
+    'exp',
 ]
 
 
@@ -83,6 +85,10 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
     if which == 'func':
         if arg_proto.func.type in ['add', 'mul']:
             yield 'linear'
+            for a in arg_proto.func.args:
+                yield from _function_languages_from_arg(a)
+        if arg_proto.func.type in ['pow']:
+            yield 'exp'
             for a in arg_proto.func.args:
                 yield from _function_languages_from_arg(a)
 
@@ -140,6 +146,12 @@ def _arg_to_proto(value: ARG_LIKE,
                           out=msg.func.args.add())
     elif isinstance(value, sympy.Mul):
         msg.func.type = check_support('mul')
+        for arg in value.args:
+            _arg_to_proto(arg,
+                          arg_function_language=arg_function_language,
+                          out=msg.func.args.add())
+    elif isinstance(value, sympy.Pow):
+        msg.func.type = check_support('pow')
         for arg in value.args:
             _arg_to_proto(arg,
                           arg_function_language=arg_function_language,
@@ -218,6 +230,14 @@ def _arg_from_proto(
                 _arg_from_proto(a,
                                 arg_function_language=arg_function_language,
                                 required_arg_name='A multiplication argument')
+                for a in func.args
+            ])
+
+        if func.type == 'pow':
+            return sympy.Pow(*[
+                _arg_from_proto(a,
+                                arg_function_language=arg_function_language,
+                                required_arg_name='A power argument')
                 for a in func.args
             ])
 

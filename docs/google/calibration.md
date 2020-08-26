@@ -68,7 +68,7 @@ be the Pauli error divided by three.  The Pauli error and average error are
 related by a multiplicative factor dependent on the number of qubits.
 
 See Table 1 on page 11 of the
-[Supplementry Information](https://arxiv.org/abs/1910.11333)
+[Supplementary Information](https://arxiv.org/abs/1910.11333)
 document for a description and comparison between average error, Pauli error,
 and depolarization error.
 

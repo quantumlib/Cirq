@@ -292,7 +292,7 @@ def test_clifford_stabilizerStateChForm_repr():
     assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
 
 
-def test_clifforf_circuit_SHSYSHS():
+def test_clifford_circuit_SHSYSHS():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.Y(q0),
                            cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.measure(q0))

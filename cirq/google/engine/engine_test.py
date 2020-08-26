@@ -772,3 +772,37 @@ valid_targets: [{
         device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
     with pytest.raises(ValueError):
         device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
+
+
+_CALIBRATION = qtypes.QuantumCalibration(
+    name='projects/a/processors/p/calibrations/1562715599',
+    timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
+    data=_to_any(
+        Merge(
+            """
+    timestamp_ms: 1562544000021,
+    metrics: [
+    {
+        name: 't1',
+        targets: ['0_0'],
+        values: [{
+            double_val: 321
+        }]
+    }, {
+        name: 'globalMetric',
+        values: [{
+            int32_val: 12300
+        }]
+    }]
+""", v2.metrics_pb2.MetricsSnapshot())))
+
+
+@mock.patch(
+    'cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+def test_get_engine_calibration(get_current_calibration):
+    get_current_calibration.return_value = _CALIBRATION
+    calibration = cirq.google.get_engine_calibration('rainbow', 'project')
+    assert calibration.timestamp == 1562544000021
+    assert set(calibration.keys()) == {'t1', 'globalMetric'}
+    assert calibration['t1'][(cirq.GridQubit(0, 0),)] == [321.0]
+    get_current_calibration.assert_called_once_with('project', 'rainbow')

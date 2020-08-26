@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 # coverage: ignore
 
-# Configuration file for the Sphinx documentation builder.
+# The content for all documentation lives in ../docs. That folder is
+# following the structure for the Google Quantum site configured for the
+# internal CMS, devsite. The readthedocs layer is a secondary, which generates
+# the content using sphinx to readthedocs.io until we go live with the devsite.
+#
+# This is the configuration file for the Sphinx documentation builder.
 # See http://www.sphinx-doc.org/en/master/config for help
 
 # -- Path setup --------------------------------------------------------------
@@ -16,6 +21,7 @@ from typing import List, Any
 
 import os
 import sys
+import shutil
 
 import pypandoc
 
@@ -25,6 +31,11 @@ from cirq import _doc
 
 
 def setup(app):
+    # just in case it exists (locally) remove the copied docs folder
+    shutil.rmtree("rtd_docs/docs", ignore_errors=True)
+    # copy recursively the actual content from the devsite folder
+    # to rtd_docs/docs
+    shutil.copytree(src="../docs", dst="./docs")
     app.add_config_value('pandoc_use_parser', 'markdown', True)
     app.connect('autodoc-process-docstring', autodoc_process)
     app.connect('autodoc-skip-member', autodoc_skip_member)
@@ -184,7 +195,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
 
-
 # -- Options for HTML output ---------------------------------------------
 
 html_theme = 'sphinx_rtd_theme'
@@ -206,15 +216,13 @@ html_static_path = ['_static']
 #
 # html_sidebars = {}
 
-html_logo = '_static/Cirq_logo_notext.png'
+html_logo = 'docs/images/Cirq_logo_notext.png'
 html_css_files = ['tweak-style.css']
-
 
 # -- Options for HTMLHelp output -----------------------------------------
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'Cirqdoc'
-
 
 # -- Options for LaTeX output --------------------------------------------
 
@@ -236,20 +244,15 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'Cirq.tex', 'Cirq Documentation',
-     'The Cirq Developers', 'manual'),
+    (master_doc, 'Cirq.tex', 'Cirq Documentation', 'The Cirq Developers',
+     'manual'),
 ]
-
 
 # -- Options for manual page output --------------------------------------
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [
-    (master_doc, 'cirq', 'Cirq Documentation',
-     [author], 1)
-]
-
+man_pages = [(master_doc, 'cirq', 'Cirq Documentation', [author], 1)]
 
 # -- Options for Texinfo output ------------------------------------------
 
@@ -257,11 +260,9 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'Cirq', 'Cirq Documentation',
-     author, 'Cirq', 'A python library for NISQ circuits.',
-     'Miscellaneous'),
+    (master_doc, 'Cirq', 'Cirq Documentation', author, 'Cirq',
+     'A python library for NISQ circuits.', 'Miscellaneous'),
 ]
-
 
 # -- Extension configuration -------------------------------------------------
 

@@ -100,7 +100,7 @@ def test_seeded_special_unitary():
     assert not np.allclose(u1, u3)
 
 
-def test_random_special_orthgonal():
+def test_random_special_orthogonal():
     o1 = random_special_orthogonal(2)
     o2 = random_special_orthogonal(2)
     assert is_special_orthogonal(o1)

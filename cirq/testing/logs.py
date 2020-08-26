@@ -38,7 +38,7 @@ def assert_logs(*matches: str,
 
     Args:
         matches: Each of these is checked to see if they match, as a substring,
-            any of the captures log meassages.
+            any of the captures log messages.
         count: The expected number of messages in logs. Defaults to 1.
         level: The level at which to capture the logs. See the python logging
             module for valid levels. By default this captures at the

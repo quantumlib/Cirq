@@ -122,6 +122,8 @@ class _ResolverCache:
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
+                'NamedQid': cirq.NamedQid,
+                'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
@@ -307,7 +309,7 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
         return cls
 
     # _cls is used to deduce if we're being called as
-    # @json_serialiable_dataclass or @json_serializable_dataclass().
+    # @json_serializable_dataclass or @json_serializable_dataclass().
     if _cls is None:
         # We're called with parens.
         return wrap
