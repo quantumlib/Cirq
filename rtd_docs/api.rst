@@ -380,6 +380,7 @@ the magic methods that can be implemented.
     cirq.SupportsMeasurementKey
     cirq.SupportsMixture
     cirq.SupportsParameterization
+    cirq.SupportsPauliExpansion
     cirq.SupportsPhase
     cirq.SupportsQasm
     cirq.SupportsQasmWithArgs
