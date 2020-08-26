@@ -97,6 +97,7 @@ class _ResolverCache:
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
+                'FocusedCalibrationTag': cirq.google.FocusedCalibrationTag,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,

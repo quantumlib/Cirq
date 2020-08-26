@@ -19,3 +19,6 @@ from cirq.google.ops.sycamore_gate import (
 
 from cirq.google.ops.physical_z_tag import (
     PhysicalZTag,)
+
+from cirq.google.ops.focused_calibration_tag import (
+    FocusedCalibrationTag,)
