@@ -151,7 +151,7 @@ def check_collaborator_has_write(repo: GithubRepository, username: str
 
 
 def get_all(url_func: Callable[[int], str]) -> List[Any]:
-    results = []
+    results: List[Any] = []
     page = 0
     has_next = True
     while has_next:
