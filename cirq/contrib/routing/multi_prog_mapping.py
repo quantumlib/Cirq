@@ -52,11 +52,11 @@ class Hierarchy_tree:
     return tree
 
 class Qubit_partitioning:
-  def __init__(self, tree, programs_circuit):
+  def __init__(self, tree, programs_circuits):
     self.tree = tree
-    self.programs_circuit = programs_circuit
+    self.programs_circuits = programs_circuits
 
-  def cnot_density(self, program_circuit):
+  def cnot_density(self, pcircuit):
     # #cnots/#qubits ??
     """
     To Do
@@ -66,19 +66,52 @@ class Qubit_partitioning:
 
   def reorder_program_circuits(self):
     cnot_d = []
-    for p in self.programs_circuit:
+    for p in self.programs_circuits:
       cnot_d.append(self.cnot_density(p))
     idxs = sorted(range(len(cnot_d)), key=lambda k: cnot_d[k])
-    temp_p_circuit = self.programs_circuit.copy()
+    temp_p_circuit = self.programs_circuits.copy()
     for i in range(len(idxs)):
-      self.programs_circuit[i] = temp_p_circuit[idxs[i]]
+      self.programs_circuits[i] = temp_p_circuit[idxs[i]]
 
 
-  def find_candidates(self ):
-    return
+  def find_best_candidate(self, candidates):
+    """
+    To Do 
+    """
+    cand = []
+    return cand
+
+  def find_partitions(self ):
+    partition = []
+    for pcrct in self.programs_circuits:
+      candidates = []
+      nodes_count = 1#??
+      for key, val in self.tree:
+        if len(list(key)) == nodes_count:
+          candidates.append(list(key))
+
+        else:
+          a=0
+          #??
+      if not candidates:
+        print("fail")
+      else:
+        cand = self.find_best_candidate(candidates)
+        partition.append(cand)
+        self.tree.pop(tuple(cand))
+        # to complete
+
+    return partition
+
+class X_SWAP:
+  def __init__(self, device_graph, programs_circuits)
 
 
-    
+
+
+
+
+############################################################    
 
 def multi_prog_map(device_graph):
   calibration_data= []
