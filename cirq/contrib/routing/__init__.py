@@ -27,3 +27,5 @@ from cirq.contrib.routing.utils import (
     is_valid_routing,
     ops_are_consistent_with_device_graph,
 )
+
+from cirq.contrib.routing.multi_prog_mapping import *
