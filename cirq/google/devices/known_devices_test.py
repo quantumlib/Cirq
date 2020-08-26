@@ -43,6 +43,10 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
     gate_duration_picos: 15000
   }
   valid_gates {
@@ -51,6 +55,10 @@ valid_gate_sets {
     valid_args {
       name: "half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     valid_args {
       name: "type"
@@ -72,6 +80,10 @@ valid_gate_sets {
       name: "axis_phase_exponent"
       type: FLOAT
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
   }
   valid_gates {
     id: "cz"
@@ -79,6 +91,10 @@ valid_gate_sets {
     valid_args {
       name: "half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     gate_duration_picos: 45000
     valid_targets: "2_qubit_targets"
@@ -92,6 +108,10 @@ valid_gate_sets {
     valid_args {
       name: "invert_mask"
       type: REPEATED_BOOLEAN
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     gate_duration_picos: 4000000
     valid_targets: "meas_targets"
@@ -324,6 +344,10 @@ valid_gate_sets {
       name: "half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
     gate_duration_picos: 53000
   }
   valid_gates {
@@ -332,6 +356,10 @@ valid_gate_sets {
     valid_args {
       name: "half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     valid_args {
       name: "type"
@@ -353,6 +381,10 @@ valid_gate_sets {
       name: "axis_phase_exponent"
       type: FLOAT
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
   }
   valid_gates {
     id: "cz"
@@ -360,6 +392,10 @@ valid_gate_sets {
     valid_args {
       name: "half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     gate_duration_picos: 11000
     valid_targets: "2_qubit_targets"
@@ -374,6 +410,10 @@ valid_gate_sets {
       name: "invert_mask"
       type: REPEATED_BOOLEAN
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
     gate_duration_picos: 14141
     valid_targets: "meas_targets"
   }
@@ -387,6 +427,10 @@ valid_gate_sets {
       name: "axis_half_turns"
       type: FLOAT
     }
+    valid_args {
+      name: "token"
+      type: STRING
+    }
     gate_duration_picos: 20000
   }
   valid_gates {
@@ -395,6 +439,10 @@ valid_gate_sets {
     valid_args {
       name: "axis_half_turns"
       type: FLOAT
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     gate_duration_picos: 10000
   }
@@ -407,6 +455,10 @@ valid_gate_sets {
     valid_args {
       name: "invert_mask"
       type: REPEATED_BOOLEAN
+    }
+    valid_args {
+      name: "token"
+      type: STRING
     }
     gate_duration_picos: 14141
     valid_targets: "meas_targets"
