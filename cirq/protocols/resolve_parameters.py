@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, TypeVar, TYPE_CHECKING
+from typing import AbstractSet, Any, TypeVar, TYPE_CHECKING
 from typing_extensions import Protocol
 import sympy
 
@@ -31,9 +31,21 @@ class SupportsParameterization(Protocol):
 
     @document
     def _is_parameterized_(self: Any) -> bool:
-        """Whether the gate is parameterized by any Symbols that require
-        resolution.  Returns True if the gate has any unresolved Symbols
+        """Whether the object is parameterized by any Symbols that require
+        resolution. Returns True if the object has any unresolved Symbols
         and False otherwise."""
+
+    @document
+    def _parameter_names_(self: Any) -> AbstractSet[str]:
+        """Returns a collection of string names of parameters that require
+        resolution. The collection is empty iff _is_parameterized_ is False.
+        """
+
+    @document
+    def _parameter_symbols_(self, Any) -> AbstractSet[sympy.Symbol]:
+        """Returns a collection of sympy Symbols of parameters that require
+        resolution. The collection is empty iff _is_parameterized_ is False.
+        """
 
     @document
     def _resolve_parameters_(self: Any, param_resolver: 'cirq.ParamResolver'):
@@ -65,6 +77,66 @@ def is_parameterized(val: Any) -> bool:
         return result
     else:
         return False
+
+
+def parameter_names(val: Any, *, check_symbols: bool = True) -> AbstractSet[str]:
+    """Returns parameter names for this object.
+
+    Args:
+        val: Object for which to find the parameter names.
+        check_symbols: If true, fall back to calling parameter_symbols.
+
+    Returns:
+        A set of parameter names if the object is parameterized. It the object
+        does not implement the _parameter_names_ magic method or that method
+        returns NotImplemented, returns an empty set.
+    """
+    if isinstance(val, sympy.Basic):
+        return {symbol.name for symbol in val.free_symbols}
+    if isinstance(val, (list, tuple)):
+        return {name for e in val for name in parameter_names(e)}
+
+    getter = getattr(val, '_parameter_names_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented:
+        return result
+
+    if check_symbols:
+        symbols = parameter_symbols(val, check_names=False)
+        if symbols is not NotImplemented:
+            return {symbol.name for symbol in symbols}
+
+    return set()
+
+
+def parameter_symbols(val: Any, *, check_names: bool = True) -> AbstractSet[sympy.Symbol]:
+    """Returns parameter symbols for this object.
+
+    Args:
+        val: Object for which to find the parameter symbols.
+        check_names: If true, fall back to calling parameter_names.
+
+    Returns:
+        A set of parameter symbols if the object is parameterized. It the object
+        does not implement the _parameter_symbols_ magic method or that method
+        returns NotImplemented, returns an empty set.
+    """
+    if isinstance(val, sympy.Basic):
+        return val.free_symbols
+    if isinstance(val, (list, tuple)):
+        return {symbol for e in val for symbol in parameter_symbols(e)}
+
+    getter = getattr(val, '_parameter_symbols_', None)
+    result = NotImplemented if getter is None else getter()
+    if result is not NotImplemented:
+        return result
+
+    if check_names:
+        names = parameter_names(val, check_symbols=False)
+        if names is not NotImplemented:
+            return {sympy.Symbol(name) for name in names}
+
+    return set()
 
 
 def resolve_parameters(
