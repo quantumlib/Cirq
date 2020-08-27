@@ -79,7 +79,8 @@ def is_parameterized(val: Any) -> bool:
         return False
 
 
-def parameter_names(val: Any, *, check_symbols: bool = True) -> AbstractSet[str]:
+def parameter_names(val: Any, *,
+                    check_symbols: bool = True) -> AbstractSet[str]:
     """Returns parameter names for this object.
 
     Args:
@@ -109,7 +110,8 @@ def parameter_names(val: Any, *, check_symbols: bool = True) -> AbstractSet[str]
     return set()
 
 
-def parameter_symbols(val: Any, *, check_names: bool = True) -> AbstractSet[sympy.Symbol]:
+def parameter_symbols(val: Any, *,
+                      check_names: bool = True) -> AbstractSet[sympy.Symbol]:
     """Returns parameter symbols for this object.
 
     Args:
