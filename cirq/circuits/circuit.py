@@ -18,14 +18,15 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
+
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
-                    List, Optional, overload, Sequence, Set, Tuple, Type,
-                    TYPE_CHECKING, TypeVar, Union)
+from typing import (AbstractSet, Any, Callable, cast, Dict, FrozenSet, Iterable,
+                    Iterator, List, Optional, overload, Sequence, Set, Tuple,
+                    Type, TYPE_CHECKING, TypeVar, Union)
 
 import html
 import re
@@ -1793,6 +1794,12 @@ class Circuit:
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op)
                    for op in self.all_operations())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for op in self.all_operations()
+            for name in protocols.parameter_names(op)
+        }
 
     def _resolve_parameters_(self,
                              param_resolver: 'cirq.ParamResolver') -> 'Circuit':

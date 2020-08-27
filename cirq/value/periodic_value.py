@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Union
+from typing import AbstractSet, Any, Union
 
 import sympy
 
@@ -86,4 +86,9 @@ class PeriodicValue:
     def _is_parameterized_(self) -> bool:
         # HACK: Avoids circular dependencies.
         from cirq.protocols import is_parameterized
-        return any(is_parameterized(val) for val in (self.value, self.period))
+        return is_parameterized(self.value) or is_parameterized(self.period)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        # HACK: Avoids circular dependencies.
+        from cirq.protocols import parameter_names
+        return parameter_names(self.value) | parameter_names(self.period)

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import AbstractSet
+
 import pytest
 import numpy as np
 import sympy
@@ -660,6 +662,9 @@ class ParameterizableTag:
 
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.value)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return cirq.parameter_names(self.value)
 
     def _resolve_parameters_(self, resolver) -> 'ParameterizableTag':
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver))
