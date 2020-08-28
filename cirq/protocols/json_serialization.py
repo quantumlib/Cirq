@@ -15,6 +15,7 @@ import dataclasses
 import json
 import numbers
 import pathlib
+import sys
 from typing import (
     Any,
     cast,
@@ -52,6 +53,7 @@ class _ResolverCache:
     @property
     def cirq_class_resolver_dictionary(self) -> Dict[str, Type]:
         if self._crd is None:
+            print(f"PYPATH: {sys.path}")
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.experiments import (CrossEntropyResult,
@@ -59,7 +61,7 @@ class _ResolverCache:
                                           GridInteractionLayer)
             from cirq.experiments.grid_parallel_two_qubit_xeb import (
                 GridParallelXEBMetadata)
-            from cirq.google.devices.known_devices import (
+            from cirq_google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
             def _identity_operation_from_dict(qubits, **kwargs):

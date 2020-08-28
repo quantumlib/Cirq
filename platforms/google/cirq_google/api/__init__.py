@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Helpers for converting to/from api data formats."""
 
-#!/usr/bin/bash
-
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.api import v2

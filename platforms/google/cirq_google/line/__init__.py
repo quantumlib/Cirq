@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/bash
-
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.line.placement import (
+    AnnealSequenceSearchStrategy,
+    GreedySequenceSearchStrategy,
+    line_on_device,
+    LinePlacementStrategy,
+)

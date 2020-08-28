@@ -11,10 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Check protobuf modules initialize successfully."""
 
-#!/usr/bin/bash
-
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+# pylint: disable=unused-import
+from cirq_google.api.v1 import operations_pb2
+from cirq_google.api.v1 import params_pb2
+from cirq_google.api.v1 import program_pb2
+# pylint: enable=unused-import

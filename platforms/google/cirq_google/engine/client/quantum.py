@@ -1,4 +1,6 @@
-# Copyright 2018 The Cirq Developers
+# -*- coding: utf-8 -*-
+#
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +14,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/bash
+from __future__ import absolute_import
 
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.engine.client.quantum_v1alpha1 import (
+    QuantumEngineServiceClient)
+from cirq_google.engine.client.quantum_v1alpha1 import enums
+from cirq_google.engine.client.quantum_v1alpha1 import types
+
+__all__ = (
+    'enums',
+    'types',
+    'QuantumEngineServiceClient',
+)

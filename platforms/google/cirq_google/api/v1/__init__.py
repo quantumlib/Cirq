@@ -1,4 +1,4 @@
-# Copyright 2018 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,10 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Data format v1 for google api."""
 
-#!/usr/bin/bash
+from cirq_google.api.v1 import (
+    operations_pb2,
+    params_pb2,
+    program_pb2,
+)
 
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.api.v1.params import (sweep_from_proto, sweep_to_proto)
+
+from cirq_google.api.v1.programs import (
+    gate_to_proto,
+    is_native_xmon_gate,
+    is_native_xmon_op,
+    pack_results,
+    circuit_as_schedule_to_protos,
+    circuit_from_schedule_from_protos,
+    unpack_results,
+    xmon_op_from_proto,
+)

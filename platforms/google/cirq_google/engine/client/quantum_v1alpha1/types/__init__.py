@@ -1,4 +1,6 @@
-# Copyright 2018 The Cirq Developers
+# -*- coding: utf-8 -*-
+#
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/bash
+from google.protobuf import any_pb2
+from google.protobuf import duration_pb2
+from google.protobuf import empty_pb2
+from google.protobuf import field_mask_pb2
+from google.protobuf import timestamp_pb2
 
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.engine.client.quantum_v1alpha1.proto.quantum_pb2 import *
+from cirq_google.engine.client.quantum_v1alpha1.proto.engine_pb2 import *

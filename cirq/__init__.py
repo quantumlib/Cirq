@@ -36,6 +36,28 @@ with _import.delay_import('cirq.protocols'):
         devices,
         study,
     )
+
+try:
+    import cirq_google as google  # type: ignore
+    import cirq.experiments
+    from cirq.experiments import (
+        estimate_single_qubit_readout_errors,
+        hog_score_xeb_fidelity_from_probabilities,
+        least_squares_xeb_fidelity_from_expectations,
+        least_squares_xeb_fidelity_from_probabilities,
+        linear_xeb_fidelity,
+        linear_xeb_fidelity_from_probabilities,
+        log_xeb_fidelity,
+        log_xeb_fidelity_from_probabilities,
+        generate_boixo_2018_supremacy_circuits_v2,
+        generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+        generate_boixo_2018_supremacy_circuits_v2_grid,
+        xeb_fidelity,
+    )
+except ImportError as e:
+    print("!!!!!!!!!!! NO GOOGLE !!!!!!!!!!!!")
+    pass
+
 from cirq import (
     # Core
     circuits,
@@ -47,10 +69,7 @@ from cirq import (
     # Hardware specific
     ion,
     neutral_atoms,
-    google,
     interop,
-    # Applications
-    experiments,
     # Extra (nothing should depend on these)
     testing,
     contrib,
@@ -86,21 +105,6 @@ from cirq.devices import (
     NOISE_MODEL_LIKE,
     NoiseModel,
     UNCONSTRAINED_DEVICE,
-)
-
-from cirq.experiments import (
-    estimate_single_qubit_readout_errors,
-    hog_score_xeb_fidelity_from_probabilities,
-    least_squares_xeb_fidelity_from_expectations,
-    least_squares_xeb_fidelity_from_probabilities,
-    linear_xeb_fidelity,
-    linear_xeb_fidelity_from_probabilities,
-    log_xeb_fidelity,
-    log_xeb_fidelity_from_probabilities,
-    generate_boixo_2018_supremacy_circuits_v2,
-    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
-    generate_boixo_2018_supremacy_circuits_v2_grid,
-    xeb_fidelity,
 )
 
 from cirq.interop import (
@@ -556,6 +560,5 @@ except ImportError as e:
 
 from cirq import (
     contrib,
-    google,
     testing,
 )

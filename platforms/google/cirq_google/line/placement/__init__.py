@@ -12,9 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#!/usr/bin/bash
+from cirq_google.line.placement.anneal import (
+    AnnealSequenceSearchStrategy,)
 
-export PYTHONPATH="$(pwd)"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/aqt"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/pasqal"
-export PYTHONPATH="$PYTHONPATH:$(pwd)/platforms/google"
+from cirq_google.line.placement.greedy import (
+    GreedySequenceSearchStrategy,)
+
+from cirq_google.line.placement.place_strategy import (
+    LinePlacementStrategy,)
+
+from cirq_google.line.placement.sequence import (
+    GridQubitLineTuple,)
+
+from cirq_google.line.placement.line import (
+    line_on_device,)
+
+from cirq_google.line.placement.optimization import (
+    anneal_minimize,)
