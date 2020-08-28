@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, cast, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
@@ -22,6 +22,8 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
+    from cirq.value.product_state import (_XEigenState, _YEigenState,
+                                          _ZEigenState)
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -118,7 +120,7 @@ class _PauliX(Pauli, common_gates.XPowGate):
         return Pauli._XYZ[0]
 
     @property
-    def basis(self):
+    def basis(self: '_PauliX') -> Dict[int, '_XEigenState']:
         from cirq.value.product_state import _XEigenState
         return {
             +1: _XEigenState(+1),
@@ -147,7 +149,7 @@ class _PauliY(Pauli, common_gates.YPowGate):
         return Pauli._XYZ[1]
 
     @property
-    def basis(self):
+    def basis(self: '_PauliY') -> Dict[int, '_YEigenState']:
         from cirq.value.product_state import _YEigenState
         return {
             +1: _YEigenState(+1),
@@ -176,7 +178,7 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         return Pauli._XYZ[2]
 
     @property
-    def basis(self):
+    def basis(self: '_PauliZ') -> Dict[int, '_ZEigenState']:
         from cirq.value.product_state import _ZEigenState
         return {
             +1: _ZEigenState(+1),
