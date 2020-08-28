@@ -144,6 +144,7 @@ def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
             yield (cirq.Y**phase).on_each(system_qubits)
             yield moment
 
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = cirq.experiments.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=_TimeDependentPhase()),
         qubit=cirq.GridQubit(0, 0),
@@ -151,7 +152,7 @@ def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
         repetitions=100,
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
-        num_pulses=[1],
+        num_pulses=pulses,
         experiment_type=experiment_type)
 
     assert (results.expectation_pauli_y['value'] < -0.8).all()
@@ -162,13 +163,14 @@ def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
     t2.ExperimentType.CPMG
 ])
 def test_all_on_results(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(sampler=cirq.Simulator(),
                           qubit=cirq.GridQubit(0, 0),
                           num_points=4,
                           repetitions=500,
                           min_delay=cirq.Duration(nanos=100),
                           max_delay=cirq.Duration(micros=1),
-                          num_pulses=[1],
+                          num_pulses=pulses,
                           experiment_type=experiment_type)
 
     assert (results.expectation_pauli_y['value'] == -1.0).all()
@@ -182,6 +184,7 @@ def test_all_on_results(experiment_type):
     t2.ExperimentType.CPMG
 ])
 def test_all_off_results(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -189,7 +192,7 @@ def test_all_off_results(experiment_type):
         repetitions=10,
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
-        num_pulses=[1],
+        num_pulses=pulses,
         experiment_type=experiment_type)
     assert results == cirq.experiments.T2DecayResult(
         x_basis_data=pd.DataFrame(columns=['delay_ns', 0, 1],
@@ -216,6 +219,7 @@ def test_all_off_results(experiment_type):
     t2.ExperimentType.CPMG
 ])
 def test_custom_delay_sweep(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -224,7 +228,7 @@ def test_custom_delay_sweep(experiment_type):
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
         experiment_type=experiment_type,
-        num_pulses=[1],
+        num_pulses=pulses,
         delay_sweep=cirq.Points('delay_ns',
                                 [1.0, 10.0, 100.0, 1000.0, 10000.0]))
     assert results == cirq.experiments.T2DecayResult(
@@ -320,6 +324,15 @@ def test_bad_args():
                                       max_delay=cirq.Duration(micros=1),
                                       min_delay=cirq.Duration(micros=-1))
 
+    with pytest.raises(ValueError, match='CPMG'):
+        _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
+                                      qubit=cirq.GridQubit(0, 0),
+                                      num_points=4,
+                                      repetitions=100,
+                                      num_pulses=[1, 2, 3, 4],
+                                      max_delay=cirq.Duration(micros=1),
+                                      experiment_type=t2.ExperimentType.RAMSEY)
+
     with pytest.raises(ValueError, match='num_pulses'):
         _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
                                       qubit=cirq.GridQubit(0, 0),
@@ -327,6 +340,7 @@ def test_bad_args():
                                       repetitions=100,
                                       max_delay=cirq.Duration(micros=1),
                                       experiment_type=t2.ExperimentType.CPMG)
+
     with pytest.raises(ValueError, match='delay_ns'):
         _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
                                       qubit=cirq.GridQubit(0, 0),

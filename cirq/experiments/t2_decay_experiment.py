@@ -69,17 +69,31 @@ def t2_decay(sampler: work.Sampler,
     However, during the mid-point of the delay time being measured, a pi-pulse
     (`cirq.X`) gate will be applied to cancel out inhomogeneous dephasing.
     The same method of measuring the final state as Ramsey experiment is applied
-    after the second half of the delay period.
+    after the second half of the delay period.  See the animation on the wiki
+    page https://en.wikipedia.org/wiki/Spin_echo for a visual illustration
+    of this experiment.
 
-    CPMG, or the Carr-Purcell-Meiboom-Gill sequence, involves sending a sequence
-    of pi pulses (X gates) in a specific timing pattern:
-    π/2, t, π, 2t, π, ... 2t, π, t
-    This pattern has two variables that can be adjusted.  The first, denoted t
-    in the above sequence, is delay, which can be specified as per the other
-    experiments.  The second is the number of pulses.  This can be specified as
-    a list of integers using the `num_pulses` parameter.  If multiple different
-    pulses are specified, the data will presented in a data frame with two
+    CPMG, or the Carr-Purcell-Meiboom-Gill sequence, involves using a sqrt(Y)
+    followed by a sequence of pi pulses (X gates) in a specific timing pattern:
+        π/2, t, π, 2t, π, ... 2t, π, t
+    The first pulse, a sqrt(Y) gate, will put the qubit's state on the Bloch
+    equator.  After a delay, successive X gates will refocus dehomogenous
+    phase effects by causing them to precess in opposite directions and
+    averaging their effects across the entire pulse train.
+
+    This pulse pattern has two variables that can be adjusted.  The first,
+    denoted as 't' in the above sequence, is delay, which can be specified
+    with `delay_min` and `delaxy_max` or by using a `delay_sweep`, similar to
+    the other experiments.  The second variable is the number of pi pulses
+    (X gates)  This can be specified as a list of integers using the
+    `num_pulses` parameter.  If multiple different pulses are specified,
+    the data will presented in a data frame with two
     indices (delay_ns and num_pulses).
+
+    See the following reference for more information about CPMG pulse trains:
+    Meiboom, S., and D. Gill, “Modified spin-echo method for measuring nuclear
+    relaxation times”, Rev. Sci. Inst., 29, 688–691 (1958).
+    https://doi.org/10.1063/1.1716296
 
     Note that interpreting T2 data is fairly tricky and subtle, as it can
     include other effects that need to be accounted for.  For instance,
@@ -115,6 +129,8 @@ def t2_decay(sampler: work.Sampler,
         raise ValueError('max_delay < min_delay')
     if min_delay_dur < 0:
         raise ValueError('min_delay < 0')
+    if num_pulses and experiment_type != ExperimentType.CPMG:
+        raise ValueError('num_pulses is only valid for CPMG experiments.')
 
     # Initialize values used in sweeps
     delay_var = sympy.Symbol('delay_ns')
@@ -148,36 +164,25 @@ def t2_decay(sampler: work.Sampler,
             study.Points('inv_y', [-0.5, 0.0]),
         )
         sweep = study.Product(delay_sweep, tomography_sweep)
-    elif experiment_type == ExperimentType.HAHN_ECHO:
-        # Hahn / Spin Echo T2 experiment
-        # Use sqrt(Y) to flip to the equator.
-        # Evolve the state for half the given amount of delay time
-        # Flip the state using an X gate
-        # Evolve the state for half the given amount of delay time
-        # Then measure the state in both X and Y bases.
+    else:
+        if experiment_type == ExperimentType.HAHN_ECHO:
+            # Hahn / Spin Echo T2 experiment
+            # Use sqrt(Y) to flip to the equator.
+            # Evolve the state for the given amount of delay time
+            # Flip the state using an X gate
+            # Evolve the state for the given amount of delay time
+            # Then measure the state in both X and Y bases.
+            num_pulses = [0]
+            # This is equivalent to a CPMG experiment with zero pulses
+            # and will follow the same code path.
 
-        circuit = circuits.Circuit(
-            ops.Y(qubit)**0.5,
-            ops.WaitGate(value.Duration(nanos=0.5 * delay_var))(qubit),
-            ops.X(qubit),
-            ops.WaitGate(value.Duration(nanos=0.5 * delay_var))(qubit),
-            ops.X(qubit)**inv_x_var,
-            ops.Y(qubit)**inv_y_var,
-            ops.measure(qubit, key='output'),
-        )
-        tomography_sweep = study.Zip(
-            study.Points('inv_x', [0.0, 0.5]),
-            study.Points('inv_y', [-0.5, 0.0]),
-        )
-        sweep = study.Product(delay_sweep, tomography_sweep)
-    elif experiment_type == ExperimentType.CPMG:
         # Carr-Purcell-Meiboom-Gill sequence.
         # Performs the following sequence
         # π/2 - wait(t) - π - wait(2t) - ... - π - wait(t)
         # There will be N π pulses (X gates)
         # where N sweeps over the values of num_pulses
         #
-        if num_pulses is None:
+        if not num_pulses:
             raise ValueError('At least one value must be given '
                              'for num_pulses in a CPMG experiment')
         max_pulses = max(num_pulses)
@@ -189,25 +194,27 @@ def t2_decay(sampler: work.Sampler,
             study.Points('inv_x', [0.0, 0.5]),
             study.Points('inv_y', [-0.5, 0.0]),
         )
-        pulse_sweep = _cpmg_sweep(num_pulses)
-        sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
+        if max_pulses > 0:
+            pulse_sweep = _cpmg_sweep(num_pulses)
+            sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
+        else:
+            sweep = study.Product(delay_sweep, tomography_sweep)
 
-    else:
-        raise ValueError(f'Experiment type {experiment_type} not supported')
+
 
     # Tabulate measurements into a histogram
     results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
 
-    y_basis_measurements = results[abs(results.inv_y) > 0]
-    x_basis_measurements = results[abs(results.inv_x) > 0]
+    y_basis_measurements = results[abs(results.inv_y) > 0].copy()
+    x_basis_measurements = results[abs(results.inv_x) > 0].copy()
 
     if num_pulses and len(num_pulses) > 1:
         max_pulses = max(num_pulses)
-        cols = [f'pulse_{t}' for t in range(max_pulses)]
-        x_basis_measurements['num_pulses'] = x_basis_measurements[cols].sum(
-            axis=1)
-        y_basis_measurements['num_pulses'] = y_basis_measurements[cols].sum(
-            axis=1)
+        cols = tuple(f'pulse_{t}' for t in range(max_pulses))
+        x_basis_measurements[
+            'num_pulses'] = x_basis_measurements.loc[:, cols].sum(axis=1)
+        y_basis_measurements[
+            'num_pulses'] = y_basis_measurements.loc[:, cols].sum(axis=1)
 
     x_basis_tabulation = _create_tabulation(x_basis_measurements)
     y_basis_tabulation = _create_tabulation(y_basis_measurements)
@@ -216,7 +223,7 @@ def t2_decay(sampler: work.Sampler,
     return T2DecayResult(x_basis_tabulation, y_basis_tabulation)
 
 
-def _create_tabulation(measurements):
+def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     """Returns a sum of 0 and 1 results per index from a list of measurements.
     """
     if 'num_pulses' in measurements.columns:
@@ -232,11 +239,11 @@ def _create_tabulation(measurements):
 
 
 def _cpmg_circuit(qubit: devices.GridQubit, delay_var: sympy.Symbol,
-                  max_pulses: int):
+                  max_pulses: int) -> 'cirq.Circuit':
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:
-      sqrt(X) - wait(delay_var)  - X - wait(2*delay_var) - ... - wait(delay_var)
+      sqrt(Y) - wait(delay_var)  - X - wait(2*delay_var) - ... - wait(delay_var)
     with max_pulses number of X gates.
 
     The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
@@ -299,7 +306,7 @@ class T2DecayResult:
         self._expectation_pauli_x = self._expectation(x_basis_data)
         self._expectation_pauli_y = self._expectation(y_basis_data)
 
-    def _expectation(self, data) -> pd.DataFrame:
+    def _expectation(self, data: pd.DataFrame) -> pd.DataFrame:
         """Calculates the expected value of the Pauli operator.
 
         Assuming that the data is measured in the Pauli basis of the operator,
