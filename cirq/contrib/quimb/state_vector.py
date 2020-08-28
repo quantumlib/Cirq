@@ -151,6 +151,7 @@ def tensor_expectation_value(circuit: cirq.Circuit,
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
     if QUIMB_VERSION < (1, 3):
+        # coverage: ignore
         warnings.warn('Please use quimb>=1.3 for optimal performance in '
                       '`tensor_expectation_value`. '
                       'See https://github.com/quantumlib/Cirq/issues/3263')
