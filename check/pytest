@@ -27,6 +27,8 @@ for arg in $@; do
     fi
 done
 
+source dev_tools/pypath
+
 if [ -z "${ACTUALLY_QUIET}" ]; then
     pytest "${PYTEST_ARGS[@]}"
 else

@@ -544,9 +544,18 @@ from cirq.work import (
 
 # Unflattened sub-modules.
 
+try:
+    import cirq_pasqal as pasqal  # type: ignore
+except ImportError as e:
+    pass
+
+try:
+    import cirq_aqt as aqt  # type: ignore
+except ImportError as e:
+    pass
+
 from cirq import (
     contrib,
     google,
-    pasqal,
     testing,
 )

@@ -51,6 +51,7 @@ def run(
         'pytest',
         'mypy',
         'yapf',
+        'source',
         *additional_intercepts,
     ]
     assert script_lines[0] == '#!/usr/bin/env bash\n'
@@ -100,7 +101,8 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out == 'INTERCEPTED pytest file_test.py\n'
+    assert result.out == ('INTERCEPTED source dev_tools/pypath\n'
+                          'INTERCEPTED pytest file_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
         "Found 1 test files associated with changes.\n").split()
@@ -112,7 +114,8 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
     assert result.exit_code == 0
-    assert result.out == 'INTERCEPTED pytest file_test.py\n'
+    assert result.out == ('INTERCEPTED source dev_tools/pypath\n'
+                          'INTERCEPTED pytest file_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
         "Found 1 test files associated with changes.\n").split()
@@ -125,7 +128,8 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git commit -m test --quiet --no-gpg-sign\n'
                  'echo x > file_test.py\n')
     assert result.exit_code == 0
-    assert result.out == 'INTERCEPTED pytest file_test.py\n'
+    assert result.out == ('INTERCEPTED source dev_tools/pypath\n'
+                          'INTERCEPTED pytest file_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
         "Found 1 test files associated with changes.\n").split()
@@ -138,7 +142,8 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git commit -m test --quiet --no-gpg-sign\n'
                  'echo x > file.py\n')
     assert result.exit_code == 0
-    assert result.out == 'INTERCEPTED pytest file_test.py\n'
+    assert result.out == ('INTERCEPTED source dev_tools/pypath\n'
+                          'INTERCEPTED pytest file_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
         "Found 1 test files associated with changes.\n").split()
@@ -151,7 +156,8 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git commit -m test --quiet --no-gpg-sign\n'
                  'echo x > __init__.py\n')
     assert result.exit_code == 0
-    assert result.out == ('INTERCEPTED pytest rtd_docs/docs_coverage_test.py '
+    assert result.out == ('INTERCEPTED source dev_tools/pypath\n'
+                          'INTERCEPTED pytest rtd_docs/docs_coverage_test.py '
                           'cirq/protocols/json_serialization_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"
@@ -283,6 +289,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -302,6 +309,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -315,6 +323,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -328,6 +337,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -341,6 +351,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -367,6 +378,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -382,6 +394,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out == (
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
@@ -402,6 +415,7 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
                  additional_intercepts=['check/pytest'])
     assert result.exit_code == 0
     assert result.out.startswith(
+        'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
         '. --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'

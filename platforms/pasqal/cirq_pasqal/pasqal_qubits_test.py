@@ -15,7 +15,7 @@ import pytest
 import numpy as np
 
 import cirq
-from cirq.pasqal import ThreeDQubit, TwoDQubit
+from cirq_pasqal import ThreeDQubit, TwoDQubit
 
 
 def test_pasqal_qubit_init_3D():

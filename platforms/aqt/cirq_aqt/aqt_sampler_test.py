@@ -18,8 +18,8 @@ import pytest
 import sympy
 
 from cirq import X, Z, XX, CNOT, PhasedXPowGate, Circuit, study, LineQubit
-from cirq.aqt import AQTSampler, AQTSamplerLocalSimulator
-from cirq.aqt.aqt_device import get_aqt_device, get_op_string
+from cirq_aqt import AQTSampler, AQTSamplerLocalSimulator
+from cirq_aqt.aqt_device import get_aqt_device, get_op_string
 
 
 class EngineReturn:
@@ -101,7 +101,7 @@ def test_aqt_sampler_error_handling():
             EngineNoStatus2(),
             EngineNoid()
     ]:
-        with mock.patch('cirq.aqt.aqt_sampler.put',
+        with mock.patch('cirq_aqt.aqt_sampler.put',
                         return_value=e_return,
                         side_effect=e_return.update) as _mock_method:
             theta = sympy.Symbol('theta')
@@ -148,7 +148,7 @@ def test_aqt_sampler():
     }
 
     e_return = EngineReturn()
-    with mock.patch('cirq.aqt.aqt_sampler.put',
+    with mock.patch('cirq_aqt.aqt_sampler.put',
                     return_value=e_return,
                     side_effect=e_return.update) as mock_method:
         theta = sympy.Symbol('theta')

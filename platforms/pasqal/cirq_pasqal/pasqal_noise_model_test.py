@@ -14,7 +14,7 @@
 import pytest
 import cirq
 
-from cirq.pasqal import PasqalNoiseModel, PasqalDevice
+from cirq_pasqal import PasqalNoiseModel, PasqalDevice
 from cirq.ops import NamedQubit
 
 
