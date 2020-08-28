@@ -16,6 +16,7 @@ Classes for identifying the qubits and hardware you want to operate on.
     cirq.GridQubit
     cirq.LineQid
     cirq.LineQubit
+    cirq.NamedQid
     cirq.NamedQubit
     cirq.Qid
 
@@ -379,6 +380,7 @@ the magic methods that can be implemented.
     cirq.SupportsMeasurementKey
     cirq.SupportsMixture
     cirq.SupportsParameterization
+    cirq.SupportsPauliExpansion
     cirq.SupportsPhase
     cirq.SupportsQasm
     cirq.SupportsQasmWithArgs
@@ -501,6 +503,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC_GATESET
     cirq.google.XMON
     cirq.google.get_engine
+    cirq.google.get_engine_calibration
+    cirq.google.get_engine_device
     cirq.google.get_engine_sampler
     cirq.google.line_on_device
     cirq.google.optimized_for_sycamore
@@ -571,6 +575,7 @@ operation.
     cirq.ABCMetaImplementAnyOneOf
     cirq.ArithmeticOperation
     cirq.InterchangeableQubitsGate
+    cirq.JsonResolver
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
@@ -605,6 +610,7 @@ operation.
     cirq.testing.random_superposition
     cirq.testing.random_unitary
     cirq.testing.EqualsTester
+    cirq.testing.NoIdentifierQubit
     cirq.testing.OrderTester
 
 

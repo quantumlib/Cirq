@@ -168,6 +168,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
+    'SupportsPauliExpansion',
     'SupportsPhase',
     'SupportsQasm',
     'SupportsQasmWithArgs',
@@ -178,6 +179,7 @@ SHOULDNT_BE_SERIALIZED = [
     # mypy types:
     'CIRCUIT_LIKE',
     'DURATION_LIKE',
+    'JsonResolver',
     'NOISE_MODEL_LIKE',
     'OP_TREE',
     'PAULI_GATE_LIKE',

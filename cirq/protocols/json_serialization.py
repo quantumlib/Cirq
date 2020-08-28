@@ -16,18 +16,18 @@ import json
 import numbers
 import pathlib
 from typing import (
-    Union,
     Any,
-    Dict,
-    Optional,
-    List,
-    Callable,
-    Type,
     cast,
-    TYPE_CHECKING,
-    Iterable,
-    overload,
+    Dict,
     IO,
+    Iterable,
+    List,
+    Optional,
+    overload,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
@@ -129,6 +129,8 @@ class _ResolverCache:
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
+                'NamedQid': cirq.NamedQid,
+                'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
@@ -191,14 +193,21 @@ class _ResolverCache:
 RESOLVER_CACHE = _ResolverCache()
 
 
-def _cirq_class_resolver(cirq_type: str) -> Union[None, Type]:
+class JsonResolver(Protocol):
+    """Protocol for json resolver functions passed to read_json."""
+
+    def __call__(self, cirq_type: str) -> Optional[Type]:
+        ...
+
+
+def _cirq_class_resolver(cirq_type: str) -> Optional[Type]:
     return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
 
 
-DEFAULT_RESOLVERS = [
+DEFAULT_RESOLVERS: List[JsonResolver] = [
     _cirq_class_resolver,
 ]
-"""A default list of 'resolver' functions for use in read_json.
+"""A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
 please read the docstring for `cirq.read_json`.
@@ -307,7 +316,7 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
         return cls
 
     # _cls is used to deduce if we're being called as
-    # @json_serialiable_dataclass or @json_serializable_dataclass().
+    # @json_serializable_dataclass or @json_serializable_dataclass().
     if _cls is None:
         # We're called with parens.
         return wrap
@@ -407,7 +416,7 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)  # coverage: ignore
 
 
-def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
+def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
     if 'cirq_type' not in d:
         return d
 
@@ -481,11 +490,10 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
-def read_json(
-        file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-        *,
-        json_text: Optional[str] = None,
-        resolvers: Optional[List[Callable[[str], Union[None, Type]]]] = None):
+def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+              *,
+              json_text: Optional[str] = None,
+              resolvers: Optional[Sequence[JsonResolver]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -508,11 +516,7 @@ def read_json(
         raise ValueError('Must specify ONE of "file_or_fn" or "json".')
 
     if resolvers is None:
-        # This cast is required because mypy does not accept
-        # assigning an expression of type T to a variable of type
-        # Optional[T]. This cast may hide actual bugs, so be careful.
-        resolvers = cast(Optional[List[Callable[[str], Union[None, Type]]]],
-                         DEFAULT_RESOLVERS)
+        resolvers = DEFAULT_RESOLVERS
 
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)
