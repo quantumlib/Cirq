@@ -416,3 +416,41 @@ def test_can_serialize_operation_subclass():
     q = cirq.GridQubit(1, 1)
     assert serializer.can_serialize_operation(SubclassGate(1)(q))
     assert not serializer.can_serialize_operation(SubclassGate(0)(q))
+
+
+def test_defaults_not_serialized():
+    serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             default=1.0,
+                                             op_getter='val')
+                                     ])
+    q = cirq.GridQubit(1, 2)
+    no_default = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    })
+    assert no_default == serializer.to_proto(GateWithAttribute(0.125)(q))
+    with_default = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'qubits': [{
+            'id': '1_2'
+        }]
+    })
+    assert with_default == serializer.to_proto(GateWithAttribute(1.0)(q))
