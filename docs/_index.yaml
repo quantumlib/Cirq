@@ -12,12 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This file desribes the main splash page for the Cirq sub-site on the 
-# larger Google Quantum site. 
-# It is used by "devsite", a Google internal CMS platform for documentation. 
+# This file desribes the main splash page for the Cirq sub-site on the
+# larger Google Quantum site.
+# It is used by "devsite", a Google internal CMS platform for documentation.
 
-book_path: /quark/cirq/_book.yaml
-project_path: /quark/cirq/_project.yaml
+book_path: /cirq/_book.yaml
+project_path: /cirq/_project.yaml
 description: >
   Cirq is a Python library for writing, manipulating, and optimizing quantum
   circuits and running them against quantum computers and simulators.
@@ -65,7 +65,7 @@ landing_page:
   - classname: devsite-landing-row-cards
     items:
     - heading: "Announcing<br>Cirq"
-      image_path: /resources/images/google-research-card-16x9.png
+      image_path: /site-assets/images/cards/google-research-card-16x9.png
       path: https://ai.googleblog.com/2018/07/announcing-cirq-open-source-framework.html
       buttons:
       - label: "Read on the Google AI blog"
@@ -76,7 +76,7 @@ landing_page:
       - label: Watch the video
         path: https://www.youtube.com/watch?v=16ZfkPRVf2w&list=PLQY2H8rRoyvwcpm6Nf-fL4sIYQUXtq3HR
     - heading: "Cirq on GitHub"
-      image_path: /resources/images/github-card-16x9.png
+      image_path: /site-assets/images/cards/github-card-16x9.png
       path: https://github.com/quantumlib/Cirq
       buttons:
       - label: "View on GitHub"
