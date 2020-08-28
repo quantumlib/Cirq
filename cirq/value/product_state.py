@@ -92,7 +92,7 @@ class ProductState:
             f'{repr(key)}: {repr(val)}' for key, val in self.states.items())
         return 'cirq.ProductState({%s})' % states_dict_repr
 
-    def __getitem__(self, qubit: cirq.Qid) -> _NamedOneQubitState:
+    def __getitem__(self, qubit: 'cirq.Qid') -> _NamedOneQubitState:
         """Return the _NamedOneQubitState at the given qubit."""
         return self.states[qubit]
 
