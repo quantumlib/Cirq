@@ -158,7 +158,7 @@ class PauliTrace:
     # Coefficient of the ideal pure state expanded in the Pauli basis scaled by
     # sqrt(dim H), formally defined at bottom of left column of page 2.
     rho_i: float
-    # A probablity (between 0.0 and 1.0) that is the relevance distribution,
+    # A probability (between 0.0 and 1.0) that is the relevance distribution,
     # formally defined at top of right column of page 2.
     Pr_i: float
 
@@ -213,7 +213,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         # clifford_state.state_vector() and then calling
         # compute_characteristic_function() on the results (albeit with a
         # wave function instead of a density matrix). It is, however,
-        # unncessary to do so. Instead we directly obtain the scalar rho_i.
+        # unnecessary to do so. Instead we directly obtain the scalar rho_i.
         rho_i = dense_pauli_string.coefficient
 
         assert np.isclose(rho_i.imag, 0.0, atol=1e-6)

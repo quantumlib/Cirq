@@ -1,4 +1,4 @@
-.. image:: _static/Cirq_logo_color.png
+.. image:: ../docs/images/Cirq_logo_color.png
     :alt: Cirq
 
 Cirq
@@ -24,20 +24,20 @@ User Documentation
 .. toctree::
     :maxdepth: 2
 
-    install
-    tutorial.ipynb
+    docs/install
+    docs/tutorials/basics.ipynb
 
 .. toctree::
     :maxdepth: 1
     :caption: Concepts
 
-    gates.ipynb
-    circuits.ipynb
-    simulation.ipynb
-    noise.ipynb
-    devices
-    interop.ipynb
-    qudits.ipynb
+    docs/gates.ipynb
+    docs/circuits.ipynb
+    docs/simulation.ipynb
+    docs/noise.ipynb
+    docs/devices
+    docs/interop.ipynb
+    docs/qudits.ipynb
     api
 
 
@@ -45,33 +45,33 @@ User Documentation
     :maxdepth: 1
     :caption: Tutorials
 
-    examples
-    tutorials/variational_algorithm.ipynb
-    tutorials/QAOA_Demo.ipynb
-    tutorials/hidden_linear_function.ipynb
-    tutorials/Quantum_Walk.ipynb
-    tutorials/Rabi_Demo.ipynb
-    tutorials/quantum_chess.ipynb
+    docs/tutorials/examples
+    docs/tutorials/variational_algorithm.ipynb
+    docs/tutorials/QAOA_Demo.ipynb
+    docs/tutorials/hidden_linear_function.ipynb
+    docs/tutorials/Quantum_Walk.ipynb
+    docs/tutorials/Rabi_Demo.ipynb
+    docs/tutorials/quantum_chess.ipynb
 
 
 .. toctree::
     :maxdepth: 1
     :caption: Google Documentation
 
-    google/devices
-    google/engine
-    google/specification
-    google/calibration
-    google/best_practices
+    docs/google/devices
+    docs/google/engine
+    docs/google/specification
+    docs/google/calibration
+    docs/google/best_practices
 
 
 .. toctree::
     :maxdepth: 1
     :caption: Pasqal Documentation
 
-    pasqal/getting_started.ipynb
-    pasqal/devices
-    pasqal/sampler
+    docs/pasqal/getting_started.ipynb
+    docs/pasqal/devices
+    docs/pasqal/sampler
 
 
 .. toctree::
@@ -79,4 +79,4 @@ User Documentation
     :caption: Developer Documentation
 
     dev/index.rst
-    dev/development
+    docs/dev/development

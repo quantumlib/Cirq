@@ -53,7 +53,7 @@ def test_gate_operation_eq():
 
     @cirq.value_equality
     class PairGate(cirq.Gate, cirq.InterchangeableQubitsGate):
-        """Interchangeable substes."""
+        """Interchangeable subsets."""
 
         def __init__(self, num_qubits):
             self._num_qubits = num_qubits

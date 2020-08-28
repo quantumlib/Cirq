@@ -139,7 +139,7 @@ To be informed of deprecations and breaking changes, subscribe to the
 
 This will use a Docker image that will isolate Cirq's installation from the rest of the system.
 
-0. [Install Docker](https://docs.docker.com/install/#supported-platforms) on your host sytem.
+0. [Install Docker](https://docs.docker.com/install/#supported-platforms) on your host system.
 
 1. Pull the docker image:
     ```bash
