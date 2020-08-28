@@ -14,6 +14,7 @@
 from typing import List, TYPE_CHECKING, Union, Optional, cast
 
 from cirq import work, circuits
+import cirq_google
 from cirq_google import engine, gate_sets
 
 if TYPE_CHECKING:

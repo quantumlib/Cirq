@@ -19,6 +19,7 @@ from cirq_google.optimizers import optimized_for_sycamore
 
 if TYPE_CHECKING:
     import cirq
+    import cirq_google
 
 
 def optimized_for_xmon(

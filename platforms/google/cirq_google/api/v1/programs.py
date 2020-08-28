@@ -17,6 +17,7 @@ from typing import (Any, cast, Dict, Iterable, Optional, Sequence, Tuple,
 import numpy as np
 import sympy
 
+import cirq_google
 from cirq import devices, ops, protocols, value, circuits
 from cirq_google.api.v1 import operations_pb2
 
@@ -300,11 +301,12 @@ def xmon_op_from_proto(proto: operations_pb2.Operation) -> 'cirq.Operation':
                       qubit(exp_11.target2))**param(exp_11.half_turns)
     if proto.HasField('measurement'):
         meas = proto.measurement
+        # yapf: disable
         return ops.MeasurementGate(num_qubits=len(meas.targets),
                                    key=meas.key,
-                                   invert_mask=tuple(meas.invert_mask)).on(
-                                       *[qubit(q) for q in meas.targets])
-
+                                   invert_mask=tuple(meas.invert_mask)
+                                  ).on(*[qubit(q) for q in meas.targets])
+        # yapf: enable
     raise ValueError('invalid operation: {}'.format(proto))
 
 

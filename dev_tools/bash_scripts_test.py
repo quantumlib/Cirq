@@ -291,7 +291,8 @@ def test_pytest_and_incremental_coverage_branch_selection(tmpdir_factory):
     assert result.out == (
         'INTERCEPTED source dev_tools/pypath\n'
         'INTERCEPTED check/pytest '
-        '. --actually-quiet --cov --cov-report=annotate '
+        'cirq platforms/google platforms/aqt platforms/pasqal'
+        ' --actually-quiet --cov --cov-report=annotate '
         '--cov-config=dev_tools/conf/.coveragerc --benchmark-skip\n'
         'INTERCEPTED '
         'python dev_tools/check_incremental_coverage_annotations.py HEAD\n')

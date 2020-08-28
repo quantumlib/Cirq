@@ -22,6 +22,7 @@ from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
+    import cirq_google
 
 ENV_PROJECT_ID = 'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID'
 

@@ -21,8 +21,7 @@ import numpy as np
 import pytest
 import sympy
 
-import cirq
-import cirq.google as cg
+from cirq import google as cg
 import cirq.testing
 from cirq import ops
 

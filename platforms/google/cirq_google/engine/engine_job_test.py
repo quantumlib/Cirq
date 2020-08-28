@@ -19,10 +19,10 @@ import pytest
 from google.protobuf.text_format import Merge
 
 import cirq
-import cirq.google as cg
-from cirq.google.api import v1, v2
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
-from cirq.google.engine.engine import EngineContext
+import cirq_google as cg
+from cirq_google.api import v1, v2
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq_google.engine.engine import EngineContext
 
 
 def _to_any(proto):
@@ -355,7 +355,6 @@ sweep_results: [{
         }]
     }]
 """, v2.result_pb2.Result())))
-
 
 BATCH_RESULTS = qtypes.QuantumResult(result=_to_any(
     Merge(

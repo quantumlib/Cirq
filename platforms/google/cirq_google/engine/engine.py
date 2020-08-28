@@ -32,7 +32,7 @@ from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
                     Union, TYPE_CHECKING)
 
 from google.protobuf import any_pb2
-from cirq.google.engine.client import quantum
+from cirq_google.engine.client import quantum
 from cirq import circuits, study, value
 from cirq_google import serializable_gate_set as sgs
 from cirq_google.api import v2
@@ -41,6 +41,7 @@ from cirq_google.engine import (engine_client, engine_program, engine_job,
 
 if TYPE_CHECKING:
     import cirq
+    import cirq_google
     import google.protobuf
 
 TYPE_PREFIX = 'type.googleapis.com/'

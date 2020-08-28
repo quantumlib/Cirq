@@ -21,8 +21,8 @@ from cirq import ops, circuits, protocols
 if TYPE_CHECKING:
     import cirq
 
-SQRT_ISWAP = ops.ISWAP**0.5
-SQRT_ISWAP_INV = ops.ISWAP**-0.5
+SQRT_ISWAP = ops.ISWAP**0.5  # type: ignore
+SQRT_ISWAP_INV = ops.ISWAP**-0.5  # type: ignore
 
 
 # TODO: Combine this with the equivalent functions in google/gate_set.py

@@ -22,6 +22,9 @@ cd "$(git rev-parse --show-toplevel)"
 
 # Install usual requirements.
 pip install -r requirements.txt
+pip install -r platforms/google/requirements.txt
+pip install -r platforms/aqt/requirements.txt
+pip install -r platforms/pasqal/requirements.txt
 
 # Install pytest related dev requirements.
 cat dev_tools/conf/pip-list-dev-tools.txt | grep pytest | xargs pip install

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import cirq
-import cirq.google as cg
+from cirq import google as cg
 import examples.direct_fidelity_estimation as dfe
 
 

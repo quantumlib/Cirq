@@ -21,11 +21,11 @@ from google.protobuf.duration_pb2 import Duration
 from google.protobuf.text_format import Merge
 from google.protobuf.timestamp_pb2 import Timestamp
 import cirq
-import cirq.google as cg
-from cirq.google.api import v2
-from cirq.google.engine.engine import EngineContext
-from cirq.google.engine.client.quantum_v1alpha1 import enums as qenums
-from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
+import cirq_google as cg
+from cirq_google.api import v2
+from cirq_google.engine.engine import EngineContext
+from cirq_google.engine.client.quantum_v1alpha1 import enums as qenums
+from cirq_google.engine.client.quantum_v1alpha1 import types as qtypes
 
 
 def _to_any(proto):
@@ -106,7 +106,6 @@ valid_targets: [{
     }]
 }]
 """, v2.device_pb2.DeviceSpecification()))
-
 
 _GATE_SET = cg.SerializableGateSet(
     gate_set_name='x_gate_set',

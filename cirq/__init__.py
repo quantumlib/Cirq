@@ -37,6 +37,13 @@ with _import.delay_import('cirq.protocols'):
         study,
     )
 
+from cirq import (
+    # Core
+    circuits,
+    work,
+    # pulled in by experiments
+    sim)
+
 try:
     import cirq_google as google  # type: ignore
     import cirq.experiments
@@ -55,16 +62,11 @@ try:
         xeb_fidelity,
     )
 except ImportError as e:
-    print("!!!!!!!!!!! NO GOOGLE !!!!!!!!!!!!")
     pass
 
 from cirq import (
-    # Core
-    circuits,
     # Optimize and run
     optimizers,
-    work,
-    sim,
     vis,
     # Hardware specific
     ion,
@@ -77,8 +79,7 @@ from cirq import (
 # End dependency order list of sub-modules
 
 from cirq._version import (
-    __version__,
-)
+    __version__,)
 
 # Flattened sub-modules.
 

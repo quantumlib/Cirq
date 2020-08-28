@@ -82,6 +82,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           python -m pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: RST check
@@ -114,6 +117,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
@@ -129,6 +135,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           sudo apt-get install pandoc
@@ -166,6 +175,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Coverage check
@@ -185,6 +197,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest Windows
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
@@ -204,6 +219,9 @@ jobs:
       - name: Install requirements
         run: |
           pip install -r requirements.txt
+          pip install -r platforms/aqt/requirements.txt
+          pip install -r platforms/google/requirements.txt
+          pip install -r platforms/pasqal/requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip
