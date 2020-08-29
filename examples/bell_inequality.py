@@ -13,7 +13,7 @@ achievable is 75%. While with quantum correlations, it can
 achieve higher success probability. In the quantum case, two players
 Alice and Bob starts with a shared Bell-pair entangled state. The
 random input x and y is provided by referee for Alice and Bob. The
-success probability of satisfying the above condition will be 
+success probability of satisfying the above condition will be
 cos(theta/2)^2 if Alice and Bob measures their entangled qubit in
 measurement basis v and w where angle between v and w is theta.
 Therefore, maximum success probability is cos(pi/8)^2 ~ 85.3%
