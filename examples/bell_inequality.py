@@ -15,21 +15,22 @@ Alice and Bob starts with a shared Bell-pair entangled state. The
 random input x and y is provided by referee for Alice and Bob. The
 success probability of satisfying the above condition will be 
 cos(theta/2)^2 if Alice and Bob measures their entangled qubit in
-measurement basis v and w where angle between v and w is theta. 
-Therefore, maximum success probability is cos(pi/8)^2 ~ 85.3% 
+measurement basis v and w where angle between v and w is theta.
+Therefore, maximum success probability is cos(pi/8)^2 ~ 85.3%
 when theta = pi/4.
 
-In the usual implementation [2], Alice and Bob shares the Bell state 
+In the usual implementation [2], Alice and Bob shares the Bell state
 with same value and opposite phase. If the input x (y) is 0, Alice (Bob)
 rotates in Y-basis by angle -pi/16 and if the input is 1, Alice (Bob)
 rotates by angle 3pi/16. Here, Alice and Bob starts with the entangled
-Bell state with same value and phase. The same success probability is 
-achieved by following procedure: Alice rotates in X-basis by angle 
--pi/4 followed by controlled-rotation by angle pi/2 in X-basis for 
+Bell state with same value and phase. The same success probability is
+achieved by following procedure: Alice rotates in X-basis by angle
+-pi/4 followed by controlled-rotation by angle pi/2 in X-basis for
 Alice (Bob) based on input x (y).
 
 [1] https://en.wikipedia.org/wiki/Bell%27s_theorem
-[2] R. de Wolf. Quantum Computing: Lecture Notes (arXiv:1907.09415, Section 15.2)
+[2] R. de Wolf. Quantum Computing: Lecture Notes
+(arXiv:1907.09415, Section 15.2)
 
 === EXAMPLE OUTPUT ===
 Circuit:
