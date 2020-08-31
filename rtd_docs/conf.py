@@ -32,7 +32,7 @@ from cirq import _doc
 
 def setup(app):
     # just in case it exists (locally) remove the copied docs folder
-    shutil.rmtree("rtd_docs/docs", ignore_errors=True)
+    shutil.rmtree("./docs", ignore_errors=True)
     # copy recursively the actual content from the devsite folder
     # to rtd_docs/docs
     shutil.copytree(src="../docs", dst="./docs")
