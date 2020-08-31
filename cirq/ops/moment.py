@@ -117,7 +117,7 @@ class Moment:
         return m
 
     def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
-        """Returns an equal moment, but with the given contents added.
+        """Returns a new moment with the given contents added.
 
         Args:
             contents: New operations to add to this moment.
@@ -258,7 +258,7 @@ class Moment:
         from cirq.circuits import circuit
         if isinstance(other, circuit.Circuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
-        return Moment([self.operations, other])
+        return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
         from cirq.ops import op_tree
