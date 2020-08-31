@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
     from cirq.value.product_state import (_XEigenState, _YEigenState,
-                                          _ZEigenState)
+                                          _ZEigenState)  # coverage: ignore
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
