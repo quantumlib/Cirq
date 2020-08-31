@@ -2,7 +2,7 @@
 Bell's theorem or inequality proves that entanglement based
 observations can't be reproduced with any local realist theory [1].
 
-This example shows Bell inequality in form of CHSH game where two
+This example shows Bell's inequality in form of CHSH game where two
 players Alice and Bob receive an input bit x and y respectively and
 produce an output a and b based on the input bit.
 The goal is to maximize the probability to satisfy the condition [2]:
@@ -11,20 +11,20 @@ The goal is to maximize the probability to satisfy the condition [2]:
 In the classical deterministic case, the highest probability
 achievable is 75%. While with quantum correlations, it can
 achieve higher success probability. In the quantum case, two players
-Alice and Bob starts with a shared Bell-pair entangled state. The
+Alice and Bob start with a shared Bell-pair entangled state. The
 random input x and y is provided by referee for Alice and Bob. The
 success probability of satisfying the above condition will be
-cos(theta/2)^2 if Alice and Bob measures their entangled qubit in
-measurement basis v and w where angle between v and w is theta.
+cos(theta/2)^2 if Alice and Bob measure their entangled qubit in
+measurement basis V and W where angle between V and W is theta.
 Therefore, maximum success probability is cos(pi/8)^2 ~ 85.3%
 when theta = pi/4.
 
-In the usual implementation [2], Alice and Bob shares the Bell state
-with same value and opposite phase. If the input x (y) is 0, Alice (Bob)
+In the usual implementation [2], Alice and Bob share the Bell state
+with the same value and opposite phase. If the input x (y) is 0, Alice (Bob)
 rotates in Y-basis by angle -pi/16 and if the input is 1, Alice (Bob)
-rotates by angle 3pi/16. Here, Alice and Bob starts with the entangled
+rotates by angle 3pi/16. Here, Alice and Bob start with the entangled
 Bell state with same value and phase. The same success probability is
-achieved by following procedure: Alice rotates in X-basis by angle
+achieved by following procedure: Alice rotate in X-basis by angle
 -pi/4 followed by controlled-rotation by angle pi/2 in X-basis for
 Alice (Bob) based on input x (y).
 
