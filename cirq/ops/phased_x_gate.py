@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple, Union
+from typing import (AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple,
+                    Union)
 
 import math
 import numpy as np

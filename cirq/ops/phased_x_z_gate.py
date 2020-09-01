@@ -1,5 +1,6 @@
 import numbers
-from typing import AbstractSet, Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (AbstractSet, Any, Dict, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 
 import numpy as np
 import sympy

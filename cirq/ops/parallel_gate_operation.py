@@ -13,7 +13,8 @@
 # limitations under the License.
 
 
-from typing import AbstractSet, Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
+from typing import (AbstractSet, Sequence, Tuple, Union, Any, Optional,
+                    TYPE_CHECKING)
 
 import numpy as np
 

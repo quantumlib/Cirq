@@ -13,7 +13,8 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import AbstractSet, Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import (AbstractSet, Any, Dict, List, Optional, Sequence, Tuple,
+                    Union)
 
 import numpy as np
 import sympy
