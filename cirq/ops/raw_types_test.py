@@ -674,11 +674,14 @@ def test_tagged_operation_resolves_parameterized_tags():
     q = cirq.GridQubit(0, 0)
     tag = ParameterizableTag(sympy.Symbol('t'))
     assert cirq.is_parameterized(tag)
+    assert cirq.parameter_names(tag) == {'t'}
     op = cirq.Z(q).with_tags(tag)
     assert cirq.is_parameterized(op)
+    assert cirq.parameter_names(op) == {'t'}
     resolved_op = cirq.resolve_parameters(op, {'t': 10})
     assert resolved_op == cirq.Z(q).with_tags(ParameterizableTag(10))
     assert not cirq.is_parameterized(resolved_op)
+    assert cirq.parameter_names(resolved_op) == set()
 
 
 def test_inverse_composite_standards():

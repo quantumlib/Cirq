@@ -2519,6 +2519,23 @@ def test_resolve_parameters():
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
+def test_parameter_names():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CZ(a, b)**sympy.Symbol('u'),
+        cirq.X(a)**sympy.Symbol('v'),
+        cirq.Y(b)**sympy.Symbol('w'),
+    )
+    resolved_circuit = cirq.resolve_parameters(
+        circuit, cirq.ParamResolver({
+            'u': 0.1,
+            'v': 0.3,
+            'w': 0.2
+        }))
+    assert cirq.parameter_names(circuit) == {'u', 'v', 'w'}
+    assert cirq.parameter_names(resolved_circuit) == set()
+
+
 def test_items():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

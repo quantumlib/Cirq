@@ -135,9 +135,7 @@ class BadGateIsParameterized(GoodGate):
 class BadGateParameterNames(GoodGate):
 
     def _parameter_names_(self) -> AbstractSet[str]:
-        if super()._parameter_names_():
-            return set()
-        return {'not_a_param'}
+        return super()._parameter_names_() | {'not_a_param'}
 
 
 class BadGateApplyUnitaryToTensor(GoodGate):
@@ -238,6 +236,14 @@ def test_assert_implements_consistent_protocols():
             GoodGate(phase_exponent=sympy.Symbol('t')),
             global_vals={'GoodGate': GoodGate}
     )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+            BadGateIsParameterized(phase_exponent=0.25))
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+            BadGateParameterNames(phase_exponent=0.25))
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(

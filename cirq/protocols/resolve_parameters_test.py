@@ -78,6 +78,13 @@ def test_resolve_parameters():
     assert not cirq.is_parameterized(())
     assert not cirq.is_parameterized([])
 
+    assert cirq.parameter_names((a, b, c)) == {'a', 'b', 'c'}
+    assert cirq.parameter_names([a, b, c]) == {'a', 'b', 'c'}
+    assert cirq.parameter_names((x, y, z)) == set()
+    assert cirq.parameter_names([x, y, z]) == set()
+    assert cirq.parameter_names(()) == set()
+    assert cirq.parameter_names([]) == set()
+
 
 def test_skips_empty_resolution():
     class Tester:
