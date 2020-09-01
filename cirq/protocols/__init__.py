@@ -98,7 +98,9 @@ from cirq.protocols.mixture_protocol import (
 from cirq.protocols.mul_protocol import (
     mul,)
 from cirq.protocols.pauli_expansion_protocol import (
-    pauli_expansion,)
+    pauli_expansion,
+    SupportsPauliExpansion,
+)
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import (
     pow,)
