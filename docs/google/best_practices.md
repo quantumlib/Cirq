@@ -124,11 +124,11 @@ into moments with similar gates.
 ## Running circuits faster
 
 The following sections give tips and tricks that allow you to improve your
-repetition rate (how many repetitions per second the device will run).
+repetition rate (how many repetitions per second the device will run). 
 
-These tips will not improve your results or your fidelity but will help you
-get results faster, allowing you to make the most out of limited time on the
-device.
+This will allow you to make the most out of limited time on the
+device by getting results faster. The shorter experiment time may
+also reduce error due to drift of qubits away from calibration.
 
 There are costs to sending circuits over the network, to compiling each
 circuit into waveforms, to initializing the device,

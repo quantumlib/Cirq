@@ -153,8 +153,8 @@ $$
 \left[
 \begin{matrix}
 1 & 0 & 0 & 0 \\
-0 & 0.5sqrt{2} 0 & 0.5 i sqrt{2} & 0 \\
-0 & 0.5 i sqrt{2} 0 & 0.5 sqrt{2} & 0 \\
+0 & \frac{1}{\sqrt{2}} & \frac{i}{\sqrt{2}} & 0 \\
+0 & \frac{i}{\sqrt{2}}& \frac{1}{\sqrt{2}} & 0 \\
 0 & 0 & 0 & 1
 \end{matrix}
 \right]
@@ -177,7 +177,7 @@ The `cirq.FSIM_GATESET` provides all three of the above gates in one set.
 In addition, by using this combined gate set, the FSimGate can be parameterized,
 which allows for efficient sweeps across varying two-qubit gates.
 Note that providing a theta/phi combination that
-is not one of the above gates, the circuit will not execute properly.
+is not one of the above gates will cause an error when run on hardware.
 
 
 ### Wait gate
