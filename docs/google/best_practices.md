@@ -6,8 +6,8 @@ encouraged to try multiple approaches to improve results.
 
 This guide is split into three parts:
 *  Getting your circuit to run
-*  Lowering error
 *  Making it run faster
+*  Lowering error
 
 
 ## Getting a circuit to run on hardware
@@ -16,13 +16,13 @@ In order to run on hardware, the circuit must only use qubits and gates that the
 device supports.  Using inactive qubits, non-adjacent qubits, or non-native
 gates will immediately cause a circuit to fail.
 
-Attaching a `cirq.Device` to a circuit will test a lot of these conditions for
-you.  If you have an existing Circuit (using the default unconstrained device),
-you can easily test basic hardware compatibility by calling
-`circuit.with_device(new_device=cirq.google.Sycamore)` to validate that it will
-run on a full Sycamore 54-qubit architecture.  Be sure to get the real device
-using the [engine object](./specification.md#serializable-devices) once you have
-access to the API.
+Validating a circuit with a device, such as
+`cirq.google.Sycamore.validate_circuit(circuit)` will test a lot of these
+conditions.  Calling the `validate_circuit` function will work with any
+device, including those retrieved directly from the API using the
+[engine object](./specification.md#serializable-devices), which can help
+identify any qubits used in the circuit that have been disabled on the actual
+device.
 
 
 ### Using built-in optimizers as a first pass
@@ -48,78 +48,6 @@ my_circuit = cirq.Circuit()
 # This can include combining successive one-qubit gates and ejecting virtual Z gates. 
 sycamore_circuit = cg.optimized_for_sycamore(my_circuit, new_device=cg.Sycamore, optimizer_type='sqrt_iswap')
 ```
-## Improving circuit fidelity
-
-The following tips and tricks show how to modify your circuit to
-reduce error rates by following good circuit design principles that
-minimize the length of circuits.
-
-Quantum Engine will execute a circuit as faithfully as possible.
-This means that moment structure will be preserved. That is, all gates in a
-moment are guaranteed to be executed before those in any later moment and
-after gates in previous moments.  Many of these tips focus on having a
-good moment structure that avoids problematic missteps that can cause
-unwanted noise and error.
-
-### Short gate depth
-
-In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
-have significant error. Both gate errors and T1 decay rate can cause long circuits
-to have noise that overwhelms any signal in the circuit.
-
-The recommended gate depths vary significantly with the structure of the circuit itself
-and will likely increase as the devices improve. Total circuit fidelity can be roughly
-estimated by multiplying the fidelity for all gates in the circuit. For example,
-using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be estimated
-at 0.995^(20 * 20) = 0.135. Using separate error rates per gates (i.e. based on calibration
-metrics) or a more complicated noise model can result in more accurate error estimation.
-
-### Terminal Measurements
-
-Make sure that measurements are kept in the same moment as the final moment in
-the circuit.  Make sure that any circuit optimizers do not alter this by
-incorrectly pushing measurements forward. This behavior can be avoided by
-measuring all qubits with a single gate or by adding
-the measurement gate after all optimizers have run.
-
-Currently, only terminal measurements are supported by the hardware.  If you
-absolutely need intermediate measurements for your application, reach out to
-your Google sponsor to see if they can help devise a proper circuit using
-intermediate measurements.
-
-
-### Keep qubits busy
-
-Qubits that remain idle for long periods tend to dephase and decohere. Inserting a
-[Spin Echo](https://en.wikipedia.org/wiki/Spin_echo) into your circuit onto
-qubits that have long idle periods, such as a pair
-of involutions, such as two successive Pauli Y gates, will generally increase
-performance of the circuit.
-
-### Delay initialization of qubits
-
-The |0⟩ state is more robust than the |1⟩ state. As a result, one should
-not initialize a qubit to |1⟩ at the beginning of the circuit until shortly
-before other gates are applied to it.
-
-### Align single-qubit and two-qubit layers
-
-Devices are generally calibrated to circuits that alternate single-qubit gates with
-two-qubit gates in each layer. Staying close to this paradigm will often improve
-performance of circuits.  This will also reduce the circuit's total duration,
-since the duration of a moment is its longest gate.  Making sure that each layer
-contains similar gates of the same duration can be challenging, but it will
-likely have a measurable impact on the fidelity of your circuit.
-
-Devices generally operate in the Z basis, so that rotations around the Z axis will become
-book-keeping measures rather than physical operations on the device. The EjectZ optimizer
-included in optimizer lists for each device will generally compile these operations out
-of the circuit by pushing them back to the next non-commuting operator. If the resulting
-circuit still contains Z operations, they should be aggregated into their own moment,
-if possible.
-
-See the function `cirq.stratified_circuit` for an automated way to pack gates
-into moments with similar gates.
 
 ## Running circuits faster
 
@@ -261,9 +189,75 @@ print(list(flat_sweep.param_tuples()))
 #  (('<2**t - 1>', 1.0),)]
 ```
 
-### Measure less qubits
+## Improving circuit fidelity
 
-Measuring all qubits on the device increases the amount of data needed
-for readout and to send back as results.  If you don't need the result
-of a qubit, consider not measuring it to slightly speed up your results.
-This is a fairly minor effect, so prefer using the above methods first.
+The following tips and tricks show how to modify your circuit to
+reduce error rates by following good circuit design principles that
+minimize the length of circuits.
+
+Quantum Engine will execute a circuit as faithfully as possible.
+This means that moment structure will be preserved. That is, all gates in a
+moment are guaranteed to be executed before those in any later moment and
+after gates in previous moments.  Many of these tips focus on having a
+good moment structure that avoids problematic missteps that can cause
+unwanted noise and error.
+
+### Short gate depth
+
+In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
+have significant error. Both gate errors and T1 decay rate can cause long circuits
+to have noise that overwhelms any signal in the circuit.
+
+The recommended gate depths vary significantly with the structure of the circuit itself
+and will likely increase as the devices improve. Total circuit fidelity can be roughly
+estimated by multiplying the fidelity for all gates in the circuit. For example,
+using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be estimated
+at 0.995^(20 * 20) = 0.135. Using separate error rates per gates (i.e. based on calibration
+metrics) or a more complicated noise model can result in more accurate error estimation.
+
+### Terminal Measurements
+
+Make sure that measurements are kept in the same moment as the final moment in
+the circuit.  Make sure that any circuit optimizers do not alter this by
+incorrectly pushing measurements forward. This behavior can be avoided by
+measuring all qubits with a single gate or by adding
+the measurement gate after all optimizers have run.
+
+Currently, only terminal measurements are supported by the hardware.  If you
+absolutely need intermediate measurements for your application, reach out to
+your Google sponsor to see if they can help devise a proper circuit using
+intermediate measurements.
+
+
+### Keep qubits busy
+
+Qubits that remain idle for long periods tend to dephase and decohere. Inserting a
+[Spin Echo](https://en.wikipedia.org/wiki/Spin_echo) into your circuit onto
+qubits that have long idle periods, such as a pair
+of involutions, such as two successive Pauli Y gates, will generally increase
+performance of the circuit.
+
+### Delay initialization of qubits
+
+The |0⟩ state is more robust than the |1⟩ state. As a result, one should
+not initialize a qubit to |1⟩ at the beginning of the circuit until shortly
+before other gates are applied to it.
+
+### Align single-qubit and two-qubit layers
+
+Devices are generally calibrated to circuits that alternate single-qubit gates with
+two-qubit gates in each layer. Staying close to this paradigm will often improve
+performance of circuits.  This will also reduce the circuit's total duration,
+since the duration of a moment is its longest gate.  Making sure that each layer
+contains similar gates of the same duration can be challenging, but it will
+likely have a measurable impact on the fidelity of your circuit.
+
+Devices generally operate in the Z basis, so that rotations around the Z axis will become
+book-keeping measures rather than physical operations on the device. The EjectZ optimizer
+included in optimizer lists for each device will generally compile these operations out
+of the circuit by pushing them back to the next non-commuting operator. If the resulting
+circuit still contains Z operations, they should be aggregated into their own moment,
+if possible.
+
+See the function `cirq.stratified_circuit` for an automated way to pack gates
+into moments with similar gates.
