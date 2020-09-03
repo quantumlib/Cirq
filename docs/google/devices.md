@@ -181,7 +181,8 @@ The controlled-Z gate `cirq.CZ` is experimentally available on some
 devices.  Be sure to check with your sponsor or in the device specification
 to see if it is available on the processor you are using.
 
-This gate is equivalent to FSimGate(0, π).
+This gate is equivalent to FSimGate(0, π).  It has an approximate duration
+of 26ns.
 
 #### FSim gateset
 
