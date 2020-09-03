@@ -71,8 +71,8 @@ class QubitPermutationGate(raw_types.Gate):
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 
-    def _circuit_diagram_info_(
-            self, args: 'cirq.CircuitDiagramInfoArgs') -> Tuple[str, ...]:
+    def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         return tuple(f'[{i}>{self.permutation[i]}]'
                      for i in range(len(self.permutation)))
 
