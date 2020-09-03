@@ -143,7 +143,7 @@ def test_cross_entropy_result_purity_model_fails_with_no_data():
     ]
     result = CrossEntropyResult(data=data, repetitions=1000)
     with pytest.raises(ValueError):
-        purity_model = result.purity_depolarizing_model()
+        _ = result.purity_depolarizing_model()
 
 
 def test_purity_from_probabilities():
