@@ -1,4 +1,4 @@
-## Installing Cirq
+# Installing Cirq
 
 Choose your operating system:
 
@@ -11,14 +11,14 @@ If you want to create a development environment, see the [development page](dev/
 
 ---
 
-### Alpha Disclaimer
+## Alpha Disclaimer
 
 **Cirq is currently in alpha.**
 We may change or remove parts of Cirq's API when making new releases.
 To be informed of deprecations and breaking changes, subscribe to the
 [cirq-announce google group mailing list](https://groups.google.com/forum/#!forum/cirq-announce).
 
-### Installing on Linux
+## Installing on Linux
 
 0. Make sure you have python 3.6.0 or greater.
 
@@ -61,7 +61,7 @@ To be informed of deprecations and breaking changes, subscribe to the
     ```
 
 
-### Installing on Mac OS X
+## Installing on Mac OS X
 
 0. Make sure you have python 3.5 or greater.
 
@@ -102,7 +102,7 @@ To be informed of deprecations and breaking changes, subscribe to the
     ```
 
 
-### Installing on Windows
+## Installing on Windows
 
 0. If you are using the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/about), use the [Linux install instructions](#installing-on-linux) instead of these instructions.
 
@@ -135,7 +135,7 @@ To be informed of deprecations and breaking changes, subscribe to the
     ```
 
 
-### Installing on Docker
+## Installing on Docker
 
 This will use a Docker image that will isolate Cirq's installation from the rest of the system.
 
