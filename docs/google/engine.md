@@ -129,6 +129,14 @@ has a method `run_batch()` that functions similar to `run()` but accepts a
 list of circuits and parameter sweeps.  Each circuit must have a corresponding
 parameter sweep.  If the circuit does not use a sweep, pass in `None`.
 
+There are some restrictions on the circuits that can be batched together.
+All circuits in the same batch must measure the same set of qubits.  They
+must all contain the same number of repetitions.
+Batching circuits together that do not follow this restriction may not
+cause an error, but your performance will not be improved.
+
+The following code shows an example of batching together parameterized
+circuits, each of which is a sweep.
 
 ```python
 import sympy
