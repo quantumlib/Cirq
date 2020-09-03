@@ -253,11 +253,12 @@ contains similar gates of the same duration can be challenging, but it will
 likely have a measurable impact on the fidelity of your circuit.
 
 Devices generally operate in the Z basis, so that rotations around the Z axis will become
-book-keeping measures rather than physical operations on the device. The EjectZ optimizer
-included in optimizer lists for each device will generally compile these operations out
-of the circuit by pushing them back to the next non-commuting operator. If the resulting
-circuit still contains Z operations, they should be aggregated into their own moment,
-if possible.
+book-keeping measures rather than physical operations on the device. These
+virtual Z operations have zero duration and have no cost, if they add no moments
+to your circuit.  In order to guarantee that they do not add moments, you can
+make sure that virtual Z are aggregated into their own layer.  Alternatively,
+you can use the `EjectZ` optimizer to propagate these Z gates forward through
+commuting operators.
 
 See the function `cirq.stratified_circuit` for an automated way to pack gates
 into moments with similar gates.

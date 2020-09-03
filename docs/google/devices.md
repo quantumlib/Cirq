@@ -63,12 +63,19 @@ cirq.Circuit(
 )
 ```
 
+The duration of a moment is the time of its longest gate.  For example,
+if a moment has gates of duration 12ns, 25ns, and 32ns, the entire moment
+will take 32ns.  Qubits executing the shorter gtes will idle during the rest
+of the time.  To minimize the duration of the circuit, it is best to align
+gates of the same duration together when possible.  See the
+[best practices](./best_practices.md) for more details.
+
 ## Gates supported
 
 The following lists the gates supported by Google devices.
-Please note that gate durations are subject to change as hardware isxi
+Please note that gate durations are subject to change as hardware is
 updated and modified, so please refer to the
-[device specification](https://cirq.readthedocs.io/en/latest/docs/google/specification.html)
+[device specification](./specification.md)
 to get up-to-date information on supported gates and durations for
 specific processors
 
@@ -79,13 +86,16 @@ The full complement of these rotations can be accessed by using the
 `cirq.PhasedXZGate`.  More restrictive one-qubit gates, such as
 the Pauli gates `cirq.X`, `cirq.Y`, `cirq.Z`, as well as the
 gate `cirq.PhasedXPowGate` can also be natively executed.
+One qubit rotations have a duration of 25 ns on most Google devices.
 
 #### Virtual Z gates
 
-Rotation around the Z axis is generally not a hardware operation.
+Rotation around the Z axis is not a hardware operation on its own.
 Instead, the compilation keeps track of the Z phase rotations,
 commuting them forward through the circuit until a non-commuting
 gate is reached.  This compilation is handled automatically for you.
+Adding a Z gate will generally not add any duration to the circuit, though
+it may modify how the other gates are applied.
 
 What this means is that `cirq.Z` and `cirq.ZPowGate` gates will
 have zero duration on the device.  Any moments containing only
@@ -104,6 +114,8 @@ such as in the following example:
 ```
 cirq.Z(cirq.GridQubit(5, 5)).with_tags(cirq.google.PhysicalZTag())
 ```
+
+Physical Z gates have a duration of 12 ns on most Google devices.
 
 ### Two Qubit Gates
 
@@ -137,8 +149,8 @@ $$
 \right]
 $$
 
-This gate can be used in `cirq.google.SYC_GATESET` or in the
-`cirq.google.FSIM_GATESET`.
+This gate has a duration of 12ns and can be used in `cirq.google.SYC_GATESET`
+or in the `cirq.google.FSIM_GATESET`.
 
 #### Square root of iSWAP
 
@@ -160,8 +172,8 @@ $$
 \right]
 $$
 
-This gate can be used in `cirq.google.SQRT_ISWAP_GATESET` or in the
-`cirq.google.FSIM_GATESET`.
+This gate has a duration of 32ns and can be used in
+`cirq.google.SQRT_ISWAP_GATESET` or in the `cirq.google.FSIM_GATESET`.
 
 #### CZ gate
 
@@ -169,7 +181,7 @@ The controlled-Z gate `cirq.CZ` is experimentally available on some
 devices.  Be sure to check with your sponsor or in the device specification
 to see if it is available on the processor you are using.
 
-This gate is equivalent to FSimGate(0, π)
+This gate is equivalent to FSimGate(0, π).
 
 #### FSim gateset
 
@@ -195,7 +207,9 @@ appropriate qubits.
 Note that real hardware does not always have all qubits enabled, and it
 is important to check the device specification for the processor that you
 will attempt to run on to make sure that the qubits your circuit uses
-are actually active.
+are actually active.  Regular calibration and maintenance can disable
+and enable misbehaving qubits, so the grid configuration can change on a
+daily basis.
 
 ### Sycamore
 
