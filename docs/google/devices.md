@@ -77,7 +77,11 @@ Please note that gate durations are subject to change as hardware is
 updated and modified, so please refer to the
 [device specification](./specification.md)
 to get up-to-date information on supported gates and durations for
-specific processors
+specific processors.
+
+In addition, please note that all gates will have variations and
+errors that vary from device to device and from qubit to qubit.
+This can include both inchorent as well as coherent error.
 
 ### One qubit gates
 
@@ -156,7 +160,7 @@ or in the `cirq.google.FSIM_GATESET`.
 
 The hardware provides the square root of the iSWAP gate
 using `cirq.ISWAP ** 0.5`.  This gate is equivalent to an FSimGate(-π/4, 0).
-The inverse (`cirq.ISWAP ** -0.5`) is also available
+The inverse (`cirq.ISWAP ** -0.5`) is also available.
 
 The unitary of this gate, which can also be found via the `cirq.unitary`
 function, is:
@@ -174,6 +178,11 @@ $$
 
 This gate has a duration of 32ns and can be used in
 `cirq.google.SQRT_ISWAP_GATESET` or in the `cirq.google.FSIM_GATESET`.
+
+Users should note that this gate is approximate and calibrated for
+average performance across the entire processor.  In particular,
+average variations of the 'phi' angle of about π/24 have been observed
+on some devices.
 
 #### CZ gate
 

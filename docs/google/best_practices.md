@@ -260,5 +260,15 @@ make sure that virtual Z are aggregated into their own layer.  Alternatively,
 you can use the `EjectZ` optimizer to propagate these Z gates forward through
 commuting operators.
 
-See the function `cirq.stratified_circuit` for an automated way to pack gates
+See the function `cirq.stratified_circuit` for an automated way to organize gates
 into moments with similar gates.
+
+### Refitting gates
+
+Virtual Z gates (or even single qubit gates) can be added to adjust for errors
+in two qubit gates.  Two qubit gates can have errors due to drift, coherent
+error, or other sources.  Refitting these gates and adjusting the circuit for
+the observed unitary of the two qubit gate compared to the ideal unitary can
+substantially improve results.  However, this approach can use a substantial
+amount of resources, and the methods to do this are currently under active
+research and change.  Talk to your Google sponsor for details.
