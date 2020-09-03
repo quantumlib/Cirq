@@ -247,6 +247,7 @@ from cirq.ops import (
     QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
+    QubitPermutationGate,
     reset,
     ResetChannel,
     riswap,

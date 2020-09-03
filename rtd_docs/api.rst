@@ -93,6 +93,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
     cirq.QuantumFourierTransformGate
+    cirq.QubitPermutationGate
     cirq.RandomGateChannel
     cirq.SingleQubitGate
     cirq.SwapPowGate
@@ -585,6 +586,7 @@ operation.
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
+    cirq.testing.assert_equivalent_computational_basis_map
     cirq.testing.assert_equivalent_repr
     cirq.testing.assert_has_consistent_apply_unitary
     cirq.testing.assert_has_consistent_apply_unitary_for_various_exponents
