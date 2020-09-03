@@ -4,7 +4,28 @@ This section lists some best practices for creating a circuit that performs well
 on Google hardware devices. This is an area of active research, so users are
 encouraged to try multiple approaches to improve results.
 
-## Use built-in optimizers as a first pass
+This guide is split into three parts:
+*  Getting your circuit to run
+*  Making it run faster
+*  Lowering error
+
+
+## Getting a circuit to run on hardware
+
+In order to run on hardware, the circuit must only use qubits and gates that the
+device supports.  Using inactive qubits, non-adjacent qubits, or non-native
+gates will immediately cause a circuit to fail.
+
+Validating a circuit with a device, such as
+`cirq.google.Sycamore.validate_circuit(circuit)` will test a lot of these
+conditions.  Calling the `validate_circuit` function will work with any
+device, including those retrieved directly from the API using the
+[engine object](./specification.md#serializable-devices), which can help
+identify any qubits used in the circuit that have been disabled on the actual
+device.
+
+
+### Using built-in optimizers as a first pass
 
 Using built-in optimizers will allow you to compile to the correct gate set. As they are
 automated solutions, they will not always perform as well as a hand-crafted solution, but
@@ -28,37 +49,22 @@ my_circuit = cirq.Circuit()
 sycamore_circuit = cg.optimized_for_sycamore(my_circuit, new_device=cg.Sycamore, optimizer_type='sqrt_iswap')
 ```
 
-## Good moment structure
+## Running circuits faster
 
-Quantum Engine will execute a circuit as faithfully as possible.
-This means moment structure will be preserved. That is, all gates in a moment are
-guaranteed to be executed before those in any later moment and after gates in
-previous moments. 
+The following sections give tips and tricks that allow you to improve your
+repetition rate (how many repetitions per second the device will run). 
 
-To this end, it is important that the moment structure of the circuit is kept as
-short and concise as possible. The length of a moment will generally be the length
-of the longest gate in the moment, so keeping gates with similar durations together
-will shorten the duration of the circuit and likely reduce the noise incurred.
+This will allow you to make the most out of limited time on the
+device by getting results faster. The shorter experiment time may
+also reduce error due to drift of qubits away from calibration.
 
-In particular, keep measurement gates in the same moment and make sure that any
-circuit optimizers do not alter this by pushing measurements forward. This
-behavior can be avoided by measuring all qubits with a single gate or by adding
-the measurement gate after all optimizers have run.
+There are costs to sending circuits over the network, to compiling each
+circuit into waveforms, to initializing the device,
+and to sending results back over the network.
+These tips will aid you in removing some of this overhead by combining your
+circuits into sweeps or batches.
 
-## Short gate depth
-
-In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
-have significant error. Both gate errors and T1 decay rate can cause long circuits
-to have noise that overwhelms any signal in the circuit.
-
-The recommended gate depths vary significantly with the structure of the circuit itself
-and will likely increase as the devices improve. Total circuit fidelity can be roughly
-estimated by multiplying the fidelity for all gates in the circuit. For example,
-using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be estimated
-at 0.995^(20 * 20) = 0.135. Using separate error rates per gates (i.e. based on calibration
-metrics) or a more complicated noise model can result in more accurate error estimation.
-
-## Use sweeps when possible
+### Use sweeps when possible
 
 Round trip network time to and from the engine typically adds latency on the order of a second
 to the overall computation time.  Reducing the number of trips and allowing the engine to
@@ -129,7 +135,7 @@ One word of caution is there is a limit to the total number of repetitions.  Tak
 that your parameter sweeps, especially products of sweeps, do not become so excessively large
 that they overcome this limit.
 
-## Use batches if sweeps are not possible
+### Use batches if sweeps are not possible
 
 The engine has a method called `run_batch()` that can be used to send multiple
 circuits in a single request.  This can be used to increase the efficiency
@@ -140,27 +146,8 @@ measure the same qubits and have the same number of repetitions for each
 circuit.  Otherwise, the circuits will not be batched together
 on the device, and there will be no gain in efficiency.
 
-## Keep qubits busy
 
-Qubits that remain idle for long periods tend to dephase and decohere. Inserting a
-[Spin Echo](https://en.wikipedia.org/wiki/Spin_echo) into your circuit, such as a pair
-of involutions, such as two successive Pauli Y gates, will generally increase
-performance of the circuit.
-
-## Alternate single-qubit and two-qubit layers
-
-Devices are generally calibrated to circuits that alternate single-qubit gates with
-two-qubit gates in each layer. Staying close to this paradigm will often improve
-performance of circuits.
-
-Devices generally operate in the Z basis, so that rotations around the Z axis will become
-book-keeping measures rather than physical operations on the device. The EjectZ optimizer
-included in optimizer lists for each device will generally compile these operations out
-of the circuit by pushing them back to the next non-commuting operator. If the resulting
-circuit still contains Z operations, they should be aggregated into their own moment,
-if possible.
-
-## Use caution with symbols
+### Flatten sympy formulas into symbols
 
 Symbols are extremely useful for constructing parameterized circuits (see above).  However,
 only some sympy formulas can be serialized for network transport to the engine.
@@ -168,7 +155,7 @@ Currently, sums and products of symbols, including linear combinations, are supp
 See `cirq.google.arg_func_langs` for details.
 
 The sympy library is also infamous for being slow, so avoid using complicated formulas if you
-care about performance.  Avoid using parameter resolvers that have formulas in them. 
+care about performance.  Avoid using parameter resolvers that have formulas in them.
 
 One way to eliminate formulas in your gates is to flatten your expressions.
 The following example shows how to take a gate with a formula and flatten it
@@ -201,3 +188,87 @@ print(list(flat_sweep.param_tuples()))
 #  (('<2**t - 1>', 0.681792830507429),),
 #  (('<2**t - 1>', 1.0),)]
 ```
+
+## Improving circuit fidelity
+
+The following tips and tricks show how to modify your circuit to
+reduce error rates by following good circuit design principles that
+minimize the length of circuits.
+
+Quantum Engine will execute a circuit as faithfully as possible.
+This means that moment structure will be preserved. That is, all gates in a
+moment are guaranteed to be executed before those in any later moment and
+after gates in previous moments.  Many of these tips focus on having a
+good moment structure that avoids problematic missteps that can cause
+unwanted noise and error.
+
+### Short gate depth
+
+In the current NISQ (noisy intermediate scale quantum) era, gates and devices still
+have significant error. Both gate errors and T1 decay rate can cause long circuits
+to have noise that overwhelms any signal in the circuit.
+
+The recommended gate depths vary significantly with the structure of the circuit itself
+and will likely increase as the devices improve. Total circuit fidelity can be roughly
+estimated by multiplying the fidelity for all gates in the circuit. For example,
+using a error rate of 0.5% per gate, a circuit of depth 20 and width 20 could be estimated
+at 0.995^(20 * 20) = 0.135. Using separate error rates per gates (i.e. based on calibration
+metrics) or a more complicated noise model can result in more accurate error estimation.
+
+### Terminal Measurements
+
+Make sure that measurements are kept in the same moment as the final moment in
+the circuit.  Make sure that any circuit optimizers do not alter this by
+incorrectly pushing measurements forward. This behavior can be avoided by
+measuring all qubits with a single gate or by adding
+the measurement gate after all optimizers have run.
+
+Currently, only terminal measurements are supported by the hardware.  If you
+absolutely need intermediate measurements for your application, reach out to
+your Google sponsor to see if they can help devise a proper circuit using
+intermediate measurements.
+
+
+### Keep qubits busy
+
+Qubits that remain idle for long periods tend to dephase and decohere. Inserting a
+[Spin Echo](https://en.wikipedia.org/wiki/Spin_echo) into your circuit onto
+qubits that have long idle periods, such as a pair
+of involutions, such as two successive Pauli Y gates, will generally increase
+performance of the circuit.
+
+### Delay initialization of qubits
+
+The |0⟩ state is more robust than the |1⟩ state. As a result, one should
+not initialize a qubit to |1⟩ at the beginning of the circuit until shortly
+before other gates are applied to it.
+
+### Align single-qubit and two-qubit layers
+
+Devices are generally calibrated to circuits that alternate single-qubit gates with
+two-qubit gates in each layer. Staying close to this paradigm will often improve
+performance of circuits.  This will also reduce the circuit's total duration,
+since the duration of a moment is its longest gate.  Making sure that each layer
+contains similar gates of the same duration can be challenging, but it will
+likely have a measurable impact on the fidelity of your circuit.
+
+Devices generally operate in the Z basis, so that rotations around the Z axis will become
+book-keeping measures rather than physical operations on the device. These
+virtual Z operations have zero duration and have no cost, if they add no moments
+to your circuit.  In order to guarantee that they do not add moments, you can
+make sure that virtual Z are aggregated into their own layer.  Alternatively,
+you can use the `EjectZ` optimizer to propagate these Z gates forward through
+commuting operators.
+
+See the function `cirq.stratified_circuit` for an automated way to organize gates
+into moments with similar gates.
+
+### Refitting gates
+
+Virtual Z gates (or even single qubit gates) can be added to adjust for errors
+in two qubit gates.  Two qubit gates can have errors due to drift, coherent
+error, or other sources.  Refitting these gates and adjusting the circuit for
+the observed unitary of the two qubit gate compared to the ideal unitary can
+substantially improve results.  However, this approach can use a substantial
+amount of resources, and the methods to do this are currently under active
+research and change.  Talk to your Google sponsor for details.
