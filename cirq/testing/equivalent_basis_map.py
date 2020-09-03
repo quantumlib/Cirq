@@ -44,9 +44,8 @@ def assert_equivalent_computational_basis_map(maps: Dict[int, int],
             f'instead of {_bin_dec(maps[k], mbl)}.')
 
 
-def _sparse_computational_basis_map(inputs: Sequence[int],
-                                    circuit: circuits.Circuit
-                                   ) -> Dict[int, int]:
+def _sparse_computational_basis_map(
+        inputs: Sequence[int], circuit: circuits.Circuit) -> Dict[int, int]:
     # Pick a unique amplitude for each computational basis input state.
     amps = [
         np.exp(1j * i / len(inputs)) / len(inputs)**0.5
