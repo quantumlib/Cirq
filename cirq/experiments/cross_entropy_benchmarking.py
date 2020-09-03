@@ -212,6 +212,10 @@ class CrossEntropyResult:
             covariance in the estimation of S and p in that order.
             It also has the property `purity` representing the purity p**2.
         """
+        if self.purity_data is None:
+            raise ValueError('This CrossEntropyResult does not contain data '
+                             'from speckle purity benchmarking, so the '
+                             'purity depolarizing model cannot be computed.')
         depths, purities = zip(*self.purity_data)
         params, covariance = _fit_exponential_decay(depths, np.sqrt(purities))
         return SpecklePurityDepolarizingModel(spam_depolarization=params[0],

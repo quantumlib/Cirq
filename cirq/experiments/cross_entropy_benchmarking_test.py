@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 import cirq
 
 from cirq.experiments import (CrossEntropyResult, CrossEntropyResultDict,
@@ -134,6 +134,16 @@ def test_cross_entropy_result_dict_repr():
         repetitions=1000)
     result_dict = CrossEntropyResultDict(results={pair: result})
     cirq.testing.assert_equivalent_repr(result_dict)
+
+
+def test_cross_entropy_result_purity_model_fails_with_no_data():
+    data = [
+        CrossEntropyPair(num_cycle=2, xeb_fidelity=0.9),
+        CrossEntropyPair(num_cycle=4, xeb_fidelity=0.8),
+    ]
+    result = CrossEntropyResult(data=data, repetitions=1000)
+    with pytest.raises(ValueError):
+        purity_model = result.purity_depolarizing_model()
 
 
 def test_purity_from_probabilities():
