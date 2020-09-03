@@ -21,9 +21,12 @@ from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
 from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
 
+SweepLike = Union[ParamResolverOrSimilarType, Sweep]
+document(
+    SweepLike,  # type: ignore
+    """An object similar to an iterable of parameter resolvers.""")
 
-Sweepable = Union[Dict[str, float], ParamResolver, Sweep, Iterable[
-    Union[Dict[str, float], ParamResolver, Sweep]], None]
+Sweepable = Union[SweepLike, Iterable[SweepLike]]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")

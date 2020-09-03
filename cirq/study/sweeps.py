@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from typing import (Any, cast, Dict, Iterable, Iterator, List, overload,
-                    Sequence, Tuple, Union)
+                    Sequence, TYPE_CHECKING, Tuple, Union)
 
 import abc
 import collections
@@ -22,8 +22,10 @@ import sympy
 from cirq._doc import document
 from cirq.study import resolver
 
+if TYPE_CHECKING:
+    import cirq
 
-Params = Iterable[Tuple[str, float]]
+Params = Iterable[Tuple['cirq.TParamKey', 'cirq.TParamVal']]
 
 
 def _check_duplicate_keys(sweeps):
