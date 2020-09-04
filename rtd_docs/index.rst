@@ -58,8 +58,10 @@ User Documentation
     :maxdepth: 1
     :caption: Google Documentation
 
-    docs/google/devices
+    docs/google/concepts
+    docs/tutorials/google/start
     docs/google/engine
+    docs/google/devices
     docs/google/specification
     docs/google/calibration
     docs/google/best_practices

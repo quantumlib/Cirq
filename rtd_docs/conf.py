@@ -153,7 +153,7 @@ version = release  # '.'.join(release.split('.')[:2])
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'recommonmark',
+    'myst_parser',
     'nbsphinx',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
@@ -272,3 +272,5 @@ autosummary_generate = True
 
 # to resolve name clashes between the generated files
 autosummary_filename_map = {"cirq.QFT": "cirq.QFT_deprecated"}
+
+myst_update_mathjax = False
