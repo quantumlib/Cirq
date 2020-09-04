@@ -132,7 +132,7 @@ parameter sweep.  If the circuit does not use a sweep, pass in `None`.
 There are some restrictions on the circuits that can be batched together.
 All circuits in the same batch must measure the same set of qubits.  They
 must all contain the same number of repetitions.
-Batching circuits together that do not follow this restriction may not
+Batching circuits together that do not follow these restrictions may not
 cause an error, but your performance will not be significantly improved.
 
 The following code shows an example of batching together parameterized
@@ -186,5 +186,4 @@ for b in range(num_circuits_in_batch):
      print(results[idx].histogram(key='m'))
      idx+=1
 ```
-
 
