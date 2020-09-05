@@ -809,7 +809,7 @@ class PauliString(raw_types.Operation):
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
     def after(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
-        """Determines the equivalent pauli string after some operations.
+        r"""Determines the equivalent pauli string after some operations.
 
         If the PauliString is $P$ and the Clifford operation is $C$, then the
         result is $C P C^\dagger$.
@@ -825,7 +825,7 @@ class PauliString(raw_types.Operation):
         return self.conjugated_by(protocols.inverse(ops))
 
     def before(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
-        """Determines the equivalent pauli string before some operations.
+        r"""Determines the equivalent pauli string before some operations.
 
         If the PauliString is $P$ and the Clifford operation is $C$, then the
         result is $C^\dagger P C$.
@@ -1005,7 +1005,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     """
 
     def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
-        PauliString.__init__(self, {qubit: pauli})
+        PauliString.__init__(self, qubit_pauli_map={qubit: pauli})
         gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
                                               [qubit])
 
@@ -1102,7 +1102,7 @@ class MutablePauliString:
         return PauliString(
             coefficient=self.coefficient,
             qubit_pauli_map={
-                q: cast(cirq.Pauli, _INT_TO_PAULI[p])
+                q: cast(pauli_gates.Pauli, _INT_TO_PAULI[p])
                 for q, p in self.pauli_int_dict.items()
                 if p
             },
@@ -1155,7 +1155,7 @@ class MutablePauliString:
         return self.inplace_after(protocols.inverse(ops))
 
     def inplace_after(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
-        f"""Propagates the pauli string from before to after a Clifford effect.
+        r"""Propagates the pauli string from before to after a Clifford effect.
 
         If the old value of the MutablePauliString is $P$ and the Clifford
         operation is $C$, then the new value of the MutablePauliString is
@@ -1220,7 +1220,7 @@ class MutablePauliString:
         """
         phase_log_i = 0
 
-        if isinstance(other, Mapping):
+        if isinstance(other, (Mapping, PauliString, MutablePauliString)):
             if isinstance(other, (PauliString, MutablePauliString)):
                 self.coefficient *= other.coefficient
             for qubit, pauli_gate_like in other.items():
