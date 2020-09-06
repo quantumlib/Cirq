@@ -142,6 +142,7 @@ class StabilizerStateChForm():
         self.gamma[q] = (self.gamma[q] - 1) % 4
 
     def _S_right(self, q):
+        r"""Right multiplication version of S gate."""
         self.M[:, q] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
 
@@ -164,6 +165,7 @@ class StabilizerStateChForm():
         self.M[r, :] ^= self.G[q, :]
 
     def _CZ_right(self, q, r):
+        r"""Right multiplication version of CZ gate."""
         self.M[:, q] ^= self.F[:, r]
         self.M[:, r] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] + 2 * self.F[:, q] * self.F[:, r]) % 4
@@ -176,6 +178,7 @@ class StabilizerStateChForm():
         self.M[q, :] ^= self.M[r, :]
 
     def _CNOT_right(self, q, r):
+        r"""Right multiplication version of CNOT gate."""
         self.G[:, q] ^= self.G[:, r]
         self.F[:, r] ^= self.F[:, q]
         self.M[:, q] ^= self.M[:, r]
