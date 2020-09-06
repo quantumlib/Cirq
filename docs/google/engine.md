@@ -191,3 +191,51 @@ for b in range(num_circuits_in_batch):
      idx+=1
 ```
 
+
+## Downloading historical results
+
+Results from  previous computations are archived and can be downloaded later.
+In order to retrieve previous results, you will need the program id and the
+job id.  This can be retrieved from the job object when you run a sweep.
+Currently, getting the program and job ids can only be done through the
+`Engine` interface and not through the sampler interface.
+You can then use `get_program` and `get_job` to retrieve the results.
+See below for an example:
+
+```
+# Initialize the engine object
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+#Create an example circuit
+qubit = cirq.GridQubit(5, 2)
+circuit = cirq.Circuit(
+    cirq.X(qubit)**sympy.Symbol('t'),
+    cirq.measure(qubit, key='result')
+)
+param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
+
+# Run the circuit
+job = e.run_sweep(program=circuit, params=param_sweep1, repetitions=1000, processor_ids=[PROCESSOR_ID], gate_set=GATE_SET)
+
+# Save the program and jo id for later
+program_id = job.program_id
+job_id = job.job_id
+
+# Retrieve the results
+results = job.results()
+
+# ...
+# Some time later, the results can be retrieved
+# ...
+
+# Recreate the job object
+historical_job = engine.get_program(program_id=program_id).get_job(job_id=job_id)
+
+# Retrieve the results
+historical_results = historical_job.results()
+
+```
+
+If you did not save the ids, you can still find them from your
+job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs).
+
