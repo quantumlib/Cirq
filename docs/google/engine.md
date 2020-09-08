@@ -194,7 +194,9 @@ for b in range(num_circuits_in_batch):
 
 ## Downloading historical results
 
-Results from  previous computations are archived and can be downloaded later.
+Results from  previous computations are archived and can be downloaded later
+by those in the same cloud project.  You must be use the same project id to
+access historical results or your request will be denied.
 In order to retrieve previous results, you will need the program id and the
 job id.  This can be retrieved from the job object when you run a sweep.
 Currently, getting the program and job ids can only be done through the
@@ -206,7 +208,7 @@ See below for an example:
 # Initialize the engine object
 engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
 
-#Create an example circuit
+# Create an example circuit
 qubit = cirq.GridQubit(5, 2)
 circuit = cirq.Circuit(
     cirq.X(qubit)**sympy.Symbol('t'),
@@ -215,7 +217,11 @@ circuit = cirq.Circuit(
 param_sweep = cirq.Linspace('t', start=0, stop=1, length=10)
 
 # Run the circuit
-job = e.run_sweep(program=circuit, params=param_sweep1, repetitions=1000, processor_ids=[PROCESSOR_ID], gate_set=GATE_SET)
+job = e.run_sweep(program=circuit,
+                  params=param_sweep,
+                  repetitions=1000,
+                  processor_ids=[PROCESSOR_ID],
+                  gate_set=GATE_SET)
 
 # Save the program and jo id for later
 program_id = job.program_id
