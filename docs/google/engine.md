@@ -195,7 +195,7 @@ for b in range(num_circuits_in_batch):
 ## Downloading historical results
 
 Results from  previous computations are archived and can be downloaded later
-by those in the same cloud project.  You must be use the same project id to
+by those in the same cloud project.  You must use the same project id to
 access historical results or your request will be denied.
 In order to retrieve previous results, you will need the program id and the
 job id.  This can be retrieved from the job object when you run a sweep.
@@ -244,4 +244,3 @@ historical_results = historical_job.results()
 
 If you did not save the ids, you can still find them from your
 job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs).
-
