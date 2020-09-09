@@ -479,6 +479,7 @@ from cirq.protocols import (
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
+    SupportsPauliExpansion,
     SupportsPhase,
     SupportsQasm,
     SupportsQasmWithArgs,
