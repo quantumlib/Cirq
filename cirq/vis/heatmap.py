@@ -110,7 +110,7 @@ class Heatmap:
         """Sets a format string to format values for each qubit.
 
         Args:
-            annot_format: the format string for formating values.
+            annot_format: the format string for formatting values.
             text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {

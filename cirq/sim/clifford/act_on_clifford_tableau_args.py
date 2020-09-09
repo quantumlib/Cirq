@@ -21,7 +21,7 @@ import numpy as np
 from cirq.ops import common_gates
 from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
-from cirq.protocols import has_unitary, unitary
+from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.clifford.clifford_tableau import CliffordTableau
 
 if TYPE_CHECKING:
@@ -86,8 +86,7 @@ class ActOnCliffordTableauArgs:
 
 def _strat_act_on_clifford_tableau_from_single_qubit_decompose(
         val: Any, args: 'cirq.ActOnCliffordTableauArgs') -> bool:
-    num_qubits_getter = getattr(val, 'num_qubits', None)
-    if num_qubits_getter is not None and num_qubits_getter() == 1:
+    if num_qubits(val) == 1:
         if not has_unitary(val):
             return NotImplemented
         u = unitary(val)

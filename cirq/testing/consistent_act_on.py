@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, List, Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -52,8 +52,8 @@ def assert_act_on_clifford_tableau_effect_matches_unitary(val: Any) -> None:
 
     num_qubits_val = protocols.num_qubits(val)
 
-    if not protocols.has_unitary(val) or \
-            protocols.qid_shape(val) != (2,) * num_qubits_val:
+    if protocols.is_parameterized(val) or not protocols.has_unitary(
+            val) or protocols.qid_shape(val) != (2,) * num_qubits_val:
         return None
 
     qubits = LineQubit.range(protocols.num_qubits(val) * 2)
