@@ -199,7 +199,7 @@ def t2_decay(sampler: work.Sampler,
             study.Points('inv_y', [-0.5, 0.0]),
         )
 
-    if max_pulses > 0:
+    if num_pulses and max_pulses > 0:
         pulse_sweep = _cpmg_sweep(num_pulses)
         sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
     else:
