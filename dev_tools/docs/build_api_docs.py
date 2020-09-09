@@ -54,7 +54,8 @@ def main(unused_argv):
             "cirq.google.engine.client.quantum.QuantumEngineServiceClient":
             ["enums"],
             "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient":
-            ["enums"]
+            ["enums"],
+            "cirq.google.api": ["v1"]
         })
 
     doc_generator.build(output_dir=FLAGS.output_dir)

@@ -32,7 +32,7 @@ Demonstration of a Bell inequality which shows impossibility of local hidden var
 Textbook algorithm for Quantum Key Distribution.
 
 *    [Noisy simulation](https://github.com/quantumlib/Cirq/blob/master/examples/noisy_simulation_example.py)
-How to use a noisy simulator to generate results with amplitiude damping.
+How to use a noisy simulator to generate results with amplitude damping.
 
 *    [Line placement](https://github.com/quantumlib/Cirq/blob/master/examples/place_on_bristlecone.py)
 How to find a line of adjacent qubits on a device.
@@ -44,6 +44,10 @@ qubit to another.
 *    [Super dense coding](https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py)
 Transmit 2 classical bits using one quantum bit.
 
+## Introductory Error Correction
+
+*   [Shor's Code](https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py)
+Quantum error correction with Shor's Code 
 
 ## Intermediate Textbook Algorithms
 
@@ -73,7 +77,7 @@ max-cut problem.
 Fidelity estimation using cross-entropy benchmarking (XEB).
 
 *    [Direct fidelity](https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py)
-Direct fideltiy estimation to distinguish a desired state from the actual state
+Direct fidelity estimation to distinguish a desired state from the actual state
 using few Pauli measurements.
 
 *    [Qubit Characterization](https://github.com/quantumlib/Cirq/blob/master/examples/qubit_characterizations_example.py)
@@ -96,22 +100,22 @@ Quantum circuit to prepare the BCS ground states for superconductors/superfluids
 
 ## Advanced Tutorials
 
-*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/tutorials/variational_algorithm.html)
+*    [Variational Algorithm](./variational_algorithm.ipynb)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*    [QAOA](https://cirq.readthedocs.io/en/latest/tutorials/QAOA_Demo.html)
+*    [QAOA](./QAOA_Demo.ipynb)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
-*    [Hidden Linear Function](https://cirq.readthedocs.io/en/latest/tutorials/hidden_linear_function.html)
+*    [Hidden Linear Function](./hidden_linear_function.ipynb)
 Demonstration of a problem similar to Bernstein-Vazirani that uses a hidden
 function rather than using an Oracle.
 
-*    [Quantum Walk](https://cirq.readthedocs.io/en/latest/tutorials/Quantum_Walk.html)
+*    [Quantum Walk](./Quantum_Walk.ipynb)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/tutorials/Rabi_Demo.html)
+*    [Rabi Oscillations](./Rabi_Demo.ipynb)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.

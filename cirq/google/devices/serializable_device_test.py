@@ -187,7 +187,7 @@ def test_duration_of():
         assert foxtail.duration_of(cirq.H(valid_qubit1))
 
 
-def test_assymetric_gate():
+def test_asymmetric_gate():
     spec = device_pb2.DeviceSpecification()
     for row in range(5):
         for col in range(2):
