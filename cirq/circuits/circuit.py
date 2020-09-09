@@ -1393,16 +1393,16 @@ class Circuit:
         self._moments = copy._moments
 
     def batch_insert_into(self,
-                          insert_intos: Iterable[Tuple[int, ops.Operation]]
-                          ) -> None:
+                          insert_intos: Iterable[Tuple[int, 'cirq.OP_TREE']]
+                         ) -> None:
         """Inserts operations into empty spaces in existing moments.
 
         If any of the insertions fails (due to colliding with an existing
         operation), this method fails without making any changes to the circuit.
 
         Args:
-            insert_intos: A sequence of (moment_index, new_operation)
-                pairs indicating a moment to add a new operation into.
+            insert_intos: A sequence of (moment_index, new_op_tree)
+                pairs indicating a moment to add new operations into.
 
         ValueError:
             One of the insertions collided with an existing operation.
@@ -1411,8 +1411,8 @@ class Circuit:
             Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
-        for i, op in insert_intos:
-            copy._moments[i] = copy._moments[i].with_operation(op)
+        for i, insertions in insert_intos:
+            copy._moments[i] = copy._moments[i].with_operations(insertions)
         self._device.validate_circuit(copy)
         self._validate_op_tree_qids(copy)
         self._moments = copy._moments
