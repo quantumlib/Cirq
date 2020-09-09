@@ -67,11 +67,8 @@ class Calibration(abc.Mapping):
                 getattr(v, v.WhichOneof('val')) for v in metric.values
             ]
             if metric.targets:
-                targets = [
-                    t[1:] if t.startswith('q') else t for t in metric.targets
-                ]
-                # TODO: Remove when calibrations don't prepend this.
-                qubits = tuple(v2.grid_qubit_from_proto_id(t) for t in targets)
+                qubits = tuple(
+                    v2.grid_qubit_from_proto_id(t) for t in metric.targets)
                 results[name][qubits] = flat_values
             else:
                 assert len(results[name]) == 0, (

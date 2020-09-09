@@ -136,21 +136,40 @@ def test_channel_fallback_to_unitary():
     assert cirq.has_channel(ReturnsUnitary())
 
 
-def test_has_channel():
-    class HasChannel:
-        def _has_channel_(self) -> bool:
-            return True
+class HasChannel(cirq.SingleQubitGate):
 
-    assert cirq.has_channel(HasChannel())
+    def _has_channel_(self) -> bool:
+        return True
 
-    class HasMixture:
-        def _has_mixture_(self) -> bool:
-            return True
 
-    assert cirq.has_channel(HasMixture())
+class HasMixture(cirq.SingleQubitGate):
 
-    class HasUnitary:
-        def _has_unitary_(self) -> bool:
-            return True
+    def _has_mixture_(self) -> bool:
+        return True
 
-    assert cirq.has_channel(HasUnitary())
+
+class HasUnitary(cirq.SingleQubitGate):
+
+    def _has_unitary_(self) -> bool:
+        return True
+
+
+class HasChannelWhenDecomposed(cirq.SingleQubitGate):
+
+    def __init__(self, decomposed_cls):
+        self.decomposed_cls = decomposed_cls
+
+    def _decompose_(self, qubits):
+        return [self.decomposed_cls().on(q) for q in qubits]
+
+
+@pytest.mark.parametrize('cls', [HasChannel, HasMixture, HasUnitary])
+def test_has_channel(cls):
+    assert cirq.has_channel(cls())
+
+
+@pytest.mark.parametrize('decomposed_cls', [HasChannel, HasMixture, HasUnitary])
+def test_has_channel_when_decomposed(decomposed_cls):
+    op = HasChannelWhenDecomposed(decomposed_cls).on(cirq.NamedQubit('test'))
+    assert cirq.has_channel(op)
+    assert not cirq.has_channel(op, allow_decompose=False)

@@ -7,7 +7,7 @@ jobs:
     name: Misc check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -18,7 +18,9 @@ jobs:
     name: Format check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -31,7 +33,7 @@ jobs:
     name: Type check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -44,7 +46,9 @@ jobs:
     name: Changed files test
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -57,20 +61,20 @@ jobs:
     name: Lint check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
           architecture: 'x64'
       - name: Install pylint
-        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint\|astroid" | grep -v "#" | xargs pip install
+        run: cat dev_tools/conf/pip-list-dev-tools.txt | grep "pylint" | grep -v "#" | xargs pip install
       - name: Lint
         run: check/pylint
   doc_test:
     name: Doc test
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -80,13 +84,15 @@ jobs:
           pip install -r requirements.txt
           python -m pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
+      - name: RST check
+        run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
       - name: Doc check
         run: check/doctest -q
   pytest:
     name: Pytest Ubuntu
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -95,14 +101,13 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip --actually-quiet
   build_docs:
     name: Build docs
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -114,12 +119,14 @@ jobs:
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
           sudo apt-get install pandoc
       - name: Build docs
-        run: dev_tools/build-docs.sh
+        run: dev_tools/docs/build-rtd-docs.sh
   build_protos:
     name: Build protos
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -130,12 +137,14 @@ jobs:
           wget https://github.com/bazelbuild/bazel/releases/download/0.26.0/bazel_0.26.0-linux-x86_64.deb
           sudo dpkg -i bazel_0.26.0-linux-x86_64.deb
       - name: Build protos
-        run: check/build-protos
+        run: check/build-changed-protos
   coverage:
     name: Coverage check
     runs-on: ubuntu-16.04
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -145,14 +154,13 @@ jobs:
           pip install -r requirements.txt
           pip install -r cirq/contrib/contrib-requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Coverage check
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
     name: Pytest Windows
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -168,7 +176,7 @@ jobs:
     name: Pytest MacOS
     runs-on: macos-10.15
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
           python-version: '3.6'
@@ -177,6 +185,5 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
-          git config --global user.name ${GITHUB_ACTOR}
       - name: Pytest check
         run: check/pytest --ignore=cirq/contrib --benchmark-skip

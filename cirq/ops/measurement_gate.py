@@ -72,6 +72,13 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
+    def with_key(self, key: str) -> 'MeasurementGate':
+        """Creates a measurement gate with a new key but otherwise identical."""
+        return MeasurementGate(self.num_qubits(),
+                               key=key,
+                               invert_mask=self.invert_mask,
+                               qid_shape=self._qid_shape)
+
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()
@@ -81,7 +88,8 @@ class MeasurementGate(raw_types.Gate):
             new_mask[b] = not new_mask[b]
         return MeasurementGate(self.num_qubits(),
                                key=self.key,
-                               invert_mask=tuple(new_mask))
+                               invert_mask=tuple(new_mask),
+                               qid_shape=self._qid_shape)
 
     def full_invert_mask(self):
         """Returns the invert mask for all qubits.
@@ -150,6 +158,25 @@ class MeasurementGate(raw_types.Gate):
                             i))
         return ''.join(lines)
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if not all(d == 2 for d in self._qid_shape):
+            return NotImplemented
+        invert_mask = self.invert_mask
+        if len(invert_mask) < len(qubits):
+            invert_mask = (invert_mask + (False,) *
+                           (len(qubits) - len(invert_mask)))
+        lines = []
+        for i, (qubit, inv) in enumerate(zip(qubits, invert_mask)):
+            if inv:
+                lines.append(
+                    formatter.format(
+                        'X {0} # Inverting for following measurement\n', qubit))
+            lines.append(
+                formatter.format('MEASURE {0} {1:meas}[{2}]\n', qubit, self.key,
+                                 i))
+        return ''.join(lines)
+
     def _op_repr_(self, qubits: Sequence['cirq.Qid']) -> str:
         args = list(repr(q) for q in qubits)
         if self.key != _default_measurement_key(qubits):
@@ -195,6 +222,38 @@ class MeasurementGate(raw_types.Gate):
                    key=key,
                    invert_mask=tuple(invert_mask),
                    qid_shape=None if qid_shape is None else tuple(qid_shape))
+
+    def _act_on_(self, args: Any) -> bool:
+        from cirq import sim
+
+        if isinstance(args, sim.ActOnStateVectorArgs):
+
+            invert_mask = self.full_invert_mask()
+            bits, _ = sim.measure_state_vector(
+                args.target_tensor,
+                args.axes,
+                out=args.target_tensor,
+                qid_shape=args.target_tensor.shape,
+                seed=args.prng)
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
+            args.record_measurement_result(self.key, corrected)
+
+            return True
+
+        if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
+            invert_mask = self.full_invert_mask()
+            bits = [args.tableau._measure(q, args.prng) for q in args.axes]
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
+            args.record_measurement_result(self.key, corrected)
+            return True
+
+        return NotImplemented
 
 
 def _default_measurement_key(qubits: Iterable[raw_types.Qid]) -> str:

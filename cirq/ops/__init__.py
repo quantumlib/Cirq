@@ -74,6 +74,7 @@ from cirq.ops.eigen_gate import (
 
 from cirq.ops.fourier_transform import (
     PhaseGradientGate,
+    qft,
     QFT,
     QuantumFourierTransformGate,
 )
@@ -134,7 +135,9 @@ from cirq.ops.moment import (
     Moment,)
 
 from cirq.ops.named_qubit import (
-    NamedQubit,)
+    NamedQubit,
+    NamedQid,
+)
 
 from cirq.ops.op_tree import (
     flatten_op_tree,
@@ -188,6 +191,9 @@ from cirq.ops.phased_x_gate import (
 from cirq.ops.phased_x_z_gate import (
     PhasedXZGate,)
 
+from cirq.ops.random_gate_channel import (
+    RandomGateChannel,)
+
 from cirq.ops.raw_types import (
     Gate,
     Operation,
@@ -219,6 +225,9 @@ from cirq.ops.three_qubit_gates import (
     ThreeQubitDiagonalGate,
     TOFFOLI,
 )
+
+from cirq.ops.two_qubit_diagonal_gate import (
+    TwoQubitDiagonalGate,)
 
 from cirq.ops.wait_gate import (
     WaitGate,)

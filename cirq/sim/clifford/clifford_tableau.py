@@ -28,7 +28,7 @@ class CliffordTableau():
     the state using three binary arrays: xs, zs, and rs.
 
     Each row of the arrays represents a Pauli string, P, that is
-    an eigenoperator of the wavefunction with eigenvalue one: P|psi> = |psi>.
+    an eigenoperator of the state vector with eigenvalue one: P|psi> = |psi>.
     """
 
     def __init__(self, num_qubits, initial_state=0):
@@ -140,7 +140,7 @@ class CliffordTableau():
         self.rs[:] ^= self.zs[:, q]
 
     def _Y(self, q):
-        self.rs[:] ^= self.xs[:, q] | self.zs[:, q]
+        self.rs[:] ^= self.xs[:, q] ^ self.zs[:, q]
 
     def _Z(self, q):
         self.rs[:] ^= self.xs[:, q]

@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -46,6 +46,8 @@ IGNORED_LINE_PATTERNS = [
     r'plt\.show\(\)',
     r'fig(ure)?\.show\(\)',
     r'=\s*plt.subplots?\(',
+    # Body of mypy Protocol methods.
+    r'\.\.\.',
 ]
 EXPLICIT_OPT_OUT_COMMENT = '#coverage:ignore'
 
@@ -185,6 +187,7 @@ def line_content_counts_as_uncovered_manual(content: str) -> bool:
             return False
 
     # TODO: multiline comments, multiline strings, etc, etc.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     return True
 
 
@@ -216,6 +219,7 @@ def determine_ignored_lines(content: str) -> Set[int]:
 
 def naive_find_end_of_scope(lines: List[str], i: int) -> int:
     # TODO: deal with line continuations, which may be less indented.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     line = lines[i]
     indent = line[:len(line) - len(line.lstrip())]
     while i < len(lines) and (not lines[i].strip() or
@@ -249,6 +253,7 @@ def line_counts_as_uncovered(line: str,
 
     # Ignore end-of-line comments.
     # TODO: avoid # in strings, etc.
+    # Github issue: https://github.com/quantumlib/Cirq/issues/2968
     if '#' in content:
         content = content[:content.index('#')].strip()
 

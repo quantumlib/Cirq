@@ -1,6 +1,6 @@
 # Copyright 2018 The Cirq Developers
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
+# Licensed under the Apache License, Version 2.0 (the "License");l
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
@@ -14,7 +14,7 @@
 
 """Quantum gates that phase with respect to product-of-pauli observables."""
 
-from typing import Union, Optional, TYPE_CHECKING
+from typing import Optional, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -32,15 +32,21 @@ class XXPowGate(eigen_gate.EigenGate,
                 gate_features.InterchangeableQubitsGate):
     """The X-parity gate, possibly raised to a power.
 
-    At exponent=1, this gate implements the following unitary:
+    The XX**t gate implements the following unitary:
 
-        X⊗X = [0 0 0 1]
-              [0 0 1 0]
-              [0 1 0 0]
-              [1 0 0 0]
+        (X⊗X)^t = [c . . s]
+                  [. c s .]
+                  [. s c .]
+                  [s . . c]
 
-    See also: `cirq.MS` (the Mølmer–Sørensen gate), which is implemented via
-        this class.
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
+
+    See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
+    this class.
     """
 
     def _eigen_components(self):
@@ -86,31 +92,24 @@ class XXPowGate(eigen_gate.EigenGate,
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Union[str, 'protocols.CircuitDiagramInfo']:
-        if self._global_shift == -0.5:
-            # Mølmer–Sørensen gate.
-            angle_str = self._format_exponent_as_angle(args, order=4)
-            symbol = f'MS({angle_str})'
-            return protocols.CircuitDiagramInfo(
-                                wire_symbols=(symbol, symbol))
-
         return protocols.CircuitDiagramInfo(
             wire_symbols=('XX', 'XX'),
             exponent=self._diagram_exponent(args))
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('X {0}\nX {1}\n', qubits[0], qubits[1])
+        return formatter.format('RX({0}) {1}\nRX({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
+
     def __str__(self) -> str:
-        if self._global_shift == -0.5:
-            if self._exponent == 1:
-                return 'MS(π/2)'
-            return f'MS({self._exponent!r}π/2)'
         if self.exponent == 1:
             return 'XX'
         return f'XX**{self._exponent!r}'
 
     def __repr__(self) -> str:
-        if self._global_shift == -0.5 and not protocols.is_parameterized(self):
-            if self._exponent == 1:
-                return 'cirq.ms(np.pi/2)'
-            return f'cirq.ms({self._exponent!r}*np.pi/2)'
         if self._global_shift == 0:
             if self._exponent == 1:
                 return 'cirq.XX'
@@ -122,7 +121,21 @@ class XXPowGate(eigen_gate.EigenGate,
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Y-parity gate, possibly raised to a power."""
+    """The Y-parity gate, possibly raised to a power.
+
+    The YY**t gate implements the following unitary:
+
+        (Y⊗Y)^t = [ c . . -s]
+                  [ . c s  .]
+                  [ . s c  .]
+                  [-s . .  c]
+
+    where '.' means '0' and
+
+        c = f cos(πt / 2)
+        s = -i f sin(πt / 2)
+        f = e^{iπt / 2}.
+    """
 
     def _eigen_components(self):
         return [
@@ -171,6 +184,15 @@ class YYPowGate(eigen_gate.EigenGate,
             wire_symbols=('YY', 'YY'),
             exponent=self._diagram_exponent(args))
 
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Y {0}\nY {1}\n', qubits[0], qubits[1])
+
+        return formatter.format('RY({0}) {1}\nRY({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
+
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'YY'
@@ -197,7 +219,7 @@ class ZZPowGate(eigen_gate.EigenGate,
                   [. . w .]
                   [. . . 1]
 
-        where w = e^{i \pi t} and '.' means '0'.
+    where w = e^{iπt} and '.' means '0'.
     """
 
     def _decompose_(self, qubits):
@@ -243,6 +265,15 @@ class ZZPowGate(eigen_gate.EigenGate,
         args.target_tensor[zo] *= relative_phase
 
         return args.target_tensor
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if self._exponent == 1:
+            return formatter.format('Z {0}\nZ {1}\n', qubits[0], qubits[1])
+
+        return formatter.format('RZ({0}) {1}\nRZ({2}) {3}\n',
+                                self._exponent * np.pi, qubits[0],
+                                self._exponent * np.pi, qubits[1])
 
     def __str__(self) -> str:
         if self._exponent == 1:

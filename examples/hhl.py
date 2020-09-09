@@ -96,7 +96,7 @@ class PhaseEstimation(cirq.Gate):
         qubits = list(qubits)
         yield cirq.H.on_each(*qubits[:-1])
         yield PhaseKickback(self.num_qubits(), self.U)(*qubits)
-        yield cirq.QFT(*qubits[:-1], without_reverse=True)**-1
+        yield cirq.qft(*qubits[:-1], without_reverse=True)**-1
 
 
 class HamiltonianSimulation(cirq.EigenGate, cirq.SingleQubitGate):
@@ -252,7 +252,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 def simulate(circuit):
     simulator = cirq.Simulator()
 
-    # Cases for measurring X, Y, and Z (respectively) on the memory qubit.
+    # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
     params = [{
         'exponent': 0.5,
         'phase_exponent': -0.5
@@ -268,7 +268,8 @@ def simulate(circuit):
 
     for label, result in zip(('X', 'Y', 'Z'), list(results)):
         # Only select cases where the ancilla is 1.
-        # TODO optimize using amplitude amplification algorithm
+        # TODO: optimize using amplitude amplification algorithm.
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2216
         expectation = 1 - 2 * np.mean(
             result.measurements['m'][result.measurements['a'] == 1])
         print('{} = {}'.format(label, expectation))

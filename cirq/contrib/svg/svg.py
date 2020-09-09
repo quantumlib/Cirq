@@ -6,10 +6,25 @@ if TYPE_CHECKING:
     import cirq
 
 QBLUE = '#1967d2'
+FONT = "Arial"
+
+
+def fixup_text(text: str):
+    if '\n' in text:
+        return '?'
+    if '[<virtual>]' in text:
+        # https://github.com/quantumlib/Cirq/issues/2905
+        # TODO: escape angle brackets when you actually want to display tags
+        return text.replace('[<virtual>]', '')  # coverage: ignore
+    if '[cirq.VirtualTag()]' in text:
+        # https://github.com/quantumlib/Cirq/issues/2905
+        return text.replace('[cirq.VirtualTag()]', '')
+    return text
 
 
 def _get_text_width(t: str) -> float:
-    tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop='Arial')
+    t = fixup_text(t)
+    tp = matplotlib.textpath.TextPath((0, 0), t, size=14, prop=FONT)
     bb = tp.get_extents()
     return bb.width + 10
 
@@ -28,7 +43,8 @@ def _rect(x: float,
 def _text(x: float, y: float, text: str, fontsize: int = 14):
     """Draw SVG <text> text."""
     return f'<text x="{x}" y="{y}" dominant-baseline="middle" ' \
-           f'text-anchor="middle" font-size="{fontsize}px">{text}</text>'
+           f'text-anchor="middle" font-size="{fontsize}px" ' \
+           f'font-family="{FONT}">{text}</text>'
 
 
 def _fit_horizontal(tdd: 'cirq.TextDiagramDrawer',
@@ -69,7 +85,7 @@ def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
     well-spaced SVG coordinates.
 
     The eagle eyed coder may notice that this function is very
-    similar to _fit_horizonal. That function was written first
+    similar to _fit_horizontal. That function was written first
     because horizontal spacing is very important for being able
     to see all the gates but vertical spacing is just for aesthetics.
     It wasn't until this function was written that I (mpharrigan)
@@ -207,8 +223,9 @@ def tdd_to_svg(
             t += _text(x, y + 3, '×', fontsize=40)
             continue
 
+        v_text = fixup_text(v.text)
         t += _rect(boxx, boxy, boxwidth, boxheight)
-        t += _text(x, y, v.text, fontsize=14 if len(v.text) > 1 else 18)
+        t += _text(x, y, v_text, fontsize=14 if len(v_text) > 1 else 18)
 
     t += '</svg>'
     return t

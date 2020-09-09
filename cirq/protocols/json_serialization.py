@@ -16,18 +16,18 @@ import json
 import numbers
 import pathlib
 from typing import (
-    Union,
     Any,
-    Dict,
-    Optional,
-    List,
-    Callable,
-    Type,
     cast,
-    TYPE_CHECKING,
-    Iterable,
-    overload,
+    Dict,
     IO,
+    Iterable,
+    List,
+    Optional,
+    overload,
+    Sequence,
+    Type,
+    TYPE_CHECKING,
+    Union,
 )
 
 import numpy as np
@@ -55,7 +55,10 @@ class _ResolverCache:
             import cirq
             from cirq.devices.noise_model import _NoNoiseModel
             from cirq.experiments import (CrossEntropyResult,
+                                          CrossEntropyResultDict,
                                           GridInteractionLayer)
+            from cirq.experiments.grid_parallel_two_qubit_xeb import (
+                GridParallelXEBMetadata)
             from cirq.google.devices.known_devices import (
                 _NamedConstantXmonDevice)
 
@@ -87,6 +90,7 @@ class _ResolverCache:
                 'CXPowGate': cirq.CXPowGate,
                 'CZPowGate': cirq.CZPowGate,
                 'CrossEntropyResult': CrossEntropyResult,
+                'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
                 'CliffordState': cirq.CliffordState,
                 'CliffordTableau': cirq.CliffordTableau,
@@ -102,12 +106,14 @@ class _ResolverCache:
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
                 'GridInteractionLayer': GridInteractionLayer,
+                'GridParallelXEBMetadata': GridParallelXEBMetadata,
                 'GridQid': cirq.GridQid,
                 'GridQubit': cirq.GridQubit,
                 'HPowGate': cirq.HPowGate,
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
@@ -116,11 +122,14 @@ class _ResolverCache:
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
+                'NamedQid': cirq.NamedQid,
+                'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
                 'ParamResolver': cirq.ParamResolver,
                 'PasqalDevice': cirq.pasqal.PasqalDevice,
+                'PasqalVirtualDevice': cirq.pasqal.PasqalVirtualDevice,
                 'PauliString': cirq.PauliString,
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
@@ -129,6 +138,7 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
                 'PhysicalZTag': cirq.google.PhysicalZTag,
+                'RandomGateChannel': cirq.RandomGateChannel,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
                 'SingleQubitMatrixGate': single_qubit_matrix_gate,
@@ -140,11 +150,14 @@ class _ResolverCache:
                 'SwapPowGate': cirq.SwapPowGate,
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
-                'ThreeDGridQubit': cirq.pasqal.ThreeDGridQubit,
+                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'TrialResult': cirq.TrialResult,
+                'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
+                'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
                 '_UnconstrainedDevice':
                 cirq.devices.unconstrained_device._UnconstrainedDevice,
+                'VirtualTag': cirq.VirtualTag,
                 'WaitGate': cirq.WaitGate,
                 '_QubitAsQid': raw_types._QubitAsQid,
                 'XPowGate': cirq.XPowGate,
@@ -173,14 +186,21 @@ class _ResolverCache:
 RESOLVER_CACHE = _ResolverCache()
 
 
-def _cirq_class_resolver(cirq_type: str) -> Union[None, Type]:
+class JsonResolver(Protocol):
+    """Protocol for json resolver functions passed to read_json."""
+
+    def __call__(self, cirq_type: str) -> Optional[Type]:
+        ...
+
+
+def _cirq_class_resolver(cirq_type: str) -> Optional[Type]:
     return RESOLVER_CACHE.cirq_class_resolver_dictionary.get(cirq_type, None)
 
 
-DEFAULT_RESOLVERS = [
+DEFAULT_RESOLVERS: List[JsonResolver] = [
     _cirq_class_resolver,
 ]
-"""A default list of 'resolver' functions for use in read_json.
+"""A default list of 'JsonResolver' functions for use in read_json.
 
 For more information about cirq_type resolution during deserialization
 please read the docstring for `cirq.read_json`.
@@ -289,7 +309,7 @@ def json_serializable_dataclass(_cls: Optional[Type] = None,
         return cls
 
     # _cls is used to deduce if we're being called as
-    # @json_serialiable_dataclass or @json_serializable_dataclass().
+    # @json_serializable_dataclass or @json_serializable_dataclass().
     if _cls is None:
         # We're called with parens.
         return wrap
@@ -325,7 +345,7 @@ class CirqEncoder(json.JSONEncoder):
 
         # Sympy object? (Must come before general number checks.)
         # TODO: More support for sympy
-        #       https://github.com/quantumlib/Cirq/issues/2014
+        # Github issue: https://github.com/quantumlib/Cirq/issues/2014
         if isinstance(o, sympy.Symbol):
             return obj_to_dict_helper(o, ['name'], namespace='sympy')
 
@@ -389,7 +409,7 @@ class CirqEncoder(json.JSONEncoder):
         return super().default(o)  # coverage: ignore
 
 
-def _cirq_object_hook(d, resolvers: List[Callable[[str], Union[None, Type]]]):
+def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
     if 'cirq_type' not in d:
         return d
 
@@ -463,11 +483,10 @@ def to_json(obj: Any,
 # pylint: enable=function-redefined
 
 
-def read_json(
-        file_or_fn: Union[None, IO, pathlib.Path, str] = None,
-        *,
-        json_text: Optional[str] = None,
-        resolvers: Optional[List[Callable[[str], Union[None, Type]]]] = None):
+def read_json(file_or_fn: Union[None, IO, pathlib.Path, str] = None,
+              *,
+              json_text: Optional[str] = None,
+              resolvers: Optional[Sequence[JsonResolver]] = None):
     """Read a JSON file that optionally contains cirq objects.
 
     Args:
@@ -490,11 +509,7 @@ def read_json(
         raise ValueError('Must specify ONE of "file_or_fn" or "json".')
 
     if resolvers is None:
-        # This cast is required because mypy does not accept
-        # assigning an expression of type T to a variable of type
-        # Optional[T]. This cast may hide actual bugs, so be careful.
-        resolvers = cast(Optional[List[Callable[[str], Union[None, Type]]]],
-                         DEFAULT_RESOLVERS)
+        resolvers = DEFAULT_RESOLVERS
 
     def obj_hook(x):
         return _cirq_object_hook(x, resolvers)

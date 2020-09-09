@@ -15,6 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+import numpy as np
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -112,6 +113,27 @@ class ParamResolver:
             param_value = self.param_dict[value.name]
             if isinstance(param_value, (float, int)):
                 return param_value
+
+        # The following resolves common sympy expressions
+        # If sympy did its job and wasn't slower than molasses,
+        # we wouldn't need the following block.
+        if isinstance(value, sympy.Add):
+            summation = self.value_of(value.args[0])
+            for addend in value.args[1:]:
+                summation += self.value_of(addend)
+            return summation
+        if isinstance(value, sympy.Mul):
+            product = self.value_of(value.args[0])
+            for factor in value.args[1:]:
+                product *= self.value_of(factor)
+            return product
+        if isinstance(value, sympy.Pow) and len(value.args) == 2:
+            return np.power(self.value_of(value.args[0]),
+                            self.value_of(value.args[1]))
+        if value == sympy.pi:
+            return np.pi
+        if value == sympy.S.NegativeOne:
+            return -1
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.

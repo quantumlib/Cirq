@@ -20,7 +20,6 @@ import cirq
 import cirq.google as cg
 import cirq.google.api.v1.programs as programs
 from cirq.google.api.v1 import operations_pb2
-from cirq.google.api.v1.programs import (_parameterized_value_from_proto)
 
 
 def assert_proto_dict_convert(gate: cirq.Gate, proto: operations_pb2.Operation,
@@ -92,7 +91,7 @@ def test_pack_results():
             [1, 0],
         ])),
     ]
-    data = cg.pack_results(measurements)
+    data = programs.pack_results(measurements)
     expected = make_bytes("""
         000 00
         001 01
@@ -108,7 +107,7 @@ def test_pack_results():
 
 
 def test_pack_results_no_measurements():
-    assert cg.pack_results([]) == b''
+    assert programs.pack_results([]) == b''
 
 
 def test_pack_results_incompatible_shapes():
@@ -117,10 +116,10 @@ def test_pack_results_incompatible_shapes():
         return np.zeros(shape, dtype=bool)
 
     with pytest.raises(ValueError):
-        cg.pack_results([('a', bools(10))])
+        programs.pack_results([('a', bools(10))])
 
     with pytest.raises(ValueError):
-        cg.pack_results([('a', bools(7, 3)), ('b', bools(8, 2))])
+        programs.pack_results([('a', bools(7, 3)), ('b', bools(8, 2))])
 
 
 def test_unpack_results():
@@ -134,7 +133,7 @@ def test_unpack_results():
         110 10
     """)
     assert len(data) == 5  # 35 data bits + 5 padding bits
-    results = cg.unpack_results(data, 7, [('a', 3), ('b', 2)])
+    results = programs.unpack_results(data, 7, [('a', 3), ('b', 2)])
     assert 'a' in results
     assert results['a'].shape == (7, 3)
     assert results['a'].dtype == bool
@@ -301,7 +300,7 @@ def test_invalid_to_proto_dict_qubit_number():
 
 
 def test_parameterized_value_from_proto():
-    from_proto = _parameterized_value_from_proto
+    from_proto = programs._parameterized_value_from_proto
 
     m1 = operations_pb2.ParameterizedFloat(raw=5)
     assert from_proto(m1) == 5
@@ -328,23 +327,24 @@ def test_is_supported():
     a = cirq.GridQubit(0, 0)
     b = cirq.GridQubit(0, 1)
     c = cirq.GridQubit(1, 0)
-    assert cg.is_native_xmon_op(cirq.CZ(a, b))
-    assert cg.is_native_xmon_op(cirq.X(a)**0.5)
-    assert cg.is_native_xmon_op(cirq.Y(a)**0.5)
-    assert cg.is_native_xmon_op(cirq.Z(a)**0.5)
-    assert cg.is_native_xmon_op(
+    assert programs.is_native_xmon_op(cirq.CZ(a, b))
+    assert programs.is_native_xmon_op(cirq.X(a)**0.5)
+    assert programs.is_native_xmon_op(cirq.Y(a)**0.5)
+    assert programs.is_native_xmon_op(cirq.Z(a)**0.5)
+    assert programs.is_native_xmon_op(
         cirq.PhasedXPowGate(phase_exponent=0.2).on(a)**0.5)
-    assert cg.is_native_xmon_op(cirq.Z(a)**1)
-    assert not cg.is_native_xmon_op(cirq.CCZ(a, b, c))
-    assert not cg.is_native_xmon_op(cirq.SWAP(a, b))
+    assert programs.is_native_xmon_op(cirq.Z(a)**1)
+    assert not programs.is_native_xmon_op(cirq.CCZ(a, b, c))
+    assert not programs.is_native_xmon_op(cirq.SWAP(a, b))
 
 
 def test_is_native_xmon_gate():
-    assert cg.is_native_xmon_gate(cirq.CZ)
-    assert cg.is_native_xmon_gate(cirq.X**0.5)
-    assert cg.is_native_xmon_gate(cirq.Y**0.5)
-    assert cg.is_native_xmon_gate(cirq.Z**0.5)
-    assert cg.is_native_xmon_gate(cirq.PhasedXPowGate(phase_exponent=0.2)**0.5)
-    assert cg.is_native_xmon_gate(cirq.Z**1)
-    assert not cg.is_native_xmon_gate(cirq.CCZ)
-    assert not cg.is_native_xmon_gate(cirq.SWAP)
+    assert programs.is_native_xmon_gate(cirq.CZ)
+    assert programs.is_native_xmon_gate(cirq.X**0.5)
+    assert programs.is_native_xmon_gate(cirq.Y**0.5)
+    assert programs.is_native_xmon_gate(cirq.Z**0.5)
+    assert programs.is_native_xmon_gate(
+        cirq.PhasedXPowGate(phase_exponent=0.2)**0.5)
+    assert programs.is_native_xmon_gate(cirq.Z**1)
+    assert not programs.is_native_xmon_gate(cirq.CCZ)
+    assert not programs.is_native_xmon_gate(cirq.SWAP)

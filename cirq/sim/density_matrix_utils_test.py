@@ -18,21 +18,15 @@ import numpy as np
 import pytest
 
 import cirq
-from cirq._compat_test import capture_logging
+import cirq.testing
 
 
 def test_deprecated():
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.to_valid_density_matrix', 'deprecated'):
         _ = cirq.sim.to_valid_density_matrix(0, 1)
-    assert len(log) == 1
-    assert "cirq.to_valid_density_matrix" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
-    with capture_logging() as log:
+    with cirq.testing.assert_logs('cirq.von_neumann_entropy', 'deprecated'):
         _ = cirq.sim.von_neumann_entropy(np.eye(2) / 2)
-    assert len(log) == 1
-    assert "cirq.von_neumann_entropy" in log[0].getMessage()
-    assert "deprecated" in log[0].getMessage()
 
 
 def test_sample_density_matrix_big_endian():
@@ -302,7 +296,7 @@ def test_measure_density_matrix_not_square():
     with pytest.raises(ValueError, match='not square'):
         cirq.measure_density_matrix(np.array([1, 0, 0]), [1])
     with pytest.raises(ValueError, match='not square'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(2, 1, 2),
+        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape((2, 1, 2)),
                                     [1],
                                     qid_shape=(2, 1))
 
@@ -321,8 +315,8 @@ def test_measure_density_matrix_higher_powers_of_two():
 
 def test_measure_density_matrix_tensor_different_left_right_shape():
     with pytest.raises(ValueError, match='not equal'):
-        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(2, 2, 1, 1),
-                                    [1],
+        cirq.measure_density_matrix(np.array([1, 0, 0, 0]).reshape(
+            (2, 2, 1, 1)), [1],
                                     qid_shape=(2, 1))
 
 

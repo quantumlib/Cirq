@@ -15,7 +15,7 @@
 """Basic types defining qubits, gates, and operations."""
 
 from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
-                    Sequence, Tuple, TYPE_CHECKING, Union)
+                    Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -259,6 +259,12 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
     def __call__(self, *args, **kwargs):
         return self.on(*args, **kwargs)
 
+    def with_probability(self, probability: 'cirq.TParamVal') -> 'cirq.Gate':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=self, probability=probability)
+
     def controlled(self,
                    num_controls: int = None,
                    control_values: Optional[Sequence[
@@ -360,6 +366,9 @@ class Gate(metaclass=value.ABCMetaImplementAnyOneOf):
         return protocols.obj_to_dict_helper(self, attribute_names=[])
 
 
+TSelf = TypeVar('TSelf', bound='Operation')
+
+
 class Operation(metaclass=abc.ABCMeta):
     """An effect applied to a collection of qubits.
 
@@ -387,7 +396,7 @@ class Operation(metaclass=abc.ABCMeta):
         return protocols.qid_shape(self.qubits)
 
     @abc.abstractmethod
-    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'cirq.Operation':
+    def with_qubits(self: TSelf, *new_qubits: 'cirq.Qid') -> TSelf:
         """Returns the same operation, but applied to different qubits.
 
         Args:
@@ -426,8 +435,8 @@ class Operation(metaclass=abc.ABCMeta):
         """
         return TaggedOperation(self, *new_tags)
 
-    def transform_qubits(self, func: Callable[['cirq.Qid'], 'cirq.Qid']
-                        ) -> 'Operation':
+    def transform_qubits(self: TSelf,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid']) -> TSelf:
         """Returns the same operation, but with different qubits.
 
         Args:
@@ -459,10 +468,21 @@ class Operation(metaclass=abc.ABCMeta):
                 default to 1.
         """
         # Avoids circular import.
-        from cirq.ops import ControlledOperation
+        from cirq.ops.controlled_operation import ControlledOperation
         if len(control_qubits) == 0:
             return self
         return ControlledOperation(control_qubits, self, control_values)
+
+    def with_probability(self,
+                         probability: 'cirq.TParamVal') -> 'cirq.Operation':
+        from cirq.ops.random_gate_channel import RandomGateChannel
+        gate = self.gate
+        if gate is None:
+            raise NotImplementedError("with_probability on gateless operation.")
+        if probability == 1:
+            return self
+        return RandomGateChannel(sub_gate=gate,
+                                 probability=probability).on(*self.qubits)
 
     def validate_args(self, qubits: Sequence['cirq.Qid']):
         """Raises an exception if the `qubits` don't match this operation's qid
@@ -589,10 +609,14 @@ class TaggedOperation(Operation):
         return protocols.measurement_key(self.sub_operation, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.sub_operation)
+        return protocols.is_parameterized(self.sub_operation) or any(
+            protocols.is_parameterized(tag) for tag in self.tags)
 
     def _resolve_parameters_(self, resolver):
-        return protocols.resolve_parameters(self.sub_operation, resolver)
+        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)
+        resolved_tags = (
+            protocols.resolve_parameters(tag, resolver) for tag in self._tags)
+        return TaggedOperation(resolved_op, *resolved_tags)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':

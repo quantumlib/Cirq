@@ -1,4 +1,4 @@
-# Copyright 2018 Google LLC
+# Copyright 2018 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,12 +30,11 @@ if TYPE_CHECKING:
 class GreedySequenceSearch:
     """Base class for greedy search heuristics.
 
-    Specialized greedy heuristics should implement abstrace _sequence_search
+    Specialized greedy heuristics should implement abstract _sequence_search
     method.
     """
 
-    def __init__(self,
-                 device: 'cirq.google.XmonDevice',
+    def __init__(self, device: 'cirq.google.XmonDevice',
                  start: GridQubit) -> None:
         """Greedy sequence search constructor.
 
@@ -109,7 +108,7 @@ class GreedySequenceSearch:
         sequences that begin and end on this qubit are searched for.
 
         Args:
-            start: The first qubit, where search should be trigerred from.
+            start: The first qubit, where search should be triggered from.
             current: Previously found linear sequence, which qubits are
                      forbidden to use during the search.
 
@@ -291,11 +290,11 @@ class GreedySequenceSearchStrategy(place_strategy.LinePlacementStrategy):
 
         Args:
             algorithm: Greedy algorithm to be used. Available options are:
-            best - runs all heuristics and chooses the best result,
-            largest_area - on every step takes the qubit which has connection
-            with the largest number of unassigned qubits, and
-            minimal_connectivity - on every step takes the qubit with minimal
-            number of unassigned neighbouring qubits.
+                best - runs all heuristics and chooses the best result,
+                largest_area - on every step takes the qubit which has
+                connection with the largest number of unassigned qubits, and
+                minimal_connectivity - on every step takes the qubit with
+                minimal number of unassigned neighbouring qubits.
         """
         self.algorithm = algorithm
 

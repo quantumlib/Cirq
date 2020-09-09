@@ -13,8 +13,8 @@
 # limitations under the License.
 """Device object for converting from device specification protos"""
 
-from typing import (Callable, cast, Dict, Iterable, Optional, List, Set, Tuple,
-                    Type, TYPE_CHECKING, FrozenSet)
+from typing import (Any, Callable, cast, Dict, Iterable, Optional, List, Set,
+                    Tuple, Type, TYPE_CHECKING, FrozenSet)
 
 from cirq import circuits, devices
 from cirq.google import serializable_gate_set
@@ -51,7 +51,7 @@ class _GateDefinition:
     def with_can_serialize_predicate(
             self, can_serialize_predicate: Callable[['cirq.Operation'], bool]
     ) -> '_GateDefinition':
-        """Creates a new _GateDefintion as a copy of the existing definition
+        """Creates a new _GateDefinition as a copy of the existing definition
         but with a new with_can_serialize_predicate.  This is useful if multiple
         definitions exist for the same gate, but with different conditions.
 
@@ -120,7 +120,7 @@ class SerializableDevice(devices.Device):
                 into cirq Gates.
         """
 
-        # Store target sets, since they are refered to by name later
+        # Store target sets, since they are referred to by name later
         allowed_targets: Dict[str, Set[Tuple['cirq.Qid', ...]]] = {}
         permutation_ids: Set[str] = set()
         for ts in proto.valid_targets:
@@ -235,6 +235,11 @@ class SerializableDevice(devices.Device):
 
         return super().__str__()
 
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Creates ASCII diagram for Jupyter, IPython, etc."""
+        # There should never be a cycle, but just in case use the default repr.
+        p.text(repr(self) if cycle else str(self))
+
     def _find_operation_type(self,
                              op: 'cirq.Operation') -> Optional[_GateDefinition]:
         """Finds the type (or a compatible type) of an operation from within
@@ -287,7 +292,8 @@ class SerializableDevice(devices.Device):
             return
 
         if len(operation.qubits) > 1:
-            # TODO(dstrain): verify args
+            # TODO: verify args.
+            # Github issue: https://github.com/quantumlib/Cirq/issues/2964
 
             if not gate_def.target_set:
                 # All qubit combinations are valid

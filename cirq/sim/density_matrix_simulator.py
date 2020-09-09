@@ -257,6 +257,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                                                      len(qid_shape),
                                                      qid_shape=qid_shape,
                                                      dtype=self._dtype)
+        if np.may_share_memory(initial_matrix, initial_state):
+            initial_matrix = initial_matrix.copy()
         measured = collections.defaultdict(
             bool)  # type: Dict[Tuple[cirq.Qid, ...], bool]
         if len(circuit) == 0:
@@ -275,8 +277,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or
-                    isinstance(potential_op.gate, ops.MeasurementGate))
+            return (protocols.has_channel(potential_op, allow_decompose=False)
+                    or isinstance(potential_op.gate, ops.MeasurementGate))
 
         noisy_moments = self.noise.noisy_moments(circuit,
                                                  sorted(circuit.all_qubits()))
@@ -291,6 +293,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
             for op in channel_ops_and_measurements:
                 indices = [qubit_map[qubit] for qubit in op.qubits]
                 # TODO: support more general measurements.
+                # Github issue: https://github.com/quantumlib/Cirq/issues/1357
                 if all_measurements_are_terminal and measured[op.qubits]:
                     continue
                 if isinstance(op.gate, ops.MeasurementGate):
@@ -318,7 +321,6 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                         key = protocols.measurement_key(meas)
                         measurements[key].extend(corrected)
                 else:
-                    # TODO: Use apply_channel similar to apply_unitary.
                     self._apply_op_channel(op, state, indices)
             yield DensityMatrixStepResult(density_matrix=state.tensor,
                                           measurements=measurements,
@@ -407,7 +409,7 @@ class DensityMatrixStepResult(simulator.StepResult):
         density_matrix = np.reshape(density_matrix, sim_state_matrix.shape)
         np.copyto(dst=sim_state_matrix, src=density_matrix)
 
-    def density_matrix(self):
+    def density_matrix(self, copy=True):
         """Returns the density matrix at this step in the simulation.
 
         The density matrix that is stored in this result is returned in the
@@ -435,9 +437,16 @@ class DensityMatrixStepResult(simulator.StepResult):
                 |  6  |   1    |   1    |   0    |
                 |  7  |   1    |   1    |   1    |
 
+        Args:
+            copy: If True, then the returned state is a copy of the density
+                matrix. If False, then the density matrix is not copied,
+                potentially saving memory. If one only needs to read derived
+                parameters from the density matrix and store then using False
+                can speed up simulation by eliminating a memory copy.
         """
         size = np.prod(self._qid_shape, dtype=int)
-        return np.reshape(self._density_matrix, (size, size))
+        matrix = self._density_matrix.copy() if copy else self._density_matrix
+        return np.reshape(matrix, (size, size))
 
     def sample(self,
                qubits: List[ops.Qid],
@@ -528,7 +537,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
                          final_simulator_state=final_simulator_state)
         size = np.prod(protocols.qid_shape(self), dtype=int)
         self.final_density_matrix = np.reshape(
-            final_simulator_state.density_matrix, (size, size))
+            final_simulator_state.density_matrix.copy(), (size, size))
 
     def _value_equality_values_(self) -> Any:
         measurements = {

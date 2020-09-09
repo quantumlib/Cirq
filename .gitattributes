@@ -1,0 +1,5 @@
+# Mark generated protobuf files to be collapsed by default in PRs
+# See: https://github.com/github/linguist/#generated-code
+*_pb2.py         linguist-generated=true
+*_pb2.pyi        linguist-generated=true
+
