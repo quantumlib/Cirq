@@ -75,7 +75,9 @@ def t2_decay(sampler: work.Sampler,
 
     CPMG, or the Carr-Purcell-Meiboom-Gill sequence, involves using a sqrt(Y)
     followed by a sequence of pi pulses (X gates) in a specific timing pattern:
+
         π/2, t, π, 2t, π, ... 2t, π, t
+
     The first pulse, a sqrt(Y) gate, will put the qubit's state on the Bloch
     equator.  After a delay, successive X gates will refocus dehomogenous
     phase effects by causing them to precess in opposite directions and
@@ -85,9 +87,9 @@ def t2_decay(sampler: work.Sampler,
     denoted as 't' in the above sequence, is delay, which can be specified
     with `delay_min` and `delaxy_max` or by using a `delay_sweep`, similar to
     the other experiments.  The second variable is the number of pi pulses
-    (X gates)  This can be specified as a list of integers using the
+    (X gates).  This can be specified as a list of integers using the
     `num_pulses` parameter.  If multiple different pulses are specified,
-    the data will presented in a data frame with two
+    the data will be presented in a data frame with two
     indices (delay_ns and num_pulses).
 
     See the following reference for more information about CPMG pulse trains:
@@ -98,7 +100,10 @@ def t2_decay(sampler: work.Sampler,
     Note that interpreting T2 data is fairly tricky and subtle, as it can
     include other effects that need to be accounted for.  For instance,
     amplitude damping (T1) will present as T2 noise and needs to be
-    appropriately compensated for to find a true measure of T2.
+    appropriately compensated for to find a true measure of T2.  Due to this
+    subtlety and lack of standard way to interpret the data, the fitting
+    of the data to an exponential curve and the extrapolation of an actual
+    T2 time value is left as an exercise to the reader.
 
     Args:
         sampler: The quantum engine or simulator to run the circuits.
@@ -136,6 +141,7 @@ def t2_decay(sampler: work.Sampler,
     delay_var = sympy.Symbol('delay_ns')
     inv_x_var = sympy.Symbol('inv_x')
     inv_y_var = sympy.Symbol('inv_y')
+    max_pulses = max(num_pulses) if num_pulses else 0
 
     if not delay_sweep:
         delay_sweep = study.Linspace(delay_var,
@@ -163,7 +169,6 @@ def t2_decay(sampler: work.Sampler,
             study.Points('inv_x', [0.0, -0.5]),
             study.Points('inv_y', [-0.5, 0.0]),
         )
-        sweep = study.Product(delay_sweep, tomography_sweep)
     else:
         if experiment_type == ExperimentType.HAHN_ECHO:
             # Hahn / Spin Echo T2 experiment
@@ -185,7 +190,6 @@ def t2_decay(sampler: work.Sampler,
         if not num_pulses:
             raise ValueError('At least one value must be given '
                              'for num_pulses in a CPMG experiment')
-        max_pulses = max(num_pulses)
         circuit = _cpmg_circuit(qubit, delay_var, max_pulses)
         circuit.append(ops.X(qubit)**inv_x_var)
         circuit.append(ops.Y(qubit)**inv_y_var)
@@ -194,13 +198,12 @@ def t2_decay(sampler: work.Sampler,
             study.Points('inv_x', [0.0, 0.5]),
             study.Points('inv_y', [-0.5, 0.0]),
         )
-        if max_pulses > 0:
-            pulse_sweep = _cpmg_sweep(num_pulses)
-            sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
-        else:
-            sweep = study.Product(delay_sweep, tomography_sweep)
 
-
+    if max_pulses > 0:
+        pulse_sweep = _cpmg_sweep(num_pulses)
+        sweep = study.Product(delay_sweep, pulse_sweep, tomography_sweep)
+    else:
+        sweep = study.Product(delay_sweep, tomography_sweep)
 
     # Tabulate measurements into a histogram
     results = sampler.sample(circuit, params=sweep, repetitions=repetitions)
@@ -209,7 +212,6 @@ def t2_decay(sampler: work.Sampler,
     x_basis_measurements = results[abs(results.inv_x) > 0].copy()
 
     if num_pulses and len(num_pulses) > 1:
-        max_pulses = max(num_pulses)
         cols = tuple(f'pulse_{t}' for t in range(max_pulses))
         x_basis_measurements[
             'num_pulses'] = x_basis_measurements.loc[:, cols].sum(axis=1)
@@ -243,7 +245,7 @@ def _cpmg_circuit(qubit: devices.GridQubit, delay_var: sympy.Symbol,
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:
-      sqrt(Y) - wait(delay_var)  - X - wait(2*delay_var) - ... - wait(delay_var)
+      sqrt(Y) - wait(delay_var) - X - wait(2*delay_var) - ... - wait(delay_var)
     with max_pulses number of X gates.
 
     The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
