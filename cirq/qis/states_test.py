@@ -253,6 +253,9 @@ def test_dirac_notation_precision():
 
 
 def test_to_valid_state_vector():
+    with pytest.raises(ValueError,
+                       match='Computational basis state is out of range'):
+        cirq.to_valid_state_vector(2, 1)
     np.testing.assert_almost_equal(
         cirq.to_valid_state_vector(
             np.array([1.0, 0.0, 0.0, 0.0], dtype=np.complex64), 2),
