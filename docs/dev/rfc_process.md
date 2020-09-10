@@ -100,5 +100,4 @@ While we encourage and celebrate every contributor, the bar for RFC acceptance i
 *   Concerns raised during implementation (for example: inability to achieve backwards compatibility, concerns about maintenance).
 
 If this process is functioning well, RFCs are expected to fail in the earlier, rather than later stages. 
-An approved RFC is not a commitment to implementation or any deadline. The prioritization of features depends on user interest and willingness of contributors to implement 
-them.
+An approved RFC is not a commitment to implementation on any sort of timeline. The prioritization of features depends on user interest and willingness of contributors to implement them.
