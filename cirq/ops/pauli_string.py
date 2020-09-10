@@ -1145,6 +1145,7 @@ class MutablePauliString:
     def __delitem__(self, key: 'cirq.Qid'):
         del self.pauli_int_dict[key]
 
+    # pylint: disable=function-redefined
     @overload
     def get(self, key: 'cirq.Qid', default: None = None
            ) -> Union['cirq.Pauli', 'cirq.IdentityGate', None]:
@@ -1158,6 +1159,7 @@ class MutablePauliString:
     def get(self, key, default=None):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result]
+    # pylint: enable=function-redefined
 
     def inplace_before(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
         r"""Propagates the pauli string from after to before a Clifford effect.
