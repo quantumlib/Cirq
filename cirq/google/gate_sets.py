@@ -111,7 +111,7 @@ NAMED_GATESETS = {
 }
 
 document(NAMED_GATESETS,
-         """"A convenience mapping from gateset names to gatesets""")
+         """A convenience mapping from gateset names to gatesets""")
 
 GOOGLE_GATESETS = [
     SYC_GATESET,

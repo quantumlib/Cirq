@@ -277,8 +277,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or
-                    isinstance(potential_op.gate, ops.MeasurementGate))
+            return (protocols.has_channel(potential_op, allow_decompose=False)
+                    or isinstance(potential_op.gate, ops.MeasurementGate))
 
         noisy_moments = self.noise.noisy_moments(circuit,
                                                  sorted(circuit.all_qubits()))
