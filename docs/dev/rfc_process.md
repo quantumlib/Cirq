@@ -44,7 +44,7 @@ Do mention that you are willing to write an RFC.
     * Write a comment in your Github issue that calls out that you are "Looking for a sponsor"
     * The issue should get a label: "rfc/needs-sponsor"  
     * While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design.
-    * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor,      
+    * Tips to recruit a sponsor: 1) keep commenting on the issue weekly 2) attend Cirq Cynq and push for a sponsor.      
 5. Agree with your sponsor on a Cirq Cync meeting to present the RFC so that other contributors and maintainers can become more familiar with your design  
 6. The meeting may approve the RFC, reject it, or require changes before it can be considered again. \
 It is likely that multiple iterations of comments and meetings with your sponsor will be required before approval.
