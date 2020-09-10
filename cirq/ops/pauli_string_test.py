@@ -1728,13 +1728,13 @@ def test_mutable_pauli_string_inplace_multiplication():
 
     # Correct order of *=.
     p *= cirq.Y(a)
-    assert p == 1j * cirq.Z(a) and p is original
+    assert p == -1j * cirq.Z(a) and p is original
     p *= cirq.Y(a)
     assert p == cirq.X(a) and p is original
 
     # Correct order of inplace_left_multiply_by.
     p.inplace_left_multiply_by(cirq.Y(a))
-    assert p == -1j * cirq.Z(a) and p is original
+    assert p == 1j * cirq.Z(a) and p is original
     p.inplace_left_multiply_by(cirq.Y(a))
     assert p == cirq.X(a) and p is original
 
@@ -1837,7 +1837,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p2 = p.inplace_after(cirq.H(b))
     assert p2 is p and p == cirq.X(a) * cirq.X(b) * cirq.Z(c)
     p2 = p.inplace_after(cirq.CNOT(b, c))
-    assert p2 is p and p == cirq.X(a) * cirq.Y(b) * cirq.Y(c)
+    assert p2 is p and p == -cirq.X(a) * cirq.Y(b) * cirq.Y(c)
 
     # Inverted interactions.
     p = cirq.MutablePauliString(cirq.X(a))
@@ -1855,7 +1855,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(
         cirq.PauliInteractionGate(cirq.Z, False, cirq.Y, True).on(a, b))
-    assert p2 is p and p == cirq.X(a) * cirq.Y(b)
+    assert p2 is p and p == -cirq.X(a) * cirq.Y(b)
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(
         cirq.PauliInteractionGate(cirq.Z, True, cirq.X, False).on(a, b))
@@ -1863,7 +1863,7 @@ def test_mutable_pauli_string_inplace_conjugate_by():
     p = cirq.MutablePauliString(cirq.X(a))
     p2 = p.inplace_after(
         cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, False).on(a, b))
-    assert p2 is p and p == -cirq.X(a) * cirq.Y(b)
+    assert p2 is p and p == cirq.X(a) * cirq.Y(b)
 
 
 def test_after_before_vs_conjugate_by():

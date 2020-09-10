@@ -1054,6 +1054,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return cls(pauli=pauli, qubit=qubit)
 
 
+@value.value_equality(unhashable=True, manual_cls=True, approximate=True)
 class MutablePauliString:
 
     def __init__(self,
@@ -1064,6 +1065,12 @@ class MutablePauliString:
         self.pauli_int_dict = {} if pauli_int_dict is None else pauli_int_dict
         if contents:
             self.inplace_left_multiply_by(contents)
+
+    def _value_equality_values_(self):
+        return self.frozen()._value_equality_values_()
+
+    def _value_equality_values_cls_(self):
+        return self.frozen()._value_equality_values_cls_()
 
     def _imul_atom_helper(self, qubit: 'cirq.Qid', pauli_lhs: int,
                           sign: int) -> int:
@@ -1138,6 +1145,11 @@ class MutablePauliString:
     def __delitem__(self, key: 'cirq.Qid'):
         del self.pauli_int_dict[key]
 
+    def get(self, key: 'cirq.Qid', default: TDefault = None
+           ) -> Union['cirq.Pauli', 'cirq.IdentityGate', None]:
+        result = self.pauli_int_dict.get(key, None)
+        return default if result is None else _INT_TO_PAULI[result]
+
     def inplace_before(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
         r"""Propagates the pauli string from after to before a Clifford effect.
 
@@ -1176,7 +1188,8 @@ class MutablePauliString:
                 gate = op.gate
 
                 if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
-                    out = gate.transform(cast(cirq.Pauli, _INT_TO_PAULI[ps[0]]))
+                    out = gate.transform(
+                        cast(pauli_gates.Pauli, _INT_TO_PAULI[ps[0]]))
                     if out.flip:
                         self.coefficient *= -1
                     self.pauli_int_dict[
@@ -1218,14 +1231,15 @@ class MutablePauliString:
          Returns:
              self on success, NotImplemented given an unknown type of value.
         """
-        phase_log_i = 0
 
         if isinstance(other, (Mapping, PauliString, MutablePauliString)):
             if isinstance(other, (PauliString, MutablePauliString)):
                 self.coefficient *= other.coefficient
+            phase_log_i = 0
             for qubit, pauli_gate_like in other.items():
                 pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
                 phase_log_i += self._imul_atom_helper(qubit, pauli_int, sign)
+            self.coefficient *= 1j**(phase_log_i & 3)
         elif isinstance(other, numbers.Number):
             self.coefficient *= complex(cast(SupportsComplex, other))
         elif isinstance(other, raw_types.Operation) and isinstance(
@@ -1241,7 +1255,6 @@ class MutablePauliString:
         else:
             return NotImplemented
 
-        self.coefficient *= 1j**phase_log_i
         return self
 
     def _imul_helper_checkpoint(self, other: 'cirq.PAULI_STRING_LIKE',
@@ -1322,14 +1335,14 @@ class MutablePauliString:
         return self._imul_helper_checkpoint(other, +1)
 
     def __mul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.PauliString':
-        """Multiplies two pauli-stringl-ikes together.
+        """Multiplies two pauli-string-likes together.
 
         The result is not mutable.
         """
         return self.frozen() * other
 
     def __rmul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.PauliString':
-        """Multiplies two pauli-stringl-ikes together.
+        """Multiplies two pauli-string-likes together.
 
         The result is not mutable.
         """
