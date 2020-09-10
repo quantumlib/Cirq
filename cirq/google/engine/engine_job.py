@@ -309,7 +309,6 @@ class EngineJob:
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
                     result.value)
-                self.batch_mode = True
                 self._batched_results = self._get_batch_results_v2(
                     v2_parsed_result)
                 self._results = self._flatten(self._batched_results)
