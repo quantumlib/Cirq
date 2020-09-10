@@ -104,11 +104,6 @@ def parameter_names(val: Any) -> AbstractSet[str]:
     if result is not NotImplemented:
         return result
 
-    #if check_symbols:
-    #    symbols = parameter_symbols(val, check_names=False)
-    #    if symbols is not NotImplemented:
-    #        return {symbol.name for symbol in symbols}
-
     return set()
 
 

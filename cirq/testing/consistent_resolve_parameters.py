@@ -35,9 +35,5 @@ def assert_consistent_resolve_parameters(val: Any):
         except Exception:
             pass
         else:
-            print('names:', names)
-            print('original:', repr(val))
-            print('resolved:', repr(resolved))
-            print('resolved_names:', cirq.parameter_names(resolved))
             assert not cirq.parameter_names(resolved)
             assert not cirq.parameter_symbols(resolved)
