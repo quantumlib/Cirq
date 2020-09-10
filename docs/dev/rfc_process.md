@@ -37,6 +37,7 @@ Do mention that you are willing to write an RFC.
 2. [Join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev) to get an invitation to our weekly Cirq Cynq meeting. 
 3. Draft your RFC. 
     * Follow the [RFC template](https://tinyurl.com/cirq-rfc-template), link the Github issue in your RFC.
+    * Make sure to share your doc with cirq-dev@googlegroups.com for comments 
     * Link the RFC in your issue
 4. Recruiting a sponsor:
     * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
