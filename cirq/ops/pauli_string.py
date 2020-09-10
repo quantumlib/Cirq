@@ -1145,8 +1145,17 @@ class MutablePauliString:
     def __delitem__(self, key: 'cirq.Qid'):
         del self.pauli_int_dict[key]
 
-    def get(self, key: 'cirq.Qid', default: TDefault = None
+    @overload
+    def get(self, key: 'cirq.Qid', default: None = None
            ) -> Union['cirq.Pauli', 'cirq.IdentityGate', None]:
+        pass
+
+    @overload
+    def get(self, key: 'cirq.Qid', default: TDefault
+           ) -> Union['cirq.Pauli', 'cirq.IdentityGate', TDefault]:
+        pass
+
+    def get(self, key, default=None):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result]
 
