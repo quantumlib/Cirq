@@ -74,6 +74,9 @@ from cirq.testing.lin_alg_utils import (
 from cirq.testing.logs import (
     assert_logs,)
 
+from cirq.testing.no_identifier_qubit import (
+    NoIdentifierQubit,)
+
 from cirq.testing.order_tester import (
     OrderTester,)
 

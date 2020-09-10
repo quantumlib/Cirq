@@ -167,6 +167,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
+    'SupportsPauliExpansion',
     'SupportsPhase',
     'SupportsQasm',
     'SupportsQasmWithArgs',
