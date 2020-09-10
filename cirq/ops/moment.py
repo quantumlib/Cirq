@@ -116,6 +116,32 @@ class Moment:
 
         return m
 
+    def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
+        """Returns a new moment with the given contents added.
+
+        Args:
+            contents: New operations to add to this moment.
+
+        Returns:
+            The new moment.
+        """
+        from cirq.ops import op_tree
+
+        operations = list(self._operations)
+        qubits = set(self._qubits)
+        for op in op_tree.flatten_to_ops(contents):
+            if any(q in qubits for q in op.qubits):
+                raise ValueError('Overlapping operations: {}'.format(op))
+            operations.append(op)
+            qubits.update(op.qubits)
+
+        # Use private variables to facilitate a quick copy
+        m = Moment()
+        m._operations = tuple(operations)
+        m._qubits = frozenset(qubits)
+
+        return m
+
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']
                                    ) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
@@ -228,13 +254,26 @@ class Moment:
     def _from_json_dict_(cls, operations, **kwargs):
         return Moment(operations)
 
-    def __add__(self,
-                other: Union['cirq.Operation', 'cirq.Moment']) -> 'cirq.Moment':
-        if isinstance(other, raw_types.Operation):
-            return self.with_operation(other)
-        if isinstance(other, Moment):
-            return Moment(self.operations + other.operations)
-        return NotImplemented
+    def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+        from cirq.circuits import circuit
+        if isinstance(other, circuit.Circuit):
+            return NotImplemented  # Delegate to Circuit.__radd__.
+        return self.with_operations(other)
+
+    def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
+        from cirq.ops import op_tree
+        must_remove = set(op_tree.flatten_to_ops(other))
+        new_ops = []
+        for op in self.operations:
+            if op in must_remove:
+                must_remove.remove(op)
+            else:
+                new_ops.append(op)
+        if must_remove:
+            raise ValueError(f"Subtracted missing operations from a moment.\n"
+                             f"Missing operations: {must_remove!r}\n"
+                             f"Moment: {self!r}")
+        return Moment(new_ops)
 
     # pylint: disable=function-redefined
     @overload

@@ -13,12 +13,11 @@
 # limitations under the License.
 from typing import List, TYPE_CHECKING
 
-from cirq import protocols
+from cirq import ops, protocols
 from cirq.circuits.optimization_pass import (
     PointOptimizationSummary,
     PointOptimizer,
 )
-from cirq.google.api.v1 import programs
 from cirq import optimizers
 
 if TYPE_CHECKING:
@@ -65,6 +64,19 @@ class ConvertToXmonGates(PointOptimizer):
 
         return NotImplemented
 
+    def _is_native_xmon_op(self, op: 'cirq.Operation') -> bool:
+        """Check if the gate within an operation is a native xmon gate.
+
+        Args:
+            op: Input operation.
+
+        Returns:
+            True if the operation is native to the xmon, false otherwise.
+        """
+        from cirq.google.devices import XmonDevice
+        return (isinstance(op, ops.GateOperation) and
+                XmonDevice.is_supported_gate(op.gate))
+
     def convert(self, op: 'cirq.Operation') -> List['cirq.Operation']:
 
         def on_stuck_raise(bad):
@@ -75,7 +87,7 @@ class ConvertToXmonGates(PointOptimizer):
 
         return protocols.decompose(
             op,
-            keep=programs.is_native_xmon_op,
+            keep=self._is_native_xmon_op,
             intercepting_decomposer=self._convert_one,
             on_stuck_raise=None if self.ignore_failures else on_stuck_raise)
 

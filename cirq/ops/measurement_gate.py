@@ -72,6 +72,13 @@ class MeasurementGate(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
+    def with_key(self, key: str) -> 'MeasurementGate':
+        """Creates a measurement gate with a new key but otherwise identical."""
+        return MeasurementGate(self.num_qubits(),
+                               key=key,
+                               invert_mask=self.invert_mask,
+                               qid_shape=self._qid_shape)
+
     def with_bits_flipped(self, *bit_positions: int) -> 'MeasurementGate':
         """Toggles whether or not the measurement inverts various outputs."""
         old_mask = self.invert_mask or ()
@@ -81,7 +88,8 @@ class MeasurementGate(raw_types.Gate):
             new_mask[b] = not new_mask[b]
         return MeasurementGate(self.num_qubits(),
                                key=self.key,
-                               invert_mask=tuple(new_mask))
+                               invert_mask=tuple(new_mask),
+                               qid_shape=self._qid_shape)
 
     def full_invert_mask(self):
         """Returns the invert mask for all qubits.
@@ -233,6 +241,16 @@ class MeasurementGate(raw_types.Gate):
             ]
             args.record_measurement_result(self.key, corrected)
 
+            return True
+
+        if isinstance(args, sim.clifford.ActOnCliffordTableauArgs):
+            invert_mask = self.full_invert_mask()
+            bits = [args.tableau._measure(q, args.prng) for q in args.axes]
+            corrected = [
+                bit ^ (bit < 2 and mask)
+                for bit, mask in zip(bits, invert_mask)
+            ]
+            args.record_measurement_result(self.key, corrected)
             return True
 
         return NotImplemented

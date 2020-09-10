@@ -58,7 +58,7 @@ document(
     Each Pauli operation can be specified as a cirq object (e.g. `cirq.X`) or as
     a string (e.g. `"X"`) or as an integer where 0=I, 1=X, 2=Y, 3=Z.
 
-    Collections of Pauli operations are recrusively multiplied into a single
+    Collections of Pauli operations are recursively multiplied into a single
     Pauli string.
     """)
 
@@ -679,8 +679,8 @@ class PauliString(raw_types.Operation):
             from cirq.ops import pauli_string_phasor
             return pauli_string_phasor.PauliStringPhasor(
                 PauliString(qubit_pauli_map=self._qubit_pauli_map),
-                exponent_neg=+half_turns / 4,
-                exponent_pos=-half_turns / 4)
+                exponent_neg=+half_turns / 2,
+                exponent_pos=-half_turns / 2)
         return NotImplemented
 
     def map_qubits(self, qubit_map: Dict[raw_types.Qid, raw_types.Qid]

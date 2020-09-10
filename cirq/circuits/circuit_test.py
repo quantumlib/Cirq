@@ -2703,6 +2703,7 @@ def test_batch_replace():
 def test_batch_insert_into():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
     original = cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([]),
@@ -2725,12 +2726,32 @@ def test_batch_insert_into():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
 
+    # Add multiple operations into non-empty moment.
+    after = original.copy()
+    after.batch_insert_into([(0, [cirq.X(b), cirq.X(c)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b), cirq.X(c)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
     # Add into empty moment.
     after = original.copy()
     after.batch_insert_into([(1, cirq.Z(b))])
     assert after == cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add multiple operations into empty moment.
+    after = original.copy()
+    after.batch_insert_into([(1, [cirq.Z(a), cirq.Z(b)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
@@ -2755,6 +2776,12 @@ def test_batch_insert_into():
     after = original.copy()
     with pytest.raises(ValueError):
         after.batch_insert_into([(0, cirq.X(a))])
+    assert after == original
+
+    # Collision with multiple operations.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(0, [cirq.X(b), cirq.X(c), cirq.X(a)])])
     assert after == original
 
     # Duplicate insertion collision.
@@ -3817,3 +3844,27 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+
+def test_repr_html_escaping():
+
+    class TestGate(cirq.Gate):
+
+        def num_qubits(self):
+            return 2
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(
+                wire_symbols=["< ' F ' >", "< ' F ' >"])
+
+    F2 = TestGate()
+    a = cirq.LineQubit(1)
+    c = cirq.NamedQubit("|c>")
+
+    circuit = cirq.Circuit([F2(a, c)])
+
+    # Escaping Special Characters in Gate names.
+    assert '&lt; &#x27; F &#x27; &gt;' in circuit._repr_html_()
+
+    # Escaping Special Characters in Qubit names.
+    assert '|c&gt;' in circuit._repr_html_()

@@ -66,9 +66,9 @@ class CliffordSimulator(simulator.SimulatesSamples,
         if isinstance(op.gate, cirq.MeasurementGate): return True
         if isinstance(op, GlobalPhaseOperation): return True
         if not protocols.has_unitary(op): return False
-        u = cirq.unitary(op)
-        if u.shape == (2, 2):
-            return not SingleQubitCliffordGate.from_unitary(u) is None
+        if len(op.qubits) == 1:
+            u = unitary(op)
+            return SingleQubitCliffordGate.from_unitary(u) is not None
         else:
             return op.gate in [cirq.CNOT, cirq.CZ]
 
@@ -428,9 +428,9 @@ class CliffordState():
         deadline='v0.10.0',
         fix='Use collapse_state_vector instead.',
         parameter_desc='collapse_wavefunction',
-        match=lambda args, kwargs: 'collapse_wave_function' in kwargs,
-        rewrite=lambda args, kwargs: (args, {(
-            'collapse_state_vector' if k == 'collapse_wave_function' else k): v
+        match=lambda args, kwargs: 'collapse_wavefunction' in kwargs,
+        rewrite=lambda args, kwargs: (args, {('collapse_state_vector' if k ==
+                                              'collapse_wavefunction' else k): v
                                              for k, v in kwargs.items()}))
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],

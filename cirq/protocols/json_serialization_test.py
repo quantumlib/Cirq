@@ -111,6 +111,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
+    'ActOnCliffordTableauArgs',
     'ActOnStateVectorArgs',
     'ApplyChannelArgs',
     'ApplyMixtureArgs',
@@ -166,6 +167,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
+    'SupportsPauliExpansion',
     'SupportsPhase',
     'SupportsQasm',
     'SupportsQasmWithArgs',
@@ -176,6 +178,7 @@ SHOULDNT_BE_SERIALIZED = [
     # mypy types:
     'CIRCUIT_LIKE',
     'DURATION_LIKE',
+    'JsonResolver',
     'NOISE_MODEL_LIKE',
     'OP_TREE',
     'PAULI_GATE_LIKE',
@@ -206,6 +209,7 @@ SHOULDNT_BE_SERIALIZED = [
     'EngineProgram',
     'EngineTimeSlot',
     'QuantumEngineSampler',
+    'NAMED_GATESETS',
 
     # enums
     'ProtoVersion'
@@ -328,6 +332,7 @@ NOT_YET_SERIALIZABLE = [
     'WaveFunctionTrialResult',
     'XmonDevice',
     'XMON',
+    'ZerosSampler',
     'Zip',
 ]
 

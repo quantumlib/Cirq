@@ -25,21 +25,35 @@ from cirq._compat import deprecated, deprecated_parameter
 if TYPE_CHECKING:
     import cirq
 
-bloch_vector_from_state_vector = deprecated(
-    deadline='v0.9', fix='Use cirq.bloch_vector_from_state_vector instead.')(
-        qis.bloch_vector_from_state_vector)
-density_matrix_from_state_vector = deprecated(
-    deadline='v0.9', fix='Use cirq.density_matrix_from_state_vector instead.')(
-        qis.density_matrix_from_state_vector)
-dirac_notation = deprecated(deadline='v0.9',
-                            fix='Use cirq.dirac_notation instead.')(
-                                qis.dirac_notation)
-to_valid_state_vector = deprecated(
-    deadline='v0.9',
-    fix='Use cirq.to_valid_state_vector instead.')(qis.to_valid_state_vector)
-validate_normalized_state = deprecated(
-    deadline='v0.10', fix='Use cirq.validate_normalized_state_vector instead.')(
-        qis.validate_normalized_state_vector)
+
+@deprecated(deadline='v0.9',
+            fix='Use cirq.bloch_vector_from_state_vector instead.')
+def bloch_vector_from_state_vector(*args, **kwargs):
+    return qis.bloch_vector_from_state_vector(*args, **kwargs)
+
+
+@deprecated(deadline='v0.9',
+            fix='Use cirq.density_matrix_from_state_vector instead.')
+def density_matrix_from_state_vector(*args, **kwargs):
+    return qis.density_matrix_from_state_vector(*args, **kwargs)
+
+
+@deprecated(deadline='v0.9', fix='Use cirq.dirac_notation instead.')
+def dirac_notation(*args, **kwargs):
+    return qis.dirac_notation(*args, **kwargs)
+
+
+@deprecated(deadline='v0.9', fix='Use cirq.to_valid_state_vector instead.')
+def to_valid_state_vector(*args, **kwargs):
+    return qis.to_valid_state_vector(*args, **kwargs)
+
+
+@deprecated(deadline='v0.10',
+            fix='Use cirq.validate_normalized_state_vector instead.')
+def validate_normalized_state(*args, **kwargs):
+    return qis.validate_normalized_state_vector(*args, **kwargs)
+
+
 STATE_VECTOR_LIKE = qis.STATE_VECTOR_LIKE
 
 

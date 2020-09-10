@@ -91,6 +91,8 @@ from cirq.devices import (
 from cirq.experiments import (
     estimate_single_qubit_readout_errors,
     hog_score_xeb_fidelity_from_probabilities,
+    least_squares_xeb_fidelity_from_expectations,
+    least_squares_xeb_fidelity_from_probabilities,
     linear_xeb_fidelity,
     linear_xeb_fidelity_from_probabilities,
     log_xeb_fidelity,
@@ -216,6 +218,7 @@ from cirq.ops import (
     Moment,
     MutableDensePauliString,
     NamedQubit,
+    NamedQid,
     OP_TREE,
     Operation,
     ParallelGateOperation,
@@ -325,6 +328,7 @@ from cirq.qis import (
 )
 
 from cirq.sim import (
+    ActOnCliffordTableauArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -439,6 +443,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    JsonResolver,
     json_serializable_dataclass,
     measurement_key,
     measurement_keys,
@@ -474,6 +479,7 @@ from cirq.protocols import (
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
+    SupportsPauliExpansion,
     SupportsPhase,
     SupportsQasm,
     SupportsQasmWithArgs,
@@ -509,6 +515,7 @@ from cirq.work import (
     PauliSumCollector,
     Sampler,
     Collector,
+    ZerosSampler,
 )
 
 # pylint: enable=redefined-builtin

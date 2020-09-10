@@ -27,6 +27,7 @@ from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
                     List, Optional, overload, Sequence, Set, Tuple, Type,
                     TYPE_CHECKING, TypeVar, Union)
 
+import html
 import re
 import numpy as np
 
@@ -374,9 +375,8 @@ class Circuit:
 
     def _repr_html_(self) -> str:
         """Print ASCII diagram in Jupyter notebook without wrapping lines."""
-        return ('<pre style="overflow: auto; white-space: pre;">'
-                + self.to_text_diagram()
-                + '</pre>')
+        return ('<pre style="overflow: auto; white-space: pre;">' +
+                html.escape(self.to_text_diagram()) + '</pre>')
 
     def _first_moment_operating_on(self, qubits: Iterable['cirq.Qid'],
                                    indices: Iterable[int]) -> Optional[int]:
@@ -1393,16 +1393,16 @@ class Circuit:
         self._moments = copy._moments
 
     def batch_insert_into(self,
-                          insert_intos: Iterable[Tuple[int, ops.Operation]]
-                          ) -> None:
+                          insert_intos: Iterable[Tuple[int, 'cirq.OP_TREE']]
+                         ) -> None:
         """Inserts operations into empty spaces in existing moments.
 
         If any of the insertions fails (due to colliding with an existing
         operation), this method fails without making any changes to the circuit.
 
         Args:
-            insert_intos: A sequence of (moment_index, new_operation)
-                pairs indicating a moment to add a new operation into.
+            insert_intos: A sequence of (moment_index, new_op_tree)
+                pairs indicating a moment to add new operations into.
 
         ValueError:
             One of the insertions collided with an existing operation.
@@ -1411,8 +1411,8 @@ class Circuit:
             Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
-        for i, op in insert_intos:
-            copy._moments[i] = copy._moments[i].with_operation(op)
+        for i, insertions in insert_intos:
+            copy._moments[i] = copy._moments[i].with_operations(insertions)
         self._device.validate_circuit(copy)
         self._validate_op_tree_qids(copy)
         self._moments = copy._moments
@@ -1729,6 +1729,7 @@ class Circuit:
             qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
             transpose: bool = False,
             include_tags: bool = True,
+            draw_moment_groups: bool = True,
             precision: Optional[int] = 3,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
             get_circuit_diagram_info: Optional[
@@ -1742,6 +1743,7 @@ class Circuit:
                 allowed (as opposed to ascii-only diagrams).
             qubit_namer: Names qubits in diagram. Defaults to str.
             transpose: Arranges qubit wires vertically instead of horizontally.
+            draw_moment_groups: Whether to draw moment symbol or not
             precision: Number of digits to use when representing numbers.
             qubit_order: Determines how qubits are ordered in the diagram.
             get_circuit_diagram_info: Gets circuit diagram info. Defaults to
@@ -1778,7 +1780,7 @@ class Circuit:
         for i in qubit_map.values():
             diagram.horizontal_line(i, 0, w)
 
-        if moment_groups:
+        if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
                                            use_unicode_characters,
                                            diagram)

@@ -609,10 +609,14 @@ class TaggedOperation(Operation):
         return protocols.measurement_key(self.sub_operation, NotImplemented)
 
     def _is_parameterized_(self) -> bool:
-        return protocols.is_parameterized(self.sub_operation)
+        return protocols.is_parameterized(self.sub_operation) or any(
+            protocols.is_parameterized(tag) for tag in self.tags)
 
     def _resolve_parameters_(self, resolver):
-        return protocols.resolve_parameters(self.sub_operation, resolver)
+        resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)
+        resolved_tags = (
+            protocols.resolve_parameters(tag, resolver) for tag in self._tags)
+        return TaggedOperation(resolved_op, *resolved_tags)
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
