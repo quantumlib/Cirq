@@ -1159,6 +1159,7 @@ class MutablePauliString:
     def get(self, key, default=None):
         result = self.pauli_int_dict.get(key, None)
         return default if result is None else _INT_TO_PAULI[result]
+
     # pylint: enable=function-redefined
 
     def inplace_before(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
