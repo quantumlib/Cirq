@@ -34,12 +34,13 @@ and one of the maintainers will flag the issue as a major feature if necessary.
 
 1. Before submitting an RFC, discuss your aims with project contributors and maintainers and get early feedback. Maintainers can be contacted at cirq-maintainers@googlegroups.com
 2. Draft your RFC.
-    *   Follow the [RFC template](https://docs.google.com/document/d/1Zf0n7rKahejSJmAgYbCP6ClKXe8HhALceRQb-vRYe6o/edit#heading=h.mckr847qq60k).
+    *   Follow the [RFC template](https://tinyurl.com/cirq-rfc-template).
 3. After writing the RFC draft, get feedback from maintainers and contributors before submitting it (email: cirq-maintainers@googlegroups.com) \
 Writing implementation code is not a requirement, but it may help design discussions.
-4. Recruit a sponsor.
-    *   A sponsor must be a maintainer of the project or the product manager
-    *   Identify the sponsor in the RFC, before submitting a Github issue.
+4. Recruit a sponsor:    
+    * A sponsor must be a maintainer of the project or the product manager (currently Alan Ho).
+    * In your email to cirq-maintainers@googlegroups.com, or in a Cirq Cynq meeting, ask for a maintainer to sponsor your RFC. \
+      While it might take some time to get a maintainer to sponsor your RFC, it is essential, as the sponsor will facilitate the process for reviewing your design. 
 5. Attend the Cirq Cync to review your RFC (to get invited, please [join the cirq-dev Google Group](https://groups.google.com/forum/#!forum/cirq-dev))
 6. The meeting may approve the RFC, reject it, or require changes before it can be considered again. Approved RFCs will be updated in Github by the sponsor.
 
