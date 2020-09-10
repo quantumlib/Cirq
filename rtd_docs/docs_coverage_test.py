@@ -1,6 +1,5 @@
 import inspect
 import pathlib
-import re
 from typing import Set, Dict, Tuple, Any, List
 
 import cirq
@@ -63,7 +62,6 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
     return result
 
 
-
 def test_public_values_equals_documented_values():
     in_actual_api = _all_public()
     in_api_reference = {
@@ -76,10 +74,10 @@ def test_public_values_equals_documented_values():
         if not fullname.startswith('cirq.contrib.')
     }
     assert not unlisted, (
-        'Public class/method/value not listed in docs/api.rst:'
+        'Public class/method/value not listed in rtd_docs/api.rst:'
         '\n    ' + '\n    '.join(sorted(unlisted)))
     assert not hidden, (
-        'Private or non-existent class/method/value listed in docs/api.rst:'
+        'Private or non-existent class/method/value listed in rtd_docs/api.rst:'
         '\n    ' + '\n    '.join(sorted(hidden)))
 
 

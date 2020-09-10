@@ -87,7 +87,7 @@ def test_sample_heavy_set_with_parity():
     # Construct a result that returns [1, 0, 1, 0] for the physical qubit
     # measurement, and [0, 1, 1, 0] for the ancilla qubit measurement. The first
     # bitstring "10" is valid and heavy. The second "01" is valid and not
-    # heavy. The third and fourth bitstraings "11" and "00" are not valid and
+    # heavy. The third and fourth bitstrings "11" and "00" are not valid and
     # dropped.
     result = cirq.TrialResult.from_single_parameter_set(
         params=cirq.ParamResolver({}),

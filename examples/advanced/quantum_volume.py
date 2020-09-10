@@ -13,7 +13,7 @@ Output:
     This program it also prints the Heavy Set of result values that represent
     the bit-strings produced by a randomly-generated model circuit (Example: [1,
     5, 7]), and the HOG probability for each given sampler when run on the
-    compiled deviced.
+    device.
 
 """
 
