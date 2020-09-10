@@ -1,4 +1,4 @@
-### Devices
+# Devices
 
 The ``Device`` class is an abstract class which encapsulates constraints
 (or lack thereof) that come when running a circuit on actual hardware.
