@@ -14,6 +14,7 @@
 """Protocol for obtaining expansion of linear operators in Pauli basis."""
 
 from typing import Any, TypeVar, Union
+from typing_extensions import Protocol
 
 from cirq import value
 from cirq.linalg import operator_spaces
@@ -23,6 +24,20 @@ TDefault = TypeVar('TDefault')
 
 RaiseTypeErrorIfNotProvided = (value.LinearDict({})
                               )  # type: value.LinearDict[str]
+
+
+class SupportsPauliExpansion(Protocol):
+    """An object that knows its expansion in the Pauli basis."""
+
+    def _pauli_expansion_(self) -> value.LinearDict[str]:
+        """Efficiently obtains expansion of self in the Pauli basis.
+
+        Returns:
+            Linear dict keyed by name of Pauli basis element. The names
+            consist of n captal letters from the set 'I', 'X', 'Y', 'Z'
+            where n is the number of qubits. For example, 'II', 'IX' and
+            'XY' are valid Pauli names in the two-qubit case.
+        """
 
 
 def pauli_expansion(

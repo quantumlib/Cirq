@@ -1,3 +1,4 @@
+import warnings
 from typing import Sequence, Union, List, Tuple, Dict, Optional
 
 import numpy as np
@@ -5,6 +6,8 @@ import quimb
 import quimb.tensor as qtn
 
 import cirq
+
+QUIMB_VERSION = tuple(int(x) for x in quimb.__version__.split('.'))
 
 
 def circuit_to_tensors(circuit: cirq.Circuit,
@@ -147,7 +150,13 @@ def tensor_expectation_value(circuit: cirq.Circuit,
                    tags={'Q0', 'bra0'}) for q in qubits
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
-    tn.rank_simplify(inplace=True)
+    if QUIMB_VERSION < (1, 3):
+        # coverage: ignore
+        warnings.warn('Please use quimb>=1.3 for optimal performance in '
+                      '`tensor_expectation_value`. '
+                      'See https://github.com/quantumlib/Cirq/issues/3263')
+    else:
+        tn.rank_simplify(inplace=True)
     path_info = tn.contract(get='path-info')
     ram_gb = path_info.largest_intermediate * 128 / 8 / 1024 / 1024 / 1024
     if ram_gb > max_ram_gb:

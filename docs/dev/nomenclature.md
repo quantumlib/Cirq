@@ -1,4 +1,4 @@
-## Nomenclature
+# Nomenclature
 
 This page describes naming rules and conventions that exist throughout Cirq.
 These rules are important in order to maintain a consistent interface that is 
@@ -8,7 +8,7 @@ users and developers. Please try to use these terms when writing code.
 If you have suggestions for improvements or changes, please create a PR 
 to modify this list or open an issue.
 
-### Quantum computing terms
+## Quantum computing terms
 
 Use `state_vector` to describe a pure state that is passed in as a numpy
 array, numpy tensor, or list of amplitudes. **Do not** use `wavefunction`, 
