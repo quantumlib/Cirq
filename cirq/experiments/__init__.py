@@ -20,7 +20,6 @@ from cirq.experiments.cross_entropy_benchmarking import (
     cross_entropy_benchmarking,
     CrossEntropyResult,
     CrossEntropyResultDict,
-    purity_from_probabilities,
 )
 
 from cirq.experiments.fidelity_estimation import (
@@ -38,6 +37,9 @@ from cirq.experiments.grid_parallel_two_qubit_xeb import (
     collect_grid_parallel_two_qubit_xeb_data,
     compute_grid_parallel_two_qubit_xeb_results,
 )
+
+from cirq.experiments.purity_estimation import (
+    purity_from_probabilities,)
 
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_ALIGNED_PATTERN,

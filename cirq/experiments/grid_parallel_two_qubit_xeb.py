@@ -33,11 +33,13 @@ import os
 import numpy as np
 
 from cirq import devices, ops, protocols, sim, value
-from cirq.experiments.cross_entropy_benchmarking import (
-    CrossEntropyResult, CrossEntropyResultDict, CrossEntropyPair,
-    SpecklePurityPair, purity_from_probabilities)
+from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
+                                                         CrossEntropyResultDict,
+                                                         CrossEntropyPair,
+                                                         SpecklePurityPair)
 from cirq.experiments.fidelity_estimation import (
     least_squares_xeb_fidelity_from_probabilities)
+from cirq.experiments.purity_estimation import (purity_from_probabilities)
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
@@ -500,13 +502,14 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
     for depth in cycles:
         all_probabilities, observed_probabilities = zip(
             *all_and_observed_probabilities[depth])
+        empirical_probs = np.asarray(empirical_probabilities[depth]).flatten()
         fidelity, _ = least_squares_xeb_fidelity_from_probabilities(
             hilbert_space_dimension=4,
             observed_probabilities=observed_probabilities,
             all_probabilities=all_probabilities,
             observable_from_probability=None,
             normalize_probabilities=True)
-        purity = purity_from_probabilities(4, empirical_probabilities[depth])
+        purity = purity_from_probabilities(4, empirical_probs)
         data.append(CrossEntropyPair(depth, fidelity))
         purity_data.append(SpecklePurityPair(depth, purity))
     return CrossEntropyResult(  # type: ignore
