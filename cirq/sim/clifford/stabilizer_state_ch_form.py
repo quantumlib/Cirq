@@ -200,7 +200,7 @@ class StabilizerStateChForm():
     def update_sum(self, t, u, delta=0, alpha=0):
         """ Implements the transformation (Proposition 4 in Bravyi et al)
 
-                i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>
+                ``i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>``
         """
         if np.all(t == u):
             self.s = t
