@@ -130,12 +130,20 @@ def test_periodic_value_types_mismatch():
     assert not cirq.approx_eq(cirq.PeriodicValue(0.0, 2.0), 0.0, atol=0.2)
     assert not cirq.approx_eq(0.0, cirq.PeriodicValue(0.0, 2.0), atol=0.2)
 
-def test_periodic_value_is_parameterized():
-    assert not cirq.is_parameterized(cirq.PeriodicValue(1.0, 3.0))
-    assert cirq.is_parameterized(cirq.PeriodicValue(0.0, sympy.Symbol('p')))
-    assert cirq.is_parameterized(cirq.PeriodicValue(sympy.Symbol('v'), 3.0))
-    assert cirq.is_parameterized(
-            cirq.PeriodicValue(sympy.Symbol('v'), sympy.Symbol('p')))
+
+@pytest.mark.parametrize('value, is_parameterized, parameter_names', [
+    (cirq.PeriodicValue(1.0, 3.0), False, set()),
+    (cirq.PeriodicValue(0.0, sympy.Symbol('p')), True, {'p'}),
+    (cirq.PeriodicValue(sympy.Symbol('v'), 3.0), True, {'v'}),
+    (cirq.PeriodicValue(sympy.Symbol('v'), sympy.Symbol('p')), True, {'p', 'v'
+                                                                     }),
+])
+def test_periodic_value_is_parameterized(value, is_parameterized,
+                                         parameter_names):
+    assert cirq.is_parameterized(value) == is_parameterized
+    assert cirq.parameter_names(value) == parameter_names
+    resolved = cirq.resolve_parameters(value, {p: 1 for p in parameter_names})
+    assert not cirq.is_parameterized(resolved)
 
 
 @pytest.mark.parametrize('val', [
