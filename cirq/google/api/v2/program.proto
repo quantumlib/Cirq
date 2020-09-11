@@ -22,6 +22,10 @@ message Program {
     // absolute start times for the operations.
     Schedule schedule = 3;
   }
+
+  // Common strings that are used as args within the program,
+  // stored centrally so that the serialized form takes less space.
+  repeated string reference_strings = 4;
 }
 
 // The quantum circuit, specified as a series of moments (abstract
@@ -133,10 +137,15 @@ message Arg {
   //
   // Functions are used to define a simple s-expression tree describing
   // how to combine numbers and symbols mathematically.
+  //
+  // Reference indices are used to avoid repeating long strings in the
+  // serialized proto.  This is a number that refers to the index of
+  // the reference string in the program.
   oneof arg {
     ArgValue arg_value = 1;
     string symbol = 2;
     ArgFunction func = 3;
+    int32 reference_index = 4;
   }
 }
 
