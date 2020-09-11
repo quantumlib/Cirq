@@ -28,4 +28,4 @@ jobs:
           export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
           [[ "$CIRQ_UNSTABLE_VERSION" =~ .*dev.* ]] && echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'" || (echo "not dev version"; exit 1)
           python setup.py bdist_wheel
-          twine upload dist/* --repository-url=https://test.pypi.org/legacy/
+          twine upload dist/*
