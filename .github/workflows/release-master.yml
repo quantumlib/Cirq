@@ -17,7 +17,7 @@ jobs:
           python-version: '3.7'
           architecture: 'x64'
       - name: Generate new version
-        run: export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+        run: ::set-env CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
       - run: echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'"
       - name: Install dependencies
         run: |
