@@ -94,7 +94,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
             self._pis = {'I': p_i, 'X': p_x, 'Y': p_y, 'Z': p_z}
 
-
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         Pis = []
         for pauli in self._pis.keys():
