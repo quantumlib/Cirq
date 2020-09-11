@@ -61,6 +61,37 @@ class QuantumEngineSampler(work.Sampler):
                                          gate_set=self._gate_set)
         return job.results()
 
+    def run_batch(
+            self,
+            programs: List['cirq.Circuit'],
+            params_list: Optional[List['cirq.Sweepable']] = None,
+            repetitions: Union[int, List[int]] = 1,
+    ) -> List[List['cirq.TrialResult']]:
+        """Runs the supplied circuits.
+
+        In order to gain a speedup from using this method instead of other run
+        methods, the following conditions must be satisfied:
+            1. All circuits must measure the same set of qubits.
+            2. The number of circuit repetitions must be the same for all
+               circuits. That is, the `repetitions` argument must be an integer,
+               or else a list with identical values.
+        """
+        if isinstance(repetitions, List) and len(programs) != len(repetitions):
+            raise ValueError('len(programs) and len(repetitions) must match. '
+                             f'Got {len(programs)} and {len(repetitions)}.')
+        if isinstance(repetitions, int) or len(set(repetitions)) == 1:
+            # All repetitions are the same so batching can be done efficiently
+            if isinstance(repetitions, List):
+                repetitions = repetitions[0]
+            job = self._engine.run_batch(programs=programs,
+                                         params_list=params_list,
+                                         repetitions=repetitions,
+                                         processor_ids=self._processor_ids,
+                                         gate_set=self._gate_set)
+            return job.batched_results()
+        # Varying number of repetitions so no speedup
+        return super().run_batch(programs, params_list, repetitions)
+
     @property
     def engine(self) -> 'cirq.google.Engine':
         return self._engine

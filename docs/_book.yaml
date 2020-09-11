@@ -74,6 +74,9 @@ upper_tabs:
         path: /cirq/google/calibration
       - title: "Best practices"
         path: /cirq/google/best_practices
+      - heading: "Design proposals"
+      - title: "Request for Comments process"
+        path: /cirq/dev/rfc_process
       - heading: "Developers"
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature

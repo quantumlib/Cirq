@@ -49,6 +49,9 @@ from cirq.testing.consistent_protocols import (
 from cirq.testing.consistent_qasm import (
     assert_qasm_is_consistent_with_unitary,)
 
+from cirq.testing.consistent_resolve_parameters import (
+    assert_consistent_resolve_parameters,)
+
 from cirq.testing.consistent_specified_has_unitary import (
     assert_specifies_has_unitary_if_unitary,)
 

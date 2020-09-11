@@ -13,7 +13,12 @@ of the metric.  Note that the value of the metric is also usually a dictionary
 
 ## Retrieving calibration metrics
 
-Calibration metrics can be retrieved using an engine instance or with a job.
+You can view calibration metrics in the Cloud Console by clicking on the
+relevant processor in the
+[processors list](https://console.cloud.google.com/quantum/processors).
+A dropdown menu will let you choose the current characterization or historical
+metrics from a previous run.  Calibration metrics can also be retrieved
+programmatically using an engine instance or with a job.
 
 ```
 import cirq.google as cg

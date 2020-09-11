@@ -2519,6 +2519,23 @@ def test_resolve_parameters():
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
+def test_parameter_names():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CZ(a, b)**sympy.Symbol('u'),
+        cirq.X(a)**sympy.Symbol('v'),
+        cirq.Y(b)**sympy.Symbol('w'),
+    )
+    resolved_circuit = cirq.resolve_parameters(
+        circuit, cirq.ParamResolver({
+            'u': 0.1,
+            'v': 0.3,
+            'w': 0.2
+        }))
+    assert cirq.parameter_names(circuit) == {'u', 'v', 'w'}
+    assert cirq.parameter_names(resolved_circuit) == set()
+
+
 def test_items():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -2703,6 +2720,7 @@ def test_batch_replace():
 def test_batch_insert_into():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
     original = cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([]),
@@ -2725,12 +2743,32 @@ def test_batch_insert_into():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
 
+    # Add multiple operations into non-empty moment.
+    after = original.copy()
+    after.batch_insert_into([(0, [cirq.X(b), cirq.X(c)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b), cirq.X(c)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
     # Add into empty moment.
     after = original.copy()
     after.batch_insert_into([(1, cirq.Z(b))])
     assert after == cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add multiple operations into empty moment.
+    after = original.copy()
+    after.batch_insert_into([(1, [cirq.Z(a), cirq.Z(b)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
@@ -2755,6 +2793,12 @@ def test_batch_insert_into():
     after = original.copy()
     with pytest.raises(ValueError):
         after.batch_insert_into([(0, cirq.X(a))])
+    assert after == original
+
+    # Collision with multiple operations.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(0, [cirq.X(b), cirq.X(c), cirq.X(a)])])
     assert after == original
 
     # Duplicate insertion collision.
