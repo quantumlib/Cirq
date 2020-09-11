@@ -16,18 +16,17 @@ jobs:
         with:
           python-version: '3.7'
           architecture: 'x64'
-      - name: Generate new version
-        run: ::set-env CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
-      - run: echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'"
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install setuptools wheel twine
       - name: Build and publish
-        if: ${{contains(env.CIRQ_UNSTABLE_VERSION, 'dev')}}
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USER }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASS }}
         run: |
+          export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
+          echo "Deploying dev version '$CIRQ_UNSTABLE_VERSION'"
+          [[ "$CIRQ_UNSTABLE_VERSION" =~ .*dev.* ]] || echo "not dev version"; exit 1
           python setup.py bdist_wheel
-          twine upload dist/*
+          twine upload dist/* --repository-url=https://test.pypi.org/legacy/
