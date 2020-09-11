@@ -170,12 +170,12 @@ def test_sampler_run_batch():
     results = sampler.run_batch([circuit1, circuit2],
                                 params_list=[params1, params2],
                                 repetitions=[1, 2])
-    assert len(results) == 4
-    for result, param in zip(results[:2], [0.3, 0.7]):
+    assert len(results) == 2
+    for result, param in zip(results[0], [0.3, 0.7]):
         assert result.repetitions == 1
         assert result.params.param_dict == {'t': param}
         assert result.measurements == {'m': np.array([[0]], dtype='uint8')}
-    for result, param in zip(results[2:], [0.4, 0.6]):
+    for result, param in zip(results[1], [0.4, 0.6]):
         assert result.repetitions == 2
         assert result.params.param_dict == {'t': param}
         assert len(result.measurements) == 1
@@ -190,7 +190,9 @@ def test_sampler_run_batch_default_params_and_repetitions():
     circuit2 = cirq.Circuit(cirq.Y(a), cirq.measure(a, key='m'))
     results = sampler.run_batch([circuit1, circuit2])
     assert len(results) == 2
-    for result in results:
+    for result_list in results:
+        assert len(result_list) == 1
+        result = result_list[0]
         assert result.repetitions == 1
         assert result.params.param_dict == {}
         assert result.measurements == {'m': np.array([[0]], dtype='uint8')}

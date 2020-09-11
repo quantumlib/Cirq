@@ -205,7 +205,7 @@ class Sampler(metaclass=abc.ABCMeta):
             programs: List['cirq.Circuit'],
             params_list: Optional[List['cirq.Sweepable']] = None,
             repetitions: Union[int, List[int]] = 1,
-    ) -> List['cirq.TrialResult']:
+    ) -> List[List['cirq.TrialResult']]:
         """Runs the supplied circuits.
 
         Each circuit provided in `programs` will pair with the optional
@@ -235,10 +235,10 @@ class Sampler(metaclass=abc.ABCMeta):
                 one for each circuit.
 
         Returns:
-            A list of TrialResults. All TrialResults for the first circuit are
-            listed first, then the TrialResults for the second, etc.
-            The TrialResults for a circuit are listed in the order imposed by
-            the associated parameter sweep.
+            A list of lists of TrialResults. The outer list corresponds to
+            the circuits, while each inner list contains the TrialResults
+            for the corresponding circuit, in the order imposed by the
+            associated parameter sweep.
         """
         if params_list is None:
             params_list = [None] * len(programs)
@@ -249,7 +249,7 @@ class Sampler(metaclass=abc.ABCMeta):
         if len(programs) != len(repetitions):
             raise ValueError('Number of circuits and repetitions must match')
         return [
-            trial_result for circuit, params, repetitions in zip(
-                programs, params_list, repetitions) for trial_result in
             self.run_sweep(circuit, params=params, repetitions=repetitions)
+            for circuit, params, repetitions in zip(programs, params_list,
+                                                    repetitions)
         ]

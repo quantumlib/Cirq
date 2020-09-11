@@ -90,7 +90,7 @@ def test_run_batch_identical_repetitions():
                                         repetitions=5)
 
 
-def test_run_batch_number_of_repetitions():
+def test_run_batch_bad_number_of_repetitions():
     engine = mock.Mock()
     sampler = cg.QuantumEngineSampler(engine=engine,
                                       processor_id='tmp',

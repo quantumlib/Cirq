@@ -66,7 +66,7 @@ class QuantumEngineSampler(work.Sampler):
             programs: List['cirq.Circuit'],
             params_list: Optional[List['cirq.Sweepable']] = None,
             repetitions: Union[int, List[int]] = 1,
-    ) -> List['cirq.TrialResult']:
+    ) -> List[List['cirq.TrialResult']]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run
@@ -85,7 +85,7 @@ class QuantumEngineSampler(work.Sampler):
                                          repetitions=repetitions,
                                          processor_ids=self._processor_ids,
                                          gate_set=self._gate_set)
-            return job.results()
+            return job.batched_results()
         # Varying number of repetitions so no speedup
         return super().run_batch(programs, params_list, repetitions)
 
