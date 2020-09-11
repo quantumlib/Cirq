@@ -1,5 +1,5 @@
 {
-  "cirq_type": "MultiAsymmetricDepolarizingChannel",
+  "cirq_type": "AsymmetricDepolarizingChannel",
   "num_qubits": 2,
   "pis": {
       "II": 0.8,

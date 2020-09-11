@@ -119,8 +119,6 @@ class _ResolverCache:
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
-                'MultiAsymmetricDepolarizingChannel':
-                cirq.MultiAsymmetricDepolarizingChannel,
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,

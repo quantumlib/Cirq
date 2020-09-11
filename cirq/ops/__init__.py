@@ -39,8 +39,6 @@ from cirq.ops.common_channels import (
     DepolarizingChannel,
     generalized_amplitude_damp,
     GeneralizedAmplitudeDampingChannel,
-    multi_asymmetric_depolarize,
-    MultiAsymmetricDepolarizingChannel,
     phase_damp,
     phase_flip,
     PhaseDampingChannel,

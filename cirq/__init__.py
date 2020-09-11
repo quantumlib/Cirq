@@ -217,8 +217,6 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     MutableDensePauliString,
-    multi_asymmetric_depolarize,
-    MultiAsymmetricDepolarizingChannel,
     NamedQubit,
     NamedQid,
     OP_TREE,
