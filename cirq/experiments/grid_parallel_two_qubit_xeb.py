@@ -35,9 +35,11 @@ import numpy as np
 from cirq import devices, ops, protocols, sim, value
 from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
                                                          CrossEntropyResultDict,
-                                                         CrossEntropyPair)
+                                                         CrossEntropyPair,
+                                                         SpecklePurityPair)
 from cirq.experiments.fidelity_estimation import (
     least_squares_xeb_fidelity_from_probabilities)
+from cirq.experiments.purity_estimation import purity_from_probabilities
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
@@ -366,6 +368,10 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     the linear cross entropy observable O_U has eigenvalue corresponding to the
     computational basis state |z⟩ given by D * |⟨z|𝜓_U⟩|^2.
 
+    Purity values are calculated using speckle purity benchmarking. For details,
+    see the docstring of the method
+    `cirq.experiments.purity_from_probabilities`.
+
     Results are saved in the file {base_dir}/{data_collection_id}/results.json.
 
     Args:
@@ -446,7 +452,6 @@ def compute_grid_parallel_two_qubit_xeb_results(data_collection_id: str,
     num_processors = min(num_processors, len(arguments))
     with multiprocessing.Pool(num_processors) as pool:
         xeb_result_list = pool.starmap(_get_xeb_result, arguments)
-    pool.join()  # needed for pytest-cov to detect coverage
     xeb_results = {
         qubit_pair: result
         for qubit_pair, result in zip(all_active_qubit_pairs, xeb_result_list)
@@ -472,6 +477,8 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
     # Simulate circuits to get bitstring probabilities
     all_and_observed_probabilities = collections.defaultdict(
         list)  # type: Dict[int, List[Tuple[np.ndarray, np.ndarray]]]
+    empirical_probabilities = collections.defaultdict(
+        list)  # type: Dict[int, List[np.ndarray]]
     for i, circuit in enumerate(circuits):
         step_results = simulator.simulate_moment_steps(circuit,
                                                        qubit_order=qubit_pair)
@@ -482,22 +489,33 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
                 moment_index += 1
             amplitudes = step_result.state_vector()
             probabilities = np.abs(amplitudes)**2
+            _, counts = np.unique(measurements, return_counts=True)
+            empirical_probs = counts / len(measurements)
+            empirical_probs = np.pad(empirical_probs,
+                                     (0, 4 - len(empirical_probs)))
             all_and_observed_probabilities[depth].append(
                 (probabilities, probabilities[measurements]))
+            empirical_probabilities[depth].append(empirical_probs)
     # Compute XEB result
     data = []
+    purity_data = []
     for depth in cycles:
         all_probabilities, observed_probabilities = zip(
             *all_and_observed_probabilities[depth])
+        empirical_probs = np.asarray(empirical_probabilities[depth]).flatten()
         fidelity, _ = least_squares_xeb_fidelity_from_probabilities(
             hilbert_space_dimension=4,
             observed_probabilities=observed_probabilities,
             all_probabilities=all_probabilities,
             observable_from_probability=None,
             normalize_probabilities=True)
+        purity = purity_from_probabilities(4, empirical_probs)
         data.append(CrossEntropyPair(depth, fidelity))
+        purity_data.append(SpecklePurityPair(depth, purity))
     return CrossEntropyResult(  # type: ignore
-        data=data, repetitions=repetitions)
+        data=data,
+        repetitions=repetitions,
+        purity_data=purity_data)
 
 
 def _coupled_qubit_pairs(qubits: List['cirq.GridQubit'],
