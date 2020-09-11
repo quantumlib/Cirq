@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Sequence, Union
+from typing import AbstractSet, Sequence, Union
 
 import pytest
 
@@ -102,8 +102,12 @@ class GoodGate(cirq.SingleQubitGate):
         return 'GoodGate({})'.format(', '.join(args))
 
     def _is_parameterized_(self) -> bool:
-        return (isinstance(self.exponent, sympy.Basic) or
-                isinstance(self.phase_exponent, sympy.Basic))
+        return (cirq.is_parameterized(self.exponent) or
+                cirq.is_parameterized(self.phase_exponent))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return (cirq.parameter_names(self.exponent) |
+                cirq.parameter_names(self.phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'GoodGate':
         return GoodGate(phase_exponent=param_resolver.value_of(
@@ -120,6 +124,18 @@ class GoodGate(cirq.SingleQubitGate):
             # coverage: ignore
             return NotImplemented
         return self._identity_tuple() == other._identity_tuple()
+
+
+class BadGateIsParameterized(GoodGate):
+
+    def _is_parameterized_(self) -> bool:
+        return not super()._is_parameterized_()
+
+
+class BadGateParameterNames(GoodGate):
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return super()._parameter_names_() | {'not_a_param'}
 
 
 class BadGateApplyUnitaryToTensor(GoodGate):
@@ -220,6 +236,14 @@ def test_assert_implements_consistent_protocols():
             GoodGate(phase_exponent=sympy.Symbol('t')),
             global_vals={'GoodGate': GoodGate}
     )
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+            BadGateIsParameterized(phase_exponent=0.25))
+
+    with pytest.raises(AssertionError):
+        cirq.testing.assert_implements_consistent_protocols(
+            BadGateParameterNames(phase_exponent=0.25))
 
     with pytest.raises(AssertionError):
         cirq.testing.assert_implements_consistent_protocols(
