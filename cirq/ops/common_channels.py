@@ -69,8 +69,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         Raises:
             ValueError: if the args or the sum of args are not probabilities.
         """
-        assert 'pis' in kwargs or 'p_x' in kwargs or 'p_y' in kwargs or 'p_z' in kwargs or len(
-            args) > 0
+        assert ('pis' in kwargs or 'p_x' in kwargs or 'p_y' in kwargs or
+                'p_z' in kwargs or len(args) > 0)
         if 'pis' in kwargs:
             assert 'num_qubits' in kwargs
             self._num_qubits = kwargs['num_qubits']
