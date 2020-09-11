@@ -59,7 +59,7 @@ def t2_decay(sampler: work.Sampler,
     prepared with a square root Y gate (`cirq.Y ** 0.5`) and then waits for
     a variable amount of time.  After this time, it will do basic state
     tomography to measure the expectation of the Pauli-X and Pauli-Y operators
-    by performing either a `cirq.Y ** -0.5` or `cirq.X ** -0.5`.  The square of
+    by performing either a `cirq.Y ** -0.5` or `cirq.X ** 0.5`.  The square of
     these two measurements is summed to determine the length of the Bloch
     vector. This experiment measures the phase decoherence of the system under
     free evolution.
@@ -85,7 +85,7 @@ def t2_decay(sampler: work.Sampler,
 
     This pulse pattern has two variables that can be adjusted.  The first,
     denoted as 't' in the above sequence, is delay, which can be specified
-    with `delay_min` and `delaxy_max` or by using a `delay_sweep`, similar to
+    with `delay_min` and `delay_max` or by using a `delay_sweep`, similar to
     the other experiments.  The second variable is the number of pi pulses
     (X gates).  This can be specified as a list of integers using the
     `num_pulses` parameter.  If multiple different pulses are specified,
@@ -161,13 +161,6 @@ def t2_decay(sampler: work.Sampler,
         circuit = circuits.Circuit(
             ops.Y(qubit)**0.5,
             ops.WaitGate(value.Duration(nanos=delay_var))(qubit),
-            ops.X(qubit)**inv_x_var,
-            ops.Y(qubit)**inv_y_var,
-            ops.measure(qubit, key='output'),
-        )
-        tomography_sweep = study.Zip(
-            study.Points('inv_x', [0.0, -0.5]),
-            study.Points('inv_y', [-0.5, 0.0]),
         )
     else:
         if experiment_type == ExperimentType.HAHN_ECHO:
@@ -191,13 +184,15 @@ def t2_decay(sampler: work.Sampler,
             raise ValueError('At least one value must be given '
                              'for num_pulses in a CPMG experiment')
         circuit = _cpmg_circuit(qubit, delay_var, max_pulses)
-        circuit.append(ops.X(qubit)**inv_x_var)
-        circuit.append(ops.Y(qubit)**inv_y_var)
-        circuit.append(ops.measure(qubit, key='output'))
-        tomography_sweep = study.Zip(
-            study.Points('inv_x', [0.0, 0.5]),
-            study.Points('inv_y', [-0.5, 0.0]),
-        )
+
+    # Add simple state tomography
+    circuit.append(ops.X(qubit)**inv_x_var)
+    circuit.append(ops.Y(qubit)**inv_y_var)
+    circuit.append(ops.measure(qubit, key='output'))
+    tomography_sweep = study.Zip(
+        study.Points('inv_x', [0.0, 0.5]),
+        study.Points('inv_y', [-0.5, 0.0]),
+    )
 
     if num_pulses and max_pulses > 0:
         pulse_sweep = _cpmg_sweep(num_pulses)
@@ -245,7 +240,9 @@ def _cpmg_circuit(qubit: devices.GridQubit, delay_var: sympy.Symbol,
     """Creates a CPMG circuit for a given qubit.
 
     The circuit will look like:
+
       sqrt(Y) - wait(delay_var) - X - wait(2*delay_var) - ... - wait(delay_var)
+
     with max_pulses number of X gates.
 
     The X gates are paramterizd by 'pulse_N' symbols so that pulses can be
