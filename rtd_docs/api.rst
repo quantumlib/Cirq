@@ -450,6 +450,7 @@ run experiments.
     cirq.experiments.compute_grid_parallel_two_qubit_xeb_results
     .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
+    cirq.experiments.purity_from_probabilities
     cirq.experiments.rabi_oscillations
     cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking

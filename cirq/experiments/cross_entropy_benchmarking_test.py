@@ -12,15 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-
 import matplotlib.pyplot as plt
+import numpy as np
+import pytest
 import cirq
 
 from cirq.experiments import (CrossEntropyResult, CrossEntropyResultDict,
                               cross_entropy_benchmarking,
                               build_entangling_layers)
-from cirq.experiments.cross_entropy_benchmarking import CrossEntropyPair
+from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyPair,
+                                                         SpecklePurityPair)
 
 
 def test_cross_entropy_benchmarking():
@@ -86,27 +87,43 @@ def test_cross_entropy_benchmarking():
     results_1.plot(ax)
 
 
-def test_cross_entropy_result_depolarizing_model():
+def test_cross_entropy_result_depolarizing_models():
     prng = np.random.RandomState(59566)
     S = 0.8
     p = 0.99
     data = [
         CrossEntropyPair(num_cycle=d,
                          xeb_fidelity=S * p**d + prng.normal(scale=0.01))
-        for d in range(10, 411, 20)
+        for d in range(10, 211, 20)
     ]
-    result = CrossEntropyResult(data=data, repetitions=1000)
+    purity_data = [
+        SpecklePurityPair(num_cycle=d,
+                          purity=S * p**(2 * d) + prng.normal(scale=0.01))
+        for d in range(10, 211, 20)
+    ]
+    result = CrossEntropyResult(data=data,
+                                repetitions=1000,
+                                purity_data=purity_data)
     model = result.depolarizing_model()
+    purity_model = result.purity_depolarizing_model()
     np.testing.assert_allclose(model.spam_depolarization, S, atol=1e-2)
     np.testing.assert_allclose(model.cycle_depolarization, p, atol=1e-2)
+    np.testing.assert_allclose(purity_model.purity, p**2, atol=1e-2)
 
 
 def test_cross_entropy_result_repr():
-    result = CrossEntropyResult(
+    result1 = CrossEntropyResult(
         data=[CrossEntropyPair(2, 0.9),
               CrossEntropyPair(5, 0.5)],
         repetitions=1000)
-    cirq.testing.assert_equivalent_repr(result)
+    result2 = CrossEntropyResult(
+        data=[CrossEntropyPair(2, 0.9),
+              CrossEntropyPair(5, 0.5)],
+        repetitions=1000,
+        purity_data=[SpecklePurityPair(2, 0.8),
+                     SpecklePurityPair(5, 0.3)])
+    cirq.testing.assert_equivalent_repr(result1)
+    cirq.testing.assert_equivalent_repr(result2)
 
 
 def test_cross_entropy_result_dict_repr():
@@ -117,3 +134,13 @@ def test_cross_entropy_result_dict_repr():
         repetitions=1000)
     result_dict = CrossEntropyResultDict(results={pair: result})
     cirq.testing.assert_equivalent_repr(result_dict)
+
+
+def test_cross_entropy_result_purity_model_fails_with_no_data():
+    data = [
+        CrossEntropyPair(num_cycle=2, xeb_fidelity=0.9),
+        CrossEntropyPair(num_cycle=4, xeb_fidelity=0.8),
+    ]
+    result = CrossEntropyResult(data=data, repetitions=1000)
+    with pytest.raises(ValueError):
+        _ = result.purity_depolarizing_model()
