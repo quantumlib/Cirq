@@ -135,7 +135,9 @@ from cirq.ops.moment import (
     Moment,)
 
 from cirq.ops.named_qubit import (
-    NamedQubit,)
+    NamedQubit,
+    NamedQid,
+)
 
 from cirq.ops.op_tree import (
     flatten_op_tree,
