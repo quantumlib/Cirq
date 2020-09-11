@@ -54,13 +54,7 @@ class StabilizerStateChForm():
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        # Keep initial state positive by transferring the negative part to the
-        # global phase.
-        if initial_state < 0:
-            self.omega = -1
-            initial_state = -initial_state
-        else:
-            self.omega = 1
+        self.omega = 1
 
         def bits(s):
             while s > 0:
@@ -147,6 +141,11 @@ class StabilizerStateChForm():
         self.M[q, :] ^= self.G[q, :]
         self.gamma[q] = (self.gamma[q] - 1) % 4
 
+    def _S_right(self, q):
+        r"""Right multiplication version of S gate."""
+        self.M[:, q] ^= self.F[:, q]
+        self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
+
     def _Z(self, q):
         self._S(q)
         self._S(q)
@@ -165,12 +164,24 @@ class StabilizerStateChForm():
         self.M[q, :] ^= self.G[r, :]
         self.M[r, :] ^= self.G[q, :]
 
+    def _CZ_right(self, q, r):
+        r"""Right multiplication version of CZ gate."""
+        self.M[:, q] ^= self.F[:, r]
+        self.M[:, r] ^= self.F[:, q]
+        self.gamma[:] = (self.gamma[:] + 2 * self.F[:, q] * self.F[:, r]) % 4
+
     def _CNOT(self, q, r):
         self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
                          (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
         self.G[r, :] ^= self.G[q, :]
         self.F[q, :] ^= self.F[r, :]
         self.M[q, :] ^= self.M[r, :]
+
+    def _CNOT_right(self, q, r):
+        r"""Right multiplication version of CNOT gate."""
+        self.G[:, q] ^= self.G[:, r]
+        self.F[:, r] ^= self.F[:, q]
+        self.M[:, q] ^= self.M[:, r]
 
     def _H(self, p):
         t = self.s ^ (self.G[p, :] & self.v)
@@ -203,21 +214,14 @@ class StabilizerStateChForm():
             q = set0[0]
             for i in set0:
                 if i != q:
-                    self.G[:, q] ^= self.G[:, i]
-                    self.F[:, i] ^= self.F[:, q]
-                    self.M[:, q] ^= self.M[:, i]
+                    self._CNOT_right(q, i)
             for i in set1:
-                self.M[:, q] ^= self.F[:, i]
-                self.M[:, i] ^= self.F[:, q]
-                self.gamma[:] = (self.gamma[:] +
-                                 2 * self.F[:, q] * self.F[:, i]) % 4
+                self._CZ_right(q, i)
         elif len(set1) > 0:
             q = set1[0]
             for i in set1:
                 if i != q:
-                    self.G[:, i] ^= self.G[:, q]
-                    self.F[:, q] ^= self.F[:, i]
-                    self.M[:, i] ^= self.M[:, q]
+                    self._CNOT_right(i, q)
 
         e = np.zeros(self.n, dtype=bool)
         e[q] = True
@@ -236,8 +240,7 @@ class StabilizerStateChForm():
         self.omega *= (-1)**alpha * omega
 
         if a:
-            self.M[:, q] ^= self.F[:, q]
-            self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
+            self._S_right(q)
         self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):
