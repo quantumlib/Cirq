@@ -144,9 +144,10 @@ class CrossEntropyResult:
 
         Returns:
             A CrossEntropyDepolarizingModel object, which has attributes
-            `coefficient` representing the value S, `decay_constant`
-            representing the value p, and `covariance` representing the
-            covariance in the estimation of S and p in that order.
+            `spam_depolarization` representing the value S,
+            `cycle_depolarization` representing the value p, and `covariance`
+            representing the covariance in the estimation of S and p in that
+            order.
         """
         depths, fidelities = zip(*self.data)
         params, covariance = _fit_exponential_decay(depths, fidelities)
@@ -163,10 +164,11 @@ class CrossEntropyResult:
 
         Returns:
             A SpecklePurityDepolarizingModel object, which has attributes
-            `coefficient` representing the value S, `decay_constant`
-            representing the value p, and `covariance` representing the
-            covariance in the estimation of S and p in that order.
-            It also has the property `purity` representing the purity p**2.
+            `spam_depolarization` representing the value S,
+            `cycle_depolarization` representing the value p, and `covariance`
+            representing the covariance in the estimation of S and p in that
+            order. It also has the property `purity` representing the purity
+            p**2.
         """
         if self.purity_data is None:
             raise ValueError('This CrossEntropyResult does not contain data '
