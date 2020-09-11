@@ -39,7 +39,7 @@ from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,
                                                          SpecklePurityPair)
 from cirq.experiments.fidelity_estimation import (
     least_squares_xeb_fidelity_from_probabilities)
-from cirq.experiments.purity_estimation import (purity_from_probabilities)
+from cirq.experiments.purity_estimation import purity_from_probabilities
 from cirq.experiments.random_quantum_circuit_generation import (
     GridInteractionLayer,
     random_rotations_between_grid_interaction_layers_circuit)
