@@ -383,7 +383,7 @@ def _computational_basis_state_to_state_tensor(*, state_rep: int,
                                                dtype: Type[np.number]
                                               ) -> np.ndarray:
     n = np.prod(qid_shape, dtype=int)
-    if not 0 <= state_rep <= n:
+    if not 0 <= state_rep < n:
         raise ValueError(f'Computational basis state is out of range.\n'
                          f'\n'
                          f'state={state_rep!r}\n'

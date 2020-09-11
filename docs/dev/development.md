@@ -1,10 +1,10 @@
-## Development
+# Development
 
 This document is a summary of how to do various tasks one runs into as a developer of Cirq.
 Note that all commands assume a Debian environment, and all commands (except the initial repository cloning command) assume your current working directory is the cirq repo root.
 
 
-### Cloning the repository
+## Cloning the repository
 
 The simplest way to get a local copy of cirq that you can edit is by cloning Cirq's github repository:
 
@@ -24,7 +24,7 @@ If you want to contribute changes to Cirq, you will instead want to fork the rep
 
 
 
-### Forking the repository
+## Forking the repository
 
 1. Fork the Cirq repo (Fork button in upper right corner of
 [repo page](https://github.com/quantumlib/Cirq)).
@@ -62,7 +62,7 @@ Most importantly you should see ```upstream/master``` listed.
     At this point your local git master should be synced with the master from the main cirq repo.
 
 
-### Setting up an environment
+## Setting up an environment
 
 0. First clone the repository, if you have not already done so.
 See the previous section for instructions.
@@ -112,7 +112,7 @@ See the previous section for instructions.
     add2virtualenv ./
     ```
 
-### Protocol buffers
+## Protocol buffers
 
 [Protocol buffers](https://developers.google.com/protocol-buffers) are used in Cirq for converting circuits, gates, and other objects into a standard form that can be written and read by other programs.
 Cirq's protobufs live at [cirq/api/google](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google) and may need to be changed or extended from time to time.
@@ -124,7 +124,7 @@ Additionally, for workflows that use bazel (relevant for C/C++ code depending on
 These rules live in the BUILD files [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v1) and [here](https://github.com/quantumlib/Cirq/tree/master/cirq/api/google/v2).
 Downstream projects should load Cirq as an [external dependency](https://docs.bazel.build/versions/master/external.html), allowing rules from those BUILD files to be used directly.
 
-### Continuous integration and local testing
+## Continuous integration and local testing
 
 There are a few options for running continuous integration checks, varying from easy and fast to slow and reliable.
 
@@ -276,7 +276,7 @@ dev_tools/docs/build-rtd-docs.sh
 The HTML output will go into the `dev_tools/rtd_docs/sphinx/_build` directory.
 
 
-### Producing a pypi package
+## Producing a pypi package
 
 1. Do a dry run with test pypi.
 
