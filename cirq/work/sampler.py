@@ -211,7 +211,7 @@ class Sampler(metaclass=abc.ABCMeta):
         Each circuit provided in `programs` will pair with the optional
         associated parameter sweep provided in the `params_list`, and be run
         with the associated repetitions provided in `repetitions` (if
-        `repetitions` is an integer then all runs will have that number of
+        `repetitions` is an integer, then all runs will have that number of
         repetitions). If `params_list` is specified, then the number of
         circuits is required to match the number of sweeps. Similarly, when
         `repetitions` is a list, the number of circuits is required to match
