@@ -139,6 +139,18 @@ number of repetitions.
 Batching circuits together that do not follow these restrictions may not
 cause an error, but your performance will not be significantly improved.
 
+Results can be retrieved in two different forms:
+
+*    `EngineJob.results()` will return a single `List` object,
+with all the sweeps of the first circuit in the batch
+followed by all the sweeps in the second circuit, and so on. 
+*     EngineJob.batched_results()` will return a `List` of `List`s.
+The first index will refer to the circuit run, and the second index
+will refer to the sweep result in that circuit.
+
+If the circuits are not parameterized, there will only be one `TrialResult`
+per circuit using either variant.
+
 The following code shows an example of batching together parameterized
 circuits, each of which is a sweep.
 
@@ -189,8 +201,15 @@ for b in range(num_circuits_in_batch):
      print(f'Batch #{b}, Sweep #{s}')
      print(results[idx].histogram(key='m'))
      idx+=1
-```
 
+# Alternative way of getting results.
+# Results will be nested in Lists
+batch_results = job.batched_results()
+for batch_idx, batch in enumerate(batch_results):
+  for sweep_idx, result in enumerate(batch):
+     print(f'Batch #{batch_idx}, Sweep #{sweep_idx}')
+     print(result.histogram(key='m'))
+```
 
 ## Downloading historical results
 

@@ -1,14 +1,41 @@
-{
-  "cirq_type": "CrossEntropyResult",
-  "data": [
-    [
-      2,
-      0.9
+[
+  {
+    "cirq_type": "CrossEntropyResult",
+    "data": [
+      [
+        2,
+        0.9
+      ],
+      [
+        4,
+        0.5
+      ]
     ],
-    [
-      4,
-      0.5
+    "repetitions": 1000,
+    "purity_data": null
+  },
+  {
+    "cirq_type": "CrossEntropyResult",
+    "data": [
+      [
+        2,
+        0.9
+      ],
+      [
+        4,
+        0.5
+      ]
+    ],
+    "repetitions": 1000,
+    "purity_data": [
+      [
+        2,
+        0.8
+      ],
+      [
+        4,
+        0.3
+      ]
     ]
-  ],
-  "repetitions": 1000
-}
+  }
+]

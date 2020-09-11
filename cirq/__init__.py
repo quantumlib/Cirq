@@ -451,6 +451,8 @@ from cirq.protocols import (
     mixture_channel,
     mul,
     num_qubits,
+    parameter_names,
+    parameter_symbols,
     pauli_expansion,
     phase_by,
     pow,

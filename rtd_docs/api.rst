@@ -341,6 +341,8 @@ the magic methods that can be implemented.
     cirq.mixture
     cirq.mul
     cirq.num_qubits
+    cirq.parameter_names
+    cirq.parameter_symbols
     cirq.pauli_expansion
     cirq.phase_by
     cirq.pow
@@ -448,6 +450,7 @@ run experiments.
     cirq.experiments.compute_grid_parallel_two_qubit_xeb_results
     .. autofunction:: cirq.experiments.cross_entropy_benchmarking
     cirq.experiments.get_state_tomography_data
+    cirq.experiments.purity_from_probabilities
     cirq.experiments.rabi_oscillations
     cirq.experiments.random_rotations_between_grid_interaction_layers_circuit
     cirq.experiments.single_qubit_randomized_benchmarking
@@ -583,6 +586,7 @@ operation.
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
+    cirq.testing.assert_consistent_resolve_parameters
     cirq.testing.assert_decompose_is_consistent_with_unitary
     cirq.testing.assert_eigengate_implements_consistent_protocols
     cirq.testing.assert_equivalent_repr
