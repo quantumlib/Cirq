@@ -14,8 +14,7 @@
 
 import numpy as np
 
-from cirq.experiments.cross_entropy_benchmarking import (
-    purity_from_probabilities)
+from cirq.experiments import purity_from_probabilities
 
 
 def test_purity_from_probabilities():
