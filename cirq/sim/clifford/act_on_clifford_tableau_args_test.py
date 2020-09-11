@@ -64,9 +64,7 @@ def test_unitary_fallback():
 def test_cannot_act():
 
     class NoDetails:
-
-        def _num_qubits_(self):
-            return 1
+        pass
 
     class NoDetailsSingleQubitGate(cirq.SingleQubitGate):
         pass
