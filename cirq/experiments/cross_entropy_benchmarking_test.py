@@ -20,8 +20,8 @@ import cirq
 from cirq.experiments import (CrossEntropyResult, CrossEntropyResultDict,
                               cross_entropy_benchmarking,
                               build_entangling_layers)
-from cirq.experiments.cross_entropy_benchmarking import (
-    CrossEntropyPair, SpecklePurityPair, purity_from_probabilities)
+from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyPair,
+                                                         SpecklePurityPair)
 
 
 def test_cross_entropy_benchmarking():
@@ -144,10 +144,3 @@ def test_cross_entropy_result_purity_model_fails_with_no_data():
     result = CrossEntropyResult(data=data, repetitions=1000)
     with pytest.raises(ValueError):
         _ = result.purity_depolarizing_model()
-
-
-def test_purity_from_probabilities():
-    probabilities = np.random.uniform(0, 1, size=4)
-    probabilities /= np.sum(probabilities)
-    purity = purity_from_probabilities(4, probabilities)
-    np.testing.assert_allclose(purity, np.var(probabilities) * 80 / 3)
