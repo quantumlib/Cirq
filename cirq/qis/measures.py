@@ -13,14 +13,11 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
-from typing import List
 import numpy as np
 import scipy
 import scipy.stats
 
-
-from cirq import linalg
-from cirq import protocols
+from cirq.linalg.operator_sum_utils import compute_kraus_operations
 
 
 def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
@@ -99,25 +96,9 @@ def process_fidelity(clean_circuit, noisy_circuit, qubits) -> float:
     """
     n = len(qubits)
     d = 2**n
-    qubit_map = {q.with_dimension(1): i for i, q in enumerate(qubits)}
 
-    kraus_operations = [clean_circuit.unitary().reshape([2] * (2 * n))]
-    for op in noisy_circuit.all_operations():
-        target_axes = [qubit_map[q.with_dimension(1)] for q in op.qubits]
-
-        next_kraus_operations = []
-
-        for op_kraus in protocols.channel(op, default=None):
-            op_kraus_reshaped = np.conjugate(np.transpose(op_kraus)).reshape(
-                [2] * (len(target_axes) * 2))
-            for kraus_operation in kraus_operations:
-                next_kraus_operation = linalg.targeted_left_multiply(
-                    left_matrix=op_kraus_reshaped,
-                    right_target=kraus_operation,
-                    target_axes=target_axes)
-                next_kraus_operations.append(next_kraus_operation)
-
-        kraus_operations = next_kraus_operations
+    kraus_operations = compute_kraus_operations(
+        clean_circuit.unitary().reshape([2] * (2 * n)), noisy_circuit, qubits)
 
     EiT = [x.reshape(d, d) for x in kraus_operations]
 
