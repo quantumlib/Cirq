@@ -17,6 +17,7 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq.value import big_endian_int_to_digits
 from cirq._compat import deprecated
 
 
@@ -31,15 +32,12 @@ class StabilizerStateChForm():
     Reference: https://arxiv.org/abs/1808.00128
     """
 
-    def __init__(self,
-                 num_qubits: int,
-                 initial_state: Union[int, np.ndarray] = 0) -> None:
+    def __init__(self, num_qubits: int, initial_state: int = 0) -> None:
         """Initializes StabilizerStateChForm
         Args:
-            num_qubits: The number of qubits in the system
-            initial_state: If an int, the state is set to the computational
-            basis state corresponding to this state.
-            If an np.ndarray it is the full initial state.
+            num_qubits: The number of qubits in the system.
+            initial_state: The computational basis representation of the
+                state as a big endian int.
             """
         self.n = num_qubits
 
@@ -56,15 +54,13 @@ class StabilizerStateChForm():
 
         self.omega = 1
 
-        def bits(s):
-            while s > 0:
-                yield s & 1
-                s >>= 1
-
         # Apply X for every non-zero element of initial_state
-        for (i, val) in enumerate(bits(initial_state)):
+        for (i, val) in enumerate(
+                big_endian_int_to_digits(initial_state,
+                                         digit_count=num_qubits,
+                                         base=2)):
             if val:
-                self._X(self.n - i - 1)
+                self._X(i)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
