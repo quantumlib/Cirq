@@ -243,11 +243,13 @@ class Sampler(metaclass=abc.ABCMeta):
         if params_list is None:
             params_list = [None] * len(programs)
         if len(programs) != len(params_list):
-            raise ValueError('Number of circuits and sweeps must match')
+            raise ValueError('len(programs) and len(params_list) must match. '
+                             f'Got {len(programs)} and {len(params_list)}.')
         if isinstance(repetitions, int):
             repetitions = [repetitions] * len(programs)
         if len(programs) != len(repetitions):
-            raise ValueError('Number of circuits and repetitions must match')
+            raise ValueError('len(programs) and len(repetitions) must match. '
+                             f'Got {len(programs)} and {len(repetitions)}.')
         return [
             self.run_sweep(circuit, params=params, repetitions=repetitions)
             for circuit, params, repetitions in zip(programs, params_list,

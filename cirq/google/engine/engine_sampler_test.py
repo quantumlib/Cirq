@@ -102,7 +102,7 @@ def test_run_batch_bad_number_of_repetitions():
     params2 = [cirq.ParamResolver({'t': 2})]
     circuits = [circuit1, circuit2]
     params_list = [params1, params2]
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match='2 and 3'):
         sampler.run_batch(circuits, params_list, [5, 5, 5])
 
 

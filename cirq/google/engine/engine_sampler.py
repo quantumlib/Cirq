@@ -70,12 +70,15 @@ class QuantumEngineSampler(work.Sampler):
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run
-        methods, the number of circuit repetitions must be the same for all
-        circuits. That is, the `repetitions` argument must be an integer, or
-        else a list with identical values.
+        methods, the following conditions must be satisfied:
+            1. All circuits must measure the same set of qubits.
+            2. The number of circuit repetitions must be the same for all
+               circuits. That is, the `repetitions` argument must be an integer,
+               or else a list with identical values.
         """
         if isinstance(repetitions, List) and len(programs) != len(repetitions):
-            raise ValueError('Number of circuits and repetitions must match')
+            raise ValueError('len(programs) and len(repetitions) must match. '
+                             f'Got {len(programs)} and {len(repetitions)}.')
         if isinstance(repetitions, int) or len(set(repetitions)) == 1:
             # All repetitions are the same so batching can be done efficiently
             if isinstance(repetitions, List):
