@@ -1,6 +1,6 @@
 # Automerge bot 
 
-This automerge but continuously watches a github repository for PRs labelled with the
+The automerge bot continuously watches a github repository for PRs labelled with the
 'automerge' label. When it sees such a PR it will mark it by labelling it with
 the 'front_of_queue_automerge' label. While there is an 'front_of_queue_automerge'
 labelled PR, the script will not label any other PRs with 'front_of_queue_automerge'.
