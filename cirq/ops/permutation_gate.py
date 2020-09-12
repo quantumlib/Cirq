@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from collections import Counter
+
 from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 from cirq import protocols, value
@@ -35,7 +35,7 @@ class QubitPermutationGate(raw_types.Gate):
         if not permutation:
             raise ValueError(f"Invalid permutation (empty): {permutation}")
 
-        if len(Counter(permutation)) < len(permutation):
+        if len(set(permutation)) < len(permutation):
             raise ValueError(f"Invalid permutation {permutation} "
                              f"Each index must appear only once.")
 
@@ -43,7 +43,7 @@ class QubitPermutationGate(raw_types.Gate):
             filter(lambda x: x >= len(permutation) or x < 0, permutation))
         if len(invalid_indices) > 0:
             raise ValueError(f"All indices have to satisfy "
-                             f"0 < i < {len(permutation)-1}. "
+                             f"0 <= i <= {len(permutation)-1}. "
                              f"Invalid indices: {invalid_indices}")
 
         self.permutation = tuple(permutation)
