@@ -180,6 +180,9 @@ from cirq.ops.pauli_string_phasor import (
 from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
 
+from cirq.ops.permutation_gate import (
+    QubitPermutationGate,)
+
 from cirq.ops.phased_iswap_gate import (
     givens,
     PhasedISwapPowGate,
