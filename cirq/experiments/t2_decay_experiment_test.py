@@ -129,7 +129,9 @@ def test_sudden_decay_results():
     assert (abs(results.expectation_pauli_x['value']) < 0.20).all()
 
 
-def test_spin_echo_cancels_out_constant_rate_phase():
+@pytest.mark.parametrize('experiment_type',
+                         [t2.ExperimentType.HAHN_ECHO, t2.ExperimentType.CPMG])
+def test_spin_echo_cancels_out_constant_rate_phase(experiment_type):
 
     class _TimeDependentPhase(cirq.NoiseModel):
 
@@ -142,6 +144,7 @@ def test_spin_echo_cancels_out_constant_rate_phase():
             yield (cirq.Y**phase).on_each(system_qubits)
             yield moment
 
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = cirq.experiments.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=_TimeDependentPhase()),
         qubit=cirq.GridQubit(0, 0),
@@ -149,20 +152,25 @@ def test_spin_echo_cancels_out_constant_rate_phase():
         repetitions=100,
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
-        experiment_type=t2.ExperimentType.HAHN_ECHO)
+        num_pulses=pulses,
+        experiment_type=experiment_type)
 
     assert (results.expectation_pauli_y['value'] < -0.8).all()
 
 
-@pytest.mark.parametrize(
-    'experiment_type', [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO])
+@pytest.mark.parametrize('experiment_type', [
+    t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO,
+    t2.ExperimentType.CPMG
+])
 def test_all_on_results(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(sampler=cirq.Simulator(),
                           qubit=cirq.GridQubit(0, 0),
                           num_points=4,
                           repetitions=500,
                           min_delay=cirq.Duration(nanos=100),
                           max_delay=cirq.Duration(micros=1),
+                          num_pulses=pulses,
                           experiment_type=experiment_type)
 
     assert (results.expectation_pauli_y['value'] == -1.0).all()
@@ -171,9 +179,12 @@ def test_all_on_results(experiment_type):
     assert (abs(results.expectation_pauli_x['value']) < 0.20).all()
 
 
-@pytest.mark.parametrize(
-    'experiment_type', [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO])
+@pytest.mark.parametrize('experiment_type', [
+    t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO,
+    t2.ExperimentType.CPMG
+])
 def test_all_off_results(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -181,6 +192,7 @@ def test_all_off_results(experiment_type):
         repetitions=10,
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
+        num_pulses=pulses,
         experiment_type=experiment_type)
     assert results == cirq.experiments.T2DecayResult(
         x_basis_data=pd.DataFrame(columns=['delay_ns', 0, 1],
@@ -202,9 +214,12 @@ def test_all_off_results(experiment_type):
     )
 
 
-@pytest.mark.parametrize(
-    'experiment_type', [t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO])
+@pytest.mark.parametrize('experiment_type', [
+    t2.ExperimentType.RAMSEY, t2.ExperimentType.HAHN_ECHO,
+    t2.ExperimentType.CPMG
+])
 def test_custom_delay_sweep(experiment_type):
+    pulses = [1] if experiment_type == t2.ExperimentType.CPMG else None
     results = t2.t2_decay(
         sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
         qubit=cirq.GridQubit(0, 0),
@@ -213,9 +228,9 @@ def test_custom_delay_sweep(experiment_type):
         min_delay=cirq.Duration(nanos=100),
         max_delay=cirq.Duration(micros=1),
         experiment_type=experiment_type,
+        num_pulses=pulses,
         delay_sweep=cirq.Points('delay_ns',
                                 [1.0, 10.0, 100.0, 1000.0, 10000.0]))
-    print(results)
     assert results == cirq.experiments.T2DecayResult(
         x_basis_data=pd.DataFrame(columns=['delay_ns', 0, 1],
                                   index=range(5),
@@ -236,6 +251,53 @@ def test_custom_delay_sweep(experiment_type):
                                       [10000.0, 10, 0],
                                   ]),
     )
+
+
+def test_multiple_pulses():
+    results = t2.t2_decay(
+        sampler=cirq.DensityMatrixSimulator(noise=cirq.amplitude_damp(1)),
+        qubit=cirq.GridQubit(0, 0),
+        num_points=4,
+        repetitions=10,
+        min_delay=cirq.Duration(nanos=100),
+        max_delay=cirq.Duration(micros=1),
+        experiment_type=t2.ExperimentType.CPMG,
+        num_pulses=[1, 2, 3, 4],
+        delay_sweep=cirq.Points('delay_ns',
+                                [1.0, 10.0, 100.0, 1000.0, 10000.0]))
+    data = [[1.0, 1, 10, 0], [1.0, 2, 10, 0], [1.0, 3, 10, 0], [1.0, 4, 10, 0],
+            [10.0, 1, 10, 0], [10.0, 2, 10, 0], [10.0, 3, 10, 0],
+            [10.0, 4, 10, 0], [100.0, 1, 10, 0], [100.0, 2, 10, 0],
+            [100.0, 3, 10, 0], [100.0, 4, 10, 0], [1000.0, 1, 10, 0],
+            [1000.0, 2, 10, 0], [1000.0, 3, 10, 0], [1000.0, 4, 10, 0],
+            [10000.0, 1, 10, 0], [10000.0, 2, 10, 0], [10000.0, 3, 10, 0],
+            [10000.0, 4, 10, 0]]
+    assert results == cirq.experiments.T2DecayResult(
+        x_basis_data=pd.DataFrame(
+            columns=['delay_ns', 'num_pulses', 0, 1],
+            index=range(20),
+            data=data,
+        ),
+        y_basis_data=pd.DataFrame(
+            columns=['delay_ns', 'num_pulses', 0, 1],
+            index=range(20),
+            data=data,
+        ),
+    )
+    expected = pd.DataFrame(columns=['delay_ns', 'num_pulses', 'value'],
+                            index=range(20),
+                            data=[[1.0, 1, -1.0], [1.0, 2,
+                                                   -1.0], [1.0, 3, -1.0],
+                                  [1.0, 4, -1.0], [10.0, 1, -1.0],
+                                  [10.0, 2, -1.0], [10.0, 3, -1.0],
+                                  [10.0, 4, -1.0], [100.0, 1, -1.0],
+                                  [100.0, 2, -1.0], [100.0, 3, -1.0],
+                                  [100.0, 4, -1.0], [1000.0, 1, -1.0],
+                                  [1000.0, 2, -1.0], [1000.0, 3, -1.0],
+                                  [1000.0, 4, -1.0], [10000.0, 1, -1.0],
+                                  [10000.0, 2, -1.0], [10000.0, 3, -1.0],
+                                  [10000.0, 4, -1.0]])
+    assert results.expectation_pauli_x.equals(expected)
 
 
 def test_bad_args():
@@ -262,13 +324,23 @@ def test_bad_args():
                                       max_delay=cirq.Duration(micros=1),
                                       min_delay=cirq.Duration(micros=-1))
 
-    with pytest.raises(ValueError, match='not supported'):
+    with pytest.raises(ValueError, match='CPMG'):
+        _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
+                                      qubit=cirq.GridQubit(0, 0),
+                                      num_points=4,
+                                      repetitions=100,
+                                      num_pulses=[1, 2, 3, 4],
+                                      max_delay=cirq.Duration(micros=1),
+                                      experiment_type=t2.ExperimentType.RAMSEY)
+
+    with pytest.raises(ValueError, match='num_pulses'):
         _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
                                       qubit=cirq.GridQubit(0, 0),
                                       num_points=4,
                                       repetitions=100,
                                       max_delay=cirq.Duration(micros=1),
                                       experiment_type=t2.ExperimentType.CPMG)
+
     with pytest.raises(ValueError, match='delay_ns'):
         _ = cirq.experiments.t2_decay(sampler=cirq.Simulator(),
                                       qubit=cirq.GridQubit(0, 0),
@@ -297,8 +369,33 @@ def test_bad_args():
                                       delay_sweep=product)
 
 
-def test_str():
+def test_cpmg_circuit():
+    """Tests sub-component to make sure CPMG circuit is generated correctly."""
+    q = cirq.GridQubit(1, 1)
+    t = sympy.Symbol('t')
+    circuit = t2._cpmg_circuit(q, t, 2)
+    expected = cirq.Circuit(
+        cirq.Y(q)**0.5,
+        cirq.WaitGate(cirq.Duration(nanos=t))(q), cirq.X(q),
+        cirq.WaitGate(cirq.Duration(nanos=2 * t * sympy.Symbol('pulse_0')))(q),
+        cirq.X(q)**sympy.Symbol('pulse_0'),
+        cirq.WaitGate(cirq.Duration(nanos=2 * t * sympy.Symbol('pulse_1')))(q),
+        cirq.X(q)**sympy.Symbol('pulse_1'),
+        cirq.WaitGate(cirq.Duration(nanos=t))(q))
+    assert circuit == expected
 
+
+def test_cpmg_sweep():
+    sweep = t2._cpmg_sweep([1, 3, 5])
+    expected = cirq.Zip(cirq.Points('pulse_0', [1, 1, 1]),
+                        cirq.Points('pulse_1', [0, 1, 1]),
+                        cirq.Points('pulse_2', [0, 1, 1]),
+                        cirq.Points('pulse_3', [0, 0, 1]),
+                        cirq.Points('pulse_4', [0, 0, 1]))
+    assert sweep == expected
+
+
+def test_str():
     x_data = pd.DataFrame(columns=['delay_ns', 0, 1],
                           index=range(2),
                           data=[

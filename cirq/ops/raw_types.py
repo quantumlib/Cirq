@@ -14,8 +14,8 @@
 
 """Basic types defining qubits, gates, and operations."""
 
-from typing import (Any, Callable, Collection, Dict, Hashable, Optional,
-                    Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
+from typing import (AbstractSet, Any, Callable, Collection, Dict, Hashable,
+                    Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
 import abc
 import functools
@@ -611,6 +611,12 @@ class TaggedOperation(Operation):
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation) or any(
             protocols.is_parameterized(tag) for tag in self.tags)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        tag_params = {
+            name for tag in self.tags for name in protocols.parameter_names(tag)
+        }
+        return protocols.parameter_names(self.sub_operation) | tag_params
 
     def _resolve_parameters_(self, resolver):
         resolved_op = protocols.resolve_parameters(self.sub_operation, resolver)

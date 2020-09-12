@@ -13,7 +13,8 @@
 # limitations under the License.
 
 
-from typing import Sequence, Tuple, Union, Any, Optional, TYPE_CHECKING
+from typing import (AbstractSet, Sequence, Tuple, Union, Any, Optional,
+                    TYPE_CHECKING)
 
 import numpy as np
 
@@ -111,6 +112,9 @@ class ParallelGateOperation(raw_types.Operation):
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.gate)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.gate)
 
     def _resolve_parameters_(self, resolver):
         resolved_gate = protocols.resolve_parameters(self.gate, resolver)
