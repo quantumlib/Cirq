@@ -76,6 +76,7 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.TrialResult]] = None
+        self._batched_results: Optional[List[List[study.TrialResult]]] = None
         self.batch_mode = batch_mode
 
     def engine(self) -> 'engine_base.Engine':
@@ -263,6 +264,18 @@ class EngineJob:
         self.context.client.delete_job(self.project_id, self.program_id,
                                        self.job_id)
 
+    def batched_results(self) -> List[List[study.TrialResult]]:
+        """Returns the job results, blocking until the job is complete.
+
+        This method is intended for batched jobs.  Instead of flattening
+        results into a single list, this will return a List[TrialResult]
+        for each circuit in the batch.
+        """
+        self.results()
+        if not self._batched_results:
+            raise ValueError('batched_results called for a non-batch result.')
+        return self._batched_results
+
     def results(self) -> List[study.TrialResult]:
         """Returns the job results, blocking until the job is complete.
         """
@@ -296,7 +309,9 @@ class EngineJob:
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
                     result.value)
-                self._results = self._get_batch_results_v2(v2_parsed_result)
+                self._batched_results = self._get_batch_results_v2(
+                    v2_parsed_result)
+                self._results = self._flatten(self._batched_results)
             else:
                 raise ValueError(
                     'invalid result proto version: {}'.format(result_type))
@@ -324,12 +339,16 @@ class EngineJob:
 
     @classmethod
     def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
-                             ) -> List[study.TrialResult]:
+                             ) -> List[List[study.TrialResult]]:
         trial_results = []
-        # Flatten to single list to match to sampler api.
         for result in results.results:
-            trial_results.extend(cls._get_job_results_v2(result))
+            # Add a new list for the result
+            trial_results.append(cls._get_job_results_v2(result))
         return trial_results
+
+    @classmethod
+    def _flatten(cls, result) -> List[study.TrialResult]:
+        return [res for result_list in result for res in result_list]
 
     @staticmethod
     def _get_job_results_v2(result: v2.result_pb2.Result
