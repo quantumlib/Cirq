@@ -39,7 +39,9 @@ class QubitPermutationGate(raw_types.Gate):
             raise ValueError(f"Invalid permutation {permutation} "
                              f"Each index must appear only once.")
 
-        invalid_indices = [x for x in permutation if not 0 <= x < len(permutation)]
+        invalid_indices = [
+            x for x in permutation if not 0 <= x < len(permutation)
+        ]
         if len(invalid_indices) > 0:
             raise ValueError(f"All indices have to satisfy "
                              f"0 <= i < {len(permutation)}. "
