@@ -83,7 +83,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
             initial_state: The initial state for the simulation in the
-                computation basis. Represented as a big endian int.
+                computational basis. Represented as a big endian int.
 
 
         Yields:
