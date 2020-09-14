@@ -15,8 +15,8 @@
 """Basic types defining qubits, gates, and operations."""
 
 import re
-from typing import (Any, cast, Dict, FrozenSet, Iterable, List, Optional,
-                    Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
+from typing import (AbstractSet, Any, cast, Dict, FrozenSet, Iterable, List,
+                    Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
 import numpy as np
 
@@ -191,6 +191,12 @@ class GateOperation(raw_types.Operation):
 
     def _is_parameterized_(self) -> bool:
         getter = getattr(self.gate, '_is_parameterized_', None)
+        if getter is not None:
+            return getter()
+        return NotImplemented
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        getter = getattr(self.gate, '_parameter_names_', None)
         if getter is not None:
             return getter()
         return NotImplemented
