@@ -23,7 +23,7 @@ applies more generally to fermions, thus the name of the gate.
 
 import cmath
 import math
-from typing import Any, Dict, Optional, Tuple
+from typing import AbstractSet, Any, Dict, Optional, Tuple
 
 import numpy as np
 
@@ -80,6 +80,9 @@ class FSimGate(gate_features.TwoQubitGate,
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.theta) or cirq.is_parameterized(
             self.phi)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return cirq.parameter_names(self.theta) | cirq.parameter_names(self.phi)
 
     def _has_unitary_(self):
         return not self._is_parameterized_()

@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import numbers
-from typing import Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, \
-    Optional
+from typing import (AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast,
+                    SupportsFloat, Optional)
 
 import numpy as np
 
@@ -60,10 +60,13 @@ class RandomGateChannel(raw_types.Gate):
         return not self._is_parameterized_() and protocols.has_channel(
             self.sub_gate)
 
-    def _is_parameterized_(self):
-        return not isinstance(self.probability,
-                              numbers.Number) or protocols.is_parameterized(
-                                  self.sub_gate)
+    def _is_parameterized_(self) -> bool:
+        return (protocols.is_parameterized(self.probability) or
+                protocols.is_parameterized(self.sub_gate))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(
+            self.probability) | protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(self, resolver):
         return RandomGateChannel(
