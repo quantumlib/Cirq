@@ -200,11 +200,13 @@ class EngineClient:
         return self._make_request(lambda: self.grpc_client.get_quantum_program(
             self._program_name_from_ids(project_id, program_id), return_code))
 
-    def list_programs(
-            self, project_id: str,
-            created_before: Optional[Union[datetime.datetime, datetime.date]] = None,
-            created_after: Optional[Union[datetime.datetime, datetime.date]] = None,
-            has_labels: Optional[Dict[str, str]] = None):
+    def list_programs(self,
+                      project_id: str,
+                      created_before: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      created_after: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      has_labels: Optional[Dict[str, str]] = None):
         """Returns a list of previously executed quantum programs.
 
         Args:
@@ -222,16 +224,30 @@ class EngineClient:
                 >>>> client.list_programs('my_proj', has_labels=labels_filter)
         """
         filters = []
+
+        def _to_filter_date_or_time(arg_name, arg):
+            if isinstance(arg, datetime.datetime):
+                return f"{int(arg.timestamp())}"
+            elif isinstance(arg, datetime.date):
+                return f"{arg.isoformat()}"
+
+            raise ValueError(
+                f"Unsupported date/time type for {arg_name}: got {arg} of "
+                f"type {type(arg)}. Supported types: datetime.datetime and"
+                f"datetime.date")
+
         if created_after:
-            filters.append(f"create_time >= {created_after.isoformat()}")
+            val = _to_filter_date_or_time('created_after', created_after)
+            filters.append(f"create_time >= {val}")
         if created_before:
-            filters.append(f"create_time <= {created_before.isoformat()}")
+            val = _to_filter_date_or_time('created_before', created_before)
+            filters.append(f"create_time <= {val}")
         if has_labels:
-            for (k,v) in has_labels.items():
+            for (k, v) in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         return self._make_request(
             lambda: self.grpc_client.list_quantum_programs(
-                self._project_name(project_id), filter_=" and ".join(filters)))
+                self._project_name(project_id), filter_=" AND ".join(filters)))
 
     def set_program_description(self, project_id: str, program_id: str,
                                 description: str) -> qtypes.QuantumProgram:

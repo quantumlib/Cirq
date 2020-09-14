@@ -112,27 +112,25 @@ def test_list_program(client_constructor):
     }
 
 
-@pytest.mark.parametrize('created_before, created_after, '
-                         'labels, expected_filter',
-                         [
-                             (None, None, None,
-                              ''),
-                             (datetime.date(2020, 9, 1), None, None,
-                              'create_time <= 2020-09-01'),
-                             (datetime.datetime(2020, 9, 1, 0,0,0,123), None, None,
-                              'create_time <= 2020-09-01 00:00:00.123'),
-                            (None, datetime.date(2020, 9, 1), None,
-                              'create_time >= 2020-09-01'),
-                            (datetime.date(2020, 9, 1),
-                             datetime.date(2020, 9, 1), None,
-                              'create_time >= 2020-09-01 and '
-                              'create_time <= 2020-09-01'),
-                            (None, None, {'color':'red', 'shape':'*'},
-                              'labels.color:red and labels.shape:*'),
-                         ])
+@pytest.mark.parametrize(
+    'created_after, created_before, '
+    'labels, expected_filter', [
+        (None, None, None, ''),
+        (datetime.date(2020, 9, 1), None, None, 'create_time >= 2020-09-01'),
+        (datetime.datetime(2020, 9, 1, 0, 0,
+                           0), None, None, 'create_time >= 1598932800'),
+        (None, datetime.date(2020, 10, 1), None, 'create_time <= 2020-10-01'),
+        (datetime.date(2020, 9, 1), datetime.datetime(
+            2020, 9, 1, 0, 0, 10), None, 'create_time >= 2020-09-01 AND '
+         'create_time <= 1598932810'),
+        (None, None, {
+            'color': 'red',
+            'shape': '*'
+        }, 'labels.color:red AND labels.shape:*'),
+    ])
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
-def test_list_program_filters(client_constructor, created_before,
-                              created_after, labels, expected_filter):
+def test_list_program_filters(client_constructor, created_before, created_after,
+                              labels, expected_filter):
     grpc_client = setup_mock_(client_constructor)
     client = EngineClient()
     client.list_programs(project_id='proj',
@@ -142,6 +140,7 @@ def test_list_program_filters(client_constructor, created_before,
     assert grpc_client.list_quantum_programs.call_args[1] == {
         'filter_': expected_filter,
     }
+
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_set_program_description(client_constructor):
