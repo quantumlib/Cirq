@@ -603,12 +603,9 @@ class EngineClient:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter: Filter string current only supports 'timestamp' with values
-              of epoch time in seconds or short string 'yyyy-MM-dd' or long
-              string 'yyyy-MM-dd HH:mm:ss.SSS' both in UTC. For example:
+            of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
                 'timestamp > 1577960125 AND timestamp <= 1578241810'
                 'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
-                'timestamp > "2020-01-02 10:15:25.000" AND timestamp <=
-                  "2020-01-05 16:30:10.456"'
 
         Returns:
             A list of calibrations.
@@ -771,8 +768,8 @@ class EngineClient:
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
                         the epoch time Mar 16th, 7pm GMT.
-                    `end_time >= "2017-01-02 15:21:15.142"`: Reservation ends on
-                        or after Jan 2nd 2017 15:21:15.142
+                    `end_time >= 1483370475`: Reservation ends on
+                        or after Jan 2nd 2017 15:21:15
 
         Returns:
             A list of QuantumReservation objects.
