@@ -482,6 +482,43 @@ class Engine:
         return engine_program.EngineProgram(self.project_id, program_id,
                                             self.context)
 
+    def list_programs(self,
+                      created_before: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      created_after: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      has_labels: Optional[Dict[str, str]] = None
+                     ) -> List[engine_program.EngineProgram]:
+        """Returns a list of previously executed quantum programs.
+
+        Args:
+            created_after: filter programs that were created after this date or
+             time. Note that datetimes are converted to UTC.
+            created_before: filter programs that were created after this date or
+             time. Note that datetimes are converted to UTC.
+            has_labels: filter programs that have labels on them specified by
+                this dict. If the value is set to '*', filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried as follows:
+                >>>> labels_filter = {'color: red', 'shape:*'}
+                >>>> engine.list_programs(has_labels=labels_filter)
+        """
+
+        client = self.context.client
+        response = client.list_programs(self.project_id,
+                                        created_before=created_before,
+                                        created_after=created_after,
+                                        has_labels=has_labels)
+        return [
+            engine_program.EngineProgram(
+                project_id=client._ids_from_program_name(p.name)[0],
+                program_id=client._ids_from_program_name(p.name)[1],
+                _program=p,
+                context=self.context,
+            ) for p in response
+        ]
+
     def list_processors(self) -> List[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
