@@ -151,8 +151,27 @@ def test_run_delegation(create_job, get_results):
             'q': np.array([[False], [True], [True], [False]], dtype=np.bool)
         })
 
-# @mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
-# def test_list_jobs(list_jobs):
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
+def test_list_jobs(list_jobs):
+    job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = qtypes.QuantumJob(name='projects/otherproj/programs/prog1/jobs/job2')
+    list_jobs.return_value = [job1, job2]
+
+    ctx = EngineContext()
+    result = cg.EngineProgram(project_id='proj',
+                              program_id='prog1',
+                              context=ctx).list_jobs()
+    list_jobs.assert_called_once_with('proj',
+                                      'prog1',
+                                      created_after=None,
+                                      created_before=None,
+                                      has_labels=None,
+                                      execution_states=None,
+                                      priority_interval=None)
+    assert [(j.program_id, j.project_id, j.job_id, j.context, j._job)
+            for j in result] == [('prog1', 'proj', 'job1', ctx, job1),
+                                 ('prog1', 'otherproj', 'job2', ctx, job2)]
 
 
 def test_engine():
