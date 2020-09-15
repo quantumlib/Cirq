@@ -48,7 +48,7 @@ def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
     ps1 = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
-    ps2 = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+    ps2 = cirq.X(q0) * cirq.Y(q1) * cirq.X(q2)
     eq.make_equality_group(
         lambda: cirq.PauliStringPhasor(cirq.PauliString(), exponent_neg=0.5),
         lambda: cirq.PauliStringPhasor(cirq.PauliString(), exponent_neg=-1.5),
