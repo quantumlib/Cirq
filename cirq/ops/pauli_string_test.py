@@ -24,9 +24,6 @@ import cirq
 import cirq.testing
 
 
-q0, q1, q2 = cirq.LineQubit.range(3)
-
-
 def _make_qubits(n):
     return [cirq.NamedQubit('q{}'.format(i)) for i in range(n)]
 
@@ -222,9 +219,9 @@ def test_list_op_constructor_matches_mapping(pauli):
 
 def test_constructor_flexibility():
     a, b = cirq.LineQubit.range(2)
-    with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
+    with pytest.raises(TypeError, match='cirq.PAULI_STRING_LIKE'):
         _ = cirq.PauliString(cirq.CZ(a, b))
-    with pytest.raises(TypeError, match='Not a `cirq.PAULI_STRING_LIKE`'):
+    with pytest.raises(TypeError, match='cirq.PAULI_STRING_LIKE'):
         _ = cirq.PauliString('test')
     with pytest.raises(TypeError, match='S is not a Pauli'):
         _ = cirq.PauliString(qubit_pauli_map={a: cirq.S})
@@ -272,7 +269,8 @@ def test_get(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
     for key in qubit_pauli_map:
         assert qubit_pauli_map.get(key) == pauli_string.get(key)
-    assert qubit_pauli_map.get(other) == pauli_string.get(other) == None
+    assert qubit_pauli_map.get(other) is None
+    assert pauli_string.get(other) is None
     # pylint: disable=too-many-function-args
     assert qubit_pauli_map.get(other, 5) == pauli_string.get(other, 5) == 5
     # pylint: enable=too-many-function-args
@@ -448,6 +446,7 @@ def test_div_scalar():
     with pytest.raises(TypeError):
         _ = p / 'test'
     with pytest.raises(TypeError):
+        # noinspection PyUnresolvedReferences
         _ = 'test' / p
 
 
@@ -470,6 +469,7 @@ def test_mul_strings():
     with pytest.raises(TypeError, match='unsupported'):
         _ = cirq.X(a) * object()
     with pytest.raises(TypeError, match='unsupported'):
+        # noinspection PyUnresolvedReferences
         _ = object() * cirq.X(a)
     assert -cirq.X(a) == -cirq.PauliString({a: cirq.X})
 
@@ -569,12 +569,12 @@ def test_map_qubits():
 
 
 def test_to_z_basis_ops():
-    x0 = np.array([1,1]) / np.sqrt(2)
-    x1 = np.array([1,-1]) / np.sqrt(2)
-    y0 = np.array([1,1j]) / np.sqrt(2)
-    y1 = np.array([1,-1j]) / np.sqrt(2)
-    z0 = np.array([1,0])
-    z1 = np.array([0,1])
+    x0 = np.array([1, 1]) / np.sqrt(2)
+    x1 = np.array([1, -1]) / np.sqrt(2)
+    y0 = np.array([1, 1j]) / np.sqrt(2)
+    y1 = np.array([1, -1j]) / np.sqrt(2)
+    z0 = np.array([1, 0])
+    z1 = np.array([0, 1])
 
     q0, q1, q2, q3, q4, q5 = _make_qubits(6)
     pauli_string = cirq.PauliString({q0: cirq.X, q1: cirq.X,
@@ -640,7 +640,8 @@ def test_pass_operations_over_single(shift: int, sign: int):
 
 @pytest.mark.parametrize('shift,t_or_f1, t_or_f2,neg',
         itertools.product(range(3), *((True, False),)*3))
-def test_pass_operations_over_double(shift, t_or_f1, t_or_f2, neg):
+def test_pass_operations_over_double(shift: int, t_or_f1: bool, t_or_f2: bool,
+                                     neg: bool):
     sign = -1 if neg else +1
     q0, q1, q2 = _make_qubits(3)
     X, Y, Z = (cirq.Pauli.by_relative_index(pauli, shift)
@@ -733,25 +734,35 @@ def test_bool():
     assert bool(cirq.PauliString({a: cirq.X}))
 
 
-@pytest.mark.parametrize('pauli_string, qubits, expected_matrix', (
-    (cirq.X(q0) * 2, None, np.array([[0, 2], [2, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q0,), np.array([[0, 1], [1, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q1,), np.array([[0, -1j], [1j, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), None,
-     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q0, q1),
-     np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q1, q0),
-     np.array([[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q2,), np.eye(2)),
-    (cirq.X(q0) * cirq.Y(q1), (q2, q1),
-     np.array([[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j, 0]])),
-    (cirq.X(q0) * cirq.Y(q1), (q2, q0, q1),
-     np.array([[0, 0, 0, -1j, 0, 0, 0, 0], [0, 0, 1j, 0, 0, 0, 0, 0],
-               [0, -1j, 0, 0, 0, 0, 0, 0], [1j, 0, 0, 0, 0, 0, 0, 0],
-               [0, 0, 0, 0, 0, 0, 0, -1j], [0, 0, 0, 0, 0, 0, 1j, 0],
-               [0, 0, 0, 0, 0, -1j, 0, 0], [0, 0, 0, 0, 1j, 0, 0, 0]])),
-))
+def _pauli_string_matrix_cases():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    return (
+        (cirq.X(q0) * 2, None, np.array([[0, 2], [2, 0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q0,), np.array([[0, 1], [1, 0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q1,), np.array([[0, -1j], [1j, 0]])),
+        (cirq.X(q0) * cirq.Y(q1), None,
+         np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0,
+                                                                   0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q0, q1),
+         np.array([[0, 0, 0, -1j], [0, 0, 1j, 0], [0, -1j, 0, 0], [1j, 0, 0,
+                                                                   0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q1, q0),
+         np.array([[0, 0, 0, -1j], [0, 0, -1j, 0], [0, 1j, 0, 0], [1j, 0, 0,
+                                                                   0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q2,), np.eye(2)),
+        (cirq.X(q0) * cirq.Y(q1), (q2, q1),
+         np.array([[0, -1j, 0, 0], [1j, 0, 0, 0], [0, 0, 0, -1j], [0, 0, 1j,
+                                                                   0]])),
+        (cirq.X(q0) * cirq.Y(q1), (q2, q0, q1),
+         np.array([[0, 0, 0, -1j, 0, 0, 0, 0], [0, 0, 1j, 0, 0, 0, 0, 0],
+                   [0, -1j, 0, 0, 0, 0, 0, 0], [1j, 0, 0, 0, 0, 0, 0, 0],
+                   [0, 0, 0, 0, 0, 0, 0, -1j], [0, 0, 0, 0, 0, 0, 1j, 0],
+                   [0, 0, 0, 0, 0, -1j, 0, 0], [0, 0, 0, 0, 1j, 0, 0, 0]])),
+    )
+
+
+@pytest.mark.parametrize('pauli_string, qubits, expected_matrix',
+                         _pauli_string_matrix_cases())
 def test_matrix(pauli_string, qubits, expected_matrix):
     assert np.allclose(pauli_string.matrix(qubits), expected_matrix)
 
@@ -824,10 +835,13 @@ def test_expectation_from_state_vector_invalid_input():
         ps.expectation_from_state_vector(np.array([1, 0], dtype=np.int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_state_vector(wf, "bad type")
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_state_vector(wf, {"bad key": 1})
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_state_vector(wf, {q0: "bad value"})
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_state_vector(wf, {q0: 0})
@@ -1042,7 +1056,7 @@ def test_pauli_string_expectation_from_state_vector_pure_state_with_coef():
     z0z2 = cirq.Z(qs[0]) * cirq.Z(qs[2]) * -1
     z1x2 = -cirq.Z(qs[1]) * cirq.X(qs[2])
 
-    for state in [wf, wf.reshape(2, 2, 2, 2)]:
+    for state in [wf, wf.reshape((2, 2, 2, 2))]:
         np.testing.assert_allclose(
             z0z1.expectation_from_state_vector(state, q_map), -0.123)
         np.testing.assert_allclose(
@@ -1066,10 +1080,13 @@ def test_expectation_from_density_matrix_invalid_input():
         ps.expectation_from_density_matrix(0.5 * np.eye(2, dtype=np.int), q_map)
 
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_density_matrix(rho, "bad type")
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_density_matrix(rho, {"bad key": 1})
     with pytest.raises(TypeError, match='mapping'):
+        # noinspection PyTypeChecker
         ps.expectation_from_density_matrix(rho, {q0: "bad value"})
     with pytest.raises(ValueError, match='complete'):
         ps.expectation_from_density_matrix(rho, {q0: 0})
@@ -1622,3 +1639,318 @@ def test_circuit_diagram_info():
                                           │
 2: ───────────────────────────────────────Z──────────────────────────────────────────────────────────────────────────────────────
         """)
+
+
+def test_mutable_pauli_string_equality():
+    eq = cirq.testing.EqualsTester()
+    a, b, c = cirq.LineQubit.range(3)
+
+    eq.add_equality_group(
+        cirq.MutablePauliString(),
+        cirq.MutablePauliString(),
+        cirq.MutablePauliString(1),
+        cirq.MutablePauliString(-1, -1),
+        cirq.MutablePauliString({a: 0}),
+        cirq.MutablePauliString({a: "I"}),
+        cirq.MutablePauliString({a: cirq.I}),
+        cirq.MutablePauliString(cirq.I(a)),
+        cirq.MutablePauliString(cirq.I(b)),
+    )
+
+    eq.add_equality_group(
+        cirq.MutablePauliString({a: "X"}),
+        cirq.MutablePauliString({a: 1}),
+        cirq.MutablePauliString({a: cirq.X}),
+        cirq.MutablePauliString(cirq.X(a)),
+    )
+
+    eq.add_equality_group(
+        cirq.MutablePauliString({b: "X"}),
+        cirq.MutablePauliString({b: 1}),
+        cirq.MutablePauliString({b: cirq.X}),
+        cirq.MutablePauliString(cirq.X(b)),
+        cirq.MutablePauliString(-1j, cirq.Y(b), cirq.Z(b)),
+    )
+
+    eq.add_equality_group(
+        cirq.MutablePauliString({
+            a: "X",
+            b: "Y",
+            c: "Z"
+        }),
+        cirq.MutablePauliString({
+            a: 1,
+            b: 2,
+            c: 3
+        }),
+        cirq.MutablePauliString({
+            a: cirq.X,
+            b: cirq.Y,
+            c: cirq.Z
+        }),
+        cirq.MutablePauliString(cirq.X(a) * cirq.Y(b) * cirq.Z(c)),
+        cirq.MutablePauliString(
+            cirq.MutablePauliString(cirq.X(a) * cirq.Y(b) * cirq.Z(c))),
+        cirq.MutablePauliString(
+            cirq.MutablePauliString(cirq.X(a), cirq.Y(b), cirq.Z(c))),
+    )
+
+    # Cross-type equality. (Can't use tester because hashability differs.)
+    p = cirq.X(a) * cirq.Y(b)
+    assert p == cirq.MutablePauliString(p)
+
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        _ = cirq.MutablePauliString("test")
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        # noinspection PyTypeChecker
+        _ = cirq.MutablePauliString(object())
+
+
+def test_mutable_pauli_string_inplace_multiplication():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.MutablePauliString()
+    original = p
+
+    # Support for *=.
+    p *= cirq.X(a)
+    assert p == cirq.X(a) and p is original
+
+    # Bad operand.
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        p.inplace_left_multiply_by([cirq.X(a), cirq.CZ(a, b), cirq.Z(b)])
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        p.inplace_left_multiply_by(cirq.CZ(a, b))
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        p.inplace_right_multiply_by([cirq.X(a), cirq.CZ(a, b), cirq.Z(b)])
+    with pytest.raises(TypeError, match="cirq.PAULI_STRING_LIKE"):
+        p.inplace_right_multiply_by(cirq.CZ(a, b))
+    assert p == cirq.X(a) and p is original
+
+    # Correct order of *=.
+    p *= cirq.Y(a)
+    assert p == -1j * cirq.Z(a) and p is original
+    p *= cirq.Y(a)
+    assert p == cirq.X(a) and p is original
+
+    # Correct order of inplace_left_multiply_by.
+    p.inplace_left_multiply_by(cirq.Y(a))
+    assert p == 1j * cirq.Z(a) and p is original
+    p.inplace_left_multiply_by(cirq.Y(a))
+    assert p == cirq.X(a) and p is original
+
+    # Correct order of inplace_right_multiply_by.
+    p.inplace_right_multiply_by(cirq.Y(a))
+    assert p == -1j * cirq.Z(a) and p is original
+    p.inplace_right_multiply_by(cirq.Y(a))
+    assert p == cirq.X(a) and p is original
+
+    # Multi-qubit case.
+    p *= -1 * cirq.X(a) * cirq.X(b)
+    assert p == -cirq.X(b) and p is original
+
+    # Support for PAULI_STRING_LIKE
+    p.inplace_left_multiply_by({c: 'Z'})
+    assert p == -cirq.X(b) * cirq.Z(c) and p is original
+    p.inplace_right_multiply_by({c: 'Z'})
+    assert p == -cirq.X(b) and p is original
+
+
+def test_mutable_frozen_copy():
+    a, b, c = cirq.LineQubit.range(3)
+    p = -cirq.X(a) * cirq.Y(b) * cirq.Z(c)
+
+    pf = p.frozen()
+    pm = p.mutable_copy()
+    pmm = pm.mutable_copy()
+    pmf = pm.frozen()
+
+    assert isinstance(p, cirq.PauliString)
+    assert isinstance(pf, cirq.PauliString)
+    assert isinstance(pm, cirq.MutablePauliString)
+    assert isinstance(pmm, cirq.MutablePauliString)
+    assert isinstance(pmf, cirq.PauliString)
+
+    assert p is pf
+    assert pm is not pmm
+    assert p == pf == pm == pmm == pmf
+
+
+def test_mutable_pauli_string_inplace_conjugate_by():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.MutablePauliString(cirq.X(a))
+
+    class NoOp(cirq.Operation):
+
+        def __init__(self, *qubits):
+            self._qubits = qubits
+
+        @property
+        def qubits(self):
+            # coverage: ignore
+            return self._qubits
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        def _decompose_(self):
+            return []
+
+    # No-ops
+    p2 = p.inplace_after(cirq.GlobalPhaseOperation(1j))
+    assert p2 is p and p == cirq.X(a)
+    p2 = p.inplace_after(NoOp(a, b))
+    assert p2 is p and p == cirq.X(a)
+
+    # After H and back.
+    p2 = p.inplace_after(cirq.H(a))
+    assert p2 is p and p == cirq.Z(a)
+    p2 = p.inplace_before(cirq.H(a))
+    assert p2 is p and p == cirq.X(a)
+
+    # After S and back.
+    p2 = p.inplace_after(cirq.S(a))
+    assert p2 is p and p == cirq.Y(a)
+    p2 = p.inplace_before(cirq.S(a))
+    assert p2 is p and p == cirq.X(a)
+
+    # Before S and back.
+    p2 = p.inplace_before(cirq.S(a))
+    assert p2 is p and p == -cirq.Y(a)
+    p2 = p.inplace_after(cirq.S(a))
+    assert p2 is p and p == cirq.X(a)
+
+    # After inverse S and back.
+    p2 = p.inplace_after(cirq.S(a)**-1)
+    assert p2 is p and p == -cirq.Y(a)
+    p2 = p.inplace_before(cirq.S(a)**-1)
+    assert p2 is p and p == cirq.X(a)
+
+    # On other qubit.
+    p2 = p.inplace_after(cirq.S(b))
+    assert p2 is p and p == cirq.X(a)
+
+    # Two qubit operation.
+    p2 = p.inplace_after(cirq.CZ(a, b))
+    assert p2 is p and p == cirq.X(a) * cirq.Z(b)
+    p2 = p.inplace_after(cirq.CZ(a, c))
+    assert p2 is p and p == cirq.X(a) * cirq.Z(b) * cirq.Z(c)
+    p2 = p.inplace_after(cirq.H(b))
+    assert p2 is p and p == cirq.X(a) * cirq.X(b) * cirq.Z(c)
+    p2 = p.inplace_after(cirq.CNOT(b, c))
+    assert p2 is p and p == -cirq.X(a) * cirq.Y(b) * cirq.Y(c)
+
+    # Inverted interactions.
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.Y, True, cirq.Z, False).on(a, b))
+    assert p2 is p and p == cirq.X(a) * cirq.Z(b)
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.X, False, cirq.Z, True).on(a, b))
+    assert p2 is p and p == cirq.X(a)
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.Y, False, cirq.Z, True).on(a, b))
+    assert p2 is p and p == -cirq.X(a) * cirq.Z(b)
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.Z, False, cirq.Y, True).on(a, b))
+    assert p2 is p and p == -cirq.X(a) * cirq.Y(b)
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.Z, True, cirq.X, False).on(a, b))
+    assert p2 is p and p == cirq.X(a) * cirq.X(b)
+    p = cirq.MutablePauliString(cirq.X(a))
+    p2 = p.inplace_after(
+        cirq.PauliInteractionGate(cirq.Z, True, cirq.Y, False).on(a, b))
+    assert p2 is p and p == cirq.X(a) * cirq.Y(b)
+
+
+def test_after_before_vs_conjugate_by():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.X(a) * cirq.Y(b) * cirq.Z(c)
+    assert p.before(cirq.S(b)) == p.conjugated_by(cirq.S(b))
+    assert p.after(cirq.S(b)**-1) == p.conjugated_by(cirq.S(b))
+    assert p.before(cirq.CNOT(a, b)) == p.conjugated_by(cirq.CNOT(
+        a, b)) == (p.after(cirq.CNOT(a, b)))
+
+
+def test_mutable_pauli_string_dict_functionality():
+    a, b, c = cirq.LineQubit.range(3)
+    p = cirq.MutablePauliString()
+    with pytest.raises(KeyError):
+        _ = p[a]
+    assert p.get(a) is None
+    assert a not in p
+    assert not bool(p)
+    p[a] = cirq.X
+    assert bool(p)
+    assert a in p
+    assert p[a] == cirq.X
+
+    p[a] = "Y"
+    assert p[a] == cirq.Y
+    p[a] = 3
+    assert p[a] == cirq.Z
+    p[a] = "I"
+    assert a not in p
+    p[a] = 0
+    assert a not in p
+
+    assert len(p) == 0
+    p[b] = "Y"
+    p[a] = "X"
+    p[c] = "Z"
+    assert len(p) == 3
+    assert list(iter(p)) == [b, a, c]
+    assert list(p.values()) == [cirq.Y, cirq.X, cirq.Z]
+    assert list(p.keys()) == [b, a, c]
+    assert p.keys() == {a, b, c}
+    assert p.keys() ^ {c} == {a, b}
+
+    del p[b]
+    assert b not in p
+
+
+def test_mutable_pauli_string_text():
+    p = cirq.MutablePauliString(
+        cirq.X(cirq.LineQubit(0)) * cirq.Y(cirq.LineQubit(1)))
+    assert str(cirq.MutablePauliString()) == "mutable I"
+    assert str(p) == "mutable X(0)*Y(1)"
+    cirq.testing.assert_equivalent_repr(p)
+
+
+def test_mutable_pauli_string_mul():
+    a, b = cirq.LineQubit.range(2)
+    p = cirq.X(a).mutable_copy()
+    q = cirq.Y(b).mutable_copy()
+    pq = cirq.X(a) * cirq.Y(b)
+    assert p * q == pq
+    assert isinstance(p * q, cirq.PauliString)
+    assert 2 * p == cirq.X(a) * 2 == p * 2
+    assert isinstance(p * 2, cirq.PauliString)
+    assert isinstance(2 * p, cirq.PauliString)
+
+
+def test_mutable_can_override_mul():
+
+    class LMul:
+
+        def __mul__(self, other):
+            return "Yay!"
+
+    class RMul:
+
+        def __rmul__(self, other):
+            return "Yay!"
+
+    assert cirq.MutablePauliString() * RMul() == "Yay!"
+    assert LMul() * cirq.MutablePauliString() == "Yay!"
+
+
+def test_coefficient_precision():
+    qs = cirq.LineQubit.range(4 * 10**3)
+    r = cirq.MutablePauliString({q: cirq.X for q in qs})
+    r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
+    r2 *= r
+    assert r2.coefficient == 1
