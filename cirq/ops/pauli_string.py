@@ -185,8 +185,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @overload
     def __mul__(  # type: ignore
-            self,
-            other: 'cirq.PauliString[TKey2]'
+            self, other: 'cirq.PauliString[TKey2]'
     ) -> 'cirq.PauliString[Union[TKey, TKey2]]':
         pass
 
