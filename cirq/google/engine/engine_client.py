@@ -127,15 +127,22 @@ class EngineClient:
         return parts[1], parts[3], int(parts[5])
 
     @staticmethod
-    def _to_filter_date_or_time(arg_name, arg):
-        if isinstance(arg, datetime.datetime):
-            return f"{int(arg.timestamp())}"
-        elif isinstance(arg, datetime.date):
-            return f"{arg.isoformat()}"
+    def _date_or_time_to_filter_expr(
+            param_name: str, param: Union[datetime.datetime, datetime.date]):
+        """Formats datetime or date to filter expressions.
+
+        Args:
+            arg_name: the name of the filter parameter (for error messaging)
+            param: the value of the paramter
+        """
+        if isinstance(param, datetime.datetime):
+            return f"{int(param.timestamp())}"
+        elif isinstance(param, datetime.date):
+            return f"{param.isoformat()}"
 
         raise ValueError(
-            f"Unsupported date/time type for {arg_name}: got {arg} of "
-            f"type {type(arg)}. Supported types: datetime.datetime and"
+            f"Unsupported date/time type for {param_name}: got {param} of "
+            f"type {type(param)}. Supported types: datetime.datetime and"
             f"datetime.date")
 
     def _make_request(self, request: Callable[[], _R]) -> _R:
@@ -237,10 +244,12 @@ class EngineClient:
         filters = []
 
         if created_after is not None:
-            val = self._to_filter_date_or_time('created_after', created_after)
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
             filters.append(f"create_time >= {val}")
         if created_before is not None:
-            val = self._to_filter_date_or_time('created_before', created_before)
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
             for (k, v) in has_labels.items():
@@ -416,20 +425,21 @@ class EngineClient:
 
     def list_jobs(self,
                   project_id: str,
-                  program_id: str,
+                  program_id: Optional[str] = None,
                   created_before: Optional[
                       Union[datetime.datetime, datetime.date]] = None,
                   created_after: Optional[
                       Union[datetime.datetime, datetime.date]] = None,
                   has_labels: Optional[Dict[str, str]] = None,
                   execution_states: Optional[Set[
-                      quantum.enums.ExecutionStatus.State]] = None,
-                  priority_interval: Optional[Tuple[int, int]] = None):
+                      quantum.enums.ExecutionStatus.State]] = None):
         """Returns the list of jobs for a given program.
 
         Args:
             project_id: A project_id of the parent Google Cloud Project.
-            program_id: Unique ID of the program within the parent project.
+            program_id: Optional, a unique ID of the program within the parent
+                project. If None, jobs will be listed across all programs within
+                the project.
             created_after: retrieve jobs that were created after this date
                 or time.
             created_before: retrieve jobs that were created after this date
@@ -443,18 +453,16 @@ class EngineClient:
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
                  `quantum.enums.ExecutionStatus.State` enum for accepted values.
-            priority_interval: retrieve jobs that have priority within the given
-                priority interval (inclusive), i.e for [1,3], jobs with priority
-                p will be listed when 1 <= p <= 3. Min priority is 0, max is
-                1000.
         """
         filters = []
 
         if created_after is not None:
-            val = self._to_filter_date_or_time('created_after', created_after)
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
             filters.append(f"create_time >= {val}")
         if created_before is not None:
-            val = self._to_filter_date_or_time('created_before', created_before)
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
             for (k, v) in has_labels.items():
@@ -465,14 +473,12 @@ class EngineClient:
                 state_filter.append(
                     f"execution_status.state = {execution_state.name}")
             filters.append(f"({' OR '.join(state_filter)})")
-        if priority_interval is not None:
-            low, high = priority_interval
-            filters.append(f"scheduling_config.priority >= {low}")
-            filters.append(f"scheduling_config.priority <= {high}")
 
+        if program_id is None:
+            program_id = "-"
+        parent = self._program_name_from_ids(project_id, program_id)
         return self._make_request(lambda: self.grpc_client.list_quantum_jobs(
-            self._program_name_from_ids(project_id, program_id),
-            filter_=" AND ".join(filters)))
+            parent, filter_=" AND ".join(filters)))
 
     def get_job(self, project_id: str, program_id: str, job_id: str,
                 return_run_context: bool) -> qtypes.QuantumJob:

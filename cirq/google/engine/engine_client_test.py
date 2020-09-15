@@ -649,6 +649,13 @@ def test_list_jobs(client_constructor):
         'filter_': '',
     }
 
+    assert client.list_jobs(project_id='proj') == results
+    assert grpc_client.list_quantum_jobs.call_args[0] == (
+        'projects/proj/programs/-',)
+    assert grpc_client.list_quantum_jobs.call_args[1] == {
+        'filter_': '',
+    }
+
 
 # yapf: disable
 @pytest.mark.parametrize(
@@ -656,11 +663,9 @@ def test_list_jobs(client_constructor):
         'created_after, '
         'created_before, '
         'labels, '
-        'execution_states, '
-        'priority_interval',
+        'execution_states',
     [
         ('',
-            None,
             None,
             None,
             None,
@@ -669,12 +674,10 @@ def test_list_jobs(client_constructor):
             datetime.date(2020, 9, 1),
             None,
             None,
-            None,
             None),
         ('create_time >= 1598918400',
             datetime.datetime(2020, 9, 1, 0, 0, 0,
                               tzinfo=datetime.timezone.utc),
-            None,
             None,
             None,
             None),
@@ -682,13 +685,11 @@ def test_list_jobs(client_constructor):
             None,
             datetime.date(2020, 10, 1),
             None,
-            None,
             None),
         ('create_time >= 2020-09-01 AND create_time <= 1598918410',
             datetime.date(2020, 9, 1),
             datetime.datetime(2020, 9, 1, 0, 0, 10,
                             tzinfo=datetime.timezone.utc),
-            None,
             None,
             None),
         ('labels.color:red AND labels.shape:*',
@@ -698,7 +699,6 @@ def test_list_jobs(client_constructor):
             'color': 'red',
             'shape': '*'
             },
-            None,
             None
         ),
         ('(execution_status.state = FAILURE OR '
@@ -707,38 +707,25 @@ def test_list_jobs(client_constructor):
             None,
             None,
             [quantum.enums.ExecutionStatus.State.FAILURE,
-             quantum.enums.ExecutionStatus.State.CANCELLED,],
-            None
+             quantum.enums.ExecutionStatus.State.CANCELLED,]
         ),
-        ('scheduling_config.priority >= 10 AND '
-         'scheduling_config.priority <= 20',
-         None,
-         None,
-         None,
-         None,
-         [10, 20]
-         ),
         ('create_time >= 2020-08-01 AND '
          'create_time <= 1598918400 AND '
          'labels.color:red AND labels.shape:* AND '
-         '(execution_status.state = SUCCESS) AND '
-         'scheduling_config.priority >= 0 AND '
-         'scheduling_config.priority <= 10',
+         '(execution_status.state = SUCCESS)',
             datetime.date(2020, 8, 1),
             datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {
             'color': 'red',
             'shape': '*'
             },
-            [quantum.enums.ExecutionStatus.State.SUCCESS],
-            [0, 10]
+            [quantum.enums.ExecutionStatus.State.SUCCESS,],
         ),
     ])
 # yapf: enable
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_jobs_filters(client_constructor, expected_filter, created_before,
-                           created_after, labels, execution_states,
-                           priority_interval):
+                           created_after, labels, execution_states):
     grpc_client = setup_mock_(client_constructor)
     client = EngineClient()
     client.list_jobs(project_id='proj',
@@ -746,8 +733,7 @@ def test_list_jobs_filters(client_constructor, expected_filter, created_before,
                      created_before=created_before,
                      created_after=created_after,
                      has_labels=labels,
-                     execution_states=execution_states,
-                     priority_interval=priority_interval)
+                     execution_states=execution_states)
     assert grpc_client.list_quantum_jobs.call_args[1] == {
         'filter_': expected_filter,
     }
