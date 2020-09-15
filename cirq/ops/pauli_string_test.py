@@ -1946,3 +1946,11 @@ def test_mutable_can_override_mul():
 
     assert cirq.MutablePauliString() * RMul() == "Yay!"
     assert LMul() * cirq.MutablePauliString() == "Yay!"
+
+
+def test_coefficient_precision():
+    qs = cirq.LineQubit.range(4 * 10**3)
+    r = cirq.MutablePauliString({q: cirq.X for q in qs})
+    r2 = cirq.MutablePauliString({q: cirq.Y for q in qs})
+    r2 *= r
+    assert r2.coefficient == 1
