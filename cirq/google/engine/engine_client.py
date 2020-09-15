@@ -15,7 +15,8 @@
 import datetime
 import sys
 import time
-from typing import Callable, Dict, List, Optional, Sequence, TypeVar, Tuple
+from typing import Callable, Dict, List, Optional, Sequence, TypeVar, Tuple, \
+    Union
 import warnings
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
@@ -198,6 +199,54 @@ class EngineClient:
         """
         return self._make_request(lambda: self.grpc_client.get_quantum_program(
             self._program_name_from_ids(project_id, program_id), return_code))
+
+    def list_programs(self,
+                      project_id: str,
+                      created_before: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      created_after: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      has_labels: Optional[Dict[str, str]] = None):
+        """Returns a list of previously executed quantum programs.
+
+        Args:
+            project_id: the id of the project
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+                `{'color: red', 'shape:*'}`
+        """
+        filters = []
+
+        def _to_filter_date_or_time(arg_name, arg):
+            if isinstance(arg, datetime.datetime):
+                return f"{int(arg.timestamp())}"
+            elif isinstance(arg, datetime.date):
+                return f"{arg.isoformat()}"
+
+            raise ValueError(
+                f"Unsupported date/time type for {arg_name}: got {arg} of "
+                f"type {type(arg)}. Supported types: datetime.datetime and"
+                f"datetime.date")
+
+        if created_after is not None:
+            val = _to_filter_date_or_time('created_after', created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = _to_filter_date_or_time('created_before', created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        return self._make_request(
+            lambda: self.grpc_client.list_quantum_programs(
+                self._project_name(project_id), filter_=" AND ".join(filters)))
 
     def set_program_description(self, project_id: str, program_id: str,
                                 description: str) -> qtypes.QuantumProgram:
