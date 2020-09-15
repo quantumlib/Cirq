@@ -492,17 +492,16 @@ class Engine:
         """Returns a list of previously executed quantum programs.
 
         Args:
-            created_after: filter programs that were created after this date or
-             time. Note that datetimes are converted to UTC.
-            created_before: filter programs that were created after this date or
-             time. Note that datetimes are converted to UTC.
-            has_labels: filter programs that have labels on them specified by
-                this dict. If the value is set to '*', filters having the label
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
                 regardless of the label value will be filtered. For example, to
                 query programs that have the shape label and have the color
-                label with value red can be queried as follows:
-                >>>> labels_filter = {'color: red', 'shape:*'}
-                >>>> engine.list_programs(has_labels=labels_filter)
+                label with value red can be queried using
+                `{'color: red', 'shape:*'}`
         """
 
         client = self.context.client

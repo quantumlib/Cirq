@@ -211,17 +211,16 @@ class EngineClient:
 
         Args:
             project_id: the id of the project
-            created_after: filter programs that were created after this date or
-             time. Datetime objects without a timezone are considered to be UTC.
-            created_before: filter programs that were created after this date or
-             time. Datetime objects without a timezone are considered to be UTC.
-            has_labels: filter programs that have labels on them specified by
-                this dict. If the value is set to '*', filters having the label
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
                 regardless of the label value will be filtered. For example, to
                 query programs that have the shape label and have the color
-                label with value red can be queried as follows:
-                >>>> labels_filter = {'color: red', 'shape:*'}
-                >>>> client.list_programs('my_proj', has_labels=labels_filter)
+                label with value red can be queried using
+                `{'color: red', 'shape:*'}`
         """
         filters = []
 
@@ -236,13 +235,13 @@ class EngineClient:
                 f"type {type(arg)}. Supported types: datetime.datetime and"
                 f"datetime.date")
 
-        if created_after:
+        if created_after is not None:
             val = _to_filter_date_or_time('created_after', created_after)
             filters.append(f"create_time >= {val}")
-        if created_before:
+        if created_before is not None:
             val = _to_filter_date_or_time('created_before', created_before)
             filters.append(f"create_time <= {val}")
-        if has_labels:
+        if has_labels is not None:
             for (k, v) in has_labels.items():
                 filters.append(f"labels.{k}:{v}")
         return self._make_request(

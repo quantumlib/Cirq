@@ -674,9 +674,8 @@ def test_list_programs(list_programs):
                                           created_before=None,
                                           has_labels=None)
     assert [(p.program_id, p.project_id, p._program) for p in result
-           ] == [
-        ('prog-YBGR48THF3JHERZW200804', 'proj', prog1),
-        ('prog-V3ZRTV6TTAFNTYJV200804', 'otherproj', prog2)]
+           ] == [('prog-YBGR48THF3JHERZW200804', 'proj', prog1),
+                 ('prog-V3ZRTV6TTAFNTYJV200804', 'otherproj', prog2)]
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient')

@@ -112,25 +112,55 @@ def test_list_program(client_constructor):
     }
 
 
+# yapf: disable
 @pytest.mark.parametrize(
-    'created_after, created_before, '
-    'labels, expected_filter', [
-        (None, None, None, ''),
-        (datetime.date(2020, 9, 1), None, None, 'create_time >= 2020-09-01'),
-        (datetime.datetime(2020, 9, 1, 0, 0,
-                           0), None, None, 'create_time >= 1598932800'),
-        (None, datetime.date(2020, 10, 1), None, 'create_time <= 2020-10-01'),
-        (datetime.date(2020, 9, 1), datetime.datetime(
-            2020, 9, 1, 0, 0, 10), None, 'create_time >= 2020-09-01 AND '
-         'create_time <= 1598932810'),
-        (None, None, {
+    'expected_filter, created_after, created_before, labels',
+    [
+        ('',
+            None,
+            None,
+            None),
+        ('create_time >= 2020-09-01',
+            datetime.date(2020, 9, 1),
+            None,
+            None),
+        ('create_time >= 1598918400',
+            datetime.datetime(2020, 9, 1, 0, 0, 0,
+                              tzinfo=datetime.timezone.utc),
+            None,
+            None),
+        ('create_time <= 2020-10-01',
+            None,
+            datetime.date(2020, 10, 1),
+            None),
+        ('create_time >= 2020-09-01 AND create_time <= 1598918410',
+            datetime.date(2020, 9, 1),
+            datetime.datetime(2020, 9, 1, 0, 0, 10,
+                            tzinfo=datetime.timezone.utc),
+            None),
+        ('labels.color:red AND labels.shape:*',
+            None,
+            None,
+            {
             'color': 'red',
             'shape': '*'
-        }, 'labels.color:red AND labels.shape:*'),
+            },
+        ),
+        ('create_time >= 2020-08-01 AND '
+         'create_time <= 1598943600 AND '
+         'labels.color:red AND labels.shape:*',
+            datetime.date(2020, 8, 1),
+            datetime.datetime(2020, 9, 1),
+            {
+            'color': 'red',
+            'shape': '*'
+            },
+        ),
     ])
+# yapf: enable
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
-def test_list_program_filters(client_constructor, created_before, created_after,
-                              labels, expected_filter):
+def test_list_program_filters(client_constructor, expected_filter,
+                              created_before, created_after, labels):
     grpc_client = setup_mock_(client_constructor)
     client = EngineClient()
     client.list_programs(project_id='proj',
@@ -140,6 +170,13 @@ def test_list_program_filters(client_constructor, created_before, created_after,
     assert grpc_client.list_quantum_programs.call_args[1] == {
         'filter_': expected_filter,
     }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_list_program_filters_invalid_type(client_constructor):
+    with pytest.raises(ValueError, match=""):
+        EngineClient().list_programs(project_id='proj',
+                                     created_before="Unsupported date/time")
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
