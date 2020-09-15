@@ -61,6 +61,10 @@ from cirq.linalg.operator_spaces import (
     pow_pauli_combination,
 )
 
+from cirq.linalg.operator_sum_utils import (
+    compute_kraus_operations,
+)
+
 from cirq.linalg.predicates import (
     allclose_up_to_global_phase,
     is_diagonal,
