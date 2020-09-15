@@ -147,10 +147,10 @@ def test_list_program(client_constructor):
             },
         ),
         ('create_time >= 2020-08-01 AND '
-         'create_time <= 1598943600 AND '
+         'create_time <= 1598918400 AND '
          'labels.color:red AND labels.shape:*',
             datetime.date(2020, 8, 1),
-            datetime.datetime(2020, 9, 1),
+            datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
             {
             'color': 'red',
             'shape': '*'
