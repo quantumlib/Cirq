@@ -270,8 +270,7 @@ class EngineProgram:
                       Union[datetime.datetime, datetime.date]] = None,
                   has_labels: Optional[Dict[str, str]] = None,
                   execution_states: Optional[Set[
-                      quantum.enums.ExecutionStatus.State]] = None,
-                  priority_interval: Optional[Tuple[int, int]] = None):
+                      quantum.enums.ExecutionStatus.State]] = None):
         """Returns the list of jobs for this program.
 
         Args:
@@ -290,10 +289,6 @@ class EngineProgram:
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
                  `quantum.enums.ExecutionStatus.State` enum for accepted values.
-            priority_interval: retrieve jobs that have priority within the given
-                priority interval (inclusive), i.e for [1,3], jobs with priority
-                p will be listed when 1 <= p <= 3. Min priority is 0, max is
-                1000.
         """
         client = self.context.client
         response = client.list_jobs(self.project_id,
@@ -301,8 +296,7 @@ class EngineProgram:
                                     created_before=created_before,
                                     created_after=created_after,
                                     has_labels=has_labels,
-                                    execution_states=execution_states,
-                                    priority_interval=priority_interval)
+                                    execution_states=execution_states)
         return [
             engine_job.EngineJob(
                 project_id=client._ids_from_job_name(j.name)[0],

@@ -167,8 +167,7 @@ def test_list_jobs(list_jobs):
                                       created_after=None,
                                       created_before=None,
                                       has_labels=None,
-                                      execution_states=None,
-                                      priority_interval=None)
+                                      execution_states=None)
     assert [(j.program_id, j.project_id, j.job_id, j.context, j._job)
             for j in result] == [('prog1', 'proj', 'job1', ctx, job1),
                                  ('prog1', 'otherproj', 'job2', ctx, job2)]
