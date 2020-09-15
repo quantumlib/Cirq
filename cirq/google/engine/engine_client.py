@@ -15,9 +15,8 @@
 import datetime
 import sys
 import time
-from typing import Callable, Dict, List, Optional, Sequence, Set, TypeVar, \
-    Tuple, \
-    Union
+from typing import (Callable, Dict, List, Optional, Sequence, Set, TypeVar,
+                    Tuple, Union)
 import warnings
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
