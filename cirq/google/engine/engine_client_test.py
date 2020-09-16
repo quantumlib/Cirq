@@ -632,6 +632,114 @@ def test_job_results(client_constructor):
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_list_jobs(client_constructor):
+    grpc_client = setup_mock_(client_constructor)
+
+    results = [
+        qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1'),
+        qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job2')
+    ]
+    grpc_client.list_quantum_jobs.return_value = results
+
+    client = EngineClient()
+    assert client.list_jobs(project_id='proj', program_id='prog1') == results
+    assert grpc_client.list_quantum_jobs.call_args[0] == (
+        'projects/proj/programs/prog1',)
+    assert grpc_client.list_quantum_jobs.call_args[1] == {
+        'filter_': '',
+    }
+
+    assert client.list_jobs(project_id='proj') == results
+    assert grpc_client.list_quantum_jobs.call_args[0] == (
+        'projects/proj/programs/-',)
+    assert grpc_client.list_quantum_jobs.call_args[1] == {
+        'filter_': '',
+    }
+
+
+# yapf: disable
+@pytest.mark.parametrize(
+    'expected_filter, '
+        'created_after, '
+        'created_before, '
+        'labels, '
+        'execution_states',
+    [
+        ('',
+            None,
+            None,
+            None,
+            None),
+        ('create_time >= 2020-09-01',
+            datetime.date(2020, 9, 1),
+            None,
+            None,
+            None),
+        ('create_time >= 1598918400',
+            datetime.datetime(2020, 9, 1, 0, 0, 0,
+                              tzinfo=datetime.timezone.utc),
+            None,
+            None,
+            None),
+        ('create_time <= 2020-10-01',
+            None,
+            datetime.date(2020, 10, 1),
+            None,
+            None),
+        ('create_time >= 2020-09-01 AND create_time <= 1598918410',
+            datetime.date(2020, 9, 1),
+            datetime.datetime(2020, 9, 1, 0, 0, 10,
+                            tzinfo=datetime.timezone.utc),
+            None,
+            None),
+        ('labels.color:red AND labels.shape:*',
+            None,
+            None,
+            {
+            'color': 'red',
+            'shape': '*'
+            },
+            None
+        ),
+        ('(execution_status.state = FAILURE OR '
+         'execution_status.state = CANCELLED)',
+            None,
+            None,
+            None,
+            [quantum.enums.ExecutionStatus.State.FAILURE,
+             quantum.enums.ExecutionStatus.State.CANCELLED,]
+        ),
+        ('create_time >= 2020-08-01 AND '
+         'create_time <= 1598918400 AND '
+         'labels.color:red AND labels.shape:* AND '
+         '(execution_status.state = SUCCESS)',
+            datetime.date(2020, 8, 1),
+            datetime.datetime(2020, 9, 1, tzinfo=datetime.timezone.utc),
+            {
+            'color': 'red',
+            'shape': '*'
+            },
+            [quantum.enums.ExecutionStatus.State.SUCCESS,],
+        ),
+    ])
+# yapf: enable
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
+def test_list_jobs_filters(client_constructor, expected_filter, created_before,
+                           created_after, labels, execution_states):
+    grpc_client = setup_mock_(client_constructor)
+    client = EngineClient()
+    client.list_jobs(project_id='proj',
+                     program_id='prog',
+                     created_before=created_before,
+                     created_after=created_after,
+                     has_labels=labels,
+                     execution_states=execution_states)
+    assert grpc_client.list_quantum_jobs.call_args[1] == {
+        'filter_': expected_filter,
+    }
+
+
+@mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
 def test_list_processors(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
