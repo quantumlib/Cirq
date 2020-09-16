@@ -80,6 +80,7 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
+                'ProductState': cirq.ProductState,
                 'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
@@ -120,6 +121,12 @@ class _ResolverCache:
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
+                '_XEigenState':
+                cirq.value.product_state._XEigenState,  # type: ignore
+                '_YEigenState':
+                cirq.value.product_state._YEigenState,  # type: ignore
+                '_ZEigenState':
+                cirq.value.product_state._ZEigenState,  # type: ignore
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
