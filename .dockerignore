@@ -1,0 +1,45 @@
+# ignore compiled python files
+__pycache__
+*.pyc
+
+# ignore idea SDK
+.idea/*
+.vscode
+
+# ignore cache
+.cache/*
+.mypy_cache/*
+.pytest_cache/*
+
+# ignore coverage files
+*.py,cover
+*.coverage
+*.coverage.*
+
+# packaging
+*.egg-info/
+
+# Sphinx
+_build
+rtd_docs/generated
+
+# swap files
+*.swp
+
+# Mac only
+.DS_Store
+
+# From pytest-benchmark
+*.benchmarks/
+
+# Ignore generated Jupyter files
+*.ipynb_checkpoints/
+
+# Ignore Bazel files
+/bazel-*
+
+# Default pycharm virtual env
+.venv/
+
+# pyenv configuration
+.python-version

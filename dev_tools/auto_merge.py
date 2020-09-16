@@ -7,10 +7,10 @@ import os
 import time
 import sys
 
+from google.cloud import secretmanager_v1beta1
 import requests
 
 from dev_tools.github_repository import GithubRepository
-
 
 GITHUB_REPO_NAME = 'cirq'
 GITHUB_REPO_ORGANIZATION = 'quantumlib'
@@ -922,8 +922,14 @@ def indent(text: str) -> str:
 def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
-        print('{} not set.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr)
-        sys.exit(1)
+        print('{} not set. Trying secret manager.'.format(
+            ACCESS_TOKEN_ENV_VARIABLE),
+              file=sys.stderr)
+
+        client = secretmanager_v1beta1.SecretManagerServiceClient()
+        name = client.secret_version_path('cirq-infra', 'cirq-bot-api-key', '1')
+        response = client.access_secret_version(name)
+        access_token = response.payload.data.decode('UTF-8')
 
     repo = GithubRepository(
         organization=GITHUB_REPO_ORGANIZATION,
