@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, Dict, Union
+from typing import AbstractSet, Any, Dict, Union
 
 import numpy as np
 import sympy
@@ -138,11 +138,14 @@ class PhaseGradientGate(raw_types.Gate):
         return np.diag(
             [1j**(4 * i / size * self.exponent) for i in range(size)])
 
-    def _has_unitary_(self):
-        return not isinstance(self.exponent, sympy.Basic)
+    def _has_unitary_(self) -> bool:
+        return not cirq.is_parameterized(self)
 
-    def _is_parameterized_(self):
-        return isinstance(self.exponent, sympy.Basic)
+    def _is_parameterized_(self) -> bool:
+        return cirq.is_parameterized(self.exponent)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return cirq.parameter_names(self.exponent)
 
     def _resolve_parameters_(self, resolver):
         new_exponent = cirq.resolve_parameters(self.exponent, resolver)

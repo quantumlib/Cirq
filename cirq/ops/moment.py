@@ -116,6 +116,32 @@ class Moment:
 
         return m
 
+    def with_operations(self, *contents: 'cirq.OP_TREE') -> 'cirq.Moment':
+        """Returns a new moment with the given contents added.
+
+        Args:
+            contents: New operations to add to this moment.
+
+        Returns:
+            The new moment.
+        """
+        from cirq.ops import op_tree
+
+        operations = list(self._operations)
+        qubits = set(self._qubits)
+        for op in op_tree.flatten_to_ops(contents):
+            if any(q in qubits for q in op.qubits):
+                raise ValueError('Overlapping operations: {}'.format(op))
+            operations.append(op)
+            qubits.update(op.qubits)
+
+        # Use private variables to facilitate a quick copy
+        m = Moment()
+        m._operations = tuple(operations)
+        m._qubits = frozenset(qubits)
+
+        return m
+
     def without_operations_touching(self, qubits: Iterable['cirq.Qid']
                                    ) -> 'cirq.Moment':
         """Returns an equal moment, but without ops on the given qubits.
@@ -232,7 +258,7 @@ class Moment:
         from cirq.circuits import circuit
         if isinstance(other, circuit.Circuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
-        return Moment([self.operations, other])
+        return self.with_operations(other)
 
     def __sub__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
         from cirq.ops import op_tree

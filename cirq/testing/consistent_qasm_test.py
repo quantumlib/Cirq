@@ -80,9 +80,9 @@ def test_assert_qasm_is_consistent_with_unitary():
         cirq.CNOT.on(cirq.NamedQubit('b'), cirq.NamedQubit('a')))
 
     # Checks that code is valid.
-    with pytest.raises(AssertionError, match='Illegal character'):
+    with pytest.raises(AssertionError, match='Check your OPENQASM'):
         cirq.testing.assert_qasm_is_consistent_with_unitary(
-            Fixed(np.array([[1, 0], [0, -1]]), 'JUNK'))
+            Fixed(np.array([[1, 0], [0, -1]]), 'JUNK$&*@($#::=[];'))
 
     # Checks that the test handles qudits
     cirq.testing.assert_qasm_is_consistent_with_unitary(QuditGate())
