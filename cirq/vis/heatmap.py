@@ -31,16 +31,13 @@ from cirq.devices import grid_qubit
 
 QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
 
+QubitPair = Union[Tuple[grid_qubit.GridQubit, grid_qubit.GridQubit],
+                  Tuple[Tuple[int, int], Tuple[int, int]]]
+
+Hashable = Union[QubitCoordinate, QubitPair]
+
 # The value map is qubit coordinate -> a type that supports float conversion.
-ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat],
-                 Dict[Tuple[int, int], SupportsFloat]]
-
-
-def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
-    if isinstance(qubit, grid_qubit.GridQubit):
-        return qubit.row, qubit.col
-    elif isinstance(qubit, tuple):
-        return qubit[0], qubit[1]
+ValueMap = Dict[Hashable, SupportsFloat]
 
 
 def relative_luminance(color: np.ndarray) -> float:
@@ -59,32 +56,34 @@ def relative_luminance(color: np.ndarray) -> float:
     return rgb.dot([.2126, .7152, .0722])
 
 
-class Heatmap:
+def _get_qubit_row_col(self, qubit: QubitCoordinate) -> Tuple[int, int]:
+    if isinstance(qubit, grid_qubit.GridQubit):
+        return qubit.row, qubit.col
+    elif isinstance(qubit, tuple):
+        return qubit[0], qubit[1]
+
+
+def _sum_qubit_row_col(self, qubitpair: QubitPair) -> Tuple[int, int]:
+    if isinstance(qubitpair[0], grid_qubit.GridQubit):
+        return qubitpair[0].row+qubitpair[1].row, qubitpair[0].col+qubitpair[1].col
+    elif isinstance(qubitpair[1], tuple):
+        return qubitpair[0][0]+qubitpair[0][1], qubitpair[1][0]+qubitpair[1][1]
+
+
+
+class Heatmap_base:
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, value_map: ValueMap) -> None:
         self.set_value_map(value_map)
         self.annot_map = {  # Default annotation.
-            _get_qubit_row_col(qubit): format(float(value), '.2g')
-            for qubit, value in value_map.items()
+            _get_qubit_row_col(hashable): format(float(value), '.2g')
+            for hashable, value in value_map.items()
         }
         self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
         self.set_colorbar()
         self.set_colormap()
-
-    def set_value_map(self, value_map: ValueMap) -> 'Heatmap':
-        """Sets the values for each qubit.
-
-        Args:
-            value_map: the values for determining color for each cell.
-        """
-        # Fail fast if float() fails.
-        # Keep the original value object for annotation.
-        self.value_map = {
-            qubit: (float(value), value) for qubit, value in value_map.items()
-        }
-        return self
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
                            **text_options: str) -> 'Heatmap':
@@ -99,8 +98,8 @@ class Heatmap:
                 when drawing the annotation texts.
         """
         self.annot_map = {
-            _get_qubit_row_col(qubit): value
-            for qubit, value in annot_map.items()
+            _get_qubit_row_col(hashable): value
+            for hashable, value in annot_map.items()
         }
         self.annot_kwargs = text_options
         return self
@@ -114,8 +113,8 @@ class Heatmap:
             text_options: keyword arguments to matplotlib.text.Text().
         """
         self.annot_map = {
-            _get_qubit_row_col(qubit): format(value[1], annot_format)
-            for qubit, value in self.value_map.items()
+            _get_qubit_row_col(hashable): format(value[1], annot_format)
+            for hashable, value in self.value_map.items()
         }
         self.annot_kwargs = text_options
         return self
@@ -128,8 +127,8 @@ class Heatmap:
     def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap':
         """Sets the URLs for each cell."""
         self.url_map = {
-            _get_qubit_row_col(qubit): value
-            for qubit, value in url_map.items()
+            _get_qubit_row_col(hashable): value
+            for hashable, value in url_map.items()
         }
         return self
 
@@ -186,6 +185,39 @@ class Heatmap:
         self.vmax = vmax
         return self
 
+    def _plot_colorbar(self, mappable: mpl.cm.ScalarMappable,
+                       ax: plt.Axes) -> mpl.colorbar.Colorbar:
+        """Plots the colorbar. Internal."""
+        colorbar_ax = axes_grid1.make_axes_locatable(ax).append_axes(
+            **self.colorbar_location_options)
+        position = self.colorbar_location_options.get('position', 'right')
+        orien = 'vertical' if position in ('left', 'right') else 'horizontal'
+        colorbar = ax.figure.colorbar(mappable,
+                                      colorbar_ax,
+                                      ax,
+                                      orientation=orien,
+                                      **self.colorbar_options)
+        colorbar_ax.tick_params(axis='y', direction='out')
+        return colorbar
+
+    def _write_annotations(self, mesh: mpl_collections.Collection,
+                           ax: plt.Axes) -> None:
+        """Writes annotations to the center of cells. Internal."""
+        for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
+            # Calculate the center of the cell, assuming that it is a square
+            # centered at (x=col, y=row).
+            vertices = path.vertices[:4]
+            row = int(round(np.mean([v[1] for v in vertices])))
+            col = int(round(np.mean([v[0] for v in vertices])))
+            annotation = self.annot_map.get((row, col), '')
+            if not annotation:
+                continue
+            face_luminance = relative_luminance(facecolor)
+            text_color = 'black' if face_luminance > 0.4 else 'white'
+            text_kwargs = dict(color=text_color, ha="center", va="center")
+            text_kwargs.update(self.annot_kwargs)
+            ax.text(col, row, annotation, **text_kwargs)
+
     def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
             ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
@@ -219,7 +251,7 @@ class Heatmap:
                                    index=range(min_row, max_row + 1),
                                    columns=range(min_col, max_col + 1))
         for qubit, (float_value, _) in self.value_map.items():
-            row, col = _get_qubit_row_col(qubit)
+            row, col = self._get_qubit_row_col(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
         x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] *
@@ -261,35 +293,36 @@ class Heatmap:
 
         return ax, mesh, value_table
 
-    def _plot_colorbar(self, mappable: mpl.cm.ScalarMappable,
-                       ax: plt.Axes) -> mpl.colorbar.Colorbar:
-        """Plots the colorbar. Internal."""
-        colorbar_ax = axes_grid1.make_axes_locatable(ax).append_axes(
-            **self.colorbar_location_options)
-        position = self.colorbar_location_options.get('position', 'right')
-        orien = 'vertical' if position in ('left', 'right') else 'horizontal'
-        colorbar = ax.figure.colorbar(mappable,
-                                      colorbar_ax,
-                                      ax,
-                                      orientation=orien,
-                                      **self.colorbar_options)
-        colorbar_ax.tick_params(axis='y', direction='out')
-        return colorbar
 
-    def _write_annotations(self, mesh: mpl_collections.Collection,
-                           ax: plt.Axes) -> None:
-        """Writes annotations to the center of cells. Internal."""
-        for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
-            # Calculate the center of the cell, assuming that it is a square
-            # centered at (x=col, y=row).
-            vertices = path.vertices[:4]
-            row = int(round(np.mean([v[1] for v in vertices])))
-            col = int(round(np.mean([v[0] for v in vertices])))
-            annotation = self.annot_map.get((row, col), '')
-            if not annotation:
-                continue
-            face_luminance = relative_luminance(facecolor)
-            text_color = 'black' if face_luminance > 0.4 else 'white'
-            text_kwargs = dict(color=text_color, ha="center", va="center")
-            text_kwargs.update(self.annot_kwargs)
-            ax.text(col, row, annotation, **text_kwargs)
+class Heatmap(Heatmap_base):
+    """Distribution of a value in 2D qubit lattice as a color map."""
+
+    def set_value_map(self, value_map: ValueMap) -> 'Heatmap':
+        """Sets the values for each qubit.
+
+        Args:
+            value_map: the values for determining color for each cell.
+        """
+        # Fail fast if float() fails.
+        # Keep the original value object for annotation.
+        self.value_map = {
+            hashable: (float(value), value) for hashable, value in value_map.items()
+        }
+        return self
+
+
+class InterHeatmap(Heatmap):
+    """Distribution of a value in 2D qubit lattice as a color map."""
+
+    def set_value_map(self, inter_value_map: ValueMap) -> 'Heatmap':
+        """Sets the values for each qubit.
+
+        Args:
+            value_map: the values for determining color for each cell.
+        """
+        # Fail fast if float() fails.
+        # Keep the original value object for annotation.
+        self.value_map = {
+            _sum_qubit_row_col(hashable): (float(value), value) for hashable, value in value_map.items()
+        }
+        return self
