@@ -100,6 +100,7 @@ class _ResolverCache:
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
+                'MutablePauliString': cirq.MutablePauliString,
                 'GateOperation': cirq.GateOperation,
                 'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':

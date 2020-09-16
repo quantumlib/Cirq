@@ -97,7 +97,7 @@ upper_tabs:
       skip_translation: true
       contents:
       - title: "All Symbols"
-        path: /cirq/api_docs/python/
-      - include: /cirq/api_docs/python/_toc.yaml
+        path: /cirq/api_docs/python/cirq/all_symbols
+      - include: /cirq/api_docs/python/cirq/_toc.yaml
 
 - include: /_book/upper_tabs_right.yaml

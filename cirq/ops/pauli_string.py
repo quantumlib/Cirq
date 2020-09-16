@@ -11,11 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import (Any, cast, Dict, ItemsView, Iterable, Iterator, KeysView,
                     List, Mapping, Optional, overload, Sequence,
                     SupportsComplex, Tuple, TYPE_CHECKING, TypeVar, Union,
-                    ValuesView)
+                    ValuesView, AbstractSet)
 
 import cmath
 import math
@@ -126,11 +125,12 @@ class PauliString(raw_types.Operation):
                 if not isinstance(v, pauli_gates.Pauli):
                     raise TypeError(f'{v} is not a Pauli')
 
-        p = _MutablePauliString(coef=complex(coefficient),
-                                paulis=dict(qubit_pauli_map or {}))
-        p.inline_times_pauli_string_like(contents)
-        self._qubit_pauli_map = p.paulis
-        self._coefficient = p.coef
+        self._qubit_pauli_map = qubit_pauli_map or {}
+        self._coefficient = complex(coefficient)
+        if contents:
+            m = self.mutable_copy().inplace_left_multiply_by(contents).frozen()
+            self._qubit_pauli_map = m._qubit_pauli_map
+            self._coefficient = m._coefficient
 
     @property
     def coefficient(self) -> complex:
@@ -289,6 +289,20 @@ class PauliString(raw_types.Operation):
 
     def items(self) -> ItemsView:
         return self._qubit_pauli_map.items()
+
+    def frozen(self) -> 'cirq.PauliString':
+        """Returns a cirq.PauliString with the same contents."""
+        return self
+
+    def mutable_copy(self) -> 'cirq.MutablePauliString':
+        """Returns a new cirq.MutablePauliString with the same contents."""
+        return MutablePauliString(
+            coefficient=self.coefficient,
+            pauli_int_dict={
+                q: PAULI_GATE_LIKE_TO_INDEX_MAP[p]
+                for q, p in self._qubit_pauli_map.items()
+            },
+        )
 
     def __iter__(self) -> Iterator[raw_types.Qid]:
         return iter(self._qubit_pauli_map.keys())
@@ -794,6 +808,38 @@ class PauliString(raw_types.Operation):
         coef = -self._coefficient if should_negate else self.coefficient
         return PauliString(qubit_pauli_map=pauli_map, coefficient=coef)
 
+    def after(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
+        r"""Determines the equivalent pauli string after some operations.
+
+        If the PauliString is $P$ and the Clifford operation is $C$, then the
+        result is $C P C^\dagger$.
+
+        Args:
+            ops: A stabilizer operation or nested collection of stabilizer
+                operations.
+
+        Returns:
+            The result of propagating this pauli string from before to after the
+            given operations.
+        """
+        return self.conjugated_by(protocols.inverse(ops))
+
+    def before(self, ops: 'cirq.OP_TREE') -> 'cirq.PauliString':
+        r"""Determines the equivalent pauli string before some operations.
+
+        If the PauliString is $P$ and the Clifford operation is $C$, then the
+        result is $C^\dagger P C$.
+
+        Args:
+            ops: A stabilizer operation or nested collection of stabilizer
+                operations.
+
+        Returns:
+            The result of propagating this pauli string from after to before the
+            given operations.
+        """
+        return self.conjugated_by(ops)
+
     def pass_operations_over(self,
                              ops: Iterable['cirq.Operation'],
                              after_to_before: bool = False) -> 'PauliString':
@@ -959,7 +1005,7 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
     """
 
     def __init__(self, pauli: pauli_gates.Pauli, qubit: 'cirq.Qid'):
-        PauliString.__init__(self, {qubit: pauli})
+        PauliString.__init__(self, qubit_pauli_map={qubit: pauli})
         gate_operation.GateOperation.__init__(self, cast(raw_types.Gate, pauli),
                                               [qubit])
 
@@ -1008,63 +1054,317 @@ class SingleQubitPauliStringGateOperation(  # type: ignore
         return cls(pauli=pauli, qubit=qubit)
 
 
-class _MutablePauliString:
+@value.value_equality(unhashable=True, manual_cls=True, approximate=True)
+class MutablePauliString:
 
-    def __init__(self, *, coef: complex,
-                 paulis: Dict['cirq.Qid', 'cirq.Pauli']):
-        self.coef = coef
-        self.paulis = paulis
+    def __init__(self,
+                 *contents: 'cirq.PAULI_STRING_LIKE',
+                 coefficient: Union[int, float, complex] = 1,
+                 pauli_int_dict: Optional[Dict['cirq.Qid', int]] = None):
+        self.coefficient = complex(coefficient)
+        self.pauli_int_dict = {} if pauli_int_dict is None else pauli_int_dict
+        if contents:
+            self.inplace_left_multiply_by(contents)
 
-    def _inline_times_pauli(self, qubit: 'cirq.Qid', pauli: 'cirq.Pauli'):
-        cur_pauli = self.paulis.get(qubit, None)
-        if cur_pauli is None:
-            self.paulis[qubit] = pauli
-            return
+    def _value_equality_values_(self):
+        return self.frozen()._value_equality_values_()
 
-        phase, new_pauli = cur_pauli.phased_pauli_product(pauli)
-        self.coef *= phase
-        if new_pauli is identity.I:
-            del self.paulis[qubit]
+    def _value_equality_values_cls_(self):
+        return self.frozen()._value_equality_values_cls_()
+
+    def _imul_atom_helper(self, qubit: 'cirq.Qid', pauli_lhs: int,
+                          sign: int) -> int:
+        pauli_old = self.pauli_int_dict.pop(qubit, 0)
+        pauli_new = pauli_lhs ^ pauli_old
+        if pauli_new:
+            self.pauli_int_dict[qubit] = pauli_new
+        if not pauli_lhs or not pauli_old or pauli_lhs == pauli_old:
+            return 0
+        if (pauli_old - pauli_lhs) % 3 == 1:
+            return sign
+        return -sign
+
+    def keys(self) -> AbstractSet['cirq.Qid']:
+        return self.pauli_int_dict.keys()
+
+    def values(self) -> Iterator[Union['cirq.Pauli', 'cirq.IdentityGate']]:
+        for v in self.pauli_int_dict.values():
+            yield _INT_TO_PAULI[v]
+
+    def __iter__(self) -> Iterator['cirq.Qid']:
+        return iter(self.pauli_int_dict)
+
+    def __len__(self) -> int:
+        return len(self.pauli_int_dict)
+
+    def __bool__(self) -> bool:
+        return bool(self.pauli_int_dict)
+
+    def frozen(self) -> 'cirq.PauliString':
+        """Returns a cirq.PauliString with the same contents.
+
+        For example, this is useful because cirq.PauliString is an operation
+        whereas cirq.MutablePauliString is not.
+        """
+        return PauliString(
+            coefficient=self.coefficient,
+            qubit_pauli_map={
+                q: cast(pauli_gates.Pauli, _INT_TO_PAULI[p])
+                for q, p in self.pauli_int_dict.items()
+                if p
+            },
+        )
+
+    def mutable_copy(self) -> 'cirq.MutablePauliString':
+        """Returns a new cirq.MutablePauliString with the same contents."""
+        return MutablePauliString(
+            coefficient=self.coefficient,
+            pauli_int_dict=dict(self.pauli_int_dict),
+        )
+
+    def items(
+            self
+    ) -> Iterator[Tuple['cirq.Qid', Union['cirq.Pauli', 'cirq.IdentityGate']]]:
+        for k, v in self.pauli_int_dict.items():
+            yield k, _INT_TO_PAULI[v]
+
+    def __contains__(self, item: Any) -> bool:
+        return item in self.pauli_int_dict
+
+    def __getitem__(self,
+                    item: Any) -> Union['cirq.Pauli', 'cirq.IdentityGate']:
+        return _INT_TO_PAULI[self.pauli_int_dict[item]]
+
+    def __setitem__(self, key: 'cirq.Qid', value: 'cirq.PAULI_GATE_LIKE'):
+        value = _pauli_like_to_pauli_int(key, value)
+        if value:
+            self.pauli_int_dict[key] = _pauli_like_to_pauli_int(key, value)
         else:
-            self.paulis[qubit] = cast(pauli_gates.Pauli, new_pauli)
+            self.pauli_int_dict.pop(key, None)
 
-    def inline_times_pauli_string(self, other: 'cirq.PauliString'):
-        for qubit, pauli in other.items():
-            self._inline_times_pauli(qubit, pauli)
-        self.coef *= other.coefficient
+    def __delitem__(self, key: 'cirq.Qid'):
+        del self.pauli_int_dict[key]
 
-    def _inline_times_mapping(
-            self, mapping: Mapping['cirq.Qid', 'cirq.PAULI_GATE_LIKE']):
-        for qubit, pauli_like in mapping.items():
-            pauli = PAULI_GATE_LIKE_TO_GATE_MAP.get(pauli_like, None)
-            if pauli is None:
-                raise TypeError(f'{pauli_like!r} is not '
-                                f'cirq.I, cirq.X, cirq.Y, cirq.Z, '
-                                f'"I", "X", "Y", "Z", '
-                                f'0, 1, 2, or 3.')
-            if isinstance(pauli, identity.IdentityGate):
-                continue
-            self._inline_times_pauli(qubit, pauli)
+    # pylint: disable=function-redefined
+    @overload
+    def get(self, key: 'cirq.Qid', default: None = None
+           ) -> Union['cirq.Pauli', 'cirq.IdentityGate', None]:
+        pass
 
-    def inline_times_pauli_string_like(self,
-                                       contents: 'cirq.PAULI_STRING_LIKE'):
-        if isinstance(contents, PauliString):
-            # Note: cirq.X/Y/Z(qubit) are PauliString instances.
-            self.inline_times_pauli_string(contents)
-        elif (isinstance(contents, raw_types.Operation) and
-              isinstance(contents.gate, identity.IdentityGate)):
-            pass  # No effect.
-        elif isinstance(contents, Mapping):
-            self._inline_times_mapping(contents)
-        elif isinstance(contents, Iterable) and not isinstance(contents, str):
-            for item in contents:
-                self.inline_times_pauli_string_like(
-                    cast(PAULI_STRING_LIKE, item))
-        elif isinstance(contents, numbers.Number):
-            self.coef *= complex(cast(SupportsComplex, contents))
+    @overload
+    def get(self, key: 'cirq.Qid', default: TDefault
+           ) -> Union['cirq.Pauli', 'cirq.IdentityGate', TDefault]:
+        pass
+
+    def get(self, key, default=None):
+        result = self.pauli_int_dict.get(key, None)
+        return default if result is None else _INT_TO_PAULI[result]
+
+    # pylint: enable=function-redefined
+
+    def inplace_before(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
+        r"""Propagates the pauli string from after to before a Clifford effect.
+
+        If the old value of the MutablePauliString is $P$ and the Clifford
+        operation is $C$, then the new value of the MutablePauliString is
+        $C^\dagger P C$.
+
+        Args:
+            ops: A stabilizer operation or nested collection of stabilizer
+                operations.
+
+        Returns:
+            The mutable pauli string that was mutated.
+        """
+        return self.inplace_after(protocols.inverse(ops))
+
+    def inplace_after(self, ops: 'cirq.OP_TREE') -> 'cirq.MutablePauliString':
+        r"""Propagates the pauli string from before to after a Clifford effect.
+
+        If the old value of the MutablePauliString is $P$ and the Clifford
+        operation is $C$, then the new value of the MutablePauliString is
+        $C P C^\dagger$.
+
+        Args:
+            ops: A stabilizer operation or nested collection of stabilizer
+                operations.
+
+        Returns:
+            The mutable pauli string that was mutated.
+        """
+        for clifford in op_tree.flatten_to_ops(ops):
+            for op in _decompose_into_cliffords(clifford):
+                ps = [self.pauli_int_dict.pop(q, 0) for q in op.qubits]
+                if not any(ps):
+                    continue
+                gate = op.gate
+
+                if isinstance(gate, clifford_gate.SingleQubitCliffordGate):
+                    out = gate.transform(
+                        cast(pauli_gates.Pauli, _INT_TO_PAULI[ps[0]]))
+                    if out.flip:
+                        self.coefficient *= -1
+                    self.pauli_int_dict[
+                        op.qubits[0]] = PAULI_GATE_LIKE_TO_INDEX_MAP[out.to]
+
+                elif isinstance(gate,
+                                pauli_interaction_gate.PauliInteractionGate):
+                    q0, q1 = op.qubits
+                    p0 = _INT_TO_PAULI[ps[0]]
+                    p1 = _INT_TO_PAULI[ps[1]]
+
+                    # Kick across Paulis that anti-commute with the controls.
+                    kickback_0_to_1 = not protocols.commutes(p0, gate.pauli0)
+                    kickback_1_to_0 = not protocols.commutes(p1, gate.pauli1)
+                    kick0 = gate.pauli1 if kickback_0_to_1 else identity.I
+                    kick1 = gate.pauli0 if kickback_1_to_0 else identity.I
+                    self.__imul__({q0: p0, q1: kick0})
+                    self.__imul__({q0: kick1, q1: p1})
+
+                    # Decompose inverted controls into single-qubit operations.
+                    if gate.invert0:
+                        self.inplace_after(gate.pauli1(q1))
+                    if gate.invert1:
+                        self.inplace_after(gate.pauli0(q0))
+
+                else:
+                    # coverage: ignore
+                    raise NotImplementedError(
+                        f"Unrecognized decomposed Clifford: {op!r}")
+        return self
+
+    def _imul_helper(self, other: 'cirq.PAULI_STRING_LIKE', sign: int):
+        """Left-multiplies or right-multiplies by a PAULI_STRING_LIKE.
+
+         Args:
+             other: What to multiply by.
+             sign: +1 to left-multiply, -1 to right-multiply.
+
+         Returns:
+             self on success, NotImplemented given an unknown type of value.
+        """
+
+        if isinstance(other, (Mapping, PauliString, MutablePauliString)):
+            if isinstance(other, (PauliString, MutablePauliString)):
+                self.coefficient *= other.coefficient
+            phase_log_i = 0
+            for qubit, pauli_gate_like in other.items():
+                pauli_int = _pauli_like_to_pauli_int(qubit, pauli_gate_like)
+                phase_log_i += self._imul_atom_helper(qubit, pauli_int, sign)
+            self.coefficient *= 1j**(phase_log_i & 3)
+        elif isinstance(other, numbers.Number):
+            self.coefficient *= complex(cast(SupportsComplex, other))
+        elif isinstance(other, raw_types.Operation) and isinstance(
+                other.gate, identity.IdentityGate):
+            pass
+        elif isinstance(other, Iterable) and not isinstance(other, str):
+            if sign == +1:
+                other = reversed(list(other))
+            for item in other:
+                if self._imul_helper(cast(PAULI_STRING_LIKE, item),
+                                     sign) is NotImplemented:
+                    return NotImplemented
         else:
-            raise TypeError(f"Not a `cirq.PAULI_STRING_LIKE`: "
-                            f"{type(contents)}, {repr(contents)}")
+            return NotImplemented
+
+        return self
+
+    def _imul_helper_checkpoint(self, other: 'cirq.PAULI_STRING_LIKE',
+                                sign: int):
+        """Like `_imul_helper` but guarantees no-op on error."""
+        if not isinstance(other,
+                          (numbers.Number, PauliString, MutablePauliString)):
+            other = MutablePauliString()._imul_helper(other, sign)
+            if other is NotImplemented:
+                return NotImplemented
+        return self._imul_helper(other, sign)
+
+    def inplace_left_multiply_by(self, other: 'cirq.PAULI_STRING_LIKE'
+                                ) -> 'cirq.MutablePauliString':
+        """Left-multiplies a pauli string into this pauli string.
+
+        Args:
+            other: A pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
+                into `self`.
+
+        Returns:
+            The `self` mutable pauli string that was mutated.
+
+        Raises:
+            TypeError: `other` was not a `cirq.PAULI_STRING_LIKE`. `self`
+                was not mutated.
+        """
+        if self._imul_helper_checkpoint(other, -1) is NotImplemented:
+            raise TypeError(f"{other!r} is not cirq.PAULI_STRING_LIKE.")
+        return self
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return {
+            'cirq_type': self.__class__.__name__,
+            # JSON requires mappings to have string keys.
+            'pauli_int_dict': list(self.pauli_int_dict.items()),
+            'coefficient': self.coefficient,
+        }
+
+    @classmethod
+    def _from_json_dict_(cls, pauli_int_dict, coefficient, **kwargs):
+        return cls(pauli_int_dict=dict(pauli_int_dict), coefficient=coefficient)
+
+    def inplace_right_multiply_by(self, other: 'cirq.PAULI_STRING_LIKE'
+                                 ) -> 'cirq.MutablePauliString':
+        """Right-multiplies a pauli string into this pauli string.
+
+        Args:
+            other: A pauli string or `cirq.PAULI_STRING_LIKE` to right-multiply
+                into `self`.
+
+        Returns:
+            The `self` mutable pauli string that was mutated.
+
+        Raises:
+            TypeError: `other` was not a `cirq.PAULI_STRING_LIKE`. `self`
+                was not mutated.
+        """
+        if self._imul_helper_checkpoint(other, +1) is NotImplemented:
+            raise TypeError(f"{other!r} is not cirq.PAULI_STRING_LIKE.")
+        return self
+
+    def __imul__(self,
+                 other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.MutablePauliString':
+        """Left-multiplies a pauli string into this pauli string.
+
+        Args:
+            other: A pauli string or `cirq.PAULI_STRING_LIKE` to left-multiply
+                into `self`.
+
+        Returns:
+            The `self` mutable pauli string that was successfully mutated.
+
+            If `other` is not a `cirq.PAULI_STRING_LIKE`, `self` is not mutated
+            and `NotImplemented` is returned.
+
+        """
+        return self._imul_helper_checkpoint(other, +1)
+
+    def __mul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.PauliString':
+        """Multiplies two pauli-string-likes together.
+
+        The result is not mutable.
+        """
+        return self.frozen() * other
+
+    def __rmul__(self, other: 'cirq.PAULI_STRING_LIKE') -> 'cirq.PauliString':
+        """Multiplies two pauli-string-likes together.
+
+        The result is not mutable.
+        """
+        return other * self.frozen()
+
+    def __str__(self) -> str:
+        return f'mutable {self.frozen()}'
+
+    def __repr__(self) -> str:
+        return f'{self.frozen()!r}.mutable_copy()'
 
 
 def _decompose_into_cliffords(op: 'cirq.Operation') -> List['cirq.Operation']:
@@ -1127,3 +1427,13 @@ PAULI_GATE_LIKE_TO_GATE_MAP: Dict[
     'cirq.PAULI_GATE_LIKE', Union['cirq.Pauli', 'cirq.IdentityGate']] = {
         k: _INT_TO_PAULI[v] for k, v in PAULI_GATE_LIKE_TO_INDEX_MAP.items()
     }
+
+
+def _pauli_like_to_pauli_int(key: Any, pauli_gate_like: PAULI_GATE_LIKE):
+    pauli_int = PAULI_GATE_LIKE_TO_INDEX_MAP.get(pauli_gate_like, None)
+    if pauli_int is None:
+        raise TypeError(f'Expected {key!r}: {pauli_gate_like!r} to have a '
+                        f'cirq.PAULI_GATE_LIKE value. '
+                        f"But the value isn't in "
+                        f"{list(PAULI_GATE_LIKE_TO_INDEX_MAP.values())!r}")
+    return cast(int, pauli_int)
