@@ -66,6 +66,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.ISWAP
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.cphase
     cirq.givens
     cirq.identity_each
     cirq.qft
