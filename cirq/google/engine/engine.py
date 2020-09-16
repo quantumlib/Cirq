@@ -545,7 +545,9 @@ class Engine:
                 regardless of the label value will be filtered. For example, to
                 query programs that have the shape label and have the color
                 label with value red can be queried using
-                `{'color: red', 'shape:*'}`
+
+                {'color': 'red', 'shape':'*'}
+
             execution_states: retrieve jobs that have an execution state  that
                  is contained in `execution_states`. See
                  `quantum.enums.ExecutionStatus.State` enum for accepted values.

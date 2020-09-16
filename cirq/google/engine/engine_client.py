@@ -236,10 +236,11 @@ class EngineClient:
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
-                regardless of the label value will be filtered. For example, to
-                query programs that have the shape label and have the color
+                egardless of the label value will be filtered. For example, to
+                uery programs that have the shape label and have the color
                 label with value red can be queried using
-                `{'color: red', 'shape:*'}`
+
+                {'color': 'red', 'shape':'*'}
         """
         filters = []
 
@@ -449,10 +450,12 @@ class EngineClient:
                 regardless of the label value will be filtered. For example, to
                 query programs that have the shape label and have the color
                 label with value red can be queried using
-                `{'color: red', 'shape:*'}`
-            execution_states: retrieve jobs that have an execution state  that
-                 is contained in `execution_states`. See
-                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state that
+                is contained in `execution_states`. See
+                `quantum.enums.ExecutionStatus.State` enum for accepted values.
         """
         filters = []
 
