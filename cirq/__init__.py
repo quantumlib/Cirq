@@ -217,6 +217,7 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     MutableDensePauliString,
+    MutablePauliString,
     NamedQubit,
     NamedQid,
     OP_TREE,

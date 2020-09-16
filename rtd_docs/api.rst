@@ -161,6 +161,7 @@ and products of Pauli operations.
     cirq.CliffordTableau
     cirq.DensePauliString
     cirq.MutableDensePauliString
+    cirq.MutablePauliString
     cirq.Pauli
     cirq.PauliInteractionGate
     cirq.PauliString
