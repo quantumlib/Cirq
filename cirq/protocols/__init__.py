@@ -120,6 +120,8 @@ from cirq.protocols.trace_distance_bound import (
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,
+    parameter_names,
+    parameter_symbols,
     resolve_parameters,
     SupportsParameterization,
 )

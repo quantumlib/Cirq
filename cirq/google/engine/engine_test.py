@@ -660,6 +660,24 @@ def test_get_program():
     assert cg.Engine(project_id='proj').get_program('prog').program_id == 'prog'
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_programs')
+def test_list_programs(list_programs):
+    prog1 = qtypes.QuantumProgram(
+        name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
+    prog2 = qtypes.QuantumProgram(
+        name='projects/otherproj/programs/prog-V3ZRTV6TTAFNTYJV200804')
+    list_programs.return_value = [prog1, prog2]
+
+    result = cg.Engine(project_id='proj').list_programs()
+    list_programs.assert_called_once_with('proj',
+                                          created_after=None,
+                                          created_before=None,
+                                          has_labels=None)
+    assert [(p.program_id, p.project_id, p._program) for p in result
+           ] == [('prog-YBGR48THF3JHERZW200804', 'proj', prog1),
+                 ('prog-V3ZRTV6TTAFNTYJV200804', 'otherproj', prog2)]
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient')
 def test_create_program(client):
     client().create_program.return_value = ('prog', qtypes.QuantumProgram())
@@ -668,6 +686,25 @@ def test_create_program(client):
                                                          gate_set=cg.XMON)
     client().create_program.assert_called_once()
     assert result.program_id == 'prog'
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
+def test_list_jobs(list_jobs):
+    job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = qtypes.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
+    list_jobs.return_value = [job1, job2]
+
+    ctx = EngineContext()
+    result = cg.Engine(project_id='proj', context=ctx).list_jobs()
+    list_jobs.assert_called_once_with('proj',
+                                      None,
+                                      created_after=None,
+                                      created_before=None,
+                                      has_labels=None,
+                                      execution_states=None)
+    assert [(j.project_id, j.program_id, j.job_id, j.context, j._job)
+            for j in result] == [('proj', 'prog1', 'job1', ctx, job1),
+                                 ('proj', 'prog2', 'job2', ctx, job2)]
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_processors')

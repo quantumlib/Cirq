@@ -18,7 +18,7 @@ twine
 pyquil~=2.21.0
 
 # For verifying behavior of qasm output.
-qiskit~=0.13.0
+qiskit~=0.20.0
 
 # For generating documentation.
 pypandoc

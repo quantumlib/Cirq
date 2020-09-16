@@ -12,9 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import abc
-from typing import Any, cast, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Tuple, TYPE_CHECKING, Union, Dict
 
-from cirq import value
 from cirq._doc import document
 from cirq.ops import common_gates, raw_types, identity
 from cirq.type_workarounds import NotImplementedType
@@ -23,6 +22,8 @@ from cirq.type_workarounds import NotImplementedType
 if TYPE_CHECKING:
     import cirq
     from cirq.ops.pauli_string import SingleQubitPauliStringGateOperation
+    from cirq.value.product_state import (_XEigenState, _YEigenState,
+                                          _ZEigenState)  # coverage: ignore
 
 
 class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
@@ -98,7 +99,6 @@ class Pauli(raw_types.Gate, metaclass=abc.ABCMeta):
         """Overrides EigenGate._canonical_exponent in subclasses."""
         return 1
 
-
 class _PauliX(Pauli, common_gates.XPowGate):
 
     def __init__(self):
@@ -106,11 +106,11 @@ class _PauliX(Pauli, common_gates.XPowGate):
         common_gates.XPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliX',
-                exponent: value.TParamVal) -> common_gates.XPowGate:
+                exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return common_gates.XPowGate(exponent=exponent)
 
     def _with_exponent(self: '_PauliX',
-                       exponent: value.TParamVal) -> common_gates.XPowGate:
+                       exponent: 'cirq.TParamVal') -> common_gates.XPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -118,6 +118,14 @@ class _PauliX(Pauli, common_gates.XPowGate):
         assert global_shift == 0
         assert exponent == 1
         return Pauli._XYZ[0]
+
+    @property
+    def basis(self: '_PauliX') -> Dict[int, '_XEigenState']:
+        from cirq.value.product_state import _XEigenState
+        return {
+            +1: _XEigenState(+1),
+            -1: _XEigenState(-1),
+        }
 
 
 class _PauliY(Pauli, common_gates.YPowGate):
@@ -127,11 +135,11 @@ class _PauliY(Pauli, common_gates.YPowGate):
         common_gates.YPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliY',
-                exponent: value.TParamVal) -> common_gates.YPowGate:
+                exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return common_gates.YPowGate(exponent=exponent)
 
     def _with_exponent(self: '_PauliY',
-                       exponent: value.TParamVal) -> common_gates.YPowGate:
+                       exponent: 'cirq.TParamVal') -> common_gates.YPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -139,6 +147,14 @@ class _PauliY(Pauli, common_gates.YPowGate):
         assert global_shift == 0
         assert exponent == 1
         return Pauli._XYZ[1]
+
+    @property
+    def basis(self: '_PauliY') -> Dict[int, '_YEigenState']:
+        from cirq.value.product_state import _YEigenState
+        return {
+            +1: _YEigenState(+1),
+            -1: _YEigenState(-1),
+        }
 
 
 class _PauliZ(Pauli, common_gates.ZPowGate):
@@ -148,11 +164,11 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         common_gates.ZPowGate.__init__(self, exponent=1.0)
 
     def __pow__(self: '_PauliZ',
-                exponent: value.TParamVal) -> common_gates.ZPowGate:
+                exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return common_gates.ZPowGate(exponent=exponent)
 
     def _with_exponent(self: '_PauliZ',
-                       exponent: value.TParamVal) -> common_gates.ZPowGate:
+                       exponent: 'cirq.TParamVal') -> common_gates.ZPowGate:
         return self.__pow__(exponent)
 
     @classmethod
@@ -160,6 +176,14 @@ class _PauliZ(Pauli, common_gates.ZPowGate):
         assert global_shift == 0
         assert exponent == 1
         return Pauli._XYZ[2]
+
+    @property
+    def basis(self: '_PauliZ') -> Dict[int, '_ZEigenState']:
+        from cirq.value.product_state import _ZEigenState
+        return {
+            +1: _ZEigenState(+1),
+            -1: _ZEigenState(-1),
+        }
 
 
 X = _PauliX()

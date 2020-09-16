@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from collections import defaultdict
-from typing import (Mapping, Optional, Tuple, Union, List, FrozenSet,
-                    DefaultDict, TYPE_CHECKING)
+from typing import (AbstractSet, Mapping, Optional, Tuple, Union, List,
+                    FrozenSet, DefaultDict, TYPE_CHECKING)
 import numbers
 
 import numpy as np
@@ -139,10 +139,20 @@ class LinearCombinationOfGates(value.LinearDict[raw_types.Gate]):
         })
 
     def _is_parameterized_(self) -> bool:
-        for gate in self.keys():
-            if protocols.is_parameterized(gate):
-                return True
-        return False
+        return any(protocols.is_parameterized(gate) for gate in self.keys())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for gate in self.keys()
+            for name in protocols.parameter_names(gate)
+        }
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
+                            ) -> 'LinearCombinationOfGates':
+        return self.__class__({
+            protocols.resolve_parameters(gate, resolver): coeff
+            for gate, coeff in self.items()
+        })
 
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying gates.
@@ -246,10 +256,19 @@ class LinearCombinationOfOperations(value.LinearDict[raw_types.Operation]):
         return LinearCombinationOfOperations({i: bi, x: bx, y: by, z: bz})
 
     def _is_parameterized_(self) -> bool:
-        for op in self.keys():
-            if protocols.is_parameterized(op):
-                return True
-        return False
+        return any(protocols.is_parameterized(op) for op in self.keys())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for op in self.keys() for name in protocols.parameter_names(op)
+        }
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
+                            ) -> 'LinearCombinationOfOperations':
+        return self.__class__({
+            protocols.resolve_parameters(op, resolver): coeff
+            for op, coeff in self.items()
+        })
 
     def matrix(self) -> np.ndarray:
         """Reconstructs matrix of self using unitaries of underlying operations.
