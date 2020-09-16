@@ -39,7 +39,6 @@ def test_gate_with_act_on():
                 qubit = args.axes[0]
                 args.state.gamma[qubit] += 1
                 return True
-            return NotImplemented
 
     state = cirq.StabilizerStateChForm(num_qubits=3)
     args = cirq.ActOnStabilizerCHFormArgs(state=state, axes=[1])
