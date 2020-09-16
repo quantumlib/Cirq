@@ -13,7 +13,7 @@
 # limitations under the License.
 """A typed time delta that supports picosecond accuracy."""
 
-from typing import Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
+from typing import AbstractSet, Any, Dict, Optional, Tuple, TYPE_CHECKING, Union
 import datetime
 
 import sympy
@@ -82,8 +82,11 @@ class Duration:
                                                        micros * 1000_000 +
                                                        millis * 1000_000_000)
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._picos)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._picos)
 
     def _resolve_parameters_(self, param_resolver):
         return Duration(

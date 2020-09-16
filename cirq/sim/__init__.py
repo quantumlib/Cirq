@@ -71,7 +71,6 @@ from cirq.sim.state_vector import (
     dirac_notation,
     measure_state_vector,
     sample_state_vector,
-    STATE_VECTOR_LIKE,
     StateVectorMixin,
     to_valid_state_vector,
     validate_normalized_state,
@@ -89,10 +88,13 @@ from cirq.sim.clifford import (
 
 # Deprecated
 # pylint: disable=wrong-import-order
+
+from cirq.qis import (STATE_VECTOR_LIKE)
+
 import sys as _sys
 from cirq._compat import wrap_module as _wrap_module
 deprecated_constants = {
-    'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE, instead'),
+    'STATE_VECTOR_LIKE': ('v0.9', 'Use cirq.STATE_VECTOR_LIKE instead'),
 }
 _sys.modules[__name__] = _wrap_module(_sys.modules[__name__],
                                       deprecated_constants)

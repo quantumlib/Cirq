@@ -24,7 +24,8 @@
             0.5
           ]
         ],
-        "repetitions": 1000
+        "repetitions": 1000,
+        "purity_data": null
       }
     ],
     [
@@ -50,7 +51,17 @@
             0.4
           ]
         ],
-        "repetitions": 1000
+        "repetitions": 1000,
+        "purity_data": [
+          [
+            2,
+            0.7
+          ],
+          [
+            4,
+            0.3
+          ]
+        ]
       }
     ]
   ]

@@ -138,6 +138,7 @@ SHOULDNT_BE_SERIALIZED = [
     # global objects
     'CONTROL_TAG',
     'PAULI_BASIS',
+    'PAULI_STATES',
 
     # abstract, but not inspect.isabstract():
     'Device',
@@ -189,6 +190,7 @@ SHOULDNT_BE_SERIALIZED = [
     'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
+    'TParamKey',
     'TParamVal',
     'ParamDictType',
 
@@ -308,6 +310,7 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QubitPermutationGate',
     'QuilFormatter',
     'QuilOutput',
     'SerializableDevice',

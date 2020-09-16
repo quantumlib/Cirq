@@ -1,5 +1,6 @@
 import numbers
-from typing import Any, Dict, Optional, Sequence, Tuple, TYPE_CHECKING, Union
+from typing import (AbstractSet, Any, Dict, Optional, Sequence, Tuple,
+                    TYPE_CHECKING, Union)
 
 import numpy as np
 import sympy
@@ -156,6 +157,12 @@ class PhasedXZGate(gate_features.SingleQubitGate):
         return (protocols.is_parameterized(self._x_exponent) or
                 protocols.is_parameterized(self._z_exponent) or
                 protocols.is_parameterized(self._axis_phase_exponent))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        """See `cirq.SupportsParameterization`."""
+        return (protocols.parameter_names(self._x_exponent) |
+                protocols.parameter_names(self._z_exponent) |
+                protocols.parameter_names(self._axis_phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'cirq.PhasedXZGate':
         """See `cirq.SupportsParameterization`."""

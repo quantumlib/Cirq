@@ -74,6 +74,9 @@ upper_tabs:
         path: /cirq/google/calibration
       - title: "Best practices"
         path: /cirq/google/best_practices
+      - heading: "Design proposals"
+      - title: "Request for Comments process"
+        path: /cirq/dev/rfc_process
       - heading: "Developers"
       - title: "Nomenclature"
         path: /cirq/dev/nomenclature
@@ -90,11 +93,11 @@ upper_tabs:
       contents:
       - include: /cirq/research/_toc.yaml
 
-    - name: "API"
+    - name: "Reference"
       skip_translation: true
       contents:
       - title: "All Symbols"
-        path: /cirq/api_docs/python/
-      - include: /cirq/api_docs/python/_toc.yaml
+        path: /reference/python/cirq/all_symbols
+      - include: /reference/python/cirq/_toc.yaml
 
 - include: /_book/upper_tabs_right.yaml
