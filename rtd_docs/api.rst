@@ -724,6 +724,7 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfGates
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
+    cirq.TParamKey
     cirq.TParamVal
 
 
