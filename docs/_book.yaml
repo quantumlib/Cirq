@@ -93,7 +93,7 @@ upper_tabs:
       contents:
       - include: /cirq/research/_toc.yaml
 
-    - name: "API"
+    - name: "Reference"
       skip_translation: true
       contents:
       - title: "All Symbols"
