@@ -190,6 +190,7 @@ SHOULDNT_BE_SERIALIZED = [
     'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
+    'TParamKey',
     'TParamVal',
     'ParamDictType',
 

@@ -410,6 +410,7 @@ from cirq.value import (
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
+    TParamKey,
     TParamVal,
     validate_probability,
     value_equality,
