@@ -25,6 +25,8 @@ if TYPE_CHECKING:
 
 CrossEntropyPair = NamedTuple('CrossEntropyPair', [('num_cycle', int),
                                                    ('xeb_fidelity', float)])
+SpecklePurityPair = NamedTuple('SpecklePurityPair', [('num_cycle', int),
+                                                     ('purity', float)])
 
 
 @dataclasses.dataclass
@@ -45,7 +47,7 @@ class CrossEntropyDepolarizingModel:
     number of cycles (representing depolarization from circuit execution
     errors). So p_eff is modeled as
 
-        p_eff = S * p^d
+        p_eff = S * p**d
 
     where d is the number of cycles, or depth, S is the part that is independent
     of depth, and p describes the exponential decay with depth. This class
@@ -54,9 +56,9 @@ class CrossEntropyDepolarizingModel:
 
     Attributes:
         spam_depolarization: The depolarization constant for state preparation
-            and measurement, i.e., S in p_eff = S * p^d.
+            and measurement, i.e., S in p_eff = S * p**d.
         cycle_depolarization: The depolarization constant for circuit execution,
-            i.e., p in p_eff = S * p^d.
+            i.e., p in p_eff = S * p**d.
         covariance: The estimated covariance in the estimation of
             `spam_depolarization` and `cycle_depolarization`, in that order.
     """
@@ -65,9 +67,31 @@ class CrossEntropyDepolarizingModel:
     covariance: Optional[np.ndarray] = None
 
 
+class SpecklePurityDepolarizingModel(CrossEntropyDepolarizingModel):
+    """A depolarizing noise model for speckle purity benchmarking.
+
+    In speckle purity benchmarking, the state ρ in the map
+
+        ρ → p_eff ρ + (1 - p_eff) I / D
+
+    is taken to be an unconstrained pure state. The purity of the resultant
+    state is p_eff**2. The aim of speckle purity benchmarking is to measure the
+    purity of the state resulting from applying a single XEB cycle to a pure
+    state. This value is stored in the `purity` property of this class.
+    """
+
+    @property
+    def purity(self) -> float:
+        """The purity. Equal to p**2, where p is the cycle depolarization."""
+        return self.cycle_depolarization**2
+
+
 @protocols.json_serializable_dataclass(frozen=True)
 class CrossEntropyResult:
     """Results from a cross-entropy benchmarking (XEB) experiment.
+
+    May also include results from speckle purity benchmarking (SPB) performed
+    concomitantly.
 
     Attributes:
         data: A sequence of NamedTuples, each of which contains two fields:
@@ -76,9 +100,16 @@ class CrossEntropyResult:
                     by a layer of two-qubit gates.
                 xeb_fidelity: the XEB fidelity after the given cycle number.
         repetitions: The number of circuit repetitions used.
+        purity_data: A sequence of NamedTuples, each of which contains two
+            fields:
+                num_cycle: the circuit depth as the number of cycles, where
+                    a cycle consists of a layer of single-qubit gates followed
+                    by a layer of two-qubit gates.
+                purity: the purity after the given cycle number.
     """
     data: List[CrossEntropyPair]
     repetitions: int
+    purity_data: Optional[List[SpecklePurityPair]] = None
 
     def plot(self, ax: Optional[plt.Axes] = None,
              **plot_kwargs: Any) -> plt.Axes:
@@ -107,44 +138,89 @@ class CrossEntropyResult:
     def depolarizing_model(self) -> CrossEntropyDepolarizingModel:
         """Fit a depolarizing error model for a cycle.
 
-        Fits an exponential model f = S * p^d, where d is the number of cycles
+        Fits an exponential model f = S * p**d, where d is the number of cycles
         and f is the cross entropy fidelity for that number of cycles,
         using nonlinear least squares.
 
         Returns:
-            A DepolarizingModel object, which has attributes `coefficient`
-            representing the value S, `decay_constant` representing the value
-            p, and `covariance` representing the covariance in the estimation
-            of S and p in that order.
+            A CrossEntropyDepolarizingModel object, which has attributes
+            `spam_depolarization` representing the value S,
+            `cycle_depolarization` representing the value p, and `covariance`
+            representing the covariance in the estimation of S and p in that
+            order.
         """
-        # Get initial guess by linear least squares with logarithm of model
-        x = [depth for depth, fidelity in self.data if fidelity > 0]
-        y = [np.log(fidelity) for _, fidelity in self.data if fidelity > 0]
-        fit = np.polynomial.polynomial.Polynomial.fit(x, y, 1).convert()
-        p0 = np.exp(fit.coef)
-
-        # Perform nonlinear least squares
-        x = [depth for depth, _ in self.data]
-        y = [fidelity for _, fidelity in self.data]
-
-        def f(d, S, p):
-            return S * p**d
-
-        params, covariance = scipy.optimize.curve_fit(f, x, y, p0=p0)
-
+        depths, fidelities = zip(*self.data)
+        params, covariance = _fit_exponential_decay(depths, fidelities)
         return CrossEntropyDepolarizingModel(spam_depolarization=params[0],
                                              cycle_depolarization=params[1],
                                              covariance=covariance)
 
+    def purity_depolarizing_model(self) -> CrossEntropyDepolarizingModel:
+        """Fit a depolarizing error model for a cycle to purity data.
+
+        Fits an exponential model f = S * p**d, where d is the number of cycles
+        and p**2 is the purity for that number of cycles, using nonlinear least
+        squares.
+
+        Returns:
+            A SpecklePurityDepolarizingModel object, which has attributes
+            `spam_depolarization` representing the value S,
+            `cycle_depolarization` representing the value p, and `covariance`
+            representing the covariance in the estimation of S and p in that
+            order. It also has the property `purity` representing the purity
+            p**2.
+        """
+        if self.purity_data is None:
+            raise ValueError('This CrossEntropyResult does not contain data '
+                             'from speckle purity benchmarking, so the '
+                             'purity depolarizing model cannot be computed.')
+        depths, purities = zip(*self.purity_data)
+        params, covariance = _fit_exponential_decay(depths, np.sqrt(purities))
+        return SpecklePurityDepolarizingModel(spam_depolarization=params[0],
+                                              cycle_depolarization=params[1],
+                                              covariance=covariance)
+
     @classmethod
     def _from_json_dict_(cls, data, repetitions, **kwargs):
+        purity_data = kwargs.get('purity_data', None)
+        if purity_data is not None:
+            purity_data = [SpecklePurityPair(d, f) for d, f in purity_data]
         return cls(data=[CrossEntropyPair(d, f) for d, f in data],
-                   repetitions=repetitions)
+                   repetitions=repetitions,
+                   purity_data=purity_data)
 
     def __repr__(self) -> str:
-        return ('cirq.experiments.CrossEntropyResult('
-                f'data={[tuple(p) for p in self.data]!r}, '
-                f'repetitions={self.repetitions!r})')
+        args = (f'data={[tuple(p) for p in self.data]!r}, '
+                f'repetitions={self.repetitions!r}')
+        if self.purity_data is not None:
+            args += f', purity_data={[tuple(p) for p in self.purity_data]!r}'
+        return f'cirq.experiments.CrossEntropyResult({args})'
+
+
+def _fit_exponential_decay(x: Sequence[int],
+                           y: Sequence[float]) -> Tuple[np.ndarray, np.ndarray]:
+    """Fit an exponential model y = S * p**x using nonlinear least squares.
+
+    Args:
+        x: The x-values.
+        y: The y-values.
+
+    Returns:
+        The result of calling `scipy.optimize.curve_fit`. This is a tuple of
+        two arrays. The first array contains the fitted parameters, and the
+        second array is their estimated covariance.
+    """
+    # Get initial guess by linear least squares with logarithm of model
+    u = [a for a, b in zip(x, y) if b > 0]
+    v = [np.log(b) for b in y if b > 0]
+    fit = np.polynomial.polynomial.Polynomial.fit(u, v, 1).convert()
+    p0 = np.exp(fit.coef)
+
+    # Perform nonlinear least squares
+    def f(a, S, p):
+        return S * p**a
+
+    return scipy.optimize.curve_fit(f, x, y, p0=p0)
 
 
 @dataclasses.dataclass

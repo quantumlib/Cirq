@@ -82,7 +82,8 @@ class CliffordSimulator(simulator.SimulatesSamples,
             qubit_order: Determines the canonical ordering of the qubits. This
                 is often used in specifying the initial state, i.e. the
                 ordering of the computational basis states.
-            initial_state: The initial state for the simulation.
+            initial_state: The initial state for the simulation in the
+                computational basis. Represented as a big endian int.
 
 
         Yields:

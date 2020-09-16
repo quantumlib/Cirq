@@ -309,6 +309,7 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QubitPermutationGate',
     'QuilFormatter',
     'QuilOutput',
     'SerializableDevice',

@@ -11,7 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, Optional, Sequence
+
+from typing import Dict, List, Optional
 
 import numpy as np
 
@@ -76,40 +77,4 @@ def assert_url_to_circuit_returns(
             atol=1e-8)
 
     if maps:
-        keys = sorted(maps.keys())
-        actual_map = _sparse_computational_basis_map(keys, parsed)
-        for k in keys:
-            assert actual_map.get(k) == maps[k], (
-                f'{_bin_dec(k)} was mapped to '
-                f'{_bin_dec(actual_map.get(k))} '
-                f'instead of {_bin_dec(maps[k])}.')
-
-
-def _sparse_computational_basis_map(inputs: Sequence[int],
-                                    circuit: cirq.Circuit) -> Dict[int, int]:
-    # Pick a unique amplitude for each computational basis input state.
-    amps = [
-        np.exp(1j * i / len(inputs)) / len(inputs)**0.5
-        for i in range(len(inputs))
-    ]
-
-    # Permute the amplitudes using the circuit.
-    input_state = np.zeros(1 << len(circuit.all_qubits()), dtype=np.complex128)
-    for k, amp in zip(inputs, amps):
-        input_state[k] = amp
-    output_state = cirq.final_state_vector(circuit, initial_state=input_state)
-
-    # Find where each amplitude went.
-    actual_map = {}
-    for k, amp in zip(inputs, amps):
-        for i, amp2 in enumerate(output_state):
-            if abs(amp2 - amp) < 1e-5:
-                actual_map[k] = i
-
-    return actual_map
-
-
-def _bin_dec(x: Optional[int]) -> str:
-    if x is None:
-        return 'None'
-    return f'{bin(x)} ({x})'
+        cirq.testing.assert_equivalent_computational_basis_map(maps, parsed)
