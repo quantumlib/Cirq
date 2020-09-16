@@ -179,6 +179,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
