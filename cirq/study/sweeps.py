@@ -94,7 +94,7 @@ class Sweep(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         """The keys for the all of the sympy.Symbols that are resolved."""
 
     @abc.abstractmethod
@@ -175,7 +175,7 @@ class _Unit(Sweep):
         return True
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         return []
 
     def __len__(self) -> int:
@@ -212,7 +212,7 @@ class Product(Sweep):
         return hash(tuple(self.factors))
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         return sum((factor.keys for factor in self.factors), [])
 
     def __len__(self) -> int:
@@ -276,7 +276,7 @@ class Zip(Sweep):
         return hash(tuple(self.sweeps))
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         return sum((sweep.keys for sweep in self.sweeps), [])
 
     def __len__(self) -> int:
@@ -303,7 +303,7 @@ class Zip(Sweep):
 class SingleSweep(Sweep):
     """A simple sweep over one parameter with values from an iterator."""
 
-    def __init__(self, key: Union[str, sympy.Symbol]) -> None:
+    def __init__(self, key: 'cirq.TParamKey') -> None:
         if isinstance(key, sympy.Symbol):
             key = str(key)
         self.key = key
@@ -321,7 +321,7 @@ class SingleSweep(Sweep):
         pass
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         return [self.key]
 
     def param_tuples(self) -> Iterator[Params]:
@@ -337,8 +337,8 @@ class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
     def __init__(
-        self, key: Union[str, sympy.Symbol],
-        points: Sequence[float]) -> None:
+        self, key: 'cirq.TParamKey',
+        points: Sequence['cirq.TParamVal']) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
@@ -359,7 +359,7 @@ class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
     def __init__(
-        self, key: Union[str, sympy.Symbol],
+        self, key: 'cirq.TParamKey',
         start: float,
         stop: float,
         length: int) -> None:
@@ -418,7 +418,7 @@ class ListSweep(Sweep):
         return not self == other
 
     @property
-    def keys(self) -> List[str]:
+    def keys(self) -> List['cirq.TParamKey']:
         if not self.resolver_list:
             return []
         return list(map(str, self.resolver_list[0].param_dict))
