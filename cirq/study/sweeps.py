@@ -26,6 +26,8 @@ if TYPE_CHECKING:
     import cirq
 
 Params = Iterable[Tuple['cirq.TParamKey', 'cirq.TParamVal']]
+ProductOrZipSweepLike = Dict[
+    'cirq.TParamKey', Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
 
 
 def _check_duplicate_keys(sweeps):
@@ -437,10 +439,7 @@ def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
         yield cast(str, sym), cast(float, val)
 
 
-def dict_to_product_sweep(
-        factor_dict: Dict['cirq.TParamKey',
-                          Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
-) -> Product:
+def dict_to_product_sweep(factor_dict: ProductOrZipSweepLike) -> Product:
     """Cartesian product of sweeps from a dictionary.
 
     Each entry in the dictionary specifies a sweep as a mapping from the
@@ -457,10 +456,7 @@ def dict_to_product_sweep(
                      for k, v in factor_dict.items()))
 
 
-def dict_to_zip_sweep(
-        factor_dict: Dict['cirq.TParamKey',
-                          Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
-) -> Zip:
+def dict_to_zip_sweep(factor_dict: ProductOrZipSweepLike) -> Zip:
     """Zip product of sweeps from a dictionary.
 
     Each entry in the dictionary specifies a sweep as a mapping from the
