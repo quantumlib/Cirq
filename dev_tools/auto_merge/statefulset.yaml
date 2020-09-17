@@ -16,9 +16,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: cirq-automerge # has to match .spec.template.metadata.labels
-  serviceName: "automerge-headless"
-  replicas: 1 # by default is 1
+      app: cirq-automerge
+  serviceName: automerge-headless-svc
+  replicas: 1
   template:
     metadata:
       labels:

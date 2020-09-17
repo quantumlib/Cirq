@@ -15,4 +15,5 @@ steps:
   args:
   - skaffold
   - run
+  - --force
   - -f=dev_tools/auto_merge/skaffold.yaml

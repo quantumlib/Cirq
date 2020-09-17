@@ -23,15 +23,15 @@
 # value of the cirqbot-api-key secret.
 ########################################################################################
 
-FROM python:3.7-slim
+FROM python:3.7-slim@sha256:1689dea3fe5e2f230c3b2d0cc18b64e96f8214082c78792c67dbc1bda9b6c67c
 
 RUN mkdir -p /app/dev_tools/auto_merge
 WORKDIR /app
 
-COPY ./dev_tools/auto_merge/requirements.txt ./dev_tools/auto_merge/requirements.txt
+COPY ./auto_merge/requirements.txt ./dev_tools/auto_merge/requirements.txt
 RUN pip install -r ./dev_tools/auto_merge/requirements.txt
 
-COPY ./dev_tools ./dev_tools
+COPY ./*.py ./dev_tools/
 
 ENV PYTHONPATH=/app
 CMD ["python", "dev_tools/auto_merge.py"]

@@ -22,7 +22,6 @@ HEAD_AUTO_MERGE_LABEL = 'front_of_queue_automerge'
 AUTO_MERGE_LABELS = [USER_AUTO_MERGE_LABEL, HEAD_AUTO_MERGE_LABEL]
 RECENTLY_MODIFIED_THRESHOLD = datetime.timedelta(seconds=30)
 
-RUNNING_IN_GCP = False
 
 def is_recent_date(date: datetime.datetime) -> bool:
     d = datetime.datetime.utcnow() - date
@@ -377,6 +376,7 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
 
 
 _last_print_was_tick = False
+_tick_count = 0
 
 
 def log(*args):
@@ -389,8 +389,13 @@ def log(*args):
 
 def wait_for_polling_period():
     global _last_print_was_tick
+    global _tick_count
     _last_print_was_tick = True
-    print('.', end=('' if not RUNNING_IN_GCP else '\n'), flush=True)
+    print('.', end='', flush=True)
+    _tick_count += 1
+    if _tick_count == 100:
+        print()
+        _tick_count = 0
     time.sleep(POLLING_PERIOD.total_seconds())
 
 
@@ -923,7 +928,6 @@ def indent(text: str) -> str:
 def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
-        global RUNNING_IN_GCP
         project_id = 'cirq-infra'
         print('{} not set. Trying secret manager.'.format(
             ACCESS_TOKEN_ENV_VARIABLE),
@@ -934,7 +938,6 @@ def main():
                        )
         response = client.access_secret_version(name=secret_name)
         access_token = response.payload.data.decode('UTF-8')
-        RUNNING_IN_GCP = True
 
     repo = GithubRepository(
         organization=GITHUB_REPO_ORGANIZATION,
