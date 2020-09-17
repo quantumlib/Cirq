@@ -934,8 +934,7 @@ def main():
               file=sys.stderr)
         client = secretmanager_v1beta1.SecretManagerServiceClient()
         secret_name = (f'projects/{project_id}/'
-                       f'secrets/cirq-bot-api-key/versions/1'
-                       )
+                       f'secrets/cirq-bot-api-key/versions/1')
         response = client.access_secret_version(name=secret_name)
         access_token = response.payload.data.decode('UTF-8')
 
