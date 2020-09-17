@@ -372,6 +372,8 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
     ExpressionMap,
     flatten,
     flatten_with_params,

@@ -336,9 +336,8 @@ class SingleSweep(Sweep):
 class Points(SingleSweep):
     """A simple sweep with explicitly supplied values."""
 
-    def __init__(
-        self, key: 'cirq.TParamKey',
-        points: Sequence['cirq.TParamVal']) -> None:
+    def __init__(self, key: 'cirq.TParamKey',
+                 points: Sequence['cirq.TParamVal']) -> None:
         super(Points, self).__init__(key)
         self.points = points
 
@@ -358,11 +357,8 @@ class Points(SingleSweep):
 class Linspace(SingleSweep):
     """A simple sweep over linearly-spaced values."""
 
-    def __init__(
-        self, key: 'cirq.TParamKey',
-        start: float,
-        stop: float,
-        length: int) -> None:
+    def __init__(self, key: 'cirq.TParamKey', start: float, stop: float,
+                 length: int) -> None:
         """Creates a linear-spaced sweep for a given key.
 
         For the given args, assigns to the list of values
@@ -439,3 +435,43 @@ def _params_without_symbols(resolver: resolver.ParamResolver) -> Params:
         if isinstance(sym, sympy.Symbol):
             sym = sym.name
         yield cast(str, sym), cast(float, val)
+
+
+def dict_to_product_sweep(
+        factor_dict: Dict['cirq.TParamKey',
+                          Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
+) -> Product:
+    """Cartesian product of sweeps from a dictionary.
+
+    Each entry in the dictionary specifies a sweep as a mapping from the
+    parameter to a value or sequence of values. The Cartesian product of these
+    sweeps is returned.
+
+    Args:
+        factor_dict: The dictionary containing the sweeps.
+
+    Returns:
+        Cartesian product of the sweeps.
+    """
+    return Product(*(Points(k, v if isinstance(v, Sequence) else [v])
+                     for k, v in factor_dict.items()))
+
+
+def dict_to_zip_sweep(
+        factor_dict: Dict['cirq.TParamKey',
+                          Union['cirq.TParamVal', Sequence['cirq.TParamVal']]]
+) -> Zip:
+    """Zip product of sweeps from a dictionary.
+
+    Each entry in the dictionary specifies a sweep as a mapping from the
+    parameter to a value or sequence of values. The zip product of these
+    sweeps is returned.
+
+    Args:
+        factor_dict: The dictionary containing the sweeps.
+
+    Returns:
+        Zip product of the sweeps.
+    """
+    return Zip(*(Points(k, v if isinstance(v, Sequence) else [v])
+                 for k, v in factor_dict.items()))
