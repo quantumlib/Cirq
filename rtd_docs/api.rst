@@ -248,6 +248,7 @@ results.
     cirq.validate_probability
     cirq.xeb_fidelity
     cirq.ActOnCliffordTableauArgs
+    cirq.ActOnStabilizerCHFormArgs
     cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
