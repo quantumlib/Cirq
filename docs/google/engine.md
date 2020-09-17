@@ -1,9 +1,17 @@
 # Quantum Engine
 
-The Quantum Engine, via the `cirq.google.Engine` class, executes programs and jobs using the
-Quantum Engine API.
+Google's Quantum Computing Service provides the Quantum Engine API to execute 
+circuits on Google's quantum processor or simulator backends and 
+to access or manage the jobs, programs, reservations and calibrations. Cirq is 
+the only supported client for this API, using the `cirq.google.Engine` class. 
 
-Note that the Quantum Engine API is not yet open for public access.
+Note: the Quantum Engine API is not yet open for public access.
+
+Note: while Cirq is the only supported way of using to the API currently, 
+if you are interested in integrating directly with the Quantum Engine API,
+instead of using Cirq, e.g. from a different language, we'd like to hear about 
+your proposal at 
+[cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com).
 
 ## Authenticating to Google Cloud
 
