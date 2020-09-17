@@ -15,8 +15,8 @@
 import datetime
 import sys
 import time
-from typing import Callable, Dict, List, Optional, Sequence, TypeVar, Tuple, \
-    Union
+from typing import (Callable, Dict, List, Optional, Sequence, Set, TypeVar,
+                    Tuple, Union)
 import warnings
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
@@ -126,6 +126,25 @@ class EngineClient:
         parts = calibration_name.split('/')
         return parts[1], parts[3], int(parts[5])
 
+    @staticmethod
+    def _date_or_time_to_filter_expr(
+            param_name: str, param: Union[datetime.datetime, datetime.date]):
+        """Formats datetime or date to filter expressions.
+
+        Args:
+            arg_name: the name of the filter parameter (for error messaging)
+            param: the value of the paramter
+        """
+        if isinstance(param, datetime.datetime):
+            return f"{int(param.timestamp())}"
+        elif isinstance(param, datetime.date):
+            return f"{param.isoformat()}"
+
+        raise ValueError(
+            f"Unsupported date/time type for {param_name}: got {param} of "
+            f"type {type(param)}. Supported types: datetime.datetime and"
+            f"datetime.date")
+
     def _make_request(self, request: Callable[[], _R]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
         # max_retry_delay_seconds
@@ -217,29 +236,21 @@ class EngineClient:
                 or time.
             has_labels: retrieve programs that have labels on them specified by
                 this dict. If the value is set to `*`, filters having the label
-                regardless of the label value will be filtered. For example, to
-                query programs that have the shape label and have the color
+                egardless of the label value will be filtered. For example, to
+                uery programs that have the shape label and have the color
                 label with value red can be queried using
-                `{'color: red', 'shape:*'}`
+
+                {'color': 'red', 'shape':'*'}
         """
         filters = []
 
-        def _to_filter_date_or_time(arg_name, arg):
-            if isinstance(arg, datetime.datetime):
-                return f"{int(arg.timestamp())}"
-            elif isinstance(arg, datetime.date):
-                return f"{arg.isoformat()}"
-
-            raise ValueError(
-                f"Unsupported date/time type for {arg_name}: got {arg} of "
-                f"type {type(arg)}. Supported types: datetime.datetime and"
-                f"datetime.date")
-
         if created_after is not None:
-            val = _to_filter_date_or_time('created_after', created_after)
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
             filters.append(f"create_time >= {val}")
         if created_before is not None:
-            val = _to_filter_date_or_time('created_before', created_before)
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
             filters.append(f"create_time <= {val}")
         if has_labels is not None:
             for (k, v) in has_labels.items():
@@ -413,6 +424,65 @@ class EngineClient:
                                 )
         return self._ids_from_job_name(job.name)[2], job
 
+    def list_jobs(self,
+                  project_id: str,
+                  program_id: Optional[str] = None,
+                  created_before: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  created_after: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  has_labels: Optional[Dict[str, str]] = None,
+                  execution_states: Optional[Set[
+                      quantum.enums.ExecutionStatus.State]] = None):
+        """Returns the list of jobs for a given program.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Optional, a unique ID of the program within the parent
+                project. If None, jobs will be listed across all programs within
+                the project.
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state that
+                is contained in `execution_states`. See
+                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        filters = []
+
+        if created_after is not None:
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        if execution_states is not None:
+            state_filter = []
+            for execution_state in execution_states:
+                state_filter.append(
+                    f"execution_status.state = {execution_state.name}")
+            filters.append(f"({' OR '.join(state_filter)})")
+
+        if program_id is None:
+            program_id = "-"
+        parent = self._program_name_from_ids(project_id, program_id)
+        return self._make_request(lambda: self.grpc_client.list_quantum_jobs(
+            parent, filter_=" AND ".join(filters)))
+
     def get_job(self, project_id: str, program_id: str, job_id: str,
                 return_run_context: bool) -> qtypes.QuantumJob:
         """Returns a previously created job.
@@ -420,7 +490,10 @@ class EngineClient:
         Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            job_id: Unique ID of the job within the parent program.
+                job_id: Unique ID of the job within the parent program.
+            return_run_context: If true then the run context will be loaded
+                from the job's run_context_location and set on the returned
+                QuantumJob.
         """
         return self._make_request(lambda: self.grpc_client.get_quantum_job(
             self._job_name_from_ids(project_id, program_id, job_id),

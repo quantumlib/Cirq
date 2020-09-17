@@ -93,11 +93,11 @@ upper_tabs:
       contents:
       - include: /cirq/research/_toc.yaml
 
-    - name: "API"
+    - name: "Reference"
       skip_translation: true
       contents:
       - title: "All Symbols"
-        path: /cirq/api_docs/python/cirq/all_symbols
-      - include: /cirq/api_docs/python/cirq/_toc.yaml
+        path: /reference/python/cirq/all_symbols
+      - include: /reference/python/cirq/_toc.yaml
 
 - include: /_book/upper_tabs_right.yaml

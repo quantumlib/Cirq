@@ -66,6 +66,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.ISWAP
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.cphase
     cirq.givens
     cirq.identity_each
     cirq.qft
@@ -689,6 +690,13 @@ Quantum Information Science
 .. autosummary::
     :toctree: generated/
 
+    cirq.KET_IMAG
+    cirq.KET_MINUS
+    cirq.KET_MINUS_IMAG
+    cirq.KET_ONE
+    cirq.KET_PLUS
+    cirq.KET_ZERO
+    cirq.PAULI_STATES
     cirq.STATE_VECTOR_LIKE
     cirq.bloch_vector_from_state_vector
     cirq.density_matrix_from_state_vector
@@ -702,6 +710,7 @@ Quantum Information Science
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
+    cirq.ProductState
 
 
 Internal Implementation Details
@@ -717,6 +726,7 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfGates
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
+    cirq.TParamKey
     cirq.TParamVal
 
 

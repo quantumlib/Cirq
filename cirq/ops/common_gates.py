@@ -1221,6 +1221,12 @@ def rz(rads: value.TParamVal) -> ZPowGate:
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
 
 
+def cphase(rads: value.TParamVal) -> CZPowGate:
+    """Returns a gate with the matrix diag(1, 1, 1, e^{i rads}."""
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
+    return CZPowGate(exponent=rads / pi)
+
+
 H = HPowGate()
 document(
     H, """The Hadamard gate.
