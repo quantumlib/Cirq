@@ -16,7 +16,7 @@
 # This is a minimal Dockerfile to run the automerge script.
 #
 # Usage:
-#     docker build -t cirqbot -f dev_tools/automerge/Dockerfile .
+#     docker build -t cirqbot -f dev_tools/automerge/Dockerfile dev_tools
 #     docker run -it -e CIRQ_BOT_GITHUB_ACCESS_TOKEN=[access token] cirqbot
 #
 # Alternatively, if your container has access to the GCP Secret Manager, it can take the
