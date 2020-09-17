@@ -25,14 +25,13 @@
 
 FROM python:3.7-slim
 
-RUN mkdir /app
+RUN mkdir -p /app/dev_tools/auto_merge
 WORKDIR /app
 
-COPY ./dev_tools ./dev_tools
-
-RUN ls -l
-
+COPY ./dev_tools/auto_merge/requirements.txt ./dev_tools/auto_merge/requirements.txt
 RUN pip install -r ./dev_tools/auto_merge/requirements.txt
+
+COPY ./dev_tools ./dev_tools
 
 ENV PYTHONPATH=/app
 CMD ["python", "dev_tools/auto_merge.py"]

@@ -36,11 +36,13 @@ The [Dockerfile](Dockerfile) in this directory simply exposes the auto_merge.py 
 
 ### Kubernetes deployment
 
-The [deployment.yaml](deployment.yaml) ensures that the container survives node failures, i.e 
-even if there are errors, it will restart the container. 
+The [statefulset.yaml](statefulset.yaml) ensures that the container survives node failures, i.e 
+even if there are errors, it will restart the container. As it is a SatefulSet set to 1 replica, 
+it also ensures that there is only a single instance of the application running even during 
+upgrades. 
 
 ### Cloud Build file
 
 The [cloudbuild-deploy.yaml](cloudbuild-deploy.yaml) describes the workflow that is executed \
 when we push something to master. It is responsible for building the docker image and deploying \
-the new version of the automerge script to GKE.  
+the new version of the automerge script to GKE. 
