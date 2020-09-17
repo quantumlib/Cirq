@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A protocol for implementing high performance clifford tableau evolutions
- for Clifford Simulator."""
 
 from typing import Iterable
 
@@ -20,8 +18,7 @@ from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 
 
 class ActOnStabilizerCHFormArgs:
-    """State and context for having an operation act on a stabilizer state in
-    CH form.
+    """Wrapper around a stabilizer state in CH form for the act_on protocol.
 
     To act on this object, directly edit the `state` property, which is
     storing the stabilizer state of the quantum system with one axis per qubit.
@@ -29,8 +26,7 @@ class ActOnStabilizerCHFormArgs:
     """
 
     def __init__(self, state: StabilizerStateChForm, axes: Iterable[int]):
-        """Initializes ActOnStabilizerCHFormArgs with the given state and the
-        axes for the operation.
+        """Initializes with the given state and the axes for the operation.
 
         Args:
             state: The StabilizerStateChForm to act on. Operations are expected
