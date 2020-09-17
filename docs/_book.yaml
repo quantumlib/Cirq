@@ -78,10 +78,12 @@ upper_tabs:
       - title: "Request for Comments process"
         path: /cirq/dev/rfc_process
       - heading: "Developers"
-      - title: "Nomenclature"
-        path: /cirq/dev/nomenclature
       - title: "Development"
         path: /cirq/dev/development
+      - title: "Style guide"
+        path: /cirq/dev/style
+      - title: "Nomenclature"
+        path: /cirq/dev/nomenclature
       - title: "Gate and operation guidelines"
         path: /cirq/dev/gates
       - title: "Plotting guidelines"
