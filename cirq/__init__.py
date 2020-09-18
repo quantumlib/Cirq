@@ -179,6 +179,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
@@ -331,6 +332,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
