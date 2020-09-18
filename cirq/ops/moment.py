@@ -97,7 +97,7 @@ class Moment:
         """
         return bool(set(qubits) & self.qubits)
 
-    def operation_at(self, qubit: 'cirq.Qid') -> Optional['cirq.Operation']:
+    def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
         """Returns the operation on a certain qubit for the moment
 
         Args:
@@ -107,7 +107,7 @@ class Moment:
         Returns:
             The operation that operates on the qubit for that moment.
         """
-        if self.operates_on(qubit):
+        if self.operates_on([qubit]):
             return self.__getitem__(qubit)
         else:
             return None
