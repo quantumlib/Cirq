@@ -122,7 +122,7 @@ class Hierarchy_tree:
       Qvalues.pop(idx2)
       communities.append(new_node_list)
       Qvalues.append(Qmerged)
-    print("yes")
+  
     return tree
 
 
