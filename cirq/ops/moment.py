@@ -102,7 +102,7 @@ class Moment:
 
         Args:
             qubit: The qubit on which the returned Operation operates
-            on.
+                on.
 
         Returns:
             The operation that operates on the qubit for that moment.
