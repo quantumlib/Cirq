@@ -1,125 +1,164 @@
 ## Author: Fereshte Mozafari
 
 import networkx as nx
+import numpy as np
+import math
 
 import cirq
 import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
+from util import load_calibrations
 
 
 class Hierarchy_tree:
 
-  def __init__(self, device_graph, calibration_data):
+  def __init__(self, device_graph, single_er, two_er):
     self.device_graph = device_graph
+    self.single_er = single_er
+    self.two_er = two_er
 
-  def compute_F(self):
-    """
-    To Do
-    """
-    return
+  def compute_F(self, com1, com2, Q1, Q2, fidelity):
+    edges_count = len( list(self.device_graph.edges) )
+    omega = 1.0
+    inside_edges = 0
+    outside_edges = 0
+    total_edges = 0
 
-  def compute_new_node(self, communities):
-    """
-    To Do
-    """
-    id1 = 0
-    id2 = 1
-    # sort idx in decending order 1 , 0
-    if id1<id2:
-      idx1 = id2
-      idx2 = id1
+    # compute inside edges
+    for c1 in com1:
+      for c2 in com2:
+        if(self.device_graph.has_edge(c1,c2)):
+          inside_edges += 1
+    for i in range( len(com1)-1 ):
+      for j in range( i+1, len(com1), 1 ):
+        if(self.device_graph.has_edge(com1[i],com1[j])):
+          inside_edges += 1
+    for i in range( len(com2)-1 ):
+      for j in range( i+1, len(com2), 1 ):
+        if(self.device_graph.has_edge(com2[i],com2[j])):
+          inside_edges += 1
+
+    # compute total edges 
+    for c1 in com1:
+      total_edges += len( list (c1.neighbors()) )
+    for c2 in com2:
+      total_edges += len ( list (c2.neighbors() ) )
+
+    # compute outside edges
+    outside_edges = total_edges - 2 * inside_edges
+
+    Qmerged = float(inside_edges/edges_count) - pow( float(outside_edges/edges_count), 2 )
+    deltaQ = Qmerged - Q1 - Q2
+    F_value = deltaQ + omega * fidelity
+
+    return F_value, Qmerged
+
+  def find_edge_among_coms( self, com1, com2 ):
+    fidelity = 0.0
+    for c1 in com1:
+      for c2 in com2: 
+        if (c1, c2) in self.two_er:
+          fidelity_two = 1 - self.two_er[(c1, c2)][0]
+          fidelity_single = 0.5 * (1-self.single_er[(c1, )][0] + 1-self.single_er[(c2, )][0])
+          fidelity += (fidelity_two * fidelity_single)
+        elif (c2, c1) in self.two_er:
+          fidelity_two = 1 - self.two_er[(c2, c1)][0]
+          fidelity_single = 0.5 * (1-self.single_er[(c1, )][0] + 1-self.single_er[(c2, )][0])
+          fidelity += (fidelity_two * fidelity_single)
+
+    return fidelity
+
+  def compute_new_node(self, communities, Qvalues):
+    idx1 = 0
+    idx2 = 1
+    Qmerged = 0.0
+    Fmax = -math.inf
+
+    for i in range( len(communities)-1 ):
+      for j in range( i+1, len(communities), 1 ):
+        fidelity = self.find_edge_among_coms( communities[i], communities[j] )
+        if(fidelity != 0.0):
+          F , qmerged = self.compute_F( communities[i], communities[j], Qvalues[i], Qvalues[j], fidelity )
+          if(F > Fmax):
+            Fmax = F
+            idx1 = i
+            idx2 = j
+            Qmerged = qmerged
+
+    if (idx1 > idx2):
+      return idx1, idx2, Qmerged
     else:
-      idx1 = id1
-      idx2 = id2
+      return idx2, idx1, Qmerged
 
-    return idx1, idx2
 
 
   def tree_construction(self):
-    tree = {}
+    tree = nx.Graph()
+    label = 0
+    communities = []
+    for n in list(self.device_graph.nodes):
+      tree.add_node((n))   #(label, data = [n])
+      label = label + 1
+
     communities = [[i] for i in list(self.device_graph.nodes)]
+    Qvalues = [0.0] * len(communities)
+
     while len(communities)>1:
-      idx1, idx2 = self.compute_new_node(communities)
-      new_node = []
-      new_node.append(communities[idx1])
-      new_node.append(communities[idx2])
-      new_node_idx = communities[idx1] + communities[idx2]
-      tree[tuple(new_node_idx)] = new_node
+      idx1, idx2, Qmerged = self.compute_new_node(communities, Qvalues)
+      # new_node = []
+      # new_node.append(communities[idx1])
+      # new_node.append(communities[idx2])
+      new_node_list = communities[idx1] + communities[idx2]
+      #tree[tuple(new_node_idx)] = new_node
+      new_node = tuple(new_node_list)
+      tree.add_node(new_node) #(label , data = new_node_idx)
+      tree.add_edge(tuple(communities[idx1]), new_node)
+      tree.add_edge(tuple(communities[idx2]), new_node)
+      label = label + 1
+
       communities.pop(idx1)
       communities.pop(idx2)
-      communities.append(new_node_idx)
+      Qvalues.pop(idx1)
+      Qvalues.pop(idx2)
+      communities.append(new_node_list)
+      Qvalues.append(Qmerged)
     print("yes")
     return tree
-
-class Qubit_partitioning:
-  def __init__(self, tree, programs_circuits):
-    self.tree = tree
-    self.programs_circuits = programs_circuits
-
-  def cnot_density(self, pcircuit):
-    # #cnots/#qubits ??
-    """
-    To Do
-    """
-    d = 0
-    return d
-
-  def reorder_program_circuits(self):
-    cnot_d = []
-    for p in self.programs_circuits:
-      cnot_d.append(self.cnot_density(p))
-    idxs = sorted(range(len(cnot_d)), key=lambda k: cnot_d[k])
-    temp_p_circuit = self.programs_circuits.copy()
-    for i in range(len(idxs)):
-      self.programs_circuits[i] = temp_p_circuit[idxs[i]]
-
-
-  def find_best_candidate(self, candidates):
-    """
-    To Do 
-    """
-    cand = []
-    return cand
-
-  def find_partitions(self ):
-    partition = []
-    for pcrct in self.programs_circuits:
-      candidates = []
-      nodes_count = 1#??
-      for key, val in self.tree:
-        if len(list(key)) == nodes_count:
-          candidates.append(list(key))
-
-        else:
-          a=0
-          #??
-      if not candidates:
-        print("fail")
-      else:
-        cand = self.find_best_candidate(candidates)
-        partition.append(cand)
-        self.tree.pop(tuple(cand))
-        # to complete
-
-    return partition
-
-class X_SWAP:
-  def __init__(self, device_graph, programs_circuits)
-
-
-
-
 
 
 ############################################################    
 
-def multi_prog_map(device_graph):
-  calibration_data= []
-  treeObj = Hierarchy_tree(device_graph, calibration_data)
+def multi_prog_map( device_graph, single_er, two_er ):
+  treeObj = Hierarchy_tree( device_graph, single_er, two_er )
   tree = treeObj.tree_construction()
-  parObj = Qubit_partitioning(tree, [circuits.Circuit])
-  parObj.reorder_program_circuits()
+  #parObj = Qubit_partitioning(tree, [circuits.Circuit])
+  #parObj.reorder_program_circuits()
+
+def prepare_couplingGraph_errorValues( device_graph ):
+  single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
+  two_er = load_calibrations()['two_qubit_sycamore_gate_xeb_cycle_purity_error'] # to do ??
+  # print(two_er)
+
+  # qubits = list(device_graph.qubits)
+  # qubits_count = len(qubits)
+  # cgMatrix = np.zeros( (qubits_count, qubits_count) )
+
+  dgraph = nx.Graph()
+
+  for q0, q1 in two_er: # .items() 
+    dgraph.add_edge(q0, q1)
+
+  multi_prog_map(dgraph, single_er, two_er)
+  
+
+
+
+
 
 if __name__ == "__main__":
-  device_graph = ccr.get_grid_device_graph(3, 2)
-  multi_prog_map(device_graph)
+  #print( load_calibrations()['single_qubit_p00_error'] )
+  device_graph1 = ccr.get_grid_device_graph(3, 2)
+  device_graph = cirq.google.Sycamore
+  prepare_couplingGraph_errorValues(device_graph)
+
+  #multi_prog_map(device_graph)
