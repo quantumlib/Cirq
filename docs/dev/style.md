@@ -1,13 +1,13 @@
 # Style guidelines
 
-As mentioned in [CONTRIBUTING.md](CONTRIBUTING.md) we use use [pylint](https://www.pylint.org/) 
+As mentioned in [CONTRIBUTING.md](https://github.com/quantumlib/Cirq/blob/master/CONTRIBUTING.md) we use use [pylint](https://www.pylint.org/) 
 to check for style violations.  Pylint attempts to enforce styles in 
 [PEP 8](https://www.python.org/dev/peps/pep-0008/). To see which lint checks we enforce, see the 
-[dev_tools/conf/.pylintrc](dev_tools/conf/.pylintrc) file.
+[dev_tools/conf/.pylintrc](https://github.com/quantumlib/Cirq/blob/master/dev_tools/conf/.pylintrc) file.
 
 Here we include some extra style guidelines.
 
-### Import statements
+## Import statements
 
 We follow the [import standards](https://www.python.org/dev/peps/pep-0008/#imports) of PEP 8, 
 with the following guidance.  
@@ -52,7 +52,7 @@ Of course, if this import style fundamentally cannot be used, do not let this
 block submitting a pull request for the code as we will definitely grant
 exceptions.
 
-#### Typing based import cycles
+## Typing based import cycles
 
 An import cycle is where modules need to import each other (perhaps indirectly).
 Sometimes in order to add a type annotation you have to add an import which
@@ -70,8 +70,8 @@ def my_func() -> 'module.that.causes.cycle.MyClass':
     pass
 ```
 
-#### Nomenclature
+## Nomenclature
 
 Using consistent wording across Cirq is important for lowering users
 cognitive load. For rule governing naming, see the 
-[nomenclature guidelines](docs/dev/nomenclature.md).
+[nomenclature guidelines](nomenclature.md).
