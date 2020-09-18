@@ -227,6 +227,8 @@ results.
     cirq.big_endian_digits_to_int
     cirq.big_endian_int_to_bits
     cirq.big_endian_int_to_digits
+    cirq.dict_to_product_sweep
+    cirq.dict_to_zip_sweep
     cirq.final_density_matrix
     cirq.final_state_vector
     cirq.flatten
