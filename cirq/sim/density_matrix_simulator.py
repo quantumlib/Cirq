@@ -244,11 +244,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 state.buffers[i] = state.tensor
         state.tensor = result
 
-    def _base_iterator(self,
-                       circuit: circuits.Circuit,
-                       qubit_order: ops.QubitOrderOrList,
-                       initial_state: Union[int, np.ndarray],
-                       all_measurements_are_terminal=False) -> Iterator:
+    def _base_iterator(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+            all_measurements_are_terminal=False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)

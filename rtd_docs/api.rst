@@ -66,6 +66,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.ISWAP
     cirq.SWAP
     cirq.TOFFOLI
+    cirq.cphase
     cirq.givens
     cirq.identity_each
     cirq.qft
@@ -161,6 +162,7 @@ and products of Pauli operations.
     cirq.CliffordTableau
     cirq.DensePauliString
     cirq.MutableDensePauliString
+    cirq.MutablePauliString
     cirq.Pauli
     cirq.PauliInteractionGate
     cirq.PauliString
@@ -225,6 +227,8 @@ results.
     cirq.big_endian_digits_to_int
     cirq.big_endian_int_to_bits
     cirq.big_endian_int_to_digits
+    cirq.dict_to_product_sweep
+    cirq.dict_to_zip_sweep
     cirq.final_density_matrix
     cirq.final_state_vector
     cirq.flatten
@@ -246,6 +250,7 @@ results.
     cirq.validate_probability
     cirq.xeb_fidelity
     cirq.ActOnCliffordTableauArgs
+    cirq.ActOnStabilizerCHFormArgs
     cirq.ActOnStateVectorArgs
     cirq.CircuitSampleJob
     cirq.CliffordSimulator
@@ -687,6 +692,13 @@ Quantum Information Science
 .. autosummary::
     :toctree: generated/
 
+    cirq.KET_IMAG
+    cirq.KET_MINUS
+    cirq.KET_MINUS_IMAG
+    cirq.KET_ONE
+    cirq.KET_PLUS
+    cirq.KET_ZERO
+    cirq.PAULI_STATES
     cirq.STATE_VECTOR_LIKE
     cirq.bloch_vector_from_state_vector
     cirq.density_matrix_from_state_vector
@@ -701,6 +713,7 @@ Quantum Information Science
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
+    cirq.ProductState
 
 
 Internal Implementation Details
@@ -716,6 +729,7 @@ important roles in the internal machinery of the library.
     cirq.LinearCombinationOfGates
     cirq.LinearCombinationOfOperations
     cirq.SingleQubitPauliStringGateOperation
+    cirq.TParamKey
     cirq.TParamVal
 
 
