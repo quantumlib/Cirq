@@ -97,7 +97,7 @@ class Hierarchy_tree:
     label = 0
     communities = []
     for n in list(self.device_graph.nodes):
-      tree.add_node((n))   #(label, data = [n])
+      #tree.add_node(n)   #(label, data = [n])
       label = label + 1
 
     communities = [[i] for i in list(self.device_graph.nodes)]
@@ -109,9 +109,10 @@ class Hierarchy_tree:
       # new_node.append(communities[idx1])
       # new_node.append(communities[idx2])
       new_node_list = communities[idx1] + communities[idx2]
+      print(new_node_list)
       #tree[tuple(new_node_idx)] = new_node
       new_node = tuple(new_node_list)
-      tree.add_node(new_node) #(label , data = new_node_idx)
+      #tree.add_node(new_node) #(label , data = new_node_idx)
       tree.add_edge(tuple(communities[idx1]), new_node)
       tree.add_edge(tuple(communities[idx2]), new_node)
       label = label + 1
@@ -131,13 +132,33 @@ class Hierarchy_tree:
 def multi_prog_map( device_graph, single_er, two_er ):
   treeObj = Hierarchy_tree( device_graph, single_er, two_er )
   tree = treeObj.tree_construction()
+
+  print(len(tree.nodes))
+  print(tree.nodes)
   #parObj = Qubit_partitioning(tree, [circuits.Circuit])
   #parObj.reorder_program_circuits()
 
 def prepare_couplingGraph_errorValues( device_graph ):
-  single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
-  two_er = load_calibrations()['two_qubit_sycamore_gate_xeb_cycle_purity_error'] # to do ??
-  # print(two_er)
+  #single_er = load_calibrations()['single_qubit_p00_error'] # to do ??
+  #two_er = load_calibrations()['two_qubit_sycamore_gate_xeb_cycle_purity_error'] # to do ??
+
+  single_er = {
+    (cirq.GridQubit(1,0), ): [0.028600441075128205], 
+    (cirq.GridQubit(0,0), ): [0.01138359559038841], 
+    (cirq.GridQubit(1,1), ): [0.05313138858345922], 
+    (cirq.GridQubit(0,1), ): [0.0005880214404983153], 
+    (cirq.GridQubit(1,2), ): [0.0018232495924263727], 
+    (cirq.GridQubit(0,2), ): [0.039571298178797366]
+  }
+  two_er = {
+    (cirq.GridQubit(1,0), cirq.GridQubit(0,0)): [0.018600441075128205], 
+    (cirq.GridQubit(0,0), cirq.GridQubit(0,1)): [0.01938359559038841], 
+    (cirq.GridQubit(1,1), cirq.GridQubit(0,1)): [0.01313138858345922], 
+    (cirq.GridQubit(0,1), cirq.GridQubit(0,2)): [0.005880214404983153], 
+    (cirq.GridQubit(1,1), cirq.GridQubit(1,2)): [0.008232495924263727], 
+    (cirq.GridQubit(0,2), cirq.GridQubit(1,2)): [0.03571298178797366]
+  }
+ 
 
   # qubits = list(device_graph.qubits)
   # qubits_count = len(qubits)
