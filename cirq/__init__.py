@@ -179,6 +179,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
@@ -217,6 +218,7 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     MutableDensePauliString,
+    MutablePauliString,
     NamedQubit,
     NamedQid,
     OP_TREE,
@@ -330,6 +332,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -371,6 +374,8 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
     ExpressionMap,
     flatten,
     flatten_with_params,
@@ -409,9 +414,18 @@ from cirq.value import (
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
+    TParamKey,
     TParamVal,
     validate_probability,
     value_equality,
+    KET_PLUS,
+    KET_MINUS,
+    KET_IMAG,
+    KET_MINUS_IMAG,
+    KET_ZERO,
+    KET_ONE,
+    PAULI_STATES,
+    ProductState,
 )
 
 # pylint: disable=redefined-builtin

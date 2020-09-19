@@ -1,0 +1,12 @@
+steps:
+# build the docker image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'us-docker.pkg.dev/cirq-infra/cirq/automerge', '-f', 'dev_tools/auto_merge/Dockerfile', '.']
+
+# deploy container image to GKE
+- name: "gcr.io/cloud-builders/gke-deploy"
+  args:
+  - run
+  - --filename=dev_tools/auto_merge/deployment.yaml
+  - --location=us-central1-a
+  - --cluster=cirq-infra

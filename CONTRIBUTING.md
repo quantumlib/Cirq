@@ -114,4 +114,4 @@ annotations like `# type: ignore`.
 ## Request For Comment Process for New Major Features
 
 For larger contributions that will benefit from design reviews, please use the 
-[Request for Comment](docs/contributions/rfc_process.md) process.
+[Request for Comment](docs/dev/rfc_process.md) process.
