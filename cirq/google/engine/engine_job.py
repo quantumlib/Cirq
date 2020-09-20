@@ -351,8 +351,7 @@ class EngineJob:
         return [res for result_list in result for res in result_list]
 
     @staticmethod
-    def _get_job_results_v2(result: v2.result_pb2.Result
-                           ) -> List[study.Result]:
+    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[study.Result]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [

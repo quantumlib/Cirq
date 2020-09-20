@@ -70,8 +70,7 @@ class PasqalSampler(cirq.work.Sampler):
 
     def _send_serialized_circuit(self,
                                  serialization_str: str,
-                                 repetitions: int = 1
-                                ) -> cirq.study.Result:
+                                 repetitions: int = 1) -> cirq.study.Result:
         """Sends the json string to the remote Pasqal device
         Args:
             serialization_str: Json representation of the circuit.

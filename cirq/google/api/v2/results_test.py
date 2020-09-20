@@ -171,18 +171,18 @@ def test_results_to_proto_sweep_repetitions():
     trial_results = [[
         cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 0}),
-                                                   measurements={
-                                                       'foo':
-                                                       np.array([[0]],
-                                                                dtype=bool),
-                                                   }),
+                                              measurements={
+                                                  'foo':
+                                                  np.array([[0]],
+                                                           dtype=bool),
+                                              }),
         cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 1}),
-                                                   measurements={
-                                                       'foo':
-                                                       np.array([[0], [1]],
-                                                                dtype=bool),
-                                                   }),
+                                              measurements={
+                                                  'foo':
+                                                  np.array([[0], [1]],
+                                                           dtype=bool),
+                                              }),
     ]]
     with pytest.raises(ValueError, match='different numbers of repetitions'):
         v2.results_to_proto(trial_results, measurements)

@@ -77,22 +77,19 @@ def test_histogram():
             'c': np.array([[0], [0], [1], [0], [1]], dtype=np.bool)
         })
 
-    assert result.histogram(key='ab') == collections.Counter({
-        1: 4,
-        2: 1
-    })
+    assert result.histogram(key='ab') == collections.Counter({1: 4, 2: 1})
     assert result.histogram(key='ab', fold_func=tuple) == collections.Counter({
-        (False, True): 4,
-        (True, False): 1
+        (False, True):
+        4,
+        (True, False):
+        1
     })
     assert result.histogram(key='ab',
                             fold_func=lambda e: None) == collections.Counter({
-        None: 5,
-    })
-    assert result.histogram(key='c') == collections.Counter({
-        0: 3,
-        1: 2
-    })
+                                None:
+                                5,
+                            })
+    assert result.histogram(key='c') == collections.Counter({0: 3, 1: 2})
 
 
 def test_multi_measurement_histogram():
@@ -108,47 +105,57 @@ def test_multi_measurement_histogram():
         ():
         5
     })
-    assert (result.multi_measurement_histogram(keys=['ab']) ==
-            collections.Counter({
-                (1,): 4,
-                (2,): 1,
-            }))
-    assert (result.multi_measurement_histogram(keys=['c']) ==
-            collections.Counter({
-                (0,): 3,
-                (1,): 2,
-            }))
-    assert (result.multi_measurement_histogram(keys=['ab', 'c']) ==
-            collections.Counter({
-                (1, 0,): 2,
-                (1, 1,): 2,
-                (2, 0,): 1,
-            }))
+    assert (result.multi_measurement_histogram(
+        keys=['ab']) == collections.Counter({
+            (1, ): 4,
+            (2, ): 1,
+        }))
+    assert (result.multi_measurement_histogram(
+        keys=['c']) == collections.Counter({
+            (0, ): 3,
+            (1, ): 2,
+        }))
+    assert (result.multi_measurement_histogram(
+        keys=['ab', 'c']) == collections.Counter({
+            (
+                1,
+                0,
+            ): 2,
+            (
+                1,
+                1,
+            ): 2,
+            (
+                2,
+                0,
+            ): 1,
+        }))
 
-    assert result.multi_measurement_histogram(keys=[],
-                                              fold_func=lambda e: None
-                                              ) == collections.Counter({
-        None: 5,
-    })
-    assert result.multi_measurement_histogram(keys=['ab'],
-                                              fold_func=lambda e: None
-                                              ) == collections.Counter({
-        None: 5,
-    })
-    assert result.multi_measurement_histogram(keys=['ab', 'c'],
-                                              fold_func=lambda e: None
-                                              ) == collections.Counter({
-        None: 5,
-    })
+    assert result.multi_measurement_histogram(
+        keys=[], fold_func=lambda e: None) == collections.Counter({
+            None: 5,
+        })
+    assert result.multi_measurement_histogram(
+        keys=['ab'], fold_func=lambda e: None) == collections.Counter({
+            None: 5,
+        })
+    assert result.multi_measurement_histogram(
+        keys=['ab', 'c'], fold_func=lambda e: None) == collections.Counter({
+            None:
+            5,
+        })
 
-    assert result.multi_measurement_histogram(keys=['ab', 'c'],
-                                              fold_func=lambda e: tuple(
-                                                  tuple(f) for f in e)
-                                              ) == collections.Counter({
-        ((False, True), (False,)): 2,
-        ((False, True), (True,)): 2,
-        ((True, False), (False,)): 1,
-    })
+    assert result.multi_measurement_histogram(
+        keys=['ab', 'c'],
+        fold_func=lambda e: tuple(tuple(f)
+                                  for f in e)) == collections.Counter({
+                                      ((False, True), (False, )):
+                                      2,
+                                      ((False, True), (True, )):
+                                      2,
+                                      ((True, False), (False, )):
+                                      1,
+                                  })
 
 
 def test_trial_result_equality():
@@ -176,14 +183,14 @@ def test_trial_result_addition_valid():
         })
     b = cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
         {'ax': 1}),
-                                                   measurements={
-                                                       'q0':
-                                                       np.array([[0, 1]],
-                                                                dtype=np.bool),
-                                                       'q1':
-                                                       np.array([[0]],
-                                                                dtype=np.bool)
-                                                   })
+                                              measurements={
+                                                  'q0':
+                                                  np.array([[0, 1]],
+                                                           dtype=np.bool),
+                                                  'q1':
+                                                  np.array([[0]],
+                                                           dtype=np.bool)
+                                              })
 
     c = a + b
     np.testing.assert_array_equal(c.measurements['q0'],
@@ -257,8 +264,10 @@ def test_text_diagram_jupyter():
     class FakePrinter:
         def __init__(self):
             self.text_pretty = ''
+
         def text(self, to_print):
             self.text_pretty += to_print
+
     p = FakePrinter()
     result._repr_pretty_(p, False)
     assert p.text_pretty == 'ab=00010, 11101\nc=00101'
@@ -275,9 +284,9 @@ def test_json_bit_packing_and_dtype():
     digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
 
     bits_result = cirq.Result(params=cirq.ParamResolver({}),
-                                   measurements={'m': bits})
+                              measurements={'m': bits})
     digits_result = cirq.Result(params=cirq.ParamResolver({}),
-                                     measurements={'m': digits})
+                                measurements={'m': digits})
 
     bits_json = cirq.to_json(bits_result)
     digits_json = cirq.to_json(digits_result)
