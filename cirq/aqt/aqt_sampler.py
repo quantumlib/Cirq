@@ -181,7 +181,7 @@ class AQTSampler(Sampler):
     def run_sweep(self,
                   program: 'cirq.Circuit',
                   params: study.Sweepable,
-                  repetitions: int = 1) -> List[study.TrialResult]:
+                  repetitions: int = 1) -> List[study.Result]:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -194,14 +194,14 @@ class AQTSampler(Sampler):
             repetitions: The number of repetitions to simulate.
 
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
         """
         # TODO: Use measurement name from circuit.
         # Github issue: https://github.com/quantumlib/Cirq/issues/2199
         meas_name = 'm'
         assert isinstance(program.device, IonDevice)
-        trial_results = []  # type: List[study.TrialResult]
+        trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
             id_str = uuid.uuid1()
             num_qubits = len(program.device.qubits)
@@ -214,7 +214,7 @@ class AQTSampler(Sampler):
             results = results.astype(bool)
             res_dict = {meas_name: results}
             trial_results.append(
-                study.TrialResult(params=param_resolver, measurements=res_dict))
+                study.Result(params=param_resolver, measurements=res_dict))
         return trial_results
 
 

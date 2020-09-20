@@ -124,25 +124,25 @@ def test_results_to_proto():
     ]
     trial_results = [
         [
-            cirq.TrialResult.from_single_parameter_set(
+            cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
                 }),
-            cirq.TrialResult.from_single_parameter_set(
+            cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
                 }),
         ],
         [
-            cirq.TrialResult.from_single_parameter_set(
+            cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 0}),
                 measurements={
                     'foo': np.array([[0], [1], [0], [1]], dtype=bool),
                 },
             ),
-            cirq.TrialResult.from_single_parameter_set(
+            cirq.Result.from_single_parameter_set(
                 params=cirq.ParamResolver({'i': 1}),
                 measurements={
                     'foo': np.array([[0], [1], [1], [0]], dtype=bool),
@@ -169,14 +169,14 @@ def test_results_to_proto_sweep_repetitions():
         v2.MeasureInfo('foo', [q(0, 0)], slot=0, invert_mask=[False])
     ]
     trial_results = [[
-        cirq.TrialResult.from_single_parameter_set(params=cirq.ParamResolver(
+        cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 0}),
                                                    measurements={
                                                        'foo':
                                                        np.array([[0]],
                                                                 dtype=bool),
                                                    }),
-        cirq.TrialResult.from_single_parameter_set(params=cirq.ParamResolver(
+        cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 1}),
                                                    measurements={
                                                        'foo':

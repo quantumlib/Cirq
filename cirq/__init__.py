@@ -393,7 +393,7 @@ from cirq.study import (
     to_resolvers,
     to_sweep,
     to_sweeps,
-    TrialResult,
+    Result,
     UnitSweep,
     Zip,
 )

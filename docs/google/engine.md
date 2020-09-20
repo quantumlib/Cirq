@@ -82,7 +82,7 @@ engine = cg.Engine(project_id=YOUR_PROJECT_ID)
 # Create a sampler from the engine
 sampler = engine.sampler(processor_id='PROCESSOR_ID', gate_set=cg.SYC_GATESET)
 
-# This will run the circuit and return the results in a 'TrialResult'
+# This will run the circuit and return the results in a 'Result'
 results = sampler.run(circuit, repetitions=1000)
 
 # Sampler results can be accessed several ways
@@ -153,7 +153,7 @@ followed by all the sweeps in the second circuit, and so on.
 The first index will refer to the circuit run, and the second index
 will refer to the sweep result in that circuit.
 
-If the circuits are not parameterized, there will only be one `TrialResult`
+If the circuits are not parameterized, there will only be one `Result`
 per circuit using either variant.
 
 The following code shows an example of batching together parameterized

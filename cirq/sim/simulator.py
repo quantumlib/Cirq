@@ -52,7 +52,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             program: 'cirq.Circuit',
             params: study.Sweepable,
             repetitions: int = 1,
-    ) -> List[study.TrialResult]:
+    ) -> List[study.Result]:
         """Runs the supplied Circuit, mimicking quantum hardware.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -64,7 +64,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
             repetitions: The number of repetitions to simulate.
 
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
         """
         if not program.has_measurements():
@@ -72,13 +72,13 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
 
         _verify_unique_measurement_keys(program)
 
-        trial_results = []  # type: List[study.TrialResult]
+        trial_results = []  # type: List[study.Result]
         for param_resolver in study.to_resolvers(params):
             measurements = self._run(circuit=program,
                                      param_resolver=param_resolver,
                                      repetitions=repetitions)
             trial_results.append(
-                study.TrialResult.from_single_parameter_set(
+                study.Result.from_single_parameter_set(
                     params=param_resolver, measurements=measurements))
         return trial_results
 
@@ -507,7 +507,7 @@ class StepResult(metaclass=abc.ABCMeta):
 class SimulationTrialResult:
     """Results of a simulation by a SimulatesFinalState.
 
-    Unlike TrialResult these results contain the final simulator_state of the
+    Unlike Result these results contain the final simulator_state of the
     system. This simulator_state is dependent on the simulation implementation
     and may be, for example, the state vector or the density matrix of the
     system.

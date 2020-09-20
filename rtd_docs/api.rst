@@ -270,6 +270,7 @@ results.
     cirq.PauliSumCollector
     cirq.Points
     cirq.Product
+    cirq.Result
     cirq.Sampler
     cirq.SimulatesAmplitudes
     cirq.SimulatesFinalState
@@ -286,7 +287,6 @@ results.
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
-    cirq.TrialResult
     cirq.UnitSweep
     cirq.ZerosSampler
     cirq.Zip

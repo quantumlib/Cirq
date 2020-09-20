@@ -19,7 +19,7 @@ import numpy as np
 from cirq.study import trial_result
 
 
-def plot_state_histogram(result: trial_result.TrialResult) -> np.ndarray:
+def plot_state_histogram(result: trial_result.Result) -> np.ndarray:
     """Plot the state histogram from a single result with repetitions.
 
     States is a bitstring representation of all the qubit states in a single
