@@ -28,20 +28,30 @@ def test_repr():
 
 
 def test_str():
-    result = cirq.Result.from_single_parameter_set(
-        params=cirq.ParamResolver({}),
-        measurements={
-            'ab': np.array([[0, 1], [0, 1], [0, 1], [1, 0], [0, 1]]),
-            'c': np.array([[0], [0], [1], [0], [1]])
-        })
+    result = cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
+        {}),
+                                                   measurements={
+                                                       'ab':
+                                                       np.array([[0, 1], [0, 1],
+                                                                 [0, 1], [1, 0],
+                                                                 [0, 1]]),
+                                                       'c':
+                                                       np.array([[0], [0], [1],
+                                                                 [0], [1]])
+                                                   })
     assert str(result) == 'ab=00010, 11101\nc=00101'
 
-    result = cirq.Result.from_single_parameter_set(
-        params=cirq.ParamResolver({}),
-        measurements={
-            'ab': np.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]]),
-            'c': np.array([[0], [1], [2], [3], [4]])
-        })
+    result = cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
+        {}),
+                                                   measurements={
+                                                       'ab':
+                                                       np.array([[1, 2], [3, 4],
+                                                                 [5, 6], [7, 8],
+                                                                 [9, 10]]),
+                                                       'c':
+                                                       np.array([[0], [1], [2],
+                                                                 [3], [4]])
+                                                   })
     assert str(result) == 'ab=13579, 2 4 6 8 10\nc=01234'
 
 
@@ -176,14 +186,13 @@ def test_trial_result_addition_valid():
         })
     b = cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
         {'ax': 1}),
-                                                   measurements={
-                                                       'q0':
-                                                       np.array([[0, 1]],
-                                                                dtype=np.bool),
-                                                       'q1':
-                                                       np.array([[0]],
-                                                                dtype=np.bool)
-                                                   })
+                                              measurements={
+                                                  'q0':
+                                                  np.array([[0, 1]],
+                                                           dtype=np.bool),
+                                                  'q1':
+                                                  np.array([[0]], dtype=np.bool)
+                                              })
 
     c = a + b
     np.testing.assert_array_equal(c.measurements['q0'],
@@ -275,9 +284,9 @@ def test_json_bit_packing_and_dtype():
     digits = prng.randint(256, size=(256, 256)).astype(np.uint8)
 
     bits_result = cirq.Result(params=cirq.ParamResolver({}),
-                                   measurements={'m': bits})
+                              measurements={'m': bits})
     digits_result = cirq.Result(params=cirq.ParamResolver({}),
-                                     measurements={'m': digits})
+                                measurements={'m': digits})
 
     bits_json = cirq.to_json(bits_result)
     digits_json = cirq.to_json(digits_result)
