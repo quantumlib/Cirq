@@ -173,8 +173,7 @@ def test_results_to_proto_sweep_repetitions():
             {'i': 0}),
                                               measurements={
                                                   'foo':
-                                                  np.array([[0]],
-                                                           dtype=bool),
+                                                  np.array([[0]], dtype=bool),
                                               }),
         cirq.Result.from_single_parameter_set(params=cirq.ParamResolver(
             {'i': 1}),
