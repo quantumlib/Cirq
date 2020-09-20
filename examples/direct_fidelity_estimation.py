@@ -438,8 +438,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
-        trial_results.append(
-            Result(pauli_trace=pauli_trace, sigma_i=sigma_i))
+        trial_results.append(Result(pauli_trace=pauli_trace, sigma_i=sigma_i))
 
         fidelity += sigma_i / rho_i
 
