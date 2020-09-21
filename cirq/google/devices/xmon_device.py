@@ -75,15 +75,21 @@ class XmonDevice(devices.Device):
             return value.Duration()
         raise ValueError('Unsupported gate type: {!r}'.format(operation))
 
+    @classmethod
+    def is_supported_gate(cls, gate: 'cirq.Gate'):
+        """Returns true if the gate is allowed.
+        """
+        return isinstance(
+            gate, (ops.CZPowGate, ops.XPowGate, ops.YPowGate,
+                   ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate))
+
     def validate_gate(self, gate: 'cirq.Gate'):
         """Raises an error if the given gate isn't allowed.
 
         Raises:
             ValueError: Unsupported gate.
         """
-        if not isinstance(
-                gate, (ops.CZPowGate, ops.XPowGate, ops.YPowGate,
-                       ops.PhasedXPowGate, ops.MeasurementGate, ops.ZPowGate)):
+        if not self.is_supported_gate(gate):
             raise ValueError('Unsupported gate type: {!r}'.format(gate))
 
     def validate_operation(self, operation: 'cirq.Operation'):

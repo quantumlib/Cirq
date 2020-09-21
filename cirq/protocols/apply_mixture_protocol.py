@@ -96,7 +96,7 @@ class ApplyMixtureArgs:
                 upon.
             right_axes: Which axes to multiply the right action of the mixture
                 upon. If provided we will assume `target_tensor` is a density
-                matrix, otherwise it will be assuemd `target_tensor` is a
+                matrix, otherwise it will be assumed `target_tensor` is a
                 state vector.
         """
         self.target_tensor = target_tensor

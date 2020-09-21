@@ -244,11 +244,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 state.buffers[i] = state.tensor
         state.tensor = result
 
-    def _base_iterator(self,
-                       circuit: circuits.Circuit,
-                       qubit_order: ops.QubitOrderOrList,
-                       initial_state: Union[int, np.ndarray],
-                       all_measurements_are_terminal=False) -> Iterator:
+    def _base_iterator(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+            all_measurements_are_terminal=False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)
@@ -277,8 +278,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 format(bad_op))
 
         def keep(potential_op: ops.Operation) -> bool:
-            return (protocols.has_channel(potential_op) or
-                    isinstance(potential_op.gate, ops.MeasurementGate))
+            return (protocols.has_channel(potential_op, allow_decompose=False)
+                    or isinstance(potential_op.gate, ops.MeasurementGate))
 
         noisy_moments = self.noise.noisy_moments(circuit,
                                                  sorted(circuit.all_qubits()))

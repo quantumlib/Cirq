@@ -151,7 +151,7 @@ def test_pytest_changed_files_file_selection(tmpdir_factory):
                  'git commit -m test --quiet --no-gpg-sign\n'
                  'echo x > __init__.py\n')
     assert result.exit_code == 0
-    assert result.out == ('INTERCEPTED pytest docs/docs_coverage_test.py '
+    assert result.out == ('INTERCEPTED pytest rtd_docs/docs_coverage_test.py '
                           'cirq/protocols/json_serialization_test.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD'.\n"

@@ -11,13 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Creates the gate instrance for a two qubit diagonal gate.
+"""Creates the gate instance for a two qubit diagonal gate.
 
 The gate is used to create a 4x4 matrix with the diagonal elements
 passed as a list.
 """
 
-from typing import Any, Tuple, List, TYPE_CHECKING
+from typing import AbstractSet, Any, Tuple, List, Optional, TYPE_CHECKING
 import numpy as np
 import sympy
 
@@ -50,8 +50,20 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
 
     def _is_parameterized_(self) -> bool:
         return any(
-            isinstance(angle, sympy.Basic)
+            protocols.is_parameterized(angle)
             for angle in self._diag_angles_radians)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for angle in self._diag_angles_radians
+            for name in protocols.parameter_names(angle)
+        }
+
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
+                            ) -> 'TwoQubitDiagonalGate':
+        return TwoQubitDiagonalGate(
+            protocols.resolve_parameters(self._diag_angles_radians,
+                                         param_resolver))
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -69,12 +81,6 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
             subspace_index = args.subspace_index(big_endian_bits_int=index)
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
-
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'TwoQubitDiagonalGate':
-        return TwoQubitDiagonalGate(
-            protocols.resolve_parameters(self._diag_angles_radians,
-                                         param_resolver))
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
@@ -102,3 +108,24 @@ class TwoQubitDiagonalGate(gate_features.TwoQubitGate):
     def __repr__(self) -> str:
         return 'cirq.TwoQubitDiagonalGate([{}])'.format(','.join(
             proper_repr(angle) for angle in self._diag_angles_radians))
+
+    def _quil_(self, qubits: Tuple['cirq.Qid', ...],
+               formatter: 'cirq.QuilFormatter') -> Optional[str]:
+        if np.count_nonzero(self._diag_angles_radians) == 1:
+            if self._diag_angles_radians[0] != 0:
+                return formatter.format('CPHASE00({0}) {1} {2}\n',
+                                        self._diag_angles_radians[0], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[1] != 0:
+                return formatter.format('CPHASE01({0}) {1} {2}\n',
+                                        self._diag_angles_radians[1], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[2] != 0:
+                return formatter.format('CPHASE10({0}) {1} {2}\n',
+                                        self._diag_angles_radians[2], qubits[0],
+                                        qubits[1])
+            elif self._diag_angles_radians[3] != 0:
+                return formatter.format('CPHASE({0}) {1} {2}\n',
+                                        self._diag_angles_radians[3], qubits[0],
+                                        qubits[1])
+        return None

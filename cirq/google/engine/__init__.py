@@ -21,6 +21,8 @@ from cirq.google.engine.calibration import (
 from cirq.google.engine.engine import (
     Engine,
     get_engine,
+    get_engine_calibration,
+    get_engine_device,
     ProtoVersion,
 )
 

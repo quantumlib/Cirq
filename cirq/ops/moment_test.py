@@ -127,6 +127,22 @@ def test_operates_on():
     assert cirq.Moment([cirq.X(a), cirq.X(b)]).operates_on([a, b, c])
 
 
+def test_operation_at():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+
+    # No operation on that qubit
+    assert (cirq.Moment().operation_at(a) is None)
+
+    # One Operation on the quibt
+    assert (cirq.Moment([cirq.X(a)]).operation_at(a) == cirq.X(a))
+
+    # Multiple Operations on the qubits
+    assert (cirq.Moment([cirq.CZ(a, b),
+                         cirq.X(c)]).operation_at(a) == cirq.CZ(a, b))
+
+
 def test_with_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -277,6 +293,28 @@ def test_add():
     assert m2 + m3 == cirq.Moment([cirq.CNOT(a, b), cirq.X(c)])
     with pytest.raises(ValueError, match='Overlap'):
         _ = m1 + m2
+
+    assert m1 + [[[[cirq.Y(b)]]]] == cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert m1 + [] == m1
+
+
+def test_sub():
+    a, b, c = cirq.LineQubit.range(3)
+    m = cirq.Moment(cirq.X(a), cirq.Y(b))
+    assert m - [] == m
+    assert m - cirq.X(a) == cirq.Moment(cirq.Y(b))
+    assert m - [[[[cirq.X(a)]], []]] == cirq.Moment(cirq.Y(b))
+    assert m - [cirq.X(a), cirq.Y(b)] == cirq.Moment()
+    assert m - [cirq.Y(b)] == cirq.Moment(cirq.X(a))
+
+    with pytest.raises(ValueError, match="missing operations"):
+        _ = m - cirq.X(b)
+    with pytest.raises(ValueError, match="missing operations"):
+        _ = m - [cirq.X(a), cirq.Z(c)]
+
+    # Preserves relative order.
+    m2 = cirq.Moment(cirq.X(a), cirq.Y(b), cirq.Z(c))
+    assert m2 - cirq.Y(b) == cirq.Moment(cirq.X(a), cirq.Z(c))
 
 
 def test_op_tree():

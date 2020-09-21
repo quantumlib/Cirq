@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, Iterable, Union, TYPE_CHECKING
+from typing import AbstractSet, Dict, Iterable, Union, TYPE_CHECKING
 
 import sympy
 
@@ -145,6 +145,10 @@ class PauliStringPhasor(pauli_string_raw_types.PauliStringGateOperation):
     def _is_parameterized_(self) -> bool:
         return (protocols.is_parameterized(self.exponent_neg) or
                 protocols.is_parameterized(self.exponent_pos))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return (protocols.parameter_names(self.exponent_neg) |
+                protocols.parameter_names(self.exponent_pos))
 
     def _resolve_parameters_(self, param_resolver) -> 'PauliStringPhasor':
         return PauliStringPhasor(

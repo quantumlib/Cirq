@@ -15,7 +15,8 @@
 import datetime
 import sys
 import time
-from typing import Callable, Dict, List, Optional, Sequence, TypeVar, Tuple
+from typing import (Callable, Dict, List, Optional, Sequence, Set, TypeVar,
+                    Tuple, Union)
 import warnings
 
 from google.api_core.exceptions import GoogleAPICallError, NotFound
@@ -125,6 +126,25 @@ class EngineClient:
         parts = calibration_name.split('/')
         return parts[1], parts[3], int(parts[5])
 
+    @staticmethod
+    def _date_or_time_to_filter_expr(
+            param_name: str, param: Union[datetime.datetime, datetime.date]):
+        """Formats datetime or date to filter expressions.
+
+        Args:
+            arg_name: the name of the filter parameter (for error messaging)
+            param: the value of the paramter
+        """
+        if isinstance(param, datetime.datetime):
+            return f"{int(param.timestamp())}"
+        elif isinstance(param, datetime.date):
+            return f"{param.isoformat()}"
+
+        raise ValueError(
+            f"Unsupported date/time type for {param_name}: got {param} of "
+            f"type {type(param)}. Supported types: datetime.datetime and"
+            f"datetime.date")
+
     def _make_request(self, request: Callable[[], _R]) -> _R:
         # Start with a 100ms retry delay with exponential backoff to
         # max_retry_delay_seconds
@@ -191,7 +211,7 @@ class EngineClient:
                     return_code: bool) -> qtypes.QuantumProgram:
         """Returns a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             return_code: If True returns the serialized program code.
@@ -199,11 +219,51 @@ class EngineClient:
         return self._make_request(lambda: self.grpc_client.get_quantum_program(
             self._program_name_from_ids(project_id, program_id), return_code))
 
+    def list_programs(self,
+                      project_id: str,
+                      created_before: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      created_after: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      has_labels: Optional[Dict[str, str]] = None):
+        """Returns a list of previously executed quantum programs.
+
+        Args:
+            project_id: the id of the project
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                egardless of the label value will be filtered. For example, to
+                uery programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+        """
+        filters = []
+
+        if created_after is not None:
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        return self._make_request(
+            lambda: self.grpc_client.list_quantum_programs(
+                self._project_name(project_id), filter_=" AND ".join(filters)))
+
     def set_program_description(self, project_id: str, program_id: str,
                                 description: str) -> qtypes.QuantumProgram:
         """Sets the description for a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             description: The new program description.
@@ -238,7 +298,7 @@ class EngineClient:
         """Sets (overwriting) the labels for a previously created quantum
         program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             labels: The entire set of new program labels.
@@ -254,7 +314,7 @@ class EngineClient:
                            labels: Dict[str, str]) -> qtypes.QuantumProgram:
         """Adds new labels to a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             labels: New labels to add to the existing program labels.
@@ -277,7 +337,7 @@ class EngineClient:
         """Removes labels with given keys from the labels of a previously
         created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             label_keys: Label keys to remove from the existing program labels.
@@ -302,7 +362,7 @@ class EngineClient:
                        delete_jobs: bool = False) -> None:
         """Deletes a previously created quantum program.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             delete_jobs: If True will delete all the program's jobs, other this
@@ -364,14 +424,76 @@ class EngineClient:
                                 )
         return self._ids_from_job_name(job.name)[2], job
 
+    def list_jobs(self,
+                  project_id: str,
+                  program_id: Optional[str] = None,
+                  created_before: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  created_after: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  has_labels: Optional[Dict[str, str]] = None,
+                  execution_states: Optional[Set[
+                      quantum.enums.ExecutionStatus.State]] = None):
+        """Returns the list of jobs for a given program.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Optional, a unique ID of the program within the parent
+                project. If None, jobs will be listed across all programs within
+                the project.
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state that
+                is contained in `execution_states`. See
+                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        filters = []
+
+        if created_after is not None:
+            val = self._date_or_time_to_filter_expr('created_after',
+                                                    created_after)
+            filters.append(f"create_time >= {val}")
+        if created_before is not None:
+            val = self._date_or_time_to_filter_expr('created_before',
+                                                    created_before)
+            filters.append(f"create_time <= {val}")
+        if has_labels is not None:
+            for (k, v) in has_labels.items():
+                filters.append(f"labels.{k}:{v}")
+        if execution_states is not None:
+            state_filter = []
+            for execution_state in execution_states:
+                state_filter.append(
+                    f"execution_status.state = {execution_state.name}")
+            filters.append(f"({' OR '.join(state_filter)})")
+
+        if program_id is None:
+            program_id = "-"
+        parent = self._program_name_from_ids(project_id, program_id)
+        return self._make_request(lambda: self.grpc_client.list_quantum_jobs(
+            parent, filter_=" AND ".join(filters)))
+
     def get_job(self, project_id: str, program_id: str, job_id: str,
                 return_run_context: bool) -> qtypes.QuantumJob:
         """Returns a previously created job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
-            job_id: Unique ID of the job within the parent program.
+                job_id: Unique ID of the job within the parent program.
+            return_run_context: If true then the run context will be loaded
+                from the job's run_context_location and set on the returned
+                QuantumJob.
         """
         return self._make_request(lambda: self.grpc_client.get_quantum_job(
             self._job_name_from_ids(project_id, program_id, job_id),
@@ -381,7 +503,7 @@ class EngineClient:
                             description: str) -> qtypes.QuantumJob:
         """Sets the description for a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -413,7 +535,7 @@ class EngineClient:
                        labels: Dict[str, str]) -> qtypes.QuantumJob:
         """Sets (overwriting) the labels for a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -430,7 +552,7 @@ class EngineClient:
                        labels: Dict[str, str]) -> qtypes.QuantumJob:
         """Adds new labels to a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -454,7 +576,7 @@ class EngineClient:
         """Removes labels with given keys from the labels of a previously
         created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -477,7 +599,7 @@ class EngineClient:
     def delete_job(self, project_id: str, program_id: str, job_id: str) -> None:
         """Deletes a previously created quantum job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -488,7 +610,7 @@ class EngineClient:
     def cancel_job(self, project_id: str, program_id: str, job_id: str) -> None:
         """Cancels the given job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -500,7 +622,7 @@ class EngineClient:
                         job_id: str) -> qtypes.QuantumResult:
         """Returns the results of a completed job.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             program_id: Unique ID of the program within the parent project.
             job_id: Unique ID of the job within the parent program.
@@ -516,7 +638,7 @@ class EngineClient:
         current Engine project. The names of these processors are used to
         identify devices when scheduling jobs and gathering calibration metrics.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
 
         Returns:
@@ -531,7 +653,7 @@ class EngineClient:
                       processor_id: str) -> qtypes.QuantumProcessor:
         """Returns a quantum processor.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
 
@@ -549,16 +671,13 @@ class EngineClient:
                          ) -> List[qtypes.QuantumCalibration]:
         """Returns a list of quantum calibrations.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter: Filter string current only supports 'timestamp' with values
-              of epoch time in seconds or short string 'yyyy-MM-dd' or long
-              string 'yyyy-MM-dd HH:mm:ss.SSS' both in UTC. For example:
+            of epoch time in seconds or short string 'yyyy-MM-dd'. For example:
                 'timestamp > 1577960125 AND timestamp <= 1578241810'
                 'timestamp > 2020-01-02 AND timestamp <= 2020-01-05'
-                'timestamp > "2020-01-02 10:15:25.000" AND timestamp <=
-                  "2020-01-05 16:30:10.456"'
 
         Returns:
             A list of calibrations.
@@ -574,7 +693,7 @@ class EngineClient:
                        ) -> qtypes.QuantumCalibration:
         """Returns a quantum calibration.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             calibration_timestamp_seconds: The timestamp of the calibration in
@@ -593,7 +712,7 @@ class EngineClient:
         """Returns the current quantum calibration for a processor if it has
         one.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
 
@@ -618,7 +737,7 @@ class EngineClient:
                            whitelisted_users: Optional[List[str]] = None):
         """Creates a quantum reservation and returns the created object.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -654,7 +773,7 @@ class EngineClient:
         has already ended or is beyond the processor's freeze window, then the
         call will return an error.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -675,7 +794,7 @@ class EngineClient:
         If the reservation has already ended or is within the processor's
         freeze window, then the call will return a `FAILED_PRECONDITION` error.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -689,7 +808,7 @@ class EngineClient:
                         reservation_id: str):
         """ Gets a quantum reservation from the engine.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -713,7 +832,7 @@ class EngineClient:
 
         Only reservations owned by this project will be returned.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter: A string for filtering quantum reservations.
@@ -721,8 +840,8 @@ class EngineClient:
                 Examples:
                     `start_time >= 1584385200`: Reservation began on or after
                         the epoch time Mar 16th, 7pm GMT.
-                    `end_time >= "2017-01-02 15:21:15.142"`: Reservation ends on
-                        or after Jan 2nd 2017 15:21:15.142
+                    `end_time >= 1483370475`: Reservation ends on
+                        or after Jan 2nd 2017 15:21:15
 
         Returns:
             A list of QuantumReservation objects.
@@ -747,7 +866,7 @@ class EngineClient:
         and list of whitelisted users.  If any field is not filled, it will
         not be updated.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             reservation_id: Unique ID of the reservation in the parent project,
@@ -784,7 +903,7 @@ class EngineClient:
                         filter_str: str = '') -> List[qtypes.QuantumTimeSlot]:
         """Returns a list of quantum time slots on a processor.
 
-        Params:
+        Args:
             project_id: A project_id of the parent Google Cloud Project.
             processor_id: The processor unique identifier.
             filter:  A string expression for filtering the quantum

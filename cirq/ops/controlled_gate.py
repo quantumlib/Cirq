@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Any, cast, Collection, Dict, Optional, Sequence, Tuple, Union
+from typing import (AbstractSet, Any, cast, Collection, Dict, Optional,
+                    Sequence, Tuple, Union)
 
 import numpy as np
 
@@ -170,8 +171,11 @@ class ControlledGate(raw_types.Gate):
                               control_values=self.control_values,
                               control_qid_shape=self.control_qid_shape)
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_gate)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(self, param_resolver):
         new_sub_gate = protocols.resolve_parameters(self.sub_gate,
