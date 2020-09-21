@@ -46,8 +46,9 @@ from cirq.study.sweeps import (
     dict_to_zip_sweep,
 )
 
-from cirq.study.trial_result import (
-    Result,)
+from cirq.study.result import (
+    Result,
+    TrialResult,)
 
 from cirq.study.visualize import (
     plot_state_histogram,)

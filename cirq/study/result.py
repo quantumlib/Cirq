@@ -23,7 +23,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -322,6 +322,11 @@ class Result:
             measurements={
                 key: _unpack_digits(**val) for key, val in measurements.items()
             })
+
+
+@deprecated(deadline='v0.9', fix='Use cirq.Result instead.')
+class TrialResult(Result):
+    pass
 
 
 def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
