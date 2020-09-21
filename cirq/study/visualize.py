@@ -16,7 +16,7 @@
 
 import numpy as np
 
-from cirq.study import trial_result
+from cirq.study import result
 
 
 def plot_state_histogram(result: trial_result.Result) -> np.ndarray:
