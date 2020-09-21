@@ -18,7 +18,7 @@ an interactive session.
 """
 
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
-                    Union)
+                    Iterable, Union)
 
 import numpy as np
 import matplotlib as mpl
@@ -29,7 +29,7 @@ from mpl_toolkits import axes_grid1
 
 from cirq.devices import grid_qubit
 
-QubitCoordinate = Union[Tuple[int, int], grid_qubit.GridQubit]
+QubitCoordinate = Union[Tuple[float, float], grid_qubit.GridQubit]
 
 QubitPair = Union[Tuple[grid_qubit.GridQubit, grid_qubit.GridQubit],
                   Tuple[Tuple[int, int], Tuple[int, int]]]
@@ -56,34 +56,35 @@ def relative_luminance(color: np.ndarray) -> float:
     return rgb.dot([.2126, .7152, .0722])
 
 
-def _get_qubit_row_col(self, qubit: QubitCoordinate) -> Tuple[int, int]:
+def _get_qubit_row_col(qubit: QubitCoordinate) -> Tuple[int, int]:
     if isinstance(qubit, grid_qubit.GridQubit):
         return qubit.row, qubit.col
     elif isinstance(qubit, tuple):
         return qubit[0], qubit[1]
 
 
-def _sum_qubit_row_col(self, qubitpair: QubitPair) -> Tuple[int, int]:
+def _ave_qubit_row_col(qubitpair: QubitPair) -> Tuple[float, float]:
     if isinstance(qubitpair[0], grid_qubit.GridQubit):
-        return qubitpair[0].row+qubitpair[1].row, qubitpair[0].col+qubitpair[1].col
+        return (qubitpair[0].row+qubitpair[1].row)/2, (qubitpair[0].col+qubitpair[1].col)/2
     elif isinstance(qubitpair[1], tuple):
-        return qubitpair[0][0]+qubitpair[0][1], qubitpair[1][0]+qubitpair[1][1]
+        return (qubitpair[0][0]+qubitpair[0][1])/2, (qubitpair[1][0]+qubitpair[1][1])/2
 
 
 
 class Heatmap_base:
     """Distribution of a value in 2D qubit lattice as a color map."""
 
-    def __init__(self, value_map: ValueMap) -> None:
+    def __init__(self, value_map: ValueMap, title: Optional[str] = None) -> None:
         self.set_value_map(value_map)
         self.annot_map = {  # Default annotation.
-            _get_qubit_row_col(hashable): format(float(value), '.2g')
-            for hashable, value in value_map.items()
+            _get_qubit_row_col(hashable): format(float(value[0]), '.2g')
+            for hashable, value in self.value_map.items()
         }
         self.annot_kwargs: Dict[str, Any] = {}
         self.unset_url_map()
         self.set_colorbar()
         self.set_colormap()
+        self.title = title
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
                            **text_options: str) -> 'Heatmap':
@@ -203,23 +204,33 @@ class Heatmap_base:
     def _write_annotations(self, mesh: mpl_collections.Collection,
                            ax: plt.Axes) -> None:
         """Writes annotations to the center of cells. Internal."""
-        for path, facecolor in zip(mesh.get_paths(), mesh.get_facecolors()):
-            # Calculate the center of the cell, assuming that it is a square
-            # centered at (x=col, y=row).
-            vertices = path.vertices[:4]
-            row = int(round(np.mean([v[1] for v in vertices])))
-            col = int(round(np.mean([v[0] for v in vertices])))
+        for row, col in self.value_map.keys():
             annotation = self.annot_map.get((row, col), '')
             if not annotation:
                 continue
-            face_luminance = relative_luminance(facecolor)
-            text_color = 'black' if face_luminance > 0.4 else 'white'
+            text_color = 'black' if self.value_map[(row, col)][0] > (self.vmax+self.vmin)/2 else 'white'
             text_kwargs = dict(color=text_color, ha="center", va="center")
             text_kwargs.update(self.annot_kwargs)
             ax.text(col, row, annotation, **text_kwargs)
 
+class Heatmap(Heatmap_base):
+    """Distribution of a value in 2D qubit lattice as a color map."""
+
+    def set_value_map(self, value_map: ValueMap) -> 'Heatmap':
+        """Sets the values for each qubit.
+
+        Args:
+            value_map: the values for determining color for each cell.
+        """
+        # Fail fast if float() fails.
+        # Keep the original value object for annotation.
+        self.value_map = {
+            hashable: (float(value), value) for hashable, value in value_map.items()
+        }
+        return self
+
     def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
-            ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
+             ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
         """Plots the heatmap on the given Axes.
 
         Args:
@@ -251,7 +262,7 @@ class Heatmap_base:
                                    index=range(min_row, max_row + 1),
                                    columns=range(min_col, max_col + 1))
         for qubit, (float_value, _) in self.value_map.items():
-            row, col = self._get_qubit_row_col(qubit)
+            row, col = _get_qubit_row_col(qubit)
             value_table[col][row] = float_value
         # Construct the (height + 1) x (width + 1) cell boundary tables.
         x_table = np.array([np.arange(min_col - 0.5, max_col + 1.5)] *
@@ -291,27 +302,12 @@ class Heatmap_base:
         if show_plot:
             fig.show()
 
+        plt.show()
+
         return ax, mesh, value_table
 
 
-class Heatmap(Heatmap_base):
-    """Distribution of a value in 2D qubit lattice as a color map."""
-
-    def set_value_map(self, value_map: ValueMap) -> 'Heatmap':
-        """Sets the values for each qubit.
-
-        Args:
-            value_map: the values for determining color for each cell.
-        """
-        # Fail fast if float() fails.
-        # Keep the original value object for annotation.
-        self.value_map = {
-            hashable: (float(value), value) for hashable, value in value_map.items()
-        }
-        return self
-
-
-class InterHeatmap(Heatmap):
+class InterHeatmap(Heatmap_base):
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def set_value_map(self, inter_value_map: ValueMap) -> 'Heatmap':
@@ -322,7 +318,95 @@ class InterHeatmap(Heatmap):
         """
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
-        self.value_map = {
-            _sum_qubit_row_col(hashable): (float(value), value) for hashable, value in value_map.items()
-        }
+
+        if isinstance(list(inter_value_map.values())[0], Iterable):
+            self.value_map = {
+                _ave_qubit_row_col(hashable): (float(value[0]), value[0]) for hashable, value in inter_value_map.items()
+            }
+        else:
+            self.value_map = {
+                _ave_qubit_row_col(hashable): (float(value), value) for hashable, value in inter_value_map.items()
+            }
         return self
+
+    def plot(self, ax: Optional[plt.Axes] = None, **pcolor_options: Any
+             ) -> Tuple[plt.Axes, mpl_collections.Collection, pd.DataFrame]:
+        """Plots the heatmap on the given Axes.
+
+        Args:
+            ax: the Axes to plot on. If not given, a new figure is created,
+                plotted on, and shown.
+            pcolor_options: keyword arguments passed to ax.pcolor().
+
+        Returns:
+            A 3-tuple ``(ax, mesh, value_table)``. ``ax`` is the `plt.Axes` that
+            is plotted on. ``mesh`` is the collection of paths drawn and filled.
+            ``value_table`` is the 2-D pandas DataFrame of values constructed
+            from the value_map.
+        """
+        show_plot = not ax
+        if not ax:
+            fig, ax = plt.subplots(figsize=(8, 8))
+        # Find the boundary and size of the heatmap.
+        coordinate_list = [
+            _get_qubit_row_col(qubit) for qubit in self.value_map.keys()
+        ]
+        rows = [row for row, _ in coordinate_list]
+        cols = [col for _, col in coordinate_list]
+        min_row, max_row = min(rows), max(rows)
+        min_col, max_col = min(cols), max(cols)
+        height, width = max_row - min_row + 1, max_col - min_col + 1
+        # Construct the (height x width) table of values. Cells with no values
+        # are filled with np.nan.
+        value_table = pd.DataFrame(np.nan,
+                                   index=np.arange(min_row, max_row + 0.1, 0.5),
+                                   columns=np.arange(min_col, max_col + 0.1, 0.5))
+        self.set_colormap('viridis', min(self.value_map.values())[0], max(self.value_map.values())[0])
+        for qubit, (float_value, _) in self.value_map.items():
+            row, col = _get_qubit_row_col(qubit)
+            value_table[col][row] = float_value
+        # Construct the (height + 1) x (width + 1) cell boundary tables.
+        x_table = np.arange(min_col - 0.25, max_col + 0.75, 0.5)
+        y_table = np.arange(min_row - 0.25, max_row + 0.75, 0.5)
+
+        # Construct the URL array as an ordered list of URLs for non-nan cells.
+        url_array: List[str] = []
+        if self.url_map:
+            url_array = [
+                self.url_map.get((row, col), '')
+                for row, col in value_table.stack().index
+            ]
+
+        # Plot the heatmap.
+        mesh = ax.pcolor(x_table,
+                         y_table,
+                         value_table,
+                         vmin=self.vmin,
+                         vmax=self.vmax,
+                         cmap=self.colormap,
+                         urls=url_array,
+                         **pcolor_options)
+        mesh.update_scalarmappable()
+        ax.set(xlabel='column', ylabel='row')
+        ax.set_xticks(np.arange(min_col - 0.5, max_col + 1.5))
+        ax.set_yticks(np.arange(min_row - 0.5, max_row + 1.5))
+        ax.set_xticks(np.arange(min_col, max_col + 1), minor='true')
+        ax.set_yticks(np.arange(min_row, max_row + 1), minor='true')
+        ax.grid(b=True, which='minor', linestyle='--')
+        ax.set_xlim((max_col + 0.5, min_col - 0.5))
+        ax.set_ylim((max_row + 0.5, min_row - 0.5))
+        plt.title(self.title)
+
+        if self.plot_colorbar:
+            self._plot_colorbar(mesh, ax)
+
+        if self.annot_map:
+            self._write_annotations(mesh, ax)
+
+        if show_plot:
+            fig.show()
+
+        plt.show()
+
+        return ax, mesh, value_table
+
