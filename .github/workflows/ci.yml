@@ -90,12 +90,14 @@ jobs:
         run: check/doctest -q
   pytest:
     name: Pytest Ubuntu
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.7' ]
     runs-on: ubuntu-16.04
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.6'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -158,12 +160,14 @@ jobs:
         run: check/pytest-and-incremental-coverage --actually-quiet
   windows:
     name: Pytest Windows
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.7' ]
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.6'
           architecture: 'x64'
       - name: Install requirements
         run: |
@@ -174,12 +178,14 @@ jobs:
         shell: bash
   macos:
     name: Pytest MacOS
+    strategy:
+      matrix:
+        python-version: [ '3.6', '3.7' ]
     runs-on: macos-10.15
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v1
         with:
-          python-version: '3.6'
           architecture: 'x64'
       - name: Install requirements
         run: |
