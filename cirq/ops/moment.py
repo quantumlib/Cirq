@@ -15,7 +15,7 @@
 """A simplified time-slice of operations within a sequenced circuit."""
 
 from typing import (Any, Callable, Dict, FrozenSet, Iterable, Iterator,
-                    overload, Tuple, TYPE_CHECKING, TypeVar, Union)
+                    overload, Optional, Tuple, TYPE_CHECKING, TypeVar, Union)
 from cirq import protocols
 from cirq._compat import deprecated_parameter
 from cirq.ops import raw_types
@@ -96,6 +96,21 @@ class Moment:
             Whether this moment has operations involving the qubits.
         """
         return bool(set(qubits) & self.qubits)
+
+    def operation_at(self, qubit: raw_types.Qid) -> Optional['cirq.Operation']:
+        """Returns the operation on a certain qubit for the moment.
+
+        Args:
+            qubit: The qubit on which the returned Operation operates
+                on.
+
+        Returns:
+            The operation that operates on the qubit for that moment.
+        """
+        if self.operates_on([qubit]):
+            return self.__getitem__(qubit)
+        else:
+            return None
 
     def with_operation(self, operation: 'cirq.Operation') -> 'cirq.Moment':
         """Returns an equal moment, but with the given op added.
