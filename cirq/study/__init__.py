@@ -48,7 +48,8 @@ from cirq.study.sweeps import (
 
 from cirq.study.result import (
     Result,
-    TrialResult,)
+    TrialResult,
+)
 
 from cirq.study.visualize import (
     plot_state_histogram,)
