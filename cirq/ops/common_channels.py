@@ -59,7 +59,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             p_y: The probability that a Pauli Y and no other gate occurs.
             p_z: The probability that a Pauli Z and no other gate occurs.
             num_qubits: Number of qubits
-            error_probabilities: Dictionary of string (Pauli operator) to its probability
+            error_probabilities: Dictionary of string (Pauli operator) to its
+                probability
 
         Raises:
             ValueError: if the args or the sum of args are not probabilities.
@@ -127,7 +128,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         if self._num_qubits == 1:
             return 'asymmetric_depolarize(error_probabilities={!r})'.format(
                 self._error_probabilities)
-        return 'asymmetric_depolarize(num_qubits={!r},error_probabilities={!r})'.format(
+        return ('asymmetric_depolarize(num_qubits={!r},' + 'error_probabilities={!r})').format(
             self._num_qubits, self._error_probabilities)
 
     def _circuit_diagram_info_(self,
@@ -211,7 +212,8 @@ def asymmetric_depolarize(p_x: Optional[float] = None,
             p_y: The probability that a Pauli Y and no other gate occurs.
             p_z: The probability that a Pauli Z and no other gate occurs.
             num_qubits: Number of qubits
-            error_probabilities: Dictionary of string (Pauli operator) to its probability
+            error_probabilities: Dictionary of string (Pauli operator) to its
+                probability
 
     Raises:
         ValueError: if the args or the sum of the args are not probabilities.
