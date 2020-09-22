@@ -546,8 +546,7 @@ def test_multi_asymmetric_depolarizing_channel():
 
 def test_multi_asymmetric_depolarizing_channel_bad_init():
     with pytest.raises(ValueError, match="I does not have 2 entries"):
-        cirq.asymmetric_depolarize(num_qubits=2,
-                                   error_probabilities={'I': 1.0})
+        cirq.asymmetric_depolarize(num_qubits=2, error_probabilities={'I': 1.0})
 
 
 def test_multi_asymmetric_depolarizing_mixture():
