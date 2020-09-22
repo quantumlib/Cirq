@@ -128,8 +128,9 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         if self._num_qubits == 1:
             return 'asymmetric_depolarize(error_probabilities={!r})'.format(
                 self._error_probabilities)
-        return ('asymmetric_depolarize(num_qubits={!r},' + 'error_probabilities={!r})').format(
-            self._num_qubits, self._error_probabilities)
+        return ('asymmetric_depolarize(num_qubits={!r},' +
+                'error_probabilities={!r})').format(self._num_qubits,
+                                                    self._error_probabilities)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
