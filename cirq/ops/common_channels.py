@@ -32,11 +32,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
     """A channel that depolarizes asymmetrically along different directions."""
 
     def __init__(self,
-             p_x: Optional[float] = None,
-             p_y: Optional[float] = None,
-             p_z: Optional[float] = None,
-             num_qubits: int = 1,
-             error_probabilities: Optional[Dict[str, float]] = None) -> None:
+                 p_x: Optional[float] = None,
+                 p_y: Optional[float] = None,
+                 p_z: Optional[float] = None,
+                 num_qubits: int = 1,
+                 error_probabilities: Optional[Dict[str, float]] = None
+                ) -> None:
         r"""The asymmetric depolarizing channel.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
@@ -66,7 +67,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         if error_probabilities is not None:
             for k in error_probabilities.keys():
                 if len(k) != num_qubits:
-                    raise ValueError('{} does not have {} entries'.format(k, num_qubits))
+                    raise ValueError('{} does not have {} entries'.format(
+                        k, num_qubits))
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -109,19 +111,22 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return True
 
     def _value_equality_values_(self):
-        return self._num_qubits, hash(tuple(sorted(self._error_probabilities.items())))
+        return self._num_qubits, hash(
+            tuple(sorted(self._error_probabilities.items())))
 
     def __repr__(self) -> str:
         if self._num_qubits == 1:
             return (
-                'cirq.asymmetric_depolarize(error_probabilities={!r})'.format(self._error_probabilities))
-        return (
-            'cirq.asymmetric_depolarize' +
-            '(num_qubits={!r},error_probabilities={!r})'.format(self._num_qubits, self._error_probabilities))
+                'cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
+                    self._error_probabilities))
+        return ('cirq.asymmetric_depolarize' +
+                '(num_qubits={!r},error_probabilities={!r})'.format(
+                    self._num_qubits, self._error_probabilities))
 
     def __str__(self) -> str:
         if self._num_qubits == 1:
-            return 'asymmetric_depolarize(error_probabilities={!r})'.format(self._error_probabilities)
+            return 'asymmetric_depolarize(error_probabilities={!r})'.format(
+                self._error_probabilities)
         return 'asymmetric_depolarize(num_qubits={!r},error_probabilities={!r})'.format(
             self._num_qubits, self._error_probabilities)
 
@@ -182,12 +187,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['num_qubits', 'error_probabilities'])
 
 
-def asymmetric_depolarize(
-            p_x: Optional[float] = None,
-             p_y: Optional[float] = None,
-             p_z: Optional[float] = None,
-             num_qubits: int = 1,
-             error_probabilities: Optional[Dict[str, float]] = None) -> AsymmetricDepolarizingChannel:
+def asymmetric_depolarize(p_x: Optional[float] = None,
+                          p_y: Optional[float] = None,
+                          p_z: Optional[float] = None,
+                          num_qubits: int = 1,
+                          error_probabilities: Optional[Dict[str, float]] = None
+                         ) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
         This channel evolves a density matrix via
@@ -210,7 +215,8 @@ def asymmetric_depolarize(
     Raises:
         ValueError: if the args or the sum of the args are not probabilities.
     """
-    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, num_qubits, error_probabilities)
+    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, num_qubits,
+                                         error_probabilities)
 
 
 @value.value_equality
