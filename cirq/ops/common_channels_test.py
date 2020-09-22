@@ -537,11 +537,11 @@ def test_multi_asymmetric_depolarizing_channel():
     assert cirq.has_channel(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_x
+        assert d.p_x == 0.0
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_y
+        assert d.p_y == 0.0
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_z
+        assert d.p_z == 0.0
 
 
 def test_multi_asymmetric_depolarizing_mixture():
