@@ -544,6 +544,14 @@ def test_multi_asymmetric_depolarizing_channel():
         assert d.p_z == 0.0
 
 
+def test_multi_asymmetric_depolarizing_channel():
+    with pytest.raises(ValueError, match="I does not have 2 entries"):
+        d = cirq.asymmetric_depolarize(num_qubits=2,
+                                       error_probabilities={
+                                           'I': 1.0
+                                       })
+
+
 def test_multi_asymmetric_depolarizing_mixture():
     d = cirq.asymmetric_depolarize(num_qubits=2,
                                    error_probabilities={
