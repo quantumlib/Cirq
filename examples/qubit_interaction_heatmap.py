@@ -1,6 +1,7 @@
 """The script that produces bristlecone_heatmap_example.png."""
 
 import cirq
+from cirq import Heatmap, InterHeatmap
 
 
 def main():
@@ -39,7 +40,7 @@ def main():
         (cirq.GridQubit(8, 4), cirq.GridQubit(8, 5)):[0.014301577907262525],
         (cirq.GridQubit(8, 4), cirq.GridQubit(9, 4)):[0.0038720100369923904]
     }
-    heatmap = cirq.InterHeatmap(value_map, title)
+    heatmap = InterHeatmap(value_map, title)
     heatmap.plot()
 
 

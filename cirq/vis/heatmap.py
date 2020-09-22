@@ -87,7 +87,7 @@ class Heatmap_base:
         self.title = title
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
-                           **text_options: str) -> 'Heatmap':
+                           **text_options: str) -> 'Heatmap_base':
         """Sets the annotation text for each qubit.
 
         Note that set_annotation_map() and set_annotation_format()
@@ -106,7 +106,7 @@ class Heatmap_base:
         return self
 
     def set_annotation_format(self, annot_format: str,
-                              **text_options: str) -> 'Heatmap':
+                              **text_options: str) -> 'Heatmap_base':
         """Sets a format string to format values for each qubit.
 
         Args:
@@ -120,12 +120,12 @@ class Heatmap_base:
         self.annot_kwargs = text_options
         return self
 
-    def unset_annotation(self) -> 'Heatmap':
+    def unset_annotation(self) -> 'Heatmap_base':
         """Disables annotation. No texts are shown in cells."""
         self.annot_map = {}
         return self
 
-    def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap':
+    def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) -> 'Heatmap_base':
         """Sets the URLs for each cell."""
         self.url_map = {
             _get_qubit_row_col(hashable): value
@@ -142,7 +142,7 @@ class Heatmap_base:
                      position: str = 'right',
                      size: str = '5%',
                      pad: str = '2%',
-                     **colorbar_options: Any) -> 'Heatmap':
+                     **colorbar_options: Any) -> 'Heatmap_base':
         """Sets location and style of colorbar.
 
         Args:
@@ -171,7 +171,7 @@ class Heatmap_base:
     def set_colormap(self,
                      colormap: Union[str, mpl.colors.Colormap] = 'viridis',
                      vmin: Optional[float] = None,
-                     vmax: Optional[float] = None) -> 'Heatmap':
+                     vmax: Optional[float] = None) -> 'Heatmap_base':
         """Sets the colormap.
 
         Args:
@@ -201,8 +201,7 @@ class Heatmap_base:
         colorbar_ax.tick_params(axis='y', direction='out')
         return colorbar
 
-    def _write_annotations(self, mesh: mpl_collections.Collection,
-                           ax: plt.Axes) -> None:
+    def _write_annotations(self, ax: plt.Axes) -> None:
         """Writes annotations to the center of cells. Internal."""
         for row, col in self.value_map.keys():
             annotation = self.annot_map.get((row, col), '')
@@ -236,6 +235,7 @@ class Heatmap(Heatmap_base):
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
+            filepath: the path to save the produced image file
             pcolor_options: keyword arguments passed to ax.pcolor().
 
         Returns:
@@ -297,12 +297,10 @@ class Heatmap(Heatmap_base):
             self._plot_colorbar(mesh, ax)
 
         if self.annot_map:
-            self._write_annotations(mesh, ax)
+            self._write_annotations(ax)
 
         if show_plot:
             fig.show()
-
-        plt.show()
 
         return ax, mesh, value_table
 
@@ -314,7 +312,7 @@ class InterHeatmap(Heatmap_base):
         """Sets the values for each qubit.
 
         Args:
-            value_map: the values for determining color for each cell.
+            inter_value_map: the values for determining color for each cell.
         """
         # Fail fast if float() fails.
         # Keep the original value object for annotation.
@@ -401,7 +399,7 @@ class InterHeatmap(Heatmap_base):
             self._plot_colorbar(mesh, ax)
 
         if self.annot_map:
-            self._write_annotations(mesh, ax)
+            self._write_annotations(ax)
 
         if show_plot:
             fig.show()
@@ -410,3 +408,47 @@ class InterHeatmap(Heatmap_base):
 
         return ax, mesh, value_table
 
+import cirq
+
+def main():
+    title = 'Two Qubit Sycamore Gate Xeb Cycle Total Error'
+    value_map = {
+        (cirq.GridQubit(3, 2), cirq.GridQubit(4, 2)):[0.004619111460557768],
+        (cirq.GridQubit(4, 1), cirq.GridQubit(4, 2)):[0.0076079162393482835],
+        (cirq.GridQubit(4, 1), cirq.GridQubit(5, 1)):[0.010323903068646778],
+        (cirq.GridQubit(4, 2), cirq.GridQubit(4, 3)):[0.00729037246947839],
+        (cirq.GridQubit(4, 2), cirq.GridQubit(5, 2)):[0.008226663382640803],
+        (cirq.GridQubit(4, 3), cirq.GridQubit(5, 3)):[0.01504682356081491],
+        (cirq.GridQubit(5, 0), cirq.GridQubit(5, 1)):[0.00673880216745637],
+        (cirq.GridQubit(5, 1), cirq.GridQubit(5, 2)):[0.01020380985719993],
+        (cirq.GridQubit(5, 1), cirq.GridQubit(6, 1)):[0.005713058677283056],
+        (cirq.GridQubit(5, 2), cirq.GridQubit(5, 3)):[0.006431698844451689],
+        (cirq.GridQubit(5, 2), cirq.GridQubit(6, 2)):[0.004676551878404933],
+        (cirq.GridQubit(5, 3), cirq.GridQubit(5, 4)):[0.009471810549265769],
+        (cirq.GridQubit(5, 3), cirq.GridQubit(6, 3)):[0.003834724159559072],
+        (cirq.GridQubit(5, 4), cirq.GridQubit(6, 4)):[0.010423354216218345],
+        (cirq.GridQubit(6, 1), cirq.GridQubit(6, 2)):[0.0062515002303844824],
+        (cirq.GridQubit(6, 2), cirq.GridQubit(6, 3)):[0.005419247075412775],
+        (cirq.GridQubit(6, 2), cirq.GridQubit(7, 2)):[0.02236774155039517],
+        (cirq.GridQubit(6, 3), cirq.GridQubit(6, 4)):[0.006116965562115412],
+        (cirq.GridQubit(6, 3), cirq.GridQubit(7, 3)):[0.005300336755683754],
+        (cirq.GridQubit(6, 4), cirq.GridQubit(6, 5)):[0.012849356290539266],
+        (cirq.GridQubit(6, 4), cirq.GridQubit(7, 4)):[0.007785990142364307],
+        (cirq.GridQubit(6, 5), cirq.GridQubit(7, 5)):[0.008790971346696541],
+        (cirq.GridQubit(7, 2), cirq.GridQubit(7, 3)):[0.004104719338404117],
+        (cirq.GridQubit(7, 3), cirq.GridQubit(7, 4)):[0.009236765681133435],
+        (cirq.GridQubit(7, 3), cirq.GridQubit(8, 3)):[0.024921853294157192],
+        (cirq.GridQubit(7, 4), cirq.GridQubit(7, 5)):[0.0059072812181635015],
+        (cirq.GridQubit(7, 4), cirq.GridQubit(8, 4)):[0.004990546867455203],
+        (cirq.GridQubit(7, 5), cirq.GridQubit(7, 6)):[0.007852170748540305],
+        (cirq.GridQubit(7, 5), cirq.GridQubit(8, 5)):[0.006424831182351348],
+        (cirq.GridQubit(8, 3), cirq.GridQubit(8, 4)):[0.005248674988741292],
+        (cirq.GridQubit(8, 4), cirq.GridQubit(8, 5)):[0.014301577907262525],
+        (cirq.GridQubit(8, 4), cirq.GridQubit(9, 4)):[0.0038720100369923904]
+    }
+    heatmap = InterHeatmap(value_map, title)
+    heatmap.plot()
+
+
+if __name__ == '__main__':
+    main()

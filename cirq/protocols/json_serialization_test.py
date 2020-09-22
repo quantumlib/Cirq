@@ -288,6 +288,7 @@ NOT_YET_SERIALIZABLE = [
     'ExpressionMap',
     'FSIM_GATESET',
     'Heatmap',
+    'InterHeatmap'
     'InsertStrategy',
     'IonDevice',
     'KakDecomposition',

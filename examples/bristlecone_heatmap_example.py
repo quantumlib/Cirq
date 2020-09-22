@@ -9,7 +9,9 @@ def main():
                  for qubit in cirq.google.Bristlecone.qubits}
 
     heatmap = cirq.Heatmap(value_map)
-    heatmap.plot()
+    file_path = "bristlecone_heatmap_example.png"
+    fig, _, _ = heatmap.plot()
+    fig.savefig(file_path)
 
 
 if __name__ == '__main__':
