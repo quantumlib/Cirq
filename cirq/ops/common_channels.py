@@ -184,7 +184,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return self._error_probabilities
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(self, ['num_qubits', 'error_probabilities'])
+        return protocols.obj_to_dict_helper(
+            self, ['num_qubits', 'error_probabilities'])
 
 
 def asymmetric_depolarize(p_x: Optional[float] = None,

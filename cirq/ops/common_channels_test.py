@@ -518,11 +518,11 @@ def test_bit_flip_channel_text_diagram():
             wire_symbols=('BF(0.12)',)))
 
 
-def test_multi_asymmetric_depolarizing_channel():
+def test_default_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize()
-    assert d.p_x() == 0.0
-    assert d.p_y() == 0.0
-    assert d.p_z() == 0.0
+    assert d.p_x == 0.0
+    assert d.p_y == 0.0
+    assert d.p_z == 0.0
 
 
 def test_multi_asymmetric_depolarizing_channel():
@@ -537,11 +537,11 @@ def test_multi_asymmetric_depolarizing_channel():
     assert cirq.has_channel(d)
     np.testing.assert_equal(d._num_qubits_(), 2)
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_x()
+        d.p_x
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_y()
+        d.p_y
     with pytest.raises(ValueError, match="num_qubits should be 1"):
-        d.p_z()
+        d.p_z
 
 
 def test_multi_asymmetric_depolarizing_mixture():
