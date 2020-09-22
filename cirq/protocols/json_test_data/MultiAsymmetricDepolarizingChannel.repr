@@ -1,1 +1,1 @@
-cirq.asymmetric_depolarize(num_qubits=2,pis={'II':0.8, 'XX':0.2})
+cirq.asymmetric_depolarize(num_qubits=2,error_probabilities={'II':0.8, 'XX':0.2})

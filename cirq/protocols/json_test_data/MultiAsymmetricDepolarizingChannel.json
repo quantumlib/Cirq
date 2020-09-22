@@ -1,7 +1,7 @@
 {
   "cirq_type": "AsymmetricDepolarizingChannel",
   "num_qubits": 2,
-  "pis": {
+  "error_probabilities": {
       "II": 0.8,
       "XX": 0.2
   }
