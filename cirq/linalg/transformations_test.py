@@ -500,7 +500,7 @@ def test_sub_state_vector_non_kron():
 
 def test_sub_state_vector_invalid_inputs():
 
-    # State cannot be expressed as a seperable pure state.
+    # State cannot be expressed as a separable pure state.
     with pytest.raises(ValueError, match='7'):
         cirq.sub_state_vector(np.arange(7), [1, 2], atol=1e-8)
 

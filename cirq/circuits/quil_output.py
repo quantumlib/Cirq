@@ -39,9 +39,9 @@ class QuilOneQubitGate(ops.SingleQubitGate):
 
     def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> str:
-        return (f'DEFGATE USERGATE:\n\t'
+        return (f'DEFGATE USERGATE:\n    '
                 f'{to_quil_complex_format(self.matrix[0, 0])}, '
-                f'{to_quil_complex_format(self.matrix[0, 1])}\n\t'
+                f'{to_quil_complex_format(self.matrix[0, 1])}\n    '
                 f'{to_quil_complex_format(self.matrix[1, 0])}, '
                 f'{to_quil_complex_format(self.matrix[1, 1])}\n'
                 f'{formatter.format("USERGATE {0}", qubits[0])}\n')
@@ -73,19 +73,19 @@ class QuilTwoQubitGate(ops.TwoQubitGate):
     def _quil_(self, qubits: Tuple['cirq.Qid', ...],
                formatter: 'cirq.QuilFormatter') -> str:
         return (
-            f'DEFGATE USERGATE:\n\t'
+            f'DEFGATE USERGATE:\n    '
             f'{to_quil_complex_format(self.matrix[0, 0])}, '
             f'{to_quil_complex_format(self.matrix[0, 1])}, '
             f'{to_quil_complex_format(self.matrix[0, 2])}, '
-            f'{to_quil_complex_format(self.matrix[0, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[0, 3])}\n    '
             f'{to_quil_complex_format(self.matrix[1, 0])}, '
             f'{to_quil_complex_format(self.matrix[1, 1])}, '
             f'{to_quil_complex_format(self.matrix[1, 2])}, '
-            f'{to_quil_complex_format(self.matrix[1, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[1, 3])}\n    '
             f'{to_quil_complex_format(self.matrix[2, 0])}, '
             f'{to_quil_complex_format(self.matrix[2, 1])}, '
             f'{to_quil_complex_format(self.matrix[2, 2])}, '
-            f'{to_quil_complex_format(self.matrix[2, 3])}\n\t'
+            f'{to_quil_complex_format(self.matrix[2, 3])}\n    '
             f'{to_quil_complex_format(self.matrix[3, 0])}, '
             f'{to_quil_complex_format(self.matrix[3, 1])}, '
             f'{to_quil_complex_format(self.matrix[3, 2])}, '

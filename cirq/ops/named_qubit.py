@@ -11,20 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict
+import functools
+from typing import Any, Dict, List, TYPE_CHECKING, TypeVar
 
 from cirq import protocols
 from cirq.ops import raw_types
 
 
-class NamedQubit(raw_types.Qid):
-    """A qubit identified by name.
+if TYPE_CHECKING:
+    import cirq
 
-    By default, NamedQubit has a lexicographic order. However, numbers within
-    the name are handled correctly. So, for example, if you print a circuit
-    containing `cirq.NamedQubit('qubit22')` and `cirq.NamedQubit('qubit3')`, the
-    wire for 'qubit3' will correctly come before 'qubit22'.
-    """
+TSelf = TypeVar('TSelf', bound='_BaseNamedQid')  # type: ignore
+
+
+@functools.total_ordering  # type: ignore
+class _BaseNamedQid(raw_types.Qid):
+    """The base class for `NamedQid` and `NamedQubit`."""
 
     def __init__(self, name: str) -> None:
         self._name = name
@@ -34,35 +36,119 @@ class NamedQubit(raw_types.Qid):
         return self._comp_key
 
     @property
+    def name(self) -> str:
+        return self._name
+
+    def with_dimension(self, dimension: int) -> 'NamedQid':
+        return NamedQid(self._name, dimension=dimension)
+
+
+class NamedQid(_BaseNamedQid):
+    """A qid identified by name.
+
+    By default, `NamedQid` has a lexicographic order. However, numbers within
+    the name are handled correctly. So, for example, if you print a circuit
+    containing `cirq.NamedQid('qid22', dimension=3)` and
+    `cirq.NamedQid('qid3', dimension=3)`, the wire for 'qid3' will
+    correctly come before 'qid22'.
+    """
+
+    def __init__(self, name: str, dimension: int) -> None:
+        """Initializes a `NamedQid` with a given name and dimension.
+
+        Args:
+            name: The name.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
+        """
+        super().__init__(name)
+        self._dimension = dimension
+        self.validate_dimension(dimension)
+
+    @property
+    def dimension(self) -> int:
+        return self._dimension
+
+    def __repr__(self) -> str:
+        return f'cirq.NamedQid({self.name!r}, dimension={self.dimension})'
+
+    def __str__(self) -> str:
+        return f'{self.name} (d={self.dimension})'
+
+    @staticmethod
+    def range(*args, prefix: str, dimension: int) -> List['NamedQid']:
+        """Returns a range of ``NamedQid``\\s.
+
+        The range returned starts with the prefix, and followed by a qid for
+        each number in the range, e.g.:
+
+            >>> cirq.NamedQid.range(3, prefix='a', dimension=3)
+            ... # doctest: +NORMALIZE_WHITESPACE
+            [cirq.NamedQid('a0', dimension=3), cirq.NamedQid('a1', dimension=3),
+                cirq.NamedQid('a2', dimension=3)]
+            >>> cirq.NamedQid.range(2, 4, prefix='a', dimension=3)
+            [cirq.NamedQid('a2', dimension=3), cirq.NamedQid('a3', dimension=3)]
+
+        Args:
+            *args: Args to be passed to Python's standard range function.
+            prefix: A prefix for constructed NamedQids.
+            dimension: The dimension of the qid's Hilbert space, i.e.
+                the number of quantum levels.
+        Returns:
+            A list of ``NamedQid``\\s.
+            """
+        return [
+            NamedQid(prefix + str(i), dimension=dimension) for i in range(*args)
+        ]
+
+    def _json_dict_(self) -> Dict[str, Any]:
+        return protocols.obj_to_dict_helper(self, ['name', 'dimension'])
+
+
+class NamedQubit(_BaseNamedQid):
+    """A qubit identified by name.
+
+    By default, `NamedQubit` has a lexicographic order. However, numbers within
+    the name are handled correctly. So, for example, if you print a circuit
+    containing `cirq.NamedQubit('qubit22')` and `cirq.NamedQubit('qubit3')`, the
+    wire for 'qubit3' will correctly come before 'qubit22'.
+    """
+
+    @property
     def dimension(self) -> int:
         return 2
 
-    def __str__(self) -> str:
-        return self._name
+    def _cmp_tuple(self):
+        cls = NamedQid if type(self) is NamedQubit else type(self)
+        # Must be same as Qid._cmp_tuple but with cls in place of type(self).
+        return (cls.__name__, repr(cls), self._comparison_key(), self.dimension)
 
-    @property
-    def name(self) -> str:
+    def __str__(self) -> str:
         return self._name
 
     def __repr__(self) -> str:
         return f'cirq.NamedQubit({self._name!r})'
 
     @staticmethod
-    def range(*args, prefix: str):
-        """Returns a range of NamedQubits.
+    def range(*args, prefix: str) -> List['NamedQubit']:
+        """Returns a range of ``NamedQubit``\\s.
 
         The range returned starts with the prefix, and followed by a qubit for
         each number in the range, e.g.:
 
-        NamedQubit.range(3, prefix="a") -> ["a1", "a2", "a3]
-        NamedQubit.range(2, 4, prefix="a") -> ["a2", "a3]
+            >>> cirq.NamedQubit.range(3, prefix='a')
+            ... # doctest: +NORMALIZE_WHITESPACE
+            [cirq.NamedQubit('a0'), cirq.NamedQubit('a1'),
+                cirq.NamedQubit('a2')]
+            >>> cirq.NamedQubit.range(2, 4, prefix='a')
+            [cirq.NamedQubit('a2'), cirq.NamedQubit('a3')]
 
         Args:
             *args: Args to be passed to Python's standard range function.
             prefix: A prefix for constructed NamedQubits.
 
         Returns:
-            A list of NamedQubits.
+            A list of ``NamedQubit``\\s.
         """
         return [NamedQubit(prefix + str(i)) for i in range(*args)]
 

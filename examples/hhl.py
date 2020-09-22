@@ -252,7 +252,7 @@ def hhl_circuit(A, C, t, register_size, *input_prep_gates):
 def simulate(circuit):
     simulator = cirq.Simulator()
 
-    # Cases for measurring X, Y, and Z (respectively) on the memory qubit.
+    # Cases for measuring X, Y, and Z (respectively) on the memory qubit.
     params = [{
         'exponent': 0.5,
         'phase_exponent': -0.5

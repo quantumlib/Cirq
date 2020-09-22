@@ -74,6 +74,7 @@ from cirq.protocols.inverse_protocol import (
     inverse,)
 from cirq.protocols.json_serialization import (
     DEFAULT_RESOLVERS,
+    JsonResolver,
     json_serializable_dataclass,
     to_json,
     read_json,
@@ -97,7 +98,9 @@ from cirq.protocols.mixture_protocol import (
 from cirq.protocols.mul_protocol import (
     mul,)
 from cirq.protocols.pauli_expansion_protocol import (
-    pauli_expansion,)
+    pauli_expansion,
+    SupportsPauliExpansion,
+)
 # pylint: disable=redefined-builtin
 from cirq.protocols.pow_protocol import (
     pow,)
@@ -117,6 +120,8 @@ from cirq.protocols.trace_distance_bound import (
 )
 from cirq.protocols.resolve_parameters import (
     is_parameterized,
+    parameter_names,
+    parameter_symbols,
     resolve_parameters,
     SupportsParameterization,
 )

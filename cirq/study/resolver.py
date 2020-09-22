@@ -15,6 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+import numpy as np
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
@@ -23,7 +24,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")
@@ -35,10 +36,11 @@ document(
 
 
 class ParamResolver:
-    """Resolves sympy.Symbols to actual values.
+    """Resolves parameters to actual values.
 
-    A Symbol is a wrapped parameter name (str). A ParamResolver is an object
-    that can be used to assign values for these keys.
+    A parameter is a variable whose value has not been determined.
+    A ParamResolver is an object that can be used to assign values for these
+    variables.
 
     ParamResolvers are hashable.
 
@@ -62,15 +64,17 @@ class ParamResolver:
                                {} if param_dict is None else param_dict)
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
-        """Attempt to resolve a Symbol, string, or float to its assigned value.
+                 value: Union['cirq.TParamKey', float]) -> 'cirq.TParamVal':
+        """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
         the parameter dictionary with exact match only.  Otherwise, strings
         are considered to be sympy.Symbols with the name as the input string.
 
-        sympy.Symbols are first checked for exact match in the parameter
-        dictionary.  Otherwise, the symbol is resolved using sympy substitution.
+        A sympy.Symbol is first checked for exact match in the parameter
+        dictionary. Otherwise, it is treated as a sympy.Basic.
+
+        A sympy.Basic is resolved using sympy substitution.
 
         Note that passing a formula to this resolver can be slow due to the
         underlying sympy library.  For circuits relying on quick performance,
@@ -80,8 +84,7 @@ class ParamResolver:
         If unable to resolve a name, returns a sympy.Symbol with that name.
 
         Args:
-            value: The sympy.Symbol or name or float to try to resolve into just
-                a float.
+            value: The parameter to try to resolve.
 
         Returns:
             The value of the parameter as resolved by this resolver.
@@ -112,6 +115,27 @@ class ParamResolver:
             param_value = self.param_dict[value.name]
             if isinstance(param_value, (float, int)):
                 return param_value
+
+        # The following resolves common sympy expressions
+        # If sympy did its job and wasn't slower than molasses,
+        # we wouldn't need the following block.
+        if isinstance(value, sympy.Add):
+            summation = self.value_of(value.args[0])
+            for addend in value.args[1:]:
+                summation += self.value_of(addend)
+            return summation
+        if isinstance(value, sympy.Mul):
+            product = self.value_of(value.args[0])
+            for factor in value.args[1:]:
+                product *= self.value_of(factor)
+            return product
+        if isinstance(value, sympy.Pow) and len(value.args) == 2:
+            return np.power(self.value_of(value.args[0]),
+                            self.value_of(value.args[1]))
+        if value == sympy.pi:
+            return np.pi
+        if value == sympy.S.NegativeOne:
+            return -1
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.

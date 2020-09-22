@@ -38,6 +38,9 @@ from cirq.experiments.grid_parallel_two_qubit_xeb import (
     compute_grid_parallel_two_qubit_xeb_results,
 )
 
+from cirq.experiments.purity_estimation import (
+    purity_from_probabilities,)
+
 from cirq.experiments.random_quantum_circuit_generation import (
     GRID_ALIGNED_PATTERN,
     GRID_STAGGERED_PATTERN,

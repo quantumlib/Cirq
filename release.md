@@ -215,7 +215,7 @@ Using the information above, create the release on the
 [Release page](https://github.com/quantumlib/Cirq/releases).
 Be sure to include the whl file as an attachment.
 
-### Email cirq-announe
+### Email cirq-announce
 
 Lastly, email cirq-announce@googlegroups.com with the release notes
 and an announcement of the new version.

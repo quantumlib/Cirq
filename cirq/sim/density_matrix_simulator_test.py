@@ -52,6 +52,18 @@ class _TestMixture(cirq.Gate):
                 for g in self.gate_options]
 
 
+class _TestDecomposingChannel(cirq.Gate):
+
+    def __init__(self, channels):
+        self.channels = channels
+
+    def _qid_shape_(self):
+        return tuple(d for chan in self.channels for d in cirq.qid_shape(chan))
+
+    def _decompose_(self, qubits):
+        return [chan.on(q) for chan, q in zip(self.channels, qubits)]
+
+
 def test_invalid_dtype():
     with pytest.raises(ValueError, match='complex'):
         cirq.DensityMatrixSimulator(dtype=np.int32)
@@ -187,6 +199,29 @@ def test_run_channel(dtype):
     circuit = cirq.Circuit(cirq.X(q0),
                            cirq.amplitude_damp(0.5)(q0), cirq.measure(q0),
                            cirq.measure(q1))
+
+    simulator = cirq.DensityMatrixSimulator(dtype=dtype)
+    result = simulator.run(circuit, repetitions=100)
+    np.testing.assert_equal(result.measurements['1'], [[0]] * 100)
+    # Test that we get at least one of each result. Probability of this test
+    # failing is 2 ** (-99).
+    q0_measurements = set(x[0] for x in result.measurements['0'].tolist())
+    assert q0_measurements == {0, 1}
+
+
+@pytest.mark.parametrize('dtype', [np.complex64, np.complex128])
+def test_run_decomposable_channel(dtype):
+    q0, q1 = cirq.LineQubit.range(2)
+
+    circuit = cirq.Circuit(
+        cirq.X(q0),
+        _TestDecomposingChannel([
+            cirq.amplitude_damp(0.5),
+            cirq.amplitude_damp(0),
+        ]).on(q0, q1),
+        cirq.measure(q0),
+        cirq.measure(q1),
+    )
 
     simulator = cirq.DensityMatrixSimulator(dtype=dtype)
     result = simulator.run(circuit, repetitions=100)
@@ -519,6 +554,21 @@ def test_simulate_initial_state(dtype):
         for b1 in [0, 1]:
             circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1))
             result = simulator.simulate(circuit, initial_state=1)
+            expected_density_matrix = np.zeros(shape=(4, 4))
+            expected_density_matrix[b0 * 2 + 1 - b1, b0 * 2 + 1 - b1] = 1.0
+            np.testing.assert_equal(result.final_density_matrix,
+                                    expected_density_matrix)
+
+
+def test_simulate_tps_initial_state():
+    q0, q1 = cirq.LineQubit.range(2)
+    simulator = cirq.DensityMatrixSimulator()
+    for b0 in [0, 1]:
+        for b1 in [0, 1]:
+            circuit = cirq.Circuit((cirq.X**b0)(q0), (cirq.X**b1)(q1))
+            result = simulator.simulate(circuit,
+                                        initial_state=cirq.KET_ZERO(q0) *
+                                        cirq.KET_ONE(q1))
             expected_density_matrix = np.zeros(shape=(4, 4))
             expected_density_matrix[b0 * 2 + 1 - b1, b0 * 2 + 1 - b1] = 1.0
             np.testing.assert_equal(result.final_density_matrix,

@@ -357,6 +357,87 @@ sweep_results: [{
 """, v2.result_pb2.Result())))
 
 
+BATCH_RESULTS = qtypes.QuantumResult(result=_to_any(
+    Merge(
+        """
+results: [{
+    sweep_results: [{
+        repetitions: 3,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 1
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\006'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 2
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\007'
+                }]
+            }
+        }]
+    }],
+    },{
+    sweep_results: [{
+        repetitions: 4,
+        parameterized_results: [{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 3
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\013'
+                }]
+            }
+        },{
+            params: {
+                assignments: {
+                    key: 'a'
+                    value: 4
+                }
+            },
+            measurement_results: {
+                key: 'q'
+                qubit_measurement_results: [{
+                  qubit: {
+                    id: '1_1'
+                  }
+                  results: '\011'
+                }]
+            }
+        }]
+    }]
+}]
+""", v2.batch_pb2.BatchResult())))
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
 def test_results(get_job_results):
     qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
@@ -395,6 +476,41 @@ def test_results_getitem(get_job_results):
     assert str(job[1]) == 'q=1010'
     with pytest.raises(IndexError):
         _ = job[2]
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_batched_results(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = BATCH_RESULTS
+
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    data = job.results()
+    assert len(data) == 4
+    assert str(data[0]) == 'q=011'
+    assert str(data[1]) == 'q=111'
+    assert str(data[2]) == 'q=1101'
+    assert str(data[3]) == 'q=1001'
+    get_job_results.assert_called_once_with('a', 'b', 'steve')
+
+    data = job.batched_results()
+    assert len(data) == 2
+    assert len(data[0]) == 2
+    assert len(data[1]) == 2
+    assert str(data[0][0]) == 'q=011'
+    assert str(data[0][1]) == 'q=111'
+    assert str(data[1][0]) == 'q=1101'
+    assert str(data[1][1]) == 'q=1001'
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_batched_results_not_a_batch(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    get_job_results.return_value = RESULTS
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    with pytest.raises(ValueError, match='batched_results'):
+        job.batched_results()
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')

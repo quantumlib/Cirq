@@ -299,7 +299,7 @@ def simple_noise_from_calibration_metrics(calibration: engine.Calibration,
 
     Args:
         calibration: a Calibration object (cirq/google/engine/calibration.py).
-            This object can be retrived from the engine by calling
+            This object can be retrieved from the engine by calling
             'get_latest_calibration()' or 'get_calibration()' using the ID of
             the target processor.
         depol_noise: Enables per-gate depolarization if True.
