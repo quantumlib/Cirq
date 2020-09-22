@@ -112,6 +112,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
     'ActOnCliffordTableauArgs',
+    'ActOnStabilizerCHFormArgs',
     'ActOnStateVectorArgs',
     'ApplyChannelArgs',
     'ApplyMixtureArgs',
@@ -138,6 +139,7 @@ SHOULDNT_BE_SERIALIZED = [
     # global objects
     'CONTROL_TAG',
     'PAULI_BASIS',
+    'PAULI_STATES',
 
     # abstract, but not inspect.isabstract():
     'Device',
@@ -189,6 +191,7 @@ SHOULDNT_BE_SERIALIZED = [
     'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
+    'TParamKey',
     'TParamVal',
     'ParamDictType',
 
@@ -308,6 +311,7 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QubitPermutationGate',
     'QuilFormatter',
     'QuilOutput',
     'SerializableDevice',

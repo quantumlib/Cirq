@@ -127,6 +127,22 @@ def test_operates_on():
     assert cirq.Moment([cirq.X(a), cirq.X(b)]).operates_on([a, b, c])
 
 
+def test_operation_at():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+
+    # No operation on that qubit
+    assert (cirq.Moment().operation_at(a) is None)
+
+    # One Operation on the quibt
+    assert (cirq.Moment([cirq.X(a)]).operation_at(a) == cirq.X(a))
+
+    # Multiple Operations on the qubits
+    assert (cirq.Moment([cirq.CZ(a, b),
+                         cirq.X(c)]).operation_at(a) == cirq.CZ(a, b))
+
+
 def test_with_operation():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
