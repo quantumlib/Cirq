@@ -54,7 +54,8 @@ def validate_normalized_state(*args, **kwargs):
     return qis.validate_normalized_state_vector(*args, **kwargs)
 
 
-STATE_VECTOR_LIKE = qis.STATE_VECTOR_LIKE
+# For backwards compatibility and to make mypy happy:
+from cirq.qis import STATE_VECTOR_LIKE  # pylint: disable=unused-import,wrong-import-position
 
 
 class StateVectorMixin():

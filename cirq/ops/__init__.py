@@ -50,6 +50,7 @@ from cirq.ops.common_channels import (
 from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
+    cphase,
     CX,
     CXPowGate,
     CZ,
@@ -168,6 +169,7 @@ from cirq.ops.pauli_interaction_gate import (
     PauliInteractionGate,)
 
 from cirq.ops.pauli_string import (
+    MutablePauliString,
     PAULI_GATE_LIKE,
     PAULI_STRING_LIKE,
     PauliString,
@@ -179,6 +181,9 @@ from cirq.ops.pauli_string_phasor import (
 
 from cirq.ops.pauli_string_raw_types import (
     PauliStringGateOperation,)
+
+from cirq.ops.permutation_gate import (
+    QubitPermutationGate,)
 
 from cirq.ops.phased_iswap_gate import (
     givens,

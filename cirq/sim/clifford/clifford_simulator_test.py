@@ -179,6 +179,14 @@ def test_simulate_moment_steps_intermediate_measurement():
             np.testing.assert_almost_equal(step.state.to_numpy(), expected)
 
 
+def test_clifford_state_initial_state():
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='Out of range'):
+        _ = cirq.CliffordState(qubit_map={q0: 0}, initial_state=2)
+    state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
+    np.testing.assert_allclose(state.state_vector(), [0, 1])
+
+
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})

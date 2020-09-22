@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import fractions
-from typing import (Any, cast, Dict, Iterable, List, NamedTuple, Optional,
-                    Tuple, TypeVar, Union)
+from typing import (AbstractSet, Any, cast, Dict, Iterable, List, NamedTuple,
+                    Optional, Tuple, TypeVar, Union)
 
 import abc
 
@@ -342,6 +342,9 @@ class EigenGate(raw_types.Gate):
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self._exponent)
 
     def _resolve_parameters_(self: TSelf, param_resolver) -> 'EigenGate':
         return self._with_exponent(

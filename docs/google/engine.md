@@ -1,9 +1,14 @@
 # Quantum Engine
 
-The Quantum Engine, via the `cirq.google.Engine` class, executes programs and jobs using the
-Quantum Engine API.
+Google's Quantum Computing Service provides the Quantum Engine API to execute 
+circuits on Google's quantum processor or simulator backends and 
+to access or manage the jobs, programs, reservations and calibrations. As of Cirq is 
+the only supported client for this API, using the `cirq.google.Engine` class. 
+For other use cases (e.g. from a different language), contact 
+[cirq-maintainers@googlegroups.com](mailto:cirq-maintainers@googlegroups.com) 
+with a short proposal or submit an [RFC](../dev/rfc_process.md). 
 
-Note that the Quantum Engine API is not yet open for public access.
+Note: the Quantum Engine API is not yet open for public access.
 
 ## Authenticating to Google Cloud
 
@@ -139,6 +144,18 @@ number of repetitions.
 Batching circuits together that do not follow these restrictions may not
 cause an error, but your performance will not be significantly improved.
 
+Results can be retrieved in two different forms:
+
+*    `EngineJob.results()` will return a single `List` object,
+with all the sweeps of the first circuit in the batch
+followed by all the sweeps in the second circuit, and so on. 
+*     EngineJob.batched_results()` will return a `List` of `List`s.
+The first index will refer to the circuit run, and the second index
+will refer to the sweep result in that circuit.
+
+If the circuits are not parameterized, there will only be one `TrialResult`
+per circuit using either variant.
+
 The following code shows an example of batching together parameterized
 circuits, each of which is a sweep.
 
@@ -189,8 +206,15 @@ for b in range(num_circuits_in_batch):
      print(f'Batch #{b}, Sweep #{s}')
      print(results[idx].histogram(key='m'))
      idx+=1
-```
 
+# Alternative way of getting results.
+# Results will be nested in Lists
+batch_results = job.batched_results()
+for batch_idx, batch in enumerate(batch_results):
+  for sweep_idx, result in enumerate(batch):
+     print(f'Batch #{batch_idx}, Sweep #{sweep_idx}')
+     print(result.histogram(key='m'))
+```
 
 ## Downloading historical results
 
