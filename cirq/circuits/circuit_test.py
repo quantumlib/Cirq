@@ -2411,6 +2411,28 @@ def test_apply_unitary_effect_to_state():
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
+    # Product state
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
+                                  cirq.KET_ZERO(b)),
+                                                    np.array([1, 0, 0, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
+                                  cirq.KET_ONE(b)),
+                                                    np.array([0, 1, 0, 0]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ONE(a) *
+                                  cirq.KET_ZERO(b)),
+                                                    np.array([0, 0, 0, 1]),
+                                                    atol=1e-8)
+    cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(cirq.CNOT(
+        a,
+        b)).final_state_vector(initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b)),
+                                                    np.array([0, 0, 1, 0]),
+                                                    atol=1e-8)
+
     # Measurements.
     cirq.testing.assert_allclose_up_to_global_phase(cirq.Circuit(
         cirq.measure(a)).final_state_vector(),
@@ -2517,6 +2539,23 @@ def test_resolve_parameters():
     expected_circuit = cirq.Circuit([
         cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
+
+
+def test_parameter_names():
+    a, b = cirq.LineQubit.range(2)
+    circuit = cirq.Circuit(
+        cirq.CZ(a, b)**sympy.Symbol('u'),
+        cirq.X(a)**sympy.Symbol('v'),
+        cirq.Y(b)**sympy.Symbol('w'),
+    )
+    resolved_circuit = cirq.resolve_parameters(
+        circuit, cirq.ParamResolver({
+            'u': 0.1,
+            'v': 0.3,
+            'w': 0.2
+        }))
+    assert cirq.parameter_names(circuit) == {'u', 'v', 'w'}
+    assert cirq.parameter_names(resolved_circuit) == set()
 
 
 def test_items():
@@ -2703,6 +2742,7 @@ def test_batch_replace():
 def test_batch_insert_into():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
     original = cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([]),
@@ -2725,12 +2765,32 @@ def test_batch_insert_into():
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
 
+    # Add multiple operations into non-empty moment.
+    after = original.copy()
+    after.batch_insert_into([(0, [cirq.X(b), cirq.X(c)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a), cirq.X(b), cirq.X(c)]),
+        cirq.Moment(),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
     # Add into empty moment.
     after = original.copy()
     after.batch_insert_into([(1, cirq.Z(b))])
     assert after == cirq.Circuit([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.Z(b)]),
+        cirq.Moment([cirq.CZ(a, b)]),
+        cirq.Moment([cirq.X(a), cirq.X(b)]),
+    ])
+
+    # Add multiple operations into empty moment.
+    after = original.copy()
+    after.batch_insert_into([(1, [cirq.Z(a), cirq.Z(b)])])
+    assert after == cirq.Circuit([
+        cirq.Moment([cirq.X(a)]),
+        cirq.Moment([cirq.Z(a), cirq.Z(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
@@ -2755,6 +2815,12 @@ def test_batch_insert_into():
     after = original.copy()
     with pytest.raises(ValueError):
         after.batch_insert_into([(0, cirq.X(a))])
+    assert after == original
+
+    # Collision with multiple operations.
+    after = original.copy()
+    with pytest.raises(ValueError):
+        after.batch_insert_into([(0, [cirq.X(b), cirq.X(c), cirq.X(a)])])
     assert after == original
 
     # Duplicate insertion collision.
@@ -3817,3 +3883,27 @@ def test_zip():
             cirq.Circuit(cirq.X(a), cirq.CNOT(a, b)),
             cirq.Circuit(cirq.X(b), cirq.Z(b)),
         )
+
+
+def test_repr_html_escaping():
+
+    class TestGate(cirq.Gate):
+
+        def num_qubits(self):
+            return 2
+
+        def _circuit_diagram_info_(self, args):
+            return cirq.CircuitDiagramInfo(
+                wire_symbols=["< ' F ' >", "< ' F ' >"])
+
+    F2 = TestGate()
+    a = cirq.LineQubit(1)
+    c = cirq.NamedQubit("|c>")
+
+    circuit = cirq.Circuit([F2(a, c)])
+
+    # Escaping Special Characters in Gate names.
+    assert '&lt; &#x27; F &#x27; &gt;' in circuit._repr_html_()
+
+    # Escaping Special Characters in Qubit names.
+    assert '|c&gt;' in circuit._repr_html_()

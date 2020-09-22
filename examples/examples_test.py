@@ -28,6 +28,7 @@ import examples.shor
 import examples.simon_algorithm
 import examples.superdense_coding
 import examples.swap_networks
+from examples.shors_code import OneQubitShorsCode
 
 
 def test_example_runs_bernstein_vazirani():
@@ -271,3 +272,24 @@ def test_example_runs_shor_valid(n):
 def test_example_runs_shor_invalid(n):
     with pytest.raises(ValueError):
         examples.shor.main(n=n)
+
+
+def test_example_qec_single_qubit():
+    mycode1 = OneQubitShorsCode()
+    my_circuit1 = cirq.Circuit(mycode1.encode())
+    my_circuit1 += cirq.Circuit(mycode1.correct())
+    my_circuit1 += cirq.measure(mycode1.physical_qubits[0])
+    sim1 = cirq.DensityMatrixSimulator()
+    result1 = sim1.run(my_circuit1, repetitions=1)
+    assert result1.measurements['0'] == [[0]]
+
+    mycode2 = OneQubitShorsCode()
+    my_circuit2 = cirq.Circuit(mycode2.apply_gate(cirq.X, 0))
+    with pytest.raises(IndexError):
+        mycode2.apply_gate(cirq.Z, 89)
+    my_circuit2 += cirq.Circuit(mycode2.encode())
+    my_circuit2 += cirq.Circuit(mycode2.correct())
+    my_circuit2 += cirq.measure(mycode2.physical_qubits[0])
+    sim2 = cirq.DensityMatrixSimulator()
+    result2 = sim2.run(my_circuit2, repetitions=1)
+    assert result2.measurements['0'] == [[1]]

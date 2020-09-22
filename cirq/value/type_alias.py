@@ -19,7 +19,12 @@ from cirq._doc import document
 """Supply aliases for commonly used types.
 """
 
+TParamKey = Union[str, sympy.Basic]
+document(
+    TParamKey,  # type: ignore
+    """A parameter that a parameter resolver may map to a value.""")
+
 TParamVal = Union[float, sympy.Basic]
 document(
     TParamVal,  # type: ignore
-    """A value that a parameter resolver may return for a symbol.""")
+    """A value that a parameter resolver may return for a parameter.""")

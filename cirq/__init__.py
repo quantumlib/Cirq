@@ -179,6 +179,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
@@ -217,7 +218,9 @@ from cirq.ops import (
     MeasurementGate,
     Moment,
     MutableDensePauliString,
+    MutablePauliString,
     NamedQubit,
+    NamedQid,
     OP_TREE,
     Operation,
     ParallelGateOperation,
@@ -246,6 +249,7 @@ from cirq.ops import (
     QuantumFourierTransformGate,
     QubitOrder,
     QubitOrderOrList,
+    QubitPermutationGate,
     reset,
     ResetChannel,
     riswap,
@@ -328,6 +332,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -369,6 +374,8 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
     ExpressionMap,
     flatten,
     flatten_with_params,
@@ -407,9 +414,18 @@ from cirq.value import (
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
+    TParamKey,
     TParamVal,
     validate_probability,
     value_equality,
+    KET_PLUS,
+    KET_MINUS,
+    KET_IMAG,
+    KET_MINUS_IMAG,
+    KET_ZERO,
+    KET_ONE,
+    PAULI_STATES,
+    ProductState,
 )
 
 # pylint: disable=redefined-builtin
@@ -442,6 +458,7 @@ from cirq.protocols import (
     inverse,
     is_measurement,
     is_parameterized,
+    JsonResolver,
     json_serializable_dataclass,
     measurement_key,
     measurement_keys,
@@ -449,6 +466,8 @@ from cirq.protocols import (
     mixture_channel,
     mul,
     num_qubits,
+    parameter_names,
+    parameter_symbols,
     pauli_expansion,
     phase_by,
     pow,
@@ -477,6 +496,7 @@ from cirq.protocols import (
     SupportsMeasurementKey,
     SupportsMixture,
     SupportsParameterization,
+    SupportsPauliExpansion,
     SupportsPhase,
     SupportsQasm,
     SupportsQasmWithArgs,

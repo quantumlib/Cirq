@@ -92,7 +92,7 @@ def decompose_cphase_into_two_fsim(
          φ = fsim_gate.phi,
          δ = -π * cphase_gate.exponent.
 
-    Note that the gate parametrizations are non-injective. For the
+    Note that the gate parameterizations are non-injective. For the
     decomposition to be feasible it is sufficient that one of the
     parameter values which correspond to the provided gate satisfies
     the constraints. This function will find and use the appropriate

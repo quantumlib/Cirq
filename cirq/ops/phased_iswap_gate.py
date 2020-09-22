@@ -13,7 +13,8 @@
 # limitations under the License.
 """ISWAPPowGate conjugated by tensor product Rz(phi) and Rz(-phi)."""
 
-from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
+from typing import (AbstractSet, Any, Dict, List, Optional, Sequence, Tuple,
+                    Union)
 
 import numpy as np
 import sympy
@@ -86,9 +87,19 @@ class PhasedISwapPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         return (self.phase_exponent, *self._iswap._value_equality_values_())
 
     def _is_parameterized_(self) -> bool:
-        if protocols.is_parameterized(self._iswap):
-            return True
-        return protocols.is_parameterized(self._phase_exponent)
+        return (protocols.is_parameterized(self._iswap) or
+                protocols.is_parameterized(self._phase_exponent))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return (protocols.parameter_names(self._iswap) |
+                protocols.parameter_names(self._phase_exponent))
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
+                            ) -> 'PhasedISwapPowGate':
+        return self.__class__(
+            phase_exponent=protocols.resolve_parameters(self.phase_exponent,
+                                                        resolver),
+            exponent=protocols.resolve_parameters(self.exponent, resolver))
 
     def _with_exponent(self, exponent: value.type_alias.TParamVal
                       ) -> 'PhasedISwapPowGate':

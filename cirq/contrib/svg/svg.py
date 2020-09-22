@@ -85,7 +85,7 @@ def _fit_vertical(tdd: 'cirq.TextDiagramDrawer',
     well-spaced SVG coordinates.
 
     The eagle eyed coder may notice that this function is very
-    similar to _fit_horizonal. That function was written first
+    similar to _fit_horizontal. That function was written first
     because horizontal spacing is very important for being able
     to see all the gates but vertical spacing is just for aesthetics.
     It wasn't until this function was written that I (mpharrigan)

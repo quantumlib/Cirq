@@ -250,7 +250,7 @@ def decompose_phased_iswap_into_syc_precomputed(theta: float, a: ops.Qid,
     This should only be called if the Gate has a phase_exponent of .25. If the
     gate has an exponent of 1, decompose_phased_iswap_into_syc should be used
     instead. Converting PhasedISwap gates to Sycamore is not supported if
-    neither of these constraints are satsified.
+    neither of these constraints are satisfied.
 
     This synthesize a PhasedISwap in terms of four sycamore gates.  This
     compilation converts the gate into a circuit involving two CZ gates, which
@@ -510,7 +510,7 @@ def cphase(theta: float, q0: ops.Qid, q1: ops.Qid) -> ops.OP_TREE:
             q0: First qubit id to operate on
             q1: Second qubit id to operate on
         returns:
-            a cirq program implementating cphase
+            a cirq program implementing cphase
         """
     yield rzz(-theta / 4, q0, q1)
     yield ops.rz(theta / 2).on(q0)

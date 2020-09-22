@@ -28,8 +28,10 @@ import enum
 import os
 import random
 import string
-from typing import Dict, List, Optional, Sequence, TypeVar, Union, TYPE_CHECKING
+from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
+                    Union, TYPE_CHECKING)
 
+from cirq.google.engine.client import quantum
 from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
@@ -339,7 +341,10 @@ class Engine:
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
         """
         if not params_list or len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
@@ -478,6 +483,92 @@ class Engine:
         return engine_program.EngineProgram(self.project_id, program_id,
                                             self.context)
 
+    def list_programs(self,
+                      created_before: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      created_after: Optional[
+                          Union[datetime.datetime, datetime.date]] = None,
+                      has_labels: Optional[Dict[str, str]] = None
+                     ) -> List[engine_program.EngineProgram]:
+        """Returns a list of previously executed quantum programs.
+
+        Args:
+            created_after: retrieve programs that were created after this date
+                or time.
+            created_before: retrieve programs that were created after this date
+                or time.
+            has_labels: retrieve programs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+                `{'color: red', 'shape:*'}`
+        """
+
+        client = self.context.client
+        response = client.list_programs(self.project_id,
+                                        created_before=created_before,
+                                        created_after=created_after,
+                                        has_labels=has_labels)
+        return [
+            engine_program.EngineProgram(
+                project_id=client._ids_from_program_name(p.name)[0],
+                program_id=client._ids_from_program_name(p.name)[1],
+                _program=p,
+                context=self.context,
+            ) for p in response
+        ]
+
+    def list_jobs(self,
+                  created_before: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  created_after: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  has_labels: Optional[Dict[str, str]] = None,
+                  execution_states: Optional[Set[
+                      quantum.enums.ExecutionStatus.State]] = None):
+        """Returns the list of jobs in the project.
+
+        All historical jobs can be retrieved using this method and filtering
+        options are available too, to narrow down the search baesd on:
+          * creation time
+          * job labels
+          * execution states
+
+        Args:
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state  that
+                 is contained in `execution_states`. See
+                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        client = self.context.client
+        response = client.list_jobs(self.project_id,
+                                    None,
+                                    created_before=created_before,
+                                    created_after=created_after,
+                                    has_labels=has_labels,
+                                    execution_states=execution_states)
+        return [
+            engine_job.EngineJob(
+                project_id=client._ids_from_job_name(j.name)[0],
+                program_id=client._ids_from_job_name(j.name)[1],
+                job_id=client._ids_from_job_name(j.name)[2],
+                context=self.context,
+                _job=j,
+            ) for j in response
+        ]
+
     def list_processors(self) -> List[engine_processor.EngineProcessor]:
         """Returns a list of Processors that the user has visibility to in the
         current Engine project. The names of these processors are used to
@@ -553,3 +644,32 @@ def get_engine(project_id: Optional[str] = None) -> Engine:
             f'Environment variable {env_project_id} is not set.')
 
     return Engine(project_id=project_id)
+
+
+def get_engine_device(processor_id: str,
+                      project_id: Optional[str] = None,
+                      gatesets: Iterable[sgs.SerializableGateSet] = ()
+                     ) -> 'cirq.Device':
+    """Returns a `Device` object for a given processor.
+
+    This is a short-cut for creating an engine object, getting the
+    processor object, and retrieving the device.  Note that the
+    gateset is required in order to match the serialized specification
+    back into cirq objects.
+    """
+    return get_engine(project_id).get_processor(processor_id).get_device(
+        gatesets)
+
+
+def get_engine_calibration(
+        processor_id: str,
+        project_id: Optional[str] = None,
+) -> Optional['cirq.google.Calibration']:
+    """Returns calibration metrics for a given processor.
+
+    This is a short-cut for creating an engine object, getting the
+    processor object, and retrieving the current calibration.
+    May return None if no calibration metrics exist for the device.
+    """
+    return get_engine(project_id).get_processor(
+        processor_id).get_current_calibration()

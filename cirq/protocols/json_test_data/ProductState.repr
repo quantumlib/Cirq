@@ -1,0 +1,1 @@
+cirq.ProductState({cirq.GridQubit(5, 2): cirq.KET_ZERO, cirq.GridQubit(7, 8): cirq.KET_MINUS})

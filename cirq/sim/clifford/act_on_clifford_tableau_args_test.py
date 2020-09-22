@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Tuple
+
 import numpy as np
 import pytest
 
@@ -22,7 +24,7 @@ def test_unitary_fallback():
 
     class UnitaryXGate(cirq.Gate):
 
-        def num_qubits(self) -> int:
+        def _num_qubits_(self) -> int:
             return 1
 
         def _unitary_(self):
@@ -30,8 +32,8 @@ def test_unitary_fallback():
 
     class UnitaryYGate(cirq.Gate):
 
-        def num_qubits(self) -> int:
-            return 1
+        def _qid_shape_(self) -> Tuple[int, ...]:
+            return (2,)
 
         def _unitary_(self):
             return np.array([[0, -1j], [1j, 0]])
@@ -64,11 +66,17 @@ def test_cannot_act():
     class NoDetails:
         pass
 
+    class NoDetailsSingleQubitGate(cirq.SingleQubitGate):
+        pass
+
     args = cirq.ActOnCliffordTableauArgs(
         tableau=cirq.CliffordTableau(num_qubits=3),
         axes=[1],
         prng=np.random.RandomState(),
         log_of_measurement_results={})
 
-    with pytest.raises(TypeError, match="Failed to act"):
+    with pytest.raises(TypeError, match="no _num_qubits_ or _qid_shape_"):
         cirq.act_on(NoDetails(), args)
+
+    with pytest.raises(TypeError, match="Failed to act"):
+        cirq.act_on(NoDetailsSingleQubitGate(), args)

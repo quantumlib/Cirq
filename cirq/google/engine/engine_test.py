@@ -660,6 +660,24 @@ def test_get_program():
     assert cg.Engine(project_id='proj').get_program('prog').program_id == 'prog'
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_programs')
+def test_list_programs(list_programs):
+    prog1 = qtypes.QuantumProgram(
+        name='projects/proj/programs/prog-YBGR48THF3JHERZW200804')
+    prog2 = qtypes.QuantumProgram(
+        name='projects/otherproj/programs/prog-V3ZRTV6TTAFNTYJV200804')
+    list_programs.return_value = [prog1, prog2]
+
+    result = cg.Engine(project_id='proj').list_programs()
+    list_programs.assert_called_once_with('proj',
+                                          created_after=None,
+                                          created_before=None,
+                                          has_labels=None)
+    assert [(p.program_id, p.project_id, p._program) for p in result
+           ] == [('prog-YBGR48THF3JHERZW200804', 'proj', prog1),
+                 ('prog-V3ZRTV6TTAFNTYJV200804', 'otherproj', prog2)]
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient')
 def test_create_program(client):
     client().create_program.return_value = ('prog', qtypes.QuantumProgram())
@@ -668,6 +686,25 @@ def test_create_program(client):
                                                          gate_set=cg.XMON)
     client().create_program.assert_called_once()
     assert result.program_id == 'prog'
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')
+def test_list_jobs(list_jobs):
+    job1 = qtypes.QuantumJob(name='projects/proj/programs/prog1/jobs/job1')
+    job2 = qtypes.QuantumJob(name='projects/proj/programs/prog2/jobs/job2')
+    list_jobs.return_value = [job1, job2]
+
+    ctx = EngineContext()
+    result = cg.Engine(project_id='proj', context=ctx).list_jobs()
+    list_jobs.assert_called_once_with('proj',
+                                      None,
+                                      created_after=None,
+                                      created_before=None,
+                                      has_labels=None,
+                                      execution_states=None)
+    assert [(j.project_id, j.program_id, j.job_id, j.context, j._job)
+            for j in result] == [('proj', 'prog1', 'job1', ctx, job1),
+                                 ('proj', 'prog2', 'job2', ctx, job2)]
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_processors')
@@ -721,3 +758,88 @@ def test_get_engine(build):
         with pytest.raises(EnvironmentError, match='GOOGLE_CLOUD_PROJECT'):
             _ = cirq.google.get_engine()
         _ = cirq.google.get_engine('project!')
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_processor')
+def test_get_engine_device(get_processor):
+    device_spec = _to_any(
+        Merge(
+            """
+valid_gate_sets: [{
+    name: 'test_set',
+    valid_gates: [{
+        id: 'x',
+        number_of_qubits: 1,
+        gate_duration_picos: 1000,
+        valid_targets: ['1q_targets']
+    }]
+}],
+valid_qubits: ['0_0', '1_1'],
+valid_targets: [{
+    name: '1q_targets',
+    target_ordering: SYMMETRIC,
+    targets: [{
+        ids: ['0_0']
+    }]
+}]
+""", v2.device_pb2.DeviceSpecification()))
+
+    gate_set = cg.SerializableGateSet(
+        gate_set_name='x_gate_set',
+        serializers=[
+            cg.GateOpSerializer(gate_type=cirq.XPowGate,
+                                serialized_gate_id='x',
+                                args=[])
+        ],
+        deserializers=[
+            cg.GateOpDeserializer(serialized_gate_id='x',
+                                  gate_constructor=cirq.XPowGate,
+                                  args=[])
+        ],
+    )
+
+    get_processor.return_value = qtypes.QuantumProcessor(
+        device_spec=device_spec)
+    device = cirq.google.get_engine_device('rainbow',
+                                           'project',
+                                           gatesets=[gate_set])
+    assert set(device.qubits) == {cirq.GridQubit(0, 0), cirq.GridQubit(1, 1)}
+    device.validate_operation(cirq.X(cirq.GridQubit(0, 0)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.X(cirq.GridQubit(1, 2)))
+    with pytest.raises(ValueError):
+        device.validate_operation(cirq.Y(cirq.GridQubit(0, 0)))
+
+
+_CALIBRATION = qtypes.QuantumCalibration(
+    name='projects/a/processors/p/calibrations/1562715599',
+    timestamp=_to_timestamp('2019-07-09T23:39:59Z'),
+    data=_to_any(
+        Merge(
+            """
+    timestamp_ms: 1562544000021,
+    metrics: [
+    {
+        name: 't1',
+        targets: ['0_0'],
+        values: [{
+            double_val: 321
+        }]
+    }, {
+        name: 'globalMetric',
+        values: [{
+            int32_val: 12300
+        }]
+    }]
+""", v2.metrics_pb2.MetricsSnapshot())))
+
+
+@mock.patch(
+    'cirq.google.engine.engine_client.EngineClient.get_current_calibration')
+def test_get_engine_calibration(get_current_calibration):
+    get_current_calibration.return_value = _CALIBRATION
+    calibration = cirq.google.get_engine_calibration('rainbow', 'project')
+    assert calibration.timestamp == 1562544000021
+    assert set(calibration.keys()) == {'t1', 'globalMetric'}
+    assert calibration['t1'][(cirq.GridQubit(0, 0),)] == [321.0]
+    get_current_calibration.assert_called_once_with('project', 'rainbow')

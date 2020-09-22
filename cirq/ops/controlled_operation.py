@@ -11,8 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, cast, Collection, Dict, List, Optional, Sequence,
-                    Tuple, Union, TYPE_CHECKING)
+from typing import (AbstractSet, Any, cast, Collection, Dict, List, Optional,
+                    Sequence, Tuple, Union, TYPE_CHECKING)
 
 import itertools
 import numpy as np
@@ -179,6 +179,9 @@ class ControlledOperation(raw_types.Operation):
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.sub_operation)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.sub_operation)
 
     def _resolve_parameters_(self, resolver) -> 'ControlledOperation':
         new_sub_op = protocols.resolve_parameters(self.sub_operation, resolver)
