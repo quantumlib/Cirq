@@ -19,6 +19,7 @@ import cirq
 
 
 def test_cannot_act():
+
     class NoDetails(cirq.SingleQubitGate):
         pass
 
@@ -30,6 +31,7 @@ def test_cannot_act():
 
 
 def test_gate_with_act_on():
+
     class CustomGate(cirq.SingleQubitGate):
 
         def _act_on_(self, args):
@@ -47,6 +49,7 @@ def test_gate_with_act_on():
 
 
 def test_unitary_fallback():
+
     class UnitaryXGate(cirq.Gate):
 
         def num_qubits(self) -> int:

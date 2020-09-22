@@ -290,7 +290,7 @@ def test_h_str():
     assert str(cirq.H**0.5) == 'H^0.5'
 
 
-def test_x_act_on():
+def test_x_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.X, object())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
@@ -326,7 +326,7 @@ def test_x_act_on():
         cirq.act_on(cirq.X**foo, args)
 
 
-def test_x_act_on2():
+def test_x_act_on_ch_form():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.X, object())
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
@@ -364,7 +364,7 @@ class PhaserGate(cirq.SingleQubitGate):
         return np.array([[1j, 0], [0, -1j]])
 
 
-def test_y_act_on():
+def test_y_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.Y, object())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
@@ -403,7 +403,7 @@ def test_y_act_on():
         cirq.act_on(cirq.Y**foo, args)
 
 
-def test_y_act_on2():
+def test_y_act_on_ch_form():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.Y, object())
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
@@ -437,7 +437,7 @@ def test_y_act_on2():
         cirq.act_on(cirq.Y**foo, args)
 
 
-def test_z_h_act_on():
+def test_z_h_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.Z, object())
     with pytest.raises(TypeError, match="Failed to act"):
@@ -491,7 +491,7 @@ def test_z_h_act_on():
         cirq.act_on(cirq.H**1.5, args)
 
 
-def test_z_h_act_on2():
+def test_z_h_act_on_ch_form():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.Z, object())
     with pytest.raises(TypeError, match="Failed to act"):
@@ -540,7 +540,7 @@ def test_z_h_act_on2():
         cirq.act_on(cirq.H**1.5, args)
 
 
-def test_cx_act_on():
+def test_cx_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.CX, object())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
@@ -585,7 +585,7 @@ def test_cx_act_on():
         cirq.act_on(cirq.CX**1.5, args)
 
 
-def test_cx_act_on2():
+def test_cx_act_on_ch_form():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.CX, object())
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
@@ -614,7 +614,7 @@ def test_cx_act_on2():
         cirq.act_on(cirq.CX**1.5, args)
 
 
-def test_cz_act_on():
+def test_cz_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.Y, object())
     original_tableau = cirq.CliffordTableau(num_qubits=5, initial_state=31)
@@ -659,11 +659,12 @@ def test_cz_act_on():
         cirq.act_on(cirq.CZ**1.5, args)
 
 
-def test_cz_act_on2():
+def test_cz_act_on_ch_form():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.CZ, object())
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    phased_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=-31)
+    phased_state = original_state.copy()
+    phased_state.omega *= -1
 
     args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
                                           axes=[0, 1])
