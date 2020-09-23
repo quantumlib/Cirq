@@ -1,12 +1,19 @@
 steps:
-# build the docker image
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['build', '-t', 'us-docker.pkg.dev/cirq-infra/cirq/automerge', '-f', 'dev_tools/auto_merge/Dockerfile', '.']
 
 # deploy container image to GKE
-- name: "gcr.io/cloud-builders/gke-deploy"
+- name: "gcr.io/k8s-skaffold/skaffold"
   args:
+  - gcloud
+  - container
+  - clusters
+  - get-credentials
+  - cirq-infra
+  - --zone=us-central1-a
+
+# deploy container image to GKE
+- name: "gcr.io/k8s-skaffold/skaffold"
+  args:
+  - skaffold
   - run
-  - --filename=dev_tools/auto_merge/deployment.yaml
-  - --location=us-central1-a
-  - --cluster=cirq-infra
+  - --force
+  - -f=dev_tools/auto_merge/skaffold.yaml
