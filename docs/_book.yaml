@@ -74,6 +74,13 @@ upper_tabs:
         path: /cirq/google/calibration
       - title: "Best practices"
         path: /cirq/google/best_practices
+      - heading: "Pasqal"
+      - title: "Quantum Circuits on Pasqal Devices"
+        path: /cirq/pasqal/getting_started
+      - title: "Pasqal devices"
+        path: /cirq/pasqal/devices
+      - title: "Pasqal sampler"
+        path: /cirq/pasqal/sampler
       - heading: "Design proposals"
       - title: "Request for Comments process"
         path: /cirq/dev/rfc_process
