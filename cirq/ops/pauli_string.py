@@ -43,7 +43,8 @@ if TYPE_CHECKING:
 
 TDefault = TypeVar('TDefault')
 TKey = TypeVar('TKey', bound=raw_types.Qid)
-TKey2 = TypeVar('TKey2', bound=raw_types.Qid)
+TKeyNew = TypeVar('TKeyNew', bound=raw_types.Qid)
+TKeyOther = TypeVar('TKeyOther', bound=raw_types.Qid)
 
 # A value that can be unambiguously converted into a `cirq.PauliString`.
 
@@ -185,13 +186,13 @@ class PauliString(raw_types.Operation, Generic[TKey]):
 
     @overload
     def __mul__(  # type: ignore
-            self, other: 'cirq.PauliString[TKey2]'
-    ) -> 'cirq.PauliString[Union[TKey, TKey2]]':
+            self, other: 'cirq.PauliString[TKeyOther]'
+    ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
         pass
 
     @overload
-    def __mul__(self, other: Mapping[TKey2, 'cirq.PAULI_GATE_LIKE']
-               ) -> 'cirq.PauliString[Union[TKey, TKey2]]':
+    def __mul__(self, other: Mapping[TKeyOther, 'cirq.PAULI_GATE_LIKE']
+               ) -> 'cirq.PauliString[Union[TKey, TKeyOther]]':
         pass
 
     @overload
@@ -723,8 +724,8 @@ class PauliString(raw_types.Operation, Generic[TKey]):
                 exponent_pos=-half_turns / 2)
         return NotImplemented
 
-    def map_qubits(self,
-                   qubit_map: Dict[TKey, TKey2]) -> 'cirq.PauliString[TKey2]':
+    def map_qubits(self, qubit_map: Dict[TKey, TKeyNew]
+                  ) -> 'cirq.PauliString[TKeyNew]':
         new_qubit_pauli_map = {qubit_map[qubit]: pauli
                                for qubit, pauli in self.items()}
         return PauliString(qubit_pauli_map=new_qubit_pauli_map,
