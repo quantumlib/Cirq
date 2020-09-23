@@ -56,7 +56,9 @@ class StabilizerSampler(sampler.Sampler):
     def _run(self, circuit: circuits.Circuit,
              repetitions: int) -> Dict[str, np.ndarray]:
 
-        measurements = {key: [] for key in protocols.measurement_keys(circuit)}
+        measurements: Dict[str, List[int]] = {
+            key: [] for key in protocols.measurement_keys(circuit)
+        }
         axes_map = {q: i for i, q in enumerate(circuit.all_qubits())}
 
         for _ in range(repetitions):
