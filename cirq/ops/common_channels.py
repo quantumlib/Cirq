@@ -18,6 +18,7 @@ from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
                     TYPE_CHECKING)
 
 import numpy as np
+import re
 
 from cirq import protocols, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
@@ -35,14 +36,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                  p_x: Optional[float] = None,
                  p_y: Optional[float] = None,
                  p_z: Optional[float] = None,
-                 num_qubits: int = 1,
                  error_probabilities: Optional[Dict[str, float]] = None
                 ) -> None:
         r"""The asymmetric depolarizing channel.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n pauli gates. The disjoint
-        probabilities of the 4**n gates.
+        identity channel) or one of the 4**n - 1 pauli gates.x
 
         This channel evolves a density matrix via
 
@@ -50,35 +49,39 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             \sum_i p_i Pi \rho Pi
             $$
 
-        Where i varies from 0 to 4**n-1, representing the 4**n Pauli gates,
-        represented by Pi. The input \rho is the density matrix before the
+        where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
+        (including identity). The input \rho is the density matrix before the
         depolarization.
 
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
             p_y: The probability that a Pauli Y and no other gate occurs.
             p_z: The probability that a Pauli Z and no other gate occurs.
-            num_qubits: Number of qubits
             error_probabilities: Dictionary of string (Pauli operator) to its
                 probability
+
+        Examples of calls:
+            * Single qubit: AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)
+            * Single qubit: AsymmetricDepolarizingChannel(p_z=0.3)
+            * Two qubits: AsymmetricDepolarizingChannel(
+                                error_probabilities={'XX': 0.2})
 
         Raises:
             ValueError: if the args or the sum of args are not probabilities.
         """
-        if error_probabilities is not None:
+        if error_probabilities is not None and bool(error_probabilities):
+            num_qubits = len(list(error_probabilities.keys())[0])
+            regex = re.compile('(I|X|Y|Z){%d}' % (num_qubits))
             for k in error_probabilities.keys():
-                if len(k) != num_qubits:
-                    raise ValueError('{} does not have {} entries'.format(
+                if not regex.fullmatch(k):
+                    raise ValueError(('{} does not have {} entries made ' + 'of I, X, Y, and Z').format(
                         k, num_qubits))
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
-            if p_x is None:
-                p_x = 0.0
-            if p_y is None:
-                p_y = 0.0
-            if p_z is None:
-                p_z = 0.0
+            p_x = 0.0 if p_x is None else p_x
+            p_y = 0.0 if p_y is None else p_y
+            p_z = 0.0 if p_z is None else p_z
 
             p_x = value.validate_probability(p_x, 'p_x')
             p_y = value.validate_probability(p_y, 'p_y')
@@ -90,7 +93,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             self._error_probabilities = {'I': p_i, 'X': p_x, 'Y': p_y, 'Z': p_z}
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
-        Pis = []
+        ps = []
         for pauli in self._error_probabilities.keys():
             Pi = np.identity(1)
             for gate in pauli:
@@ -102,8 +105,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                     Pi = np.kron(Pi, protocols.unitary(pauli_gates.Y))
                 elif gate == 'Z':
                     Pi = np.kron(Pi, protocols.unitary(pauli_gates.Z))
-            Pis.append(Pi)
-        return tuple(zip(self._error_probabilities.values(), Pis))
+            ps.append(Pi)
+        return tuple(zip(self._error_probabilities.values(), ps))
 
     def _num_qubits_(self) -> int:
         return self._num_qubits
@@ -120,17 +123,13 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             return (
                 'cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
                     self._error_probabilities))
-        return ('cirq.asymmetric_depolarize' +
-                '(num_qubits={!r},error_probabilities={!r})'.format(
-                    self._num_qubits, self._error_probabilities))
+        return ('cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
+                    self._error_probabilities))
 
     def __str__(self) -> str:
         if self._num_qubits == 1:
-            return 'asymmetric_depolarize(error_probabilities={!r})'.format(
-                self._error_probabilities)
-        return ('asymmetric_depolarize(num_qubits={!r},' +
-                'error_probabilities={!r})').format(self._num_qubits,
-                                                    self._error_probabilities)
+            return 'asymmetric_depolarize(error_probabilities={!r})'.format(self._error_probabilities)
+        return ('asymmetric_depolarize(error_probabilities={!r})').format(self._error_probabilities)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -187,16 +186,18 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
-            self, ['num_qubits', 'error_probabilities'])
+            self, ['error_probabilities'])
 
 
 def asymmetric_depolarize(p_x: Optional[float] = None,
                           p_y: Optional[float] = None,
                           p_z: Optional[float] = None,
-                          num_qubits: int = 1,
                           error_probabilities: Optional[Dict[str, float]] = None
                          ) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
+
+        This channel applies one of 4**n disjoint possibilities: nothing (the
+        identity channel) or one of the 4**n - 1 pauli gates.x
 
         This channel evolves a density matrix via
 
@@ -204,23 +205,27 @@ def asymmetric_depolarize(p_x: Optional[float] = None,
             \sum_i p_i Pi \rho Pi
             $$
 
-        Where i varies from 0 to 4**n-1, representing the 4**n Pauli gates,
-        represented by Pi. The input \rho is the density matrix before the
+        where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
+        (including identity). The input \rho is the density matrix before the
         depolarization.
 
         Args:
             p_x: The probability that a Pauli X and no other gate occurs.
             p_y: The probability that a Pauli Y and no other gate occurs.
             p_z: The probability that a Pauli Z and no other gate occurs.
-            num_qubits: Number of qubits
             error_probabilities: Dictionary of string (Pauli operator) to its
                 probability
+
+        Examples of calls:
+            * Single qubit: AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)
+            * Single qubit: AsymmetricDepolarizingChannel(p_z=0.3)
+            * Two qubits: AsymmetricDepolarizingChannel(
+                                error_probabilities={'XX': 0.2})
 
     Raises:
         ValueError: if the args or the sum of the args are not probabilities.
     """
-    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, num_qubits,
-                                         error_probabilities)
+    return AsymmetricDepolarizingChannel(p_x, p_y, p_z, error_probabilities)
 
 
 @value.value_equality

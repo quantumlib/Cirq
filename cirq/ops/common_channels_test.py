@@ -526,8 +526,7 @@ def test_default_asymmetric_depolarizing_channel():
 
 
 def test_multi_asymmetric_depolarizing_channel():
-    d = cirq.asymmetric_depolarize(num_qubits=2,
-                                   error_probabilities={
+    d = cirq.asymmetric_depolarize(error_probabilities={
                                        'II': 0.8,
                                        'XX': 0.2
                                    })
@@ -544,14 +543,8 @@ def test_multi_asymmetric_depolarizing_channel():
         assert d.p_z == 0.0
 
 
-def test_multi_asymmetric_depolarizing_channel_bad_init():
-    with pytest.raises(ValueError, match="I does not have 2 entries"):
-        cirq.asymmetric_depolarize(num_qubits=2, error_probabilities={'I': 1.0})
-
-
 def test_multi_asymmetric_depolarizing_mixture():
-    d = cirq.asymmetric_depolarize(num_qubits=2,
-                                   error_probabilities={
+    d = cirq.asymmetric_depolarize(error_probabilities={
                                        'II': 0.8,
                                        'XX': 0.2
                                    })
@@ -563,8 +556,7 @@ def test_multi_asymmetric_depolarizing_mixture():
 
 def test_multi_asymmetric_depolarizing_channel_repr():
     cirq.testing.assert_equivalent_repr(
-        cirq.AsymmetricDepolarizingChannel(num_qubits=2,
-                                           error_probabilities={
+        cirq.AsymmetricDepolarizingChannel(error_probabilities={
                                                'II': 0.8,
                                                'XX': 0.2
                                            }))
@@ -573,18 +565,15 @@ def test_multi_asymmetric_depolarizing_channel_repr():
 def test_multi_asymmetric_depolarizing_channel_str():
     assert (
         str(
-            cirq.asymmetric_depolarize(num_qubits=2,
-                                       error_probabilities={
+            cirq.asymmetric_depolarize(error_probabilities={
                                            'II': 0.8,
                                            'XX': 0.2
                                        })) ==
-        ("asymmetric_depolarize(num_qubits=2,error_probabilities={'II': 0.8, " +
-         "'XX': 0.2})"))
+        ("asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"))
 
 
 def test_multi_asymmetric_depolarizing_channel_text_diagram():
-    a = cirq.asymmetric_depolarize(num_qubits=2,
-                                   error_probabilities={
+    a = cirq.asymmetric_depolarize(error_probabilities={
                                        'II': 2 / 3,
                                        'XX': 1 / 3
                                    })
