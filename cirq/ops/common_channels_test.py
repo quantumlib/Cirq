@@ -526,7 +526,9 @@ def test_default_asymmetric_depolarizing_channel():
 
 
 def test_unknown_gate():
-    with pytest.raises(ValueError, match='AB does not have 2 entries made of I, X, Y, and Z'):
+    with pytest.raises(
+            ValueError,
+            match='AB does not have 2 entries made of I, X, Y, and Z'):
         cirq.asymmetric_depolarize(error_probabilities={'AB': 1.0})
 
 
