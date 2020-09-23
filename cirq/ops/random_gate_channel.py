@@ -113,7 +113,8 @@ class RandomGateChannel(raw_types.Gate):
         from cirq.sim import clifford
         if self._is_parameterized_():
             return NotImplemented
-        if isinstance(args, (clifford.ActOnCliffordTableauArgs, clifford.ActOnStabilizerCHFormArgs)):
+        if isinstance(args, (clifford.ActOnCliffordTableauArgs,
+                             clifford.ActOnStabilizerCHFormArgs)):
             if args.prng.random() < self.probability:
                 # Note: because we're doing this probabilistically, it's not
                 # safe to fallback to other strategies if act_on fails. Those

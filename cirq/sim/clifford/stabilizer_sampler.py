@@ -36,10 +36,10 @@ class StabilizerSampler(sampler.Sampler):
         self._prng = value.parse_random_state(seed)
 
     def run_sweep(
-        self,
-        program: 'cirq.Circuit',
-        params: 'cirq.Sweepable',
-        repetitions: int = 1,
+            self,
+            program: 'cirq.Circuit',
+            params: 'cirq.Sweepable',
+            repetitions: int = 1,
     ) -> List['cirq.TrialResult']:
         trial_results: List[cirq.TrialResult] = []
         for param_resolver in cirq.to_resolvers(params):
@@ -48,18 +48,15 @@ class StabilizerSampler(sampler.Sampler):
                 resolved_circuit,
                 repetitions=repetitions,
             )
-            trial_results.append(cirq.TrialResult(params=param_resolver,
-                                                  measurements=measurements))
+            trial_results.append(
+                cirq.TrialResult(params=param_resolver,
+                                 measurements=measurements))
         return trial_results
 
-    def _run(self,
-             circuit: circuits.Circuit,
+    def _run(self, circuit: circuits.Circuit,
              repetitions: int) -> Dict[str, np.ndarray]:
 
-        measurements = {
-            key: []
-            for key in protocols.measurement_keys(circuit)
-        }
+        measurements = {key: [] for key in protocols.measurement_keys(circuit)}
         axes_map = {q: i for i, q in enumerate(circuit.all_qubits())}
 
         for _ in range(repetitions):
