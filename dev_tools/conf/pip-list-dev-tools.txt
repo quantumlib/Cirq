@@ -24,6 +24,11 @@ qiskit~=0.20.0
 pypandoc
 myst-parser
 Sphinx~=3.2.0
+
+# have to pin otherwise RTD fails
+# see https://github.com/readthedocs/readthedocs.org/issues/7492
+Pygments==2.6.1
+
 sphinx_rtd_theme
 sphinx-markdown-tables
 

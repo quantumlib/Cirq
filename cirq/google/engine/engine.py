@@ -28,9 +28,10 @@ import enum
 import os
 import random
 import string
-from typing import (Dict, Iterable, List, Optional, Sequence, TypeVar, Union,
-                    TYPE_CHECKING)
+from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
+                    Union, TYPE_CHECKING)
 
+from cirq.google.engine.client import quantum
 from google.protobuf import any_pb2
 
 from cirq import circuits, study, value
@@ -516,6 +517,56 @@ class Engine:
                 _program=p,
                 context=self.context,
             ) for p in response
+        ]
+
+    def list_jobs(self,
+                  created_before: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  created_after: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  has_labels: Optional[Dict[str, str]] = None,
+                  execution_states: Optional[Set[
+                      quantum.enums.ExecutionStatus.State]] = None):
+        """Returns the list of jobs in the project.
+
+        All historical jobs can be retrieved using this method and filtering
+        options are available too, to narrow down the search baesd on:
+          * creation time
+          * job labels
+          * execution states
+
+        Args:
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state  that
+                 is contained in `execution_states`. See
+                 `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        client = self.context.client
+        response = client.list_jobs(self.project_id,
+                                    None,
+                                    created_before=created_before,
+                                    created_after=created_after,
+                                    has_labels=has_labels,
+                                    execution_states=execution_states)
+        return [
+            engine_job.EngineJob(
+                project_id=client._ids_from_job_name(j.name)[0],
+                program_id=client._ids_from_job_name(j.name)[1],
+                job_id=client._ids_from_job_name(j.name)[2],
+                context=self.context,
+                _job=j,
+            ) for j in response
         ]
 
     def list_processors(self) -> List[engine_processor.EngineProcessor]:

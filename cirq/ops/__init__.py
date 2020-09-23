@@ -50,6 +50,7 @@ from cirq.ops.common_channels import (
 from cirq.ops.common_gates import (
     CNOT,
     CNotPowGate,
+    cphase,
     CX,
     CXPowGate,
     CZ,
