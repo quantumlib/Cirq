@@ -632,7 +632,7 @@ def test_pass_operations_over_single(shift: int, sign: int):
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.SingleQubitCliffordGate.from_pauli(Y)(q1)
-    ps_before = cirq.PauliString({q0: X}, sign)
+    ps_before: cirq.PauliString[cirq.Qid] = cirq.PauliString({q0: X}, sign)
     ps_after = ps_before
     _assert_pass_over([op0], ps_before, ps_after)
 
@@ -673,8 +673,16 @@ def test_pass_operations_over_double(shift: int, t_or_f1: bool, t_or_f2: bool,
                for pauli in (cirq.X, cirq.Y, cirq.Z))
 
     op0 = cirq.PauliInteractionGate(Z, t_or_f1, X, t_or_f2)(q0, q1)
-    ps_before = cirq.PauliString({q0: Z, q2: Y}, sign)
-    ps_after = cirq.PauliString({q0: Z, q2: Y}, sign)
+    ps_before = cirq.PauliString(qubit_pauli_map={
+        q0: Z,
+        q2: Y
+    },
+                                 coefficient=sign)
+    ps_after = cirq.PauliString(qubit_pauli_map={
+        q0: Z,
+        q2: Y
+    },
+                                coefficient=sign)
     _assert_pass_over([op0], ps_before, ps_after)
 
     op0 = cirq.PauliInteractionGate(Y, t_or_f1, X, t_or_f2)(q0, q1)
