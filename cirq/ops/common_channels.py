@@ -62,7 +62,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
         Examples of calls:
             * Single qubit: AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)
-            * Single qubit: AsymmetricDepolarizingChannel(p_z=0.3)
+            * Single qubit: AsymmetricDepolarxizingChannel(p_z=0.3)
             * Two qubits: AsymmetricDepolarizingChannel(
                                 error_probabilities={'XX': 0.2})
 
@@ -74,8 +74,9 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             regex = re.compile('(I|X|Y|Z){%d}' % (num_qubits))
             for k in error_probabilities.keys():
                 if not regex.fullmatch(k):
-                    raise ValueError(('{} does not have {} entries made ' + 'of I, X, Y, and Z').format(
-                        k, num_qubits))
+                    raise ValueError(
+                        ('{} does not have {} entries made ' +
+                         'of I, X, Y, and Z').format(k, num_qubits))
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -124,12 +125,14 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 'cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
                     self._error_probabilities))
         return ('cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
-                    self._error_probabilities))
+            self._error_probabilities))
 
     def __str__(self) -> str:
         if self._num_qubits == 1:
-            return 'asymmetric_depolarize(error_probabilities={!r})'.format(self._error_probabilities)
-        return ('asymmetric_depolarize(error_probabilities={!r})').format(self._error_probabilities)
+            return 'asymmetric_depolarize(error_probabilities={!r})'.format(
+                self._error_probabilities)
+        return ('asymmetric_depolarize(error_probabilities={!r})').format(
+            self._error_probabilities)
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -185,8 +188,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return self._error_probabilities
 
     def _json_dict_(self) -> Dict[str, Any]:
-        return protocols.obj_to_dict_helper(
-            self, ['error_probabilities'])
+        return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
 
 def asymmetric_depolarize(p_x: Optional[float] = None,

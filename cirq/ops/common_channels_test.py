@@ -526,10 +526,7 @@ def test_default_asymmetric_depolarizing_channel():
 
 
 def test_multi_asymmetric_depolarizing_channel():
-    d = cirq.asymmetric_depolarize(error_probabilities={
-                                       'II': 0.8,
-                                       'XX': 0.2
-                                   })
+    d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
         cirq.channel(d),
         (np.sqrt(0.8) * np.eye(4), np.sqrt(0.2) * np.kron(X, X)))
@@ -544,10 +541,7 @@ def test_multi_asymmetric_depolarizing_channel():
 
 
 def test_multi_asymmetric_depolarizing_mixture():
-    d = cirq.asymmetric_depolarize(error_probabilities={
-                                       'II': 0.8,
-                                       'XX': 0.2
-                                   })
+    d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     assert_mixtures_equal(cirq.mixture(d),
                           ((0.8, np.eye(4)), (0.2, np.kron(X, X))))
     assert cirq.has_mixture(d)
@@ -557,26 +551,25 @@ def test_multi_asymmetric_depolarizing_mixture():
 def test_multi_asymmetric_depolarizing_channel_repr():
     cirq.testing.assert_equivalent_repr(
         cirq.AsymmetricDepolarizingChannel(error_probabilities={
-                                               'II': 0.8,
-                                               'XX': 0.2
-                                           }))
+            'II': 0.8,
+            'XX': 0.2
+        }))
 
 
 def test_multi_asymmetric_depolarizing_channel_str():
-    assert (
-        str(
-            cirq.asymmetric_depolarize(error_probabilities={
-                                           'II': 0.8,
-                                           'XX': 0.2
-                                       })) ==
-        ("asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"))
+    assert (str(
+        cirq.asymmetric_depolarize(error_probabilities={
+            'II': 0.8,
+            'XX': 0.2
+        })
+    ) == ("asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})"))
 
 
 def test_multi_asymmetric_depolarizing_channel_text_diagram():
     a = cirq.asymmetric_depolarize(error_probabilities={
-                                       'II': 2 / 3,
-                                       'XX': 1 / 3
-                                   })
+        'II': 2 / 3,
+        'XX': 1 / 3
+    })
     assert (cirq.circuit_diagram_info(
         a, args=no_precision) == cirq.CircuitDiagramInfo(
             wire_symbols=('A(II:0.6666666666666666, XX:0.3333333333333333)',)))
