@@ -523,6 +523,7 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_x == 0.0
     assert d.p_y == 0.0
     assert d.p_z == 0.0
+    assert d.num_qubits == 1
 
 
 def test_unknown_gate():
