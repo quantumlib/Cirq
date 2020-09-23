@@ -14,11 +14,11 @@
 
 """Quantum channels that are commonly used in the literature."""
 
+import re
 from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
                     TYPE_CHECKING)
 
 import numpy as np
-import re
 
 from cirq import protocols, value
 from cirq.ops import (raw_types, common_gates, pauli_gates, gate_features,
