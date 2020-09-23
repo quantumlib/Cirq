@@ -143,11 +143,11 @@ class Result:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def multi_measurement_histogram(  # type: ignore
-        self,
-        *,  # Forces keyword args.
-        keys: Iterable[TMeasurementKey],
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
-                                               _tuple_of_big_endian_int)
+            self,
+            *,  # Forces keyword args.
+            keys: Iterable[TMeasurementKey],
+            fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
+                                                   _tuple_of_big_endian_int)
     ) -> collections.Counter:
         """Counts the number of times combined measurement results occurred.
 
@@ -205,11 +205,11 @@ class Result:
 
     # Reason for 'type: ignore': https://github.com/python/mypy/issues/5273
     def histogram(  # type: ignore
-        self,
-        *,  # Forces keyword args.
-        key: TMeasurementKey,
-        fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
-                                               value.big_endian_bits_to_int)
+            self,
+            *,  # Forces keyword args.
+            key: TMeasurementKey,
+            fold_func: Callable[[Tuple], T] = cast(Callable[[Tuple], T],
+                                                   value.big_endian_bits_to_int)
     ) -> collections.Counter:
         """Counts the number of times a measurement result occurred.
 
