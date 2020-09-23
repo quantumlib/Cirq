@@ -525,6 +525,11 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.p_z == 0.0
 
 
+def test_unknown_gate():
+    with pytest.raises(ValueError, match='AB does not have 2 entries made of I, X, Y, and Z'):
+        cirq.asymmetric_depolarize(error_probabilities={'AB': 1.0})
+
+
 def test_multi_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
