@@ -323,7 +323,7 @@ class Result:
             })
 
 
-@deprecated(deadline='v0.9', fix='Use cirq.Result instead.')
+@deprecated(deadline='v0.11', fix='Use cirq.Result instead.')
 class TrialResult(Result):
     pass
 
