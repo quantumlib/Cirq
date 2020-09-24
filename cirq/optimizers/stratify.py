@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
-from types import LambdaType
 from typing import TYPE_CHECKING, Type, Callable, Union, Iterable, Set
 
 from cirq import ops, circuits
@@ -62,9 +61,7 @@ def stratified_circuit(circuit: 'cirq.Circuit', *,
     """
 
     # Normalize categories into classifier functions.
-    classifiers = [
-        _category_to_classifier(category) for category in categories
-    ]
+    classifiers = [_category_to_classifier(category) for category in categories]
     # Make the classifiers exhaustive by adding an "everything else" bucket.
     and_the_rest = lambda op: all(
         not classifier(op) for classifier in classifiers)
