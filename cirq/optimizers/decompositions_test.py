@@ -12,9 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import math
 import random
-import sys
 from typing import Sequence
 
 import numpy as np
@@ -174,10 +172,12 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
         phased_nearly_x, tolerance=0.0001)
     assert len(kept) == 3
 
+
 def _random_unitary_with_close_eigenvalues():
     U = cirq.testing.random_unitary(2)
     d = np.diag(np.exp([-0.2312j, -0.2312j]))
     return U @ d @ U.conj().T
+
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
@@ -188,8 +188,7 @@ def _random_unitary_with_close_eigenvalues():
     cirq.unitary(cirq.Z),
     cirq.unitary(cirq.Z**0.5),
     _random_unitary_with_close_eigenvalues(),
-] + [cirq.testing.random_unitary(2)
-     for _ in range(10)])
+] + [cirq.testing.random_unitary(2) for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
         mat):
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(mat)
