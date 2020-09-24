@@ -11,19 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from typing import TYPE_CHECKING, Type, Callable, Union, Iterable
+import itertools
+from typing import TYPE_CHECKING, Type, Callable, Union, Iterable, Set
 
 from cirq import ops, circuits
 
 if TYPE_CHECKING:
     import cirq
 
+# A function that decides based on an operation
+# whether it belongs to a class or not
+Classifier = Callable[['cirq.Operation'], bool]
 
-def stratified_circuit(circuit: 'cirq.Circuit', *, categories: Iterable[
-        Union['cirq.Gate', 'cirq.Operation', Type['cirq.Gate'],
-              Type['cirq.Operation'], Callable[['cirq.Operation'], bool]]]
-                      ) -> 'cirq.Circuit':
+# Any of the possible operation categories that we can stratify on.
+Category = Union['cirq.Gate', 'cirq.Operation', Type['cirq.Gate'],
+                 Type['cirq.Operation'], Classifier]
+
+
+def stratified_circuit(circuit: 'cirq.Circuit', *,
+                       categories: Iterable[Category]) -> 'cirq.Circuit':
     """Repacks avoiding simultaneous operations with different classes.
 
     Sometimes, certain operations should not be done at the same time. For
@@ -54,55 +60,92 @@ def stratified_circuit(circuit: 'cirq.Circuit', *, categories: Iterable[
         A copy of the original circuit, but with re-arranged operations.
     """
 
-    # Convert classifiers into arguments for `reachable_frontier_from`.
-    blockers = [_category_to_blocker(classifier) for classifier in categories]
-    and_the_rest = lambda op: not all(blocker(op) for blocker in blockers)
-    blockers_and_the_rest = [*blockers, and_the_rest]
+    # Normalize categories into classifier functions.
+    classifiers = [_category_to_classifier(category) for category in categories]
+    # Make the classifiers exhaustive by adding an "everything else" bucket.
+    and_the_rest = lambda op: all(
+        not classifier(op) for classifier in classifiers)
+    classifiers_and_the_rest = [*classifiers, and_the_rest]
 
-    # Identify transition frontiers between categories.
-    prev_frontier = {q: 0 for q in circuit.all_qubits()}
-    frontiers = [prev_frontier]
-    while True:
-        cur_frontier = prev_frontier
+    # Try the algorithm with each permutation of the classifiers.
+    classifiers_permutations = list(
+        itertools.permutations(classifiers_and_the_rest))
+    reversed_circuit = circuit[::-1]
+    solutions = []
+    for c in classifiers_permutations:
+        solutions.append(stratify_circuit(list(c), circuit))
+        # Do the same thing, except this time in reverse. This helps for some
+        # circuits because it inserts operations at the end instead of at the
+        # beginning.
+        solutions.append(stratify_circuit(list(c), reversed_circuit)[::-1])
 
-        # Attempt to advance the frontier using each possible category.
-        for b in blockers_and_the_rest:
-            next_frontier = circuit.reachable_frontier_from(
-                start_frontier=cur_frontier, is_blocker=b)
-            if next_frontier == cur_frontier:
-                continue  # No operations from this category at frontier.
-            frontiers.append(next_frontier)
-            cur_frontier = next_frontier
-
-        # If the frontier didn't move, we should be at the end of the circuit.
-        if cur_frontier == prev_frontier:
-            assert set(cur_frontier.values()).issubset({len(circuit)})
-            break
-        prev_frontier = cur_frontier
-
-    # Re-pack operations within each section, then concatenate into result.
-    result = circuits.Circuit()
-    for f1, f2 in zip(frontiers, frontiers[1:]):
-        result += circuits.Circuit(
-            op for _, op in circuit.findall_operations_between(f1, f2))
-
-    return result
+    # Return the shortest circuit.
+    return min(solutions, key=lambda c: len(c))
 
 
-def _category_to_blocker(classifier):
-    if isinstance(classifier, ops.Gate):
-        return lambda op: op.gate != classifier
-    if isinstance(classifier, ops.Operation):
-        return lambda op: op != classifier
-    elif isinstance(classifier, type) and issubclass(classifier, ops.Gate):
-        return lambda op: not isinstance(op.gate, classifier)
-    elif isinstance(classifier, type) and issubclass(classifier, ops.Operation):
-        return lambda op: not isinstance(op, classifier)
-    elif callable(classifier):
-        return lambda op: not classifier(op)
+def stratify_circuit(classifiers: Iterable[Classifier],
+                     circuit: circuits.Circuit):
+    """Performs the stratification by iterating through the operations in the
+    circuit and using the given classifiers to align them.
+
+    Args:
+        classifiers: A list of rules to align the circuit. Must be exhaustive,
+            i.e. all operations will be caught by one of the processors.
+        circuit: The circuit to break out into homogeneous moments. Will not be
+            edited.
+
+    Returns:
+        The stratified circuit.
+    """
+    solution = circuits.Circuit()
+    circuit_copy = circuit.copy()
+    while len(circuit_copy.all_qubits()) > 0:
+        for classifier in classifiers:
+            current_moment = ops.Moment()
+            blocked_qubits: Set[ops.Qid] = set()
+            for moment_idx, moment in enumerate(circuit_copy.moments):
+                for op in moment.operations:
+                    can_insert = classifier(op)
+                    if not can_insert:
+                        blocked_qubits.update(op.qubits)
+                    else:
+                        # Ensure that all the qubits for this operation are
+                        # still available.
+                        if not any(
+                                qubit in blocked_qubits for qubit in op.qubits):
+                            # Add the operation to the current moment and
+                            # remove it from the circuit.
+                            current_moment = current_moment.with_operation(op)
+                            blocked_qubits.update(op.qubits)
+                            circuit_copy.batch_remove([(moment_idx, op)])
+
+                # Short-circuit: If all the qubits are blocked, go on to the
+                # next moment.
+                if blocked_qubits.issuperset(circuit_copy.all_qubits()):
+                    break
+
+            if len(current_moment) > 0:
+                solution.append(current_moment)
+    return solution
+
+
+# No type for `category` because MyPy does not keep the return type when
+# returning a callback.
+def _category_to_classifier(category) -> Classifier:
+    """Normalizes the given category into a classifier function."""
+    if isinstance(category, ops.Gate):
+        return lambda op: op.gate == category
+    if isinstance(category, ops.Operation):
+        return lambda op: op == category
+    elif isinstance(category, type) and issubclass(category, ops.Gate):
+        return lambda op: isinstance(op.gate, category)
+    elif isinstance(category, type) and issubclass(category, ops.Operation):
+        return lambda op: isinstance(op, category)
+    elif callable(category):
+        return lambda op: category(op)
     else:
         raise TypeError(f'Unrecognized classifier type '
-                        f'{type(classifier)} ({classifier!r}).\n'
+                        f'{type(category)} ({category!r}).\n'
                         f'Expected a cirq.Gate, cirq.Operation, '
                         f'Type[cirq.Gate], Type[cirq.Operation], '
                         f'or Callable[[cirq.Operation], bool].')
