@@ -50,6 +50,8 @@ def test_grid_qubit_from_proto_id():
     assert v2.grid_qubit_from_proto_id('1_2') == cirq.GridQubit(1, 2)
     assert v2.grid_qubit_from_proto_id('10_2') == cirq.GridQubit(10, 2)
     assert v2.grid_qubit_from_proto_id('-1_2') == cirq.GridQubit(-1, 2)
+    assert v2.grid_qubit_from_proto_id('q-1_2') == cirq.GridQubit(-1, 2)
+    assert v2.grid_qubit_from_proto_id('q1_2') == cirq.GridQubit(1, 2)
 
 
 def test_grid_qubit_from_proto_id_invalid():
@@ -57,6 +59,12 @@ def test_grid_qubit_from_proto_id_invalid():
         _ = v2.grid_qubit_from_proto_id('3_3_3')
     with pytest.raises(ValueError, match='a_2'):
         _ = v2.grid_qubit_from_proto_id('a_2')
+    with pytest.raises(ValueError, match='q1_q2'):
+        v2.grid_qubit_from_proto_id('q1_q2')
+    with pytest.raises(ValueError, match='q-1_q2'):
+        v2.grid_qubit_from_proto_id('q-1_q2')
+    with pytest.raises(ValueError, match='-1_q2'):
+        v2.grid_qubit_from_proto_id('-1_q2')
 
 
 def test_line_qubit_from_proto_id():
