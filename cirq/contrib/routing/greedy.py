@@ -301,9 +301,12 @@ class _GreedyRouter:
                 ]
                 if len(candidate_swap_sets) == 1:
                     self.apply_swap(*candidate_swap_sets[0])
-                    return
-
-        self.apply_next_swaps(True)
+                    if list(
+                            self.remaining_dag.findall_nodes_until_blocked(
+                                self.acts_on_nonadjacent_qubits)):
+                        return
+                    else:
+                        break
 
     def route(self):
         self.apply_possible_ops()
