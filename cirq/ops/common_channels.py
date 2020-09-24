@@ -122,10 +122,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             tuple(sorted(self._error_probabilities.items())))
 
     def __repr__(self) -> str:
-        return f"cirq.asymmetric_depolarize(error_probabilities={self._error_probabilities})"
+        return ('cirq.asymmetric_depolarize(' +
+                f"error_probabilities={self._error_probabilities})")
 
     def __str__(self) -> str:
-        return f"asymmetric_depolarize(error_probabilities={self._error_probabilities})"
+        return ('asymmetric_depolarize(' +
+                f"error_probabilities={self._error_probabilities})")
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:

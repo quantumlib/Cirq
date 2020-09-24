@@ -14,6 +14,7 @@
 
 import numpy as np
 import pytest
+import re
 
 import cirq
 
@@ -535,10 +536,10 @@ def test_bad_error_probabilities_gate():
 
 
 def test_bad_probs():
-    with pytest.raises(ValueError, match='p\(X\) was greater than 1.'):
+    with pytest.raises(ValueError, match=re.escape('p(X) was greater than 1.')):
         cirq.asymmetric_depolarize(error_probabilities={'X': 1.1, 'Y': -0.1})
-    with pytest.raises(ValueError,
-                       match='sum\(error_probabilities\) was greater than 1.'):
+    with pytest.raises(ValueError, match=re.escape(
+                       'sum(error_probabilities) was greater than 1.')):
         cirq.asymmetric_depolarize(error_probabilities={'X': 0.7, 'Y': 0.6})
 
 
