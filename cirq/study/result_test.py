@@ -302,3 +302,8 @@ def test_json_bit_packing_and_dtype():
     assert loaded_bits_result.measurements['m'].dtype == np.uint8
     assert loaded_digits_result.measurements['m'].dtype == np.uint8
     np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)
+
+
+def test_deprecation_log():
+    with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
+        cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})
