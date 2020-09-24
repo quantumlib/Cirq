@@ -526,11 +526,15 @@ def test_default_asymmetric_depolarizing_channel():
     assert d.num_qubits == 1
 
 
-def test_unknown_gate():
+def test_bad_error_probabilities_gate():
     with pytest.raises(
             ValueError,
-            match='AB does not have 2 entries made of I, X, Y, and Z'):
+            match='AB is not made solely of I, X, Y, Z.'):
         cirq.asymmetric_depolarize(error_probabilities={'AB': 1.0})
+    with pytest.raises(
+            ValueError,
+            match='Y must have 2 Pauli gates.'):
+        cirq.asymmetric_depolarize(error_probabilities={'IX': 0.8, 'Y': 0.2})
 
 
 def test_multi_asymmetric_depolarizing_channel():

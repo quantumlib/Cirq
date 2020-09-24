@@ -14,7 +14,6 @@
 
 """Quantum channels that are commonly used in the literature."""
 
-import re
 from typing import (Any, Dict, Iterable, Optional, Sequence, Tuple, Union,
                     TYPE_CHECKING)
 
@@ -41,7 +40,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         r"""The asymmetric depolarizing channel.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n - 1 pauli gates.x
+        identity channel) or one of the 4**n - 1 pauli gates.
 
         This channel evolves a density matrix via
 
@@ -62,21 +61,20 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
         Examples of calls:
             * Single qubit: AsymmetricDepolarizingChannel(0.2, 0.1, 0.3)
-            * Single qubit: AsymmetricDepolarxizingChannel(p_z=0.3)
+            * Single qubit: AsymmetricDepolarizingChannel(p_z=0.3)
             * Two qubits: AsymmetricDepolarizingChannel(
                                 error_probabilities={'XX': 0.2})
 
         Raises:
             ValueError: if the args or the sum of args are not probabilities.
         """
-        if error_probabilities is not None and bool(error_probabilities):
-            num_qubits = len(list(error_probabilities.keys())[0])
-            regex = re.compile('(I|X|Y|Z){%d}' % (num_qubits))
+        if error_probabilities:
+            num_qubits = len(list(error_probabilities)[0])
             for k in error_probabilities.keys():
-                if not regex.fullmatch(k):
-                    raise ValueError(
-                        ('{} does not have {} entries made ' +
-                         'of I, X, Y, and Z').format(k, num_qubits))
+                if not set(k).issubset({'I', 'X', 'Y', 'Z'}):
+                    raise ValueError(f"{k} is not made solely of I, X, Y, Z.")
+                if len(k) != num_qubits:
+                    raise ValueError(f"{k} must have {num_qubits} Pauli gates.")
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -95,7 +93,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
 
     def _mixture_(self) -> Sequence[Tuple[float, np.ndarray]]:
         ps = []
-        for pauli in self._error_probabilities.keys():
+        for pauli in self._error_probabilities:
             Pi = np.identity(1)
             for gate in pauli:
                 if gate == 'I':
@@ -120,17 +118,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             tuple(sorted(self._error_probabilities.items())))
 
     def __repr__(self) -> str:
-        if self._num_qubits == 1:
-            return (
-                'cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
-                    self._error_probabilities))
         return ('cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
             self._error_probabilities))
 
     def __str__(self) -> str:
-        if self._num_qubits == 1:
-            return 'asymmetric_depolarize(error_probabilities={!r})'.format(
-                self._error_probabilities)
         return ('asymmetric_depolarize(error_probabilities={!r})').format(
             self._error_probabilities)
 
@@ -138,20 +129,16 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if self._num_qubits == 1:
             if args.precision is not None:
-                f = '{:.' + str(args.precision) + 'g}'
-                return 'A({},{},{})'.format(f, f,
-                                            f).format(self.p_x, self.p_y,
-                                                      self.p_z)
-            return 'A({!r},{!r},{!r})'.format(self.p_x, self.p_y, self.p_z)
+                return f"A({self.p_x:.{args.precision}g},{self.p_y:.{args.precision}g},{self.p_z:.{args.precision}g})"
+            return f"A({self.p_x},{self.p_y},{self.p_z})"
         if args.precision is not None:
-            f = '{:.' + str(args.precision) + 'g}'
             error_probabilities = [
-                pauli + ':' + '{}'.format(f).format(p)
+                f"{pauli}:{p:.{args.precision}g}"
                 for pauli, p in self._error_probabilities.items()
             ]
         else:
             error_probabilities = [
-                pauli + ':' + '{!r}'.format(p)
+                f"{pauli}:{p}"
                 for pauli, p in self._error_probabilities.items()
             ]
         return 'A({})'.format(', '.join(error_probabilities))
@@ -199,7 +186,7 @@ def asymmetric_depolarize(p_x: Optional[float] = None,
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
-        identity channel) or one of the 4**n - 1 pauli gates.x
+        identity channel) or one of the 4**n - 1 pauli gates.
 
         This channel evolves a density matrix via
 
