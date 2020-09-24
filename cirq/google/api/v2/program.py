@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
 from typing import TYPE_CHECKING
 
 from cirq import devices, ops
@@ -93,13 +93,14 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     Raises:
         ValueError: If the string not of the correct format.
     """
-    parts = proto_id.replace("q","").split('_')
-    if len(parts) != 2:
+
+    match = re.match(r'^q?(-?\d+)_(-?\d+)$', proto_id)
+    if match is None:
         raise ValueError(
             'GridQubit proto id must be of the form <int>_<int> but was {}'.
             format(proto_id))
     try:
-        row, col = parts
+        row, col = match.groups()
         return devices.GridQubit(row=int(row), col=int(col))
     except ValueError:
         raise ValueError(
