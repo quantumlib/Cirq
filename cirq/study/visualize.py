@@ -17,7 +17,6 @@
 import numpy as np
 from typing import TYPE_CHECKING
 
-
 if TYPE_CHECKING:
     from cirq.study import result
 
