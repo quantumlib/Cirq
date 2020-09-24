@@ -748,6 +748,7 @@ These objects and methods will be removed in a future version of the library.
     cirq.validate_normalized_state
     cirq.wavefunction_partial_trace_as_mixture
     cirq.SimulatesIntermediateWaveFunction
+    cirq.TrialResult
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
