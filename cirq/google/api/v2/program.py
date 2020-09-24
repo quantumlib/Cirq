@@ -93,7 +93,7 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     Raises:
         ValueError: If the string not of the correct format.
     """
-    parts = proto_id.split('_')
+    parts = proto_id.replace("q","").split('_')
     if len(parts) != 2:
         raise ValueError(
             'GridQubit proto id must be of the form <int>_<int> but was {}'.
