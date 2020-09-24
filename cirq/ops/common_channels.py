@@ -75,6 +75,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                     raise ValueError(f"{k} is not made solely of I, X, Y, Z.")
                 if len(k) != num_qubits:
                     raise ValueError(f"{k} must have {num_qubits} Pauli gates.")
+            for k, v in error_probabilities.items():
+                value.validate_probability(v, f"p({k})")
+            value.validate_probability(sum(error_probabilities.values()),
+                                       'sum(error_probabilities)')
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -118,12 +122,10 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             tuple(sorted(self._error_probabilities.items())))
 
     def __repr__(self) -> str:
-        return ('cirq.asymmetric_depolarize(error_probabilities={!r})'.format(
-            self._error_probabilities))
+        return f"cirq.asymmetric_depolarize(error_probabilities={self._error_probabilities})"
 
     def __str__(self) -> str:
-        return ('asymmetric_depolarize(error_probabilities={!r})').format(
-            self._error_probabilities)
+        return f"asymmetric_depolarize(error_probabilities={self._error_probabilities})"
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
@@ -143,7 +145,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 f"{pauli}:{p}"
                 for pauli, p in self._error_probabilities.items()
             ]
-        return 'A({})'.format(', '.join(error_probabilities))
+        return f"A({', '.join(error_probabilities)})"
 
     @property
     def p_x(self) -> float:

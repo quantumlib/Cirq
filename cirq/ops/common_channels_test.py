@@ -534,6 +534,14 @@ def test_bad_error_probabilities_gate():
         cirq.asymmetric_depolarize(error_probabilities={'IX': 0.8, 'Y': 0.2})
 
 
+def test_bad_probs():
+    with pytest.raises(ValueError, match='p\(X\) was greater than 1.'):
+        cirq.asymmetric_depolarize(error_probabilities={'X': 1.1, 'Y': -0.1})
+    with pytest.raises(ValueError,
+                       match='sum\(error_probabilities\) was greater than 1.'):
+        cirq.asymmetric_depolarize(error_probabilities={'X': 0.7, 'Y': 0.6})
+
+
 def test_multi_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
