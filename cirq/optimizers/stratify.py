@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import itertools
+from types import LambdaType
 from typing import TYPE_CHECKING, Type, Callable, Union, Iterable, Set
 
 from cirq import ops, circuits
@@ -19,11 +20,13 @@ from cirq import ops, circuits
 if TYPE_CHECKING:
     import cirq
 
+# A function that decides based on an operation
+# whether it belongs to a class or not
+Classifier = Callable[['cirq.Operation'], bool]
+
 # Any of the possible operation categories that we can stratify on.
 Category = Union['cirq.Gate', 'cirq.Operation', Type['cirq.Gate'],
-                 Type['cirq.Operation'], Callable[['cirq.Operation'], bool]]
-# A normalized version of Category.
-Classifier = Callable[['cirq.Operation'], bool]
+                 Type['cirq.Operation'], Classifier]
 
 
 def stratified_circuit(circuit: 'cirq.Circuit', *,
@@ -60,7 +63,7 @@ def stratified_circuit(circuit: 'cirq.Circuit', *,
 
     # Normalize categories into classifier functions.
     classifiers = [
-        _category_to_classifier(classifier) for classifier in categories
+        _category_to_classifier(category) for category in categories
     ]
     # Make the classifiers exhaustive by adding an "everything else" bucket.
     and_the_rest = lambda op: all(
@@ -70,15 +73,13 @@ def stratified_circuit(circuit: 'cirq.Circuit', *,
     # Try the algorithm with each permutation of the classifiers.
     classifiers_permutations = list(
         itertools.permutations(classifiers_and_the_rest))
+    reversed_circuit = circuit[::-1]
     solutions = []
     for c in classifiers_permutations:
         solutions.append(stratify_circuit(list(c), circuit))
-
-    # Do the same thing, except this time in reverse. This helps for some
-    # circuits because it inserts operations at the end instead of at the
-    # beginning.
-    reversed_circuit = circuit[::-1]
-    for c in classifiers_permutations:
+        # Do the same thing, except this time in reverse. This helps for some
+        # circuits because it inserts operations at the end instead of at the
+        # beginning.
         solutions.append(stratify_circuit(list(c), reversed_circuit)[::-1])
 
     # Return the shortest circuit.
