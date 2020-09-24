@@ -129,7 +129,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if self._num_qubits == 1:
             if args.precision is not None:
-                return f"A({self.p_x:.{args.precision}g},{self.p_y:.{args.precision}g},{self.p_z:.{args.precision}g})"
+                return (f"A({self.p_x:.{args.precision}g}," +
+                f"{self.p_y:.{args.precision}g}," + f"{self.p_z:.{args.precision}g})")
             return f"A({self.p_x},{self.p_y},{self.p_z})"
         if args.precision is not None:
             error_probabilities = [
