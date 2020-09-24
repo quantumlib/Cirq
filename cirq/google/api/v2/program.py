@@ -19,6 +19,8 @@ from cirq import devices, ops
 if TYPE_CHECKING:
     import cirq
 
+GRID_QUBIT_ID_PATTERN = r'^q?(-?\d+)_(-?\d+)$'
+
 
 def qubit_to_proto_id(q: 'cirq.Qid') -> str:
     """Return a proto id for a `cirq.Qid`.
@@ -94,7 +96,7 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
         ValueError: If the string not of the correct format.
     """
 
-    match = re.match(r'^q?(-?\d+)_(-?\d+)$', proto_id)
+    match = re.match(GRID_QUBIT_ID_PATTERN, proto_id)
     if match is None:
         raise ValueError(
             'GridQubit proto id must be of the form <int>_<int> but was {}'.
