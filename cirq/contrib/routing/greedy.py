@@ -308,6 +308,8 @@ class _GreedyRouter:
                     else:
                         break
 
+        self.apply_next_swaps(True)
+
     def route(self):
         self.apply_possible_ops()
         empty_steps_remaining = self.max_num_empty_steps
