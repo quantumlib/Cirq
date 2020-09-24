@@ -174,18 +174,10 @@ def test_single_qubit_matrix_to_gates_tolerance_half_turn_phasing():
         phased_nearly_x, tolerance=0.0001)
     assert len(kept) == 3
 
-
-@pytest.mark.xfail(sys.platform == 'win32',
-                   reason='https://github.com/quantumlib/Cirq/issues/2468')
-def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
-    u, t, g = cirq.single_qubit_op_to_framed_phase_form(
-        cirq.unitary(cirq.Y**0.25))
-    cirq.testing.assert_allclose_up_to_global_phase(u,
-                                                    cirq.unitary(cirq.X**0.5),
-                                                    atol=1e-7)
-    assert abs(t - (1 + 1j) * math.sqrt(0.5)) < 0.00001
-    assert abs(g - 1) < 0.00001
-
+def _random_unitary_with_close_eigenvalues():
+    U = cirq.testing.random_unitary(2)
+    d = np.diag(np.exp([-0.2312j, -0.2312j]))
+    return U @ d @ U.conj().T
 
 @pytest.mark.parametrize('mat', [
     np.eye(2),
@@ -195,6 +187,7 @@ def test_single_qubit_op_to_framed_phase_form_output_on_example_case():
     cirq.unitary(cirq.Y),
     cirq.unitary(cirq.Z),
     cirq.unitary(cirq.Z**0.5),
+    _random_unitary_with_close_eigenvalues(),
 ] + [cirq.testing.random_unitary(2)
      for _ in range(10)])
 def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
@@ -202,7 +195,6 @@ def test_single_qubit_op_to_framed_phase_form_equivalent_on_known_and_random(
     u, t, g = cirq.single_qubit_op_to_framed_phase_form(mat)
     z = np.diag([g, g * t])
     assert np.allclose(mat, np.conj(u.T).dot(z).dot(u))
-
 
 def test_single_qubit_matrix_to_phased_x_z_known():
     actual = cirq.single_qubit_matrix_to_phased_x_z(
