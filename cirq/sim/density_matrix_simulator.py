@@ -67,7 +67,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         run_sweep(circuit, params, repetitions)
 
-    These methods return `TrialResult`s which contain both the measurement
+    These methods return `Result`s which contain both the measurement
     results, but also the parameters used for the parameterized
     circuit operations. The initial state of a run is always the all 0s state
     in the computational basis.
@@ -244,11 +244,12 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
                 state.buffers[i] = state.tensor
         state.tensor = result
 
-    def _base_iterator(self,
-                       circuit: circuits.Circuit,
-                       qubit_order: ops.QubitOrderOrList,
-                       initial_state: Union[int, np.ndarray],
-                       all_measurements_are_terminal=False) -> Iterator:
+    def _base_iterator(
+            self,
+            circuit: circuits.Circuit,
+            qubit_order: ops.QubitOrderOrList,
+            initial_state: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
+            all_measurements_are_terminal=False) -> Iterator:
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             circuit.all_qubits())
         qid_shape = protocols.qid_shape(qubits)

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import AbstractSet, Any, Dict, Tuple, TYPE_CHECKING
 
 from cirq import value, protocols
 from cirq.ops import raw_types
@@ -39,8 +39,11 @@ class WaitGate(raw_types.Gate):
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.duration)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.duration)
 
     def _resolve_parameters_(self, param_resolver):
         return WaitGate(

@@ -14,7 +14,7 @@
 
 """Common quantum gates that target three qubits."""
 
-from typing import Any, List, Optional, Tuple, TYPE_CHECKING
+from typing import AbstractSet, Any, List, Optional, Tuple, TYPE_CHECKING
 
 import numpy as np
 import sympy
@@ -184,10 +184,23 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
         """
         self._diag_angles_radians: List[value.TParamVal] = diag_angles_radians
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return any(
-            isinstance(angle, sympy.Basic)
+            protocols.is_parameterized(angle)
             for angle in self._diag_angles_radians)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for angle in self._diag_angles_radians
+            for name in protocols.parameter_names(angle)
+        }
+
+    def _resolve_parameters_(self, resolver: 'cirq.ParamResolverOrSimilarType'
+                            ) -> 'ThreeQubitDiagonalGate':
+        return self.__class__([
+            protocols.resolve_parameters(angle, resolver)
+            for angle in self._diag_angles_radians
+        ])
 
     def _has_unitary_(self) -> bool:
         return not self._is_parameterized_()
@@ -207,13 +220,6 @@ class ThreeQubitDiagonalGate(gate_features.ThreeQubitGate):
             subspace_index = args.subspace_index(little_endian_index)
             args.target_tensor[subspace_index] *= np.exp(1j * angle)
         return args.target_tensor
-
-    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
-                            ) -> 'ThreeQubitDiagonalGate':
-        return ThreeQubitDiagonalGate([
-            protocols.resolve_parameters(angle, param_resolver)
-            for angle in self._diag_angles_radians
-        ])
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':

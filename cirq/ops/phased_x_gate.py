@@ -13,7 +13,8 @@
 # limitations under the License.
 
 """An `XPowGate` conjugated by `ZPowGate`s."""
-from typing import Any, cast, Dict, Optional, Sequence, Tuple, Union
+from typing import (AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple,
+                    Union)
 
 import math
 import numpy as np
@@ -133,6 +134,11 @@ class PhasedXPowGate(gate_features.SingleQubitGate):
         """See `cirq.SupportsParameterization`."""
         return (protocols.is_parameterized(self._exponent) or
                 protocols.is_parameterized(self._phase_exponent))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        """See `cirq.SupportsParameterization`."""
+        return (protocols.parameter_names(self._exponent) |
+                protocols.parameter_names(self._phase_exponent))
 
     def _resolve_parameters_(self, param_resolver) -> 'PhasedXPowGate':
         """See `cirq.SupportsParameterization`."""

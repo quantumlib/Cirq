@@ -18,14 +18,15 @@ Circuits consist of a list of Moments, each Moment made up of a set of
 Operations. Each Operation is a Gate that acts on some Qubits, for a given
 Moment the Operations must all act on distinct Qubits.
 """
+
 from collections import defaultdict
 from fractions import Fraction
 from itertools import groupby
 import math
 
-from typing import (Any, Callable, cast, Dict, FrozenSet, Iterable, Iterator,
-                    List, Optional, overload, Sequence, Set, Tuple, Type,
-                    TYPE_CHECKING, TypeVar, Union)
+from typing import (AbstractSet, Any, Callable, cast, Dict, FrozenSet, Iterable,
+                    Iterator, List, Optional, overload, Sequence, Set, Tuple,
+                    Type, TYPE_CHECKING, TypeVar, Union)
 
 import html
 import re
@@ -1393,16 +1394,16 @@ class Circuit:
         self._moments = copy._moments
 
     def batch_insert_into(self,
-                          insert_intos: Iterable[Tuple[int, ops.Operation]]
-                          ) -> None:
+                          insert_intos: Iterable[Tuple[int, 'cirq.OP_TREE']]
+                         ) -> None:
         """Inserts operations into empty spaces in existing moments.
 
         If any of the insertions fails (due to colliding with an existing
         operation), this method fails without making any changes to the circuit.
 
         Args:
-            insert_intos: A sequence of (moment_index, new_operation)
-                pairs indicating a moment to add a new operation into.
+            insert_intos: A sequence of (moment_index, new_op_tree)
+                pairs indicating a moment to add new operations into.
 
         ValueError:
             One of the insertions collided with an existing operation.
@@ -1411,8 +1412,8 @@ class Circuit:
             Inserted into a moment index that doesn't exist.
         """
         copy = self.copy()
-        for i, op in insert_intos:
-            copy._moments[i] = copy._moments[i].with_operation(op)
+        for i, insertions in insert_intos:
+            copy._moments[i] = copy._moments[i].with_operations(insertions)
         self._device.validate_circuit(copy)
         self._validate_op_tree_qids(copy)
         self._moments = copy._moments
@@ -1793,6 +1794,12 @@ class Circuit:
     def _is_parameterized_(self) -> bool:
         return any(protocols.is_parameterized(op)
                    for op in self.all_operations())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for op in self.all_operations()
+            for name in protocols.parameter_names(op)
+        }
 
     def _resolve_parameters_(self,
                              param_resolver: 'cirq.ParamResolver') -> 'Circuit':

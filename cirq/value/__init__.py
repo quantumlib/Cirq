@@ -43,6 +43,17 @@ from cirq.value.linear_dict import (
 from cirq.value.probability import (
     validate_probability,)
 
+from cirq.value.product_state import (
+    ProductState,
+    KET_PLUS,
+    KET_MINUS,
+    KET_IMAG,
+    KET_MINUS_IMAG,
+    KET_ZERO,
+    KET_ONE,
+    PAULI_STATES,
+)
+
 from cirq.value.periodic_value import (
     PeriodicValue,)
 
@@ -55,7 +66,9 @@ from cirq.value.timestamp import (
     Timestamp,)
 
 from cirq.value.type_alias import (
-    TParamVal,)
+    TParamKey,
+    TParamVal,
+)
 
 from cirq.value.value_equality_attr import (
     value_equality,)
