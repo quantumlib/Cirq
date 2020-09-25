@@ -77,6 +77,7 @@ data:
           - label: "!(kind/roadmap-item)"
           - label: "!(kind/health)"
           - label: "!(kind/task)"
+          - label: "!(kind/design-issue)"
 
       issue-needs-kind:
         name: "Untyped (unkind) issues"
