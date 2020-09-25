@@ -312,7 +312,7 @@ def _estimate_std_devs_clifford(fidelity: float,
 
 
 @dataclass
-class TrialResult:
+class Result:
     """
     Contains the results of a trial, either by simulator or actual run
     """
@@ -338,7 +338,7 @@ class DFEIntermediateResult:
     # The list of Pauli traces we can sample from.
     pauli_traces: List[PauliTrace]
     # Measurement results from sampling the circuit.
-    trial_results: List[TrialResult]
+    trial_results: List[Result]
     # Standard deviations (estimate based on fidelity and bound)
     std_dev_estimate: Optional[float]
     std_dev_bound: Optional[float]
@@ -425,7 +425,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                                  size=len(pauli_traces),
                                                  p=p)
 
-    trial_results: List[TrialResult] = []
+    trial_results: List[Result] = []
     for pauli_trace in measured_pauli_traces:
         measure_pauli_string: cirq.PauliString = pauli_trace.P_i
         rho_i = pauli_trace.rho_i
@@ -439,8 +439,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
-        trial_results.append(
-            TrialResult(pauli_trace=pauli_trace, sigma_i=sigma_i))
+        trial_results.append(Result(pauli_trace=pauli_trace, sigma_i=sigma_i))
 
         fidelity += sigma_i / rho_i
 
