@@ -44,11 +44,14 @@ class DeserializingArg:
             None.
         required: Whether a value must be specified when constructing the
             deserialized gate. Defaults to True.
+        default: default value to set if the value is not present in the
+            arg.  If set, required is ignored.
     """
     serialized_name: str
     constructor_arg_name: str
     value_func: Optional[Callable[[arg_func_langs.ARG_LIKE], Any]] = None
     required: bool = True
+    default: Any = None
 
 
 class GateOpDeserializer:
@@ -107,10 +110,14 @@ class GateOpDeserializer:
                         ) -> Dict[str, arg_func_langs.ARG_LIKE]:
         return_args = {}
         for arg in self.args:
-            if arg.serialized_name not in proto.args and arg.required:
-                raise ValueError(
-                    'Argument {} not in deserializing args, but is required.'.
-                    format(arg.serialized_name))
+            if arg.serialized_name not in proto.args:
+                if arg.default:
+                    return_args[arg.constructor_arg_name] = arg.default
+                    continue
+                elif arg.required:
+                    raise ValueError(
+                        f'Argument {arg.serialized_name} '
+                        'not in deserializing args, but is required.')
 
             value = arg_func_langs._arg_from_proto(
                 proto.args[arg.serialized_name],

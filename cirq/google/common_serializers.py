@@ -175,10 +175,12 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
                 constructor_arg_name='phase_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
     ),
@@ -189,6 +191,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
         op_wrapper=lambda op, proto: _convert_physical_z(op, proto)),
@@ -199,14 +202,17 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='x_exponent',
                 constructor_arg_name='x_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='z_exponent',
                 constructor_arg_name='z_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='axis_phase_exponent',
                 constructor_arg_name='axis_phase_exponent',
+                default=0.0,
             ),
         ],
     ),
@@ -322,7 +328,8 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
         args=[
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
-                constructor_arg_name='phase_exponent'),
+                constructor_arg_name='phase_exponent',
+            ),
             op_deserializer.DeserializingArg(serialized_name='axis_half_turns',
                                              constructor_arg_name='exponent',
                                              value_func=lambda _: 1),
@@ -376,8 +383,11 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=ops.CZPowGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='half_turns',
-                                         constructor_arg_name='exponent')
+        op_deserializer.DeserializingArg(
+            serialized_name='half_turns',
+            constructor_arg_name='exponent',
+            default=1.0,
+        )
     ])
 
 #
@@ -539,10 +549,16 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=ops.FSimGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='theta',
-                                         constructor_arg_name='theta'),
-        op_deserializer.DeserializingArg(serialized_name='phi',
-                                         constructor_arg_name='phi'),
+        op_deserializer.DeserializingArg(
+            serialized_name='theta',
+            constructor_arg_name='theta',
+            default=0.0,
+        ),
+        op_deserializer.DeserializingArg(
+            serialized_name='phi',
+            constructor_arg_name='phi',
+            default=0.0,
+        ),
     ])
 
 
