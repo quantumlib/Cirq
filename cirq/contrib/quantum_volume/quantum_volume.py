@@ -159,7 +159,7 @@ def sample_heavy_set(compilation_result: CompilationResult,
 
 def process_results(mapping: Dict[cirq.Qid, cirq.Qid],
                     parity_mapping: Dict[cirq.Qid, cirq.Qid],
-                    trial_result: cirq.TrialResult) -> pd.DataFrame:
+                    trial_result: cirq.Result) -> pd.DataFrame:
     """Checks the given results for parity and throws away all of the runs that
     don't pass the parity test.
 
