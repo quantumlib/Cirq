@@ -1,9 +1,7 @@
 {
   "cirq_type": "AsymmetricDepolarizingChannel",
   "error_probabilities": {
-    "I": 0.3999999999999999,
-    "X": 0.1,
-    "Y": 0.2,
-    "Z": 0.3
+      "II": 0.8,
+      "XX": 0.2
   }
 }

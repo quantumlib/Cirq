@@ -145,11 +145,13 @@ def test_run_delegation(create_job, get_results):
                           param_resolver=param_resolver,
                           processor_ids=['mine'])
 
-    assert results == cirq.TrialResult(
-        params=cirq.ParamResolver({'a': 1.0}),
-        measurements={
-            'q': np.array([[False], [True], [True], [False]], dtype=np.bool)
-        })
+    assert results == cirq.Result(params=cirq.ParamResolver({'a': 1.0}),
+                                  measurements={
+                                      'q':
+                                      np.array(
+                                          [[False], [True], [True], [False]],
+                                          dtype=np.bool)
+                                  })
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.list_jobs')

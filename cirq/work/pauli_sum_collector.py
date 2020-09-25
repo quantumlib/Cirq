@@ -80,7 +80,7 @@ class PauliSumCollector(collector.Collector):
             tag=pauli)
 
     def on_job_result(self, job: 'cirq.CircuitSampleJob',
-                      result: 'cirq.TrialResult'):
+                      result: 'cirq.Result'):
         job_id = cast(ops.PauliString, job.tag)
         parities = result.histogram(key='out',
                                     fold_func=lambda bits: np.sum(bits) % 2)

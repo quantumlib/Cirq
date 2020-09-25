@@ -394,6 +394,7 @@ from cirq.study import (
     to_resolvers,
     to_sweep,
     to_sweeps,
+    Result,
     TrialResult,
     UnitSweep,
     Zip,

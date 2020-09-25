@@ -51,7 +51,7 @@ def sample(program: 'cirq.Circuit',
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.TrialResult:
+           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.Result:
     """Simulates sampling from the given circuit.
 
     Args:
@@ -171,7 +171,7 @@ def sample_sweep(program: 'cirq.Circuit',
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64,
                  seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                ) -> List[study.TrialResult]:
+                ) -> List[study.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -189,12 +189,12 @@ def sample_sweep(program: 'cirq.Circuit',
         seed: The random seed to use for this simulator.
 
     Returns:
-        TrialResult list for this run; one for each possible parameter
+        Result list for this run; one for each possible parameter
         resolver.
     """
     prng = value.parse_random_state(seed)
 
-    trial_results = []  # type: List[study.TrialResult]
+    trial_results = []  # type: List[study.Result]
     for param_resolver in study.to_resolvers(params):
         measurements = sample(program,
                               noise=noise,

@@ -42,7 +42,7 @@ class NoisySingleQubitReadoutSampler(cirq.Sampler):
             program: 'cirq.Circuit',
             params: cirq.Sweepable,
             repetitions: int = 1,
-    ) -> List[cirq.TrialResult]:
+    ) -> List[cirq.Result]:
         results = self.simulator.run_sweep(program, params, repetitions)
         for result in results:
             for bits in result.measurements.values():

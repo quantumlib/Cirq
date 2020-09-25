@@ -185,7 +185,7 @@ class Engine:
             program_labels: Optional[Dict[str, str]] = None,
             job_description: Optional[str] = None,
             job_labels: Optional[Dict[str, str]] = None,
-    ) -> study.TrialResult:
+    ) -> study.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -213,7 +213,7 @@ class Engine:
             job_labels: Optional set of labels to set on the job.
 
         Returns:
-            A single TrialResult for this run.
+            A single Result for this run.
         """
         if not gate_set:
             raise ValueError('No gate set provided')
