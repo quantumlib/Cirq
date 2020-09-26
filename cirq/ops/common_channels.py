@@ -80,7 +80,8 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 value.validate_probability(v, f"p({k})")
             sum_probs = sum(error_probabilities.values())
             if abs(sum_probs - 1.0) > 1e-6:
-                raise ValueError(f"Probabilities do not add up to 1 but to {sum_probs}")
+                raise ValueError(
+                    f"Probabilities do not add up to 1 but to {sum_probs}")
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
