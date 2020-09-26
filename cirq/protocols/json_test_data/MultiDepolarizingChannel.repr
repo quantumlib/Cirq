@@ -1,0 +1,1 @@
+cirq.depolarize(p=0.5,num_qubits=2)
