@@ -1,5 +1,5 @@
 {
   "cirq_type": "DepolarizingChannel",
   "p": 0.5,
-  "num_qubits": 2
+  "n_qubits": 2
 }
