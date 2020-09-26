@@ -305,7 +305,6 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
             return f"D({self._p:.{args.precision}g},{self._n_qubits})"
         return f"D({self._p},{self._n_qubits})"
 
-
     @property
     def p(self) -> float:
         """The probability that one of the Pauli gates is applied.

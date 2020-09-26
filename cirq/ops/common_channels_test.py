@@ -132,10 +132,8 @@ def test_asymmetric_depolarizing_channel_text_diagram():
 def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
-                                   (np.sqrt(0.1) * X,
-                                    np.sqrt(0.1) * Y,
-                                    np.sqrt(0.1) * Z,
-                                    np.sqrt(0.7) * np.eye(2)))
+                                   (np.sqrt(0.1) * X, np.sqrt(0.1) * Y,
+                                    np.sqrt(0.1) * Z, np.sqrt(0.7) * np.eye(2)))
     assert cirq.has_channel(d)
 
 def test_depolarizing_channel_two_qubits():
@@ -187,8 +185,8 @@ def test_depolarizing_channel_str():
     assert str(cirq.depolarize(0.3)) == 'depolarize(p=0.3)'
 
 def test_depolarizing_channel_str_two_qubits():
-    assert str(cirq.depolarize(
-        0.3, n_qubits=2)) == 'depolarize(p=0.3,n_qubits=2)'
+    assert str(cirq.depolarize(0.3,
+                               n_qubits=2)) == 'depolarize(p=0.3,n_qubits=2)'
 
 
 def test_depolarizing_channel_eq():
