@@ -262,9 +262,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
         p_depol = p / (4**n_qubits - 1)
         # For numerical noise, we compute the probability of the identity at the
-        # very last so that the probabilities add up to 1.0 exactly.
+        # very last so that the probabilities add up to 1.0 exactly. We use the
+        # strange formulation below, which is mathematically the same as 1 - p.
         p_identity = 1.0 - sum([p_depol] * (4**n_qubits - 1))
-
 
         for coefficients in itertools.product(['I', 'X', 'Y', 'Z'],
                                               repeat=n_qubits):
