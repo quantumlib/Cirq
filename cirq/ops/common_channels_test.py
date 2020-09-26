@@ -139,18 +139,24 @@ def test_depolarizing_channel():
 
 def test_depolarizing_channel_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
-    np.testing.assert_almost_equal(
-        cirq.channel(d),
-        (np.sqrt(0.85) * np.eye(4), np.sqrt(0.01) * np.kron(np.eye(2), X),
-         np.sqrt(0.01) * np.kron(np.eye(2), Y),
-         np.sqrt(0.01) * np.kron(np.eye(2), Z),
-         np.sqrt(0.01) * np.kron(X, np.eye(2)), np.sqrt(0.01) * np.kron(X, X),
-         np.sqrt(0.01) * np.kron(X, Y), np.sqrt(0.01) * np.kron(X, Z),
-         np.sqrt(0.01) * np.kron(Y, np.eye(2)), np.sqrt(0.01) * np.kron(Y, X),
-         np.sqrt(0.01) * np.kron(Y, Y), np.sqrt(0.01) * np.kron(Y, Z),
-         np.sqrt(0.01) * np.kron(Z, np.eye(2)), np.sqrt(0.01) * np.kron(Z, X),
-         np.sqrt(0.01) * np.kron(Z, Y), np.sqrt(0.01) * np.kron(Z, Z),
-         ))
+    np.testing.assert_almost_equal(cirq.channel(d), (
+        np.sqrt(0.85) * np.eye(4),
+        np.sqrt(0.01) * np.kron(np.eye(2), X),
+        np.sqrt(0.01) * np.kron(np.eye(2), Y),
+        np.sqrt(0.01) * np.kron(np.eye(2), Z),
+        np.sqrt(0.01) * np.kron(X, np.eye(2)),
+        np.sqrt(0.01) * np.kron(X, X),
+        np.sqrt(0.01) * np.kron(X, Y),
+        np.sqrt(0.01) * np.kron(X, Z),
+        np.sqrt(0.01) * np.kron(Y, np.eye(2)),
+        np.sqrt(0.01) * np.kron(Y, X),
+        np.sqrt(0.01) * np.kron(Y, Y),
+        np.sqrt(0.01) * np.kron(Y, Z),
+        np.sqrt(0.01) * np.kron(Z, np.eye(2)),
+        np.sqrt(0.01) * np.kron(Z, X),
+        np.sqrt(0.01) * np.kron(Z, Y),
+        np.sqrt(0.01) * np.kron(Z, Z),
+    ))
     assert cirq.has_channel(d)
 
 def test_depolarizing_mixture():
@@ -162,16 +168,16 @@ def test_depolarizing_mixture():
 
 def test_depolarizing_mixture_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
-    assert_mixtures_equal(
-        cirq.mixture(d),
-        ((0.85, np.eye(4)), (0.01, np.kron(np.eye(2), X)),
-         (0.01, np.kron(np.eye(2), Y)), (0.01, np.kron(np.eye(2), Z)),
-         (0.01, np.kron(X, np.eye(2))), (0.01, np.kron(X, X)),
-         (0.01, np.kron(X, Y)), (0.01, np.kron(X, Z)),
-         (0.01, np.kron(Y, np.eye(2))), (0.01, np.kron(Y, X)),
-         (0.01, np.kron(Y, Y)), (0.01, np.kron(Y, Z)),
-         (0.01, np.kron(Z, np.eye(2))), (0.01, np.kron(Z, X)),
-         (0.01, np.kron(Z, Y)), (0.01, np.kron(Z, Z))))
+    assert_mixtures_equal(cirq.mixture(d),
+                          ((0.85, np.eye(4)), (0.01, np.kron(np.eye(2), X)),
+                           (0.01, np.kron(np.eye(2), Y)),
+                           (0.01, np.kron(np.eye(2), Z)),
+                           (0.01, np.kron(X, np.eye(2))), (0.01, np.kron(X, X)),
+                           (0.01, np.kron(X, Y)), (0.01, np.kron(X, Z)),
+                           (0.01, np.kron(Y, np.eye(2))), (0.01, np.kron(Y, X)),
+                           (0.01, np.kron(Y, Y)), (0.01, np.kron(Y, Z)),
+                           (0.01, np.kron(Z, np.eye(2))), (0.01, np.kron(Z, X)),
+                           (0.01, np.kron(Z, Y)), (0.01, np.kron(Z, Z))))
     assert cirq.has_mixture(d)
 
 
