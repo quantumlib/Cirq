@@ -132,8 +132,9 @@ def test_asymmetric_depolarizing_channel_text_diagram():
 def test_depolarizing_channel():
     d = cirq.depolarize(0.3)
     np.testing.assert_almost_equal(cirq.channel(d),
-                                   (np.sqrt(0.1) * X, np.sqrt(0.1) * Y,
-                                    np.sqrt(0.1) * Z, np.sqrt(0.7) * np.eye(2)))
+                                   (np.sqrt(0.7) * np.eye(2),
+                                    np.sqrt(0.1) * X, np.sqrt(0.1) * Y,
+                                    np.sqrt(0.1) * Z, ))
     assert cirq.has_channel(d)
 
 
@@ -162,7 +163,7 @@ def test_depolarizing_channel_two_qubits():
 def test_depolarizing_mixture():
     d = cirq.depolarize(0.3)
     assert_mixtures_equal(cirq.mixture(d),
-                          ((0.1, X), (0.1, Y), (0.1, Z), (0.7, np.eye(2))))
+                          ((0.7, np.eye(2)),(0.1, X), (0.1, Y), (0.1, Z)))
     assert cirq.has_mixture(d)
 
 
@@ -209,7 +210,7 @@ def test_depolarizing_channel_eq():
 
 
 def test_depolarizing_channel_invalid_probability():
-    with pytest.raises(ValueError, match=re.escape('p(X) was less than 0.')):
+    with pytest.raises(ValueError, match=re.escape('p(I) was greater than 1.')):
         cirq.depolarize(-0.1)
     with pytest.raises(ValueError, match=re.escape('p(I) was less than 0.')):
         cirq.depolarize(1.1)
@@ -594,7 +595,7 @@ def test_bad_probs():
         cirq.asymmetric_depolarize(error_probabilities={'X': 1.1, 'Y': -0.1})
     with pytest.raises(
             ValueError,
-            match=re.escape('sum(error_probabilities) was greater than 1.')):
+            match=re.escape('Probabilities do not add up to 1')):
         cirq.asymmetric_depolarize(error_probabilities={'X': 0.7, 'Y': 0.6})
 
 

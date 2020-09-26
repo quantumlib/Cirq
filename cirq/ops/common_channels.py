@@ -78,8 +78,9 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                     raise ValueError(f"{k} must have {num_qubits} Pauli gates.")
             for k, v in error_probabilities.items():
                 value.validate_probability(v, f"p({k})")
-            value.validate_probability(sum(error_probabilities.values()),
-                                       'sum(error_probabilities)')
+            sum_probs = sum(error_probabilities.values())
+            if abs(sum_probs - 1.0) > 1e-6:
+                raise ValueError(f"Probabilities do not add up to 1 but to {sum_probs}")
             self._num_qubits = num_qubits
             self._error_probabilities = error_probabilities
         else:
@@ -261,11 +262,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         all_identity = ''.join(['I'] * n_qubits)
 
         p_depol = p / (4**n_qubits - 1)
-        # For numerical noise, we compute the probability of the identity at the
-        # very last so that the probabilities add up to 1.0 exactly. We use the
-        # strange formulation below, which is mathematically the same as 1 - p.
-        p_identity = 1.0 - sum([p_depol] * (4**n_qubits - 1))
-
+        p_identity = 1.0 - p
         for coefficients in itertools.product(['I', 'X', 'Y', 'Z'],
                                               repeat=n_qubits):
             pauli_string = ''.join([g for g in coefficients])
