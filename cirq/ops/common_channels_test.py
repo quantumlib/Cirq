@@ -136,6 +136,7 @@ def test_depolarizing_channel():
                                     np.sqrt(0.1) * Z, np.sqrt(0.7) * np.eye(2)))
     assert cirq.has_channel(d)
 
+
 def test_depolarizing_channel_two_qubits():
     d = cirq.depolarize(0.15, n_qubits=2)
     np.testing.assert_almost_equal(
@@ -183,6 +184,7 @@ def test_depolarizing_channel_repr_two_qubits():
 
 def test_depolarizing_channel_str():
     assert str(cirq.depolarize(0.3)) == 'depolarize(p=0.3)'
+
 
 def test_depolarizing_channel_str_two_qubits():
     assert str(cirq.depolarize(0.3,
