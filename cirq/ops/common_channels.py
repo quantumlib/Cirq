@@ -259,16 +259,20 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
         error_probabilities = {}
         all_identity = ''.join(['I'] * n_qubits)
+
+        p_depol = p / (4**n_qubits - 1)
+        # For numerical noise, we compute the probability of the identity at the
+        # very last so that the probabilities add up to 1.0 exactly.
+        p_identity = 1.0 - sum([p_depol] * (4**n_qubits - 1))
+
+
         for coefficients in itertools.product(['I', 'X', 'Y', 'Z'],
                                               repeat=n_qubits):
             pauli_string = ''.join([g for g in coefficients])
+            if pauli_string == all_identity:
+                error_probabilities[pauli_string] = p_identity
             if pauli_string != all_identity:
-                error_probabilities[pauli_string] = p / (4**n_qubits - 1)
-
-        # For numerical noise, we compute the probability of the identity at the
-        # very last so that the probabilities add up to 1.0 exactly.
-        error_probabilities[all_identity] = 1.0 - sum(
-            error_probabilities.values())
+                error_probabilities[pauli_string] = p_depol
 
         self._p = p
         self._n_qubits = n_qubits
