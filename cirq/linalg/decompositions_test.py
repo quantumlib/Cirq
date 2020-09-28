@@ -741,3 +741,33 @@ def test_kak_decompose(unitary: np.ndarray):
     np.testing.assert_allclose(cirq.unitary(circuit), unitary, atol=1e-8)
     assert len(circuit) == 5
     assert len(list(circuit.all_operations())) == 8
+
+
+def test_is_three_cnot_two_qubit_unitary():
+    for i in range(4):
+        assert cirq.num_two_qubit_gates_required(
+            _two_qubit_circuit_with_cnots(i).unitary()) == i
+
+    assert cirq.num_two_qubit_gates_required(np.eye(4)) == 0
+
+
+def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
+    # random.seed(32123)
+    if a is None or b is None:
+        a, b = cirq.LineQubit.range(2)
+
+    def random_one_qubit_gate():
+        return cirq.PhasedXPowGate(phase_exponent=random.random(),
+                                   exponent=random.random())
+
+    def one_cz():
+        return [
+            random_one_qubit_gate().on(a),
+            random_one_qubit_gate().on(b),
+            cirq.CZ.on(a, b)
+        ]
+
+    return cirq.Circuit([
+        random_one_qubit_gate().on(a),
+        random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
+    ])

@@ -26,19 +26,12 @@ from cirq.linalg.combinators import (
 )
 
 from cirq.linalg.decompositions import (
-    axis_angle,
-    AxisAngleDecomposition,
-    deconstruct_single_qubit_matrix_into_angles,
-    kak_canonicalize_vector,
-    kak_decomposition,
-    kak_vector,
-    KakDecomposition,
-    kron_factor_4x4_to_2x2s,
-    map_eigenvalues,
-    unitary_eig,
-    scatter_plot_normalized_kak_interaction_coefficients,
-    so4_to_magic_su2s,
-)
+    axis_angle, AxisAngleDecomposition,
+    deconstruct_single_qubit_matrix_into_angles, kak_canonicalize_vector,
+    kak_decomposition, kak_vector, KakDecomposition, kron_factor_4x4_to_2x2s,
+    map_eigenvalues, unitary_eig,
+    scatter_plot_normalized_kak_interaction_coefficients, so4_to_magic_su2s,
+    num_two_qubit_gates_required)
 
 from cirq.linalg.states import (
     one_hot,
@@ -89,5 +82,6 @@ from cirq.linalg.transformations import (
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
+    to_special,
     wavefunction_partial_trace_as_mixture,
 )
