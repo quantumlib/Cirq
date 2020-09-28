@@ -270,6 +270,7 @@ results.
     cirq.PauliSumCollector
     cirq.Points
     cirq.Product
+    cirq.Result
     cirq.Sampler
     cirq.SimulatesAmplitudes
     cirq.SimulatesFinalState
@@ -286,7 +287,6 @@ results.
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
-    cirq.TrialResult
     cirq.UnitSweep
     cirq.ZerosSampler
     cirq.Zip
@@ -748,6 +748,7 @@ These objects and methods will be removed in a future version of the library.
     cirq.validate_normalized_state
     cirq.wavefunction_partial_trace_as_mixture
     cirq.SimulatesIntermediateWaveFunction
+    cirq.TrialResult
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult

@@ -35,20 +35,8 @@ document(
 
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
     """Convert a Sweepable to a list of ParamResolvers."""
-    if sweepable is None:
-        yield ParamResolver({})
-    elif isinstance(sweepable, ParamResolver):
-        yield sweepable
-    elif isinstance(sweepable, Sweep):
-        yield from sweepable
-    elif isinstance(sweepable, dict):
-        yield ParamResolver(cast(Dict, sweepable))
-    elif isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        for item in cast(Iterable, sweepable):
-            yield from to_resolvers(item)
-    else:
-        raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
-                        f'sweepable: {sweepable}')
+    for sweep in to_sweeps(sweepable):
+        yield from sweep
 
 
 def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
