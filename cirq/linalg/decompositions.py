@@ -1009,6 +1009,9 @@ def num_two_qubit_gates_required(u: np.ndarray, atol: float = 1e-8) -> int:
         the number of two-qubit gates (CNOT or CZ) required to implement
         the unitary
     """
+    if u.shape != (4, 4):
+        raise ValueError(f"Expected unitary of shape (4,4), instead "
+                         f"got {u.shape}")
     g = _gamma(transformations.to_special(u))
     # see Fadeev-LeVerrier formula
     a3 = -np.trace(g)

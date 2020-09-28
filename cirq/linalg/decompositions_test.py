@@ -743,12 +743,17 @@ def test_kak_decompose(unitary: np.ndarray):
     assert len(list(circuit.all_operations())) == 8
 
 
-def test_is_three_cnot_two_qubit_unitary():
+def test_num_two_qubit_gates_required():
     for i in range(4):
         assert cirq.num_two_qubit_gates_required(
             _two_qubit_circuit_with_cnots(i).unitary()) == i
 
     assert cirq.num_two_qubit_gates_required(np.eye(4)) == 0
+
+
+def test_num_two_qubit_gates_required_invalid():
+    with pytest.raises(ValueError, match="(4,4)"):
+        cirq.num_two_qubit_gates_required(np.array([[1]]))
 
 
 def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
