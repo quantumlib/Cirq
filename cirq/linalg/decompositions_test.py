@@ -757,7 +757,7 @@ def test_num_two_qubit_gates_required_invalid():
 
 
 def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
-    # random.seed(32123)
+    random.seed(32123)
     if a is None or b is None:
         a, b = cirq.LineQubit.range(2)
 
