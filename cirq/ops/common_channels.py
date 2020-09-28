@@ -268,7 +268,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         p_depol = p / (4**n_qubits - 1)
         p_identity = 1.0 - p
         for pauli_tuple in itertools.product(['I', 'X', 'Y', 'Z'],
-                                              repeat=n_qubits):
+                                             repeat=n_qubits):
             pauli_string = ''.join(pauli_tuple)
             if pauli_string == 'I' * n_qubits:
                 error_probabilities[pauli_string] = p_identity
