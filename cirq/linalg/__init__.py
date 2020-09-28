@@ -25,7 +25,6 @@ from cirq.linalg.combinators import (
     kron_with_controls,
 )
 
-# yapf: disable
 from cirq.linalg.decompositions import (
     axis_angle,
     AxisAngleDecomposition,
@@ -36,12 +35,11 @@ from cirq.linalg.decompositions import (
     KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
+    num_two_qubit_gates_required,
     unitary_eig,
     scatter_plot_normalized_kak_interaction_coefficients,
     so4_to_magic_su2s,
-    num_two_qubit_gates_required
 )
-# yapf: enable
 
 from cirq.linalg.states import (
     one_hot,
