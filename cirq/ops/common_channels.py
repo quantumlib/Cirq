@@ -79,6 +79,9 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             for k, v in error_probabilities.items():
                 value.validate_probability(v, f"p({k})")
             sum_probs = sum(error_probabilities.values())
+            # TODO(tonybruguier): Instead of forcing the probabilities to add up
+            # to 1, check whether the identity is missing, and if that is the
+            # case, automatically add it with the missing probability mass.
             if abs(sum_probs - 1.0) > 1e-6:
                 raise ValueError(
                     f"Probabilities do not add up to 1 but to {sum_probs}")
@@ -233,26 +236,27 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
     def __init__(self, p: float, n_qubits: int = 1) -> None:
         r"""The symmetric depolarizing channel.
 
-        This channel applies one of 2**n disjoint possibilities: nothing (the
-        identity channel) or one of the 2**n - 1 pauli gates. The disjoint
-        probabilities of the Pauli gates are all the same, p / (2**n - 1), and
-        the identity is done with probability 1 - p. The supplied probability
-        must be a valid probability or else this constructor will raise a
-        ValueError.
+        This channel applies one of 4**n disjoint possibilities: nothing (the
+        identity channel) or one of the 4**n - 1 pauli gates. The disjoint
+        probabilities of the non-identity Pauli gates are all the same,
+        p / (4**n - 1), and the identity is done with probability 1 - p. The
+        supplied probability must be a valid probability or else this
+        constructor will raise a ValueError.
+
 
         This channel evolves a density matrix via
 
             $$
             \rho \rightarrow (1 - p) \rho
-                + 1 / (2**n - 1) \sum _i P_i X P_i
+                + 1 / (4**n - 1) \sum _i P_i X P_i
             $$
 
-            where P_i are the 2**n - 1 Pauli gates (excluding the identity).
+            where P_i are the 4**n - 1 Pauli gates (excluding the identity).
 
         Args:
             p: The probability that one of the Pauli gates is applied. Each of
                 the Pauli gates is applied independently with probability
-                p / (2**n - 1).
+                p / (4**n - 1).
             n_qubits: the number of qubits.
 
         Raises:
@@ -260,16 +264,15 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
         """
 
         error_probabilities = {}
-        all_identity = ''.join(['I'] * n_qubits)
 
         p_depol = p / (4**n_qubits - 1)
         p_identity = 1.0 - p
-        for coefficients in itertools.product(['I', 'X', 'Y', 'Z'],
+        for pauli_tuple in itertools.product(['I', 'X', 'Y', 'Z'],
                                               repeat=n_qubits):
-            pauli_string = ''.join([g for g in coefficients])
-            if pauli_string == all_identity:
+            pauli_string = ''.join(pauli_tuple)
+            if pauli_string == 'I' * n_qubits:
                 error_probabilities[pauli_string] = p_identity
-            if pauli_string != all_identity:
+            else:
                 error_probabilities[pauli_string] = p_depol
 
         self._p = p
@@ -299,27 +302,22 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
-        if self._n_qubits == 1:
-            if args.precision is not None:
-                return f"D({self._p:.{args.precision}g})"
-            return f"D({self._p})"
         if args.precision is not None:
-            return f"D({self._p:.{args.precision}g},{self._n_qubits})"
-        return f"D({self._p},{self._n_qubits})"
+            return f"D({self._p:.{args.precision}g})"
+        return f"D({self._p})"
 
     @property
     def p(self) -> float:
         """The probability that one of the Pauli gates is applied.
 
         Each of the Pauli gates is applied independently with probability
-        p / (2**n_qubits - 1).
+        p / (4**n_qubits - 1).
         """
         return self._p
 
     @property
     def n_qubits(self) -> int:
-        """The number of qubits
-        """
+        """The number of qubits"""
         return self._n_qubits
 
     def _json_dict_(self) -> Dict[str, Any]:
@@ -331,26 +329,26 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
     r"""Returns a DepolarizingChannel with given probability of error.
 
-    This channel applies one of 2**n disjoint possibilities: nothing (the
-    identity channel) or one of the 2**n - 1 pauli gates. The disjoint
-    probabilities of the Pauli gates are all the same, p / (2**n - 1), and
-    the identity is done with probability 1 - p. The supplied probability
-    must be a valid probability or else this constructor will raise a
-    ValueError.
+    This channel applies one of 4**n disjoint possibilities: nothing (the
+    identity channel) or one of the 4**n - 1 pauli gates. The disjoint
+    probabilities of the non-identity Pauli gates are all the same,
+    p / (4**n - 1), and the identity is done with probability 1 - p. The
+    supplied probability must be a valid probability or else this constructor
+    will raise a ValueError.
 
     This channel evolves a density matrix via
 
         $$
         \rho \rightarrow (1 - p) \rho
-            + 1 / (2**n - 1) \sum _i P_i X P_i
+            + 1 / (4**n - 1) \sum _i P_i X P_i
         $$
 
-        where P_i are the 2**n - 1 Pauli gates (excluding the identity).
+        where P_i are the 4**n - 1 Pauli gates (excluding the identity).
 
     Args:
         p: The probability that one of the Pauli gates is applied. Each of
             the Pauli gates is applied independently with probability
-            p / (2**n - 1).
+            p / (4**n - 1).
         n_qubits: The number of qubits.
 
     Raises:
