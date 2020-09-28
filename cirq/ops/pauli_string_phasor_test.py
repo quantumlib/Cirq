@@ -47,8 +47,8 @@ def test_init():
 def test_eq_ne_hash():
     q0, q1, q2 = _make_qubits(3)
     eq = cirq.testing.EqualsTester()
-    ps1 = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.Z})
-    ps2 = cirq.PauliString({q0: cirq.X, q1: cirq.Y, q2: cirq.X})
+    ps1 = cirq.X(q0) * cirq.Y(q1) * cirq.Z(q2)
+    ps2 = cirq.X(q0) * cirq.Y(q1) * cirq.X(q2)
     eq.make_equality_group(
         lambda: cirq.PauliStringPhasor(cirq.PauliString(), exponent_neg=0.5),
         lambda: cirq.PauliStringPhasor(cirq.PauliString(), exponent_neg=-1.5),
@@ -354,8 +354,9 @@ def test_default_decompose(paulis, phase_exponent_negative: float, sign: int):
     qubits = _make_qubits(len(paulis))
 
     # Get matrix from decomposition
-    pauli_string = cirq.PauliString({q: p for q, p in zip(qubits, paulis)},
-                                    sign)
+    pauli_string = cirq.PauliString(
+        qubit_pauli_map={q: p for q, p in zip(qubits, paulis)},
+        coefficient=sign)
     actual = cirq.Circuit(
         cirq.PauliStringPhasor(pauli_string,
                                exponent_neg=phase_exponent_negative)).unitary()

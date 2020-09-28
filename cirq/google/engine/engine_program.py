@@ -11,16 +11,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Dict, List, Optional, Sequence, TYPE_CHECKING
+
+import datetime
+from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, \
+    Union
 
 from cirq import study
+from cirq.google.engine.client import quantum
 from cirq.google.engine.client.quantum import types as qtypes
 from cirq.google import gate_sets
-from cirq.google.api import v1, v2
+from cirq.google.api import v2
 from cirq.google.engine import engine_job
 
 if TYPE_CHECKING:
-    import datetime
     import cirq.google.engine.engine as engine_base
     from cirq import Circuit
 
@@ -141,7 +144,10 @@ class EngineProgram:
 
         Returns:
             An EngineJob. If this is iterated over it returns a list of
-            TrialResults, one for each parameter sweep.
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
         if not self.batch_mode:
@@ -188,7 +194,7 @@ class EngineProgram:
             processor_ids: Sequence[str] = ('xmonsim',),
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
-    ) -> study.TrialResult:
+    ) -> study.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -205,7 +211,7 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            A single TrialResult for this run.
+            A single Result for this run.
         """
         return list(
             self.run_sweep(job_id=job_id,
@@ -223,12 +229,7 @@ class EngineProgram:
         import cirq.google.engine.engine as engine_base
         context = qtypes.any_pb2.Any()
         proto_version = self.context.proto_version
-        if proto_version == engine_base.ProtoVersion.V1:
-            context.Pack(
-                v1.program_pb2.RunContext(parameter_sweeps=[
-                    v1.sweep_to_proto(sweep, repetitions) for sweep in sweeps
-                ]))
-        elif proto_version == engine_base.ProtoVersion.V2:
+        if proto_version == engine_base.ProtoVersion.V2:
             run_context = v2.run_context_pb2.RunContext()
             for sweep in sweeps:
                 sweep_proto = run_context.parameter_sweeps.add()
@@ -261,6 +262,52 @@ class EngineProgram:
         """
         return engine_job.EngineJob(self.project_id, self.program_id, job_id,
                                     self.context)
+
+    def list_jobs(self,
+                  created_before: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  created_after: Optional[
+                      Union[datetime.datetime, datetime.date]] = None,
+                  has_labels: Optional[Dict[str, str]] = None,
+                  execution_states: Optional[Set[
+                      quantum.enums.ExecutionStatus.State]] = None):
+        """Returns the list of jobs for this program.
+
+        Args:
+            project_id: A project_id of the parent Google Cloud Project.
+            program_id: Unique ID of the program within the parent project.
+            created_after: retrieve jobs that were created after this date
+                or time.
+            created_before: retrieve jobs that were created after this date
+                or time.
+            has_labels: retrieve jobs that have labels on them specified by
+                this dict. If the value is set to `*`, filters having the label
+                regardless of the label value will be filtered. For example, to
+                query programs that have the shape label and have the color
+                label with value red can be queried using
+
+                {'color': 'red', 'shape':'*'}
+
+            execution_states: retrieve jobs that have an execution state  that
+                is contained in `execution_states`. See
+                `quantum.enums.ExecutionStatus.State` enum for accepted values.
+        """
+        client = self.context.client
+        response = client.list_jobs(self.project_id,
+                                    self.program_id,
+                                    created_before=created_before,
+                                    created_after=created_after,
+                                    has_labels=has_labels,
+                                    execution_states=execution_states)
+        return [
+            engine_job.EngineJob(
+                project_id=client._ids_from_job_name(j.name)[0],
+                program_id=client._ids_from_job_name(j.name)[1],
+                job_id=client._ids_from_job_name(j.name)[2],
+                context=self.context,
+                _job=j,
+            ) for j in response
+        ]
 
     def _inner_program(self) -> qtypes.QuantumProgram:
         if not self._program:

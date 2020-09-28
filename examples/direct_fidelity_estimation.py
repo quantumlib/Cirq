@@ -22,6 +22,7 @@ import argparse
 import asyncio
 from dataclasses import dataclass
 import itertools
+import math
 import random
 import sys
 import numpy as np
@@ -157,7 +158,7 @@ class PauliTrace:
     # Coefficient of the ideal pure state expanded in the Pauli basis scaled by
     # sqrt(dim H), formally defined at bottom of left column of page 2.
     rho_i: float
-    # A probablity (between 0.0 and 1.0) that is the relevance distribution,
+    # A probability (between 0.0 and 1.0) that is the relevance distribution,
     # formally defined at top of right column of page 2.
     Pr_i: float
 
@@ -212,7 +213,7 @@ def _estimate_pauli_traces_clifford(n_qubits: int,
         # clifford_state.state_vector() and then calling
         # compute_characteristic_function() on the results (albeit with a
         # wave function instead of a density matrix). It is, however,
-        # unncessary to do so. Instead we directly obtain the scalar rho_i.
+        # unnecessary to do so. Instead we directly obtain the scalar rho_i.
         rho_i = dense_pauli_string.coefficient
 
         assert np.isclose(rho_i.imag, 0.0, atol=1e-6)
@@ -267,7 +268,8 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
 
     pauli_traces: List[PauliTrace] = []
     for P_i in dense_operators:
-        pauli_string = cirq.PauliString(dict(zip(qubits, P_i)))
+        pauli_string: cirq.PauliString[cirq.Qid] = cirq.PauliString(
+            dict(zip(qubits, P_i)))
         rho_i, Pr_i = compute_characteristic_function(circuit, pauli_string,
                                                       qubits,
                                                       clean_density_matrix)
@@ -276,8 +278,41 @@ def _estimate_pauli_traces_general(qubits: List[cirq.Qid],
     return pauli_traces
 
 
+def _estimate_std_devs_clifford(fidelity: float,
+                                n: int) -> Tuple[Optional[float], float]:
+    """
+    Estimates the standard deviation of the measurement for Clifford circuits.
+
+    Args:
+        fidelity: The measured fidelity
+        n: the number of measurements
+
+    Returns:
+        The standard deviation (estimated from the fidelity and a maximum bound
+        on the variance regardless of what the true fidelity is)
+    """
+
+    # We use the Bhatia Davis inequality to estimate the variance of the
+    # fidelity. This gives that:
+    # Var[\hat{F}] <= (1 - F) . F / N
+    # StdDev[\hat{F}] <= \sqrt{(1 - F) . F / N}
+    #
+    # By further using the fact that 0 <= F <= 1 we get:
+    # StdDev[\hat{F}] <= \frac{1}{2 \sqrt{N}}
+
+    # Because of the noisiness of the simulation, the estimated fidelity can be
+    # outside the [0, 1] range. If that is the case, we just do not use it to
+    # compute the estimate.
+    in_range = fidelity >= 0 and fidelity <= 1.0
+    std_dev_estimate = math.sqrt(
+        (1.0 - fidelity) * fidelity / n) if in_range else None
+
+    std_dev_bound = 0.5 / math.sqrt(n)
+    return std_dev_estimate, std_dev_bound
+
+
 @dataclass
-class TrialResult:
+class Result:
     """
     Contains the results of a trial, either by simulator or actual run
     """
@@ -303,7 +338,10 @@ class DFEIntermediateResult:
     # The list of Pauli traces we can sample from.
     pauli_traces: List[PauliTrace]
     # Measurement results from sampling the circuit.
-    trial_results: List[TrialResult]
+    trial_results: List[Result]
+    # Standard deviations (estimate based on fidelity and bound)
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
 
 
 def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
@@ -387,7 +425,7 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
                                                  size=len(pauli_traces),
                                                  p=p)
 
-    trial_results: List[TrialResult] = []
+    trial_results: List[Result] = []
     for pauli_trace in measured_pauli_traces:
         measure_pauli_string: cirq.PauliString = pauli_trace.P_i
         rho_i = pauli_trace.rho_i
@@ -401,17 +439,26 @@ def direct_fidelity_estimation(circuit: cirq.Circuit, qubits: List[cirq.Qid],
             sigma_i, _ = compute_characteristic_function(
                 circuit, measure_pauli_string, qubits, noisy_density_matrix)
 
-        trial_results.append(
-            TrialResult(pauli_trace=pauli_trace, sigma_i=sigma_i))
+        trial_results.append(Result(pauli_trace=pauli_trace, sigma_i=sigma_i))
 
         fidelity += sigma_i / rho_i
 
     estimated_fidelity = fidelity / len(pauli_traces)
 
+    std_dev_estimate: Optional[float]
+    std_dev_bound: Optional[float]
+    if clifford_circuit:
+        std_dev_estimate, std_dev_bound = _estimate_std_devs_clifford(
+            estimated_fidelity, len(measured_pauli_traces))
+    else:
+        std_dev_estimate, std_dev_bound = None, None
+
     dfe_intermediate_result = DFEIntermediateResult(
         clifford_state=clifford_state,
         pauli_traces=pauli_traces,
-        trial_results=trial_results)
+        trial_results=trial_results,
+        std_dev_estimate=std_dev_estimate,
+        std_dev_bound=std_dev_bound)
 
     return estimated_fidelity, dfe_intermediate_result
 

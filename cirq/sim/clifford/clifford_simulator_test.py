@@ -179,6 +179,14 @@ def test_simulate_moment_steps_intermediate_measurement():
             np.testing.assert_almost_equal(step.state.to_numpy(), expected)
 
 
+def test_clifford_state_initial_state():
+    q0 = cirq.LineQubit(0)
+    with pytest.raises(ValueError, match='Out of range'):
+        _ = cirq.CliffordState(qubit_map={q0: 0}, initial_state=2)
+    state = cirq.CliffordState(qubit_map={q0: 0}, initial_state=1)
+    np.testing.assert_allclose(state.state_vector(), [0, 1])
+
+
 def test_clifford_trial_result_repr():
     q0 = cirq.LineQubit(0)
     final_simulator_state = cirq.CliffordState(qubit_map={q0: 0})
@@ -292,7 +300,7 @@ def test_clifford_stabilizerStateChForm_repr():
     assert repr(state) == 'StabilizerStateChForm(num_qubits=2)'
 
 
-def test_clifforf_circuit_SHSYSHS():
+def test_clifford_circuit_SHSYSHS():
     q0 = cirq.LineQubit(0)
     circuit = cirq.Circuit(cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.Y(q0),
                            cirq.S(q0), cirq.H(q0), cirq.S(q0), cirq.measure(q0))
@@ -429,6 +437,27 @@ def test_sample_seed():
 
 
 def test_is_supported_operation():
+
+    class MultiQubitOp(cirq.Operation):
+        """Multi-qubit operation with unitary.
+
+        Used to verify that `is_supported_operation` does not attempt to
+        allocate the unitary for multi-qubit operations.
+        """
+
+        @property
+        def qubits(self):
+            return cirq.LineQubit.range(100)
+
+        def with_qubits(self, *new_qubits):
+            raise NotImplementedError()
+
+        def _has_unitary_(self):
+            return True
+
+        def _unitary_(self):
+            assert False
+
     q1, q2 = cirq.LineQubit.range(2)
     assert cirq.CliffordSimulator.is_supported_operation(cirq.X(q1))
     assert cirq.CliffordSimulator.is_supported_operation(cirq.H(q1))
@@ -438,6 +467,7 @@ def test_is_supported_operation():
         cirq.GlobalPhaseOperation(1j))
 
     assert not cirq.CliffordSimulator.is_supported_operation(cirq.T(q1))
+    assert not cirq.CliffordSimulator.is_supported_operation(MultiQubitOp())
 
 
 def test_simulate_pauli_string():
@@ -499,9 +529,9 @@ def test_deprecated():
                                   'deprecated'):
         _ = clifford_state.wave_function()
 
-    with cirq.testing.assert_logs('collapse_wave_function',
+    with cirq.testing.assert_logs('collapse_wavefunction',
                                   'collapse_state_vector', 'deprecated'):
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = clifford_state.perform_measurement([q],
                                                prng=0,
-                                               collapse_wave_function=True)
+                                               collapse_wavefunction=True)

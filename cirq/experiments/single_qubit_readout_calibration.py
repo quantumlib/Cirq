@@ -89,7 +89,7 @@ def estimate_single_qubit_readout_errors(
     Returns:
         A SingleQubitReadoutCalibrationResult storing the readout error
         probabilities as well as the number of repetitions used to estimate
-        the probabilties. Also stores a timestamp indicating the time when
+        the probabilities. Also stores a timestamp indicating the time when
         data was finished being collected from the sampler.
     """
     qubits = list(qubits)

@@ -61,7 +61,7 @@ class Simulator(simulator.SimulatesSamples,
 
     The simulation performs optimizations if the number of repetitions is
     greater than one and all measurements in the circuit are terminal (at the
-    end of the circuit). These methods return `TrialResult`s which contain both
+    end of the circuit). These methods return `Result`s which contain both
     the measurement results, but also the parameters used for the parameterized
     circuit operations. The initial state of a run is always the all 0s state
     in the computational basis.

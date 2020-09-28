@@ -84,6 +84,27 @@ class XPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.xs[:, q] ^= tableau.zs[:, q]
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.xs[:, q] & tableau.zs[:, q]
+                tableau.xs[:, q] ^= tableau.zs[:, q]
+            return True
+
+        return NotImplemented
+
     def in_su2(self) -> 'XPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return XPowGate(exponent=self._exponent, global_shift=-0.5)
@@ -195,7 +216,8 @@ class XPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('X {0}\n', qubits[0])
-        return formatter.format('RX({0}) {1}\n', self._exponent, qubits[0])
+        return formatter.format('RX({0}) {1}\n', self._exponent * np.pi,
+                                qubits[0])
 
     @property
     def phase_exponent(self):
@@ -279,6 +301,29 @@ class YPowGate(eigen_gate.EigenGate,
             args.available_buffer *= p
         return args.available_buffer
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & (~tableau.zs[:, q]))
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q] ^ tableau.zs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= (~(tableau.xs[:, q]) & tableau.zs[:, q])
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+            return True
+
+        return NotImplemented
+
     def in_su2(self) -> 'YPowGate':
         """Returns an equal-up-global-phase gate from the group SU2."""
         return YPowGate(exponent=self._exponent, global_shift=-0.5)
@@ -343,7 +388,8 @@ class YPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Y {0}\n', qubits[0])
-        return formatter.format('RY({0}) {1}\n', self._exponent, qubits[0])
+        return formatter.format('RY({0}) {1}\n', self._exponent * np.pi,
+                                qubits[0])
 
     @property
     def phase_exponent(self):
@@ -424,6 +470,27 @@ class ZPowGate(eigen_gate.EigenGate,
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            effective_exponent = self._exponent % 2
+            if effective_exponent == 0.5:
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            elif effective_exponent == 1:
+                tableau.rs[:] ^= tableau.xs[:, q]
+            elif effective_exponent == 1.5:
+                tableau.rs[:] ^= tableau.xs[:, q] & (~tableau.zs[:, q])
+                tableau.zs[:, q] ^= tableau.xs[:, q]
+            return True
+
+        return NotImplemented
 
     def _decompose_into_clifford_with_qubits_(self, qubits):
         from cirq.ops.clifford_gate import SingleQubitCliffordGate
@@ -555,8 +622,8 @@ class ZPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('Z {0}\n', qubits[0])
-
-        return formatter.format('RZ({0}) {1}\n', self._exponent, qubits[0])
+        return formatter.format('RZ({0}) {1}\n', self._exponent * np.pi,
+                                qubits[0])
 
     def __str__(self) -> str:
         if self._global_shift == -0.5:
@@ -685,6 +752,24 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
         args.target_tensor *= np.sqrt(2) * p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q = args.axes[0]
+            if self._exponent % 1 != 0:
+                return NotImplemented
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q], tableau.zs[:, q]) = (tableau.zs[:, q].copy(),
+                                                        tableau.xs[:, q].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q] & tableau.zs[:, q])
+            return True
+
+        return NotImplemented
+
     def _decompose_(self, qubits):
         q = qubits[0]
 
@@ -718,8 +803,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('H {0}\n', qubits[0])
-        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n', 0.25,
-                                self._exponent, -0.25, qubits[0])
+        return formatter.format('RY({0}) {3}\nRX({1}) {3}\nRY({2}) {3}\n',
+                                0.25 * np.pi, self._exponent * np.pi,
+                                -0.25 * np.pi, qubits[0])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -792,6 +878,30 @@ class CZPowGate(eigen_gate.EigenGate,
             args.target_tensor *= p
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                (tableau.xs[:, q2], tableau.zs[:, q2]) = \
+                 (tableau.zs[:, q2].copy(), tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= tableau.xs[:,q1] & tableau.zs[:,q2] & \
+                    (tableau.xs[:,q2] ^ tableau.zs[:,q1])
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+                (tableau.xs[:, q2],
+                 tableau.zs[:, q2]) = (tableau.zs[:, q2].copy(),
+                                       tableau.xs[:, q2].copy())
+                tableau.rs[:] ^= (tableau.xs[:, q2] & tableau.zs[:, q2])
+            return True
+
+        return NotImplemented
+
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
             return NotImplemented
@@ -858,8 +968,7 @@ class CZPowGate(eigen_gate.EigenGate,
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-                wire_symbols=('@', '@'),
-                exponent=self._diagram_exponent(args))
+            wire_symbols=('@', '@'), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -872,7 +981,7 @@ class CZPowGate(eigen_gate.EigenGate,
                formatter: 'cirq.QuilFormatter') -> Optional[str]:
         if self._exponent == 1:
             return formatter.format('CZ {0} {1}\n', qubits[0], qubits[1])
-        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent,
+        return formatter.format('CPHASE({0}) {1} {2}\n', self._exponent * np.pi,
                                 qubits[0], qubits[1])
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
@@ -972,6 +1081,24 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
         if p != 1:
             args.target_tensor *= p
         return args.target_tensor
+
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if protocols.is_parameterized(self) or self.exponent % 1 != 0:
+                return NotImplemented
+            tableau = args.tableau
+            q1 = args.axes[0]
+            q2 = args.axes[1]
+            if self._exponent % 2 == 1:
+                tableau.rs[:] ^= (tableau.xs[:, q1] & tableau.zs[:, q2] &
+                                  (~(tableau.xs[:, q2] ^ tableau.zs[:, q1])))
+                tableau.xs[:, q2] ^= tableau.xs[:, q1]
+                tableau.zs[:, q1] ^= tableau.zs[:, q2]
+            return True
+
+        return NotImplemented
 
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         if protocols.is_parameterized(self):
@@ -1092,6 +1219,12 @@ def rz(rads: value.TParamVal) -> ZPowGate:
     """Returns a gate with the matrix e^{-i Z rads / 2}."""
     pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
     return ZPowGate(exponent=rads / pi, global_shift=-0.5)
+
+
+def cphase(rads: value.TParamVal) -> CZPowGate:
+    """Returns a gate with the matrix diag(1, 1, 1, e^{i rads}."""
+    pi = sympy.pi if protocols.is_parameterized(rads) else np.pi
+    return CZPowGate(exponent=rads / pi)
 
 
 H = HPowGate()

@@ -17,6 +17,7 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq.value import big_endian_int_to_digits
 from cirq._compat import deprecated
 
 
@@ -31,15 +32,12 @@ class StabilizerStateChForm():
     Reference: https://arxiv.org/abs/1808.00128
     """
 
-    def __init__(self,
-                 num_qubits: int,
-                 initial_state: Union[int, np.ndarray] = 0) -> None:
+    def __init__(self, num_qubits: int, initial_state: int = 0) -> None:
         """Initializes StabilizerStateChForm
         Args:
-            num_qubits: The number of qubits in the system
-            initial_state: If an int, the state is set to the computational
-            basis state corresponding to this state.
-            If an np.ndarray it is the full initial state.
+            num_qubits: The number of qubits in the system.
+            initial_state: The computational basis representation of the
+                state as a big endian int.
             """
         self.n = num_qubits
 
@@ -56,15 +54,13 @@ class StabilizerStateChForm():
 
         self.omega = 1
 
-        def bits(s):
-            while s > 0:
-                yield s & 1
-                s >>= 1
-
         # Apply X for every non-zero element of initial_state
-        for (i, val) in enumerate(bits(initial_state)):
+        for (i, val) in enumerate(
+                big_endian_int_to_digits(initial_state,
+                                         digit_count=num_qubits,
+                                         base=2)):
             if val:
-                self._X(self.n - i - 1)
+                self._X(i)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
@@ -137,13 +133,14 @@ class StabilizerStateChForm():
     def wave_function(self) -> np.ndarray:
         return self.state_vector()
 
-    def _S(self, q, right=False):
-        if right:
-            self.M[:, q] ^= self.F[:, q]
-            self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
-        else:
-            self.M[q, :] ^= self.G[q, :]
-            self.gamma[q] = (self.gamma[q] - 1) % 4
+    def _S(self, q):
+        self.M[q, :] ^= self.G[q, :]
+        self.gamma[q] = (self.gamma[q] - 1) % 4
+
+    def _S_right(self, q):
+        r"""Right multiplication version of S gate."""
+        self.M[:, q] ^= self.F[:, q]
+        self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
 
     def _Z(self, q):
         self._S(q)
@@ -159,27 +156,28 @@ class StabilizerStateChForm():
         self._X(q)
         self.omega *= 1j
 
-    def _CZ(self, q, r, right=False):
-        if right:
-            self.M[:, q] ^= self.F[:, r]
-            self.M[:, r] ^= self.F[:, q]
-            self.gamma[:] = (self.gamma[:] +
-                             2 * self.F[:, q] * self.F[:, r]) % 4
-        else:
-            self.M[q, :] ^= self.G[r, :]
-            self.M[r, :] ^= self.G[q, :]
+    def _CZ(self, q, r):
+        self.M[q, :] ^= self.G[r, :]
+        self.M[r, :] ^= self.G[q, :]
 
-    def _CNOT(self, q, r, right=False):
-        if right:
-            self.G[:, q] ^= self.G[:, r]
-            self.F[:, r] ^= self.F[:, q]
-            self.M[:, q] ^= self.M[:, r]
-        else:
-            self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
-                             (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
-            self.G[r, :] ^= self.G[q, :]
-            self.F[q, :] ^= self.F[r, :]
-            self.M[q, :] ^= self.M[r, :]
+    def _CZ_right(self, q, r):
+        r"""Right multiplication version of CZ gate."""
+        self.M[:, q] ^= self.F[:, r]
+        self.M[:, r] ^= self.F[:, q]
+        self.gamma[:] = (self.gamma[:] + 2 * self.F[:, q] * self.F[:, r]) % 4
+
+    def _CNOT(self, q, r):
+        self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
+                         (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
+        self.G[r, :] ^= self.G[q, :]
+        self.F[q, :] ^= self.F[r, :]
+        self.M[q, :] ^= self.M[r, :]
+
+    def _CNOT_right(self, q, r):
+        r"""Right multiplication version of CNOT gate."""
+        self.G[:, q] ^= self.G[:, r]
+        self.F[:, r] ^= self.F[:, q]
+        self.M[:, q] ^= self.M[:, r]
 
     def _H(self, p):
         t = self.s ^ (self.G[p, :] & self.v)
@@ -193,12 +191,12 @@ class StabilizerStateChForm():
 
         delta = (self.gamma[p] + 2 * (alpha + beta)) % 4
 
-        self._update_sum(t, u, delta=delta, alpha=alpha)
+        self.update_sum(t, u, delta=delta, alpha=alpha)
 
-    def _update_sum(self, t, u, delta=0, alpha=0):
+    def update_sum(self, t, u, delta=0, alpha=0):
         """ Implements the transformation (Proposition 4 in Bravyi et al)
 
-                i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>
+                ``i^alpha U_H (|t> + i^delta |u>) = omega W_C W_H |s'>``
         """
         if np.all(t == u):
             self.s = t
@@ -212,14 +210,14 @@ class StabilizerStateChForm():
             q = set0[0]
             for i in set0:
                 if i != q:
-                    self._CNOT(q, i, right=True)
+                    self._CNOT_right(q, i)
             for i in set1:
-                self._CZ(q, i, right=True)
+                self._CZ_right(q, i)
         elif len(set1) > 0:
             q = set1[0]
             for i in set1:
                 if i != q:
-                    self._CNOT(i, q, right=True)
+                    self._CNOT_right(i, q)
 
         e = np.zeros(self.n, dtype=bool)
         e[q] = True
@@ -238,7 +236,7 @@ class StabilizerStateChForm():
         self.omega *= (-1)**alpha * omega
 
         if a:
-            self._S(q, right=True)
+            self._S_right(q)
         self.v[q] ^= b ^ self.v[q]
 
     def _H_decompose(self, v, y, z, delta):
@@ -296,4 +294,4 @@ class StabilizerStateChForm():
         if np.all(t == u):
             self.omega /= np.sqrt(2)
 
-        self._update_sum(t, u, delta=delta)
+        self.update_sum(t, u, delta=delta)

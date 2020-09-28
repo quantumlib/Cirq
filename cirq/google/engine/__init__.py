@@ -20,6 +20,9 @@ from cirq.google.engine.calibration import (
 
 from cirq.google.engine.engine import (
     Engine,
+    get_engine,
+    get_engine_calibration,
+    get_engine_device,
     ProtoVersion,
 )
 
@@ -39,7 +42,9 @@ from cirq.google.engine.engine_program import (
     EngineProgram,)
 
 from cirq.google.engine.engine_sampler import (
-    QuantumEngineSampler,)
+    get_engine_sampler,
+    QuantumEngineSampler,
+)
 
 from cirq.google.engine.env_config import (
     engine_from_environment,)

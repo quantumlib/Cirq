@@ -17,7 +17,7 @@
 Filename is a reference to multiplexing.
 """
 
-from typing import List, Optional, Type, Union, Sequence, cast, TYPE_CHECKING
+from typing import List, Optional, Type, Union, cast, TYPE_CHECKING
 
 import numpy as np
 
@@ -51,7 +51,7 @@ def sample(program: 'cirq.Circuit',
            param_resolver: Optional[study.ParamResolver] = None,
            repetitions: int = 1,
            dtype: Type[np.number] = np.complex64,
-           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.TrialResult:
+           seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> study.Result:
     """Simulates sampling from the given circuit.
 
     Args:
@@ -103,8 +103,7 @@ def _to_circuit(program: 'cirq.CIRCUIT_LIKE') -> 'cirq.Circuit':
 def final_state_vector(
         program: 'cirq.CIRCUIT_LIKE',
         *,
-        initial_state: Union[int, Sequence[Union[int, float, complex]], np.
-                             ndarray] = 0,
+        initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
@@ -137,10 +136,6 @@ def final_state_vector(
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
     """
-
-    if not isinstance(initial_state, int):
-        initial_state = np.asarray(initial_state, dtype=dtype)
-
     circuit_like = _to_circuit(program)
 
     if not protocols.has_unitary(
@@ -161,9 +156,12 @@ def final_state_vector(
     return cast(sparse_simulator.SparseSimulatorStep, result).state_vector()
 
 
-final_wavefunction = deprecated(
+@deprecated(
     deadline='v0.10.0',
-    fix='Use `cirq.final_state_vector` instead.')(final_state_vector)
+    fix='Use `cirq.final_state_vector` instead.',
+)
+def final_wavefunction(*args, **kwargs):
+    return final_state_vector(*args, **kwargs)
 
 
 def sample_sweep(program: 'cirq.Circuit',
@@ -173,7 +171,7 @@ def sample_sweep(program: 'cirq.Circuit',
                  repetitions: int = 1,
                  dtype: Type[np.number] = np.complex64,
                  seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None
-                ) -> List[study.TrialResult]:
+                ) -> List[study.Result]:
     """Runs the supplied Circuit, mimicking quantum hardware.
 
     In contrast to run, this allows for sweeping over different parameter
@@ -191,12 +189,12 @@ def sample_sweep(program: 'cirq.Circuit',
         seed: The random seed to use for this simulator.
 
     Returns:
-        TrialResult list for this run; one for each possible parameter
+        Result list for this run; one for each possible parameter
         resolver.
     """
     prng = value.parse_random_state(seed)
 
-    trial_results = []  # type: List[study.TrialResult]
+    trial_results = []  # type: List[study.Result]
     for param_resolver in study.to_resolvers(params):
         measurements = sample(program,
                               noise=noise,
@@ -212,8 +210,7 @@ def final_density_matrix(
         program: 'cirq.CIRCUIT_LIKE',
         *,
         noise: 'cirq.NOISE_MODEL_LIKE' = None,
-        initial_state: Union[int, Sequence[Union[int, float, complex]], np.
-                             ndarray] = 0,
+        initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
         param_resolver: study.ParamResolverOrSimilarType = None,
         qubit_order: ops.QubitOrderOrList = ops.QubitOrder.DEFAULT,
         dtype: Type[np.number] = np.complex64,
@@ -255,12 +252,6 @@ def final_density_matrix(
         operations to the desired initial state.
 
     """
-    initial_state_like = None
-    if not isinstance(initial_state, int):
-        initial_state_like = np.asarray(initial_state, dtype=dtype)
-    else:
-        initial_state_like = initial_state
-
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
     circuit_like = _to_circuit(program)
 
@@ -278,7 +269,7 @@ def final_density_matrix(
         # pure case: use SparseSimulator
         result = sparse_simulator.Simulator(dtype=dtype, seed=seed).simulate(
             program=circuit_like,
-            initial_state=initial_state_like,
+            initial_state=initial_state,
             qubit_order=qubit_order,
             param_resolver=param_resolver)
         return cast(state_vector_simulator.StateVectorTrialResult,
@@ -291,7 +282,7 @@ def final_density_matrix(
             seed=seed,
             ignore_measurement_results=(ignore_measurement_results)).simulate(
                 program=circuit_like,
-                initial_state=initial_state_like,
+                initial_state=initial_state,
                 qubit_order=qubit_order,
                 param_resolver=param_resolver)
         return cast(density_matrix_simulator.DensityMatrixTrialResult,

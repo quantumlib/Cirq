@@ -71,16 +71,31 @@ def test_proper_eq():
     assert not proper_eq(pd.Index([1, 2, 3]), pd.Index([1, 4, 3]))
 
 
-@deprecated(deadline='vNever', fix='Roll some dice.', name='test_func')
-def f(a, b):
-    return a + b
+def test_deprecated_with_name():
 
+    @deprecated(deadline='vNever', fix='Roll some dice.', name='test_func')
+    def f(a, b):
+        return a + b
 
-def test_deprecated():
     with cirq.testing.assert_logs('test_func was used',
                                   'will be removed in cirq vNever',
                                   'Roll some dice.'):
         assert f(1, 2) == 3
+
+
+def test_deprecated():
+
+    def new_func(a, b):
+        return a + b
+
+    @deprecated(deadline='vNever', fix='Roll some dice.')
+    def old_func(*args, **kwargs):
+        return new_func(*args, **kwargs)
+
+    with cirq.testing.assert_logs('old_func was used',
+                                  'will be removed in cirq vNever',
+                                  'Roll some dice.'):
+        assert old_func(1, 2) == 3
 
 
 def test_deprecated_parameter():
