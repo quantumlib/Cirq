@@ -291,23 +291,28 @@ for j in jobs:
    print(j.job_id, j.status(), j.create_time())
 ``` 
 
-Alternatively, you can list programs by creation time and labels, and then list 
-jobs within the found programs: 
+It is also possible to list programs by creation time and labels using `list_programs`.
+With an existing EngineProgram object, you can list any jobs that were run using that program. 
 
 
 ```python
+from cirq.google.engine.client.quantum import enums
+
 # Initialize the engine object
 engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
 
 # List all the programs on the project since 2020/09/20 that have 
-# the "variational" label:
+# the "variational" label with any value and the "experiment" label 
+# with value "vqe001":
 programs = engine.list_programs(
-                        created_after=datetime.date(2020,9,20),
-                        has_labels={"variational":"*"}
+                created_after=datetime.date(2020,9,20),
+                has_labels={"variational":"*", "experiment":"vqe001"}
            )
 for p in programs:
    print(p.program_id, p.create_time())
-   for j in p.list_jobs():
+   # the same filtering parametrization is available as in engine.list_jobs()
+   # for example here we list the jobs under the programs that failed
+   for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
      print(j.job_id, j.status())
 ``` 
 
