@@ -234,7 +234,7 @@ Currently, getting the program and job ids can only be done through the
 You can then use `get_program` and `get_job` to retrieve the results.
 See below for an example:
 
-```
+```python
 # Initialize the engine object
 engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
 
@@ -273,4 +273,41 @@ historical_results = historical_job.results()
 ```
 
 If you did not save the ids, you can still find them from your
-job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs).
+job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs) or
+by using `cirq.google.Engine.list_jobs()` or `cirq.google.Engine.list_programs()`.
+You can search in all the jobs within your project using filtering criteria on
+creation time, execution state and labels.  
+
+```python
+from cirq.google.engine.client.quantum import enums
+
+# Initialize the engine object
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+# List all the jobs on the project since 2020/09/20 that succeeded:
+jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
+                        execution_states=[enums.ExecutionStatus.State.SUCCESS])
+for j in jobs:
+   print(j.job_id, j.status(), j.create_time())
+``` 
+
+Alternatively, you can list programs by creation time and labels, and then list 
+jobs within the found programs: 
+
+
+```python
+# Initialize the engine object
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+# List all the programs on the project since 2020/09/20 that have 
+# the "variational" label:
+programs = engine.list_programs(
+                        created_after=datetime.date(2020,9,20),
+                        has_labels={"variational":"*"}
+           )
+for p in programs:
+   print(p.program_id, p.create_time())
+   for j in p.list_jobs():
+     print(j.job_id, j.status())
+``` 
+
