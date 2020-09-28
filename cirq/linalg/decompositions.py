@@ -39,7 +39,12 @@ MAGIC = np.array([[1, 0, 0, 1j],
 
 MAGIC_CONJ_T = np.conj(MAGIC.T)
 
-YY = np.array([[0, 0, 0, -1], [0, 0, 1, 0], [0, 1, 0, 0], [-1, 0, 0, 0]])
+# yapf: disable
+YY = np.array( [[0, 0, 0, -1],
+                [0, 0, 1, 0],
+                [0, 1, 0, 0],
+                [-1, 0, 0, 0]])
+# yapf: enable
 
 
 def _phase_matrix(angle: float) -> np.ndarray:
