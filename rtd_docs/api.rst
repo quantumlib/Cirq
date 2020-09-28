@@ -671,7 +671,7 @@ Algebra and Representation
     cirq.match_global_phase
     cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
-    cirq.num_two_qubit_gates_required
+    cirq.num_cnots_required
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
     cirq.reflection_matrix_pow
