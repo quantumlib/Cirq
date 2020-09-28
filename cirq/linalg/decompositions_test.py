@@ -745,15 +745,15 @@ def test_kak_decompose(unitary: np.ndarray):
 
 def test_num_two_qubit_gates_required():
     for i in range(4):
-        assert cirq.num_two_qubit_gates_required(
+        assert cirq.num_cnots_required(
             _two_qubit_circuit_with_cnots(i).unitary()) == i
 
-    assert cirq.num_two_qubit_gates_required(np.eye(4)) == 0
+    assert cirq.num_cnots_required(np.eye(4)) == 0
 
 
 def test_num_two_qubit_gates_required_invalid():
     with pytest.raises(ValueError, match="(4,4)"):
-        cirq.num_two_qubit_gates_required(np.array([[1]]))
+        cirq.num_cnots_required(np.array([[1]]))
 
 
 def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
@@ -767,9 +767,9 @@ def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
 
     def one_cz():
         return [
+            cirq.CZ.on(a, b),
             random_one_qubit_gate().on(a),
             random_one_qubit_gate().on(b),
-            cirq.CZ.on(a, b)
         ]
 
     return cirq.Circuit([

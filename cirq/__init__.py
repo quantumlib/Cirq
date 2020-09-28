@@ -144,7 +144,7 @@ from cirq.linalg import (
     match_global_phase,
     matrix_commutes,
     matrix_from_basis_coefficients,
-    num_two_qubit_gates_required,
+    num_cnots_required,
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS,

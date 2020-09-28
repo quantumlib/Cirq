@@ -1002,17 +1002,17 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     return k_vec
 
 
-def num_two_qubit_gates_required(u: np.ndarray, atol: float = 1e-8) -> int:
-    """Returns the min number of 2-qubit gates required by a two-qubit unitary.
+def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
+    """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
 
     See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
     Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
     Controlled-Not Gates”.  https://arxiv.org/abs/quant-ph/0308045
+
     Args:
         u: a two-qubit unitary
     Returns:
-        the number of two-qubit gates (CNOT or CZ) required to implement
-        the unitary
+        the number of CNOT or CZ gates required to implement the unitary
     """
     if u.shape != (4, 4):
         raise ValueError(f"Expected unitary of shape (4,4), instead "
@@ -1037,12 +1037,11 @@ def _gamma(u: np.ndarray) -> np.ndarray:
     """Gamma function to convert u to the magic basis.
 
     See Definition IV.1 in Shende et al. "Minimal Universal Two-Qubit CNOT-based
-     Circuits." https://arxiv.org/abs/quant-ph/0308033
+    Circuits." https://arxiv.org/abs/quant-ph/0308033
 
     Args:
         u: a member of SU(4)
     Returns:
         u @ yy @ u.T @ yy, where yy = Y ⊗ Y
     """
-
     return u @ YY @ u.T @ YY
