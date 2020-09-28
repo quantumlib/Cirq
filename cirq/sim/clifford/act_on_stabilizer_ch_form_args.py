@@ -52,8 +52,6 @@ class ActOnStabilizerCHFormArgs:
                 _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose)
         for strat in strats:
             result = strat(action, self)
-            if result is False:
-                break  # coverage: ignore
             if result is True:
                 return True
             assert result is NotImplemented, str(result)
@@ -71,18 +69,15 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
         if clifford_gate is not None:
             for axis, quarter_turns in clifford_gate.decompose_rotation():
                 if axis == pauli_gates.X:
-                    if common_gates.XPowGate(exponent=quarter_turns /
-                                             2)._act_on_(args) is not True:
-                        return False  # coverage: ignore
+                    assert common_gates.XPowGate(exponent=quarter_turns /
+                                                 2)._act_on_(args)
                 elif axis == pauli_gates.Y:
-                    if common_gates.YPowGate(exponent=quarter_turns /
-                                             2)._act_on_(args) is not True:
-                        return False  # coverage: ignore
+                    assert common_gates.YPowGate(exponent=quarter_turns /
+                                                 2)._act_on_(args)
                 else:
                     assert axis == pauli_gates.Z
-                    if common_gates.ZPowGate(exponent=quarter_turns /
-                                             2)._act_on_(args) is not True:
-                        return False  # coverage: ignore
+                    assert common_gates.ZPowGate(exponent=quarter_turns /
+                                                 2)._act_on_(args)
 
             # Find the entry with the largest magnitude in the input unitary.
             k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))

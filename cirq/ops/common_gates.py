@@ -106,14 +106,12 @@ class XPowGate(eigen_gate.EigenGate,
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
                 return NotImplemented
-            if H._act_on_(args) is True:
-                if ZPowGate(exponent=self._exponent)._act_on_(args) is True:
-                    if H._act_on_(args) is True:
-                        return True
-                # At least one, but not all, of the delegated _act_on_
-                # succeeded, so the state might have been corrupted, return
-                # False instead of NotImplemented.
-                return False  # coverage: ignore
+            assert all(
+                gate._act_on_(args) for gate in  # type: ignore
+                [HPowGate(),
+                 ZPowGate(exponent=self._exponent),
+                 HPowGate()])
+            return True
 
         return NotImplemented
 
@@ -340,36 +338,22 @@ class YPowGate(eigen_gate.EigenGate,
             effective_exponent = self._exponent % 2
             state = args.state
             if effective_exponent == 0.5:
-                if ZPowGate()._act_on_(args) is True:
-                    if H._act_on_(args) is True:
-                        state.omega *= (1 + 1j) / (2**0.5)  # type: ignore
-                        return True
-                    # Only one of the delegated _act_on_ succeeded, so the
-                    # state might have been corrupted, return False instead of
-                    # NotImplemented.
-                    return False  # coverage: ignore
+                assert all(
+                    gate._act_on_(args)  # type: ignore
+                    for gate in [ZPowGate(), HPowGate()])
+                state.omega *= (1 + 1j) / (2**0.5)  # type: ignore
             elif effective_exponent == 1:
-                if ZPowGate()._act_on_(args) is True:
-                    if H._act_on_(args) is True:
-                        if ZPowGate()._act_on_(args) is True:
-                            if H._act_on_(args) is True:
-                                state.omega *= 1j  # type: ignore
-                                return True
-                    # At least one, but not all, of the delegated _act_on_
-                    # succeeded, so the state might have been corrupted, return
-                    # False instead of NotImplemented.
-                    return False  # coverage: ignore
+                assert all(
+                    gate._act_on_(args) for gate in  # type: ignore
+                    [ZPowGate(), HPowGate(),
+                     ZPowGate(), HPowGate()])
+                state.omega *= 1j  # type: ignore
             elif effective_exponent == 1.5:
-                if H._act_on_(args) is True:
-                    if ZPowGate()._act_on_(args) is True:
-                        state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
-                        return True
-                    # Only one of the delegated _act_on_ succeeded, so the
-                    # state might have been corrupted, return False instead of
-                    # NotImplemented.
-                    return False  # coverage: ignore
-            else:
-                return True
+                assert all(
+                    gate._act_on_(args)  # type: ignore
+                    for gate in [HPowGate(), ZPowGate()])
+                state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
+            return True
 
         return NotImplemented
 

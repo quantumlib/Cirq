@@ -30,9 +30,19 @@ from cirq.sim.clifford import (act_on_clifford_tableau_args, clifford_tableau,
 
 def state_vector_has_stabilizer(state_vector: np.ndarray,
                                 stabilizer: DensePauliString) -> bool:
-    """Checks that the stabilizer does not modify the value of the
-    state_vector, up to the global phase. Does not mutate the input
-    state_vector."""
+    """Checks that the state_vector is stabilized by the given stabilizer.
+
+    The stabilizer should not modify the value of the state_vector, up to the
+    global phase.
+
+    Args:
+        state_vector: An input state vector. Is not mutated by this function.
+        stabilizer: A potential stabilizer of the above state_vector as a
+          DensePauliString.
+
+    Returns:
+        Whether the stabilizer stabilizes the supplied state.
+    """
 
     args = act_on_state_vector_args.ActOnStateVectorArgs(
         target_tensor=state_vector.copy(),
@@ -48,12 +58,20 @@ def assert_all_implemented_act_on_effects_match_unitary(
         val: Any,
         assert_tableau_implemented: bool = False,
         assert_ch_form_implemented: bool = False) -> None:
-    """
+    """Uses val's effect on final_state_vector to check act_on(val)'s behavior.
+
     Checks that act_on with CliffordTableau or StabilizerStateCHForm behaves
     consistently with act_on through final state vector. Does not work with
     Operations or Gates expecting non-qubit Qids. If either of the
     assert_*_implmented args is true, fails if the corresponding method is not
     implemented for the test circuit.
+
+    Args:
+        val: A gate or operation that may be an input to protocols.act_on.
+        assert_tableau_implemented: asserts that protocols.act_on() works with
+          val and ActOnCliffordTableauArgs inputs.
+        assert_ch_form_implemented: asserts that protocols.act_on() works with
+          val and ActOnStabilizerStateChFormArgs inputs.
     """
 
     # pylint: disable=unused-variable
@@ -116,10 +134,18 @@ def assert_all_implemented_act_on_effects_match_unitary(
 
 def _final_clifford_tableau(circuit: Circuit, qubit_map
                            ) -> Optional[clifford_tableau.CliffordTableau]:
-    """Initializes a CliffordTableau with default args for the given qubits and
-    evolves it by having each operation act on the tableau. Returns None if any
-    of the operations can not act on a CliffordTableau, returns the tableau
-    otherwise."""
+    """Evolves a default CliffordTableau through the input circuit.
+
+    Initializes a CliffordTableau with default args for the given qubits and
+    evolves it by having each operation act on the tableau.
+
+    Args:
+        circuit: An input circuit that acts on the zero state
+        qubit_map: A map from qid to the qubit index for the above circuit
+
+    Returns:
+        None if any of the operations can not act on a CliffordTableau, returns
+        the tableau otherwise."""
 
     tableau = clifford_tableau.CliffordTableau(len(qubit_map))
     for op in circuit.all_operations():
@@ -139,10 +165,18 @@ def _final_clifford_tableau(circuit: Circuit, qubit_map
 def _final_stabilizer_state_ch_form(
         circuit: Circuit,
         qubit_map) -> Optional[stabilizer_state_ch_form.StabilizerStateChForm]:
-    """Initializes a StabilizerStateChForm with default args for the given
-    qubits and evolves it by having each operation act on the tableau. Returns
-    None if any of the operations can not act on a StabilizerStateChForm,
-    returns the stabilizer state otherwise."""
+    """Evolves a default StabilizerStateChForm through the input circuit.
+
+    Initializes a StabilizerStateChForm with default args for the given qubits
+    and evolves it by having each operation act on the state.
+
+    Args:
+        circuit: An input circuit that acts on the zero state
+        qubit_map: A map from qid to the qubit index for the above circuit
+
+    Returns:
+        None if any of the operations can not act on a StabilizerStateChForm,
+        returns the StabilizerStateChForm otherwise."""
 
     stabilizer_ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
         len(qubit_map))
