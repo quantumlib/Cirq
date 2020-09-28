@@ -64,7 +64,14 @@ data:
           - milestone-pr-needs-work
           - milestone-pr-needs-merge
           - milestone-recently-closed
-
+      - id: quarterly
+        name: Quarterly scrub
+        description: >
+          Quarterly review of items that need our attention.
+        rules:
+          - bugs-recv
+          - features-recv
+          - design-issues-recv
 
     rules:
       ## Daily triage
@@ -93,6 +100,7 @@ data:
         filters:
           - label: "kind/.*"
           - label: "triage/accepted"
+          - label: "!(area/google)"
           - label: "!(complexity|skill)/.*"
           - label: "!(good first issue|help wanted)"
 
@@ -170,3 +178,31 @@ data:
           - tag: "!open-milestone"
           - tag: "!assignee-updated"
           - tag: "!(assignee-open-pr|assignee-closed-pr)"
+
+      ### Quarterly scrub ###
+      bugs-recv:
+        name: "Bugs that deserve a follow-up comment"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/bug-report"
+
+      features-recv:
+        name: "Features that deserve a follow-up comment"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/feature-request"
+
+      design-issues-recv:
+        name: "Design issues that are going stale"
+        resolution: "Comment or close the issue"
+        type: issue
+        filters:
+          - tag: recv
+          - responded: +7d
+          - label: "kind/design-issue"
