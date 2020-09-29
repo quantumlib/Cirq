@@ -32,7 +32,7 @@ class Sampler(metaclass=abc.ABCMeta):
             program: 'cirq.Circuit',
             param_resolver: 'cirq.ParamResolverOrSimilarType' = None,
             repetitions: int = 1,
-    ) -> 'cirq.TrialResult':
+    ) -> 'cirq.Result':
         """Samples from the given Circuit.
 
         By default, the `run_async` method invokes this method on another
@@ -44,7 +44,7 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            TrialResult for a run.
+            Result for a run.
         """
         return self.run_sweep(program, study.ParamResolver(param_resolver),
                               repetitions)[0]
@@ -143,7 +143,7 @@ class Sampler(metaclass=abc.ABCMeta):
             program: 'cirq.Circuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-    ) -> List['cirq.TrialResult']:
+    ) -> List['cirq.Result']:
         """Samples from the given Circuit.
 
         In contrast to run, this allows for sweeping over different parameter
@@ -155,12 +155,12 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
         """
 
     async def run_async(self, program: 'cirq.Circuit', *,
-                        repetitions: int) -> 'cirq.TrialResult':
+                        repetitions: int) -> 'cirq.Result':
         """Asynchronously samples from the given Circuit.
 
         By default, this method invokes `run` synchronously and simply exposes
@@ -172,7 +172,7 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            An awaitable TrialResult.
+            An awaitable Result.
         """
         return self.run(program, repetitions=repetitions)
 
@@ -181,7 +181,7 @@ class Sampler(metaclass=abc.ABCMeta):
             program: 'cirq.Circuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-    ) -> List['cirq.TrialResult']:
+    ) -> List['cirq.Result']:
         """Asynchronously sweeps and samples from the given Circuit.
 
         By default, this method invokes `run_sweep` synchronously and simply
@@ -196,7 +196,7 @@ class Sampler(metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            An awaitable TrialResult.
+            An awaitable Result.
         """
         return self.run_sweep(program, params=params, repetitions=repetitions)
 
@@ -205,7 +205,7 @@ class Sampler(metaclass=abc.ABCMeta):
             programs: List['cirq.Circuit'],
             params_list: Optional[List['cirq.Sweepable']] = None,
             repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.TrialResult']]:
+    ) -> List[List['cirq.Result']]:
         """Runs the supplied circuits.
 
         Each circuit provided in `programs` will pair with the optional

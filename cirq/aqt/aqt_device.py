@@ -204,14 +204,14 @@ class AQTSimulator:
         self.circuit.append(
             ops.measure(*[qubit for qubit in self.qubit_list], key='m'))
 
-    def simulate_samples(self, repetitions: int) -> study.TrialResult:
+    def simulate_samples(self, repetitions: int) -> study.Result:
         """Samples the circuit
 
         Args:
             repetitions: Number of times the circuit is simulated
 
         Returns:
-            TrialResult from Cirq.Simulator
+            Result from Cirq.Simulator
         """
         if self.simulate_ideal:
             noise_model = devices.NO_NOISE

@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,18 +40,18 @@ class StabilizerSampler(sampler.Sampler):
             program: 'cirq.Circuit',
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-    ) -> List['cirq.TrialResult']:
-        trial_results: List[cirq.TrialResult] = []
+    ) -> List['cirq.Result']:
+        results: List[cirq.Result] = []
         for param_resolver in cirq.to_resolvers(params):
             resolved_circuit = cirq.resolve_parameters(program, param_resolver)
             measurements = self._run(
                 resolved_circuit,
                 repetitions=repetitions,
             )
-            trial_results.append(
-                cirq.TrialResult(params=param_resolver,
-                                 measurements=measurements))
-        return trial_results
+            results.append(
+                cirq.Result(params=param_resolver,
+                            measurements=measurements))
+        return results
 
     def _run(self, circuit: circuits.Circuit,
              repetitions: int) -> Dict[str, np.ndarray]:
