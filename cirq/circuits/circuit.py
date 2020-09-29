@@ -263,8 +263,9 @@ class Circuit:
 
     def __add__(self, other):
         if isinstance(other, type(self)):
-            if (devices.UNCONSTRAINED_DEVICE not in [self._device, other.device]
-                    and self._device != other.device):
+            if (devices.UNCONSTRAINED_DEVICE not in [
+                    self._device, other.device
+            ] and self._device != other.device):
                 raise ValueError(
                     "Can't add circuits with incompatible devices.")
         elif not isinstance(other, (ops.Operation, Iterable)):
