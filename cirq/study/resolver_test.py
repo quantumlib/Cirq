@@ -23,7 +23,12 @@ import cirq
 def test_value_of():
     assert not bool(cirq.ParamResolver())
 
-    r = cirq.ParamResolver({'a': 0.5, 'b': 0.1, 'c': 1 + 1j})
+    r = cirq.ParamResolver({
+        'a': 0.5,
+        'b': 0.1,
+        'c': 1 + 1j,
+        'd': np.float32(3.2)
+    })
     assert bool(r)
 
     assert r.value_of('x') == sympy.Symbol('x')
@@ -47,6 +52,10 @@ def test_value_of():
 
     assert r.value_of(np.float32(32)) == 32
     assert isinstance(r.value_of(np.float32(32)), np.float32)
+
+    assert r.value_of('d') == np.float32(3.2)
+    assert isinstance(r.value_of('d'), np.float32)
+    assert isinstance(r.value_of(sympy.Symbol('d')), np.float32)
 
 
 def test_param_dict():

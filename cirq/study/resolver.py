@@ -13,7 +13,7 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-import numbers
+
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
@@ -63,8 +63,8 @@ class ParamResolver:
         self.param_dict = cast(ParamDictType,
                                {} if param_dict is None else param_dict)
 
-    def value_of(self, value: Union['cirq.TParamKey', numbers.Number]
-                ) -> 'cirq.TParamVal':
+    def value_of(self,
+                 value: Union['cirq.TParamKey', float]) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -113,7 +113,7 @@ class ParamResolver:
         # in the dictionary ({'a': 1.0}).  Return it.
         if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
             param_value = self.param_dict[value.name]
-            if isinstance(param_value, (float, int)):
+            if isinstance(param_value, (float, np.float32, int)):
                 return param_value
 
         # The following resolves common sympy expressions
