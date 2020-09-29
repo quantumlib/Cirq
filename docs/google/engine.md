@@ -234,7 +234,7 @@ Currently, getting the program and job ids can only be done through the
 You can then use `get_program` and `get_job` to retrieve the results.
 See below for an example:
 
-```
+```python
 # Initialize the engine object
 engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
 
@@ -273,4 +273,52 @@ historical_results = historical_job.results()
 ```
 
 If you did not save the ids, you can still find them from your
-job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs).
+job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs) or
+by using our list methods. 
+
+
+### Listing jobs 
+
+To list the executions of your circuit, i.e. the jobs, you can use `cirq.google.Engine.list_jobs()`. 
+You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.  
+
+```python
+from cirq.google.engine.client.quantum import enums
+
+# Initialize the engine object
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+# List all the jobs on the project since 2020/09/20 that succeeded:
+jobs = engine.list_jobs(created_after=datetime.date(2020,9,20),
+                        execution_states=[enums.ExecutionStatus.State.SUCCESS])
+for j in jobs:
+   print(j.job_id, j.status(), j.create_time())
+``` 
+
+### Listing programs
+
+To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq.google.Engine.list_programs()`.
+Similar to jobs, filtering makes it possible to list programs by creation time and labels.
+With an existing `cirq.google.EngineProgram` object, you can list any jobs that were run using that program. 
+
+```python
+from cirq.google.engine.client.quantum import enums
+
+# Initialize the engine object
+engine = cirq.google.Engine(project_id='YOUR_PROJECT_ID')
+
+# List all the programs on the project since 2020/09/20 that have 
+# the "variational" label with any value and the "experiment" label 
+# with value "vqe001":
+programs = engine.list_programs(
+                created_after=datetime.date(2020,9,20),
+                has_labels={"variational":"*", "experiment":"vqe001"}
+           )
+for p in programs:
+   print(p.program_id, p.create_time())
+   # the same filtering parametrization is available as in engine.list_jobs()
+   # for example here we list the jobs under the programs that failed
+   for j in p.list_jobs(execution_states=[enums.ExecutionStatus.State.FAILURE]):
+     print(j.job_id, j.status())
+``` 
+
