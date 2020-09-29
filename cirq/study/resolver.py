@@ -63,8 +63,8 @@ class ParamResolver:
         self.param_dict = cast(ParamDictType,
                                {} if param_dict is None else param_dict)
 
-    def value_of(self,
-                 value: Union['cirq.TParamKey', numbers.Number]) -> 'cirq.TParamVal':
+    def value_of(self, value: Union['cirq.TParamKey', numbers.Number]
+                ) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via

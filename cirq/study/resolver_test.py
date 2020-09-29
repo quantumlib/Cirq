@@ -49,7 +49,6 @@ def test_value_of():
     assert isinstance(r.value_of(np.float32(32)), np.float32)
 
 
-
 def test_param_dict():
     r = cirq.ParamResolver({'a': 0.5, 'b': 0.1})
     r2 = cirq.ParamResolver(r)
