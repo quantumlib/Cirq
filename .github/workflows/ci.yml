@@ -102,6 +102,7 @@ jobs:
           architecture: 'x64'
       - name: Install requirements
         run: |
+          pip install --upgrade wheel pip
           pip install -r requirements.txt
           pip install -r dev_tools/conf/pip-list-dev-tools.txt
       - name: Pytest check
