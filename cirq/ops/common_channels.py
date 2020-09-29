@@ -310,8 +310,7 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
     def _act_on_(self, args: Any) -> bool:
         from cirq.sim import clifford
-        if isinstance(args, (clifford.ActOnCliffordTableauArgs,
-                             clifford.ActOnStabilizerCHFormArgs)):
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
             if args.prng.random() < self._p:
                 gate = args.prng.choice(
                     [pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
