@@ -13,12 +13,13 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-
+import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
+import fractions
 
 if TYPE_CHECKING:
     import cirq
@@ -89,9 +90,23 @@ class ParamResolver:
         Returns:
             The value of the parameter as resolved by this resolver.
         """
-        # Input is a float, no resolution needed: return early
-        if isinstance(value, (float, np.float32)):
-            return value
+
+        def pass_through(val) -> Optional[Any]:
+            if isinstance(val,
+                          numbers.Number) and not isinstance(val, sympy.Basic):
+                return val
+            if isinstance(val, sympy.core.numbers.IntegerConstant):
+                return val.p
+            if isinstance(val, sympy.core.numbers.RationalConstant):
+                return val.p / val.q
+            if val == sympy.pi:
+                return np.pi
+            return None
+
+        # Input is a pass through type, no resolution needed: return early
+        v = pass_through(value)
+        if v is not None:
+            return v
 
         # Handles 2 cases:
         # Input is a string and maps to a number in the dictionary
@@ -99,8 +114,9 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            if isinstance(param_value, (float, np.float32, int)):
-                return param_value
+            v = pass_through(param_value)
+            if v is not None:
+                return v
 
         # Input is a string and is not in the dictionary.
         # Treat it as a symbol instead.
@@ -111,10 +127,11 @@ class ParamResolver:
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
-        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
+        if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
-            if isinstance(param_value, (float, np.float32, int)):
-                return param_value
+            v = pass_through(param_value)
+            if v is not None:
+                return v
 
         # The following resolves common sympy expressions
         # If sympy did its job and wasn't slower than molasses,
@@ -132,10 +149,7 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             return np.power(self.value_of(value.args[0]),
                             self.value_of(value.args[1]))
-        if value == sympy.pi:
-            return np.pi
-        if value == sympy.S.NegativeOne:
-            return -1
+
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.
