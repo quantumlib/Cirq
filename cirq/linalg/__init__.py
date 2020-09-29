@@ -35,6 +35,7 @@ from cirq.linalg.decompositions import (
     KakDecomposition,
     kron_factor_4x4_to_2x2s,
     map_eigenvalues,
+    num_cnots_required,
     unitary_eig,
     scatter_plot_normalized_kak_interaction_coefficients,
     so4_to_magic_su2s,
@@ -89,5 +90,6 @@ from cirq.linalg.transformations import (
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
+    to_special,
     wavefunction_partial_trace_as_mixture,
 )

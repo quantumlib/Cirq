@@ -7,10 +7,10 @@ import os
 import time
 import sys
 
+from google.cloud import secretmanager_v1beta1
 import requests
 
 from dev_tools.github_repository import GithubRepository
-
 
 GITHUB_REPO_NAME = 'cirq'
 GITHUB_REPO_ORGANIZATION = 'quantumlib'
@@ -376,6 +376,7 @@ def get_pr_checks(pr: PullRequestDetails) -> Dict[str, Any]:
 
 
 _last_print_was_tick = False
+_tick_count = 0
 
 
 def log(*args):
@@ -388,8 +389,13 @@ def log(*args):
 
 def wait_for_polling_period():
     global _last_print_was_tick
+    global _tick_count
     _last_print_was_tick = True
     print('.', end='', flush=True)
+    _tick_count += 1
+    if _tick_count == 100:
+        print()
+        _tick_count = 0
     time.sleep(POLLING_PERIOD.total_seconds())
 
 
@@ -922,8 +928,15 @@ def indent(text: str) -> str:
 def main():
     access_token = os.getenv(ACCESS_TOKEN_ENV_VARIABLE)
     if not access_token:
-        print('{} not set.'.format(ACCESS_TOKEN_ENV_VARIABLE), file=sys.stderr)
-        sys.exit(1)
+        project_id = 'cirq-infra'
+        print('{} not set. Trying secret manager.'.format(
+            ACCESS_TOKEN_ENV_VARIABLE),
+              file=sys.stderr)
+        client = secretmanager_v1beta1.SecretManagerServiceClient()
+        secret_name = (f'projects/{project_id}/'
+                       f'secrets/cirq-bot-api-key/versions/1')
+        response = client.access_secret_version(name=secret_name)
+        access_token = response.payload.data.decode('UTF-8')
 
     repo = GithubRepository(
         organization=GITHUB_REPO_ORGANIZATION,

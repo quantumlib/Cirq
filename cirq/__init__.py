@@ -144,6 +144,7 @@ from cirq.linalg import (
     match_global_phase,
     matrix_commutes,
     matrix_from_basis_coefficients,
+    num_cnots_required,
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS,
@@ -156,6 +157,7 @@ from cirq.linalg import (
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
+    to_special,
     unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
@@ -179,6 +181,7 @@ from cirq.ops import (
     CNotPowGate,
     ControlledGate,
     ControlledOperation,
+    cphase,
     CSWAP,
     CSwapGate,
     CX,
@@ -331,6 +334,7 @@ from cirq.qis import (
 
 from cirq.sim import (
     ActOnCliffordTableauArgs,
+    ActOnStabilizerCHFormArgs,
     ActOnStateVectorArgs,
     StabilizerStateChForm,
     CIRCUIT_LIKE,
@@ -372,6 +376,8 @@ from cirq.sim import (
 )
 
 from cirq.study import (
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
     ExpressionMap,
     flatten,
     flatten_with_params,
@@ -389,6 +395,7 @@ from cirq.study import (
     to_resolvers,
     to_sweep,
     to_sweeps,
+    Result,
     TrialResult,
     UnitSweep,
     Zip,
@@ -410,6 +417,7 @@ from cirq.value import (
     PeriodicValue,
     RANDOM_STATE_OR_SEED_LIKE,
     Timestamp,
+    TParamKey,
     TParamVal,
     validate_probability,
     value_equality,
