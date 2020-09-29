@@ -13,7 +13,7 @@
 # limitations under the License.
 """Workaround for associating docstrings with public constants."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 RECORDED_CONST_DOCS: Dict[int, str] = {}
 
