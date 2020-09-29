@@ -671,3 +671,10 @@ def test_deprecated():
         # pylint: disable=unexpected-keyword-arg,no-value-for-parameter
         _ = cirq.partial_trace_of_state_vector_as_mixture(wavefunction=a,
                                                           keep_indices=[0])
+
+
+def test_to_special():
+    u = cirq.testing.random_unitary(4)
+    su = cirq.to_special(u)
+    assert not cirq.is_special_unitary(u)
+    assert cirq.is_special_unitary(su)

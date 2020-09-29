@@ -26,7 +26,7 @@ import matplotlib.pyplot as plt
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
-from cirq.linalg import combinators, diagonalize, predicates
+from cirq.linalg import combinators, diagonalize, predicates, transformations
 
 if TYPE_CHECKING:
     import cirq
@@ -36,7 +36,15 @@ MAGIC = np.array([[1, 0, 0, 1j],
                   [0, 1j, 1, 0],
                   [0, 1j, -1, 0],
                   [1, 0, 0, -1j]]) * np.sqrt(0.5)
+
 MAGIC_CONJ_T = np.conj(MAGIC.T)
+
+# yapf: disable
+YY = np.array([[0, 0, 0, -1],
+               [0, 0, 1, 0],
+               [0, 1, 0, 0],
+               [-1, 0, 0, 0]])
+# yapf: enable
 
 
 def _phase_matrix(angle: float) -> np.ndarray:
@@ -992,3 +1000,48 @@ def _canonicalize_kak_vector(k_vec: np.ndarray, atol: float) -> np.ndarray:
     k_vec[need_diff, 2] *= -1
 
     return k_vec
+
+
+def num_cnots_required(u: np.ndarray, atol: float = 1e-8) -> int:
+    """Returns the min number of CNOT/CZ gates required by a two-qubit unitary.
+
+    See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
+    Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
+    Controlled-Not Gates”.  https://arxiv.org/abs/quant-ph/0308045
+
+    Args:
+        u: a two-qubit unitary
+    Returns:
+        the number of CNOT or CZ gates required to implement the unitary
+    """
+    if u.shape != (4, 4):
+        raise ValueError(f"Expected unitary of shape (4,4), instead "
+                         f"got {u.shape}")
+    g = _gamma(transformations.to_special(u))
+    # see Fadeev-LeVerrier formula
+    a3 = -np.trace(g)
+    # no need to check a2 = 6, as a3 = +-4 only happens if the eigenvalues are
+    # either all +1 or -1, which unambiguously implies that a2 = 6
+    if np.abs(a3 - 4) < atol or np.abs(a3 + 4) < atol:
+        return 0
+    # see Fadeev-LeVerrier formula
+    a2 = (a3 * a3 - np.trace(g @ g)) / 2
+    if np.abs(a3) < atol and np.abs(a2 - 2) < atol:
+        return 1
+    if np.abs(a3.imag) < atol:
+        return 2
+    return 3
+
+
+def _gamma(u: np.ndarray) -> np.ndarray:
+    """Gamma function to convert u to the magic basis.
+
+    See Definition IV.1 in Shende et al. "Minimal Universal Two-Qubit CNOT-based
+    Circuits." https://arxiv.org/abs/quant-ph/0308033
+
+    Args:
+        u: a member of SU(4)
+    Returns:
+        u @ yy @ u.T @ yy, where yy = Y ⊗ Y
+    """
+    return u @ YY @ u.T @ YY

@@ -144,6 +144,7 @@ from cirq.linalg import (
     match_global_phase,
     matrix_commutes,
     matrix_from_basis_coefficients,
+    num_cnots_required,
     partial_trace,
     partial_trace_of_state_vector_as_mixture,
     PAULI_BASIS,
@@ -156,6 +157,7 @@ from cirq.linalg import (
     sub_state_vector,
     targeted_conjugate_about,
     targeted_left_multiply,
+    to_special,
     unitary_eig,
     wavefunction_partial_trace_as_mixture,
 )
