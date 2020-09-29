@@ -37,7 +37,7 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                  p_y: Optional[float] = None,
                  p_z: Optional[float] = None,
                  error_probabilities: Optional[Dict[str, float]] = None,
-                 tol: Optional[float] = None) -> None:
+                 tol: float = 1e-8) -> None:
         r"""The asymmetric depolarizing channel.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
@@ -83,7 +83,6 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
                 value.validate_probability(v, f"p({k})")
             sum_probs = sum(error_probabilities.values())
             identity = 'I' * num_qubits
-            tol = 1e-6 if tol is None else tol
             if sum_probs < 1.0 - tol and identity not in error_probabilities:
                 error_probabilities[identity] = 1.0 - sum_probs
             elif abs(sum_probs - 1.0) > tol:
@@ -194,12 +193,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
 
-def asymmetric_depolarize(
-        p_x: Optional[float] = None,
-        p_y: Optional[float] = None,
-        p_z: Optional[float] = None,
-        error_probabilities: Optional[Dict[str, float]] = None,
-        tol: Optional[float] = None) -> AsymmetricDepolarizingChannel:
+def asymmetric_depolarize(p_x: Optional[float] = None,
+                          p_y: Optional[float] = None,
+                          p_z: Optional[float] = None,
+                          error_probabilities: Optional[Dict[str,
+                                                             float]] = None,
+                          tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
