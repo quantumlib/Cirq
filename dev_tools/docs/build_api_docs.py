@@ -23,6 +23,7 @@ from tensorflow_docs.api_generator import generate_lib
 from tensorflow_docs.api_generator import public_api
 
 import cirq
+from cirq import _doc
 
 flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
 
@@ -56,7 +57,9 @@ def main(unused_argv):
             "cirq.google.engine.client.quantum_v1alpha1.QuantumEngineServiceClient":
             ["enums"],
             "cirq.google.api": ["v1"]
-        })
+        },
+        extra_docs=_doc.RECORDED_CONST_DOCS,
+    )
 
     doc_generator.build(output_dir=FLAGS.output_dir)
 
