@@ -13,8 +13,8 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
+import numbers
+from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast, SupportsFloat
 import numpy as np
 import sympy
 from cirq._compat import proper_repr
@@ -64,7 +64,7 @@ class ParamResolver:
                                {} if param_dict is None else param_dict)
 
     def value_of(self,
-                 value: Union['cirq.TParamKey', float]) -> 'cirq.TParamVal':
+                 value: Union['cirq.TParamKey', numbers.Number]) -> 'cirq.TParamVal':
         """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
@@ -90,7 +90,7 @@ class ParamResolver:
             The value of the parameter as resolved by this resolver.
         """
         # Input is a float, no resolution needed: return early
-        if isinstance(value, float):
+        if isinstance(value, (float, np.float32)):
             return value
 
         # Handles 2 cases:
@@ -99,7 +99,7 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            if isinstance(param_value, (float, int)):
+            if isinstance(param_value, (float, np.float32, int)):
                 return param_value
 
         # Input is a string and is not in the dictionary.

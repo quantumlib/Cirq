@@ -36,10 +36,18 @@ def test_value_of():
     assert r.value_of(sympy.Symbol('b') / 0.1 - sympy.Symbol('a')) == 0.5
 
     assert r.value_of(sympy.pi) == np.pi
+    assert isinstance(r.value_of(sympy.pi), float)
+
     assert r.value_of(2 * sympy.pi) == 2 * np.pi
     assert r.value_of(4**sympy.Symbol('a') + sympy.Symbol('b') * 10) == 3
     assert r.value_of('c') == 1 + 1j
     assert r.value_of(sympy.I * sympy.pi) == np.pi * 1j
+
+    assert isinstance(r.value_of(sympy.S.NegativeOne), int)
+
+    assert r.value_of(np.float32(32)) == 32
+    assert isinstance(r.value_of(np.float32(32)), np.float32)
+
 
 
 def test_param_dict():
