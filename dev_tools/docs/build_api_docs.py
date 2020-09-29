@@ -25,7 +25,6 @@ from tensorflow_docs.api_generator import public_api
 import cirq
 from cirq import _doc
 
-
 flags.DEFINE_string("output_dir", "/tmp/cirq_api", "Where to output the docs")
 
 flags.DEFINE_string("code_url_prefix",
