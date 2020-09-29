@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional
 RECORDED_CONST_DOCS: Dict[int, str] = {}
 
 
-def document(value: Any, doc_string: Optional[str] = None):
+def document(value: Any, doc_string: str = ''):
     """Stores documentation details about the given value.
 
     This method is used to associate a docstring with global constants. It is
