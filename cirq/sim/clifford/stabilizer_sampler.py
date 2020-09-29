@@ -49,8 +49,7 @@ class StabilizerSampler(sampler.Sampler):
                 repetitions=repetitions,
             )
             results.append(
-                cirq.Result(params=param_resolver,
-                            measurements=measurements))
+                cirq.Result(params=param_resolver, measurements=measurements))
         return results
 
     def _run(self, circuit: circuits.Circuit,
