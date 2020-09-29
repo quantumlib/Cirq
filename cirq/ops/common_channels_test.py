@@ -571,7 +571,6 @@ def test_bit_flip_channel_invalid_probability():
         cirq.bit_flip(1.1)
 
 
-
 def test_bit_flip_channel_text_diagram():
     bf = cirq.bit_flip(0.1234567)
     assert (cirq.circuit_diagram_info(
@@ -580,6 +579,17 @@ def test_bit_flip_channel_text_diagram():
     assert (cirq.circuit_diagram_info(
         bf, args=round_to_2_prec) == cirq.CircuitDiagramInfo(
             wire_symbols=('BF(0.12)',)))
+
+
+def test_stabilizer_supports_depolarize():
+    with pytest.raises(TypeError, match="act_on"):
+        for _ in range(100):
+            cirq.act_on(cirq.depolarize(3 / 4), object())
+
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.depolarize(3 / 4).on(q), cirq.measure(q, key='m'))
+    m = np.sum(cirq.StabilizerSampler().sample(c, repetitions=100)['m'])
+    assert 5 < m < 95
 
 
 def test_default_asymmetric_depolarizing_channel():
