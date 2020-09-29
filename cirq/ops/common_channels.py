@@ -193,11 +193,12 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
         return protocols.obj_to_dict_helper(self, ['error_probabilities'])
 
 
-def asymmetric_depolarize(p_x: Optional[float] = None,
-                          p_y: Optional[float] = None,
-                          p_z: Optional[float] = None,
-                          error_probabilities: Optional[Dict[str,
-                                                             float]] = None,
+def asymmetric_depolarize(
+        p_x: Optional[float] = None,
+        p_y: Optional[float] = None,
+        p_z: Optional[float] = None,
+        error_probabilities: Optional[Dict[str, float]] = None,
+        tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
                           tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
