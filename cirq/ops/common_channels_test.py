@@ -606,6 +606,13 @@ def test_bad_probs():
         cirq.asymmetric_depolarize(error_probabilities={'X': 0.7, 'Y': 0.6})
 
 
+def test_missing_prob_mass():
+    with pytest.raises(ValueError, match='Probabilities do not add up to 1'):
+        cirq.asymmetric_depolarize(error_probabilities={'X': 0.1, 'I': 0.2})
+    d = cirq.asymmetric_depolarize(error_probabilities={'X': 0.1})
+    np.testing.assert_almost_equal(d.error_probabilities['I'], 0.9)
+
+
 def test_multi_asymmetric_depolarizing_channel():
     d = cirq.asymmetric_depolarize(error_probabilities={'II': 0.8, 'XX': 0.2})
     np.testing.assert_almost_equal(
