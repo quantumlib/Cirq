@@ -15,14 +15,7 @@
 
 from typing import Any, Dict, NamedTuple, Optional
 
-DocProperties = NamedTuple(
-    'DocProperties',
-    [
-        ('doc_string', Optional[str]),
-    ],
-)
-
-RECORDED_CONST_DOCS: Dict[int, DocProperties] = {}
+RECORDED_CONST_DOCS: Dict[int, str] = {}
 
 
 def document(value: Any, doc_string: Optional[str] = None):
@@ -43,8 +36,7 @@ def document(value: Any, doc_string: Optional[str] = None):
     Returns:
         The given value.
     """
-    docs = DocProperties(doc_string=doc_string)
-    RECORDED_CONST_DOCS[id(value)] = docs
+    RECORDED_CONST_DOCS[id(value)] = doc_string
 
     ## this is how the devsite API generator picks up
     ## docstrings for type aliases
