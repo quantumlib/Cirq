@@ -262,18 +262,14 @@ class Circuit:
         return self
 
     def __add__(self, other):
-        if not isinstance(other, type(self)):
-            if not isinstance(other, (ops.Operation, Iterable)):
-                return NotImplemented
-            # Auto wrap OP_TREE inputs into a circuit.
-            other = Circuit(other)
-
-        device = (self._device if other.device is devices.UNCONSTRAINED_DEVICE
-                  else other.device)
-        device_2 = (other.device if self._device is devices.UNCONSTRAINED_DEVICE
-                    else self._device)
-        if device != device_2:
-            raise ValueError("Can't add circuits with incompatible devices.")
+        if isinstance(other, type(self)):
+            if (devices.UNCONSTRAINED_DEVICE not in [
+                    self._device, other.device
+            ] and self._device != other.device):
+                raise ValueError(
+                    "Can't add circuits with incompatible devices.")
+        elif not isinstance(other, (ops.Operation, Iterable)):
+            return NotImplemented
 
         result = self.copy()
         return result.__iadd__(other)
