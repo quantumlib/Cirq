@@ -274,9 +274,13 @@ historical_results = historical_job.results()
 
 If you did not save the ids, you can still find them from your
 job using the [Cloud Console](https://console.cloud.google.com/quantum/jobs) or
-by using `cirq.google.Engine.list_jobs()` or `cirq.google.Engine.list_programs()`.
-You can search in all the jobs within your project using filtering criteria on
-creation time, execution state and labels.  
+by using our list methods. 
+
+
+### Listing jobs 
+
+To list the executions of your circuit, i.e. the jobs, you can use `cirq.google.Engine.list_jobs()`. 
+You can search in all the jobs within your project using filtering criteria on creation time, execution state and labels.  
 
 ```python
 from cirq.google.engine.client.quantum import enums
@@ -291,9 +295,11 @@ for j in jobs:
    print(j.job_id, j.status(), j.create_time())
 ``` 
 
-It is also possible to list programs by creation time and labels using `list_programs`.
-With an existing EngineProgram object, you can list any jobs that were run using that program. 
+### Listing programs
 
+To list the different instances of your circuits uploaded, i.e. the programs, you can use `cirq.google.Engine.list_programs()`.
+Similar to jobs, filtering makes it possible to list programs by creation time and labels.
+With an existing `cirq.google.EngineProgram` object, you can list any jobs that were run using that program. 
 
 ```python
 from cirq.google.engine.client.quantum import enums
