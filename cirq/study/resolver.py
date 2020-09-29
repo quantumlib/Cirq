@@ -14,7 +14,7 @@
 
 """Resolves ParameterValues to assigned values."""
 import numbers
-from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast, SupportsFloat
+from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
 from cirq._compat import proper_repr
