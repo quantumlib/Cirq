@@ -79,10 +79,11 @@ class AsymmetricDepolarizingChannel(gate_features.SingleQubitGate):
             for k, v in error_probabilities.items():
                 value.validate_probability(v, f"p({k})")
             sum_probs = sum(error_probabilities.values())
-            # TODO(tonybruguier): Instead of forcing the probabilities to add up
-            # to 1, check whether the identity is missing, and if that is the
-            # case, automatically add it with the missing probability mass.
-            if abs(sum_probs - 1.0) > 1e-6:
+            tol = 1e-6
+            all_i = 'I' * num_qubits
+            if sum_probs < 1.0 - tol and all_i not in error_probabilities:
+                error_probabilities[all_i] = 1.0 - sum_probs
+            elif abs(sum_probs - 1.0) > tol:
                 raise ValueError(
                     f"Probabilities do not add up to 1 but to {sum_probs}")
             self._num_qubits = num_qubits
