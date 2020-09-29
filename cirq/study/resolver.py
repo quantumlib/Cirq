@@ -19,7 +19,6 @@ import numpy as np
 import sympy
 from cirq._compat import proper_repr
 from cirq._doc import document
-import fractions
 
 if TYPE_CHECKING:
     import cirq
