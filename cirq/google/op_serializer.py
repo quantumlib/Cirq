@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from dataclasses import dataclass
-from typing import (Callable, List, Optional, Type, TypeVar, Union,
+from typing import (Any, Callable, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
 import numpy as np
@@ -44,11 +44,14 @@ class SerializingArg:
             returns this value (i.e. `lambda x: default_value`)
         required: Whether this argument is a required argument for the
             serialized form.
+        default: default value.  avoid serializing if this is the value.
+            Note that the DeserializingArg must also have this as default.
     """
     serialized_name: str
     serialized_type: Type[arg_func_langs.ARG_LIKE]
     op_getter: Union[str, Callable[['cirq.Operation'], arg_func_langs.ARG_LIKE]]
     required: bool = True
+    default: Any = None
 
 
 class GateOpSerializer:
@@ -121,7 +124,7 @@ class GateOpSerializer:
             msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
         for arg in self.args:
             value = self._value_from_gate(op, arg)
-            if value is not None:
+            if value is not None and (not arg.default or value != arg.default):
                 _arg_to_proto(value,
                               out=msg.args[arg.serialized_name],
                               arg_function_language=arg_function_language)
@@ -156,16 +159,16 @@ class GateOpSerializer:
 
     def _check_type(self, value: arg_func_langs.ARG_LIKE,
                     arg: SerializingArg) -> None:
-        if arg.serialized_type == List[bool]:
-            if (not isinstance(value, (list, tuple, np.ndarray)) or
-                    not all(isinstance(x, (bool, np.bool_)) for x in value)):
-                raise ValueError('Expected type List[bool] but was {}'.format(
-                    type(value)))
-        elif arg.serialized_type == float:
+        if arg.serialized_type == float:
             if not isinstance(value, (float, int)):
                 raise ValueError(
                     'Expected type convertible to float but was {}'.format(
                         type(value)))
+        elif arg.serialized_type == List[bool]:
+            if (not isinstance(value, (list, tuple, np.ndarray)) or
+                    not all(isinstance(x, (bool, np.bool_)) for x in value)):
+                raise ValueError('Expected type List[bool] but was {}'.format(
+                    type(value)))
         elif value is not None and not isinstance(value, arg.serialized_type):
             raise ValueError(
                 'Argument {} had type {} but gate returned type {}'.format(

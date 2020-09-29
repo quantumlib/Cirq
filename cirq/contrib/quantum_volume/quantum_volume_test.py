@@ -65,7 +65,7 @@ def test_sample_heavy_set():
 
     sampler = Mock(spec=cirq.Simulator)
     # Construct a result that returns "1", "2", "3", "0"
-    result = cirq.TrialResult.from_single_parameter_set(
+    result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={'mock': np.array([[0, 1], [1, 0], [1, 1], [0, 0]])})
     sampler.run = MagicMock(return_value=result)
@@ -89,7 +89,7 @@ def test_sample_heavy_set_with_parity():
     # bitstring "10" is valid and heavy. The second "01" is valid and not
     # heavy. The third and fourth bitstrings "11" and "00" are not valid and
     # dropped.
-    result = cirq.TrialResult.from_single_parameter_set(
+    result = cirq.Result.from_single_parameter_set(
         params=cirq.ParamResolver({}),
         measurements={
             '0': np.array([[1], [0]]),

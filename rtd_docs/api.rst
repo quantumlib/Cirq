@@ -270,6 +270,7 @@ results.
     cirq.PauliSumCollector
     cirq.Points
     cirq.Product
+    cirq.Result
     cirq.Sampler
     cirq.SimulatesAmplitudes
     cirq.SimulatesFinalState
@@ -286,7 +287,6 @@ results.
     cirq.StepResult
     cirq.Sweep
     cirq.Sweepable
-    cirq.TrialResult
     cirq.UnitSweep
     cirq.ZerosSampler
     cirq.Zip
@@ -671,6 +671,7 @@ Algebra and Representation
     cirq.match_global_phase
     cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
+    cirq.num_cnots_required
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
     cirq.reflection_matrix_pow
@@ -679,6 +680,7 @@ Algebra and Representation
     cirq.sub_state_vector
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.to_special
     cirq.unitary_eig
     cirq.AxisAngleDecomposition
     cirq.Duration
@@ -748,6 +750,7 @@ These objects and methods will be removed in a future version of the library.
     cirq.validate_normalized_state
     cirq.wavefunction_partial_trace_as_mixture
     cirq.SimulatesIntermediateWaveFunction
+    cirq.TrialResult
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult

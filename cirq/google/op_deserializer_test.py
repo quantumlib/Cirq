@@ -362,3 +362,30 @@ def test_from_proto_required_arg_not_assigned():
     })
     with pytest.raises(ValueError):
         deserializer.from_proto(serialized)
+
+
+def test_defaults():
+    deserializer = cg.GateOpDeserializer(
+        serialized_gate_id='my_gate',
+        gate_constructor=GateWithAttribute,
+        args=[
+            cg.DeserializingArg(serialized_name='my_val',
+                                constructor_arg_name='val',
+                                default=1.0),
+            cg.DeserializingArg(serialized_name='not_req',
+                                constructor_arg_name='not_req',
+                                default='hello',
+                                required=False)
+        ])
+    serialized = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {},
+        'qubits': [{
+            'id': '1_2'
+        }]
+    })
+    g = GateWithAttribute(1.0)
+    g.not_req = 'hello'
+    assert deserializer.from_proto(serialized) == g(cirq.GridQubit(1, 2))
