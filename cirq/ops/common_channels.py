@@ -199,7 +199,6 @@ def asymmetric_depolarize(
         p_z: Optional[float] = None,
         error_probabilities: Optional[Dict[str, float]] = None,
         tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
-                          tol: float = 1e-8) -> AsymmetricDepolarizingChannel:
     r"""Returns a AsymmetricDepolarizingChannel with given parameter.
 
         This channel applies one of 4**n disjoint possibilities: nothing (the
