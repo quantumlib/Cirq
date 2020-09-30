@@ -33,7 +33,9 @@ def test_bad_args():
 def create_circuit_and_device():
     num_qubits = 6
     gate_domain = {cirq.ops.CNOT: 2}
-    circuit = cirq.testing.random_circuit(num_qubits, 15, 0.5, gate_domain, random_state=37)
+    circuit = cirq.testing.random_circuit(
+        num_qubits, 15, 0.5, gate_domain, random_state=37
+    )
     device_graph = ccr.get_linear_device_graph(num_qubits)
     return circuit, device_graph
 
