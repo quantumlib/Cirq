@@ -101,11 +101,11 @@ def autodoc_skip_member(
 def autodoc_process(app, what: str, name: str, obj: Any, options,
                     lines: List[str]) -> None:
     # Try to lookup in documented dictionary.
-    found = _doc.RECORDED_CONST_DOCS.get(id(obj))
-    if name.startswith('cirq') and found is not None:
+    doc_string = _doc.RECORDED_CONST_DOCS.get(id(obj))
+    if name.startswith('cirq') and doc_string is not None:
         # Override docstring if requested.
-        if found.doc_string is not None:
-            new_doc_string = inspect.cleandoc(found.doc_string)
+        if doc_string is not None:
+            new_doc_string = inspect.cleandoc(doc_string)
             lines[:] = new_doc_string.split('\n')
     elif not (getattr(obj, '__module__', 'cirq') or '').startswith('cirq'):
         # Don't convert objects from other modules.

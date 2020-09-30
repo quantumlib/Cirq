@@ -240,3 +240,24 @@ def test_trace_distance():
 
 def test_str():
     assert str(cirq.X.with_probability(0.5)) == 'X[prob=0.5]'
+
+
+def test_stabilizer_supports_probability():
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit(cirq.X(q).with_probability(0.5), cirq.measure(q, key='m'))
+    m = np.sum(cirq.StabilizerSampler().sample(c, repetitions=100)['m'])
+    assert 5 < m < 95
+
+
+def test_unsupported_stabilizer_safety():
+    with pytest.raises(TypeError, match="act_on"):
+        for _ in range(100):
+            cirq.act_on(cirq.X.with_probability(0.5), object())
+    with pytest.raises(TypeError, match="act_on"):
+        cirq.act_on(cirq.X.with_probability(sympy.Symbol('x')), object())
+
+    q = cirq.LineQubit(0)
+    c = cirq.Circuit((cirq.X(q)**0.25).with_probability(0.5),
+                     cirq.measure(q, key='m'))
+    with pytest.raises(TypeError, match='Failed to act'):
+        cirq.StabilizerSampler().sample(c, repetitions=100)
