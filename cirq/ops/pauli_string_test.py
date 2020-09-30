@@ -307,6 +307,9 @@ def test_repr():
     cirq.testing.assert_equivalent_repr(2 * pauli_string)
     cirq.testing.assert_equivalent_repr(cirq.PauliString())
 
+    ps = cirq.PauliString({q2: cirq.X})
+    cirq.testing.assert_equivalent_repr(ps)
+
 
 def test_str():
     q0, q1, q2 = _make_qubits(3)
