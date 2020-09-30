@@ -68,6 +68,7 @@ def _assert_consistent_resolution(v, resolved, subs_called=False):
     Raises:
         AssertionError in case resolution assertion fail.
     """
+
     class SubsAwareSymbol(sympy.Symbol):
         """A Symbol that registers a call to its `subs` method."""
 

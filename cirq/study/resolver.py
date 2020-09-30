@@ -196,8 +196,7 @@ class ParamResolver:
 
 
 def _sympy_pass_through(val: Any) -> Optional[Any]:
-    if isinstance(val,
-                  numbers.Number) and not isinstance(val, sympy.Basic):
+    if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
     if isinstance(val, sympy.core.numbers.IntegerConstant):
         return val.p
