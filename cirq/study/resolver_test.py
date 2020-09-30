@@ -67,21 +67,25 @@ def _assert_consistent_resolution(v, resolved, subs_called=False):
             return self.symbol.subs(*args, **kwargs)
 
     r = cirq.ParamResolver({'a': v})
+
+    # symbol based resolution
     s = SubsAwareSymbol('a')
-    assert r.value_of(
-        s) == resolved, f"expected {resolved}, got {r.value_of(s)}"
+    assert r.value_of(s) == resolved, (f"expected {resolved}, "
+                                       f"got {r.value_of(s)}")
     assert subs_called == s.called, (
         f"For pass-through type "
         f"{type(v)} sympy.subs shouldn't have been called.")
     assert isinstance(r.value_of(s),
                       type(resolved)), (f"expected {type(resolved)} "
                                         f"got {type(r.value_of(s))}")
-    # string based resolution
+
+    # string based resolution (which in turn uses symbol based resolution)
     assert r.value_of('a') == resolved, (f"expected {resolved}, "
                                          f"got {r.value_of('a')}")
     assert isinstance(r.value_of('a'),
                       type(resolved)), (f"expected {type(resolved)} "
                                         f"got {type(r.value_of('a'))}")
+
     # value based resolution
     assert r.value_of(v) == resolved, (f"expected {resolved}, "
                                        f"got {r.value_of(v)}")
