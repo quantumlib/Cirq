@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Defines trial results."""
 
 from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
@@ -23,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import proper_repr
+from cirq._compat import deprecated, proper_repr
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -70,7 +69,7 @@ def _key_to_str(key: TMeasurementKey) -> str:
     return ','.join(str(q) for q in key)
 
 
-class TrialResult:
+class Result:
     """The results of multiple executions of a circuit with fixed parameters.
     Stored as a Pandas DataFrame that can be accessed through the "data"
     attribute. The repetition number is the row index and measurement keys
@@ -121,8 +120,8 @@ class TrialResult:
     def from_single_parameter_set(
             *,  # Forces keyword args.
             params: resolver.ParamResolver,
-            measurements: Dict[str, np.ndarray]) -> 'TrialResult':
-        """Packages runs of a single parameterized circuit into a TrialResult.
+            measurements: Dict[str, np.ndarray]) -> 'Result':
+        """Packages runs of a single parameterized circuit into a Result.
 
         Args:
             params: A ParamResolver of settings used for this result.
@@ -132,7 +131,7 @@ class TrialResult:
                 second index running over the qubits for the corresponding
                 measurements.
         """
-        return TrialResult(params=params, measurements=measurements)
+        return Result(params=params, measurements=measurements)
 
     @property
     def measurements(self) -> Dict[str, np.ndarray]:
@@ -261,14 +260,14 @@ class TrialResult:
             '{' + ', '.join([item_repr(e) for e in self.measurements.items()]) +
             '}')
 
-        return (f'cirq.TrialResult(params={self.params!r}, '
+        return (f'cirq.Result(params={self.params!r}, '
                 f'measurements={measurement_dict_repr})')
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Output to show in ipython and Jupyter notebooks."""
         if cycle:
             # There should never be a cycle.  This is just in case.
-            p.text('TrialResult(...)')
+            p.text('Result(...)')
         else:
             p.text(str(self))
 
@@ -285,7 +284,7 @@ class TrialResult:
             k: v.shape[1] for k, v in self.measurements.items()
         }
 
-    def __add__(self, other: 'cirq.TrialResult') -> 'cirq.TrialResult':
+    def __add__(self, other: 'cirq.Result') -> 'cirq.Result':
         if not isinstance(other, type(self)):
             return NotImplemented
         if self._measurement_shape() != other._measurement_shape():
@@ -297,7 +296,7 @@ class TrialResult:
             all_measurements[key] = np.append(self.measurements[key],
                                               other.measurements[key],
                                               axis=0)
-        return TrialResult(params=self.params, measurements=all_measurements)
+        return Result(params=self.params, measurements=all_measurements)
 
     def _json_dict_(self):
         packed_measurements = {}
@@ -322,6 +321,11 @@ class TrialResult:
             measurements={
                 key: _unpack_digits(**val) for key, val in measurements.items()
             })
+
+
+@deprecated(deadline='v0.11', fix='Use cirq.Result instead.')
+class TrialResult(Result):
+    pass
 
 
 def _pack_digits(digits: np.ndarray) -> Tuple[str, bool]:
