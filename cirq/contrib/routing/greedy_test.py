@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import pytest
-from multiprocessing import Process, TimeoutError
+from multiprocessing import Process
 
 import cirq
 import cirq.contrib.routing as ccr
