@@ -776,3 +776,20 @@ def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
         random_one_qubit_gate().on(a),
         random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
     ])
+
+@pytest.mark.parametrize(
+    "U",
+    [
+        _two_qubit_circuit_with_cnots(3).unitary(),
+        # an example where gamma(special(u))=I, so the denominator becomes 0
+        1 / np.sqrt(2) * np.array(
+            [[(1 - 1j) * 2 / np.sqrt(5), 0, 0,
+              (1 - 1j) * 1 / np.sqrt(5)], [0, 0, 1 - 1j, 0], [0, 1 - 1j, 0, 0],
+             [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
+            dtype=np.complex128)
+    ])
+def test_extract_right_diag(U):
+    assert cirq.num_cnots_required(U) == 3
+    diag = cirq.extract_right_diag(U)
+    assert cirq.is_diagonal(diag)
+    assert cirq.num_cnots_required(U @ diag) == 2

@@ -9,8 +9,7 @@ from scipy.linalg import block_diag
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     _cs_to_ops, _middle_multiplexor_to_ops, \
-    _decompose_to_diagonal_and_circuit, _is_three_cnot_two_qubit_unitary, \
-    _to_special, _extract_right_diag, _gamma, _two_qubit_multiplexor_to_circuit, \
+    _decompose_to_diagonal_and_circuit, _two_qubit_multiplexor_to_circuit, \
     three_qubit_unitary_to_operations
 
 
@@ -130,9 +129,10 @@ def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
     random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
                                                         exponent=random())
     one_cz = lambda: [
+        cirq.CZ.on(a, b),
         random_one_qubit_gate().on(a),
         random_one_qubit_gate().on(b),
-        cirq.CZ.on(a, b)
+
     ]
     return cirq.Circuit([
         random_one_qubit_gate().on(a),
@@ -153,74 +153,6 @@ def test_decompose_to_diagonal_and_circuit(V):
         circ.unitary(qubits_that_should_be_present=[b, c]) @ diagonal,
         V,
         atol=1e-14)
-
-
-def test_is_three_cnot_two_qubit_unitary():
-    assert _is_three_cnot_two_qubit_unitary(
-        _two_qubit_circuit_with_cnots(3)._unitary_())
-    assert not _is_three_cnot_two_qubit_unitary(
-        _two_qubit_circuit_with_cnots(2)._unitary_())
-    assert not _is_three_cnot_two_qubit_unitary(
-        _two_qubit_circuit_with_cnots(1)._unitary_())
-    assert not _is_three_cnot_two_qubit_unitary(np.eye(4))
-
-
-def test_to_special():
-    u = cirq.testing.random_unitary(4)
-    su = _to_special(u)
-    assert not cirq.is_special_unitary(u)
-    assert cirq.is_special_unitary(su)
-
-
-@pytest.mark.parametrize(
-    "U",
-    [
-        _two_qubit_circuit_with_cnots(3).unitary(),
-        # an example where gamma(special(u))=I, so the denominator becomes 0
-        1 / np.sqrt(2) * np.array(
-            [[(1 - 1j) * 2 / np.sqrt(5), 0, 0,
-              (1 - 1j) * 1 / np.sqrt(5)], [0, 0, 1 - 1j, 0], [0, 1 - 1j, 0, 0],
-             [-(1 - 1j) * 1 / np.sqrt(5), 0, 0, (1 - 1j) * 2 / np.sqrt(5)]],
-            dtype=np.complex128)
-    ])
-def test_extract_right_diag(U):
-    assert _num_two_qubit_gates_in_two_qubit_unitary(U) == 3
-    diag = _extract_right_diag(U)
-    assert cirq.is_diagonal(diag)
-    assert _num_two_qubit_gates_in_two_qubit_unitary(U @ diag) == 2
-
-
-def _num_two_qubit_gates_in_two_qubit_unitary(U):
-    """
-    See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
-    Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
-    Controlled-Not Gates”. In: Quant-Ph/0308045 (2003)'
-    :param U: a two-qubit unitary
-    :return: the number of two-qubit gates required to implement the unitary
-    """
-    assert np.shape(U) == (4, 4)
-    assert cirq.is_unitary(U)
-    poly = np.poly(_gamma(_to_special(U)))
-    # characteristic polynomial = (x+1)^4 or (x-1)^4
-    if np.allclose(poly, [1, 4, 6, 4, 1]) or np.allclose(
-            poly, [1, -4, 6, -4, 1]):
-        return 0
-    # characteristic polynomial = (x+i)^2 * (x-i)^2
-    if np.allclose(poly, [1, 0, 2, 0, 1]):
-        return 1
-    # characteristic polynomial coefficients are all real
-    if np.alltrue(np.isclose(0, np.imag(poly))):
-        return 2
-    return 3
-
-
-@pytest.mark.parametrize("n", range(4))
-def test_num_two_qubit_gates(n):
-    # sanity check for utility method
-    a, b = cirq.LineQubit.range(2)
-    u = _two_qubit_circuit_with_cnots(
-        n, a, b).unitary(qubits_that_should_be_present=[a, b])
-    assert n == _num_two_qubit_gates_in_two_qubit_unitary(u)
 
 
 @pytest.mark.parametrize("shiftLeft", [True, False])

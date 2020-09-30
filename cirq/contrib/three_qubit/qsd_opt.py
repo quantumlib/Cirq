@@ -4,7 +4,7 @@ import numpy as np
 from scipy.linalg import cossin
 
 import cirq
-from cirq import Circuit, two_qubit_matrix_to_operations
+from cirq import Circuit, two_qubit_matrix_to_operations, linalg
 
 
 def three_qubit_unitary_to_operations(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
@@ -210,86 +210,6 @@ def _middle_multiplexor_to_ops(a, b, c, eigvals):
     ]
     return _optimize_multiplexed_angles_circuit(ops)
 
-
-def _to_special(u):
-    """Converts a unitary matrix to a special unitary operator.
-    All unitary matrix u have |det(u)| = 1.
-    Also for all d dimensional unitary matrix u, and scalar s:
-        det(u * s) = det(u) * s^(d)
-    To find a special unitary matrix from u:
-        u * det(u)^{-1/d}
-
-    Args:
-        u: the unitary matrix
-    Returns:
-         the special unitary matrix
-    """
-    return u * (np.linalg.det(u)**(-1 / len(u)))
-
-
-def _gamma(g):
-    """Gamma function to convert u to the magic basis.
-
-    See Definition IV.1 in Minimal Universal Two-Qubit CNOT-based Circuits.
-    https://arxiv.org/abs/quant-ph/0308033
-
-    Args:
-        g: a member of SU(4)
-    Returns:
-        g @ yy @ g.T @ yy, where yy = Y ⊗ Y
-    """
-    yy = np.kron(cirq.Y._unitary_(), cirq.Y._unitary_())
-    return g @ yy @ g.T @ yy
-
-
-def _extract_right_diag(U):
-    """Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
-
-    Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
-    two CNOT gates.
-
-    See Proposition V.2 in Minimal Universal Two-Qubit CNOT-based Circuits.
-    https://arxiv.org/abs/quant-ph/0308033
-
-    Args:
-        U: three-CNOT two-qubit unitary
-    Returns:
-        diagonal extracted from U
-    """
-    t = _gamma(_to_special(U).T).T.diagonal()
-    k = np.real(t[0] + t[3] - t[1] - t[2])
-
-    if k == 0:
-        # in the end we have to pick a psi that makes sure that
-        # exp(-i*psi) (t[0]+t[3]) + exp(i*psi) (t[1]+t[2]) is real
-        # both pi/2 or 3pi/2 can work
-        psi = np.pi / 2
-    else:
-        psi = np.arctan(np.imag(np.sum(t)) / k)
-
-    a, b = cirq.LineQubit.range(2)
-    c_d = cirq.Circuit([cirq.CNOT(a, b), cirq.rz(psi)(b), cirq.CNOT(a, b)])
-    return c_d._unitary_()
-
-
-def _is_three_cnot_two_qubit_unitary(U):
-    """Returns true if U requires 3 CNOT/CZ gates.
-
-    See Proposition III.1, III.2, III.3 in Shende et al. “Recognizing Small-
-    Circuit Structure in Two-Qubit Operators and Timing Hamiltonians to Compute
-    Controlled-Not Gates”. In: Quant-Ph/0308045 (2003)'
-    Args:
-        U: a two-qubit unitary
-    Returns:
-        True if U requires 3 CNOT/CZ gates.
-    """
-    assert np.shape(U) == (4, 4)
-    assert cirq.is_unitary(U)
-
-    poly = np.poly(_gamma(_to_special(U)))
-    return not np.alltrue(np.isclose(0, np.imag(poly)))
-
-
 def _multiplexed_angles(theta):
     """Calculates the angles for a 4-way multiplexed rotation.
 
@@ -330,8 +250,8 @@ def _decompose_to_diagonal_and_circuit(b, c, V):
     if cirq.is_diagonal(V, atol=1e-15):
         circuit = cirq.Circuit([])
         d = V
-    elif _is_three_cnot_two_qubit_unitary(V):
-        right_diag = _extract_right_diag(V)
+    elif linalg.num_cnots_required(V) == 3:
+        right_diag = linalg.extract_right_diag(V)
         # two-CNOT unitary
         two_CNOT = V @ right_diag
         # thus, we can see that two_CNOT @ d = V

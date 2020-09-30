@@ -124,6 +124,7 @@ from cirq.linalg import (
     diagonalize_real_symmetric_matrix,
     dot,
     expand_matrix_in_orthogonal_basis,
+    extract_right_diag,
     hilbert_schmidt_inner_product,
     is_diagonal,
     is_hermitian,
