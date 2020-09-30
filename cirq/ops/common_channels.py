@@ -308,6 +308,16 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
             return f"depolarize(p={self._p})"
         return f"depolarize(p={self._p},n_qubits={self._n_qubits})"
 
+    def _act_on_(self, args: Any) -> bool:
+        from cirq.sim import clifford
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if args.prng.random() < self._p:
+                gate = args.prng.choice(
+                    [pauli_gates.X, pauli_gates.Y, pauli_gates.Z])
+                protocols.act_on(gate, args)
+            return True
+        return NotImplemented
+
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         if args.precision is not None:

@@ -1,3 +1,4 @@
+
 API Reference
 =============
 
@@ -280,6 +281,7 @@ results.
     cirq.SimulationTrialResult
     cirq.Simulator
     cirq.SparseSimulatorStep
+    cirq.StabilizerSampler
     cirq.StateVectorMixin
     cirq.StateVectorSimulatorState
     cirq.StateVectorStepResult

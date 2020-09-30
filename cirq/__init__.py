@@ -365,6 +365,7 @@ from cirq.sim import (
     SimulationTrialResult,
     Simulator,
     SparseSimulatorStep,
+    StabilizerSampler,
     StateVectorMixin,
     StateVectorSimulatorState,
     StateVectorStepResult,
