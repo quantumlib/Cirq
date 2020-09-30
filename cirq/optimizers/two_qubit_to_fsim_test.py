@@ -91,7 +91,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates(
                           atol=1e-6)
 
 
-def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate_via_b():
+def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_validate():
     iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
     with pytest.raises(ValueError, match='fsim_gate.theta'):
         cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
@@ -104,7 +104,7 @@ def test_decompose_two_qubit_interaction_into_four_fsim_gates_validate_via_b():
             np.eye(4), fsim_gate=iswap, qubits=cirq.LineQubit.range(3))
 
 
-def test_decompose_two_qubit_interaction_into_four_fsim_gates_qubits_via_b():
+def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b_qubits():
     iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
 
     # Defaults to line qubits.
