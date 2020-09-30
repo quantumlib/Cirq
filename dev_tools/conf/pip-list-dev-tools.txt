@@ -38,7 +38,7 @@ ipython
 ipykernel
 
 # For google notebooks
-google-colab
+# google-colab
 
 # For verifying rst
 rstcheck~=3.3.1
