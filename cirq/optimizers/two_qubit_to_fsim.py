@@ -169,8 +169,8 @@ class _BGate(ops.Gate):
     def _decompose_(self, qubits):
         a, b = qubits
         return [
-            ops.XX(a, b)**0.5,
-            ops.YY(a, b)**0.25,
+            ops.XX(a, b)**-0.5,
+            ops.YY(a, b)**-0.25,
         ]
 
 
@@ -231,9 +231,9 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
         b2 = np.arcsin(np.sqrt(b1))
         b3 = np.arccos(1 - 4 * r)
         rb = [
-            ops.rz(b2).on(b),
-            ops.ry(b3).on(b),
-            ops.rz(b2).on(b),
+            ops.rz(-b2).on(b),
+            ops.ry(-b3).on(b),
+            ops.rz(-b2).on(b),
         ]
     s = 1 if z < 0 else -1
     return [
