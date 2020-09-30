@@ -13,6 +13,7 @@
 # limitations under the License.
 
 from multiprocessing import Process
+
 import pytest
 
 import cirq
@@ -21,6 +22,7 @@ from cirq.contrib.routing.greedy import route_circuit_greedily
 
 
 def test_bad_args():
+    """Test zero valued arguments in greedy router."""
     circuit = cirq.testing.random_circuit(4, 2, 0.5, random_state=5)
     device_graph = ccr.get_grid_device_graph(3, 2)
     with pytest.raises(ValueError):
@@ -31,6 +33,9 @@ def test_bad_args():
 
 
 def create_circuit_and_device():
+    """Construct a small circuit and a device with line connectivity
+    to test the greedy router. This instance hangs router in Cirq 8.2.
+    """
     num_qubits = 6
     gate_domain = {cirq.ops.CNOT: 2}
     circuit = cirq.testing.random_circuit(
@@ -41,10 +46,12 @@ def create_circuit_and_device():
 
 
 def create_hanging_routing_instance(circuit, device_graph):
+    """Create a test problem instance."""
     route_circuit_greedily(circuit, device_graph, max_search_radius=2, random_state=1)
 
 
 def test_router_hanging():
+    """Run a separate process and check if greedy router hits timeout (1s)."""
     circuit, device_graph = create_circuit_and_device()
     process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
     process.start()
