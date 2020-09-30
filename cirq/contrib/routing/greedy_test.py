@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pytest
 from multiprocessing import Process
+import pytest
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -46,10 +46,10 @@ def create_hanging_routing_instance(circuit, device_graph):
 
 def test_router_hanging():
     circuit, device_graph = create_circuit_and_device()
-    p = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
-    p.start()
-    p.join(timeout=1)
-    alive = p.is_alive()
+    process = Process(target=create_hanging_routing_instance, args=[circuit, device_graph])
+    process.start()
+    process.join(timeout=1)
+    alive = process.is_alive()
     if alive:
-        p.terminate()
+        process.terminate()
     assert not alive, "Greedy router timeout"
