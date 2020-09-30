@@ -90,20 +90,8 @@ class ParamResolver:
             The value of the parameter as resolved by this resolver.
         """
 
-        def pass_through(val) -> Optional[Any]:
-            if isinstance(val,
-                          numbers.Number) and not isinstance(val, sympy.Basic):
-                return val
-            if isinstance(val, sympy.core.numbers.IntegerConstant):
-                return val.p
-            if isinstance(val, sympy.core.numbers.RationalConstant):
-                return val.p / val.q
-            if val == sympy.pi:
-                return np.pi
-            return None
-
         # Input is a pass through type, no resolution needed: return early
-        v = pass_through(value)
+        v = _sympy_pass_through(value)
         if v is not None:
             return v
 
@@ -113,7 +101,7 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            v = pass_through(param_value)
+            v = _sympy_pass_through(param_value)
             if v is not None:
                 return v
 
@@ -128,7 +116,7 @@ class ParamResolver:
         # in the dictionary ({'a': 1.0}).  Return it.
         if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
-            v = pass_through(param_value)
+            v = _sympy_pass_through(param_value)
             if v is not None:
                 return v
 
@@ -148,7 +136,6 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             return np.power(self.value_of(value.args[0]),
                             self.value_of(value.args[1]))
-
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.
@@ -206,3 +193,16 @@ class ParamResolver:
     @classmethod
     def _from_json_dict_(cls, param_dict, **kwargs):
         return cls(dict(param_dict))
+
+
+def _sympy_pass_through(val: Any) -> Optional[Any]:
+    if isinstance(val,
+                  numbers.Number) and not isinstance(val, sympy.Basic):
+        return val
+    if isinstance(val, sympy.core.numbers.IntegerConstant):
+        return val.p
+    if isinstance(val, sympy.core.numbers.RationalConstant):
+        return val.p / val.q
+    if val == sympy.pi:
+        return np.pi
+    return None

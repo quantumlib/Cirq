@@ -53,8 +53,23 @@ def test_value_of_substituted_types(val, resolved):
 
 
 def _assert_consistent_resolution(v, resolved, subs_called=False):
+    """Asserts that parameter resolution works consistently.
 
+    The ParamResolver.value_of method can resolve any Sympy expression - subclasses of sympy.Basic. In the generic case,
+    it calls `sympy.Basic.subs` to substitute symbols with values specified in a dict, which is known to be very slow.
+    Instead value_of defines a pass-through shortcut for known numeric types.
+    For a given value `v` it is asserted that value_of resolves it to `resolved`, with the exact type of `resolved`.
+    `subs_called` indicates whether it is expected to have `subs` called or not during the resolution.
+
+    Args:
+        v: the value to resolve
+        resolved: the expected resolution result
+        subs_called: if True, it is expected that the slow subs method is called
+    Raises:
+        AssertionError in case resolution assertion fail.
+    """
     class SubsAwareSymbol(sympy.Symbol):
+        """A Symbol that registers a call to its `subs` method."""
 
         def __init__(self, sym: str):
             self.called = False
