@@ -228,7 +228,7 @@ def make_order_finding_circuit(x: int, n: int) -> cirq.Circuit:
     )
 
 
-def read_eigenphase(result: cirq.TrialResult) -> float:
+def read_eigenphase(result: cirq.Result) -> float:
     """Interprets the output of the order finding circuit.
 
     Specifically, it returns s/r such that exp(2πis/r) is an eigenvalue
