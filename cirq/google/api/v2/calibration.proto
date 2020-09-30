@@ -41,13 +41,13 @@ message CalibrationLayer {
 }
 
 // The results returned by a FocusedCalibration request.
-message FocusedCalibrationResults {
+message FocusedCalibrationResult {
 
      // The results of each CalibrationLayer request.
      // There will be one CalibrationLayerResults message for each
      // CalibrationLayer in the request, and the results will
      // correspond to the order of the requests.
-     repeated CalibrationLayerResults results = 1;
+     repeated CalibrationLayerResult results = 1;
 }
 
 // Response codes for Calibration requests
@@ -77,7 +77,7 @@ enum CalibrationLayerCode {
 }
 
 
-message CalibrationLayerResults {
+message CalibrationLayerResult {
      // Whether the calibration procedure was a success or failure.
      CalibrationLayerCode code = 1;
 
