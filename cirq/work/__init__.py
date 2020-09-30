@@ -11,6 +11,10 @@ from cirq.work.observable_settings import (
 )
 from cirq.work.observable_grouping import (
     group_settings_greedy,)
+from cirq.work.observable_measurement_data import (
+    ObservableMeasuredResult,
+    BitstringAccumulator,
+)
 from cirq.work.sampler import (
     Sampler,)
 from cirq.work.zeros_sampler import (

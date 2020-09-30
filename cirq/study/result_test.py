@@ -19,6 +19,7 @@ import pytest
 import pandas as pd
 
 import cirq
+from cirq.study.trial_result import _pack_digits
 
 
 def test_repr():
@@ -303,6 +304,11 @@ def test_json_bit_packing_and_dtype():
     assert loaded_bits_result.measurements['m'].dtype == np.uint8
     assert loaded_digits_result.measurements['m'].dtype == np.uint8
     np.testing.assert_allclose(len(bits_json), len(digits_json) / 8, rtol=0.02)
+
+
+def test_json_bit_packing_error():
+    with pytest.raises(ValueError):
+        _pack_digits(np.ones(10), pack_bits='hi mom')
 
 
 def test_deprecation_log():
