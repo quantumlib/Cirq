@@ -8,7 +8,7 @@ pytest-benchmark~=3.2.0
 yapf~=0.27.0
 
 # For generating protobufs
-grpcio-tools~=1.26.0
+grpcio-tools~=1.24.0
 mypy-protobuf==1.10
 
 # For uploading packages to pypi.
@@ -25,10 +25,6 @@ pypandoc
 myst-parser
 Sphinx~=3.2.0
 
-# have to pin otherwise RTD fails
-# see https://github.com/readthedocs/readthedocs.org/issues/7492
-Pygments==2.6.1
-
 sphinx_rtd_theme
 sphinx-markdown-tables
 
@@ -36,9 +32,6 @@ sphinx-markdown-tables
 nbsphinx
 ipython
 ipykernel
-
-# For google notebooks
-# google-colab
 
 # For verifying rst
 rstcheck~=3.3.1
