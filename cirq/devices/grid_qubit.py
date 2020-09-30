@@ -275,6 +275,26 @@ class GridQubit(_BaseGridQid):
         cirq.GridQubit(5, 4)
     """
 
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col)
+        self._hash = super().__hash__()
+
+    def __hash__(self):
+        # Explicitly cached for performance (vs delegating to Qid).
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row == other.row and self.col == other.col
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row != other.row or self.col != other.col
+        return NotImplemented
+
     @property
     def dimension(self) -> int:
         return 2
