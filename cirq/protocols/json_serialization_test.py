@@ -197,11 +197,14 @@ SHOULDNT_BE_SERIALIZED = [
 
     # utility:
     'AnnealSequenceSearchStrategy',
+    'CliffordSimulator',
     'DeserializingArg',
     'GateOpDeserializer',
     'GateOpSerializer',
     'GreedySequenceSearchStrategy',
     'SerializingArg',
+    'Simulator',
+    'StabilizerSampler',
     'Unique',
     'DEFAULT_RESOLVERS',
 
@@ -278,7 +281,6 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
-    'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
     'CliffordTrialResult',
@@ -317,7 +319,6 @@ NOT_YET_SERIALIZABLE = [
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
-    'Simulator',
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
