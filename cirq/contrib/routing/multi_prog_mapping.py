@@ -3,6 +3,7 @@
 import networkx as nx
 import numpy as np
 import math
+import copy
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -93,12 +94,12 @@ class Hierarchy_tree:
 
 
   def tree_construction(self):
-    tree = nx.Graph()
+    tree = nx.DiGraph()
     label = 0
     communities = []
-    for n in list(self.device_graph.nodes):
+    #for n in list(self.device_graph.nodes):
       #tree.add_node(n)   #(label, data = [n])
-      label = label + 1
+      #label = label + 1
 
     communities = [[i] for i in list(self.device_graph.nodes)]
     Qvalues = [0.0] * len(communities)
@@ -113,29 +114,61 @@ class Hierarchy_tree:
       #tree[tuple(new_node_idx)] = new_node
       new_node = tuple(new_node_list)
       #tree.add_node(new_node) #(label , data = new_node_idx)
-      tree.add_edge(tuple(communities[idx1]), new_node)
-      tree.add_edge(tuple(communities[idx2]), new_node)
-      label = label + 1
-
+      tree.add_edge( new_node, tuple(communities[idx1]) )
+      tree.add_edge( new_node, tuple(communities[idx2]) )
+      
       communities.pop(idx1)
       communities.pop(idx2)
       Qvalues.pop(idx1)
       Qvalues.pop(idx2)
       communities.append(new_node_list)
       Qvalues.append(Qmerged)
-  
+    
     return tree
+
+class Qubits_partitioning:
+  def __init__(self, tree, program_circuits):
+    self.tree = tree
+    self.program_circuits = program_circuits
+
+  def circuits_descending(self):
+    cnot_density = []
+    for circuit in self.program_circuits:
+      density = len(list(circuit.findall_operations(lambda op: op.gate == cirq.CZ))) / float(len(circuit.all_qubits()))
+      cnot_density.append(density)
+    # computing indices regarding descending order of cnot densities
+    idxs = np.argsort(cnot_density)
+    idxs_descending = np.flip(idxs)
+    
+    # reorder list of program_circuits
+    circuits_temp = copy.deepcopy(self.program_circuits)
+    self.program_circuits.clear()
+    for id in idxs_descending:
+      self.program_circuits.append(circuits_temp[id])
+
+  def qubits_allocation(self):
+    self.circuits_descending()
+
+    leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
+    print(leaves)
+    candidates = []
+    
+
+  
 
 
 ############################################################    
 
-def multi_prog_map( device_graph, single_er, two_er ):
+def multi_prog_map( device_graph, single_er, two_er, prog_circuits ):
   treeObj = Hierarchy_tree( device_graph, single_er, two_er )
   tree = treeObj.tree_construction()
 
   print(len(tree.nodes))
   print(tree.nodes)
-  #parObj = Qubit_partitioning(tree, [circuits.Circuit])
+
+  print((list(tree.nodes)[1]))
+  parObj = Qubits_partitioning(tree, prog_circuits)
+  parObj.qubits_allocation()
   #parObj.reorder_program_circuits()
 
 def prepare_couplingGraph_errorValues( device_graph ):
@@ -159,17 +192,22 @@ def prepare_couplingGraph_errorValues( device_graph ):
     (cirq.GridQubit(0,2), cirq.GridQubit(1,2)): [0.03571298178797366]
   }
  
-
-  # qubits = list(device_graph.qubits)
-  # qubits_count = len(qubits)
-  # cgMatrix = np.zeros( (qubits_count, qubits_count) )
-
+  # coupling graph
   dgraph = nx.Graph()
 
   for q0, q1 in two_er: # .items() 
     dgraph.add_edge(q0, q1)
 
-  multi_prog_map(dgraph, single_er, two_er)
+  # list of program circuits
+  qubits1 = cirq.LineQubit.range(3)
+  circuit1 = cirq.Circuit(cirq.X(qubits1[0]), cirq.Y(qubits1[1]), cirq.CZ(qubits1[0], qubits1[1]), cirq.CZ(qubits1[1], qubits1[2]), cirq.measure(*qubits1))
+  qubits2 = cirq.LineQubit.range(3)
+  circuit2 = cirq.Circuit(cirq.X(qubits2[0]), cirq.Y(qubits2[1]), cirq.CZ(qubits2[0], qubits2[1]) )
+  program_circuits = []
+  program_circuits.append(circuit2)
+  program_circuits.append(circuit1)
+
+  multi_prog_map(dgraph, single_er, two_er, program_circuits)
   
 
 
