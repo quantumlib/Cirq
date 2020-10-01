@@ -17,6 +17,7 @@ import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
+from sympy.core import numbers as sympy_numbers
 from cirq._compat import proper_repr
 from cirq._doc import document
 
@@ -198,9 +199,9 @@ class ParamResolver:
 def _sympy_pass_through(val: Any) -> Optional[Any]:
     if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
         return val
-    if isinstance(val, sympy.core.numbers.IntegerConstant):
+    if isinstance(val, sympy_numbers.IntegerConstant):
         return val.p
-    if isinstance(val, sympy.core.numbers.RationalConstant):
+    if isinstance(val, sympy_numbers.RationalConstant):
         return val.p / val.q
     if val == sympy.pi:
         return np.pi
