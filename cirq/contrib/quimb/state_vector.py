@@ -7,7 +7,16 @@ import quimb.tensor as qtn
 
 import cirq
 
-QUIMB_VERSION = tuple(int(x) for x in quimb.__version__.split('.'))
+
+def _get_quimb_version():
+    version = quimb.__version__
+    try:
+        return tuple(int(x) for x in version.split('.')), version
+    except:
+        return (0, 0), version
+
+
+QUIMB_VERSION = _get_quimb_version()
 
 
 def circuit_to_tensors(circuit: cirq.Circuit,
@@ -150,9 +159,10 @@ def tensor_expectation_value(circuit: cirq.Circuit,
                    tags={'Q0', 'bra0'}) for q in qubits
     ]
     tn = qtn.TensorNetwork(tensors + end_bras)
-    if QUIMB_VERSION < (1, 3):
+    if QUIMB_VERSION[0] < (1, 3):
         # coverage: ignore
-        warnings.warn('Please use quimb>=1.3 for optimal performance in '
+        warnings.warn(f'quimb version {QUIMB_VERSION[1]} detected. Please use '
+                      f'quimb>=1.3 for optimal performance in '
                       '`tensor_expectation_value`. '
                       'See https://github.com/quantumlib/Cirq/issues/3263')
     else:
