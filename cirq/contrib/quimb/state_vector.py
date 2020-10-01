@@ -8,6 +8,7 @@ import quimb.tensor as qtn
 import cirq
 
 
+# coverage: ignore
 def _get_quimb_version():
     version = quimb.__version__
     try:
