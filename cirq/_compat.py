@@ -15,7 +15,7 @@
 """Workarounds for compatibility issues between versions and libraries."""
 import functools
 import warnings
-from typing import Any, Callable, Optional, Dict, Tuple
+from typing import Any, Callable, Optional, Dict, Tuple, Type
 from types import ModuleType
 
 import numpy as np
@@ -118,6 +118,47 @@ def deprecated(*, deadline: str, fix: str,
             f'{decorated_func.__doc__ or ""}')
 
         return decorated_func
+
+    return decorator
+
+
+def deprecated_class(*, deadline: str, fix: str,
+                     name: Optional[str] = None) -> Callable[[Type], Type]:
+    """Marks a class as deprecated.
+
+    Args:
+        deadline: The version where the function will be deleted (e.g. "v0.7").
+        fix: A complete sentence describing what the user should be using
+            instead of this particular function (e.g. "Use cos instead.")
+        name: How to refer to the class.
+            Defaults to `class.__qualname__`.
+
+    Returns:
+        A decorator that decorates classes with a deprecation warning.
+    """
+
+    def decorator(clazz: Type) -> Type:
+        clazz_new = clazz.__new__
+
+        def patched_new(cls, *args, **kwargs):
+            qualname = (clazz.__qualname__ if name is None else name)
+            print(f"HELLO {qualname}")
+            warnings.warn(
+                f'{qualname} was used but is deprecated.\n'
+                f'It will be removed in cirq {deadline}.\n'
+                f'{fix}\n',
+                DeprecationWarning,
+                stacklevel=2)
+
+            return clazz_new(cls)
+
+        setattr(clazz, '__new__', patched_new)
+        clazz.__doc__ = (f'THIS CLASS IS DEPRECATED.\n\n'
+                         f'IT WILL BE REMOVED IN `cirq {deadline}`.\n\n'
+                         f'{fix}\n\n'
+                         f'{clazz.__doc__ or ""}')
+
+        return clazz
 
     return decorator
 

@@ -160,6 +160,7 @@ class _ResolverCache:
                 'TaggedOperation': cirq.TaggedOperation,
                 'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'Result': cirq.Result,
+                'TrialResult': cirq.TrialResult,
                 'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,
                 'TwoQubitDiagonalGate': cirq.TwoQubitDiagonalGate,
