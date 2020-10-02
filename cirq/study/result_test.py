@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import collections
+
 import numpy as np
 import pytest
 import pandas as pd
@@ -307,3 +308,34 @@ def test_json_bit_packing_and_dtype():
 def test_deprecation_log():
     with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
         cirq.TrialResult(params=cirq.ParamResolver({}), measurements={})
+
+
+def test_deprecated_json():
+    with cirq.testing.assert_logs('TrialResult was used but is deprecated'):
+        result = cirq.read_json(json_text="""{
+          "cirq_type": "TrialResult",
+          "params": {
+            "cirq_type": "ParamResolver",
+            "param_dict": []
+          },
+          "measurements": {
+            "0,1": {
+              "packed_digits": "fcc0",
+              "binary": true,
+              "dtype": "uint8",
+              "shape": [
+                5,
+                2
+              ]
+            }
+          }
+        }
+        """)
+
+        assert result == cirq.Result(
+            params=cirq.ParamResolver({}),
+            measurements={
+                '0,1':
+                np.array([[1, 1], [1, 1], [1, 1], [0, 0], [1, 1]],
+                         dtype=np.uint8)
+            })
