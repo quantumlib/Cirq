@@ -142,7 +142,6 @@ def deprecated_class(*, deadline: str, fix: str,
 
         def patched_new(cls, *args, **kwargs):
             qualname = (clazz.__qualname__ if name is None else name)
-            print(f"HELLO {qualname}")
             warnings.warn(
                 f'{qualname} was used but is deprecated.\n'
                 f'It will be removed in cirq {deadline}.\n'
