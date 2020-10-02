@@ -20,7 +20,7 @@ import sympy
 
 import cirq.testing
 from cirq._compat import (proper_repr, deprecated, deprecated_parameter,
-                          proper_eq, wrap_module)
+                          proper_eq, wrap_module, deprecated_class)
 
 
 def test_proper_repr():
@@ -152,3 +152,35 @@ def test_wrap_module():
 
     with cirq.testing.assert_logs(count=0):
         _ = wrapped.bar
+
+
+def test_deprecated_class():
+
+    class NewClass:
+
+        def __init__(self, a):
+            self._a = a
+
+        @property
+        def a(self):
+            return self._a
+
+        def __repr__(self):
+            return f"NewClass: {self.a}"
+
+        @classmethod
+        def hello(cls):
+            return f"hello {cls}"
+
+    @deprecated_class(deadline="deadline", fix="theFix", name="foo")
+    class OldClass(NewClass):
+        """The OldClass docs"""
+
+    assert OldClass.__doc__.startswith("THIS CLASS IS DEPRECATED")
+    assert "OldClass docs" in OldClass.__doc__
+
+    with cirq.testing.assert_logs('foo was used but is deprecated',
+                                  'will be removed in cirq deadline', 'theFix'):
+        old_obj = OldClass("1")
+        assert repr(old_obj) == "NewClass: 1"
+        assert "OldClass" in old_obj.hello()
