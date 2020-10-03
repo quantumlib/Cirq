@@ -94,6 +94,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
+    cirq.Projector
     cirq.QuantumFourierTransformGate
     cirq.QubitPermutationGate
     cirq.RandomGateChannel

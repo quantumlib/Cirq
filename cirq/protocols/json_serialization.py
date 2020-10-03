@@ -146,6 +146,7 @@ class _ResolverCache:
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
                 'PhysicalZTag': cirq.google.PhysicalZTag,
+                'Projector': cirq.Projector,
                 'RandomGateChannel': cirq.RandomGateChannel,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
