@@ -37,7 +37,7 @@ class Projector(raw_types.Gate):
     def _projector_id_(self) -> int:
         return self._projector_id
 
-    def _qid_shape_(self) -> int:
+    def _qid_shape_(self) -> Sequence[int]:
         return self._qid_shape
 
     def _has_unitary_(self) -> bool:
@@ -55,7 +55,8 @@ class Projector(raw_types.Gate):
         return True
 
     def __repr__(self):
-        return (f"cirq.Projector(projector_id={self._projector_id}," + f"qid_shape={self._qid_shape})")
+        return (f"cirq.Projector(projector_id={self._projector_id}," +
+                f"qid_shape={self._qid_shape})")
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
