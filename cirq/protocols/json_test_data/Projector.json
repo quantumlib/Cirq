@@ -1,5 +1,7 @@
 {
   "cirq_type": "Projector",
   "projector_id": 1,
-  "qid_shape": 2
+  "qid_shape": [
+    2
+  ]
 }

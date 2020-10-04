@@ -15,9 +15,9 @@ def test_projector_qubit():
 
 
 def test_projector_qutrit():
-    zero_projector = cirq.Projector(projector_id=0, qid_shape=3)
-    one_projector = cirq.Projector(projector_id=1, qid_shape=3)
-    two_projector = cirq.Projector(projector_id=2, qid_shape=3)
+    zero_projector = cirq.Projector(projector_id=0, qid_shape=[3])
+    one_projector = cirq.Projector(projector_id=1, qid_shape=[3])
+    two_projector = cirq.Projector(projector_id=2, qid_shape=[3])
 
     np.testing.assert_allclose(
         cirq.channel(zero_projector),
