@@ -1,5 +1,4 @@
-
-from typing import Any, Dict, Sequence, TYPE_CHECKING
+from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -37,7 +36,7 @@ class Projector(raw_types.Gate):
     def _projector_id_(self) -> int:
         return self._projector_id
 
-    def _qid_shape_(self) -> Sequence[int]:
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
     def _has_unitary_(self) -> bool:
