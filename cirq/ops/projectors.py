@@ -1,4 +1,4 @@
-from typing import Any, Dict, Sequence, Tuple, TYPE_CHECKING
+from typing import Any, Dict, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 class Projector(raw_types.Gate):
     """A non-unitary gate that projects onto a single qubit."""
 
-    def __init__(self, projector_id: int, qid_shape: Sequence[int] = (2,)):
+    def __init__(self, projector_id: int, qid_shape: Tuple[int, ...] = (2,)):
         """
         Args:
             projector_id: An integer smaller than qid_shape that specifies the
