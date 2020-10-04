@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Dict, TYPE_CHECKING
 
 from cirq import value
 from cirq.ops import raw_types
@@ -55,15 +55,10 @@ class Projector(raw_types.Gate):
     
     def _json_dict_(self) -> Dict[str, Any]:
         return {
+            'cirq_type': self.__class__.__name__,
             'projector_id': self._projector_id,
             'qid_shape': self._qid_shape,
         }
-    
-    @classmethod
-    def _from_json_dict_(cls,
-                         projector_id,
-                         qid_shape):
-        return cls(projector_id=projector_id, qid_shape=qid_shape)
     
     def _value_equality_values_(self) -> Any:
         return self._projector_id, self._qid_shape
