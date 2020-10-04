@@ -28,8 +28,8 @@ class Projector(raw_types.Gate):
         if len(qid_shape) != 1:
             raise ValueError(f"qid_shape must have a single entry.")
         if projector_id >= qid_shape[0]:
-            raise ValueError(
-                f"projector_id {projector_id} must be < qid_shape={qid_shape}")
+            raise ValueError(f"projector_id={projector_id} must be less " +
+                             f"than qid_shape[0]={qid_shape[0]}")
         self._projector_id = projector_id
         self._qid_shape = qid_shape
 
