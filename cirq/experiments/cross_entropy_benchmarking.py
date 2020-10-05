@@ -95,17 +95,17 @@ class CrossEntropyResult:
 
     Attributes:
         data: A sequence of NamedTuples, each of which contains two fields:
-                num_cycle: the circuit depth as the number of cycles, where
-                    a cycle consists of a layer of single-qubit gates followed
-                    by a layer of two-qubit gates.
-                xeb_fidelity: the XEB fidelity after the given cycle number.
+            num_cycle: the circuit depth as the number of cycles, where
+            a cycle consists of a layer of single-qubit gates followed
+            by a layer of two-qubit gates.
+            xeb_fidelity: the XEB fidelity after the given cycle number.
         repetitions: The number of circuit repetitions used.
         purity_data: A sequence of NamedTuples, each of which contains two
             fields:
-                num_cycle: the circuit depth as the number of cycles, where
-                    a cycle consists of a layer of single-qubit gates followed
-                    by a layer of two-qubit gates.
-                purity: the purity after the given cycle number.
+            num_cycle: the circuit depth as the number of cycles, where
+            a cycle consists of a layer of single-qubit gates followed
+            by a layer of two-qubit gates.
+            purity: the purity after the given cycle number.
     """
     data: List[CrossEntropyPair]
     repetitions: int
