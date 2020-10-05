@@ -492,7 +492,8 @@ def _get_xeb_result(qubit_pair: GridQubitPair, circuits: List['cirq.Circuit'],
             _, counts = np.unique(measurements, return_counts=True)
             empirical_probs = counts / len(measurements)
             empirical_probs = np.pad(empirical_probs,
-                                     (0, 4 - len(empirical_probs)))
+                                     (0, 4 - len(empirical_probs)),
+                                     mode='constant')
             all_and_observed_probabilities[depth].append(
                 (probabilities, probabilities[measurements]))
             empirical_probabilities[depth].append(empirical_probs)
