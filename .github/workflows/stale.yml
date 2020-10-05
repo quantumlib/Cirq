@@ -1,5 +1,5 @@
 name: "Close stale issues"
-description: 'Close issues and pull requests with no recent activity'
+description: 'Close issues with no recent activity'
 
 on:
   schedule:
