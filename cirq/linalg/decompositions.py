@@ -24,9 +24,10 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-from cirq import value, protocols, devices
+from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates, transformations
+from scipy.linalg.special_matrices import block_diag
 
 if TYPE_CHECKING:
     import cirq
@@ -44,6 +45,8 @@ YY = np.array([[0, 0, 0, -1],
                [0, 0, 1, 0],
                [0, 1, 0, 0],
                [-1, 0, 0, 0]])
+
+
 # yapf: enable
 
 
@@ -1072,6 +1075,7 @@ def extract_right_diag(u: np.ndarray):
     else:
         psi = np.arctan(np.imag(np.sum(t)) / k)
 
-    a, b = devices.LineQubit.range(2)
-    import cirq.circuits
-    return circuits.Circuit([cirq.CNOT(a, b), cirq.rz(psi)(b), cirq.CNOT(a, b)]).unitary()
+    cnot = block_diag(np.eye(2), np.array([[0, 1], [1, 0]]))
+    rz = np.diag([1, np.exp(1j * psi)])
+
+    return cnot @ combinators.kron(np.eye(2), rz) @ cnot

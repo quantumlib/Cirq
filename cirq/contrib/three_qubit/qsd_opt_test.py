@@ -132,7 +132,6 @@ def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
         cirq.CZ.on(a, b),
         random_one_qubit_gate().on(a),
         random_one_qubit_gate().on(b),
-
     ]
     return cirq.Circuit([
         random_one_qubit_gate().on(a),

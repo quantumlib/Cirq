@@ -777,6 +777,7 @@ def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
         random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
     ])
 
+
 @pytest.mark.parametrize(
     "U",
     [

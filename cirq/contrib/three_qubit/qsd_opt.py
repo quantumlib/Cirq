@@ -210,6 +210,7 @@ def _middle_multiplexor_to_ops(a, b, c, eigvals):
     ]
     return _optimize_multiplexed_angles_circuit(ops)
 
+
 def _multiplexed_angles(theta):
     """Calculates the angles for a 4-way multiplexed rotation.
 
