@@ -93,7 +93,7 @@ class CrossEntropyResult:
     May also include results from speckle purity benchmarking (SPB) performed
     concomitantly.
 
-    Attributes::
+    Attributes:
         data: A sequence of NamedTuples, each of which contains two fields:
             num_cycle: the circuit depth as the number of cycles, where
             a cycle consists of a layer of single-qubit gates followed
