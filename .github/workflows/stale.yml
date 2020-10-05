@@ -1,0 +1,20 @@
+name: "Close stale issues"
+description: 'Close issues with no recent activity'
+
+on:
+  schedule:
+  - cron: "0 0 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/stale@v3
+      with:
+    repo-token: ${{ secrets.GITHUB_TOKEN }}
+    stale-issue-message: 'This issue is stale because it has been open 30 days with no activity. Remove stale label or comment or this will be closed in 30 days'
+    days-before-stale: 30
+    days-before-close: 30
+    close-issue-message: 'Issue closed due to inactivity.'
+    stale-issue-label: 'triage/stale'
+    exempt-issue-labels: 'triage/accepted,triage/discuss,kind/design-issue,kind/health,kind/roadmap-item,kind/task'
