@@ -30,6 +30,7 @@ from cirq.linalg import combinators, diagonalize, predicates, transformations
 
 if TYPE_CHECKING:
     import cirq
+    from matplotlib import pyplot as plt
 
 T = TypeVar('T')
 MAGIC = np.array([[1, 0, 0, 1j],
