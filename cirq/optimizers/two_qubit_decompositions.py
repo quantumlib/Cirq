@@ -18,6 +18,9 @@ from typing import Iterable, List, Tuple, Optional, cast, TYPE_CHECKING
 
 import numpy as np
 
+from cirq.linalg import predicates
+from cirq.linalg.decompositions import num_cnots_required, extract_right_diag
+
 from cirq import ops, linalg, protocols, circuits
 from cirq.optimizers import (
     decompositions,
@@ -59,6 +62,60 @@ def two_qubit_matrix_to_operations(
     if clean_operations:
         return _cleanup_operations(operations)
     return operations
+
+
+def two_qubit_matrix_to_diagonal_and_operations(
+        q0: 'cirq.Qid',
+        q1: 'cirq.Qid',
+        mat: np.ndarray,
+        allow_partial_czs: bool = False,
+        atol: float = 1e-8,
+        clean_operations: bool = True
+) -> Tuple[np.ndarray, List['cirq.Operation']]:
+    """Decomposes a 2-qubit unitary to a diagonal and the remaining operations.
+
+    For a 2-qubit unitary V, return ops, a list of operations and
+    D diagonal unitary, so that:
+        V = cirq.Circuit(ops) @ D
+
+    Args:
+        q0: The first qubit being operated on.
+        q1: The other qubit being operated on.
+        mat: the input unitary
+        allow_partial_czs: Enables the use of Partial-CZ gates.
+        atol: A limit on the amount of absolute error introduced by the
+            construction.
+        clean_operations: Enables optimizing resulting operation list by
+            merging operations and ejecting phased Paulis and Z operations.
+    Returns:
+        tuple(ops,D): operations `ops`, and the diagonal `D`
+    """
+    if predicates.is_diagonal(mat, atol=atol):
+        rest = []
+        d = mat
+    elif num_cnots_required(mat) == 3:
+        right_diag = extract_right_diag(mat)
+        two_cnot_unitary = mat @ right_diag
+        # note that this implies that two_cnot_unitary @ d = mat
+        d = right_diag.conj().T
+        rest = two_qubit_matrix_to_operations(
+            q0,
+            q1,
+            two_cnot_unitary,
+            allow_partial_czs=allow_partial_czs,
+            atol=atol,
+            clean_operations=clean_operations)
+    else:
+        d = np.eye(4)
+        rest = two_qubit_matrix_to_operations(
+            q0,
+            q1,
+            mat,
+            allow_partial_czs=allow_partial_czs,
+            atol=atol,
+            clean_operations=clean_operations)
+
+    return d, rest
 
 
 def _xx_interaction_via_full_czs(q0: 'cirq.Qid', q1: 'cirq.Qid', x: float):
@@ -191,7 +248,7 @@ def _non_local_part(q0: 'cirq.Qid',
     x, y, z = interaction_coefficients
 
     if (allow_partial_czs or
-        all(_is_trivial_angle(e, atol) for e in [x, y, z])):
+            all(_is_trivial_angle(e, atol) for e in [x, y, z])):
         return [
             _parity_interaction(q0, q1, x, atol, ops.Y**-0.5),
             _parity_interaction(q0, q1, y, atol, ops.X**0.5),

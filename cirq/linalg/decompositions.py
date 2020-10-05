@@ -21,13 +21,13 @@ from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
 import math
 import cmath
 import numpy as np
-import scipy
 import matplotlib.pyplot as plt
+import scipy
+from scipy.linalg.special_matrices import block_diag
 
 from cirq import value, protocols
 from cirq._compat import proper_repr
 from cirq.linalg import combinators, diagonalize, predicates, transformations
-from scipy.linalg.special_matrices import block_diag
 
 if TYPE_CHECKING:
     import cirq
@@ -1050,24 +1050,24 @@ def _gamma(u: np.ndarray) -> np.ndarray:
     return u @ YY @ u.T @ YY
 
 
-def extract_right_diag(u: np.ndarray):
+def extract_right_diag(u: np.ndarray, atol=1e-15):
     """Extract a diagonal unitary from a 3-CNOT two-qubit unitary.
 
     Returns a 2-CNOT unitary D that is diagonal, so that U @ D needs only
-    two CNOT gates.
+    two CNOT gates in case the original unitary is a 3-CNOT unitary.
 
     See Proposition V.2 in Minimal Universal Two-Qubit CNOT-based Circuits.
     https://arxiv.org/abs/quant-ph/0308033
 
     Args:
         u: three-CNOT two-qubit unitary
+        atol: the absolute tolerance for avoiding division by zero
     Returns:
         diagonal extracted from U
     """
     t = _gamma(transformations.to_special(u).T).T.diagonal()
     k = np.real(t[0] + t[3] - t[1] - t[2])
-
-    if k == 0:
+    if np.abs(k) < atol:
         # in the end we have to pick a psi that makes sure that
         # exp(-i*psi) (t[0]+t[3]) + exp(i*psi) (t[1]+t[2]) is real
         # both pi/2 or 3pi/2 can work

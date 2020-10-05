@@ -4,7 +4,8 @@ import numpy as np
 from scipy.linalg import cossin
 
 import cirq
-from cirq import Circuit, two_qubit_matrix_to_operations, linalg
+from cirq import two_qubit_matrix_to_operations, \
+    two_qubit_matrix_to_diagonal_and_operations
 
 
 def three_qubit_unitary_to_operations(a: cirq.Qid, b: cirq.Qid, c: cirq.Qid,
@@ -181,13 +182,14 @@ def _two_qubit_multiplexor_to_circuit(a,
 
     V = diagonal @ V
 
-    circuit_u1u2_R, dV = _decompose_to_diagonal_and_circuit(b, c, V)
+    dV, circuit_u1u2_R = two_qubit_matrix_to_diagonal_and_operations(b, c, V)
 
     W = dV @ W
 
     # if it's interesting to extract the diagonal then let's do it
     if shiftLeft:
-        circuit_u1u2_L, dW = _decompose_to_diagonal_and_circuit(b, c, W)
+        dW, circuit_u1u2_L = two_qubit_matrix_to_diagonal_and_operations(
+            b, c, W)
     # if we are at the end of the circuit, then just fall back to KAK
     else:
         dW = np.eye(4)
@@ -233,37 +235,3 @@ def _multiplexed_angles(theta):
                      (theta[0] + theta[1] - theta[2] - theta[3]),
                      (theta[0] - theta[1] - theta[2] + theta[3]),
                      (theta[0] - theta[1] + theta[2] - theta[3])]) / 4
-
-
-def _decompose_to_diagonal_and_circuit(b, c, V):
-    """Returns a circuit and a diagonal for 2-qubit unitary.
-
-    For a 2-qubit unitary V, return c cirq.Circuit and D diagonal unitary,
-    so that:
-        V = c.unitary() @ D
-
-    Args:
-        b, c: qubits
-        V: the input unitary
-    Returns:
-        tuple(c,D): circuit c, and the diagonal D
-    """
-    if cirq.is_diagonal(V, atol=1e-15):
-        circuit = cirq.Circuit([])
-        d = V
-    elif linalg.num_cnots_required(V) == 3:
-        right_diag = linalg.extract_right_diag(V)
-        # two-CNOT unitary
-        two_CNOT = V @ right_diag
-        # thus, we can see that two_CNOT @ d = V
-        d = right_diag.conj().T
-        circuit = Circuit(
-            two_qubit_matrix_to_operations(b,
-                                           c,
-                                           two_CNOT,
-                                           allow_partial_czs=False))
-    else:
-        d = np.eye(4)
-        circuit = Circuit(
-            two_qubit_matrix_to_operations(b, c, V, allow_partial_czs=False))
-    return circuit, d

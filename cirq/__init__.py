@@ -124,7 +124,6 @@ from cirq.linalg import (
     diagonalize_real_symmetric_matrix,
     dot,
     expand_matrix_in_orthogonal_basis,
-    extract_right_diag,
     hilbert_schmidt_inner_product,
     is_diagonal,
     is_hermitian,
@@ -315,6 +314,7 @@ from cirq.optimizers import (
     stratified_circuit,
     SynchronizeTerminalMeasurements,
     two_qubit_matrix_to_operations,
+    two_qubit_matrix_to_diagonal_and_operations,
 )
 
 from cirq.qis import (

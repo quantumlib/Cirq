@@ -419,6 +419,7 @@ Classes and methods for rewriting circuits.
     cirq.single_qubit_matrix_to_phxz
     cirq.single_qubit_op_to_framed_phase_form
     cirq.stratified_circuit
+    cirq.two_qubit_matrix_to_diagonal_and_operations
     cirq.two_qubit_matrix_to_operations
     cirq.ConvertToCzAndSingleGates
     cirq.DropEmptyMoments
@@ -622,6 +623,7 @@ operation.
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
     cirq.testing.random_superposition
+    .. autofunction:: cirq.testing.random_two_qubit_circuit_with_czs
     cirq.testing.random_unitary
     cirq.testing.EqualsTester
     cirq.testing.NoIdentifierQubit

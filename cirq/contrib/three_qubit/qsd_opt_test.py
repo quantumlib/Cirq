@@ -9,7 +9,7 @@ from scipy.linalg import block_diag
 import cirq
 from cirq.contrib.three_qubit.qsd_opt import _multiplexed_angles, \
     _cs_to_ops, _middle_multiplexor_to_ops, \
-    _decompose_to_diagonal_and_circuit, _two_qubit_multiplexor_to_circuit, \
+    _two_qubit_multiplexor_to_circuit, \
     three_qubit_unitary_to_operations
 
 
@@ -121,37 +121,6 @@ def test_middle_multiplexor(angles, num_cnots):
                  if isinstance(cnot.gate, cirq.CNotPowGate)]) == num_cnots), \
         "expected {} CNOTs got \n {} \n {}".format(num_cnots, circuit_u1u2_mid,
                                                    circuit_u1u2_mid.unitary())
-
-
-def _two_qubit_circuit_with_cnots(num_cnots=3, a=None, b=None):
-    if a is None or b is None:
-        a, b = cirq.LineQubit.range(2)
-    random_one_qubit_gate = lambda: cirq.PhasedXPowGate(phase_exponent=random(),
-                                                        exponent=random())
-    one_cz = lambda: [
-        cirq.CZ.on(a, b),
-        random_one_qubit_gate().on(a),
-        random_one_qubit_gate().on(b),
-    ]
-    return cirq.Circuit([
-        random_one_qubit_gate().on(a),
-        random_one_qubit_gate().on(b), [one_cz() for _ in range(num_cnots)]
-    ])
-
-
-@pytest.mark.parametrize("V", [
-    cirq.unitary(_two_qubit_circuit_with_cnots(3)),
-    cirq.unitary(_two_qubit_circuit_with_cnots(2)),
-    np.diag(np.exp(1j * np.pi * np.random.random(4))),
-])
-def test_decompose_to_diagonal_and_circuit(V):
-    b, c = cirq.LineQubit.range(2)
-    circ, diagonal = _decompose_to_diagonal_and_circuit(b, c, V)
-    assert cirq.is_diagonal(diagonal)
-    cirq.testing.assert_allclose_up_to_global_phase(
-        circ.unitary(qubits_that_should_be_present=[b, c]) @ diagonal,
-        V,
-        atol=1e-14)
 
 
 @pytest.mark.parametrize("shiftLeft", [True, False])
