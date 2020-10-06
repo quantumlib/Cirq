@@ -62,7 +62,7 @@ def test_cell_colors(ax, colormap_name):
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin, vmax=vmax))
+        vmin, vmax, colormap_name))
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -159,6 +159,15 @@ def test_non_float_values(ax, format_string):
         def __float__(self):
             return self.value
 
+        def __gt__(self, other):
+            return self.value > other.value
+
+        def __lt__(self, other):
+            return self.value < other.value
+
+        def __eq__(self, other):
+            return (self.value == other.value) and (self.unit == self.unit)
+
         def __format__(self, format_string):
             if format_string == 's':
                 return f'{self.value}{self.unit}'
@@ -175,8 +184,7 @@ def test_non_float_values(ax, format_string):
     colormap_name = 'viridis'
     vmin, vmax = 0.0, 1.0
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin,
-        vmax=vmax).set_annotation_format(format_string))
+        vmin, vmax, colormap_name).set_annotation_format(format_string))
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)

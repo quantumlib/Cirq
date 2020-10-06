@@ -10,7 +10,7 @@ import examples.bb84
 import examples.bell_inequality
 import examples.bernstein_vazirani
 import examples.bcs_mean_field
-import examples.bristlecone_heatmap_example
+import examples.heatmap_example
 import examples.cross_entropy_benchmarking_example
 import examples.deutsch
 import examples.grover
@@ -91,7 +91,12 @@ def test_example_runs_phase_estimator():
 
 def test_example_runs_bristlecone_heatmap():
     plt.switch_backend('agg')
-    examples.bristlecone_heatmap_example.main()
+    examples.heatmap_example.bristlecone()
+
+
+def test_example_runs_qubitinteraction_heatmap():
+    plt.switch_backend('agg')
+    examples.heatmap_example.gateerror()
 
 
 def test_example_runs_qaoa():
