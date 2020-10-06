@@ -356,7 +356,7 @@ class Heatmap(HeatmapBase):
 class InterHeatmap(HeatmapBase):
     """Distribution of a value in 2D qubit lattice as a color map."""
 
-    def __init__(self, value_map: ValueMap,
+    def __init__(self, value_map: InterValueMap,
                  title: Optional[str] = None) -> None:
         self.value_map: Dict[Tuple[float, float],
                              Tuple[float, SupportsFloat]] = {}
@@ -420,7 +420,7 @@ class InterHeatmap(HeatmapBase):
 
     def set_colormap(self,
                      vmin: float,
-                     vmax: float = None,
+                     vmax: float,
                      colormap: Union[str, mpl.colors.Colormap] = 'viridis'
                     ) -> 'InterHeatmap':
         self._set_colormap(vmin, vmax, colormap)
