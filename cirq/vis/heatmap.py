@@ -36,8 +36,11 @@ QubitPair = Union[Tuple[grid_qubit.GridQubit, grid_qubit.GridQubit],
 Hashable = Union[QubitCoordinate, QubitPair]
 
 # The value map is qubit coordinate -> a type that supports float conversion.
-ValueMap = Dict[QubitCoordinate, Union[float, SupportsFloat]]
-InterValueMap = Dict[QubitPair, Union[float, SupportsFloat]]
+ValueMap = Union[Dict[grid_qubit.GridQubit, SupportsFloat],
+                 Dict[Tuple[float, float], SupportsFloat]]
+InterValueMap = Union[
+    Dict[Tuple[grid_qubit.GridQubit, grid_qubit.GridQubit], SupportsFloat],
+    Dict[Tuple[Tuple[float, float], Tuple[float, float]], SupportsFloat]]
 
 
 def relative_luminance(color: np.ndarray) -> float:
