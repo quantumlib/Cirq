@@ -60,6 +60,8 @@ User Documentation
 
     docs/google/concepts
     docs/tutorials/google/start
+    docs/tutorials/google/colab
+    docs/tutorials/google/reservations
     docs/google/engine
     docs/google/devices
     docs/google/specification
