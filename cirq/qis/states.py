@@ -305,8 +305,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
         prod = np.prod(qid_shape, dtype=int)
 
         if len(qid_shape) == prod:
-            if (not isinstance(state_like, np.ndarray) or
-                    state_like.dtype.kind != 'c'):
+            if state_like.dtype.kind != 'c':
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
                     'ambiguous whether or not the given `state_like` is a '
