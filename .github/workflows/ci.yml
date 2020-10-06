@@ -88,6 +88,17 @@ jobs:
         run: find . -type f -name "*.rst" | xargs rstcheck --report warning --ignore-directives autoclass,automodule
       - name: Doc check
         run: check/doctest -q
+  nbformat:
+    name: Notebook formatting
+    runs-on: ubuntu-16.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v1
+        with:
+          python-version: '3.7'
+          architecture: 'x64'
+      - name: Doc check
+        run: check/nbformat
   pytest:
     name: Pytest Ubuntu
     strategy:
