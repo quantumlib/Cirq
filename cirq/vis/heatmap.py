@@ -238,12 +238,12 @@ class Heatmap(HeatmapBase):
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
                            **text_options: str) -> 'Heatmap':
-        self._set_annotation_map(annot_map, text_options)
+        self._set_annotation_map(annot_map, **text_options)
         return self
 
     def set_annotation_format(self, annot_format: str,
                               **text_options: str) -> 'Heatmap':
-        self._set_annotation_format(annot_format, text_options)
+        self._set_annotation_format(annot_format, **text_options)
         return self
 
     def unset_annotation(self) -> 'Heatmap':
@@ -260,7 +260,7 @@ class Heatmap(HeatmapBase):
                      size: str = '5%',
                      pad: str = '2%',
                      **colorbar_options: Any) -> 'Heatmap':
-        self._set_colorbar(position, size, pad, colorbar_options)
+        self._set_colorbar(position, size, pad, **colorbar_options)
         return self
 
     def unset_colorbar(self) -> 'Heatmap':
@@ -385,12 +385,12 @@ class InterHeatmap(HeatmapBase):
 
     def set_annotation_map(self, annot_map: Mapping[QubitCoordinate, str],
                            **text_options: str) -> 'InterHeatmap':
-        self._set_annotation_map(annot_map, text_options)
+        self._set_annotation_map(annot_map, **text_options)
         return self
 
     def set_annotation_format(self, annot_format: str,
                               **text_options: str) -> 'InterHeatmap':
-        self._set_annotation_format(annot_format, text_options)
+        self._set_annotation_format(annot_format, **text_options)
         return self
 
     def unset_annotation(self) -> 'InterHeatmap':
@@ -407,7 +407,7 @@ class InterHeatmap(HeatmapBase):
                      size: str = '5%',
                      pad: str = '2%',
                      **colorbar_options: Any) -> 'InterHeatmap':
-        self._set_colorbar(position, size, pad, colorbar_options)
+        self._set_colorbar(position, size, pad, **colorbar_options)
         return self
 
     def unset_colorbar(self) -> 'InterHeatmap':
