@@ -90,7 +90,7 @@ An equivalent BibTex format reference is below for all the versions:
 @software{quantum_ai_team_and_collaborators_2020_4062499,
   author       = {Quantum AI team and collaborators},
   title        = {Cirq},
-  month        = Aug,
+  month        = Oct,
   year         = 2020,
   publisher    = {Zenodo},
   doi          = {10.5281/zenodo.4062499},
