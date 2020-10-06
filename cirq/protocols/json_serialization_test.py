@@ -187,6 +187,7 @@ SHOULDNT_BE_SERIALIZED = [
     'PAULI_STRING_LIKE',
     'ParamResolverOrSimilarType',
     'PauliSumLike',
+    'QUANTUM_STATE_LIKE',
     'QubitOrderOrList',
     'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',

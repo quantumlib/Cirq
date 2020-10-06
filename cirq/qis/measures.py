@@ -13,20 +13,28 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
+from typing import Optional, TYPE_CHECKING, Tuple
+
 import numpy as np
 import scipy
 import scipy.stats
+from cirq import value
+from cirq.qis.states import infer_qid_shape, quantum_state
+
+if TYPE_CHECKING:
+    import cirq
 
 
 def _sqrt_positive_semidefinite_matrix(mat: np.ndarray) -> np.ndarray:
     """Square root of a positive semidefinite matrix."""
     eigs, vecs = scipy.linalg.eigh(mat)
-    # Zero out small negative entries
-    eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
-    return vecs @ (np.sqrt(eigs) * vecs).T.conj()
+    return vecs @ (np.sqrt(np.abs(eigs)) * vecs).T.conj()
 
 
-def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
+def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
+             state2: 'cirq.QUANTUM_STATE_LIKE',
+             qid_shape: Optional[Tuple[int, ...]] = None,
+             validate: bool = True) -> float:
     """Fidelity of two quantum states.
 
     The fidelity of two density matrices ρ and σ is defined as
@@ -38,26 +46,72 @@ def fidelity(state1: np.ndarray, state2: np.ndarray) -> float:
     Args:
         state1: The first state.
         state2: The second state.
+        qid_shape: The qid shape of the given states.
+        validate: Whether to check if the given states are valid quantum states.
+
+    Returns:
+        The fidelity.
+
+    Raises:
+        ValueError: The qid shape of the given states was not specified and
+            could not be inferred.
     """
-    if len(state1.shape) == 1 and len(state2.shape) == 1:
-        # Both state vectors
-        return np.abs(np.vdot(state1, state2))**2
-    elif len(state1.shape) == 1 and len(state2.shape) == 2:
-        # state1 is a state vector and state2 is a density matrix
-        return np.real(np.conjugate(state1) @ state2 @ state1)
-    elif len(state1.shape) == 2 and len(state2.shape) == 1:
-        # state1 is a density matrix and state2 is a state vector
-        return np.real(np.conjugate(state2) @ state1 @ state2)
-    elif len(state1.shape) == 2 and len(state2.shape) == 2:
-        # Both density matrices
-        state1_sqrt = _sqrt_positive_semidefinite_matrix(state1)
-        eigs = scipy.linalg.eigvalsh(state1_sqrt @ state2 @ state1_sqrt)
-        # Zero out small negative entries
-        eigs = np.maximum(eigs, np.zeros(eigs.shape, dtype=eigs.dtype))
-        trace = np.sum(np.sqrt(eigs))
+    if isinstance(state1, int) and isinstance(state2, int):
+        return float(state1 == state2)
+
+    if isinstance(state1, value.ProductState) and isinstance(
+            state2, value.ProductState):
+        if len(state1) != len(state2):
+            raise ValueError('Mismatched number of qubits in product states: '
+                             f'{len(state1)} and {len(state2)}.')
+        return np.prod([
+            np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
+            for s1, s2 in zip(state1, state2)
+        ])**2
+
+    if qid_shape is None:
+        qid_shape = infer_qid_shape(state1, state2)
+
+    state1 = quantum_state(state1,
+                           qid_shape=qid_shape,
+                           dtype=state1.dtype,
+                           validate=validate)
+    state2 = quantum_state(state2,
+                           qid_shape=qid_shape,
+                           dtype=state2.dtype,
+                           validate=validate)
+
+    return _fidelity_quantum_states(state1, state2)
+
+
+def _fidelity_quantum_states(state1: 'cirq.QuantumState',
+                             state2: 'cirq.QuantumState') -> float:
+    if state1.is_pure_state() and state2.is_pure_state():
+        state_vector_1 = state1.state_vector()
+        state_vector_2 = state2.state_vector()
+        return np.abs(np.vdot(state_vector_1, state_vector_2))**2
+    elif state1.is_pure_state() and state2.is_density_matrix():
+        state_vector_1 = state1.state_vector()
+        density_matrix_2 = state2.density_matrix()
+        return np.real(
+            np.conjugate(state_vector_1) @ density_matrix_2 @ state_vector_1)
+    elif state1.is_density_matrix() and state2.is_pure_state():
+        density_matrix_1 = state1.density_matrix()
+        state_vector_2 = state2.state_vector()
+        return np.real(
+            np.conjugate(state_vector_2) @ density_matrix_1 @ state_vector_2)
+    elif state1.is_density_matrix() and state2.is_density_matrix():
+        density_matrix_1 = state1.density_matrix()
+        density_matrix_2 = state2.density_matrix()
+        density_matrix_1_sqrt = _sqrt_positive_semidefinite_matrix(
+            density_matrix_1)
+        eigs = scipy.linalg.eigvalsh(
+            density_matrix_1_sqrt @ density_matrix_2 @ density_matrix_1_sqrt)
+        trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace**2
-    raise ValueError('The given arrays must be one- or two-dimensional. '
-                     f'Got shapes {state1.shape} and {state2.shape}.')
+    raise ValueError('At least one of the given states has an invalid shape. '
+                     'Try calling cirq.fidelity with the validate argument '
+                     'set to True.')
 
 
 def von_neumann_entropy(density_matrix: np.ndarray) -> float:
@@ -68,4 +122,4 @@ def von_neumann_entropy(density_matrix: np.ndarray) -> float:
         The calculated von Neumann entropy.
     """
     eigenvalues = np.linalg.eigvalsh(density_matrix)
-    return scipy.stats.entropy(abs(eigenvalues), base=2)
+    return scipy.stats.entropy(np.abs(eigenvalues), base=2)

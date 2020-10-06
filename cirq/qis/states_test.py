@@ -37,6 +37,49 @@ def assert_valid_density_matrix(matrix, num_qubits=None, qid_shape=None):
                                      dtype=matrix.dtype), matrix)
 
 
+def test_infer_qid_shape():
+    computational_basis_state_1 = [0, 0, 0, 1]
+    computational_basis_state_2 = [0, 1, 2, 3]
+    computational_basis_state_3 = [0, 1, 2, 4]
+    state_vector_1 = cirq.one_hot(shape=(4,), dtype=np.complex128)
+    state_vector_2 = cirq.one_hot(shape=(24,), dtype=np.complex128)
+    state_tensor_1 = np.reshape(state_vector_1, (2, 2))
+    state_tensor_2 = np.reshape(state_vector_2, (1, 2, 3, 4))
+    density_matrix_1 = np.eye(4, dtype=np.complex128) / 4
+    density_matrix_2 = np.eye(24, dtype=np.complex128) / 24
+
+    assert cirq.infer_qid_shape(computational_basis_state_1, state_vector_1,
+                                state_tensor_1, density_matrix_1) == (2, 2)
+
+    assert cirq.infer_qid_shape(computational_basis_state_1,
+                                computational_basis_state_2,
+                                state_tensor_2) == (1, 2, 3, 4)
+
+    assert cirq.infer_qid_shape(state_vector_2, density_matrix_2) == (24,)
+
+    assert cirq.infer_qid_shape(state_tensor_2,
+                                density_matrix_2) == (1, 2, 3, 4)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.infer_qid_shape(computational_basis_state_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.infer_qid_shape(state_tensor_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.infer_qid_shape(density_matrix_1)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.infer_qid_shape(computational_basis_state_1,
+                                 computational_basis_state_2)
+
+    with pytest.raises(ValueError, match='Failed to infer'):
+        _ = cirq.infer_qid_shape(state_vector_1, state_vector_2)
+
+    with pytest.raises(ValueError, match='Failed to infer'):
+        _ = cirq.infer_qid_shape(computational_basis_state_3, state_tensor_2)
+
+
 @pytest.mark.parametrize('global_phase', (1, 1j, np.exp(1j)))
 def test_bloch_vector_zero_state(global_phase):
     zero_state = global_phase * np.array([1, 0])

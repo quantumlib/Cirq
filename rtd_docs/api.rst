@@ -704,20 +704,25 @@ Quantum Information Science
     cirq.KET_PLUS
     cirq.KET_ZERO
     cirq.PAULI_STATES
+    cirq.QUANTUM_STATE_LIKE
     cirq.STATE_VECTOR_LIKE
     cirq.bloch_vector_from_state_vector
+    cirq.density_matrix
     cirq.density_matrix_from_state_vector
     cirq.dirac_notation
     cirq.eye_tensor
     cirq.fidelity
+    cirq.infer_qid_shape
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
     cirq.von_neumann_entropy
     cirq.ProductState
+    cirq.QuantumState
 
 
 Internal Implementation Details
