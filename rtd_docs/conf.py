@@ -130,6 +130,10 @@ def autodoc_process(app, what: str, name: str, obj: Any, options,
     lines[:] = data.split('\n') + kept_lines
 
 
+def source_read(app, docname, source):
+    source[0] = re.sub(r'"##### (Copyright 20\d\d Google)"', r'"**\1**"', source[0])
+
+
 # -- Project information -----------------------------------------------------
 
 project = 'Cirq'
