@@ -274,3 +274,7 @@ autosummary_generate = True
 autosummary_filename_map = {"cirq.QFT": "cirq.QFT_deprecated"}
 
 myst_update_mathjax = False
+
+# To allow for google.colab temporarily in notebooks
+# TODO: after https://github.com/quantumlib/Cirq/issues/3368 turn this back off
+nbsphinx_allow_errors = True
