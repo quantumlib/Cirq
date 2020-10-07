@@ -4,12 +4,21 @@ This doc describes cirq-infra, the GCP project supporting our open source projec
 The following things are planned to be running on GCP: 
 
 - [X] Cirq bot / Automerge - see [../auto_merge](../auto_merge/README.md)
-- [ ] Triage party for triaging 
+- [X] Triage party for triaging 
 - [ ] Performance tests and reports  
 
 Access is granted to Cirq maintainers only.
 
 ## GCP Configuration 
+
+### Requirements
+
+The tools below are required to manage our infra:
+
+- Cloud SDK: https://cloud.google.com/sdk/docs/quickstart
+- kubectl: `gcloud components install kubectl`
+- skaffold: `gcloud components install skaffold`
+
 
 ### GKE Cluster 
 

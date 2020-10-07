@@ -37,9 +37,7 @@ data:
           - needs-review
           - issue-needs-triage
           - issue-needs-kind
-          - issue-needs-discoverability
           - issue-needs-classification
-
 
       - id: cynq
         name: Cirq Cynque
@@ -72,6 +70,14 @@ data:
           - bugs-recv
           - features-recv
           - design-issues-recv
+
+      - id: discovery
+        name: Signalling work
+        description: >
+          It is important to help contributors find work that matches their skills, time commitment and ambition.
+          Help them find work by marking issues with complexity level and skill levels required.
+        rules:
+          - issue-needs-discoverability
 
     rules:
       ## Daily triage
