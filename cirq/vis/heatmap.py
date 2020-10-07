@@ -290,7 +290,6 @@ class Heatmap(HeatmapBase):
         Args:
             ax: the Axes to plot on. If not given, a new figure is created,
                 plotted on, and shown.
-            filepath: the path to save the produced image file
             pcolor_options: keyword arguments passed to ax.pcolor().
         Returns:
             A 3-tuple ``(ax, mesh, value_table)``. ``ax`` is the `plt.Axes` that

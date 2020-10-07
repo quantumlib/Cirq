@@ -276,5 +276,3 @@ def test_interheatmap():
 
     test_heatmap.plot()
     test_heatmap1.plot()
-
-    assert 1 == 1
