@@ -103,8 +103,8 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_format(format_string))
+    random_heatmap = (heatmap.Heatmap(
+        test_value_map).unset_annotation().set_annotation_format(format_string))
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -217,7 +217,8 @@ def test_urls(ax, test_GridQubit):
     extra_qubit = grid_qubit.GridQubit(10, 7) if test_GridQubit else (10, 7)
     test_url_map[extra_qubit] = 'http://google.com/10+7'
 
-    my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
+    my_heatmap = heatmap.Heatmap(test_value_map).unset_url_map().set_url_map(
+        test_url_map)
     _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
         test_url_map.get(qubit, '')
@@ -252,8 +253,12 @@ def test_interheatmap():
         (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)):
         0.0076079162393482835
     }
+    value_map1 = {
+        ((3, 2), (4, 2)): 0.004619111460557768,
+        ((4, 1), (4, 2)): 0.0076079162393482835
+    }
     test_heatmap = heatmap.InterHeatmap(value_map)
-    print(test_heatmap.value_map)
+    test_heatmap1 = heatmap.InterHeatmap(value_map1)
     test_url_map = {
         (3.5, 2): 'http://google.com/1',
         (4, 1.5): 'http://google.com/2'
@@ -270,5 +275,6 @@ def test_interheatmap():
     test_heatmap.set_annotation_format('.3e')
 
     test_heatmap.plot()
+    test_heatmap1.plot()
 
     assert 1 == 1
