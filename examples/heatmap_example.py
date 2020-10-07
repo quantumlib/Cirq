@@ -57,5 +57,6 @@ def gateerror():
 
 
 if __name__ == '__main__':
+    # ignore coverage
     bristlecone()
     gateerror()

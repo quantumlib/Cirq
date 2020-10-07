@@ -77,6 +77,7 @@ class HeatmapBase:
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, title: Optional[str] = None) -> None:
+        # coverage: ignore
         self.value_map: Dict[Tuple[float, float],
                              Tuple[float, SupportsFloat]] = {}
         self.annot_map = {  # Default annotation.
@@ -258,6 +259,10 @@ class Heatmap(HeatmapBase):
         self._set_url_map(url_map)
         return self
 
+    def unset_url_map(self) -> 'Heatmap':
+        self._unset_url_map()
+        return self
+
     def set_colorbar(self,
                      position: str = 'right',
                      size: str = '5%',
@@ -354,6 +359,7 @@ class Heatmap(HeatmapBase):
 
 
 class InterHeatmap(HeatmapBase):
+    # coverage: ignore
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, value_map: InterValueMap,
@@ -403,6 +409,10 @@ class InterHeatmap(HeatmapBase):
     def set_url_map(self, url_map: Mapping[QubitCoordinate, str]) \
             -> 'InterHeatmap':
         self._set_url_map(url_map)
+        return self
+
+    def unset_url_map(self) -> 'InterHeatmap':
+        self._unset_url_map()
         return self
 
     def set_colorbar(self,

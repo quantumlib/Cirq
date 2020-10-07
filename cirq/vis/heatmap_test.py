@@ -159,15 +159,6 @@ def test_non_float_values(ax, format_string):
         def __float__(self):
             return self.value
 
-        def __gt__(self, other):
-            return self.value > other.value
-
-        def __lt__(self, other):
-            return self.value < other.value
-
-        def __eq__(self, other):
-            return (self.value == other.value) and (self.unit == self.unit)
-
         def __format__(self, format_string):
             if format_string == 's':
                 return f'{self.value}{self.unit}'
@@ -252,3 +243,32 @@ def test_colorbar(ax):
     # TODO: Make this is a more thorough test, e.g., we should test that the
     # position, size and pad arguments are respected.
     # Github issue: https://github.com/quantumlib/Cirq/issues/2969
+
+
+def test_interheatmap():
+    value_map = {
+        (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)):
+        0.004619111460557768,
+        (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)):
+        0.0076079162393482835
+    }
+    test_heatmap = heatmap.InterHeatmap(value_map)
+    print(test_heatmap.value_map)
+    test_url_map = {
+        (3.5, 2): 'http://google.com/1',
+        (4, 1.5): 'http://google.com/2'
+    }
+    test_heatmap.unset_url_map().set_url_map(test_url_map)
+    test_heatmap.unset_colorbar().set_colorbar()
+
+    colormap_name = 'Greys'
+    test_heatmap.set_colormap(0.001, 0.01, colormap_name)
+
+    annot_map = {(3.5, 2): '.3e', (4, 1.5): '.2f'}
+    test_heatmap.unset_annotation()
+    test_heatmap.set_annotation_map(annot_map)
+    test_heatmap.set_annotation_format('.3e')
+
+    test_heatmap.plot()
+
+    assert 1 == 1
