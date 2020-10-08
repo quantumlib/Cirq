@@ -1940,8 +1940,7 @@ def _draw_moment_in_diagram(
         include_tags: bool = True):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
-            protocols.CircuitDiagramInfo.
-            _get_operation_circuit_diagram_info_with_fallback)
+            protocols.CircuitDiagramInfo._op_info_with_fallback)
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]

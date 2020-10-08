@@ -388,7 +388,7 @@ class Moment:
                 qubit_map=None,
                 precision=precision,
                 include_tags=include_tags)
-            info = protocols.CircuitDiagramInfo._get_operation_circuit_diagram_info_with_fallback(
+            info = protocols.CircuitDiagramInfo._op_info_with_fallback(
                 op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):

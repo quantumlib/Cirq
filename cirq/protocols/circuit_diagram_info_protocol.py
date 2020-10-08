@@ -143,9 +143,9 @@ class CircuitDiagramInfo:
         return s
 
     @staticmethod
-    def _get_operation_circuit_diagram_info_with_fallback(
-            op: 'cirq.Operation',
-            args: 'cirq.CircuitDiagramInfoArgs') -> 'cirq.CircuitDiagramInfo':
+    def _op_info_with_fallback(op: 'cirq.Operation',
+                               args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
         info = protocols.circuit_diagram_info(op, args, None)
         if info is not None:
             if len(op.qubits) != len(info.wire_symbols):
