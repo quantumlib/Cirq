@@ -83,7 +83,11 @@ For questions about how to use Cirq post to
 How to cite Cirq
 ----------------
 
-Cirq is uploaded to Zenodo automatically. Click on this badge [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg)](https://doi.org/10.5281/zenodo.4062499) to see all the citation formats for all versions.
+Cirq is uploaded to Zenodo automatically. Click on the badge below to see all the citation formats for all versions.
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg
+  :target: https://doi.org/10.5281/zenodo.4062499
+  :alt: DOI
 
 An equivalent BibTex format reference is below for all the versions:
 
