@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import pytest
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -22,6 +23,5 @@ def test_bad_args():
     circuit = cirq.testing.random_circuit(4, 2, 0.5, random_state=5)
     device_graph = ccr.get_grid_device_graph(3, 2)
     
-    multi_prog_map(circuit, device_graph)
-
-    
+    with pytest.raises(TypeError):
+        multi_prog_map(circuit, device_graph)

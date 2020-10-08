@@ -8,7 +8,7 @@ import copy
 import cirq
 import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
-from util import load_calibrations
+from cirq.contrib.routing.util import load_calibrations
 
 
 class Hierarchy_tree:
