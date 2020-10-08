@@ -1,4 +1,4 @@
-## Author: Fereshte Mozafari
+""" Author: Fereshte Mozafari """
 
 import networkx as nx
 import numpy as np
@@ -25,7 +25,7 @@ class Hierarchy_tree:
     outside_edges = 0
     total_edges = 0
 
-    # compute inside edges
+    """ compute inside edges """
     for c1 in com1:
       for c2 in com2:
         if(self.device_graph.has_edge(c1,c2)):
@@ -39,13 +39,13 @@ class Hierarchy_tree:
         if(self.device_graph.has_edge(com2[i],com2[j])):
           inside_edges += 1
 
-    # compute total edges 
+    """ compute total edges """
     for c1 in com1:
       total_edges += len( list (c1.neighbors()) )
     for c2 in com2:
       total_edges += len ( list (c2.neighbors() ) )
 
-    # compute outside edges
+    """ compute outside edges """
     outside_edges = total_edges - 2 * inside_edges
 
     Qmerged = float(inside_edges/edges_count) - pow( float(outside_edges/edges_count), 2 )
@@ -136,25 +136,57 @@ class Qubits_partitioning:
     for circuit in self.program_circuits:
       density = len(list(circuit.findall_operations(lambda op: op.gate == cirq.CZ))) / float(len(circuit.all_qubits()))
       cnot_density.append(density)
-    # computing indices regarding descending order of cnot densities
+    """ computing indices regarding descending order of cnot densities """
     idxs = np.argsort(cnot_density)
     idxs_descending = np.flip(idxs)
     
-    # reorder list of program_circuits
+    """ reorder list of program_circuits """
     circuits_temp = copy.deepcopy(self.program_circuits)
     self.program_circuits.clear()
     for id in idxs_descending:
       self.program_circuits.append(circuits_temp[id])
 
+  def find_best_candidate(self, cands):
+    best_cand = list(self.tree.nodes())[0] # to do
+
+    return best_cand
+
   def qubits_allocation(self):
     self.circuits_descending()
 
-    leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
-    print(leaves)
-    candidates = []
-    
+    #leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
+    #print(leaves)
+    for cir in self.program_circuits:
+      candidates = []
+      leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
+      for leaf in leaves:
+        while leaf is not None:
+          if len(cir.all_qubits()) <= len(list(leaf)):
+            exist = 0
+            for c in candidates:
+              if c == leaf:
+                exist =1
+                break
+            if not exist:
+              candidates.append(leaf)
+            break
+          else:
+            leaf = tuple(self.tree.predecessors(leaf))[0]
 
-  
+      if len(candidates) == 0:
+        print("fail -- run programs seperately")
+      print(candidates)   
+      best_cand = self.find_best_candidate(candidates)
+
+      """ remove nodes from tree """
+      successors = list(self.tree.successors(best_cand))
+      self.tree.remove_nodes_from(successors)
+      self.tree.remove_node(best_cand)
+
+
+
+
+
 
 
 ############################################################    
