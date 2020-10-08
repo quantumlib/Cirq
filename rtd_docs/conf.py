@@ -132,8 +132,14 @@ def autodoc_process(app, what: str, name: str, obj: Any, options,
 
 
 def source_read(app, docname, source):
-    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"',
-                       r'"**\1**"', source[0])
+    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"', r'""',
+                       source[0])
+    source[0] = re.sub(
+        r'(\{\s*?"cell_type": "code".*?"#@title.*License.".*?\},)',
+        r'',
+        source[0],
+        flags=re.S)
+
     source[0] = re.sub(r'"<table.*tfo-notebook-buttons.*"</table>"',
                        r'""',
                        source[0],
