@@ -87,6 +87,7 @@ Cirq is uploaded to Zenodo automatically. Click on this badge [![DOI](https://ze
 
 An equivalent BibTex format reference is below for all the versions:
 
+```
 @software{quantum_ai_team_and_collaborators_2020_4062499,
   author       = {Quantum AI team and collaborators},
   title        = {Cirq},
