@@ -29,3 +29,4 @@ from cirq.contrib.routing.utils import (
 )
 
 from cirq.contrib.routing.multi_prog_mapping import *
+from cirq.contrib.routing.util import *

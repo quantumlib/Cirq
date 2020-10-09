@@ -8,7 +8,7 @@ import copy
 import cirq
 import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
-from cirq.contrib.routing.util import load_calibrations
+from util import load_calibrations
 
 
 class Hierarchy_tree:
@@ -149,7 +149,7 @@ class Qubits_partitioning:
   def find_best_candidate(self, cands):
     best_cand = list(self.tree.nodes())[0] # to do
 
-    return best_cand
+    return tuple(best_cand)
 
   def qubits_allocation(self):
     self.circuits_descending()
@@ -178,10 +178,16 @@ class Qubits_partitioning:
       print(candidates)   
       best_cand = self.find_best_candidate(candidates)
 
-      """ remove nodes from tree """
+      """ remove nodes from tree & relabel remaining nodes"""
       successors = list(self.tree.successors(best_cand))
       self.tree.remove_nodes_from(successors)
       self.tree.remove_node(best_cand)
+      label_mapping = {}
+      for n in list(self.tree.nodes()):
+        label_mapping[n] = tuple(x for x in n if x not in best_cand)
+
+      nx.relabel_nodes(self.tree, label_mapping)
+      
 
 
 
