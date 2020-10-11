@@ -48,6 +48,7 @@ upper_tabs:
       contents:
       - title: "Install"
         path: /cirq/install
+      ####  CONCEPTS ####
       - heading: "Concepts"
       - title: "Gates"
         path: /cirq/gates
@@ -63,6 +64,7 @@ upper_tabs:
         path: /cirq/interop
       - title: "Qudits"
         path: /cirq/qudits
+      ####  GOOGLE ####
       - heading: "Google"
       - title: "Google devices"
         path: /cirq/google/devices
@@ -74,6 +76,9 @@ upper_tabs:
         path: /cirq/google/calibration
       - title: "Best practices"
         path: /cirq/google/best_practices
+      - title: "Reservations"
+        path: /cirq/tutorials/google/reservations
+      ####  PASQAL ####
       - heading: "Pasqal"
       - title: "Quantum Circuits on Pasqal Devices"
         path: /cirq/pasqal/getting_started
@@ -81,9 +86,11 @@ upper_tabs:
         path: /cirq/pasqal/devices
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
+      ####  DESIGN PROPOSALS ####
       - heading: "Design proposals"
       - title: "Request for Comments process"
         path: /cirq/dev/rfc_process
+      ####  DEVELOPERS ####
       - heading: "Developers"
       - title: "Development"
         path: /cirq/dev/development

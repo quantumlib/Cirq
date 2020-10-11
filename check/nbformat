@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+###############################################################################
+# Formats ipython notebooks with tensorflow-docs nbformat tool.
+#
+# Usage:
+#     check/nbformat [--apply]
+#
+# Without '--apply', the diff that would be applied is printed and the exit
+# status is 1 if there are any changes or else 0 if no changes are needed.
+#
+# With '--apply', the exit status is 0 and the changed files are actually
+# reformatted.
+#
+################################################################################
+
+only_print=1
+for arg in $@; do
+    if [[ "${arg}" == "--apply" ]]; then
+        only_print=0
+    else
+        echo -e "\033[31mToo many arguments. Expected [--apply].\033[0m" >&2
+        exit 1
+    fi
+done
+
+# Get the working directory to the repo root.
+cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$(git rev-parse --show-toplevel)"
+
+# Install a pinned version of tf-docs
+TF_DOCS_COMMIT=ec2bfadbec885fc40268b4193d8b87648ab45791
+TF_DOCS_INSTALLED=$(pip list | grep  -c $TF_DOCS_COMMIT)
+
+if [ "$TF_DOCS_INSTALLED" != "1" ]; then
+  pip install -U git+https://github.com/tensorflow/docs@$TF_DOCS_COMMIT
+fi
+
+FORMAT_CMD="python3 -m tensorflow_docs.tools.nbfmt --indent=1"
+
+# Test the notebooks
+unformatted=$($FORMAT_CMD --test docs 2>&1 | grep "\- docs" || true)
+needed_changes=0
+if [ ! -z "${unformatted}" ]; then
+    needed_changes=1
+    if (( only_print == 0 )); then
+        $FORMAT_CMD docs
+    else
+        echo -e "\033[31mThe following notebooks require formatting\033[0m."
+        echo "${unformatted}"
+    fi
+fi
+
+if (( needed_changes == 0 )); then
+    echo -e "\033[32mNotebooks are formatted\033[0m."
+elif (( only_print == 1 )); then
+    echo -e "\033[33mNotebooks are not formatted. Please run 'check/nbformat --apply'\033[0m"
+    exit 1
+else
+    echo -e "\033[33mReformatted changed notebooks\033[0m."
+fi
