@@ -41,13 +41,7 @@ message CalibrationLayer {
 
      // Arguments that can be specified to the calibration procedure,
      // such as the number of layers, which angles to optimize, etc
-     map<string, Arg> args = 4;
-
-     // (Optional) Token to specify an existing calibration that
-     // should be modified or overwritten in order to chain calibrations.
-     // Can also be used to specify a gate in a following circuit when
-     // circuit is specified within the current batch
-     string token = 5;
+     map<string, Arg> args = 3;
 }
 
 // The results returned by a FocusedCalibration request.

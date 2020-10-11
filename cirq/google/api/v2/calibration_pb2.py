@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='cirq.google.api.v2',
   syntax='proto3',
   serialized_options=_b('\n\035com.google.cirq.google.api.v2B\027FocusedCalibrationProtoP\001'),
-  serialized_pb=_b('\n$cirq/google/api/v2/calibration.proto\x12\x12\x63irq.google.api.v2\x1a cirq/google/api/v2/metrics.proto\x1a cirq/google/api/v2/program.proto\"J\n\x12\x46ocusedCalibration\x12\x34\n\x06layers\x18\x01 \x03(\x0b\x32$.cirq.google.api.v2.CalibrationLayer\"\xeb\x01\n\x10\x43\x61librationLayer\x12\x18\n\x10\x63\x61libration_type\x18\x01 \x01(\t\x12*\n\x05layer\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.Program\x12<\n\x04\x61rgs\x18\x04 \x03(\x0b\x32..cirq.google.api.v2.CalibrationLayer.ArgsEntry\x12\r\n\x05token\x18\x05 \x01(\t\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\"W\n\x18\x46ocusedCalibrationResult\x12;\n\x07results\x18\x01 \x03(\x0b\x32*.cirq.google.api.v2.CalibrationLayerResult\"\xc4\x01\n\x16\x43\x61librationLayerResult\x12\x36\n\x04\x63ode\x18\x01 \x01(\x0e\x32(.cirq.google.api.v2.CalibrationLayerCode\x12\x15\n\rerror_message\x18\x02 \x01(\t\x12\r\n\x05token\x18\x03 \x01(\t\x12\x34\n\x07metrics\x18\x04 \x01(\x0b\x32#.cirq.google.api.v2.MetricsSnapshot\x12\x16\n\x0evalid_until_ms\x18\x05 \x01(\x04*\xa7\x01\n\x14\x43\x61librationLayerCode\x12\"\n\x1e\x43\x41LIBRATION_RESULT_UNSPECIFIED\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\x0f\n\x0b\x45RROR_OTHER\x10\x02\x12\x1c\n\x18\x45RROR_INVALID_PARAMETERS\x10\x03\x12\x11\n\rERROR_TIMEOUT\x10\x04\x12\x1c\n\x18\x45RROR_CALIBRATION_FAILED\x10\x05\x42:\n\x1d\x63om.google.cirq.google.api.v2B\x17\x46ocusedCalibrationProtoP\x01\x62\x06proto3')
+  serialized_pb=_b('\n$cirq/google/api/v2/calibration.proto\x12\x12\x63irq.google.api.v2\x1a cirq/google/api/v2/metrics.proto\x1a cirq/google/api/v2/program.proto\"J\n\x12\x46ocusedCalibration\x12\x34\n\x06layers\x18\x01 \x03(\x0b\x32$.cirq.google.api.v2.CalibrationLayer\"\xdc\x01\n\x10\x43\x61librationLayer\x12\x18\n\x10\x63\x61libration_type\x18\x01 \x01(\t\x12*\n\x05layer\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.Program\x12<\n\x04\x61rgs\x18\x03 \x03(\x0b\x32..cirq.google.api.v2.CalibrationLayer.ArgsEntry\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\"W\n\x18\x46ocusedCalibrationResult\x12;\n\x07results\x18\x01 \x03(\x0b\x32*.cirq.google.api.v2.CalibrationLayerResult\"\xc4\x01\n\x16\x43\x61librationLayerResult\x12\x36\n\x04\x63ode\x18\x01 \x01(\x0e\x32(.cirq.google.api.v2.CalibrationLayerCode\x12\x15\n\rerror_message\x18\x02 \x01(\t\x12\r\n\x05token\x18\x03 \x01(\t\x12\x34\n\x07metrics\x18\x04 \x01(\x0b\x32#.cirq.google.api.v2.MetricsSnapshot\x12\x16\n\x0evalid_until_ms\x18\x05 \x01(\x04*\xa7\x01\n\x14\x43\x61librationLayerCode\x12\"\n\x1e\x43\x41LIBRATION_RESULT_UNSPECIFIED\x10\x00\x12\x0b\n\x07SUCCESS\x10\x01\x12\x0f\n\x0b\x45RROR_OTHER\x10\x02\x12\x1c\n\x18\x45RROR_INVALID_PARAMETERS\x10\x03\x12\x11\n\rERROR_TIMEOUT\x10\x04\x12\x1c\n\x18\x45RROR_CALIBRATION_FAILED\x10\x05\x42:\n\x1d\x63om.google.cirq.google.api.v2B\x17\x46ocusedCalibrationProtoP\x01\x62\x06proto3')
   ,
   dependencies=[cirq_dot_google_dot_api_dot_v2_dot_metrics__pb2.DESCRIPTOR,cirq_dot_google_dot_api_dot_v2_dot_program__pb2.DESCRIPTOR,])
 
@@ -60,8 +60,8 @@ _CALIBRATIONLAYERCODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   serialized_options=None,
-  serialized_start=731,
-  serialized_end=898,
+  serialized_start=716,
+  serialized_end=883,
 )
 _sym_db.RegisterEnumDescriptor(_CALIBRATIONLAYERCODE)
 
@@ -139,8 +139,8 @@ _CALIBRATIONLAYER_ARGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=372,
-  serialized_end=440,
+  serialized_start=357,
+  serialized_end=425,
 )
 
 _CALIBRATIONLAYER = _descriptor.Descriptor(
@@ -166,15 +166,8 @@ _CALIBRATIONLAYER = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='args', full_name='cirq.google.api.v2.CalibrationLayer.args', index=2,
-      number=4, type=11, cpp_type=10, label=3,
+      number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='token', full_name='cirq.google.api.v2.CalibrationLayer.token', index=3,
-      number=5, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -191,7 +184,7 @@ _CALIBRATIONLAYER = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=205,
-  serialized_end=440,
+  serialized_end=425,
 )
 
 
@@ -221,8 +214,8 @@ _FOCUSEDCALIBRATIONRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=442,
-  serialized_end=529,
+  serialized_start=427,
+  serialized_end=514,
 )
 
 
@@ -280,8 +273,8 @@ _CALIBRATIONLAYERRESULT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=532,
-  serialized_end=728,
+  serialized_start=517,
+  serialized_end=713,
 )
 
 _FOCUSEDCALIBRATION.fields_by_name['layers'].message_type = _CALIBRATIONLAYER
