@@ -38,6 +38,10 @@ message CalibrationLayer {
      // this will be a single moment representing the layer to
      // optimize for.
      Program layer = 2;
+
+     // Arguments that can be specified to the calibration procedure,
+     // such as the number of layers, which angles to optimize, etc
+     map<string, Arg> args = 3;
 }
 
 // The results returned by a FocusedCalibration request.
