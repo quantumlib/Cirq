@@ -72,9 +72,9 @@ class InitObsSetting:
         return f'{self.init_state} → {self.observable}'
 
     def __repr__(self):
-        return f'cirq.work.InitObsSetting(' \
-               f'init_state={self.init_state!r}, ' \
-               f'observable={self.observable!r})'
+        return (f'cirq.work.InitObsSetting('
+                f'init_state={self.init_state!r}, '
+                f'observable={self.observable!r})')
 
 
 def _max_weight_observable(observables: Iterable[ops.PauliString]) \
@@ -137,7 +137,7 @@ def zeros_state(qubits: Iterable['cirq.Qid']):
 
 def observables_to_settings(observables: Iterable['cirq.PauliString'],
                             qubits: Iterable['cirq.Qid']
-                           ) -> Iterable[InitObsSetting]:
+                            ) -> Iterable[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
     """
@@ -165,7 +165,7 @@ def _hashable_param(param_tuples: Iterable[Tuple[str, float]], precision=1e7):
 
 
 @json_serializable_dataclass(frozen=True)
-class MeasurementSpec:
+class _MeasurementSpec:
     """An encapsulation of all the specifications for one run of a
     quantum processor.
 
@@ -181,5 +181,5 @@ class MeasurementSpec:
             (self.max_setting, _hashable_param(self.circuit_params.items())))
 
     def __repr__(self):
-        return f'cirq.work.MeasurementSpec(max_setting={self.max_setting!r}, ' \
-               f'circuit_params={self.circuit_params!r})'
+        return (f'cirq.work._MeasurementSpec(max_setting={self.max_setting!r}, '
+                f'circuit_params={self.circuit_params!r})')

@@ -6,7 +6,7 @@ from cirq.work.pauli_sum_collector import (
     PauliSumCollector,)
 from cirq.work.observable_settings import (
     InitObsSetting,
-    MeasurementSpec,
+    _MeasurementSpec,
     observables_to_settings,
 )
 from cirq.work.sampler import (
