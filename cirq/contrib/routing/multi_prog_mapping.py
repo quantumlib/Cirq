@@ -153,9 +153,8 @@ class Qubits_partitioning:
 
   def qubits_allocation(self):
     self.circuits_descending()
+    partition = []
 
-    #leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
-    #print(leaves)
     for cir in self.program_circuits:
       candidates = []
       leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
@@ -177,6 +176,7 @@ class Qubits_partitioning:
         print("fail -- run programs seperately")
       print(candidates)   
       best_cand = self.find_best_candidate(candidates)
+      partition.append(best_cand)
 
       """ remove nodes from tree & relabel remaining nodes"""
       successors = list(self.tree.successors(best_cand))
@@ -188,7 +188,13 @@ class Qubits_partitioning:
 
       nx.relabel_nodes(self.tree, label_mapping)
       
+    return partition
 
+class X_SWAP:
+  def __init__(self, device_graph, program_circuits, partitions):
+    self.device_graph = device_graph
+    self.program_circuits = program_circuits
+    self.partitions = partitions
 
 
 
