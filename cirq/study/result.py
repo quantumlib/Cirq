@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 
 from cirq import value, ops
-from cirq._compat import deprecated, proper_repr
+from cirq._compat import proper_repr, deprecated_class
 from cirq.study import resolver
 
 if TYPE_CHECKING:
@@ -323,7 +323,9 @@ class Result:
             })
 
 
-@deprecated(deadline='v0.11', fix='Use cirq.Result instead.')
+@deprecated_class(deadline='v0.11',
+                  fix='Use cirq.Result instead.',
+                  name="cirq.TrialResult")
 class TrialResult(Result):
     pass
 

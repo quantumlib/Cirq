@@ -1,3 +1,4 @@
+
 API Reference
 =============
 
@@ -280,6 +281,7 @@ results.
     cirq.SimulationTrialResult
     cirq.Simulator
     cirq.SparseSimulatorStep
+    cirq.StabilizerSampler
     cirq.StateVectorMixin
     cirq.StateVectorSimulatorState
     cirq.StateVectorStepResult
@@ -407,6 +409,7 @@ Classes and methods for rewriting circuits.
 
     cirq.decompose_multi_controlled_rotation
     cirq.decompose_multi_controlled_x
+    cirq.decompose_two_qubit_interaction_into_four_fsim_gates
     cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b
     cirq.merge_single_qubit_gates_into_phased_x_z
     cirq.merge_single_qubit_gates_into_phxz
@@ -671,6 +674,7 @@ Algebra and Representation
     cirq.match_global_phase
     cirq.matrix_commutes
     cirq.matrix_from_basis_coefficients
+    cirq.num_cnots_required
     cirq.partial_trace
     cirq.partial_trace_of_state_vector_as_mixture
     cirq.reflection_matrix_pow
@@ -679,6 +683,7 @@ Algebra and Representation
     cirq.sub_state_vector
     cirq.targeted_conjugate_about
     cirq.targeted_left_multiply
+    cirq.to_special
     cirq.unitary_eig
     cirq.AxisAngleDecomposition
     cirq.Duration
