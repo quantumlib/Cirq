@@ -19,7 +19,6 @@ import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
 
 Cliffords = NamedTuple('Cliffords', [('c1_in_xy', List[List[ops.Gate]]),
@@ -744,33 +743,56 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
+    X, Y, Z = ops.X, ops.Y, ops.Z
+
     c1_in_xy = []  # type: List[List[ops.Gate]]
     c1_in_xz = []  # type: List[List[ops.Gate]]
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
-        c1_in_xy.append([ops.X**phi_0, ops.Y**phi_1])
-        c1_in_xy.append([ops.Y**phi_0, ops.X**phi_1])
-        c1_in_xz.append([ops.X**phi_0, ops.Z**phi_1])
-        c1_in_xz.append([ops.Z**phi_0, ops.X**phi_1])
+        c1_in_xy.append([X**phi_0, Y**phi_1])
+        c1_in_xy.append([Y**phi_0, X**phi_1])
+        c1_in_xz.append([X**phi_0, Z**phi_1])
+        c1_in_xz.append([Z**phi_0, X**phi_1])
 
-    c1_in_xy.append([ops.X**0.0])
-    c1_in_xy.append([ops.Y, ops.X])
+    # identity
+    c1_in_xy.append([X**0.0])
+    c1_in_xz.append([X**0.0])
 
-    phi_xy = [[-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5], [0.5, 0.5, 0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xy:
-        c1_in_xy.append([ops.X**phi[0], ops.Y**phi[1], ops.X**phi[2]])
+    c1_in_xy.append([Y, X])
+    c1_in_xz.append([Z, X])
 
-    phi_xz = [[0.5, 0.5, -0.5], [0.5, -0.5, -0.5], [-0.5, -0.5, -0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xz:
-        c1_in_xz.append([ops.X**phi[0], ops.Z**phi[1], ops.X**phi[2]])
+    phi_xy = [
+        [-0.5, 0.5, 0.5],
+        [-0.5, -0.5, 0.5],
+        [0.5, 0.5, 0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for y0, x, y1 in phi_xy:
+        c1_in_xy.append([Y**y0, X**x, Y**y1])
 
-    s1 = [[ops.X**0.0], [ops.Y**0.5, ops.X**0.5],
-          [ops.X**-0.5, ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_x = [[ops.X**0.5], [ops.X**0.5, ops.Y**0.5, ops.X**0.5],
-            [ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_y = [[ops.Y**0.5], [ops.X**-0.5, ops.Y**-0.5, ops.X**0.5],
-            [ops.Y, ops.X**0.5]]  # type: List[List[ops.Gate]]
+    phi_xz = [
+        [0.5, 0.5, -0.5],
+        [0.5, -0.5, -0.5],
+        [-0.5, -0.5, -0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for z0, x, z1 in phi_xz:
+        c1_in_xz.append([Z**z0, X**x, Z**z1])
+
+    s1 = [
+        [X**0.0],
+        [Y**0.5, X**0.5],
+        [X**-0.5, Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_x = [
+        [X**0.5],
+        [X**0.5, Y**0.5, X**0.5],
+        [Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_y = [
+        [Y**0.5],
+        [X**-0.5, Y**-0.5, X**0.5],
+        [Y, X**0.5],
+    ]  # type: List[List[ops.Gate]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)
