@@ -530,6 +530,8 @@ class ZPowGate(eigen_gate.EigenGate,
             effective_exponent = self._exponent % 2
             state = args.state
             for _ in range(int(effective_exponent * 2)):
+                # Prescription for S left multiplication.
+                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.M[q, :] ^= state.G[q, :]
                 state.gamma[q] = (state.gamma[q] - 1) % 4
             return True
@@ -816,6 +818,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
             q = args.axes[0]
             state = args.state
             if self._exponent % 2 == 1:
+                # Prescription for H left multiplication
+                # Reference: https://arxiv.org/abs/1808.00128
+                # Equations 48, 49 and Proposition 4
                 t = state.s ^ (state.G[q, :] & state.v)
                 u = state.s ^ (state.F[q, :] &
                                (~state.v)) ^ (state.M[q, :] & state.v)
@@ -970,6 +975,8 @@ class CZPowGate(eigen_gate.EigenGate,
             q2 = args.axes[1]
             state = args.state
             if self._exponent % 2 == 1:
+                # Prescription for CZ left multiplication.
+                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.M[q1, :] ^= state.G[q2, :]
                 state.M[q2, :] ^= state.G[q1, :]
             return True
@@ -1179,6 +1186,8 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             q2 = args.axes[1]
             state = args.state
             if self._exponent % 2 == 1:
+                # Prescription for CZ left multiplication.
+                # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.gamma[q1] = (
                     state.gamma[q1] + state.gamma[q2] + 2 *
                     (sum(state.M[q1, :] & state.F[q2, :]) % 2)) % 4
