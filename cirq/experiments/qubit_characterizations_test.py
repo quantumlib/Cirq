@@ -17,6 +17,8 @@ import pytest
 
 import matplotlib.pyplot as plt
 
+import cirq
+import cirq.experiments.qubit_characterizations as ceqc
 from cirq import GridQubit
 from cirq import circuits, ops, sim
 from cirq.experiments import (rabi_oscillations,
@@ -38,6 +40,44 @@ def test_rabi_oscillations():
     target_pops = 0.5 - 0.5 * np.cos(angles)
     rms_err = np.sqrt(np.mean((target_pops - actual_pops) ** 2))
     assert rms_err < 0.1
+
+
+def test_single_qubit_cliffords():
+    cliffords = ceqc._single_qubit_cliffords()
+    assert len(cliffords.c1_in_xy) == 24
+    assert len(cliffords.c1_in_xz) == 24
+
+    def unitary(gates):
+        U = np.eye(2)
+        for gate in gates:
+            U = cirq.unitary(gate) @ U
+        return U
+
+    xy_unitaries = [unitary(gates) for gates in cliffords.c1_in_xy]
+    xz_unitaries = [unitary(gates) for gates in cliffords.c1_in_xz]
+
+    def check_distinct(unitaries):
+        n = len(unitaries)
+        for i in range(n):
+            for j in range(i + 1, n):
+                Ui, Uj = unitaries[i], unitaries[j]
+                assert not cirq.allclose_up_to_global_phase(Ui, Uj), f'{i}, {j}'
+
+    # Check that unitaries in each decomposition are distinct.
+    check_distinct(xy_unitaries)
+    check_distinct(xz_unitaries)
+
+    # Check that each decomposition gives the same set of unitaries.
+    for Uxy in xy_unitaries:
+        assert any(
+            cirq.allclose_up_to_global_phase(Uxy, Uxz) for Uxz in xz_unitaries)
+
+    # Check that XZ decomposition has at most one X gate per clifford.
+    for gates in cliffords.c1_in_xz:
+        num_x = len([gate for gate in gates if isinstance(gate, cirq.XPowGate)])
+        num_z = len([gate for gate in gates if isinstance(gate, cirq.ZPowGate)])
+        assert num_x + num_z == len(gates)
+        assert num_x <= 1
 
 
 def test_single_qubit_randomized_benchmarking():
