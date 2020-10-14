@@ -12,21 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dataclasses
 import itertools
 
-from typing import Any, Iterator, List, NamedTuple, Optional, Sequence, Tuple
+from typing import Any, Iterator, List, Optional, Sequence, Tuple
 import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
 
-Cliffords = NamedTuple('Cliffords', [('c1_in_xy', List[List[ops.Gate]]),
-                                     ('c1_in_xz', List[List[ops.Gate]]),
-                                     ('s1', List[List[ops.Gate]]),
-                                     ('s1_x', List[List[ops.Gate]]),
-                                     ('s1_y', List[List[ops.Gate]])])
+
+@dataclasses.dataclass
+class Cliffords:
+    """The single-qubit Clifford group, decomposed into elementary gates.
+
+    The decomposition of the Cliffords follows those described in
+    Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
+
+    Decompositions of the Clifford group:
+        c1_in_xy: decomposed into XPowGate and YPowGate.
+        c1_in_xz: decomposed into XPowGate and ZPowGate, with at most one
+            XPowGate (one microwave gate) per Clifford.
+
+    Subsets used to generate the 2-qubit Clifford group (see paper table S7):
+        s1
+        s1_x
+        s1_y
+    """
+    c1_in_xy: List[List[ops.Gate]]
+    c1_in_xz: List[List[ops.Gate]]
+    s1: List[List[ops.Gate]]
+    s1_x: List[List[ops.Gate]]
+    s1_y: List[List[ops.Gate]]
 
 
 class RabiResult:
@@ -647,7 +665,7 @@ def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
     gate which is constructed with single-qubit X and Y rotations and CZ gates.
     The decomposition of the Cliffords follow those described in the appendix
-    of Barends et al., Nature 508, 500.
+    of Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
 
     The integer idx is first decomposed into idx_0 (which ranges from 0 to
     23), idx_1 (ranging from 0 to 23) and idx_2 (ranging from 0 to 19). idx_0
@@ -744,33 +762,56 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
+    X, Y, Z = ops.X, ops.Y, ops.Z
+
     c1_in_xy = []  # type: List[List[ops.Gate]]
     c1_in_xz = []  # type: List[List[ops.Gate]]
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
-        c1_in_xy.append([ops.X**phi_0, ops.Y**phi_1])
-        c1_in_xy.append([ops.Y**phi_0, ops.X**phi_1])
-        c1_in_xz.append([ops.X**phi_0, ops.Z**phi_1])
-        c1_in_xz.append([ops.Z**phi_0, ops.X**phi_1])
+        c1_in_xy.append([X**phi_0, Y**phi_1])
+        c1_in_xy.append([Y**phi_0, X**phi_1])
+        c1_in_xz.append([X**phi_0, Z**phi_1])
+        c1_in_xz.append([Z**phi_0, X**phi_1])
 
-    c1_in_xy.append([ops.X**0.0])
-    c1_in_xy.append([ops.Y, ops.X])
+    # identity
+    c1_in_xy.append([X**0.0])
+    c1_in_xz.append([X**0.0])
 
-    phi_xy = [[-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5], [0.5, 0.5, 0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xy:
-        c1_in_xy.append([ops.X**phi[0], ops.Y**phi[1], ops.X**phi[2]])
+    c1_in_xy.append([Y, X])
+    c1_in_xz.append([Z, X])
 
-    phi_xz = [[0.5, 0.5, -0.5], [0.5, -0.5, -0.5], [-0.5, -0.5, -0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xz:
-        c1_in_xz.append([ops.X**phi[0], ops.Z**phi[1], ops.X**phi[2]])
+    phi_xy = [
+        [-0.5, 0.5, 0.5],
+        [-0.5, -0.5, 0.5],
+        [0.5, 0.5, 0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for y0, x, y1 in phi_xy:
+        c1_in_xy.append([Y**y0, X**x, Y**y1])
 
-    s1 = [[ops.X**0.0], [ops.Y**0.5, ops.X**0.5],
-          [ops.X**-0.5, ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_x = [[ops.X**0.5], [ops.X**0.5, ops.Y**0.5, ops.X**0.5],
-            [ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_y = [[ops.Y**0.5], [ops.X**-0.5, ops.Y**-0.5, ops.X**0.5],
-            [ops.Y, ops.X**0.5]]  # type: List[List[ops.Gate]]
+    phi_xz = [
+        [0.5, 0.5, -0.5],
+        [0.5, -0.5, -0.5],
+        [-0.5, -0.5, -0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for z0, x, z1 in phi_xz:
+        c1_in_xz.append([Z**z0, X**x, Z**z1])
+
+    s1 = [
+        [X**0.0],
+        [Y**0.5, X**0.5],
+        [X**-0.5, Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_x = [
+        [X**0.5],
+        [X**0.5, Y**0.5, X**0.5],
+        [Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_y = [
+        [Y**0.5],
+        [X**-0.5, Y**-0.5, X**0.5],
+        [Y, X**0.5],
+    ]  # type: List[List[ops.Gate]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)
