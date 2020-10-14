@@ -141,21 +141,23 @@ class Qubits_partitioning:
     idxs_descending = np.flip(idxs)
     
     """ reorder list of program_circuits """
-    circuits_temp = copy.deepcopy(self.program_circuits)
-    self.program_circuits.clear()
+    circuits_temp = [] #copy.deepcopy(self.program_circuits)
+    #self.program_circuits.clear()
     for id in idxs_descending:
-      self.program_circuits.append(circuits_temp[id])
+      circuits_temp.append(self.program_circuits[id])
+
+    return circuits_temp
 
   def find_best_candidate(self, cands):
     best_cand = list(self.tree.nodes())[0] # to do
 
     return tuple(best_cand)
 
-  def qubits_allocation(self):
-    self.circuits_descending()
+  def qubits_allocation(self, desc_prog_circuits):
+    #self.circuits_descending()
     partition = []
 
-    for cir in self.program_circuits:
+    for cir in desc_prog_circuits:
       candidates = []
       leaves = [x for x in self.tree.nodes() if self.tree.out_degree(x)==0 and self.tree.in_degree(x)==1]
       for leaf in leaves:
@@ -196,6 +198,8 @@ class X_SWAP:
     self.program_circuits = program_circuits
     self.partitions = partitions
 
+  
+
 
 
 
@@ -212,7 +216,8 @@ def multi_prog_map( device_graph, single_er, two_er, prog_circuits ):
 
   print((list(tree.nodes)[1]))
   parObj = Qubits_partitioning(tree, prog_circuits)
-  parObj.qubits_allocation()
+  desc_cirs = parObj.circuits_descending()
+  parObj.qubits_allocation(desc_cirs)
   #parObj.reorder_program_circuits()
 
 def prepare_couplingGraph_errorValues( device_graph ):
