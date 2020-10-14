@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dataclasses
 import itertools
 
 from typing import Any, Iterator, List, NamedTuple, Optional, Sequence, Tuple
@@ -21,11 +22,29 @@ import sympy
 from matplotlib import pyplot as plt
 from cirq import circuits, devices, ops, protocols, study, work
 
-Cliffords = NamedTuple('Cliffords', [('c1_in_xy', List[List[ops.Gate]]),
-                                     ('c1_in_xz', List[List[ops.Gate]]),
-                                     ('s1', List[List[ops.Gate]]),
-                                     ('s1_x', List[List[ops.Gate]]),
-                                     ('s1_y', List[List[ops.Gate]])])
+
+@dataclasses.dataclass
+class Cliffords:
+    """The single-qubit Clifford group, decomposed into elementary gates.
+
+    The decomposition of the Cliffords follows those described in
+    Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
+
+    Decompositions of the Clifford group:
+        c1_in_xy: decomposed into XPowGate and YPowGate.
+        c1_in_xz: decomposed into XPowGate and ZPowGate, with at most one
+            XPowGate (one microwave gate) per Clifford.
+
+    Subsets used to generate the 2-qubit Clifford group (see paper table S7):
+        s1
+        s1_x
+        s1_y
+    """
+    c1_in_xy: List[List[ops.Gate]]
+    c1_in_xz: List[List[ops.Gate]]
+    s1: List[List[ops.Gate]]
+    s1_x: List[List[ops.Gate]]
+    s1_y: List[List[ops.Gate]]
 
 
 class RabiResult:
@@ -646,7 +665,7 @@ def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
     gate which is constructed with single-qubit X and Y rotations and CZ gates.
     The decomposition of the Cliffords follow those described in the appendix
-    of Barends et al., Nature 508, 500.
+    of Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
 
     The integer idx is first decomposed into idx_0 (which ranges from 0 to
     23), idx_1 (ranging from 0 to 23) and idx_2 (ranging from 0 to 19). idx_0
