@@ -1,4 +1,4 @@
-# Development
+# Contribute
 
 This document is a summary of how to do various tasks one runs into as a developer of Cirq.
 Note that all commands assume a Debian environment, and all commands (except the initial repository cloning command) assume your current working directory is the cirq repo root.

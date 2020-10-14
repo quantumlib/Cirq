@@ -35,8 +35,8 @@ upper_tabs:
       - title: "Install"
         path: /cirq/install
       ####  CONCEPTS ####
-      - heading: "Essential Concepts"
-      - title: "Gates and Operations"
+      - heading: "Essential concepts"
+      - title: "Gates and operations"
         path: /cirq/gates
       - title: "Circuits"
         path: /cirq/circuits
@@ -55,7 +55,7 @@ upper_tabs:
         path: /cirq/interop
 
       ####  Contributor Guide ####
-      - heading: "Contributor Guide"
+      - heading: "Contributor guide"
       - title: "Contribute"
         path: /cirq/dev/development
       - title: "RFC process"
@@ -79,7 +79,7 @@ upper_tabs:
         path: /cirq/google/engine
       - title: "Google devices"
         path: /cirq/google/devices
-      - title: "Device Specifications"
+      - title: "Device specifications"
         path: /cirq/google/specification
       - title: "Calibration metrics"
         path: /cirq/google/calibration
@@ -121,7 +121,7 @@ upper_tabs:
 
       ####  PASQAL HARDWARE ####
       - heading: "Pasqal hardware"
-      - title: "Getting started with Pasqal Hardware"
+      - title: "Getting started with Pasqal hardware"
         path: /cirq/pasqal/getting_started
 
 
@@ -132,7 +132,7 @@ upper_tabs:
     - name: "Reference"
       skip_translation: true
       contents:
-      - title: "All Symbols"
+      - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 
