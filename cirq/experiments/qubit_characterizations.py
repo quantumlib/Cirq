@@ -15,7 +15,7 @@
 import dataclasses
 import itertools
 
-from typing import Any, Iterator, List, NamedTuple, Optional, Sequence, Tuple
+from typing import Any, Iterator, List, Optional, Sequence, Tuple
 import numpy as np
 import sympy
 
