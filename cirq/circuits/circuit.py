@@ -1974,7 +1974,7 @@ def _draw_moment_in_diagram(
         # Print gate qubit labels.
         symbols = info._wire_symbols_including_formatted_exponent(
             args,
-            preferred_exponent_index=max([i for i in range(len(op.qubits))],
+            preferred_exponent_index=max(range(len(op.qubits)),
                                          key=lambda i: qubit_map[op.qubits[i]]))
         for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)

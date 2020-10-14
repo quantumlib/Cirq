@@ -99,13 +99,13 @@ class _BaseLineQid(ops.Qid):
     def __neg__(self: TSelf) -> TSelf:
         return self._with_x(-self.x)
 
-    def __complex__(self):
+    def __complex__(self) -> complex:
         return complex(self.x)
 
-    def __float__(self):
+    def __float__(self) -> float:
         return float(self.x)
 
-    def __int__(self):
+    def __int__(self) -> int:
         return int(self.x)
 
 

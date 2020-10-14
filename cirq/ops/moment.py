@@ -356,10 +356,10 @@ class Moment:
         y_keys = sorted({pt[1] for pt in points}, key=_SortByValFallbackToType)
         x_map = {x_key: x + 2 for x, x_key in enumerate(x_keys)}
         y_map = {y_key: y + 2 for y, y_key in enumerate(y_keys)}
-        qubit_map = {}
+        qubit_positions = {}
         for q in qs:
             a, b = xy_breakdown_func(q)
-            qubit_map[q] = x_map[a], y_map[b]
+            qubit_positions[q] = x_map[a], y_map[b]
 
         from cirq.circuits.text_diagram_drawer import TextDiagramDrawer
         diagram = TextDiagramDrawer()
@@ -392,7 +392,7 @@ class Moment:
                 op, args=args)
             symbols = info._wire_symbols_including_formatted_exponent(args)
             for label, q in zip(symbols, op.qubits):
-                x, y = qubit_map[q]
+                x, y = qubit_positions[q]
                 diagram.write(x, y, label)
             if info.connected:
                 for q1, q2 in zip(op.qubits, op.qubits[1:]):
@@ -400,8 +400,8 @@ class Moment:
                     # This reduces how often lines overlap in the diagram.
                     q1, q2 = sorted([q1, q2])
 
-                    x1, y1 = qubit_map[q1]
-                    x2, y2 = qubit_map[q2]
+                    x1, y1 = qubit_positions[q1]
+                    x2, y2 = qubit_positions[q2]
                     if x1 != x2:
                         diagram.horizontal_line(y1, x1, x2)
                     if y1 != y2:
