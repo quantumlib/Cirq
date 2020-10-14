@@ -27,7 +27,7 @@ upper_tabs:
   lower_tabs:
     # Subsite tabs
     other:
-    - name: "Guides"
+    - name: "Guide"
       contents:
       ####  FIRST STEPS ####
       - heading: "First steps"
