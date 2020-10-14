@@ -20,7 +20,6 @@ Moment the Operations must all act on distinct Qubits.
 """
 
 from collections import defaultdict
-from fractions import Fraction
 from itertools import groupby
 import math
 
@@ -29,7 +28,6 @@ from typing import (AbstractSet, Any, Callable, cast, Dict, FrozenSet, Iterable,
                     Type, TYPE_CHECKING, TypeVar, Union)
 
 import html
-import re
 import numpy as np
 
 from cirq import devices, ops, protocols, qis
@@ -1929,85 +1927,6 @@ def _resolve_operations(operations: Iterable['cirq.Operation'],
     return resolved_operations
 
 
-def _get_operation_circuit_diagram_info_with_fallback(
-        op: 'cirq.Operation',
-        args: 'cirq.CircuitDiagramInfoArgs') -> 'cirq.CircuitDiagramInfo':
-    info = protocols.circuit_diagram_info(op, args, None)
-    if info is not None:
-        if len(op.qubits) != len(info.wire_symbols):
-            raise ValueError(
-                'Wanted diagram info from {!r} for {} '
-                'qubits but got {!r}'.format(
-                    op,
-                    len(op.qubits),
-                    info))
-        return info
-
-    # Use the untagged operation's __str__.
-    name = str(op.untagged)
-
-    # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
-    # Try to cut off the qubit part, since that would be redundant information.
-    redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
-    if name.endswith(redundant_tail):
-        name = name[:-len(redundant_tail)]
-
-    # Add tags onto the representation, if they exist
-    if op.tags:
-        name += f'{list(op.tags)}'
-
-    # Include ordering in the qubit labels.
-    symbols = (name,) + tuple('#{}'.format(i + 1)
-                              for i in range(1, len(op.qubits)))
-
-    return protocols.CircuitDiagramInfo(wire_symbols=symbols)
-
-
-def _is_exposed_formula(text: str) -> bool:
-    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
-
-
-def _formatted_exponent(info: 'cirq.CircuitDiagramInfo',
-                        args: 'cirq.CircuitDiagramInfoArgs') -> Optional[str]:
-
-    if protocols.is_parameterized(info.exponent):
-        name = str(info.exponent)
-        return ('({})'.format(name)
-                if _is_exposed_formula(name)
-                else name)
-
-    if info.exponent == 0:
-        return '0'
-
-    # 1 is not shown.
-    if info.exponent == 1:
-        return None
-
-    # Round -1.0 into -1.
-    if info.exponent == -1:
-        return '-1'
-
-    # If it's a float, show the desired precision.
-    if isinstance(info.exponent, float):
-        if args.precision is not None:
-            # funky behavior of fraction, cast to str in constructor helps.
-            approx_frac = Fraction(info.exponent).limit_denominator(16)
-            if approx_frac.denominator not in [2, 4, 5, 10]:
-                if abs(float(approx_frac)
-                       - info.exponent) < 10**-args.precision:
-                    return '({})'.format(approx_frac)
-
-            return args.format_real(info.exponent)
-        return repr(info.exponent)
-
-    # If the exponent is any other object, use its string representation.
-    s = str(info.exponent)
-    if info.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
-        # The string has confusing characters. Put parens around it.
-        return '({})'.format(info.exponent)
-    return s
-
-
 def _draw_moment_in_diagram(
         moment: 'cirq.Moment',
         use_unicode_characters: bool,
@@ -2021,7 +1940,7 @@ def _draw_moment_in_diagram(
         include_tags: bool = True):
     if get_circuit_diagram_info is None:
         get_circuit_diagram_info = (
-                _get_operation_circuit_diagram_info_with_fallback)
+            protocols.CircuitDiagramInfo._op_info_with_fallback)
     x0 = out_diagram.width()
 
     non_global_ops = [op for op in moment.operations if op.qubits]
@@ -2053,22 +1972,13 @@ def _draw_moment_in_diagram(
             out_diagram.vertical_line(x, y1, y2)
 
         # Print gate qubit labels.
-        for s, q in zip(info.wire_symbols, op.qubits):
+        symbols = info._wire_symbols_including_formatted_exponent(
+            args,
+            preferred_exponent_index=max(range(len(op.qubits)),
+                                         key=lambda i: qubit_map[op.qubits[i]]))
+        for s, q in zip(symbols, op.qubits):
             out_diagram.write(x, qubit_map[q], s)
 
-        exponent = _formatted_exponent(info, args)
-        if exponent is not None:
-            if info.connected:
-                # Add an exponent to the last label only.
-                if info.exponent_qubit_index is not None:
-                    y3 = qubit_map[op.qubits[info.exponent_qubit_index]]
-                else:
-                    y3 = y2
-                out_diagram.write(x, y3, '^' + exponent)
-            else:
-                # Add an exponent to every label
-                for index in indices:
-                    out_diagram.write(x, index, '^' + exponent)
         if x > max_x:
             max_x = x
 

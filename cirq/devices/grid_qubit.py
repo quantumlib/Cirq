@@ -72,6 +72,9 @@ class _BaseGridQid(ops.Qid):
     def _with_row_col(self: TSelf, row: int, col: int) -> TSelf:
         """Returns a qid with the same type but a different coordinate."""
 
+    def __complex__(self) -> complex:
+        return self.col + 1j * self.row
+
     def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
