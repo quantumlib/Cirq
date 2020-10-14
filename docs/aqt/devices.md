@@ -20,4 +20,4 @@ whereas for a simulation with noise model use
 url = 'https://gateway.aqt.eu/marmot/sim/noise-model-1'
 ```
 
-Real-hardware backends have similar URLs which can be retrieved togther with the token on the [AQT gateway portal](https://api-gateway.aqt.eu).
+Real-hardware backends have similar URLs which can be retrieved together with the token on the [AQT gateway portal](https://api-gateway.aqt.eu).
