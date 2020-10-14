@@ -84,7 +84,7 @@ def test_single_qubit_cliffords():
     # Check that each unitary fixes the Pauli group.
     for u in xy_unitaries:
         for p in PAULIS:
-            assert is_pauli(u @ p @ u.conj().T), f'{u}'
+            assert is_pauli(u @ p @ u.conj().T), str(u)
 
     # Check that XZ decomposition has at most one X gate per clifford.
     for gates in cliffords.c1_in_xz:
