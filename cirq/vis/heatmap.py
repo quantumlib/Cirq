@@ -358,7 +358,6 @@ class Heatmap(HeatmapBase):
 
 
 class InterHeatmap(HeatmapBase):
-    # coverage: ignore
     """Distribution of a value in 2D qubit lattice as a color map."""
 
     def __init__(self, value_map: InterValueMap,
