@@ -1,4 +1,4 @@
-# Citing Google Quantum AI Open Source Software
+# Citing Google Quantum AI open source software
 
 When using our projects, please cite them according to the following guide:
 

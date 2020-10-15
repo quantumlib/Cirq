@@ -47,10 +47,10 @@ User Documentation
 
     docs/tutorials/examples
     docs/tutorials/variational_algorithm.ipynb
-    docs/tutorials/QAOA_Demo.ipynb
+    docs/tutorials/qaoa.ipynb
     docs/tutorials/hidden_linear_function.ipynb
-    docs/tutorials/Quantum_Walk.ipynb
-    docs/tutorials/Rabi_Demo.ipynb
+    docs/tutorials/quantum_walks.ipynb
+    docs/tutorials/rabi_oscillations.ipynb
     docs/tutorials/quantum_chess.ipynb
 
 
