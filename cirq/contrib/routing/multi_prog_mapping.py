@@ -110,7 +110,7 @@ class Hierarchy_tree:
       # new_node.append(communities[idx1])
       # new_node.append(communities[idx2])
       new_node_list = communities[idx1] + communities[idx2]
-      print(new_node_list)
+      #print(new_node_list)
       #tree[tuple(new_node_idx)] = new_node
       new_node = tuple(new_node_list)
       #tree.add_node(new_node) #(label , data = new_node_idx)
@@ -139,6 +139,9 @@ class Qubits_partitioning:
     """ computing indices regarding descending order of cnot densities """
     idxs = np.argsort(cnot_density)
     idxs_descending = np.flip(idxs)
+
+    print(cnot_density)
+    print(idxs_descending)
     
     """ reorder list of program_circuits """
     circuits_temp = [] #copy.deepcopy(self.program_circuits)
@@ -149,6 +152,8 @@ class Qubits_partitioning:
     return circuits_temp
 
   def find_best_candidate(self, cands):
+    print("cands:")
+    print(cands)
     best_cand = list(self.tree.nodes())[0] # to do
 
     return tuple(best_cand)
@@ -176,7 +181,7 @@ class Qubits_partitioning:
 
       if len(candidates) == 0:
         print("fail -- run programs seperately")
-      print(candidates)   
+      #print(candidates)   
       best_cand = self.find_best_candidate(candidates)
       partition.append(best_cand)
 
@@ -193,10 +198,34 @@ class Qubits_partitioning:
     return partition
 
 class X_SWAP:
-  def __init__(self, device_graph, program_circuits, partitions):
+  def __init__(self, device_graph, desc_program_circuits, partitions):
     self.device_graph = device_graph
-    self.program_circuits = program_circuits
+    self.desc_program_circuits = desc_program_circuits
     self.partitions = partitions
+
+  def generate_dags(self, two_qgateType):
+    cir_dags = []
+    for c in self.desc_prog_circuits:
+      """ remove single qubit gates before creating dag """
+      singleq_gates = list(c.findall_operations(lambda op: op.gate != two_qgateType))
+      c.batch_remove(singleq_gates)
+      """ create dag """
+      cir_dags.append( cirq.CircuitDag.from_circuit(c) )
+
+    return cir_dags
+
+  def generate_front_layers(self, cir_dags):
+    flayers = []
+    for dag in cir_dags:
+      fl = []
+      for n in dag.nodes():
+        if len(list(dag.predecessors(n) )) == 0:
+          fl.append(n)
+      flayers.append(fl)
+
+    return flayers
+
+
 
   
 
@@ -211,13 +240,18 @@ def multi_prog_map( device_graph, single_er, two_er, prog_circuits ):
   treeObj = Hierarchy_tree( device_graph, single_er, two_er )
   tree = treeObj.tree_construction()
 
-  print(len(tree.nodes))
-  print(tree.nodes)
+  #print(len(tree.nodes))
+  #print(tree.nodes)
 
-  print((list(tree.nodes)[1]))
+  #print((list(tree.nodes)[1]))
   parObj = Qubits_partitioning(tree, prog_circuits)
   desc_cirs = parObj.circuits_descending()
-  parObj.qubits_allocation(desc_cirs)
+  
+  partitions = parObj.qubits_allocation(desc_cirs)
+  print("partitions:")
+  print(partitions)
+
+  XSWAP(device_graph, desc_cirs, partitions)
   #parObj.reorder_program_circuits()
 
 def prepare_couplingGraph_errorValues( device_graph ):
