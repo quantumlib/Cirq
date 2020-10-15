@@ -282,3 +282,12 @@ def test_immutable():
     with pytest.raises(AttributeError, match="can't set attribute"):
         q = cirq.LineQid(5, dimension=4)
         q.x = 6
+
+
+def test_numeric():
+    assert int(cirq.LineQubit(x=5)) == 5
+    assert float(cirq.LineQubit(x=5)) == 5
+    assert complex(cirq.LineQubit(x=5)) == 5 + 0j
+    assert isinstance(int(cirq.LineQubit(x=5)), int)
+    assert isinstance(float(cirq.LineQubit(x=5)), float)
+    assert isinstance(complex(cirq.LineQubit(x=5)), complex)
