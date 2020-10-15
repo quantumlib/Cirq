@@ -104,7 +104,7 @@ Quantum circuit to prepare the BCS ground states for superconductors/superfluids
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*    [QAOA](./QAOA_Demo.ipynb)
+*    [QAOA](qaoa.ipynb)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
@@ -112,10 +112,10 @@ approximation optimization algorithm (QAOA)
 Demonstration of a problem similar to Bernstein-Vazirani that uses a hidden
 function rather than using an Oracle.
 
-*    [Quantum Walk](./Quantum_Walk.ipynb)
+*    [Quantum Walk](quantum_walks.ipynb)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*    [Rabi Oscillations](./Rabi_Demo.ipynb)
+*    [Rabi Oscillations](rabi_oscillations.ipynb)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.
