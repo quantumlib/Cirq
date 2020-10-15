@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Union
 
 from collections import defaultdict
 import itertools
@@ -217,10 +217,8 @@ def _first_differing_moment_index(circuit1: circuits.Circuit,
     return None  # coverage: ignore
 
 
-def assert_has_diagram(
-        actual: circuits.Circuit,
-        desired: str,
-        **kwargs) -> None:
+def assert_has_diagram(actual: Union[circuits.Circuit, ops.Moment],
+                       desired: str, **kwargs) -> None:
     """Determines if a given circuit has the desired text diagram.
 
     Args:
