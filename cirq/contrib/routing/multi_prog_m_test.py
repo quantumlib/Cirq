@@ -22,6 +22,6 @@ from cirq.contrib.routing.multi_prog_mapping import *
 def test_bad_args():
     circuit = cirq.testing.random_circuit(4, 2, 0.5, random_state=5)
     device_graph = ccr.get_grid_device_graph(3, 2)
-    
+
     with pytest.raises(TypeError):
         multi_prog_map(circuit, device_graph)
