@@ -225,10 +225,20 @@ class X_SWAP:
 
     return flayers
 
+  def generate_second_layer(self, cir_dag):
+    secondl = []
+    ## to do
+
+    return secondl
+
   def generate_schedule(self, two_qgateType):
     schedule = cirq.Circuit
     dags = self.generate_dags(two_qgateType)
     flayers = self.generate_front_layers(dags)
+    mappings = []
+    """ solve hardware-compliant gates """
+    for i in range(len(flayers)):
+
 
 
 
