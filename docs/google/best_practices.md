@@ -1,4 +1,4 @@
-# Best Practices
+# Best practices
 
 This section lists some best practices for creating a circuit that performs well
 on Google hardware devices. This is an area of active research, so users are

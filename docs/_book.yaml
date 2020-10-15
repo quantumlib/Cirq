@@ -27,8 +27,76 @@ upper_tabs:
   lower_tabs:
     # Subsite tabs
     other:
+    - name: "Guide"
+      contents:
+      ####  FIRST STEPS ####
+      - heading: "First steps"
+
+      - title: "Install"
+        path: /cirq/install
+      ####  CONCEPTS ####
+      - heading: "Essential concepts"
+      - title: "Gates and operations"
+        path: /cirq/gates
+      - title: "Circuits"
+        path: /cirq/circuits
+      - title: "Simulation"
+        path: /cirq/simulation
+
+      ####  FURTHER TOPICS ####
+      - heading: "Further topics"
+      - title: "Noise"
+        path: /cirq/noise
+      - title: "Devices"
+        path: /cirq/devices
+      - title: "Qudits"
+        path: /cirq/qudits
+      - title: "Import/export circuits"
+        path: /cirq/interop
+
+      ####  Contributor Guide ####
+      - heading: "Contributor guide"
+      - title: "Contribute"
+        path: /cirq/dev/development
+      - title: "RFC process"
+        path: /cirq/dev/rfc_process
+      - title: "Style guide"
+        path: /cirq/dev/style
+      - title: "Nomenclature"
+        path: /cirq/dev/nomenclature
+      - title: "Gate and operation guidelines"
+        path: /cirq/dev/gates
+      - title: "Plotting guidelines"
+        path: /cirq/dev/plotting
+      - title: "Serialization guidelines"
+        path: /cirq/dev/serialization
+
+      ####  GOOGLE HARDWARE ####
+      - heading: "Google hardware"
+      - title: "Concepts"
+        path: /cirq/google/concepts
+      - title: "Quantum Engine API"
+        path: /cirq/google/engine
+      - title: "Google devices"
+        path: /cirq/google/devices
+      - title: "Device specifications"
+        path: /cirq/google/specification
+      - title: "Calibration metrics"
+        path: /cirq/google/calibration
+      - title: "Best practices"
+        path: /cirq/google/best_practices
+
+      ####  PASQAL ####
+      - heading: "Pasqal hardware"
+      - title: "Pasqal devices"
+        path: /cirq/pasqal/devices
+      - title: "Pasqal sampler"
+        path: /cirq/pasqal/sampler
+
     - name: "Tutorials"
       contents:
+        ####  CIRQ ####
+      - heading: "Cirq"
       - title: "Basics"
         path: /cirq/tutorials/basics
       - title: "Textbook examples"
@@ -44,75 +112,27 @@ upper_tabs:
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/Rabi_Demo
 
-    - name: "Guide"
-      contents:
-      - title: "Install"
-        path: /cirq/install
-      ####  CONCEPTS ####
-      - heading: "Concepts"
-      - title: "Gates"
-        path: /cirq/gates
-      - title: "Circuits"
-        path: /cirq/circuits
-      - title: "Simulation"
-        path: /cirq/simulation
-      - title: "Noise"
-        path: /cirq/noise
-      - title: "Devices"
-        path: /cirq/devices
-      - title: "Interoperability"
-        path: /cirq/interop
-      - title: "Qudits"
-        path: /cirq/qudits
-      ####  GOOGLE ####
-      - heading: "Google"
-      - title: "Google devices"
-        path: /cirq/google/devices
-      - title: "Quantum Engine"
-        path: /cirq/google/engine
-      - title: "Device Specifications"
-        path: /cirq/google/specification
-      - title: "Calibration metrics"
-        path: /cirq/google/calibration
-      - title: "Best practices"
-        path: /cirq/google/best_practices
+      ####  GOOGLE HARDWARE ####
+      - heading: "Google hardware"
+      - title: "Getting started with QCS"
+        path: /cirq/tutorials/google/start
       - title: "Reservations"
         path: /cirq/tutorials/google/reservations
-      ####  PASQAL ####
-      - heading: "Pasqal"
-      - title: "Quantum Circuits on Pasqal Devices"
-        path: /cirq/pasqal/getting_started
-      - title: "Pasqal devices"
-        path: /cirq/pasqal/devices
-      - title: "Pasqal sampler"
-        path: /cirq/pasqal/sampler
-      ####  DESIGN PROPOSALS ####
-      - heading: "Design proposals"
-      - title: "Request for Comments process"
-        path: /cirq/dev/rfc_process
-      ####  DEVELOPERS ####
-      - heading: "Developers"
-      - title: "Development"
-        path: /cirq/dev/development
-      - title: "Style guide"
-        path: /cirq/dev/style
-      - title: "Nomenclature"
-        path: /cirq/dev/nomenclature
-      - title: "Gate and operation guidelines"
-        path: /cirq/dev/gates
-      - title: "Plotting guidelines"
-        path: /cirq/dev/plotting
-      - title: "Serialization guidelines"
-        path: /cirq/dev/serialization
 
-    - name: "Research"
+      ####  PASQAL HARDWARE ####
+      - heading: "Pasqal hardware"
+      - title: "Getting started with Pasqal hardware"
+        path: /cirq/pasqal/getting_started
+
+
+    - name: "Experiments"
       contents:
       - include: /cirq/research/_toc.yaml
 
     - name: "Reference"
       skip_translation: true
       contents:
-      - title: "All Symbols"
+      - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 
