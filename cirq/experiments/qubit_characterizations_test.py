@@ -43,6 +43,15 @@ def test_rabi_oscillations():
 
 
 def test_single_qubit_cliffords():
+    I = np.eye(2)
+    X = np.array([[0, 1], [1, 0]])
+    Y = np.array([[0, -1j], [1j, 0]])
+    Z = np.diag([1, -1])
+    PAULIS = (I, X, Y, Z)
+
+    def is_pauli(u):
+        return any(cirq.equal_up_to_global_phase(u, p) for p in PAULIS)
+
     cliffords = ceqc._single_qubit_cliffords()
     assert len(cliffords.c1_in_xy) == 24
     assert len(cliffords.c1_in_xz) == 24
@@ -71,6 +80,11 @@ def test_single_qubit_cliffords():
     for Uxy in xy_unitaries:
         assert any(
             cirq.allclose_up_to_global_phase(Uxy, Uxz) for Uxz in xz_unitaries)
+
+    # Check that each unitary fixes the Pauli group.
+    for u in xy_unitaries:
+        for p in PAULIS:
+            assert is_pauli(u @ p @ u.conj().T), str(u)
 
     # Check that XZ decomposition has at most one X gate per clifford.
     for gates in cliffords.c1_in_xz:
