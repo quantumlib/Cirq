@@ -225,6 +225,13 @@ class X_SWAP:
 
     return flayers
 
+  def generate_schedule(self, two_qgateType):
+    schedule = cirq.Circuit
+    dags = self.generate_dags(two_qgateType)
+    flayers = self.generate_front_layers(dags)
+
+
+
 
 
   
