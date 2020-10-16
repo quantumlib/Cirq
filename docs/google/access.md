@@ -11,7 +11,7 @@ There are two main categories of these accounts:
 
 *   Personal accounts, such as a gmail.com account and a personally created
 project.
-*   Google enterprise (or gSuite) account.  These accounts are typically
+*   Google enterprise (or Google Workspace) account.  These accounts are typically
 centrally administered through an IT professional at your organization.
 You may need to work with them in order to create projects, enable the API,
 and do other steps in this guide, as those functions may be currently
