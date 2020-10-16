@@ -1,4 +1,4 @@
-# Calibration Metrics
+# Calibration metrics
 
 Quantum processors periodically undergo calibrations to maintain the
 quality of the programs that can be run on them.
