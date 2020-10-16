@@ -137,7 +137,7 @@ def zeros_state(qubits: Iterable['cirq.Qid']):
 
 def observables_to_settings(observables: Iterable['cirq.PauliString'],
                             qubits: Iterable['cirq.Qid']
-                            ) -> Iterable[InitObsSetting]:
+                           ) -> Iterable[InitObsSetting]:
     """Transform an observable to an InitObsSetting initialized in the
     all-zeros state.
     """
