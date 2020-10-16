@@ -73,6 +73,8 @@ upper_tabs:
 
       ####  GOOGLE HARDWARE ####
       - heading: "Google hardware"
+      - title: "Access and authentication"
+        path: /cirq/google/access
       - title: "Concepts"
         path: /cirq/google/concepts
       - title: "Quantum Engine API"
