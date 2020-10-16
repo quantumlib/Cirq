@@ -11,9 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+import re
+from fractions import Fraction
 from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
-                    overload, Iterable)
+                    overload, Iterable, List, Sequence)
 
 import numpy as np
 import sympy
@@ -81,6 +82,97 @@ class CircuitDiagramInfo:
             self.auto_exponent_parens,
         )
 
+    def _wire_symbols_including_formatted_exponent(
+            self,
+            args: 'cirq.CircuitDiagramInfoArgs',
+            *,
+            preferred_exponent_index: Optional[int] = None) -> List[str]:
+        result = list(self.wire_symbols)
+        exponent = self._formatted_exponent(args)
+        if exponent is not None:
+            ks: Sequence[int]
+            if self.exponent_qubit_index is not None:
+                ks = (self.exponent_qubit_index,)
+            elif not self.connected:
+                ks = range(len(result))
+            elif preferred_exponent_index is not None:
+                ks = (preferred_exponent_index,)
+            else:
+                ks = (0,)
+            for k in ks:
+                result[k] += '^' + exponent
+        return result
+
+    def _formatted_exponent(self: 'cirq.CircuitDiagramInfo',
+                            args: 'cirq.CircuitDiagramInfoArgs'
+                           ) -> Optional[str]:
+
+        if protocols.is_parameterized(self.exponent):
+            name = str(self.exponent)
+            return ('({})'.format(name) if _is_exposed_formula(name) else name)
+
+        if self.exponent == 0:
+            return '0'
+
+        # 1 is not shown.
+        if self.exponent == 1:
+            return None
+
+        # Round -1.0 into -1.
+        if self.exponent == -1:
+            return '-1'
+
+        # If it's a float, show the desired precision.
+        if isinstance(self.exponent, float):
+            if args.precision is not None:
+                # funky behavior of fraction, cast to str in constructor helps.
+                approx_frac = Fraction(self.exponent).limit_denominator(16)
+                if approx_frac.denominator not in [2, 4, 5, 10]:
+                    if abs(float(approx_frac) -
+                           self.exponent) < 10**-args.precision:
+                        return '({})'.format(approx_frac)
+
+                return args.format_real(self.exponent)
+            return repr(self.exponent)
+
+        # If the exponent is any other object, use its string representation.
+        s = str(self.exponent)
+        if self.auto_exponent_parens and ('+' in s or ' ' in s or '-' in s[1:]):
+            # The string has confusing characters. Put parens around it.
+            return '({})'.format(self.exponent)
+        return s
+
+    @staticmethod
+    def _op_info_with_fallback(op: 'cirq.Operation',
+                               args: 'cirq.CircuitDiagramInfoArgs'
+                              ) -> 'cirq.CircuitDiagramInfo':
+        info = protocols.circuit_diagram_info(op, args, None)
+        if info is not None:
+            if len(op.qubits) != len(info.wire_symbols):
+                raise ValueError('Wanted diagram info from {!r} for {} '
+                                 'qubits but got {!r}'.format(
+                                     op, len(op.qubits), info))
+            return info
+
+        # Use the untagged operation's __str__.
+        name = str(op.untagged)
+
+        # Representation usually looks like 'gate(qubit1, qubit2, etc)'.
+        # Try to cut off the qubit part, since that would be redundant.
+        redundant_tail = '({})'.format(', '.join(str(e) for e in op.qubits))
+        if name.endswith(redundant_tail):
+            name = name[:-len(redundant_tail)]
+
+        # Add tags onto the representation, if they exist
+        if op.tags:
+            name += f'{list(op.tags)}'
+
+        # Include ordering in the qubit labels.
+        symbols = (name,) + tuple(
+            '#{}'.format(i + 1) for i in range(1, len(op.qubits)))
+
+        return protocols.CircuitDiagramInfo(wire_symbols=symbols)
+
     def __repr__(self) -> str:
         return ('cirq.CircuitDiagramInfo('
                 f'wire_symbols={self.wire_symbols!r}, '
@@ -88,6 +180,10 @@ class CircuitDiagramInfo:
                 f'connected={self.connected!r}, '
                 f'exponent_qubit_index={self.exponent_qubit_index!r}, '
                 f'auto_exponent_parens={self.auto_exponent_parens!r})')
+
+
+def _is_exposed_formula(text: str) -> bool:
+    return re.match('[a-zA-Z_][a-zA-Z0-9_]*$', text) is None
 
 
 @value.value_equality

@@ -1,4 +1,4 @@
-# Quantum Engine
+# Quantum Engine API
 
 Google's Quantum Computing Service provides the Quantum Engine API to execute 
 circuits on Google's quantum processor or simulator backends and 

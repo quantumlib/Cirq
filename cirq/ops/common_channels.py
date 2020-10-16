@@ -206,9 +206,7 @@ def asymmetric_depolarize(
 
         This channel evolves a density matrix via
 
-            $$
-            \sum_i p_i Pi \rho Pi
-            $$
+            $ \sum_i p_i Pi \rho Pi $
 
         where i varies from 0 to 4**n-1 and Pi represents n-qubit Pauli operator
         (including identity). The input \rho is the density matrix before the
@@ -254,12 +252,9 @@ class DepolarizingChannel(gate_features.SingleQubitGate):
 
         This channel evolves a density matrix via
 
-            $$
-            \rho \rightarrow (1 - p) \rho
-                + 1 / (4**n - 1) \sum _i P_i X P_i
-            $$
+        $ \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i $
 
-            where P_i are the 4**n - 1 Pauli gates (excluding the identity).
+        where P_i are the $4^n - 1$ Pauli gates (excluding the identity).
 
         Args:
             p: The probability that one of the Pauli gates is applied. Each of
@@ -356,12 +351,9 @@ def depolarize(p: float, n_qubits: int = 1) -> DepolarizingChannel:
 
     This channel evolves a density matrix via
 
-        $$
-        \rho \rightarrow (1 - p) \rho
-            + 1 / (4**n - 1) \sum _i P_i X P_i
-        $$
+    $ \rho \rightarrow (1 - p) \rho + 1 / (4**n - 1) \sum _i P_i X P_i $
 
-        where P_i are the 4**n - 1 Pauli gates (excluding the identity).
+    where P_i are the $4^n - 1$ Pauli gates (excluding the identity).
 
     Args:
         p: The probability that one of the Pauli gates is applied. Each of

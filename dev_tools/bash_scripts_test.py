@@ -573,14 +573,14 @@ def test_pylint_changed_files_file_selection(tmpdir_factory):
                  tmpdir_factory=tmpdir_factory,
                  arg='HEAD~1',
                  setup='mkdir cirq dev_tools examples ignore\n'
-                 'touch cirq/file.py dev_tools/file.py examples/file.y\n'
+                 'touch cirq/file.py dev_tools/file.py examples/file.py\n'
                  'touch ignore/ignore.py\n'
                  'git add -A\n'
                  'git commit -m test --quiet --no-gpg-sign\n')
     print(result)
     assert result.exit_code == 0
     assert result.out == intercepted_prefix + ('cirq/file.py dev_tools/file.py '
-                                               'examples/file.y\n')
+                                               'examples/file.py\n')
     assert result.err.split() == (
         "Comparing against revision 'HEAD~1'.\n"
         "Found 3 lintable files associated with changes.\n").split()
