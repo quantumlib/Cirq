@@ -72,6 +72,9 @@ class _BaseGridQid(ops.Qid):
     def _with_row_col(self: TSelf, row: int, col: int) -> TSelf:
         """Returns a qid with the same type but a different coordinate."""
 
+    def __complex__(self) -> complex:
+        return self.col + 1j * self.row
+
     def __add__(self: TSelf, other: Tuple[int, int]) -> 'TSelf':
         if isinstance(other, _BaseGridQid):
             if self.dimension != other.dimension:
@@ -274,6 +277,26 @@ class GridQubit(_BaseGridQid):
         >>> cirq.GridQubit(2, 3,) + np.array([3, 1], dtype=int)
         cirq.GridQubit(5, 4)
     """
+
+    def __init__(self, row: int, col: int):
+        super().__init__(row, col)
+        self._hash = super().__hash__()
+
+    def __hash__(self):
+        # Explicitly cached for performance (vs delegating to Qid).
+        return self._hash
+
+    def __eq__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row == other.row and self.col == other.col
+        return NotImplemented
+
+    def __ne__(self, other):
+        # Explicitly implemented for performance (vs delegating to Qid).
+        if isinstance(other, GridQubit):
+            return self.row != other.row or self.col != other.col
+        return NotImplemented
 
     @property
     def dimension(self) -> int:

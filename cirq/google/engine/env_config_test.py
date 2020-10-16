@@ -37,7 +37,8 @@ def test_engine_from_environment(build):
                 _ = cirq.google.engine_from_environment()
 
 
-def test_deprecation():
+@mock.patch('cirq.google.engine.client.quantum.QuantumEngineServiceClient')
+def test_deprecation(build):
     with cirq.testing.assert_logs('engine_from_environment', 'get_engine',
                                   'deprecated'):
         env_dict = {'CIRQ_QUANTUM_ENGINE_DEFAULT_PROJECT_ID': 'project!'}
