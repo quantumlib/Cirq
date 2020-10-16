@@ -53,3 +53,12 @@ the API through this project.
 Each user will also have to be added to an approved list in order to access
 the Quantum Computing Service.  Please submit any new users to your Google
 sponsor so that they can be added.
+
+## Next Steps
+
+At this point, you should now have access to the Quantum Computing Service.
+You can try out our [Getting Started Guide](../tutorials/google/start.ipyn).
+
+You can also learn more about how to use the [Engine class](engine.md) to
+access Google hardware or about [Google devices](devices.md) in the
+documentation section for Google.
