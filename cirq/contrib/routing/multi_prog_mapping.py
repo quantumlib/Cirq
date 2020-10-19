@@ -211,25 +211,56 @@ class X_SWAP:
         self.desc_program_circuits = desc_program_circuits
         self.partitions = partitions
 
-    def generate_dags(self, two_qgateType):
+    def generate_2qGates_dags(self, twoq_gateType):
         cir_dags = []
         for c in self.desc_prog_circuits:
             """ remove single qubit gates before creating dag """
             singleq_gates = list(
-                c.findall_operations(lambda op: op.gate != two_qgateType))
+                c.findall_operations(lambda op: op.gate != twoq_gateType))
             c.batch_remove(singleq_gates)
             """ create dag """
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
         return cir_dags
+    
+    def generate_dags(self):
+        cir_dags = []
+        for c in self.desc_prog_circuits:
+            """ create dag """
+            cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
-    def generate_front_layers(self, cir_dags):
+        return cir_dags
+
+    def generate_2qGates_front_layers(self, cir_dags):
         flayers = []
         for dag in cir_dags:
             fl = []
-            for n in dag.nodes():
-                if len(list(dag.predecessors(n))) == 0:
-                    fl.append(n)
+            nodes = list(dag.ordered_nodes())
+            ops = list(dag.all_operations())
+            for i in range(len(nodes)):
+                if len(list(dag.predecessors(nodes[i]))) == 0:
+                    fl.append(ops[i])
+            flayers.append(fl)
+
+        return flayers
+    def generate_front_layers(self, cir_dags, twoq_gate_type):
+        flayers = []
+        for dag in cir_dags:
+            fl = []
+            nodes = list(dag.ordered_nodes())
+            ops = list(dag.all_operations())
+            for i in range(len(nodes)):
+                if len(list(dag.predecessors(nodes[i]) )) == 0:
+                  fl.append(ops[i])
+                else:
+                  counter=0
+                  for p in list(dag.predecessors(nodes[i]) ):
+                    
+                    if p.val.gate != twoq_gate_type:
+                      counter = counter+1
+                  if counter == len(list(dag.predecessors(nodes[i]) )):
+                    fl.append(ops[i])
+                
             flayers.append(fl)
 
         return flayers
@@ -240,14 +271,15 @@ class X_SWAP:
 
         return secondl
 
-    def generate_schedule(self, two_qgateType):
+    def generate_schedule(self, twoq_gateType):
         schedule = cirq.Circuit
-        dags = self.generate_dags(two_qgateType)
-        flayers = self.generate_front_layers(dags)
+        #twoq_dags = self.generate_2qGates_dags(twoq_gateType)
+        dags = self.generate_dags()
+        flayers = self.generate_front_layers(dags, twoq_gateType)
         mappings = []
         """ solve hardware-compliant gates """
         for i in range(len(flayers)):
-            pass
+            critical_gates = flayers[i]
 
 
 ############################################################
