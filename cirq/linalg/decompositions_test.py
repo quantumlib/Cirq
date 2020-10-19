@@ -626,12 +626,14 @@ def _local_invariants_from_kak(vector: np.ndarray) -> np.ndarray:
 
     Any 2 qubit unitary may be expressed as
 
-    U = k_l A k_r
-    where k_l, k_r are single qubit (local) unitaries and
+    $U = k_l A k_r$
+    where $k_l, k_r$ are single qubit (local) unitaries and
 
-    A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{j,0}\sigma{j,1} )
+    $$
+    A = \exp( i * \sum_{j=x,y,z} k_j \sigma_{(j,0)}\sigma_{(j,1)})
+    $$
 
-    Here (k_x,k_y,k_z) is the KAK vector.
+    Here $(k_x,k_y,k_z)$ is the KAK vector.
 
     Args:
         vector: Shape (...,3) tensor representing different KAK vectors.

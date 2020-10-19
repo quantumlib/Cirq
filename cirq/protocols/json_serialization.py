@@ -85,6 +85,7 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'CalibrationTag': cirq.google.CalibrationTag,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
@@ -115,11 +116,13 @@ class _ResolverCache:
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'InitObsSetting': cirq.work.InitObsSetting,
                 'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
+                '_MeasurementSpec': cirq.work._MeasurementSpec,
                 'Moment': cirq.Moment,
                 '_XEigenState':
                 cirq.value.product_state._XEigenState,  # type: ignore
