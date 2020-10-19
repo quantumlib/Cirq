@@ -21,3 +21,8 @@ url = 'https://gateway.aqt.eu/marmot/sim/noise-model-1'
 ```
 
 Real-hardware backends have similar URLs which can be retrieved together with the token on the [AQT gateway portal](https://gateway-portal.aqt.eu).
+
+## Next Steps
+
+At this point, you should now have access to the AQT service.
+You can now try out our [Getting Started Guide](../tutorials/aqt/getting_started.ipynb).
