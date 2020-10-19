@@ -14,10 +14,9 @@
 
 from math import exp
 from typing import Dict, Sequence, TYPE_CHECKING
+from cirq_google import engine
 
 from cirq import devices, value, ops, protocols
-
-from cirq_google import engine
 
 if TYPE_CHECKING:
     import cirq
