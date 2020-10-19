@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class QuirkQubitPermutationGate(ops.Gate):
+class QuirkQubitPermutationGate(ops.QubitPermutationGate):
     """A qubit permutation gate specified by a permutation list."""
 
     def __init__(self, identifier: str, name: str, permutation: Sequence[int]):
@@ -39,30 +39,10 @@ class QuirkQubitPermutationGate(ops.Gate):
         """
         self.identifier = identifier
         self.name = name
-        self.permutation = tuple(permutation)
+        super().__init__(permutation)
 
     def _value_equality_values_(self):
         return self.identifier, self.name, self.permutation
-
-    def num_qubits(self):
-        return len(self.permutation)
-
-    def _has_unitary_(self):
-        return True
-
-    def _apply_unitary_(self, args: 'cirq.ApplyUnitaryArgs'):
-        # Compute the permutation index list.
-        permuted_axes = list(range(len(args.target_tensor.shape)))
-        for i in range(len(args.axes)):
-            j = self.permutation[i]
-            ai = args.axes[i]
-            aj = args.axes[j]
-            assert args.target_tensor.shape[ai] == args.target_tensor.shape[aj]
-            permuted_axes[aj] = ai
-
-        # Delegate to numpy to do the permuted copy.
-        args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
-        return args.available_buffer
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Tuple[str, ...]:

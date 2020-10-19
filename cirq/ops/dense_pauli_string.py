@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 import numbers
-from typing import (Any, Callable, cast, Dict, Iterable, List, Optional,
-                    Sequence, Tuple, Type, TYPE_CHECKING, TypeVar, Union)
+from typing import (AbstractSet, Any, Callable, cast, Dict, Iterable, List,
+                    Optional, Sequence, Tuple, Type, TYPE_CHECKING, TypeVar,
+                    Union)
 import abc
 
 import numpy as np
@@ -154,8 +155,11 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 self.coefficient))
         return result
 
-    def _is_parameterized_(self):
+    def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self.coefficient)
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(self.coefficient)
 
     def _resolve_parameters_(self, resolver):
         return self.copy(coefficient=protocols.resolve_parameters(

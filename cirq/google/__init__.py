@@ -55,7 +55,7 @@ from cirq.google.line import (
 )
 
 from cirq.google.ops import (
-    FocusedCalibrationTag,
+    CalibrationTag,
     PhysicalZTag,
     SycamoreGate,
     SYC,

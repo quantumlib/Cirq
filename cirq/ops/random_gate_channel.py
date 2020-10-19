@@ -13,8 +13,8 @@
 # limitations under the License.
 
 import numbers
-from typing import Tuple, TYPE_CHECKING, Dict, Any, cast, SupportsFloat, \
-    Optional
+from typing import (AbstractSet, Tuple, TYPE_CHECKING, Dict, Any, cast,
+                    SupportsFloat, Optional)
 
 import numpy as np
 
@@ -60,10 +60,13 @@ class RandomGateChannel(raw_types.Gate):
         return not self._is_parameterized_() and protocols.has_channel(
             self.sub_gate)
 
-    def _is_parameterized_(self):
-        return not isinstance(self.probability,
-                              numbers.Number) or protocols.is_parameterized(
-                                  self.sub_gate)
+    def _is_parameterized_(self) -> bool:
+        return (protocols.is_parameterized(self.probability) or
+                protocols.is_parameterized(self.sub_gate))
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return protocols.parameter_names(
+            self.probability) | protocols.parameter_names(self.sub_gate)
 
     def _resolve_parameters_(self, resolver):
         return RandomGateChannel(
@@ -105,6 +108,19 @@ class RandomGateChannel(raw_types.Gate):
         if not self._is_parameterized_():
             result *= float(self.probability)
         return result
+
+    def _act_on_(self, args):
+        from cirq.sim import clifford
+        if self._is_parameterized_():
+            return NotImplemented
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            if args.prng.random() < self.probability:
+                # Note: because we're doing this probabilistically, it's not
+                # safe to fallback to other strategies if act_on fails. Those
+                # strategies could double-count the probability.
+                protocols.act_on(self.sub_gate, args)
+            return True
+        return NotImplemented
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['sub_gate', 'probability'])

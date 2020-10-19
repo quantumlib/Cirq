@@ -13,12 +13,28 @@ import numpy as np
 
 from cirq import ops, linalg, circuits, devices
 from cirq.optimizers import merge_single_qubit_gates, drop_empty_moments
+from cirq._compat import deprecated
 
 if TYPE_CHECKING:
     import cirq
 
 
+@deprecated(deadline='v0.10',
+            fix='Use cirq.decompose_two_qubit_interaction_into_four_fsim_gates.'
+           )
 def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
+        interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
+        *,
+        fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
+        qubits: Sequence['cirq.Qid'] = None) -> 'cirq.Circuit':
+    circuit = decompose_two_qubit_interaction_into_four_fsim_gates(
+        interaction, fsim_gate=fsim_gate, qubits=qubits)
+    merge_single_qubit_gates.MergeSingleQubitGates().optimize_circuit(circuit)
+    drop_empty_moments.DropEmptyMoments().optimize_circuit(circuit)
+    return circuit
+
+
+def decompose_two_qubit_interaction_into_four_fsim_gates(
         interaction: Union['cirq.Operation', 'cirq.Gate', np.ndarray, Any],
         *,
         fsim_gate: Union['cirq.FSimGate', 'cirq.ISwapPowGate'],
@@ -72,19 +88,18 @@ def decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
 
     b_decomposition = _decompose_b_gate_into_two_fsims(fsim_gate=mapped_gate,
                                                        qubits=qubits)
-    result = []
+    b_decomposition = [
+        fsim_gate(*op.qubits) if op.gate == mapped_gate else op
+        for op in b_decomposition
+    ]
+
+    result = circuits.Circuit()
     for op in result_using_b_gates:
         if isinstance(op.gate, _BGate):
-            result.extend(b_decomposition)
+            result.append(b_decomposition)
         else:
             result.append(op)
-
-    circuit = circuits.Circuit(
-        fsim_gate(*op.qubits) if op.gate == mapped_gate else op
-        for op in result)
-    merge_single_qubit_gates.MergeSingleQubitGates().optimize_circuit(circuit)
-    drop_empty_moments.DropEmptyMoments().optimize_circuit(circuit)
-    return circuit
+    return result
 
 
 def _sticky_0_to_1(v: float, *, atol: float) -> Optional[float]:
@@ -154,8 +169,8 @@ class _BGate(ops.Gate):
     def _decompose_(self, qubits):
         a, b = qubits
         return [
-            ops.XX(a, b)**0.5,
-            ops.YY(a, b)**0.25,
+            ops.XX(a, b)**-0.5,
+            ops.YY(a, b)**-0.25,
         ]
 
 
@@ -216,9 +231,9 @@ def _decompose_interaction_into_two_b_gates_ignoring_single_qubit_ops(
         b2 = np.arcsin(np.sqrt(b1))
         b3 = np.arccos(1 - 4 * r)
         rb = [
-            ops.rz(b2).on(b),
-            ops.ry(b3).on(b),
-            ops.rz(b2).on(b),
+            ops.rz(-b2).on(b),
+            ops.ry(-b3).on(b),
+            ops.rz(-b2).on(b),
         ]
     s = 1 if z < 0 else -1
     return [

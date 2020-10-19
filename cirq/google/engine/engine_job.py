@@ -43,8 +43,8 @@ class EngineJob:
     executing on a machine, or it may have entered a terminal state
     (either succeeding or failing).
 
-    `EngineJob`s can be iterated over, returning `TrialResult`s. These
-    `TrialResult`s can also be accessed by index. Note that this will block
+    `EngineJob`s can be iterated over, returning `Result`s. These
+    `Result`s can also be accessed by index. Note that this will block
     until the results are returned from the Engine service.
 
     Attributes:
@@ -75,7 +75,8 @@ class EngineJob:
         self.job_id = job_id
         self.context = context
         self._job = _job
-        self._results: Optional[List[study.TrialResult]] = None
+        self._results: Optional[List[study.Result]] = None
+        self._batched_results: Optional[List[List[study.Result]]] = None
         self.batch_mode = batch_mode
 
     def engine(self) -> 'engine_base.Engine':
@@ -263,7 +264,19 @@ class EngineJob:
         self.context.client.delete_job(self.project_id, self.program_id,
                                        self.job_id)
 
-    def results(self) -> List[study.TrialResult]:
+    def batched_results(self) -> List[List[study.Result]]:
+        """Returns the job results, blocking until the job is complete.
+
+        This method is intended for batched jobs.  Instead of flattening
+        results into a single list, this will return a List[Result]
+        for each circuit in the batch.
+        """
+        self.results()
+        if not self._batched_results:
+            raise ValueError('batched_results called for a non-batch result.')
+        return self._batched_results
+
+    def results(self) -> List[study.Result]:
         """Returns the job results, blocking until the job is complete.
         """
         import cirq.google.engine.engine as engine_base
@@ -296,7 +309,9 @@ class EngineJob:
             elif result.Is(v2.batch_pb2.BatchResult.DESCRIPTOR):
                 v2_parsed_result = v2.batch_pb2.BatchResult.FromString(
                     result.value)
-                self._results = self._get_batch_results_v2(v2_parsed_result)
+                self._batched_results = self._get_batch_results_v2(
+                    v2_parsed_result)
+                self._results = self._flatten(self._batched_results)
             else:
                 raise ValueError(
                     'invalid result proto version: {}'.format(result_type))
@@ -304,7 +319,7 @@ class EngineJob:
 
     @staticmethod
     def _get_job_results_v1(result: v1.program_pb2.Result
-                           ) -> List[study.TrialResult]:
+                           ) -> List[study.Result]:
         trial_results = []
         for sweep_result in result.sweep_results:
             sweep_repetitions = sweep_result.repetitions
@@ -317,23 +332,26 @@ class EngineJob:
                                                  key_sizes)
 
                 trial_results.append(
-                    study.TrialResult.from_single_parameter_set(
+                    study.Result.from_single_parameter_set(
                         params=study.ParamResolver(result.params.assignments),
                         measurements=measurements))
         return trial_results
 
     @classmethod
     def _get_batch_results_v2(cls, results: v2.batch_pb2.BatchResult
-                             ) -> List[study.TrialResult]:
+                             ) -> List[List[study.Result]]:
         trial_results = []
-        # Flatten to single list to match to sampler api.
         for result in results.results:
-            trial_results.extend(cls._get_job_results_v2(result))
+            # Add a new list for the result
+            trial_results.append(cls._get_job_results_v2(result))
         return trial_results
 
+    @classmethod
+    def _flatten(cls, result) -> List[study.Result]:
+        return [res for result_list in result for res in result_list]
+
     @staticmethod
-    def _get_job_results_v2(result: v2.result_pb2.Result
-                           ) -> List[study.TrialResult]:
+    def _get_job_results_v2(result: v2.result_pb2.Result) -> List[study.Result]:
         sweep_results = v2.results_from_proto(result)
         # Flatten to single list to match to sampler api.
         return [
@@ -367,16 +385,16 @@ class EngineJob:
                     format(name,
                            quantum.types.ExecutionStatus.State.Name(state)))
 
-    def __iter__(self) -> Iterator[study.TrialResult]:
+    def __iter__(self) -> Iterator[study.Result]:
         return iter(self.results())
 
     # pylint: disable=function-redefined
     @overload
-    def __getitem__(self, item: int) -> study.TrialResult:
+    def __getitem__(self, item: int) -> study.Result:
         pass
 
     @overload
-    def __getitem__(self, item: slice) -> List[study.TrialResult]:
+    def __getitem__(self, item: slice) -> List[study.Result]:
         pass
 
     def __getitem__(self, item):

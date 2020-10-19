@@ -80,10 +80,12 @@ class _ResolverCache:
                 'AsymmetricDepolarizingChannel':
                 cirq.AsymmetricDepolarizingChannel,
                 'BitFlipChannel': cirq.BitFlipChannel,
+                'ProductState': cirq.ProductState,
                 'CCNotPowGate': cirq.CCNotPowGate,
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'CalibrationTag': cirq.google.CalibrationTag,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
@@ -97,10 +99,10 @@ class _ResolverCache:
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
-                'FocusedCalibrationTag': cirq.google.FocusedCalibrationTag,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
+                'MutablePauliString': cirq.MutablePauliString,
                 'GateOperation': cirq.GateOperation,
                 'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
@@ -120,9 +122,17 @@ class _ResolverCache:
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
                 'Moment': cirq.Moment,
+                '_XEigenState':
+                cirq.value.product_state._XEigenState,  # type: ignore
+                '_YEigenState':
+                cirq.value.product_state._YEigenState,  # type: ignore
+                '_ZEigenState':
+                cirq.value.product_state._ZEigenState,  # type: ignore
                 '_NamedConstantXmonDevice': _NamedConstantXmonDevice,
                 '_NoNoiseModel': _NoNoiseModel,
                 'NamedQubit': cirq.NamedQubit,
+                'NamedQid': cirq.NamedQid,
+                'NoIdentifierQubit': cirq.testing.NoIdentifierQubit,
                 '_PauliX': cirq.ops.pauli_gates._PauliX,
                 '_PauliY': cirq.ops.pauli_gates._PauliY,
                 '_PauliZ': cirq.ops.pauli_gates._PauliZ,
@@ -150,6 +160,7 @@ class _ResolverCache:
                 'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
                 'ThreeDQubit': cirq.pasqal.ThreeDQubit,
+                'Result': cirq.Result,
                 'TrialResult': cirq.TrialResult,
                 'TwoDQubit': cirq.pasqal.TwoDQubit,
                 'TwoQubitMatrixGate': two_qubit_matrix_gate,

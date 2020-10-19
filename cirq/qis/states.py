@@ -21,6 +21,7 @@ import itertools
 import numpy as np
 
 from cirq._compat import deprecated, deprecated_parameter
+from cirq import value
 
 if TYPE_CHECKING:
     import cirq
@@ -31,7 +32,9 @@ STATE_VECTOR_LIKE = Union[
     # Per-qudit computational basis values.
     Sequence[int],
     # Explicit state vector or state tensor.
-    np.ndarray, Sequence[Union[int, float, complex]]]
+    np.ndarray, Sequence[Union[int, float, complex]],
+    # Product state object
+    'cirq.ProductState',]
 
 
 @deprecated_parameter(
@@ -41,7 +44,7 @@ STATE_VECTOR_LIKE = Union[
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
                                          ): v for k, v in kwargs.items()}))
-def bloch_vector_from_state_vector(state_vector: Sequence,
+def bloch_vector_from_state_vector(state_vector: np.ndarray,
                                    index: int,
                                    qid_shape: Optional[Tuple[int, ...]] = None
                                   ) -> np.ndarray:
@@ -90,7 +93,7 @@ def bloch_vector_from_state_vector(state_vector: Sequence,
     rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
                                          ): v for k, v in kwargs.items()}))
 def density_matrix_from_state_vector(
-        state_vector: Sequence,
+        state_vector: np.ndarray,
         indices: Optional[Iterable[int]] = None,
         qid_shape: Optional[Tuple[int, ...]] = None,
 ) -> np.ndarray:
@@ -164,7 +167,7 @@ def density_matrix_from_state_vector(
     match=lambda args, kwargs: 'state' in kwargs,
     rewrite=lambda args, kwargs: (args, {('state_vector' if k == 'state' else k
                                          ): v for k, v in kwargs.items()}))
-def dirac_notation(state_vector: Sequence,
+def dirac_notation(state_vector: np.ndarray,
                    decimals: int = 2,
                    qid_shape: Optional[Tuple[int, ...]] = None) -> str:
     """Returns the state vector as a string in Dirac notation.
@@ -258,6 +261,8 @@ def to_valid_state_vector(
         ValueError: if `state_vector` is not valid or
             num_qubits != len(qid_shape).
     """
+    if isinstance(state_rep, value.ProductState):
+        num_qubits = len(state_rep)
 
     # Check shape.
     if num_qubits is None and qid_shape is None:
@@ -289,6 +294,9 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                                           qid_shape=qid_shape,
                                                           dtype=dtype)
 
+    if isinstance(state_like, value.ProductState):
+        return state_like.state_vector()
+
     if isinstance(state_like, Sequence):
         converted = np.array(state_like)
         if converted.shape:
@@ -297,13 +305,12 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
         prod = np.prod(qid_shape, dtype=int)
 
         if len(qid_shape) == prod:
-            if (not isinstance(state_like, np.ndarray) or
-                    state_like.dtype.kind != 'c'):
+            if state_like.dtype.kind != 'c':
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
-                    'ambiguous whether or not the given `state_like` is a '
-                    'state vector or a list of computational basis values for '
-                    'the qudits. In this situation you are required to pass '
+                    'ambiguous whether the given `state_like` contains '
+                    'state vector amplitudes or per-qudit computational basis '
+                    'values. In this situation you are required to pass '
                     'in a state vector that is a numpy array with a complex '
                     'dtype.')
 
@@ -383,7 +390,7 @@ def _computational_basis_state_to_state_tensor(*, state_rep: int,
                                                dtype: Type[np.number]
                                               ) -> np.ndarray:
     n = np.prod(qid_shape, dtype=int)
-    if not 0 <= state_rep <= n:
+    if not 0 <= state_rep < n:
         raise ValueError(f'Computational basis state is out of range.\n'
                          f'\n'
                          f'state={state_rep!r}\n'
@@ -459,7 +466,7 @@ def validate_indices(num_qubits: int, indices: Sequence[int]) -> None:
 
 
 def to_valid_density_matrix(
-        density_matrix_rep: Union[int, np.ndarray],
+        density_matrix_rep: Union[np.ndarray, 'cirq.STATE_VECTOR_LIKE'],
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,

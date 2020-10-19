@@ -12,19 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Workaround for associating docstrings with public constants."""
-from typing import Any, Dict, NamedTuple, Optional
 
-DocProperties = NamedTuple(
-    'DocProperties',
-    [
-        ('doc_string', Optional[str]),
-    ],
-)
+from typing import Any, Dict
 
-RECORDED_CONST_DOCS: Dict[int, DocProperties] = {}
+RECORDED_CONST_DOCS: Dict[int, str] = {}
 
 
-def document(value: Any, doc_string: Optional[str] = None):
+def document(value: Any, doc_string: str = ''):
     """Stores documentation details about the given value.
 
     This method is used to associate a docstring with global constants. It is
@@ -42,6 +36,21 @@ def document(value: Any, doc_string: Optional[str] = None):
     Returns:
         The given value.
     """
-    docs = DocProperties(doc_string=doc_string)
-    RECORDED_CONST_DOCS[id(value)] = docs
+    RECORDED_CONST_DOCS[id(value)] = doc_string
+
+    ## this is how the devsite API generator picks up
+    ## docstrings for type aliases
+    try:
+        value.__doc__ = doc_string
+    except AttributeError:
+        # we have a couple (~ 7) global constants of type list, tuple, dict,
+        # that fail here as their __doc__ attribute is read-only.
+        # For the time being these are not going to be part of the generated
+        # API docs. See https://github.com/quantumlib/Cirq/issues/3276 for
+        # more info.
+
+        # to list them, uncomment these lines and run `import cirq`:
+        # print(f"WARNING: {e}")
+        # print(traceback.format_stack(limit=2)[0])
+        pass
     return value

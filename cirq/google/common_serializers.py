@@ -30,7 +30,7 @@ import sympy
 from cirq import ops, protocols, value
 from cirq.google import op_deserializer, op_serializer
 from cirq.google.api import v2
-from cirq.google.ops import FocusedCalibrationTag, PhysicalZTag
+from cirq.google.ops import CalibrationTag, PhysicalZTag
 
 # Type strings used in serialization for the two types of Z operations
 PHYSICAL_Z = 'physical'
@@ -69,13 +69,13 @@ def _convert_focused_tag(op: ops.Operation, proto: v2.program_pb2.Operation):
     if 'token' in proto.args:
         token = proto.args['token'].arg_value.string_value
         if token:
-            return op.with_tags(FocusedCalibrationTag(token))
+            return op.with_tags(CalibrationTag(token))
     return op
 
 
 def _get_focused_token(op: ops.Operation):
     for tag in op.tags:
-        if isinstance(tag, FocusedCalibrationTag):
+        if isinstance(tag, CalibrationTag):
             return tag.token
     return ''
 
@@ -192,10 +192,12 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
                 constructor_arg_name='phase_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
         op_wrapper=lambda op, proto: _convert_focused_tag(op, proto),
@@ -207,6 +209,7 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='half_turns',
                 constructor_arg_name='exponent',
+                default=1.0,
             ),
         ],
         op_wrapper=lambda op, proto: _convert_focused_tag(
@@ -219,14 +222,17 @@ SINGLE_QUBIT_DESERIALIZERS = [
             op_deserializer.DeserializingArg(
                 serialized_name='x_exponent',
                 constructor_arg_name='x_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='z_exponent',
                 constructor_arg_name='z_exponent',
+                default=0.0,
             ),
             op_deserializer.DeserializingArg(
                 serialized_name='axis_phase_exponent',
                 constructor_arg_name='axis_phase_exponent',
+                default=0.0,
             ),
         ],
         op_wrapper=lambda op, proto: _convert_focused_tag(op, proto),
@@ -352,7 +358,8 @@ SINGLE_QUBIT_HALF_PI_DESERIALIZERS = [
         args=[
             op_deserializer.DeserializingArg(
                 serialized_name='axis_half_turns',
-                constructor_arg_name='phase_exponent'),
+                constructor_arg_name='phase_exponent',
+            ),
             op_deserializer.DeserializingArg(serialized_name='axis_half_turns',
                                              constructor_arg_name='exponent',
                                              value_func=lambda _: 1),
@@ -410,8 +417,11 @@ CZ_POW_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='cz',
     gate_constructor=ops.CZPowGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='half_turns',
-                                         constructor_arg_name='exponent')
+        op_deserializer.DeserializingArg(
+            serialized_name='half_turns',
+            constructor_arg_name='exponent',
+            default=1.0,
+        )
     ],
     op_wrapper=lambda op, proto: _convert_focused_tag(op, proto))
 
@@ -579,10 +589,16 @@ LIMITED_FSIM_DESERIALIZER = op_deserializer.GateOpDeserializer(
     serialized_gate_id='fsim',
     gate_constructor=ops.FSimGate,
     args=[
-        op_deserializer.DeserializingArg(serialized_name='theta',
-                                         constructor_arg_name='theta'),
-        op_deserializer.DeserializingArg(serialized_name='phi',
-                                         constructor_arg_name='phi'),
+        op_deserializer.DeserializingArg(
+            serialized_name='theta',
+            constructor_arg_name='theta',
+            default=0.0,
+        ),
+        op_deserializer.DeserializingArg(
+            serialized_name='phi',
+            constructor_arg_name='phi',
+            default=0.0,
+        ),
     ],
     op_wrapper=lambda op, proto: _convert_focused_tag(op, proto))
 

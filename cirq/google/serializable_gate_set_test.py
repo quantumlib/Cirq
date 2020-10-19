@@ -83,6 +83,12 @@ def test_supported_gate_types():
     assert MY_GATE_SET.supported_gate_types() == (cirq.XPowGate,)
 
 
+def test_is_supported():
+    q0, q1 = cirq.GridQubit.rect(1, 2)
+    assert MY_GATE_SET.is_supported(cirq.Circuit(cirq.X(q0), cirq.X(q1)))
+    assert not MY_GATE_SET.is_supported(cirq.Circuit(cirq.X(q0), cirq.Z(q1)))
+
+
 def test_is_supported_operation():
     q = cirq.GridQubit(1, 1)
     assert MY_GATE_SET.is_supported_operation(cirq.XPowGate()(q))

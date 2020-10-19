@@ -241,7 +241,7 @@ def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns,
                                             token):
     op = gate.on(cirq.GridQubit(1, 2))
     if token:
-        op = op.with_tags(cirq.google.FocusedCalibrationTag(token))
+        op = op.with_tags(cirq.google.CalibrationTag(token))
     expected = op_proto({
         'gate': {
             'id': 'xy'
@@ -312,7 +312,7 @@ def test_serialize_deserialize_arbitrary_xyz(
     )
     op = gate.on(cirq.GridQubit(1, 2))
     if token:
-        op = op.with_tags(cirq.google.FocusedCalibrationTag(token))
+        op = op.with_tags(cirq.google.CalibrationTag(token))
     expected = op_proto({
         'gate': {
             'id': 'xyz'
@@ -366,7 +366,7 @@ def test_serialize_deserialize_arbitrary_xyz(
 def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask, token):
     op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
     if token:
-        op = op.with_tags(cirq.google.FocusedCalibrationTag(token))
+        op = op.with_tags(cirq.google.CalibrationTag(token))
     proto = op_proto({
         'gate': {
             'id': 'meas'

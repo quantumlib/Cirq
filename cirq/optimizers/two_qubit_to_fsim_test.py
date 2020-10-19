@@ -76,16 +76,16 @@ def test_decompose_xx_yy_into_two_fsims_ignoring_single_qubit_ops_fail():
 
 @pytest.mark.parametrize('obj,fsim_gate',
                          itertools.product(UNITARY_OBJS, FEASIBLE_FSIM_GATES))
-def test_decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
+def test_decompose_two_qubit_interaction_into_four_fsim_gates(
         obj: Any, fsim_gate: cirq.FSimGate):
     qubits = (obj.qubits
               if isinstance(obj, cirq.Operation) else cirq.LineQubit.range(2))
-    circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
+    circuit = cirq.decompose_two_qubit_interaction_into_four_fsim_gates(
         obj, fsim_gate=fsim_gate)
     desired_unitary = obj if isinstance(obj, np.ndarray) else cirq.unitary(obj)
     for operation in circuit.all_operations():
         assert len(operation.qubits) < 2 or operation.gate == fsim_gate
-    assert len(circuit) <= 4 + 5
+    assert len(circuit) <= 4 * 3 + 5
     assert cirq.approx_eq(circuit.unitary(qubit_order=qubits),
                           desired_unitary,
                           atol=1e-6)
@@ -151,3 +151,12 @@ def test_sticky_0_to_1():
     assert _sticky_0_to_1(2, atol=1e-8) is None
 
     assert _sticky_0_to_1(-0.1, atol=0.5) == 0
+
+
+def test_deprecated():
+    iswap = cirq.FSimGate(theta=np.pi / 2, phi=0)
+    with cirq.testing.assert_logs(
+            'decompose_two_qubit_interaction_into_four_fsim_gates_via_b',
+            'deprecated'):
+        _ = cirq.decompose_two_qubit_interaction_into_four_fsim_gates_via_b(
+            np.eye(4), fsim_gate=iswap)

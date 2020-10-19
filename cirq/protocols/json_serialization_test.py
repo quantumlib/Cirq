@@ -112,6 +112,7 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
     'ActOnCliffordTableauArgs',
+    'ActOnStabilizerCHFormArgs',
     'ActOnStateVectorArgs',
     'ApplyChannelArgs',
     'ApplyMixtureArgs',
@@ -138,6 +139,7 @@ SHOULDNT_BE_SERIALIZED = [
     # global objects
     'CONTROL_TAG',
     'PAULI_BASIS',
+    'PAULI_STATES',
 
     # abstract, but not inspect.isabstract():
     'Device',
@@ -167,6 +169,7 @@ SHOULDNT_BE_SERIALIZED = [
     'SupportsMeasurementKey',
     'SupportsMixture',
     'SupportsParameterization',
+    'SupportsPauliExpansion',
     'SupportsPhase',
     'SupportsQasm',
     'SupportsQasmWithArgs',
@@ -188,16 +191,20 @@ SHOULDNT_BE_SERIALIZED = [
     'RANDOM_STATE_OR_SEED_LIKE',
     'STATE_VECTOR_LIKE',
     'Sweepable',
+    'TParamKey',
     'TParamVal',
     'ParamDictType',
 
     # utility:
     'AnnealSequenceSearchStrategy',
+    'CliffordSimulator',
     'DeserializingArg',
     'GateOpDeserializer',
     'GateOpSerializer',
     'GreedySequenceSearchStrategy',
     'SerializingArg',
+    'Simulator',
+    'StabilizerSampler',
     'Unique',
     'DEFAULT_RESOLVERS',
 
@@ -274,7 +281,6 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
-    'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
     'CliffordTrialResult',
@@ -307,12 +313,12 @@ NOT_YET_SERIALIZABLE = [
     'QasmArgs',
     'QasmOutput',
     'QubitOrder',
+    'QubitPermutationGate',
     'QuilFormatter',
     'QuilOutput',
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
-    'Simulator',
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',

@@ -16,15 +16,14 @@ import cirq
 
 def test_equality():
     eq = cirq.testing.EqualsTester()
-    eq.add_equality_group(cirq.google.FocusedCalibrationTag('blah'),
-                          cirq.google.FocusedCalibrationTag('blah'))
-    eq.add_equality_group(cirq.google.FocusedCalibrationTag('blah2'))
+    eq.add_equality_group(cirq.google.CalibrationTag('blah'),
+                          cirq.google.CalibrationTag('blah'))
+    eq.add_equality_group(cirq.google.CalibrationTag('blah2'))
 
 
 def test_str_repr():
-    assert (str(cirq.google.FocusedCalibrationTag('foo')) ==
-            'FocusedCalibrationTag(\'foo\')')
-    assert (repr(cirq.google.FocusedCalibrationTag('foo')) ==
-            'cirq.google.FocusedCalibrationTag(\'foo\')')
-    cirq.testing.assert_equivalent_repr(
-        cirq.google.FocusedCalibrationTag('foo'), setup_code=('import cirq\n'))
+    example_tag = cirq.google.CalibrationTag('foo')
+    assert str(example_tag) == 'CalibrationTag(\'foo\')'
+    assert repr(example_tag) == 'cirq.google.CalibrationTag(\'foo\')'
+    cirq.testing.assert_equivalent_repr(example_tag,
+                                        setup_code=('import cirq\n'))

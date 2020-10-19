@@ -601,20 +601,21 @@ def test_text_diagrams():
                            cirq.rx(sympy.Symbol('x')).on(a), cirq.CZ(a, b),
                            cirq.CNOT(a, b), cirq.CNOT(b, a),
                            cirq.H(a)**0.5, cirq.I(a),
-                           cirq.IdentityGate(2)(a, b))
+                           cirq.IdentityGate(2)(a, b),
+                           cirq.cphase(sympy.pi * sympy.Symbol('t')).on(a, b))
 
     cirq.testing.assert_has_diagram(
         circuit, """
-a: ───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───I───I───
-                                │   │   │               │
-b: ─────────────────────────────@───X───@───────────────I───
+a: ───X───Y───Z───Z^x───Rx(x)───@───@───X───H^0.5───I───I───@─────
+                                │   │   │               │   │
+b: ─────────────────────────────@───X───@───────────────I───@^t───
 """)
 
     cirq.testing.assert_has_diagram(circuit,
                                     """
-a: ---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---I---I---
-                                |   |   |               |
-b: -----------------------------@---X---@---------------I---
+a: ---X---Y---Z---Z^x---Rx(x)---@---@---X---H^0.5---I---I---@-----
+                                |   |   |               |   |
+b: -----------------------------@---X---@---------------I---@^t---
 """,
                                     use_unicode_characters=False)
 
@@ -741,6 +742,10 @@ def test_str():
 
     assert str(cirq.CX) == 'CNOT'
     assert str(cirq.CNOT**0.5) == 'CNOT**0.5'
+    assert str(cirq.CZ) == 'CZ'
+    assert str(cirq.CZ**0.5) == 'CZ**0.5'
+    assert str(cirq.cphase(np.pi)) == 'CZ'
+    assert str(cirq.cphase(np.pi / 2)) == 'CZ**0.5'
 
 
 def test_rx_unitary():
@@ -804,6 +809,21 @@ def test_rz_unitary():
 
     np.testing.assert_allclose(cirq.unitary(cirq.rz(-np.pi)),
                                np.array([[1j, 0], [0, -1j]]))
+
+
+@pytest.mark.parametrize('angle_rads, expected_unitary', [
+    (0, np.eye(4)),
+    (1, np.diag([1, 1, 1, np.exp(1j)])),
+    (np.pi / 2, np.diag([1, 1, 1, 1j])),
+])
+def test_cphase_unitary(angle_rads, expected_unitary):
+    np.testing.assert_allclose(cirq.unitary(cirq.cphase(angle_rads)),
+                               expected_unitary)
+
+
+def test_parameterized_cphase():
+    assert cirq.cphase(sympy.pi) == cirq.CZ
+    assert cirq.cphase(sympy.pi / 2) == cirq.CZ**0.5
 
 
 def test_x_stabilizer():

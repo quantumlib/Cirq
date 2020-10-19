@@ -13,10 +13,11 @@
 # limitations under the License.
 
 """Resolves ParameterValues to assigned values."""
-
+import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
 import numpy as np
 import sympy
+from sympy.core import numbers as sympy_numbers
 from cirq._compat import proper_repr
 from cirq._doc import document
 
@@ -24,7 +25,7 @@ if TYPE_CHECKING:
     import cirq
 
 
-ParamDictType = Dict[Union[str, sympy.Symbol], Union[float, str, sympy.Basic]]
+ParamDictType = Dict['cirq.TParamKey', 'cirq.TParamVal']
 document(
     ParamDictType,  # type: ignore
     """Dictionary from symbols to values.""")
@@ -36,10 +37,11 @@ document(
 
 
 class ParamResolver:
-    """Resolves sympy.Symbols to actual values.
+    """Resolves parameters to actual values.
 
-    A Symbol is a wrapped parameter name (str). A ParamResolver is an object
-    that can be used to assign values for these keys.
+    A parameter is a variable whose value has not been determined.
+    A ParamResolver is an object that can be used to assign values for these
+    variables.
 
     ParamResolvers are hashable.
 
@@ -63,15 +65,17 @@ class ParamResolver:
                                {} if param_dict is None else param_dict)
 
     def value_of(self,
-                 value: Union[sympy.Basic, float, str]) -> 'cirq.TParamVal':
-        """Attempt to resolve a Symbol, string, or float to its assigned value.
+                 value: Union['cirq.TParamKey', float]) -> 'cirq.TParamVal':
+        """Attempt to resolve a parameter to its assigned value.
 
         Floats are returned without modification.  Strings are resolved via
         the parameter dictionary with exact match only.  Otherwise, strings
         are considered to be sympy.Symbols with the name as the input string.
 
-        sympy.Symbols are first checked for exact match in the parameter
-        dictionary.  Otherwise, the symbol is resolved using sympy substitution.
+        A sympy.Symbol is first checked for exact match in the parameter
+        dictionary. Otherwise, it is treated as a sympy.Basic.
+
+        A sympy.Basic is resolved using sympy substitution.
 
         Note that passing a formula to this resolver can be slow due to the
         underlying sympy library.  For circuits relying on quick performance,
@@ -81,15 +85,16 @@ class ParamResolver:
         If unable to resolve a name, returns a sympy.Symbol with that name.
 
         Args:
-            value: The sympy.Symbol or name or float to try to resolve into just
-                a float.
+            value: The parameter to try to resolve.
 
         Returns:
             The value of the parameter as resolved by this resolver.
         """
-        # Input is a float, no resolution needed: return early
-        if isinstance(value, float):
-            return value
+
+        # Input is a pass through type, no resolution needed: return early
+        v = _sympy_pass_through(value)
+        if v is not None:
+            return v
 
         # Handles 2 cases:
         # Input is a string and maps to a number in the dictionary
@@ -97,8 +102,9 @@ class ParamResolver:
         # In both cases, return it directly.
         if value in self.param_dict:
             param_value = self.param_dict[value]
-            if isinstance(param_value, (float, int)):
-                return param_value
+            v = _sympy_pass_through(param_value)
+            if v is not None:
+                return v
 
         # Input is a string and is not in the dictionary.
         # Treat it as a symbol instead.
@@ -109,10 +115,11 @@ class ParamResolver:
 
         # Input is a symbol (sympy.Symbol('a')) and its string maps to a number
         # in the dictionary ({'a': 1.0}).  Return it.
-        if (isinstance(value, sympy.Symbol) and value.name in self.param_dict):
+        if isinstance(value, sympy.Symbol) and value.name in self.param_dict:
             param_value = self.param_dict[value.name]
-            if isinstance(param_value, (float, int)):
-                return param_value
+            v = _sympy_pass_through(param_value)
+            if v is not None:
+                return v
 
         # The following resolves common sympy expressions
         # If sympy did its job and wasn't slower than molasses,
@@ -130,10 +137,6 @@ class ParamResolver:
         if isinstance(value, sympy.Pow) and len(value.args) == 2:
             return np.power(self.value_of(value.args[0]),
                             self.value_of(value.args[1]))
-        if value == sympy.pi:
-            return np.pi
-        if value == sympy.S.NegativeOne:
-            return -1
 
         # Input is either a sympy formula or the dictionary maps to a
         # formula.  Use sympy to resolve the value.
@@ -191,3 +194,15 @@ class ParamResolver:
     @classmethod
     def _from_json_dict_(cls, param_dict, **kwargs):
         return cls(dict(param_dict))
+
+
+def _sympy_pass_through(val: Any) -> Optional[Any]:
+    if isinstance(val, numbers.Number) and not isinstance(val, sympy.Basic):
+        return val
+    if isinstance(val, sympy_numbers.IntegerConstant):
+        return val.p
+    if isinstance(val, sympy_numbers.RationalConstant):
+        return val.p / val.q
+    if val == sympy.pi:
+        return np.pi
+    return None

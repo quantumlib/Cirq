@@ -1,5 +1,5 @@
 
-# Textbook Examples
+# Textbook examples
 
 Cirq comes with a collection of example implementations of well-known quantum
 algorithms that demonstrate the main features of the library.
@@ -44,12 +44,12 @@ qubit to another.
 *    [Super dense coding](https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py)
 Transmit 2 classical bits using one quantum bit.
 
-## Introductory Error Correction
+## Introductory error correction
 
 *   [Shor's Code](https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py)
 Quantum error correction with Shor's Code 
 
-## Intermediate Textbook Algorithms
+## Intermediate textbook algorithms
 
 *    [Grover Algorithm](https://github.com/quantumlib/Cirq/blob/master/examples/grover.py)
 Textbook algorithm for finding a single element hidden within a oracle function.
@@ -98,24 +98,24 @@ Algorithm for solving linear systems using quantum phase estimation.
 Quantum circuit to prepare the BCS ground states for superconductors/superfluids.
 
 
-## Advanced Tutorials
+## Advanced tutorials
 
-*    [Variational Algorithm](https://cirq.readthedocs.io/en/latest/tutorials/variational_algorithm.html)
+*    [Variational Algorithm](./variational_algorithm.ipynb)
 Case study demonstrating construction of an ansatz for a two-dimensional Ising
 model and how to simulate and optimize it.
 
-*    [QAOA](https://cirq.readthedocs.io/en/latest/tutorials/QAOA_Demo.html)
+*    [QAOA](qaoa.ipynb)
 Demonstration of optimizing cost of a max-cut problem using quantum
 approximation optimization algorithm (QAOA)
 
-*    [Hidden Linear Function](https://cirq.readthedocs.io/en/latest/tutorials/hidden_linear_function.html)
+*    [Hidden Linear Function](./hidden_linear_function.ipynb)
 Demonstration of a problem similar to Bernstein-Vazirani that uses a hidden
 function rather than using an Oracle.
 
-*    [Quantum Walk](https://cirq.readthedocs.io/en/latest/tutorials/Quantum_Walk.html)
+*    [Quantum Walk](quantum_walks.ipynb)
 Demonstration of both classical and quantum random walks that shows their
 similarities and differences.
 
-*    [Rabi Oscillations](https://cirq.readthedocs.io/en/latest/tutorials/Rabi_Demo.html)
+*    [Rabi Oscillations](rabi_oscillations.ipynb)
 Example of using sweeps and symbols to show rotation of a qubit by different
 angles.

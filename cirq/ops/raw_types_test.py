@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import AbstractSet
+
 import pytest
 import numpy as np
 import sympy
@@ -545,9 +547,6 @@ global phase:   π['tag1', 'tag2']""",
     # Two moments with global phase, one with another tagged gate
     c = cirq.Circuit([cirq.X(q).with_tags('x_tag'), tag1])
     c.append(cirq.Moment([cirq.X(q), tag2]))
-    for m in c:
-        print(m)
-        print('----')
     cirq.testing.assert_has_diagram(c,
                                     """\
 a: ─────────────X['x_tag']─────X──────────────
@@ -661,6 +660,9 @@ class ParameterizableTag:
     def _is_parameterized_(self) -> bool:
         return cirq.is_parameterized(self.value)
 
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return cirq.parameter_names(self.value)
+
     def _resolve_parameters_(self, resolver) -> 'ParameterizableTag':
         return ParameterizableTag(cirq.resolve_parameters(self.value, resolver))
 
@@ -669,11 +671,14 @@ def test_tagged_operation_resolves_parameterized_tags():
     q = cirq.GridQubit(0, 0)
     tag = ParameterizableTag(sympy.Symbol('t'))
     assert cirq.is_parameterized(tag)
+    assert cirq.parameter_names(tag) == {'t'}
     op = cirq.Z(q).with_tags(tag)
     assert cirq.is_parameterized(op)
+    assert cirq.parameter_names(op) == {'t'}
     resolved_op = cirq.resolve_parameters(op, {'t': 10})
     assert resolved_op == cirq.Z(q).with_tags(ParameterizableTag(10))
     assert not cirq.is_parameterized(resolved_op)
+    assert cirq.parameter_names(resolved_op) == set()
 
 
 def test_inverse_composite_standards():

@@ -54,16 +54,15 @@ def test_convert_to_ion_gates():
 
     rx = cirq.ion.ConvertToIonGates().convert_one(OtherX().on(q0))
     rop = cirq.ion.ConvertToIonGates().convert_one(op)
-    assert rx == [
-        cirq.PhasedXPowGate(phase_exponent=1).on(cirq.GridQubit(0, 0))
-    ]
-    assert rop == [
+    assert cirq.approx_eq(
+        rx, [cirq.PhasedXPowGate(phase_exponent=1.0).on(cirq.GridQubit(0, 0))])
+    assert cirq.approx_eq(rop, [
         cirq.ry(np.pi / 2).on(op.qubits[0]),
         cirq.ms(np.pi / 4).on(op.qubits[0], op.qubits[1]),
         cirq.rx(-1 * np.pi / 2).on(op.qubits[0]),
         cirq.rx(-1 * np.pi / 2).on(op.qubits[1]),
         cirq.ry(-1 * np.pi / 2).on(op.qubits[0])
-    ]
+    ])
 
     rcnot = cirq.ion.ConvertToIonGates().convert_one(OtherCNOT().on(q0, q1))
     assert cirq.approx_eq([op for op in rcnot if len(op.qubits) > 1],

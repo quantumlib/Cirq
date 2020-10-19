@@ -14,16 +14,20 @@
 
 """Defines which types are Sweepable."""
 
-from typing import Dict, Iterable, Iterator, List, Union, cast
-import itertools
+from typing import Dict, Iterable, Iterator, List, Sequence, Union, cast
+import warnings
 
 from cirq._doc import document
 from cirq.study.resolver import ParamResolver, ParamResolverOrSimilarType
-from cirq.study.sweeps import ListSweep, Points, Sweep, UnitSweep, Zip
+from cirq.study.sweeps import (ListSweep, Points, Sweep, UnitSweep, Zip,
+                               dict_to_product_sweep)
 
+SweepLike = Union[ParamResolverOrSimilarType, Sweep]
+document(
+    SweepLike,  # type: ignore
+    """An object similar to an iterable of parameter resolvers.""")
 
-Sweepable = Union[Dict[str, float], ParamResolver, Sweep, Iterable[
-    Union[Dict[str, float], ParamResolver, Sweep]], None]
+Sweepable = Union[SweepLike, Iterable[SweepLike]]
 document(
     Sweepable,  # type: ignore
     """An object or collection of objects representing a parameter sweep.""")
@@ -31,20 +35,8 @@ document(
 
 def to_resolvers(sweepable: Sweepable) -> Iterator[ParamResolver]:
     """Convert a Sweepable to a list of ParamResolvers."""
-    if sweepable is None:
-        yield ParamResolver({})
-    elif isinstance(sweepable, ParamResolver):
-        yield sweepable
-    elif isinstance(sweepable, Sweep):
-        yield from sweepable
-    elif isinstance(sweepable, dict):
-        yield ParamResolver(cast(Dict, sweepable))
-    elif isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
-        for item in cast(Iterable, sweepable):
-            yield from to_resolvers(item)
-    else:
-        raise TypeError(f'Unrecognized sweepable type: {type(sweepable)}.\n'
-                        f'sweepable: {sweepable}')
+    for sweep in to_sweeps(sweepable):
+        yield from sweep
 
 
 def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
@@ -56,22 +48,16 @@ def to_sweeps(sweepable: Sweepable) -> List[Sweep]:
     if isinstance(sweepable, Sweep):
         return [sweepable]
     if isinstance(sweepable, dict):
-        # change dictionary of lists to list of dictionaries
-        # of single values using Cartesian product.
-        newsweepable = {}
-        for key, value in sweepable.items():
-            if isinstance(value, Iterable):
-                newsweepable[key] = value
-            else:
-                newsweepable[key] = [value]
-        expandsweepable = [
-            dict(zip(newsweepable.keys(), v))
-            for v in itertools.product(*newsweepable.values())
-        ]
-        return [
-            _resolver_to_sweep(ParamResolver(cast(Dict, dictitem)))
-            for dictitem in expandsweepable
-        ]
+        if any(isinstance(val, Sequence) for val in sweepable.values()):
+            warnings.warn(
+                'Implicit expansion of a dictionary into a Cartesian product '
+                'of sweeps is deprecated and will be removed in cirq 0.10. '
+                'Instead, expand the sweep explicitly using '
+                '`cirq.dict_to_product_sweep`.',
+                DeprecationWarning,
+                stacklevel=2)
+        product_sweep = dict_to_product_sweep(sweepable)
+        return [_resolver_to_sweep(resolver) for resolver in product_sweep]
     if isinstance(sweepable, Iterable) and not isinstance(sweepable, str):
         return [
             sweep for item in sweepable for sweep in to_sweeps(

@@ -42,10 +42,14 @@ from cirq.study.sweeps import (
     Sweep,
     UnitSweep,
     Zip,
+    dict_to_product_sweep,
+    dict_to_zip_sweep,
 )
 
-from cirq.study.trial_result import (
-    TrialResult,)
+from cirq.study.result import (
+    Result,
+    TrialResult,
+)
 
 from cirq.study.visualize import (
     plot_state_histogram,)
