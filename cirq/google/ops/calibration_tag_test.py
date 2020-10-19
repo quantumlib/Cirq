@@ -22,8 +22,8 @@ def test_equality():
 
 
 def test_str_repr():
-    assert (str(cirq.google.CalibrationTag('foo')) == 'CalibrationTag(\'foo\')')
-    assert (repr(cirq.google.CalibrationTag('foo')) ==
-            'cirq.google.CalibrationTag(\'foo\')')
-    cirq.testing.assert_equivalent_repr(cirq.google.CalibrationTag('foo'),
+    example_tag = cirq.google.CalibrationTag('foo')
+    assert str(example_tag) == 'CalibrationTag(\'foo\')'
+    assert repr(example_tag) == 'cirq.google.CalibrationTag(\'foo\')'
+    cirq.testing.assert_equivalent_repr(example_tag,
                                         setup_code=('import cirq\n'))
