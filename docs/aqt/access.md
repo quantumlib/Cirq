@@ -1,10 +1,10 @@
-# AQT devices
+# AQT Access and Authentication
 
 AQT offers access to several quantum computing devices, so-called backends, ranging from real-hardware ion traps with various number of ions to quantum computing simulators including different noise models. To get an overview of available devices visit [www.aqt.eu](https://www.aqt.eu) and get direct access to the devices via the [AQT gateway portal](https://api-gateway.aqt.eu).
 
 ## Tokens
 
-The AQT API to access backends uses token-based authentication. In order to be able to submit quantum circuits via quantum programming software development kits you need to supply these tokens. Once you have successfully subscribed to an AQT backend you can retrieve the token on the [AQT gateway portal](https://api-gateway.aqt.eu) and use it in your quantum programs or Jupyter notebook tutorials.
+The AQT API to access backends uses token-based authentication. In order to be able to submit quantum circuits via quantum programming software development kits you need to supply these tokens. Once you have successfully subscribed to an AQT backend you can retrieve the token on the [AQT gateway portal](https://gateway-portal.aqt.eu) and use it in your quantum programs or Jupyter notebook tutorials.
 
 ## Backend URLs
 
@@ -20,4 +20,4 @@ whereas for a simulation with noise model use
 url = 'https://gateway.aqt.eu/marmot/sim/noise-model-1'
 ```
 
-Real-hardware backends have similar URLs which can be retrieved together with the token on the [AQT gateway portal](https://api-gateway.aqt.eu).
+Real-hardware backends have similar URLs which can be retrieved together with the token on the [AQT gateway portal](https://gateway-portal.aqt.eu).
