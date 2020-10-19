@@ -85,6 +85,7 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'CalibrationTag': cirq.google.CalibrationTag,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
