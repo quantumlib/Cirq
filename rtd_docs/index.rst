@@ -58,6 +58,7 @@ User Documentation
     :maxdepth: 1
     :caption: Google Documentation
 
+    docs/google/access
     docs/google/concepts
     docs/tutorials/google/start
     docs/tutorials/google/colab
