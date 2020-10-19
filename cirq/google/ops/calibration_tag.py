@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""A class that can be used to denote a physical Z gate."""
 from typing import Any, Dict
 
 from cirq import protocols
@@ -19,21 +18,22 @@ from cirq import protocols
 
 class CalibrationTag:
     """Tag to add onto an Operation that specifies alternate parameters.
+
     Google devices support the ability to run a procedure from calibration API
     that can tune the device for a specific circuit.  This will return a token
     as part of the result.  Attaching a `CalibrationTag` with that token
-    designates the device to use that tuned gate instead of the default gate
-    parameters.
+    specifies that the gate should use parameters from that specific calibration,
+    instead of the default gate parameters.
     """
 
     def __init__(self, token: str):
         self.token = token
 
     def __str__(self) -> str:
-        return f'CalibrationTag(\'{self.token}\')'
+        return f'CalibrationTag({self.token!r})'
 
     def __repr__(self) -> str:
-        return f'cirq.google.CalibrationTag(\'{self.token}\')'
+        return f'cirq.google.CalibrationTag({self.token!r})'
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self, ['token'])
