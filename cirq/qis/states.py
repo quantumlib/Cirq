@@ -404,14 +404,26 @@ def validate_normalized_state_vector(
         state_vector: np.ndarray,
         *,  # Force keyword arguments
         qid_shape: Tuple[int, ...],
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> None:
-    """Validates that the given state vector is a valid."""
+    """Checks that the given state vector is valid.
+
+    Args:
+        state_vector: The state vector to validate.
+        qid_shape: The expected qid shape of the state.
+        dtype: The expected dtype of the state.
+        atol: Absolute numerical tolerance.
+
+    Raises:
+        ValueError: State has incorrect size.
+        ValueError: State has invalid dtype.
+        ValueError: State is not normalized.
+    """
     if state_vector.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
             'state_vector has incorrect size. Expected {} but was {}.'.format(
                 np.prod(qid_shape, dtype=int), state_vector.size))
-    if state_vector.dtype != dtype:
+    if dtype and state_vector.dtype != dtype:
         raise ValueError(
             'state_vector has invalid dtype. Expected {} but was {}'.format(
                 dtype, state_vector.dtype))
