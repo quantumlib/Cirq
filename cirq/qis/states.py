@@ -220,7 +220,7 @@ def density_matrix(
         validate: bool = True,
         dtype: Type[np.number] = np.complex64,
         atol: float = 1e-7) -> QuantumState:
-    if state.ndim != 2 or len(set(state.shape)) != 1:
+    if state.ndim != 2 or state.shape[0] != state.shape[1]:
         raise ValueError('A density matrix must be a square matrix. '
                          f'Got shape {state.shape}.')
     dim, _ = state.shape
