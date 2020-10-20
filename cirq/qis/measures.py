@@ -86,16 +86,16 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
 
 def _fidelity_quantum_states(state1: 'cirq.QuantumState',
                              state2: 'cirq.QuantumState') -> float:
-    if state1.is_pure_state() and state2.is_pure_state():
+    if not state1.is_density_matrix() and not state2.is_density_matrix():
         state_vector_1 = state1.state_vector()
         state_vector_2 = state2.state_vector()
         return np.abs(np.vdot(state_vector_1, state_vector_2))**2
-    elif state1.is_pure_state() and state2.is_density_matrix():
+    elif not state1.is_density_matrix() and state2.is_density_matrix():
         state_vector_1 = state1.state_vector()
         density_matrix_2 = state2.density_matrix()
         return np.real(
             np.conjugate(state_vector_1) @ density_matrix_2 @ state_vector_1)
-    elif state1.is_density_matrix() and state2.is_pure_state():
+    elif state1.is_density_matrix() and not state2.is_density_matrix():
         density_matrix_1 = state1.density_matrix()
         state_vector_2 = state2.state_vector()
         return np.real(
@@ -109,9 +109,6 @@ def _fidelity_quantum_states(state1: 'cirq.QuantumState',
             density_matrix_1_sqrt @ density_matrix_2 @ density_matrix_1_sqrt)
         trace = np.sum(np.sqrt(np.abs(eigs)))
         return trace**2
-    raise ValueError('At least one of the given states has an invalid shape. '
-                     'Try calling cirq.fidelity with the validate argument '
-                     'set to True.')
 
 
 def von_neumann_entropy(density_matrix: np.ndarray) -> float:

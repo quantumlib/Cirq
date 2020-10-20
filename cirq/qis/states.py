@@ -109,21 +109,18 @@ class QuantumState:
     def is_density_matrix(self) -> bool:
         return self.data.shape == (self._dim, self._dim)
 
-    def is_pure_state(self) -> bool:
-        return self.is_state_vector() or self.is_state_tensor()
-
     def state_vector(self) -> Optional[np.ndarray]:
-        if not self.is_pure_state():
+        if self.is_density_matrix():
             return None
         return np.reshape(self.data, (self._dim,))
 
     def state_tensor(self) -> Optional[np.ndarray]:
-        if not self.is_pure_state():
+        if self.is_density_matrix():
             return None
         return np.reshape(self.data, self.qid_shape)
 
     def density_matrix(self) -> np.ndarray:
-        if self.is_pure_state():
+        if not self.is_density_matrix():
             state_vector = self.state_vector()
             return np.outer(state_vector, np.conj(state_vector))
         return self.data
@@ -133,7 +130,7 @@ class QuantumState:
             *,  # Force keyword arguments
             dtype: Type[np.number] = np.complex64,
             atol=1e-7) -> None:
-        if self.is_pure_state():
+        if self.is_state_vector() or self.is_state_tensor():
             validate_normalized_state_vector(self.state_vector(),
                                              qid_shape=self.qid_shape,
                                              dtype=dtype,

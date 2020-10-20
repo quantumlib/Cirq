@@ -88,11 +88,6 @@ def test_fidelity_bad_shape():
         _ = cirq.fidelity(np.array([[[1.0]]]),
                           np.array([[[1.0]]]),
                           qid_shape=(1,))
-    with pytest.raises(ValueError, match='invalid shape'):
-        _ = cirq.fidelity(np.array([[[1.0]]]),
-                          np.array([[[1.0]]]),
-                          qid_shape=(1,),
-                          validate=False)
 
 
 def test_von_neumann_entropy():
