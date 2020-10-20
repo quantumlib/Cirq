@@ -216,6 +216,7 @@ def quantum_state(
 
 def density_matrix(
         state: np.ndarray,
+        qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
         validate: bool = True,
         dtype: Type[np.number] = np.complex64,
@@ -224,7 +225,8 @@ def density_matrix(
         raise ValueError('A density matrix must be a square matrix. '
                          f'Got shape {state.shape}.')
     dim, _ = state.shape
-    qid_shape = _infer_qid_shape_from_dimension(dim)
+    if qid_shape is None:
+        qid_shape = _infer_qid_shape_from_dimension(dim)
     return QuantumState(data=state,
                         qid_shape=qid_shape,
                         dtype=dtype,
