@@ -101,25 +101,49 @@ class QuantumState:
         return self._data.dtype
 
     def is_state_vector(self) -> bool:
+        """Whether this quantum state is a state vector.
+
+        A state vector stores the amplitudes of a pure state as a
+        one-dimensional array.
+        """
         return self.data.shape == (self._dim,)
 
     def is_state_tensor(self) -> bool:
+        """Whether this quantum state is a state tensor.
+
+        A state tensor stores the amplitudes of a pure state as an array with
+        shape equal to the qid shape of the state.
+        """
         return self.data.shape == self.qid_shape
 
     def is_density_matrix(self) -> bool:
+        """Whether this quantum state is a density matrix.
+
+        A density matrix stores the entries of a density matrix as a matrix
+        (a two-dimensional array).
+        """
         return self.data.shape == (self._dim, self._dim)
 
     def state_vector(self) -> Optional[np.ndarray]:
+        """Return the state vector of this state.
+
+        If the state is a density matrix, returns None.
+        """
         if self.is_density_matrix():
             return None
         return np.reshape(self.data, (self._dim,))
 
     def state_tensor(self) -> Optional[np.ndarray]:
+        """Return the state tensor of this state.
+
+        If the state is a density matrix, returns None.
+        """
         if self.is_density_matrix():
             return None
         return np.reshape(self.data, self.qid_shape)
 
     def density_matrix(self) -> np.ndarray:
+        """Return the density matrix of this state."""
         if not self.is_density_matrix():
             state_vector = self.state_vector()
             return np.outer(state_vector, np.conj(state_vector))
@@ -130,6 +154,7 @@ class QuantumState:
             *,  # Force keyword arguments
             dtype: Type[np.number] = np.complex64,
             atol=1e-7) -> None:
+        """Check if this quantum state is valid."""
         if self.is_state_vector() or self.is_state_tensor():
             validate_normalized_state_vector(self.state_vector(),
                                              qid_shape=self.qid_shape,
