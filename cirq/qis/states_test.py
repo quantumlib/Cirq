@@ -344,7 +344,7 @@ def test_validate_normalized_state():
 
 def test_validate_density_matrix():
     cirq.validate_density_matrix(cirq.testing.random_density_matrix(2),
-            qid_shape=(2,))
+                                 qid_shape=(2,))
 
 
 def test_to_valid_density_matrix_from_density_matrix():

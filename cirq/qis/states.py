@@ -361,7 +361,8 @@ def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
 
 def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                                   qid_shape: Tuple[int, ...],
-                                  dtype: Optional[Type[np.number]]) -> np.ndarray:
+                                  dtype: Optional[Type[np.number]]
+                                 ) -> np.ndarray:
 
     for i in range(len(qid_shape)):
         s = state_vector[i]
