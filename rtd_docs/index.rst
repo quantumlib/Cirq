@@ -69,6 +69,12 @@ User Documentation
     docs/google/calibration
     docs/google/best_practices
 
+.. toctree::
+    :maxdepth: 1
+    :caption: AQT Documentation
+
+    docs/aqt/access
+    docs/tutorials/aqt/getting_started.ipynb
 
 .. toctree::
     :maxdepth: 1
@@ -77,6 +83,8 @@ User Documentation
     docs/pasqal/getting_started.ipynb
     docs/pasqal/devices
     docs/pasqal/sampler
+
+
 
 
 .. toctree::
