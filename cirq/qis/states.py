@@ -229,7 +229,7 @@ def to_valid_state_vector(
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Sequence[int]] = None,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
 
@@ -286,7 +286,7 @@ def to_valid_state_vector(
 
 def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                 qid_shape: Tuple[int, ...],
-                                dtype: Type[np.number],
+                                dtype: Optional[Type[np.number]],
                                 atol: float) -> np.ndarray:
 
     if isinstance(state_like, int):
@@ -347,8 +347,10 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
 
 def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
                                           qid_shape: Tuple[int, ...],
-                                          dtype: Type[np.number],
+                                          dtype: Optional[Type[np.number]],
                                           atol: float) -> np.ndarray:
+    if dtype is None:
+        dtype = np.complex64
     result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
     validate_normalized_state_vector(result,
                                      qid_shape=qid_shape,
@@ -359,7 +361,7 @@ def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
 
 def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                                   qid_shape: Tuple[int, ...],
-                                  dtype: Type[np.number]) -> np.ndarray:
+                                  dtype: Optional[Type[np.number]]) -> np.ndarray:
 
     for i in range(len(qid_shape)):
         s = state_vector[i]
@@ -380,6 +382,8 @@ def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                          f'qid_shape={qid_shape!r}\n'
                          f'state={state_vector!r}\n')
 
+    if dtype is None:
+        dtype = np.complex64
     return one_hot(index=tuple(int(e) for e in state_vector),
                    shape=qid_shape,
                    dtype=dtype)
@@ -387,7 +391,7 @@ def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
 
 def _computational_basis_state_to_state_tensor(*, state_rep: int,
                                                qid_shape: Tuple[int, ...],
-                                               dtype: Type[np.number]
+                                               dtype: Optional[Type[np.number]]
                                               ) -> np.ndarray:
     n = np.prod(qid_shape, dtype=int)
     if not 0 <= state_rep < n:
@@ -397,6 +401,8 @@ def _computational_basis_state_to_state_tensor(*, state_rep: int,
                          f'MIN_STATE=0\n'
                          f'MAX_STATE=product(qid_shape)-1={n-1}\n'
                          f'qid_shape={qid_shape!r}\n')
+    if dtype is None:
+        dtype = np.complex64
     return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
@@ -482,7 +488,7 @@ def to_valid_density_matrix(
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
