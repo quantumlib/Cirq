@@ -16,6 +16,7 @@ from math import exp
 import pytest
 
 from google.protobuf.text_format import Merge
+from cirq_google.api import v2
 
 import cirq
 import cirq.contrib.noise_models as ccn
@@ -23,7 +24,6 @@ from cirq.contrib.noise_models.noise_models import (
     _homogeneous_moment_is_measurements, simple_noise_from_calibration_metrics)
 from cirq.devices.noise_model_test import _assert_equivalent_op_tree
 from cirq import ops
-from cirq_google.api import v2
 
 
 def test_moment_is_measurements():
