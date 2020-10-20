@@ -402,6 +402,16 @@ class PauliSum:
         qs = {q for k in self._linear_dict.keys() for q, _ in k}
         return tuple(sorted(qs))
 
+    def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSum':
+        qubits = self.qubits
+        if len(new_qubits) != len(qubits):
+            raise ValueError('Incorrect number of qubits for PauliSum.')
+        qubit_map = dict(zip(qubits, new_qubits))
+        new_pauli_strings = []
+        for pauli_string in self:
+            new_pauli_strings.append(pauli_string.map_qubits(qubit_map))
+        return PauliSum.from_pauli_strings(new_pauli_strings)
+
     def copy(self) -> 'PauliSum':
         factory = type(self)
         return factory(self._linear_dict.copy())

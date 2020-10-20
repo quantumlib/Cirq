@@ -44,7 +44,7 @@ class PauliSumExponential:
         self._exponent = exponent
 
     @property
-    def qubits(self) -> 'Tuple[cirq.Qid, ...]':
+    def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._pauli_sum.qubits
 
     @property
@@ -81,7 +81,7 @@ class PauliSumExponential:
                     return False
         return True
 
-    def __iter__(self) -> 'Iterator[cirq.PauliStringPhasor]':
+    def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
         for pauli_string in self._pauli_sum:
             sign = np.sign(pauli_string.coefficient).real
             theta = self._exponent * sign / np.pi

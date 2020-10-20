@@ -12,14 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from cirq.testing.equivalent_repr_eval import assert_equivalent_repr
-from cirq.ops.pauli_sum_exponential import PauliSumExponential
-import itertools
-import math
-from typing import List, cast
-
 import numpy as np
 import pytest
+
 import sympy
 
 import cirq
@@ -76,14 +71,14 @@ def test_with_parameters_resolved_by(psum, exp):
     (cirq.PauliSumExponential(cirq.X(q0),
                               np.pi / 2), np.array([[0, 1j], [1j, 0]])),
     (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Z(q1), np.pi / 2),
-     np.array([[1, 0, 0, 0], [0, -1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])),
+     np.array([[1j, 0, 0, 0], [0, -1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])),
 ))
 def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
     assert cirq.has_unitary(psum_exp)
     assert np.allclose(cirq.unitary(psum_exp), expected_unitary)
 
 
-@pytest.mark.parametrize('psum_exp, pow, expected_psum', (
+@pytest.mark.parametrize('psum_exp, power, expected_psum', (
     (cirq.PauliSumExponential(cirq.Z(q1), np.pi / 2), 5,
      cirq.PauliSumExponential(cirq.Z(q1), 5 * np.pi / 2)),
     (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Y(q2),
@@ -95,8 +90,8 @@ def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
      cirq.PauliSumExponential(
          cirq.X(q0) * cirq.Y(q1) + cirq.Y(q3) * cirq.Z(q3), 5 * np.pi)),
 ))
-def test_pauli_sum_exponential_pow(psum_exp, pow, expected_psum):
-    assert psum_exp**pow == expected_psum
+def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
+    assert psum_exp**power == expected_psum
 
 
 @pytest.mark.parametrize('psum_exp', (

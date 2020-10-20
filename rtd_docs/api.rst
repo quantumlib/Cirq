@@ -170,6 +170,7 @@ and products of Pauli operations.
     cirq.PauliStringGateOperation
     cirq.PauliStringPhasor
     cirq.PauliSum
+    cirq.PauliSumExponential
     cirq.PauliSumLike
     cirq.PauliTransform
     cirq.SingleQubitCliffordGate

@@ -304,6 +304,7 @@ NOT_YET_SERIALIZABLE = [
     'PauliInteractionGate',
     'PauliStringPhasor',
     'PauliSum',
+    'PauliSumExponential',
     'PauliSumCollector',
     'PauliTransform',
     'PeriodicValue',
