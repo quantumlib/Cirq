@@ -1,15 +1,21 @@
 import inspect
 import pathlib
+import re
 from typing import Set, Dict, Tuple, Any, List
 
 import cirq
+import cirq_aqt
+import cirq_google
+import cirq_pasqal
 
 
 def _all_public() -> Set[str]:
     module_scopes = [
         (cirq, 'cirq'),
         (cirq.experiments, 'cirq.experiments'),
-        (cirq.google, 'cirq.google'),
+        (cirq_google, 'cirq_google'),
+        (cirq_pasqal, 'cirq_pasqal'),
+        (cirq_aqt, 'cirq_aqt'),
         (cirq.testing, 'cirq.testing'),
     ]
 
@@ -49,8 +55,10 @@ def _api_rst_fullnames_per_section() -> List[List[str]]:
                 if section:
                     result.append(section)
                     section = []
-            elif ('    cirq.' in line or '    .. autoclass:: cirq.' in line or
-                  '    .. autofunction:: cirq.' in line):
+            elif (re.match(
+                    r' {4}'
+                    r'((.. autoclass:: )|(.. autofunction:: ))?'
+                    r'cirq[._]', line)):
                 fullname = line[line.find('cirq'):].strip()
                 if fullname in seen:
                     # coverage: ignore
