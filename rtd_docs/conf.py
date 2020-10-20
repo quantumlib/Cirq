@@ -27,6 +27,9 @@ import pypandoc
 
 cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)
+sys.path.insert(1, os.path.join(cirq_root_path, "platforms", "google"))
+sys.path.insert(2, os.path.join(cirq_root_path, "platforms", "aqt"))
+sys.path.insert(3, os.path.join(cirq_root_path, "platforms", "pasqal"))
 from cirq import _doc
 
 

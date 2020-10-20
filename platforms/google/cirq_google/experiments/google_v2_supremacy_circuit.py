@@ -19,6 +19,7 @@ from cirq.circuits import InsertStrategy
 from cirq import circuits, devices, ops
 import cirq_google
 
+
 def generate_boixo_2018_supremacy_circuits_v2(
         qubits: Iterable[devices.GridQubit], cz_depth: int,
         seed: int) -> circuits.Circuit:

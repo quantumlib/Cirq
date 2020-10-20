@@ -508,48 +508,76 @@ Functionality specific to quantum hardware and services from Google.
 .. autosummary::
     :toctree: generated/
 
-    cirq.google.FSIM_GATESET
-    cirq.google.NAMED_GATESETS
-    cirq.google.SQRT_ISWAP_GATESET
-    cirq.google.SYC
-    cirq.google.SYC_GATESET
-    cirq.google.XMON
-    cirq.google.get_engine
-    cirq.google.get_engine_calibration
-    cirq.google.get_engine_device
-    cirq.google.get_engine_sampler
-    cirq.google.line_on_device
-    cirq.google.optimized_for_sycamore
-    cirq.google.optimized_for_xmon
-    cirq.google.AnnealSequenceSearchStrategy
-    cirq.google.Bristlecone
-    cirq.google.Calibration
-    cirq.google.ConvertToSqrtIswapGates
-    cirq.google.ConvertToSycamoreGates
-    cirq.google.ConvertToXmonGates
-    cirq.google.DeserializingArg
-    cirq.google.Engine
-    cirq.google.EngineJob
-    cirq.google.EngineProcessor
-    cirq.google.EngineProgram
-    cirq.google.EngineTimeSlot
-    cirq.google.Foxtail
-    cirq.google.GateOpDeserializer
-    cirq.google.GateOpSerializer
-    cirq.google.GateTabulation
-    cirq.google.GreedySequenceSearchStrategy
-    cirq.google.LinePlacementStrategy
-    cirq.google.PhysicalZTag
-    cirq.google.ProtoVersion
-    cirq.google.QuantumEngineSampler
-    cirq.google.SerializableDevice
-    cirq.google.SerializableGateSet
-    cirq.google.SerializingArg
-    cirq.google.Sycamore
-    cirq.google.Sycamore23
-    cirq.google.SycamoreGate
-    cirq.google.XmonDevice
+    cirq_google.FSIM_GATESET
+    cirq_google.NAMED_GATESETS
+    cirq_google.SQRT_ISWAP_GATESET
+    cirq_google.SYC
+    cirq_google.SYC_GATESET
+    cirq_google.XMON
+    cirq_google.get_engine
+    cirq_google.get_engine_calibration
+    cirq_google.get_engine_device
+    cirq_google.get_engine_sampler
+    cirq_google.line_on_device
+    cirq_google.optimized_for_sycamore
+    cirq_google.optimized_for_xmon
+    cirq_google.AnnealSequenceSearchStrategy
+    cirq_google.Bristlecone
+    cirq_google.Calibration
+    cirq_google.ConvertToSqrtIswapGates
+    cirq_google.ConvertToSycamoreGates
+    cirq_google.ConvertToXmonGates
+    cirq_google.DeserializingArg
+    cirq_google.Engine
+    cirq_google.EngineJob
+    cirq_google.EngineProcessor
+    cirq_google.EngineProgram
+    cirq_google.EngineTimeSlot
+    cirq_google.Foxtail
+    cirq_google.GateOpDeserializer
+    cirq_google.GateOpSerializer
+    cirq_google.GateTabulation
+    cirq_google.GreedySequenceSearchStrategy
+    cirq_google.LinePlacementStrategy
+    cirq_google.PhysicalZTag
+    cirq_google.ProtoVersion
+    cirq_google.QuantumEngineSampler
+    cirq_google.SerializableDevice
+    cirq_google.SerializableGateSet
+    cirq_google.SerializingArg
+    cirq_google.Sycamore
+    cirq_google.Sycamore23
+    cirq_google.SycamoreGate
+    cirq_google.XmonDevice
 
+
+AQT
+''''''
+
+Functionality specific to quantum hardware and services from AQT.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq_aqt.AQTSampler
+    cirq_aqt.AQTSamplerLocalSimulator
+    cirq_aqt.AQTSimulator
+
+Pasqal
+''''''
+
+Functionality specific to quantum hardware and services from Pasqal.
+
+.. autosummary::
+    :toctree: generated/
+
+    cirq_pasqal.ThreeDQubit
+    cirq_pasqal.TwoDQubit
+    cirq_pasqal.PasqalDevice
+    cirq_pasqal.PasqalVirtualDevice
+
+    cirq_pasqal.PasqalNoiseModel
+    cirq_pasqal.PasqalSampler
 
 Contrib
 '''''''
@@ -757,4 +785,4 @@ These objects and methods will be removed in a future version of the library.
     cirq.WaveFunctionSimulatorState
     cirq.WaveFunctionStepResult
     cirq.WaveFunctionTrialResult
-    cirq.google.engine_from_environment
+    cirq_google.engine_from_environment
