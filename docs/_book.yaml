@@ -95,6 +95,11 @@ upper_tabs:
       - title: "Pasqal sampler"
         path: /cirq/pasqal/sampler
 
+      ####  AQT ####
+      - heading: "AQT hardware"
+      - title: "AQT devices"
+        path: /cirq/aqt/devices
+
     - name: "Tutorials"
       contents:
         ####  CIRQ ####
@@ -125,6 +130,11 @@ upper_tabs:
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/pasqal/getting_started
+
+      ####  AQT HARDWARE ####
+      - heading: "AQT hardware"
+      - title: "Getting started with AQT hardware"
+        path: /cirq/tutorials/aqt/getting_started
 
 
     - name: "Experiments"
