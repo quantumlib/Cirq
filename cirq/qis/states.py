@@ -270,11 +270,12 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
 
     This is a heuristic that is guaranteed to return a qid shape compatible
     with all of the given states, but may fail (raising an error) even
-    if there is a unique compatible qid shape. If the qid shape is ambiguous,
-    then an error is raised, unless the qid shape is to be inferred from the
-    shape of a state vector. In that case, if the dimension of the state vector
-    is a power of 2, then the state space is assumed to be composed of qubits;
-    otherwise, it is assumed to be composed of a single qudit.
+    if there is a unique compatible qid shape. If, after applying the heuristic,
+    the qid shape is ambiguous, then an error is raised unless the qid shape is
+    to be inferred from the shape of a state vector or density matrix. In that
+    case, if the dimension of the state space is a power of 2, then the state
+    space is assumed to be composed of qubits; otherwise, it is assumed to be
+    composed of a single qudit.
 
     Args:
         states: The states for which to infer the qid shape.
