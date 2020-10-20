@@ -64,7 +64,7 @@ def test_fidelity_commuting_matrices():
 
 
 def test_fidelity_known_values():
-    vec1 = np.array([1, 1j, -1, -1j], dtype=np.complex128) * 0.5
+    vec1 = np.array([1, 1j, -1, -1j]) * 0.5
     vec2 = np.array([1, -1, 1, -1], dtype=np.complex128) * 0.5
     mat1 = cirq.density_matrix(np.outer(vec1, vec1.conj()), dtype=np.complex128)
     mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()), dtype=np.complex128)
