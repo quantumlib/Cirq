@@ -571,13 +571,12 @@ Functionality specific to quantum hardware and services from Pasqal.
 .. autosummary::
     :toctree: generated/
 
-    cirq_pasqal.ThreeDQubit
-    cirq_pasqal.TwoDQubit
     cirq_pasqal.PasqalDevice
-    cirq_pasqal.PasqalVirtualDevice
-
     cirq_pasqal.PasqalNoiseModel
     cirq_pasqal.PasqalSampler
+    cirq_pasqal.PasqalVirtualDevice
+    cirq_pasqal.ThreeDQubit
+    cirq_pasqal.TwoDQubit
 
 Contrib
 '''''''
