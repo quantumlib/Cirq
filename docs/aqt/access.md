@@ -1,4 +1,4 @@
-# AQT Access and Authentication
+# Access and Authentication
 
 AQT offers access to several quantum computing devices, so-called backends, ranging from real-hardware ion traps with various number of ions to quantum computing simulators including different noise models. To get an overview of available devices visit [www.aqt.eu](https://www.aqt.eu) and get direct access to the devices via the [AQT gateway portal](https://api-gateway.aqt.eu).
 

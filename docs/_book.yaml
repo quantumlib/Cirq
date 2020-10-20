@@ -97,8 +97,8 @@ upper_tabs:
 
       ####  AQT ####
       - heading: "AQT hardware"
-      - title: "AQT devices"
-        path: /cirq/aqt/devices
+      - title: "Access and authentication"
+        path: /cirq/aqt/access
 
     - name: "Tutorials"
       contents:
