@@ -81,3 +81,9 @@ from cirq_google.op_serializer import (
 
 from cirq_google.serializable_gate_set import (
     SerializableGateSet,)
+
+from cirq_google.experiments import (
+    generate_boixo_2018_supremacy_circuits_v2,
+    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
+    generate_boixo_2018_supremacy_circuits_v2_grid,
+)

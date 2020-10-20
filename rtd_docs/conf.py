@@ -29,7 +29,6 @@ cirq_root_path = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, cirq_root_path)
 from cirq import _doc
 
-
 def setup(app):
     # just in case it exists (locally) remove the copied docs folder
     shutil.rmtree("./docs", ignore_errors=True)

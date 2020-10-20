@@ -1,9 +1,3 @@
-from cirq.experiments.google_v2_supremacy_circuit import (
-    generate_boixo_2018_supremacy_circuits_v2,
-    generate_boixo_2018_supremacy_circuits_v2_bristlecone,
-    generate_boixo_2018_supremacy_circuits_v2_grid,
-)
-
 from cirq.experiments.qubit_characterizations import (
     rabi_oscillations,
     RabiResult,

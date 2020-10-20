@@ -16,7 +16,7 @@ import pytest
 
 from cirq import GridQubit
 from cirq import ops
-import cirq.experiments.google_v2_supremacy_circuit as supremacy_v2
+import cirq_google.experiments.google_v2_supremacy_circuit as supremacy_v2
 
 
 def test_google_v2_supremacy_circuit():
@@ -35,11 +35,10 @@ def test_google_v2_supremacy_circuit():
         ops.ZPowGate))) == 32
     assert len(list(circuit.findall_operations_with_gate_type(
         ops.HPowGate))) == 40
-    qubits = [GridQubit(i, j) for i in range(4)
-              for j in range(5)]
-    assert isinstance(circuit.operation_at(qubits[0],2).gate, ops.YPowGate)
-    assert isinstance(circuit.operation_at(qubits[1],2).gate, ops.YPowGate)
-    assert isinstance(circuit.operation_at(qubits[8],2).gate, ops.XPowGate)
+    qubits = [GridQubit(i, j) for i in range(4) for j in range(5)]
+    assert isinstance(circuit.operation_at(qubits[0], 2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[1], 2).gate, ops.YPowGate)
+    assert isinstance(circuit.operation_at(qubits[8], 2).gate, ops.XPowGate)
     assert circuit.operation_at(qubits[0], 1).gate == ops.CZ
     assert circuit.operation_at(qubits[5], 2).gate == ops.CZ
     assert circuit.operation_at(qubits[8], 3).gate == ops.CZ

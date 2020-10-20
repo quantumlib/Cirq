@@ -36,7 +36,8 @@ trap "{ echo -e '\033[31mFAILED\033[0m'; }" ERR
 [[ $1 == 'fast' ]] && CPUS='-j auto' || CPUS=''
 
 # Get the working directory to the repo root.
-cd "$(git rev-parse --show-toplevel)"/rtd_docs
+root_dir=$(git rev-parse --show-toplevel)
+cd "$root_dir/rtd_docs"
 
 docs_conf_dir="."
 out_dir="${docs_conf_dir}/_build"
@@ -46,6 +47,8 @@ rm -rf "${docs_conf_dir}/generated"
 
 # Cleanup previous output.
 rm -rf "${out_dir}"
+
+source "$root_dir/dev_tools/pypath"
 
 # Regenerate docs.
 sphinx-build -M html "${docs_conf_dir}" "${out_dir}" -W --keep-going $CPUS
