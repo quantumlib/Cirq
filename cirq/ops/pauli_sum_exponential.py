@@ -66,12 +66,12 @@ class PauliSumExponential:
         factory = type(self)
         return factory(self._pauli_sum.copy(), self._exponent)
 
-    def _resolve_parameters_(
-        self, param_resolver: 'cirq.ParamResolverOrSimilarType'
-    ) -> 'PauliSumExponential':
+    def _resolve_parameters_(self,
+                             param_resolver: 'cirq.ParamResolverOrSimilarType'
+                            ) -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum,
-                                   exponent=param_resolver.value_of(
-                                       self._exponent))
+                                   exponent=protocols.resolve_parameters(
+                                       self._exponent, param_resolver))
 
     @staticmethod
     def _all_pauli_strings_commute_(pauli_sum: 'cirq.PauliSum') -> bool:
