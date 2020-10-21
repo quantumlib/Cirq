@@ -23,9 +23,7 @@ if TYPE_CHECKING:
 
 def group_settings_greedy(settings: Iterable[InitObsSetting]) \
         -> Dict[InitObsSetting, List[InitObsSetting]]:
-    """
-    Group a list of settings which can be simultaneously measured via
-    a greedy algorithm.
+    """Greedily group settings which can be simultaneously measured.
 
     We construct a dictionary keyed by `max_setting` (see docstrings
     for `_max_weight_state` and `_max_weight_observable`) where the value
