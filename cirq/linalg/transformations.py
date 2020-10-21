@@ -184,11 +184,12 @@ def targeted_conjugate_about(tensor: np.ndarray,
     conj_indices for second $\cdot$).
 
     More specifically this computes
-        sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}}
-        * target_{k_0,...,k_{r-1},l_0,...,l_{r-1}
-        * tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*
-    where the sum is over indices where j_s = k_s and s is in `indices`
-    and l_s = m_s and s is in `conj_indices`.
+        $\sum tensor_{i_0,...,i_{r-1},j_0,...,j_{r-1}} *
+        target_{k_0,...,k_{r-1},l_0,...,l_{r-1}} *
+        tensor_{m_0,...,m_{r-1},n_0,...,n_{r-1}}^*$
+
+    where the sum is over indices where $j_s$ = $k_s$ and $s$ is in `indices`
+    and $l_s$ = $m_s$ and s is in `conj_indices`.
 
     Args:
         tensor: The tensor that will be conjugated about the target tensor.
@@ -504,3 +505,20 @@ def sub_state_vector(state_vector: np.ndarray,
 @deprecated(deadline='v0.10.0', fix='Use `cirq.sub_state_vector` instead.')
 def subwavefunction(*args, **kwargs):
     return sub_state_vector(*args, **kwargs)
+
+
+def to_special(u: np.ndarray) -> np.ndarray:
+    """Converts a unitary matrix to a special unitary matrix.
+
+    All unitary matrices u have |det(u)| = 1.
+    Also for all d dimensional unitary matrix u, and scalar s:
+        det(u * s) = det(u) * s^(d)
+    To find a special unitary matrix from u:
+        u * det(u)^{-1/d}
+
+    Args:
+        u: the unitary matrix
+    Returns:
+        the special unitary matrix
+    """
+    return u * (np.linalg.det(u)**(-1 / len(u)))

@@ -197,11 +197,14 @@ SHOULDNT_BE_SERIALIZED = [
 
     # utility:
     'AnnealSequenceSearchStrategy',
+    'CliffordSimulator',
     'DeserializingArg',
     'GateOpDeserializer',
     'GateOpSerializer',
     'GreedySequenceSearchStrategy',
     'SerializingArg',
+    'Simulator',
+    'StabilizerSampler',
     'Unique',
     'DEFAULT_RESOLVERS',
 
@@ -278,7 +281,6 @@ NOT_YET_SERIALIZABLE = [
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
     'CircuitSampleJob',
-    'CliffordSimulator',
     'CliffordSimulatorStepResult',
     'CliffordState',
     'CliffordTrialResult',
@@ -317,7 +319,6 @@ NOT_YET_SERIALIZABLE = [
     'SerializableDevice',
     'SerializableGateSet',
     'SimulationTrialResult',
-    'Simulator',
     'SingleQubitCliffordGate',
     'SparseSimulatorStep',
     'SQRT_ISWAP_GATESET',
@@ -345,6 +346,7 @@ def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
     result: Set[Tuple[str, Type]] = set()
     result.update(_get_all_public_classes(cirq))
     result.update(_get_all_public_classes(cirq.google))
+    result.update(_get_all_public_classes(cirq.work))
 
     for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
         t = v if isinstance(v, type) else None

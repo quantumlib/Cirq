@@ -12,21 +12,39 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import dataclasses
 import itertools
 
-from typing import Any, Iterator, List, NamedTuple, Optional, Sequence, Tuple
+from typing import Any, Iterator, List, Optional, Sequence, Tuple
 import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D  # type: ignore # pylint: disable=unused-import
 from cirq import circuits, devices, ops, protocols, study, work
 
-Cliffords = NamedTuple('Cliffords', [('c1_in_xy', List[List[ops.Gate]]),
-                                     ('c1_in_xz', List[List[ops.Gate]]),
-                                     ('s1', List[List[ops.Gate]]),
-                                     ('s1_x', List[List[ops.Gate]]),
-                                     ('s1_y', List[List[ops.Gate]])])
+
+@dataclasses.dataclass
+class Cliffords:
+    """The single-qubit Clifford group, decomposed into elementary gates.
+
+    The decomposition of the Cliffords follows those described in
+    Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
+
+    Decompositions of the Clifford group:
+        c1_in_xy: decomposed into XPowGate and YPowGate.
+        c1_in_xz: decomposed into XPowGate and ZPowGate, with at most one
+            XPowGate (one microwave gate) per Clifford.
+
+    Subsets used to generate the 2-qubit Clifford group (see paper table S7):
+        s1
+        s1_x
+        s1_y
+    """
+    c1_in_xy: List[List[ops.Gate]]
+    c1_in_xz: List[List[ops.Gate]]
+    s1: List[List[ops.Gate]]
+    s1_x: List[List[ops.Gate]]
+    s1_y: List[List[ops.Gate]]
 
 
 class RabiResult:
@@ -411,45 +429,62 @@ def two_qubit_state_tomography(sampler: work.Sampler,
     To measure the density matrix of the output state of a two-qubit circuit,
     different combinations of I, X/2 and Y/2 operations are applied to the
     two qubits before measurements in the z-basis to determine the state
-    probabilities P_00, P_01, P_10.
+    probabilities $P_{00}, P_{01}, P_{10}.$
 
     The density matrix rho is decomposed into an operator-sum representation
-    \sum_{i, j} c_ij * sigma_i \bigotimes sigma_j, where i, j = 0, 1, 2,
-    3 and sigma_0 = I, sigma_1 = sigma_x, sigma_2 = sigma_y, sigma_3 =
-    sigma_z are the single-qubit Identity and Pauli matrices.
+    $\sum_{i, j} c_{ij} * \sigma_i \bigotimes \sigma_j$, where $i, j = 0, 1, 2,
+    3$ and $\sigma_0 = I, \sigma_1 = \sigma_x, \sigma_2 = \sigma_y, \sigma_3 =
+    \sigma_z$ are the single-qubit Identity and Pauli matrices.
 
     Based on the measured probabilities probs and the transformations of the
     measurement operator by different basis rotations, one can build an
     overdetermined set of linear equations.
 
-    As an example, if the identity operation (I) is applied to both qubits,
-    the measurement operators are (I +/- sigma_z) \bigotimes (I +/- sigma_z).
-    The state probabilities P_00, P_01, P_10 thus obtained contribute to the
-    following linear equations (setting c_00 = 1):
+    As an example, if the identity operation (I) is applied to both qubits, the
+    measurement operators are $(I +/- \sigma_z) \bigotimes (I +/- \sigma_z)$.
+    The state probabilities $P_{00}, P_{01}, P_{10}$ thus obtained contribute
+    to the following linear equations (setting $c_{00} = 1$):
 
-    c_03 + c_30 + c_33 = 4*P_00 - 1
-    -c_03 + c_30 - c_33 = 4*P_01 - 1
-    c_03 - c_30 - c_33 = 4*P_10 - 1
+        $$
+        c_{03} + c_{30} + c_{33} = 4*P_{00} - 1
+        $$
+
+        $$
+        -c_{03} + c_{30} - c_{33} = 4*P_{01} - 1
+        $$
+
+        $$
+        c_{03} - c_{30} - c_{33} = 4*P_{10} - 1
+        $$
 
     And if a Y/2 rotation is applied to the first qubit and a X/2 rotation
     is applied to the second qubit before measurement, the measurement
-    operators are (I -/+ sigma_x) \bigotimes (I +/- sigma_y). The probabilities
-    obtained instead contribute to the following linear equations:
+    operators are $(I -/+ \sigma_x) \bigotimes (I +/- \sigma_y)$. The
+    probabilities obtained instead contribute to the following linear equations:
 
-    c_02 - c_10 - c_12 = 4*P_00 - 1
-    -c_02 - c_10 + c_12 = 4*P_01 - 1
-    c_02 + c_10 + c_12 = 4*P_10 - 1
+        $$
+        c_{02} - c_{10} - c_{12} = 4*P_{00} - 1
+        $$
+
+        $$
+        -c_{02} - c_{10} + c_{12} = 4*P_{01} - 1
+        $$
+
+        $$
+        c_{02} + c_{10} + c_{12} = 4*P_{10} - 1
+        $$
 
     Note that this set of equations has the same form as the first set under
-    the transformation c_03 <-> c_02, c_30 <-> -c_10 and c_33 <-> -c_12.
+    the transformation $c_{03}$ <-> $c_{02}, c_{30}$ <-> $-c_{10}$ and
+    $c_{33}$ <-> $-c_{12}$.
 
     Since there are 9 possible combinations of rotations (each producing 3
-    independent probabilities) and a total of 15 unknown coefficients c_ij,
+    independent probabilities) and a total of 15 unknown coefficients $c_{ij}$,
     one can cast all the measurement results into a overdetermined set of
     linear equations numpy.dot(mat, c) = probs. Here c is of length 15 and
-    contains all the c_ij's (except c_00 which is set to 1), and mat is a 27
-    by 15 matrix having three non-zero elements in each row that are either
-    1 or -1.
+    contains all the $c_{ij}$'s (except $c_{00}$ which is set to 1), and mat
+    is a 27 by 15 matrix having three non-zero elements in each row that are
+    either 1 or -1.
 
     The least-square solution to the above set of linear equations is then
     used to construct the density matrix rho.
@@ -647,7 +682,7 @@ def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
     gate which is constructed with single-qubit X and Y rotations and CZ gates.
     The decomposition of the Cliffords follow those described in the appendix
-    of Barends et al., Nature 508, 500.
+    of Barends et al., Nature 508, 500 (https://arxiv.org/abs/1402.4848).
 
     The integer idx is first decomposed into idx_0 (which ranges from 0 to
     23), idx_1 (ranging from 0 to 23) and idx_2 (ranging from 0 to 19). idx_0
@@ -744,33 +779,56 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 
 
 def _single_qubit_cliffords() -> Cliffords:
+    X, Y, Z = ops.X, ops.Y, ops.Z
+
     c1_in_xy = []  # type: List[List[ops.Gate]]
     c1_in_xz = []  # type: List[List[ops.Gate]]
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
-        c1_in_xy.append([ops.X**phi_0, ops.Y**phi_1])
-        c1_in_xy.append([ops.Y**phi_0, ops.X**phi_1])
-        c1_in_xz.append([ops.X**phi_0, ops.Z**phi_1])
-        c1_in_xz.append([ops.Z**phi_0, ops.X**phi_1])
+        c1_in_xy.append([X**phi_0, Y**phi_1])
+        c1_in_xy.append([Y**phi_0, X**phi_1])
+        c1_in_xz.append([X**phi_0, Z**phi_1])
+        c1_in_xz.append([Z**phi_0, X**phi_1])
 
-    c1_in_xy.append([ops.X**0.0])
-    c1_in_xy.append([ops.Y, ops.X])
+    # identity
+    c1_in_xy.append([X**0.0])
+    c1_in_xz.append([X**0.0])
 
-    phi_xy = [[-0.5, 0.5, 0.5], [-0.5, -0.5, 0.5], [0.5, 0.5, 0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xy:
-        c1_in_xy.append([ops.X**phi[0], ops.Y**phi[1], ops.X**phi[2]])
+    c1_in_xy.append([Y, X])
+    c1_in_xz.append([Z, X])
 
-    phi_xz = [[0.5, 0.5, -0.5], [0.5, -0.5, -0.5], [-0.5, -0.5, -0.5],
-              [-0.5, 0.5, -0.5]]
-    for phi in phi_xz:
-        c1_in_xz.append([ops.X**phi[0], ops.Z**phi[1], ops.X**phi[2]])
+    phi_xy = [
+        [-0.5, 0.5, 0.5],
+        [-0.5, -0.5, 0.5],
+        [0.5, 0.5, 0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for y0, x, y1 in phi_xy:
+        c1_in_xy.append([Y**y0, X**x, Y**y1])
 
-    s1 = [[ops.X**0.0], [ops.Y**0.5, ops.X**0.5],
-          [ops.X**-0.5, ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_x = [[ops.X**0.5], [ops.X**0.5, ops.Y**0.5, ops.X**0.5],
-            [ops.Y**-0.5]]  # type: List[List[ops.Gate]]
-    s1_y = [[ops.Y**0.5], [ops.X**-0.5, ops.Y**-0.5, ops.X**0.5],
-            [ops.Y, ops.X**0.5]]  # type: List[List[ops.Gate]]
+    phi_xz = [
+        [0.5, 0.5, -0.5],
+        [0.5, -0.5, -0.5],
+        [-0.5, -0.5, -0.5],
+        [-0.5, 0.5, -0.5],
+    ]
+    for z0, x, z1 in phi_xz:
+        c1_in_xz.append([Z**z0, X**x, Z**z1])
+
+    s1 = [
+        [X**0.0],
+        [Y**0.5, X**0.5],
+        [X**-0.5, Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_x = [
+        [X**0.5],
+        [X**0.5, Y**0.5, X**0.5],
+        [Y**-0.5],
+    ]  # type: List[List[ops.Gate]]
+    s1_y = [
+        [Y**0.5],
+        [X**-0.5, Y**-0.5, X**0.5],
+        [Y, X**0.5],
+    ]  # type: List[List[ops.Gate]]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)

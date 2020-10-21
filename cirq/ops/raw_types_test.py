@@ -547,9 +547,6 @@ global phase:   π['tag1', 'tag2']""",
     # Two moments with global phase, one with another tagged gate
     c = cirq.Circuit([cirq.X(q).with_tags('x_tag'), tag1])
     c.append(cirq.Moment([cirq.X(q), tag2]))
-    for m in c:
-        print(m)
-        print('----')
     cirq.testing.assert_has_diagram(c,
                                     """\
 a: ─────────────X['x_tag']─────X──────────────
