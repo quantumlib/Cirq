@@ -312,8 +312,9 @@ class PauliString(raw_types.Operation, Generic[TKey]):
             zip(new_qubits, (self[q] for q in self.qubits))),
                            coefficient=self._coefficient)
 
-    def with_coefficient(self, new_coefficient: Union[int, float, complex]):
-        return PauliString(qubit_pauli_map=self._qubit_pauli_map,
+    def with_coefficient(self, new_coefficient: Union[int, float, complex]
+                        ) -> 'PauliString':
+        return PauliString(qubit_pauli_map=dict(self._qubit_pauli_map),
                            coefficient=new_coefficient)
 
     def values(self) -> ValuesView[pauli_gates.Pauli]:
