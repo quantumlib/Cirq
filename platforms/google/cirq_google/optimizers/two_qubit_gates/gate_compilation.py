@@ -19,7 +19,8 @@ _SingleQubitGatePair = Tuple[np.ndarray, np.ndarray]
 
 
 class TwoQubitGateCompilation(NamedTuple):
-    """Represents a compilation of a target 2-qubit with respect to a base gate.
+    r"""Represents a compilation of a target 2-qubit with respect to a base
+    gate.
 
     This object encodes the relationship between 4x4 unitary operators
 
@@ -30,9 +31,10 @@ class TwoQubitGateCompilation(NamedTuple):
     Attributes:
         base_gate: 4x4 unitary denoting U_base above.
         target_gate: 4x4 unitary denoting U_target above.
-        local_unitaries: Sequence of 2-tuples (k_{00},k_{01}),(k_{10},k_{11})...
-            where k_j = k_{j0} ⊗ k_{j1} in the product above. Each k_{j0},
-            k_{j1} is a 2x2 unitary.
+        local_unitaries: Sequence of 2-tuples
+            $(k_{00}, k_{01}), (k_{10}, k_{11}) \ldots$ where
+            $k_j = k_{j0} \otimes k_{j1}$ in the product above.
+            Each $k_{j0}, k_{j1}$ is a 2x2 unitary.
         actual_gate: 4x4 unitary denoting the right hand side above, ideally
             equal to U_target.
         success: Whether actual_gate is expected to be close to U_target.
@@ -68,9 +70,9 @@ class GateTabulation:
         r"""Compute single qubit gates required to compile a desired unitary.
 
         Given a desired unitary U, this computes the sequence of 1-local gates
-        k_j such that the product
+        $k_j$ such that the product
 
-        k_{n-1} A k_{n-2} A ... k_1 A k_0
+        $k_{n-1} A k_{n-2} A ... k_1 A k_0$
 
         is close to U. Here A is the base_gate of the tabulation.
 
@@ -304,11 +306,11 @@ def gate_product_tabulation(
         base_gate: The base gate of the tabulation.
         max_infidelity: Sets the desired density of tabulated product unitaries.
             The typical nearest neighbor Euclidean spacing (of the KAK vectors)
-            will be on the order of \sqrt(max_infidelity). Thus the number of
-            tabulated points will scale as max_infidelity^{-3/2}.
+            will be on the order of $\sqrt{max\_infidelity}$. Thus the number of
+            tabulated points will scale as $max\_infidelity^{-3/2}$.
         sample_scaling: Relative number of random gate products to use in the
             tabulation. The total number of random local unitaries scales as
-            ~ max_infidelity^{-3/2} * sample_scaling. Must be positive.
+            ~ $max\_infidelity^{-3/2} * sample\_scaling$. Must be positive.
         random_state: Random state or random state seed.
         allow_missed_points: If True, the tabulation is allowed to conclude
             even if not all points in the Weyl chamber are expected to be

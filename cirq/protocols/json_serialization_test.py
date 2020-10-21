@@ -345,6 +345,8 @@ NOT_YET_SERIALIZABLE = [
 def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
     result: Set[Tuple[str, Type]] = set()
     result.update(_get_all_public_classes(cirq))
+    result.update(_get_all_public_classes(cirq.google))
+    result.update(_get_all_public_classes(cirq.work))
     try:
         import cirq_google
         result.update(_get_all_public_classes(cirq_google))

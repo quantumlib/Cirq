@@ -30,20 +30,32 @@ if TYPE_CHECKING:
 class XXPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The X-parity gate, possibly raised to a power.
+    r"""The X-parity gate, possibly raised to a power.
 
     The XX**t gate implements the following unitary:
 
-        (X⊗X)^t = [c . . s]
-                  [. c s .]
-                  [. s c .]
-                  [s . . c]
+        $$
+        (X \otimes X)^t = \begin{bmatrix}
+                          c & . & . & s \\
+                          . & c & s & . \\
+                          . & s & c & . \\
+                          s & . & . & c
+                          \end{bmatrix}
+        $$
 
     where '.' means '0' and
 
-        c = f cos(πt / 2)
-        s = -i f sin(πt / 2)
-        f = e^{iπt / 2}.
+        $$
+        c = f \cos(\frac{\pi t}{2})
+        $$
+
+        $$
+        s = -i f \sin(\frac{\pi t}{2})
+        $$
+
+        $$
+        f = e^{\frac{i \pi t}{2}}.
+        $$
 
     See also: `cirq.MSGate` (the Mølmer–Sørensen gate), which is implemented via
     this class.
@@ -121,20 +133,32 @@ class XXPowGate(eigen_gate.EigenGate,
 class YYPowGate(eigen_gate.EigenGate,
                 gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
-    """The Y-parity gate, possibly raised to a power.
+    r"""The Y-parity gate, possibly raised to a power.
 
     The YY**t gate implements the following unitary:
 
-        (Y⊗Y)^t = [ c . . -s]
-                  [ . c s  .]
-                  [ . s c  .]
-                  [-s . .  c]
+        $$
+        (Y \otimes Y)^t = \begin{bmatrix}
+                          c & . & . & -s \\
+                          . & c & s & . \\
+                          . & s & c & . \\
+                          -s & . & . & c \\
+                          \end{bmatrix}
+        $$
 
     where '.' means '0' and
 
-        c = f cos(πt / 2)
-        s = -i f sin(πt / 2)
-        f = e^{iπt / 2}.
+        $$
+        c = f \cos(\frac{\pi t}{2})
+        $$
+
+        $$
+        s = -i f \sin(\frac{\pi t}{2})
+        $$
+
+        $$
+        f = e^{\frac{i \pi t}{2}}.
+        $$
     """
 
     def _eigen_components(self):
@@ -214,12 +238,16 @@ class ZZPowGate(eigen_gate.EigenGate,
 
     The ZZ**t gate implements the following unitary:
 
-        (Z⊗Z)^t = [1 . . .]
-                  [. w . .]
-                  [. . w .]
-                  [. . . 1]
+        $$
+        (Z \otimes Z)^t = \begin{bmatrix}
+                          1 & . & . & . \\
+                          . & w & . & . \\
+                          . & . & w & . \\
+                          . & . & . & 1
+                          \end{bmatrix}
+        $$
 
-    where w = e^{iπt} and '.' means '0'.
+    where $w = e^{i \pi t}$ and '.' means '0'.
     """
 
     def _decompose_(self, qubits):

@@ -524,6 +524,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq_google.AnnealSequenceSearchStrategy
     cirq_google.Bristlecone
     cirq_google.Calibration
+    cirq_google.CalibrationTag
     cirq_google.ConvertToSqrtIswapGates
     cirq_google.ConvertToSycamoreGates
     cirq_google.ConvertToXmonGates

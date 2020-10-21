@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq_google.ops.calibration_tag import (
+    CalibrationTag,)
+
 from cirq_google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,

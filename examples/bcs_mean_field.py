@@ -10,9 +10,10 @@ represent spin-up (down) basis states.
 
 The Bogoliubov transformation can be readily implemented by
 applying quantum gates on vertical pairs of qubits, which takes the form
-|BCS⟩ = \prod_k (u_k + v_k c^\dag_{k,↑} c^\dag_{−k,↓}|vac⟩ where |vac⟩ is
-the vacuum state and u_k^2 = (1+ ξ_k/(ξ_k^2+Δ_k^2)^{1/2})/2 and v_k^2
-= (1 - ξ_k/(ξ_k^2+Δ_k^2)^{1/2})/2.
+$|BCS⟩ = \prod_k (u_k + v_k) c^\dagger_{k,↑} c^\dagger_{−k,↓}|vac⟩$ where
+$|vac⟩$ is the vacuum state and
+$u_k^2 = \frac{1}{2}(1+ \frac{ξ_k}{\sqrt{ξ_k^2+Δ_k^2}})$ and
+$v_k^2 = \frac{1}{2}(1 - \frac{ξ_k}{\sqrt{ξ_k^2+Δ_k^2}})$
 
 We use the fast fermionic Fourier transformation (FFFT) to implement the basis
 transformation from the momentum picture to the position picture.
@@ -203,9 +204,9 @@ def fswap(p, q):
 
 def bogoliubov_trans(p, q, theta):
     r"""The 2-mode Bogoliubov transformation is mapped to two-qubit operations.
-     We use the identity X S^\dag X S X = Y X S^\dag Y S X = X to transform
-     the Hamiltonian XY+YX to XX+YY type. The time evolution of the XX + YY
-     Hamiltonian can be expressed as a power of the iSWAP gate.
+     We use the identity $X S^\dagger X S X = Y X S^\dagger Y S X = X$ to
+     transform the Hamiltonian XY+YX to XX+YY type. The time evolution of the
+     XX + YY Hamiltonian can be expressed as a power of the iSWAP gate.
 
     Args:
         p: the first qubit
