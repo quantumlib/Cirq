@@ -24,7 +24,10 @@ IGNORED_FILE_PATTERNS = [
     r'^.+_pb2(_grpc)?\.py$',  # Auto-generated protobuf code.
     r'setup\.py$',  # Installation code.
     r'_version\.py$',  # Installation code.
-    r'^cirq/google/engine/client/.+.py$',  # Generate gRPC client code.
+    # Generated gRPC client code.
+    r'^platforms/google/cirq_google/engine/client/.+.py$',
+    # Deprecated v1 api
+    r'^platforms/google/cirq_google/api/v1/.+.py$',
 ]
 IGNORED_LINE_PATTERNS = [
     # Imports often uncovered due to version checks and type checking blocks.
