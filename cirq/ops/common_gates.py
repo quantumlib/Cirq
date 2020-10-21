@@ -108,9 +108,7 @@ class XPowGate(eigen_gate.EigenGate,
                 return NotImplemented
             assert all(
                 gate._act_on_(args) for gate in  # type: ignore
-                [HPowGate(),
-                 ZPowGate(exponent=self._exponent),
-                 HPowGate()])
+                [H, ZPowGate(exponent=self._exponent), H])
             return True
 
         return NotImplemented
@@ -340,18 +338,17 @@ class YPowGate(eigen_gate.EigenGate,
             if effective_exponent == 0.5:
                 assert all(
                     gate._act_on_(args)  # type: ignore
-                    for gate in [ZPowGate(), HPowGate()])
+                    for gate in [ZPowGate(), H])
                 state.omega *= (1 + 1j) / (2**0.5)  # type: ignore
             elif effective_exponent == 1:
                 assert all(
                     gate._act_on_(args) for gate in  # type: ignore
-                    [ZPowGate(), HPowGate(),
-                     ZPowGate(), HPowGate()])
+                    [ZPowGate(), H, ZPowGate(), H])
                 state.omega *= 1j  # type: ignore
             elif effective_exponent == 1.5:
                 assert all(
                     gate._act_on_(args)  # type: ignore
-                    for gate in [HPowGate(), ZPowGate()])
+                    for gate in [H, ZPowGate()])
                 state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
             return True
 
