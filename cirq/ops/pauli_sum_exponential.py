@@ -14,7 +14,6 @@
 from typing import (Any, Iterator, Tuple, Union, TYPE_CHECKING)
 
 import numpy as np
-import scipy
 import sympy
 
 from cirq import linalg, protocols, value
@@ -28,8 +27,8 @@ if TYPE_CHECKING:
 class PauliSumExponential:
     """Represents operator defined by exponential of a PauliSum.
 
-    Given a hermitian/anti-hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this 
-    class returns an operation which is equivalent to 
+    Given a hermitian/anti-hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this
+    class returns an operation which is equivalent to
     exp(j * exponent * (PS_1 + PS_2 + ... + PS_N)).
 
     This class currently supports only exponential of commuting Pauli Terms.
@@ -89,7 +88,8 @@ class PauliSumExponential:
 
     def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
         for pauli_string in self._pauli_sum:
-            theta = pauli_string.coefficient * self._exponent * self._multiplier / np.pi
+            theta = pauli_string.coefficient * self._multiplier
+            theta *= self._exponent / np.pi
             if isinstance(theta, complex):
                 theta = theta.real
             yield pauli_string_phasor.PauliStringPhasor(
@@ -98,7 +98,7 @@ class PauliSumExponential:
                 exponent_pos=theta)
 
     def matrix(self) -> np.ndarray:
-        """Reconstructs matrix of self from underlying Pauli operations.
+        """Reconstructs matrix of self from underlying Pauli sum exponentials.
 
         Raises:
             ValueError: if exponent is parameterized.
@@ -114,10 +114,7 @@ class PauliSumExponential:
         return linalg.is_unitary(self.matrix())
 
     def _unitary_(self) -> np.ndarray:
-        m = self.matrix()
-        if linalg.is_unitary(m):
-            return m
-        raise ValueError(f'{self} is not unitary')
+        return self.matrix()
 
     def __pow__(self, exponent: int) -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum,
@@ -126,7 +123,8 @@ class PauliSumExponential:
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r}, is_anti_hermitian={self._is_anti_hermitian!r})'
+        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r}, '\
+                'is_anti_hermitian={self._is_anti_hermitian!r})'
 
     def __str__(self) -> str:
         coeff = '1.0' if self._multiplier != 1 else 'j'

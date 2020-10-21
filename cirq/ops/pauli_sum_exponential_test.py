@@ -75,6 +75,12 @@ def test_with_parameters_resolved_by(psum, exp):
     assert actual == expected
 
 
+def test_pauli_sum_exponential_parameterized_matrix_raises():
+    with pytest.raises(ValueError, match='parameterized'):
+        cirq.PauliSumExponential(
+            cirq.X(q0) + cirq.Z(q0), sympy.Symbol("theta")).matrix()
+
+
 @pytest.mark.parametrize('psum_exp, expected_unitary', (
     (cirq.PauliSumExponential(cirq.X(q0),
                               np.pi / 2), np.array([[0, 1j], [1j, 0]])),
