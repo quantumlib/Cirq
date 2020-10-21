@@ -53,11 +53,10 @@ def group_settings_greedy(settings: Iterable[InitObsSetting]) \
                 stg.init_state for stg in trial_grouped_settings)
             new_max_weight_obs = _max_weight_observable(
                 stg.observable for stg in trial_grouped_settings)
-            # max_weight_xxx returns None if the set of xxx's aren't compatible,
-            # so the following conditional is True if setting can
-            # be inserted into the current group.
-            if (new_max_weight_state is not None and
-                    new_max_weight_obs is not None):
+            compatible_init_state = new_max_weight_state is not None
+            compatible_observable = new_max_weight_obs is not None
+            can_be_inserted = (compatible_init_state and compatible_observable)
+            if can_be_inserted:
                 del grouped_settings[max_setting]
                 new_max_setting = InitObsSetting(new_max_weight_state,
                                                  new_max_weight_obs)
