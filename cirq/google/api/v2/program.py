@@ -105,7 +105,6 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     return devices.GridQubit(row=int(row), col=int(col))
 
 
-
 def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':
     """Parse a proto id to a `cirq.LineQubit`.
 
