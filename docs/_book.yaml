@@ -138,7 +138,7 @@ upper_tabs:
 
     - name: "Experiments"
       contents:
-      - include: /cirq/research/_toc.yaml
+      - include: /cirq/experiments/_toc.yaml
 
     - name: "Reference"
       skip_translation: true
