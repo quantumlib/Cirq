@@ -3,6 +3,7 @@
 import networkx as nx
 import numpy as np
 import math
+from numpy import inf
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -285,7 +286,13 @@ class X_SWAP:
         for i in range(len(self.desc_program_circuits)):
             map = {}
             logical_qubits = list(self.desc_program_circuits[i].all_qubits())
+            print(self.desc_program_circuits[i])
             for j in range(len(logical_qubits)):
+                print("yes")
+                print(len(logical_qubits))
+                print(len(self.partitions[i]))
+                print(self.partitions[i][j])
+                print(logical_qubits[j])
                 map[logical_qubits[j]] = self.partitions[i][j]
             mappings.append(map)
         return mappings
@@ -314,9 +321,10 @@ class X_SWAP:
         return (log0, log1)
 
 
-    def obtain_swaps (self, gates, mappings):
+    def obtain_swaps (self, node_gates, mappings):
         swaps = []
-        for g in gates:
+        for n in node_gates:
+            g = n.val
             phy_qs = self.log_to_phy_edge(g.qubits, mappings)
             neighbors0 = list(self.device_graph.neighbors(phy_qs[0]))
             neighbors1 = list(self.device_graph.neighbors(phy_qs[1]))
@@ -325,6 +333,75 @@ class X_SWAP:
             for ne in neighbors1:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne),mappings))
         return swaps
+
+    def update_mapping (self, mappings, swap):
+        new_maps = mappings.copy()
+        pidx0 = None
+        pidx1 = None
+        for i in range(len(mappings)):
+            for l, p in mappings[i].items():
+                if l == swap[0]:
+                    pidx0 = i
+                elif l == swap[1]:
+                    pidx1 = i
+        new_maps[pidx0][swap[0]] = mappings[pidx1][swap[1]]
+        new_maps[pidx1][swap[1]] = mappings[pidx0][swap[0]]
+
+        return new_maps
+
+    def compute_H(self, flayers, maps):
+        H_cost = 0
+        for i in range(len(flayers)):
+            if len(flayers[i]) == 0:
+                continue
+            for n in flayers[i]:
+                phy_edge = self.log_to_phy_edge(n.val.qubits, maps)
+                H_cost = H_cost + len(list(nx.all_shortest_paths(self.device_graph, phy_edge[0], phy_edge[1]))[0])
+        return H_cost
+    
+    def compute_path_in_sameP(self, edge, pidx):
+        paths = list(nx.all_simple_paths(self.device_graph, edge[0], edge[1], cutoff=len(self.partitions[pidx])))
+        distance = inf
+        for p in paths:
+            if self.partitions[pidx] in p:
+                if len(p) < distance:
+                    distance = len(p)
+        return distance
+
+    def compute_gainCost(self, flayers, maps, swap):
+        gain_cost = 0
+        
+        for i in range(len(flayers)):
+            if len(flayers[i]) == 0:
+                continue
+            cost_i = 0
+            for n in flayers[i]:
+                phy_edge = self.log_to_phy_edge(n.val.qubits, maps)
+                paths = nx.all_shortest_paths(self.device_graph, phy_edge[0], phy_edge[1])
+                in_path = 0
+                for p in paths:
+                    if swap in p:
+                        in_path = 1
+                D_allp = len(list(nx.all_shortest_paths(self.device_graph, phy_edge[0], phy_edge[1]))[0])
+                D_singlep = self.compute_path_in_sameP(phy_edge, i)
+                cost_i = cost_i + (D_allp-D_singlep) * in_path
+            gain_cost = gain_cost + float(1/len(flayers[i])) * cost_i
+        return gain_cost
+
+    def find_best_swap (self, swap_candidate_lists, mappings, flayers):
+        min_cost = inf
+        best_swap = None
+        for swaps in swap_candidate_lists:
+            for s in swaps:
+                new_maps = self.update_mapping(mappings, s)
+                H_cost = self.compute_H(flayers, new_maps)
+                gain_cost = self.compute_gainCost(flayers, new_maps, s)
+                cost = H_cost + gain_cost
+                if(cost<min_score):
+                    min_cost = cost
+                    best_swap = s
+        return best_swap
+                
 
 
 
@@ -365,13 +442,24 @@ class X_SWAP:
 
             """ solve hardware-incompliant gates by inserting SWAPs """
             if(require_swap):
+                swap_candidate_lists = []
                 for i in range(len(flayers)):
                     if len(flayers[i]) == 0:
                         continue
-                    crtical_gates = flayers[i].copy() # to do ??
-                    swap_candidates = self.obtain_swaps(critical_gates, mappings)
+                    critical_node_gates = flayers[i].copy() # to do ??
+                    swap_candidates = self.obtain_swaps(critical_node_gates, mappings)
+                    swap_candidate_lists.append(swap_candidates)
+                
+                """ find best SWAP """
+                best_swap = self.find_best_swap(swap_candidate_lists, mappings, flayers)
+                schedule.append(cirq.SWAP(best_swap[0], best_swap[1]))
+
+                """ update mapping """
+                mappings = self.update_mapping(mappings, best_swap)
 
             flayers = self.generate_front_layers(dags, twoq_gateType)
+
+        return initial_maps, schedule
 
 
 ############################################################
@@ -427,17 +515,20 @@ def prepare_couplingGraph_errorValues(device_graph):
         dgraph.add_edge(q0, q1)
 
     # list of program circuits
-    qubits = cirq.LineQubit.range(5)
+    qubits = cirq.LineQubit.range(3)
     circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]),
                             cirq.CZ(qubits[1], qubits[2]),
                             cirq.measure(*qubits))
-    
-    circuit2 = cirq.Circuit(cirq.X(qubit[3]), cirq.Y(qubits[4]),
-                            cirq.CZ(qubits[3], qubits[4]))
+    qubits = cirq.LineQubit.range(2)
+    circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
+                            cirq.CZ(qubits[0], qubits[1]))
     program_circuits = []
     program_circuits.append(circuit2)
     program_circuits.append(circuit1)
+
+    print(circuit2)
+    print(circuit1)
 
     multi_prog_map(dgraph, single_er, two_er, program_circuits)
 
