@@ -28,13 +28,19 @@ def test_raises_for_non_commuting_paulis():
         cirq.PauliSumExponential(cirq.X(q0) + cirq.Z(q0), np.pi / 2)
 
 
+def test_raises_for_non_hermitian_pauli():
+    with pytest.raises(ValueError, match='hermitian'):
+        cirq.PauliSumExponential(cirq.X(q0) + 1j * cirq.Z(q1), np.pi / 2)
+
+
 @pytest.mark.parametrize('psum_exp, expected_qubits', (
     (cirq.PauliSumExponential(cirq.Z(q1), np.pi / 2), (q1,)),
-    (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Y(q2),
-                              sympy.Symbol("theta")), (q0, q2)),
+    (cirq.PauliSumExponential(2j * cirq.X(q0) + 3j * cirq.Y(q2),
+                              sympy.Symbol("theta"),
+                              is_anti_hermitian=True), (q0, q2)),
     (cirq.PauliSumExponential(
-        cirq.X(q0) * cirq.Y(q1) + cirq.Y(q3) * cirq.Z(q3), np.pi),
-     (q0, q1, q3)),
+        cirq.X(q0) * cirq.Y(q1) + cirq.Y(q2) * cirq.Z(q3), np.pi),
+     (q0, q1, q2, q3)),
 ))
 def test_pauli_sum_exponential_qubits(psum_exp, expected_qubits):
     assert psum_exp.qubits == expected_qubits
@@ -43,10 +49,12 @@ def test_pauli_sum_exponential_qubits(psum_exp, expected_qubits):
 @pytest.mark.parametrize('psum_exp, expected_psum_exp', (
     (cirq.PauliSumExponential(cirq.Z(q0), np.pi / 2),
      cirq.PauliSumExponential(cirq.Z(q1), np.pi / 2)),
-    (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Y(q2),
-                              sympy.Symbol("theta")),
-     cirq.PauliSumExponential(2 * cirq.X(q1) + 3 * cirq.Y(q3),
-                              sympy.Symbol("theta"))),
+    (cirq.PauliSumExponential(2j * cirq.X(q0) + 3j * cirq.Y(q2),
+                              sympy.Symbol("theta"),
+                              is_anti_hermitian=True),
+     cirq.PauliSumExponential(2j * cirq.X(q1) + 3j * cirq.Y(q3),
+                              sympy.Symbol("theta"),
+                              is_anti_hermitian=True)),
     (cirq.PauliSumExponential(
         cirq.X(q0) * cirq.Y(q1) + cirq.Y(q1) * cirq.Z(q3), np.pi),
      cirq.PauliSumExponential(
@@ -70,7 +78,8 @@ def test_with_parameters_resolved_by(psum, exp):
 @pytest.mark.parametrize('psum_exp, expected_unitary', (
     (cirq.PauliSumExponential(cirq.X(q0),
                               np.pi / 2), np.array([[0, 1j], [1j, 0]])),
-    (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Z(q1), np.pi / 2),
+    (cirq.PauliSumExponential(
+        2j * cirq.X(q0) + 3j * cirq.Z(q1), np.pi / 2, is_anti_hermitian=True),
      np.array([[1j, 0, 0, 0], [0, -1j, 0, 0], [0, 0, 1j, 0], [0, 0, 0, -1j]])),
 ))
 def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
@@ -81,14 +90,16 @@ def test_pauli_sum_exponential_has_correct_unitary(psum_exp, expected_unitary):
 @pytest.mark.parametrize('psum_exp, power, expected_psum', (
     (cirq.PauliSumExponential(cirq.Z(q1), np.pi / 2), 5,
      cirq.PauliSumExponential(cirq.Z(q1), 5 * np.pi / 2)),
-    (cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Y(q2),
-                              sympy.Symbol("theta")), 5,
-     cirq.PauliSumExponential(2 * cirq.X(q0) + 3 * cirq.Y(q2),
-                              5 * sympy.Symbol("theta"))),
+    (cirq.PauliSumExponential(2j * cirq.X(q0) + 3j * cirq.Y(q2),
+                              sympy.Symbol("theta"),
+                              is_anti_hermitian=True), 5,
+     cirq.PauliSumExponential(2j * cirq.X(q0) + 3j * cirq.Y(q2),
+                              5 * sympy.Symbol("theta"),
+                              is_anti_hermitian=True)),
     (cirq.PauliSumExponential(
-        cirq.X(q0) * cirq.Y(q1) + cirq.Y(q3) * cirq.Z(q3), np.pi), 5,
+        cirq.X(q0) * cirq.Y(q1) + cirq.Y(q2) * cirq.Z(q3), np.pi), 5,
      cirq.PauliSumExponential(
-         cirq.X(q0) * cirq.Y(q1) + cirq.Y(q3) * cirq.Z(q3), 5 * np.pi)),
+         cirq.X(q0) * cirq.Y(q1) + cirq.Y(q2) * cirq.Z(q3), 5 * np.pi)),
 ))
 def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
     assert psum_exp**power == expected_psum
@@ -96,7 +107,8 @@ def test_pauli_sum_exponential_pow(psum_exp, power, expected_psum):
 
 @pytest.mark.parametrize('psum_exp', (
     (cirq.PauliSumExponential(0, np.pi / 2)),
-    (cirq.PauliSumExponential(cirq.X(q0) + cirq.Z(q1), np.pi / 2)),
+    (cirq.PauliSumExponential(
+        2j * cirq.X(q0) + 3j * cirq.Z(q1), np.pi / 2, is_anti_hermitian=True)),
 ))
 def test_pauli_sum_exponential_repr(psum_exp):
     cirq.testing.assert_equivalent_repr(psum_exp)
@@ -106,8 +118,9 @@ def test_pauli_sum_exponential_repr(psum_exp):
     'psum_exp, expected_str',
     ((cirq.PauliSumExponential(
         0, np.pi / 2), 'exp(j * 1.5707963267948966 * (0.000))'),
-     (cirq.PauliSumExponential(cirq.X(q0) + cirq.Y(q1), 2),
-      'exp(j * 2 * (1.000*X(0)+1.000*Y(1)))'), (cirq.PauliSumExponential(
+     (cirq.PauliSumExponential(
+         2j * cirq.X(q0) + 4j * cirq.Y(q1), 2, is_anti_hermitian=True),
+      'exp(1.0 * 2 * (2.000j*X(0)+4.000j*Y(1)))'), (cirq.PauliSumExponential(
           0.5 * cirq.X(q0) + 0.6 * cirq.Y(q1),
           sympy.Symbol("theta")), 'exp(j * theta * (0.500*X(0)+0.600*Y(1)))')))
 def test_pauli_sum_exponential_formatting(psum_exp, expected_str):

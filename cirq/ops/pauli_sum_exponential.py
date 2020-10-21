@@ -11,10 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import (Any, Iterator, Tuple, TYPE_CHECKING)
+from typing import (Any, Iterator, Tuple, Union, TYPE_CHECKING)
 
 import numpy as np
 import scipy
+import sympy
 
 from cirq import linalg, protocols, value
 from cirq.ops import linear_combinations, pauli_string_phasor
@@ -27,51 +28,56 @@ if TYPE_CHECKING:
 class PauliSumExponential:
     """Represents operator defined by exponential of a PauliSum.
 
-    Given a PauliSum PS_1 + PS_2 + ... + PS_N, this class returns an operation
-    which is equivalent to exp(i * exponent * (PS_1 + PS_2 + ... + PS_N)).
+    Given a hermitian/anti-hermitian PauliSum PS_1 + PS_2 + ... + PS_N, this 
+    class returns an operation which is equivalent to 
+    exp(j * exponent * (PS_1 + PS_2 + ... + PS_N)).
 
     This class currently supports only exponential of commuting Pauli Terms.
     """
 
     def __init__(self,
                  pauli_sum_like: 'cirq.PauliSumLike',
-                 exponent: 'cirq.TParamVal' = 1):
+                 exponent: Union[int, float, sympy.Basic] = 1,
+                 *,
+                 is_anti_hermitian=False):
         pauli_sum = linear_combinations.PauliSum.wrap(pauli_sum_like)
         if not PauliSumExponential._all_pauli_strings_commute_(pauli_sum):
             raise ValueError(
                 "PauliSumExponential defined only for commuting pauli sums.")
-        self._pauli_sum = pauli_sum
         self._exponent = exponent
+        self._is_anti_hermitian = is_anti_hermitian
+        if is_anti_hermitian:
+            self._multiplier = -1j
+        else:
+            self._multiplier = 1
+        for pauli_string in pauli_sum:
+            normalised_coeff = complex(pauli_string.coefficient *
+                                       self._multiplier)
+            if normalised_coeff.imag != 0:
+                raise ValueError(
+                    pauli_string,
+                    "PauliSum should be either hermitian or anti-hermitian.")
+        self._pauli_sum = pauli_sum
 
     @property
     def qubits(self) -> Tuple['cirq.Qid', ...]:
         return self._pauli_sum.qubits
-
-    @property
-    def exponent(self) -> 'cirq.TParamVal':
-        return self._exponent
-
-    @property
-    def pauli_sum(self) -> 'cirq.PauliSum':
-        return self._pauli_sum
 
     def _value_equality_values_(self) -> Any:
         return (self._pauli_sum, self._exponent)
 
     def with_qubits(self, *new_qubits: 'cirq.Qid') -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum.with_qubits(*new_qubits),
-                                   self._exponent)
-
-    def copy(self) -> 'PauliSumExponential':
-        factory = type(self)
-        return factory(self._pauli_sum.copy(), self._exponent)
+                                   self._exponent,
+                                   is_anti_hermitian=self._is_anti_hermitian)
 
     def _resolve_parameters_(self,
                              param_resolver: 'cirq.ParamResolverOrSimilarType'
                             ) -> 'PauliSumExponential':
         return PauliSumExponential(self._pauli_sum,
                                    exponent=protocols.resolve_parameters(
-                                       self._exponent, param_resolver))
+                                       self._exponent, param_resolver),
+                                   is_anti_hermitian=self._is_anti_hermitian)
 
     @staticmethod
     def _all_pauli_strings_commute_(pauli_sum: 'cirq.PauliSum') -> bool:
@@ -83,9 +89,9 @@ class PauliSumExponential:
 
     def __iter__(self) -> Iterator['cirq.PauliStringPhasor']:
         for pauli_string in self._pauli_sum:
-            sign = np.sign(pauli_string.coefficient).real
-            theta = self._exponent * sign / np.pi
-            pauli_string.with_coefficient(1.0)
+            theta = pauli_string.coefficient * self._exponent * self._multiplier / np.pi
+            if isinstance(theta, complex):
+                theta = theta.real
             yield pauli_string_phasor.PauliStringPhasor(
                 pauli_string.with_coefficient(1.0),
                 exponent_neg=-theta,
@@ -99,7 +105,10 @@ class PauliSumExponential:
         """
         if protocols.is_parameterized(self._exponent):
             raise ValueError("Exponent should not parameterized.")
-        return scipy.linalg.expm(1j * self._exponent * self._pauli_sum.matrix())
+        ret = 1
+        for pauli_string_exp in self:
+            ret = np.kron(ret, protocols.unitary(pauli_string_exp))
+        return ret
 
     def _has_unitary_(self) -> bool:
         return linalg.is_unitary(self.matrix())
@@ -111,11 +120,14 @@ class PauliSumExponential:
         raise ValueError(f'{self} is not unitary')
 
     def __pow__(self, exponent: int) -> 'PauliSumExponential':
-        return PauliSumExponential(self._pauli_sum, self._exponent * exponent)
+        return PauliSumExponential(self._pauli_sum,
+                                   self._exponent * exponent,
+                                   is_anti_hermitian=self._is_anti_hermitian)
 
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
-        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r})'
+        return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r}, is_anti_hermitian={self._is_anti_hermitian!r})'
 
     def __str__(self) -> str:
-        return f'exp(j * {self._exponent!s} * ({self._pauli_sum!s}))'
+        coeff = '1.0' if self._multiplier != 1 else 'j'
+        return f'exp({(coeff)!s} * {self._exponent!s} * ({self._pauli_sum!s}))'
