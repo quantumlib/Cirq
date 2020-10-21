@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Iterable, Dict, List, TYPE_CHECKING
+from typing import Iterable, Dict, List, TYPE_CHECKING, cast
 
+from cirq import ops, value
 from cirq.work.observable_settings import (InitObsSetting, _max_weight_state,
                                            _max_weight_observable)
 
@@ -55,6 +56,9 @@ def group_settings_greedy(settings: Iterable[InitObsSetting]) \
             compatible_observable = new_max_weight_obs is not None
             can_be_inserted = (compatible_init_state and compatible_observable)
             if can_be_inserted:
+                new_max_weight_state = cast(value.ProductState,
+                                            new_max_weight_state)
+                new_max_weight_obs = cast(ops.PauliString, new_max_weight_obs)
                 del grouped_settings[max_setting]
                 new_max_setting = InitObsSetting(new_max_weight_state,
                                                  new_max_weight_obs)
