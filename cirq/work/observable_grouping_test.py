@@ -15,7 +15,106 @@
 import cirq
 
 
-def test_group_settings_greedy():
+def test_group_settings_greedy_one_group():
+    qubits = cirq.LineQubit.range(2)
+    q0, q1 = qubits
+    terms = [
+        cirq.X(q0),
+        cirq.Y(q1),
+    ]
+    settings = list(cirq.work.observables_to_settings(terms, qubits))
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    assert len(grouped_settings) == 1
+
+    group_max_obs_should_be = [
+        cirq.X(q0) * cirq.Y(q1),
+    ]
+    group_max_settings_should_be = list(
+        cirq.work.observables_to_settings(group_max_obs_should_be, qubits))
+    assert set(grouped_settings.keys()) == set(group_max_settings_should_be)
+
+    the_group = grouped_settings[group_max_settings_should_be[0]]
+    assert set(the_group) == set(settings)
+
+
+def test_group_settings_greedy_two_groups():
+    qubits = cirq.LineQubit.range(2)
+    q0, q1 = qubits
+    terms = [
+        cirq.X(q0) * cirq.X(q1),
+        cirq.Y(q0) * cirq.Y(q1),
+    ]
+    settings = list(cirq.work.observables_to_settings(terms, qubits))
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    assert len(grouped_settings) == 2
+
+    group_max_obs_should_be = terms.copy()
+    group_max_settings_should_be = list(
+        cirq.work.observables_to_settings(group_max_obs_should_be, qubits))
+    assert set(grouped_settings.keys()) == set(group_max_settings_should_be)
+
+
+def test_group_settings_greedy_single_item():
+    qubits = cirq.LineQubit.range(2)
+    q0, q1 = qubits
+    term = cirq.X(q0) * cirq.X(q1)
+
+    settings = list(cirq.work.observables_to_settings([term], qubits))
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    assert len(grouped_settings) == 1
+    assert list(grouped_settings.keys())[0] == settings[0]
+    assert list(grouped_settings.values())[0][0] == settings[0]
+
+
+def test_group_settings_greedy_empty():
+    assert cirq.work.group_settings_greedy([]) == dict()
+
+
+def test_group_settings_greedy_init_state_compat():
+    q0, q1 = cirq.LineQubit.range(2)
+    settings = [
+        cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0) *
+                                 cirq.KET_ZERO(q1),
+                                 observable=cirq.X(q0)),
+        cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0) *
+                                 cirq.KET_ZERO(q1),
+                                 observable=cirq.Z(q1)),
+    ]
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    assert len(grouped_settings) == 1
+
+
+def test_group_settings_greedy_init_state_compat_sparse():
+    q0, q1 = cirq.LineQubit.range(2)
+    settings = [
+        cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0),
+                                 observable=cirq.X(q0)),
+        cirq.work.InitObsSetting(init_state=cirq.KET_ZERO(q1),
+                                 observable=cirq.Z(q1)),
+    ]
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    grouped_settings_should_be = {
+        cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0) * cirq.KET_ZERO(q1),
+                                 observable=cirq.X(q0) * cirq.Z(q1)):
+        settings
+    }
+    assert grouped_settings == grouped_settings_should_be
+
+
+def test_group_settings_greedy_init_state_incompat():
+    q0, q1 = cirq.LineQubit.range(2)
+    settings = [
+        cirq.work.InitObsSetting(init_state=cirq.KET_PLUS(q0) *
+                                 cirq.KET_PLUS(q1),
+                                 observable=cirq.X(q0)),
+        cirq.work.InitObsSetting(init_state=cirq.KET_ZERO(q1),
+                                 observable=cirq.Z(q1)),
+    ]
+    grouped_settings = cirq.work.group_settings_greedy(settings)
+    assert len(grouped_settings) == 2
+
+
+def test_group_settings_greedy_hydrogen():
     qubits = cirq.LineQubit.range(4)
     q0, q1, q2, q3 = qubits
     terms = [
@@ -45,7 +144,7 @@ def test_group_settings_greedy():
     group_max_settings_should_be = cirq.work.observables_to_settings(
         group_max_obs_should_be, qubits)
 
-    assert list(grouped_settings.keys()) == list(group_max_settings_should_be)
+    assert set(grouped_settings.keys()) == set(group_max_settings_should_be)
     groups = list(grouped_settings.values())
     assert len(groups[0]) == 1
     assert len(groups[1]) == 1
