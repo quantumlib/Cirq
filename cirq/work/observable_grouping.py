@@ -64,7 +64,8 @@ def group_settings_greedy(settings: Iterable[InitObsSetting]) \
                 break
 
         else:
-            # made it through entire dict without finding an existing group
+            # made it through entire dict without finding a compatible group, 
+            # thus a new group needs to be created
             # Strip coefficients before using as key
             new_max_weight_obs = setting.observable.with_coefficient(1.0)
             new_max_setting = InitObsSetting(setting.init_state,
