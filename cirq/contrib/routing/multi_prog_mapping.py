@@ -245,6 +245,15 @@ class X_SWAP:
         return flayers
 
     def generate_front_layers(self, cir_dags, twoq_gate_type):
+        """ check all dags are empty """
+        counter = 0
+        for dag in cir_dags:
+            nodes = list(dag.ordered_nodes())
+            if len(nodes)==0:
+                counter = counter + 1
+        if counter == len(cir_dags):
+            return None
+
         """ set of nodes """
         flayers = [] 
         for dag in cir_dags:
@@ -272,21 +281,100 @@ class X_SWAP:
 
         return secondl
 
-    def generate_schedule(self, twoq_gateType):
+    def initial_mapping(self):
+        """ return a list of dictionaries that shows mapping 
+        between logical qubits (key) and physical qubits (value) """
+        mappings = []
+        for i in range(len(self.desc_program_circuits)):
+            map = {}
+            logical_qubits = list(self.desc_program_circuits[i].all_qubits())
+            for j in range(len(logical_qubits)):
+                map[logical_qubits[j]] = self.partitions[i][j]
+            mappings.append(map)
+        return mappings
+    
+    def log_to_phy_edge (self, log_edge, mappings):
+        phy0 = None
+        phy1 = None
+        for map in mappings:
+            for log, phy in map.items():
+                if log_edge[0] == log:
+                    phy0 = phy
+                elif log_edge[1] == log:
+                    phy1 = phy
+
+        return (phy0, phy1)
+
+    def phy_to_log_edge (self, phy_edge, mappings):
+        log0 = None
+        log1 = None
+        for map in mappings:
+            for log, phy in map.items():
+                if phy_edge[0] == phy:
+                    log0 = log
+                elif phy_edge[1] == phy:
+                    log1 = log
+        return (log0, log1)
+
+
+    def obtain_swaps (self, gates, mappings):
+        swaps = []
+        for g in gates:
+            phy_qs = self.log_to_phy_edge(g.qubits, mappings)
+            neighbors0 = list(self.device_graph.neighbors(phy_qs[0]))
+            neighbors1 = list(self.device_graph.neighbors(phy_qs[1]))
+            for ne in neighbors0:
+                swaps.append(self.phy_to_log_edge((phy_qs[0], ne),mappings))
+            for ne in neighbors1:
+                swaps.append(self.phy_to_log_edge((phy_qs[1], ne),mappings))
+        return swaps
+
+
+
+
+    def insert_SWAP_and_generate_schedule(self, twoq_gateType):
         schedule = cirq.Circuit()
         #twoq_dags = self.generate_2qGates_dags(twoq_gateType)
+
+        initial_maps = self.initial_mapping()
         dags = self.generate_dags()
+        
+        mappings = self.initial_mapping()
+
         flayers = self.generate_front_layers(dags, twoq_gateType)
-        mappings = []
-        """ solve hardware-compliant gates """
-        for i in range(len(flayers)):
-            critical_gate_nodes = flayers[i]
-            for n in critical_gate_nodes:
-                if len(n.val.qubits) == 1:
-                    schedule.append(n.val)
-                    dags[i].remove_node(n)
-                    # update front layer
-                    flayers[i].remove(n)
+        while flayers != None:
+            """ solve hardware-compliant gates 
+            i specify program index """
+            require_swap = 0
+            for i in range(len(flayers)):
+                if len(flayers[i]) == 0:
+                        continue
+                gate_nodes = flayers[i].copy()
+                for n in gate_nodes:
+                    if len(n.val.qubits) == 1:
+                        schedule.append(n.val)
+                        dags[i].remove_node(n)
+                        # update front layer
+                        flayers[i].remove(n)
+                    else:
+                        if self.log_to_phy_edge(n.val.qubits, mappings) in self.device_graph.edges:
+                            schedule.append(n.val)
+                            dags[i].remove_node(n)
+                            # update front layer
+                            flayers[i].remove(n)
+                        else:
+                            """ require SWAP """
+                            require_swap = 1
+
+            """ solve hardware-incompliant gates by inserting SWAPs """
+            if(require_swap):
+                for i in range(len(flayers)):
+                    if len(flayers[i]) == 0:
+                        continue
+                    crtical_gates = flayers[i].copy() # to do ??
+                    swap_candidates = self.obtain_swaps(critical_gates, mappings)
+
+            flayers = self.generate_front_layers(dags, twoq_gateType)
 
 
 ############################################################
@@ -304,11 +392,12 @@ def multi_prog_map(device_graph, single_er, two_er, prog_circuits):
     desc_cirs = parObj.circuits_descending()
 
     partitions = parObj.qubits_allocation(desc_cirs)
+    partitions.reverse()
     print("partitions:")
     print(partitions)
 
     xswap = X_SWAP(device_graph, desc_cirs, partitions)
-    xswap.generate_schedule(cirq.CZ)
+    xswap.insert_SWAP_and_generate_schedule(cirq.CZ)
 
     #parObj.reorder_program_circuits()
 
@@ -341,14 +430,14 @@ def prepare_couplingGraph_errorValues(device_graph):
         dgraph.add_edge(q0, q1)
 
     # list of program circuits
-    qubits1 = cirq.LineQubit.range(3)
-    circuit1 = cirq.Circuit(cirq.X(qubits1[0]), cirq.Y(qubits1[1]),
-                            cirq.CZ(qubits1[0], qubits1[1]),
-                            cirq.CZ(qubits1[1], qubits1[2]),
-                            cirq.measure(*qubits1))
-    qubits2 = cirq.LineQubit.range(3)
-    circuit2 = cirq.Circuit(cirq.X(qubits2[0]), cirq.Y(qubits2[1]),
-                            cirq.CZ(qubits2[0], qubits2[1]))
+    qubits = cirq.LineQubit.range(5)
+    circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
+                            cirq.CZ(qubits[0], qubits[1]),
+                            cirq.CZ(qubits[1], qubits[2]),
+                            cirq.measure(*qubits))
+    
+    circuit2 = cirq.Circuit(cirq.X(qubit[3]), cirq.Y(qubits[4]),
+                            cirq.CZ(qubits[3], qubits[4]))
     program_circuits = []
     program_circuits.append(circuit2)
     program_circuits.append(circuit1)
