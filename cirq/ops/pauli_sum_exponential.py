@@ -124,7 +124,7 @@ class PauliSumExponential:
     def __repr__(self) -> str:
         class_name = self.__class__.__name__
         return f'cirq.{class_name}({self._pauli_sum!r}, {self._exponent!r}, '\
-                'is_anti_hermitian={self._is_anti_hermitian!r})'
+               f'is_anti_hermitian={self._is_anti_hermitian!r})'
 
     def __str__(self) -> str:
         coeff = '1.0' if self._multiplier != 1 else 'j'
