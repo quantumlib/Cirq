@@ -99,15 +99,10 @@ def grid_qubit_from_proto_id(proto_id: str) -> 'cirq.GridQubit':
     match = re.match(GRID_QUBIT_ID_PATTERN, proto_id)
     if match is None:
         raise ValueError(
-            'GridQubit proto id must be of the form <int>_<int> but was {}'.
+            'GridQubit proto id must be of the form [q]<int>_<int> but was {}'.
             format(proto_id))
-    try:
-        row, col = match.groups()
-        return devices.GridQubit(row=int(row), col=int(col))
-    except ValueError:
-        raise ValueError(
-            'GridQubit proto id must be of the form <int>_<int> but was {}'.
-            format(proto_id))
+    row, col = match.groups()
+    return devices.GridQubit(row=int(row), col=int(col))
 
 
 def line_qubit_from_proto_id(proto_id: str) -> 'cirq.LineQubit':

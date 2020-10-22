@@ -9,6 +9,8 @@ from cirq.work.observable_settings import (
     _MeasurementSpec,
     observables_to_settings,
 )
+from cirq.work.observable_grouping import (
+    group_settings_greedy,)
 from cirq.work.sampler import (
     Sampler,)
 from cirq.work.zeros_sampler import (
