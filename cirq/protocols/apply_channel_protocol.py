@@ -16,6 +16,7 @@
 from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
 
 import numpy as np
+from tensorflow_docs.api_generator.doc_controls import doc_private
 from typing_extensions import Protocol
 
 from cirq import linalg
@@ -115,6 +116,7 @@ class ApplyChannelArgs:
 class SupportsApplyChannel(Protocol):
     """An object that can efficiently implement a channel."""
 
+    @doc_private
     def _apply_channel_(self, args: ApplyChannelArgs
                        ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a channel.

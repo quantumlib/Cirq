@@ -17,7 +17,7 @@ from typing import (Any, TYPE_CHECKING, Union)
 
 from typing_extensions import Protocol
 
-from cirq._doc import document, doc_private
+from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
