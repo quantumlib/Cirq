@@ -111,13 +111,13 @@ upper_tabs:
       - title: "Quantum variational algorithm"
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
-        path: /cirq/tutorials/QAOA_Demo
+        path: /cirq/tutorials/qaoa
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Quantum walks"
-        path: /cirq/tutorials/Quantum_Walk
+        path: /cirq/tutorials/quantum_walks
       - title: "Rabi oscillation experiment"
-        path: /cirq/tutorials/Rabi_Demo
+        path: /cirq/tutorials/rabi_oscillations
 
       ####  GOOGLE HARDWARE ####
       - heading: "Google hardware"
@@ -138,7 +138,7 @@ upper_tabs:
 
     - name: "Experiments"
       contents:
-      - include: /cirq/research/_toc.yaml
+      - include: /cirq/experiments/_toc.yaml
 
     - name: "Reference"
       skip_translation: true
