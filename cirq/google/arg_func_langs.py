@@ -64,14 +64,6 @@ def _infer_function_language_from_circuit(value: v2.program_pb2.Circuit) -> str:
     })
 
 
-def _infer_function_language_from_schedule(value: v2.program_pb2.Schedule
-                                          ) -> str:
-    return _max_lang({
-        e for op in value.scheduled_operations
-        for e in _function_languages_from_operation(op.operation)
-    })
-
-
 def _function_languages_from_operation(value: v2.program_pb2.Operation
                                       ) -> Iterator[str]:
     for arg in value.args.values():
