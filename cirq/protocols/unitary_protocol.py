@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from typing import (
-    TYPE_CHECKING,
     Any,
     TypeVar,
     Union,
@@ -31,11 +30,8 @@ from cirq.protocols.apply_unitary_protocol import (
     apply_unitaries,
 )
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits, )
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    pass
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
