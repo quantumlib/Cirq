@@ -445,34 +445,26 @@ def two_qubit_state_tomography(sampler: work.Sampler,
     The state probabilities $P_{00}, P_{01}, P_{10}$ thus obtained contribute
     to the following linear equations (setting $c_{00} = 1$):
 
-        $$
-        c_{03} + c_{30} + c_{33} = 4*P_{00} - 1
-        $$
-
-        $$
-        -c_{03} + c_{30} - c_{33} = 4*P_{01} - 1
-        $$
-
-        $$
-        c_{03} - c_{30} - c_{33} = 4*P_{10} - 1
-        $$
+    $$
+    \begin{align}
+    c_{03} + c_{30} + c_{33} &= 4*P_{00} - 1 \\
+    -c_{03} + c_{30} - c_{33} &= 4*P_{01} - 1 \\
+    c_{03} - c_{30} - c_{33} &= 4*P_{10} - 1
+    \end{align}
+    $$
 
     And if a Y/2 rotation is applied to the first qubit and a X/2 rotation
     is applied to the second qubit before measurement, the measurement
     operators are $(I -/+ \sigma_x) \bigotimes (I +/- \sigma_y)$. The
     probabilities obtained instead contribute to the following linear equations:
 
-        $$
-        c_{02} - c_{10} - c_{12} = 4*P_{00} - 1
-        $$
-
-        $$
-        -c_{02} - c_{10} + c_{12} = 4*P_{01} - 1
-        $$
-
-        $$
-        c_{02} + c_{10} + c_{12} = 4*P_{10} - 1
-        $$
+    $$
+    \begin{align}
+    c_{02} - c_{10} - c_{12} &= 4*P_{00} - 1 \\
+    -c_{02} - c_{10} + c_{12} &= 4*P_{01} - 1 \\
+    c_{02} + c_{10} + c_{12} &= 4*P_{10} - 1
+    \end{align}
+    $$
 
     Note that this set of equations has the same form as the first set under
     the transformation $c_{03}$ <-> $c_{02}, c_{30}$ <-> $-c_{10}$ and

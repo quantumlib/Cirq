@@ -35,6 +35,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
+from cirq._doc import doc_private
 from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType
 
@@ -245,6 +246,7 @@ class SupportsJSON(Protocol):
     constructor.
     """
 
+    @doc_private
     def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
         pass
 
