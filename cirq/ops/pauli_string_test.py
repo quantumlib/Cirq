@@ -747,6 +747,17 @@ def test_with_qubits():
     assert new_pauli_string.coefficient == -1
 
 
+def test_with_coefficient():
+    qubits = cirq.LineQubit.range(4)
+    qubit_pauli_map = {q: cirq.Pauli.by_index(q.x) for q in qubits}
+    pauli_string = cirq.PauliString(qubit_pauli_map, 1.23)
+    ps2 = pauli_string.with_coefficient(1.0)
+    assert ps2.coefficient == 1.0
+    assert ps2.equal_up_to_coefficient(pauli_string)
+    assert pauli_string != ps2
+    assert pauli_string.coefficient == 1.23
+
+
 @pytest.mark.parametrize('qubit_pauli_map', _small_sample_qubit_pauli_maps())
 def test_consistency(qubit_pauli_map):
     pauli_string = cirq.PauliString(qubit_pauli_map)
