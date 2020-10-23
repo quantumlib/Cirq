@@ -72,7 +72,7 @@ def doc_private(obj):
       def _private(self):
         ...
     ```
-    As a rule of thumb, private(beginning with `_`) methods/functions are
+    As a rule of thumb, private (beginning with `_`) methods/functions are
     not documented. This decorator allows to force document a private
     method/function.
 
