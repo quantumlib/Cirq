@@ -22,15 +22,15 @@ from typing import (
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._doc import document, doc_private
+from cirq import qis
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import ApplyUnitaryArgs
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
-from cirq import qis
+    _try_decompose_into_operations_and_qubits, )
 
 if TYPE_CHECKING:
-    import cirq
+    pass
 
 TDefault = TypeVar('TDefault')
 

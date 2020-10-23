@@ -56,8 +56,8 @@ def document(value: Any, doc_string: str = ''):
     return value
 
 
-## This is based on
-## https://github.com/tensorflow/docs/commit/129e54b1a1dc2c2c82ad94bc81e986c7c2be3d6a#diff-85111596b523b2940651a8856939755c8531d470948895c7133deb6a537bc889R295-R324
+# The below is based on tools/tensorflow_docs/api_generator/doc_controls.py#L295
+# in the https://github.com/tensorflow/docs repo
 
 _DOC_PRIVATE = "_tf_docs_doc_private"
 

@@ -19,7 +19,7 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq import study
-from cirq._doc import document, doc_private
+from cirq._doc import doc_private
 
 if TYPE_CHECKING:
     import cirq

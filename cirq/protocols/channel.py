@@ -78,6 +78,7 @@ class SupportsChannel(Protocol):
             A list of matrices describing the channel (Kraus operators), or
             NotImplemented if there is no such matrix.
         """
+
     @doc_private
     def _has_channel_(self) -> bool:
         """Whether this value has a channel representation.
