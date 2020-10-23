@@ -19,6 +19,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,
@@ -112,6 +113,7 @@ class ApplyMixtureArgs:
 class SupportsApplyMixture(Protocol):
     """An object that can efficiently implement a mixture."""
 
+    @doc_private
     def _apply_mixture_(self, args: ApplyMixtureArgs
                        ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a mixture.
