@@ -57,11 +57,6 @@ def test_serialize_deserialize_phased_x_pi_gate(phase_exponent):
                     'float_value': phase_exponent
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -85,11 +80,6 @@ def test_serialize_deserialize_phased_x_half_pi_gate(phase_exponent):
                     'float_value': phase_exponent
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -110,11 +100,6 @@ def test_serialize_x_pow_gate():
             'axis_half_turns': {
                 'arg_value': {
                     'float_value': 0
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
         },
@@ -142,11 +127,6 @@ def test_serialize_y_pow_gate():
                     'float_value': 0.5
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -172,11 +152,6 @@ def test_serialize_sqrt_x_pow_gate():
                     'float_value': 0
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -200,11 +175,6 @@ def test_serialize_sqrt_y_pow_gate():
             'axis_half_turns': {
                 'arg_value': {
                     'float_value': 0.5
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
         },
@@ -240,29 +210,26 @@ def test_serialize_sqrt_y_pow_gate():
 def test_serialize_deserialize_arbitrary_xy(gate, axis_half_turns, half_turns,
                                             token):
     op = gate.on(cirq.GridQubit(1, 2))
+    args_dict = {
+        'axis_half_turns': {
+            'arg_value': {
+                'float_value': axis_half_turns
+            }
+        },
+        'half_turns': {
+            'arg_value': {
+                'float_value': half_turns
+            }
+        },
+    }
     if token:
         op = op.with_tags(cirq.google.CalibrationTag(token))
+        args_dict['token'] = {'arg_value': {'string_value': token}}
     expected = op_proto({
         'gate': {
             'id': 'xy'
         },
-        'args': {
-            'axis_half_turns': {
-                'arg_value': {
-                    'float_value': axis_half_turns
-                }
-            },
-            'half_turns': {
-                'arg_value': {
-                    'float_value': half_turns
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': token
-                }
-            },
-        },
+        'args': args_dict,
         'qubits': [{
             'id': '1_2'
         }]
@@ -311,34 +278,31 @@ def test_serialize_deserialize_arbitrary_xyz(
         axis_phase_exponent=axis_phase_exponent,
     )
     op = gate.on(cirq.GridQubit(1, 2))
+    args_dict = {
+        'x_exponent': {
+            'arg_value': {
+                'float_value': x_exponent
+            }
+        },
+        'z_exponent': {
+            'arg_value': {
+                'float_value': z_exponent
+            }
+        },
+        'axis_phase_exponent': {
+            'arg_value': {
+                'float_value': axis_phase_exponent
+            }
+        }
+    }
     if token:
         op = op.with_tags(cirq.google.CalibrationTag(token))
+        args_dict['token'] = {'arg_value': {'string_value': token}}
     expected = op_proto({
         'gate': {
             'id': 'xyz'
         },
-        'args': {
-            'x_exponent': {
-                'arg_value': {
-                    'float_value': x_exponent
-                }
-            },
-            'z_exponent': {
-                'arg_value': {
-                    'float_value': z_exponent
-                }
-            },
-            'axis_phase_exponent': {
-                'arg_value': {
-                    'float_value': axis_phase_exponent
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': token
-                }
-            },
-        },
+        'args': args_dict,
         'qubits': [{
             'id': '1_2'
         }]
@@ -365,8 +329,23 @@ def test_serialize_deserialize_arbitrary_xyz(
     ])
 def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask, token):
     op = cirq.measure(*qubits, key=key, invert_mask=invert_mask)
+    args_dict = {
+        'key': {
+            'arg_value': {
+                'string_value': key
+            }
+        },
+        'invert_mask': {
+            'arg_value': {
+                'bool_values': {
+                    'values': list(invert_mask)
+                }
+            }
+        },
+    }
     if token:
         op = op.with_tags(cirq.google.CalibrationTag(token))
+        args_dict['token'] = {'arg_value': {'string_value': token}}
     proto = op_proto({
         'gate': {
             'id': 'meas'
@@ -374,25 +353,7 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask, token):
         'qubits': [{
             'id': id
         } for id in qubit_ids],
-        'args': {
-            'key': {
-                'arg_value': {
-                    'string_value': key
-                }
-            },
-            'invert_mask': {
-                'arg_value': {
-                    'bool_values': {
-                        'values': list(invert_mask)
-                    }
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': token
-                }
-            },
-        },
+        'args': args_dict,
     })
     assert SINGLE_QUBIT_GATE_SET.serialize_op(op) == proto
     assert SINGLE_QUBIT_GATE_SET.deserialize_op(proto) == op
@@ -426,11 +387,6 @@ def test_serialize_xy(gate, axis_half_turns, half_turns):
                     'float_value': half_turns
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -462,11 +418,6 @@ def test_serialize_xy_parameterized_half_turns(gate, axis_half_turns,
             'half_turns': {
                 'symbol': half_turns
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -490,11 +441,6 @@ def test_serialize_xy_parameterized_axis_half_turns():
             'half_turns': {
                 'arg_value': {
                     'float_value': 0.25
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
         },
@@ -523,11 +469,6 @@ def test_serialize_z(gate, half_turns):
                     'float_value': half_turns
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
             'type': {
                 'arg_value': {
                     'string_value': 'virtual_propagates_forward'
@@ -547,11 +488,6 @@ def test_serialize_z(gate, half_turns):
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
             'type': {
@@ -587,11 +523,6 @@ def test_deserialize_xy(axis_half_turns, half_turns):
                     'float_value': half_turns
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -616,11 +547,6 @@ def test_deserialize_xy_parameterized():
             'half_turns': {
                 'symbol': 'b'
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '1_2'
@@ -642,11 +568,6 @@ def test_deserialize_z(half_turns):
             'half_turns': {
                 'arg_value': {
                     'float_value': half_turns
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
             'type': {
@@ -679,11 +600,6 @@ def test_deserialize_z_parameterized():
             'half_turns': {
                 'symbol': 'a'
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
             'type': {
                 'arg_value': {
                     'string_value': cirq.google.common_serializers.VIRTUAL_Z
@@ -715,11 +631,6 @@ def test_serialize_deserialize_cz_gate(gate, exponent):
             'half_turns': {
                 'arg_value': {
                     'float_value': exponent
-                }
-            },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
                 }
             },
         },
@@ -803,11 +714,6 @@ def test_serialize_deserialize_fsim_gate(gate, theta, phi):
                     'float_value': theta
                 }
             },
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
             'phi': {
                 'arg_value': {
                     'float_value': phi
@@ -857,11 +763,6 @@ def test_serialize_deserialize_fsim_gate_symbols(gate, theta, phi):
         'args': {
             'theta': theta,
             'phi': phi,
-            'token': {
-                'arg_value': {
-                    'string_value': ''
-                }
-            },
         },
         'qubits': [{
             'id': '5_4'

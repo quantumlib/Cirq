@@ -92,6 +92,7 @@ TOKEN = op_serializer.SerializingArg(
     serialized_name='token',
     serialized_type=str,
     op_getter=lambda op: _get_focused_token(op),
+    default='',
 )
 
 #############################################

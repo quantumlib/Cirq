@@ -124,7 +124,8 @@ class GateOpSerializer:
             msg.qubits.add().id = v2.qubit_to_proto_id(qubit)
         for arg in self.args:
             value = self._value_from_gate(op, arg)
-            if value is not None and (not arg.default or value != arg.default):
+            if value is not None and (arg.default is None or
+                                      value != arg.default):
                 _arg_to_proto(value,
                               out=msg.args[arg.serialized_name],
                               arg_function_language=arg_function_language)
