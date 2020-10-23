@@ -16,10 +16,10 @@
 from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
 
 import numpy as np
-from tensorflow_docs.api_generator.doc_controls import doc_private
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,

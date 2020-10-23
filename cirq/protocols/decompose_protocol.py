@@ -28,10 +28,10 @@ from typing import (
 )
 from collections import defaultdict
 
-from tensorflow_docs.api_generator.doc_controls import doc_private
 from typing_extensions import Protocol
 
 from cirq import devices, ops
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
