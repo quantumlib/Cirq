@@ -27,6 +27,8 @@ from typing import (
     Union,
 )
 from collections import defaultdict
+
+from tensorflow_docs.api_generator.doc_controls import doc_private
 from typing_extensions import Protocol
 
 from cirq import devices, ops
@@ -92,6 +94,7 @@ class SupportsDecompose(Protocol):
     raise a caller-provided error.
     """
 
+    @doc_private
     def _decompose_(self) -> DecomposeResult:
         pass
 

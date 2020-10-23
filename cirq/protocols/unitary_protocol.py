@@ -24,18 +24,18 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import qis
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.apply_unitary_protocol import (
     ApplyUnitaryArgs,
     apply_unitaries,
 )
 from cirq.protocols.decompose_protocol import (
-    _try_decompose_into_operations_and_qubits,)
+    _try_decompose_into_operations_and_qubits, )
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
-    import cirq
+    pass
 
 # This is a special indicator value used by the unitary method to determine
 # whether or not the caller provided a 'default' argument. It must be of type
@@ -50,7 +50,7 @@ TDefault = TypeVar('TDefault')
 class SupportsUnitary(Protocol):
     """An object that may be describable by a unitary matrix."""
 
-    @document
+    @doc_private
     def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         """A unitary matrix describing this value, e.g. the matrix of a gate.
 
@@ -75,7 +75,7 @@ class SupportsUnitary(Protocol):
             is no such matrix.
         """
 
-    @document
+    @doc_private
     def _has_unitary_(self) -> bool:
         """Whether this value has a unitary matrix representation.
 
