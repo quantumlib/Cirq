@@ -38,6 +38,7 @@ User Documentation
     docs/devices
     docs/interop.ipynb
     docs/qudits.ipynb
+    docs/custom_gates.ipynb
     api
 
 
