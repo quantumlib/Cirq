@@ -54,3 +54,33 @@ def document(value: Any, doc_string: str = ''):
         # print(traceback.format_stack(limit=2)[0])
         pass
     return value
+
+
+# This is based on
+# https://github.com/tensorflow/docs/commit/129e54b1a1dc2c2c82ad94bc81e986c7c2be3d6a#diff-85111596b523b2940651a8856939755c8531d470948895c7133deb6a537bc889R295-R324
+
+_DOC_PRIVATE = "_tf_docs_doc_private"
+
+
+def doc_private(obj):
+    """A decorator: Generates docs for private methods/functions.
+
+    For example:
+    ```
+    class Try:
+      @doc_private
+      def _private(self):
+        ...
+    ```
+    As a rule of thumb, private (beginning with `_`) methods/functions are
+    not documented. This decorator allows to force document a private
+    method/function.
+
+    Args:
+      obj: The class-attribute to force the documentation for.
+    Returns:
+      obj
+    """
+
+    setattr(obj, _DOC_PRIVATE, None)
+    return obj
