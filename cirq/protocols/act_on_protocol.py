@@ -17,7 +17,7 @@ from typing import (Any, TYPE_CHECKING, Union)
 
 from typing_extensions import Protocol
 
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
@@ -27,7 +27,7 @@ if TYPE_CHECKING:
 class SupportsActOn(Protocol):
     """An object that explicitly specifies how to act on simulator states."""
 
-    @document
+    @doc_private
     def _act_on_(self, args: Any) -> Union[NotImplementedType, bool]:
         """Applies an action to the given argument, if it is a supported type.
 

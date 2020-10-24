@@ -88,6 +88,11 @@ upper_tabs:
       - title: "Best practices"
         path: /cirq/google/best_practices
 
+      ####  AQT ####
+      - heading: "AQT hardware"
+      - title: "Access and authentication"
+        path: /cirq/aqt/access
+
       ####  PASQAL ####
       - heading: "Pasqal hardware"
       - title: "Pasqal devices"
@@ -106,13 +111,13 @@ upper_tabs:
       - title: "Quantum variational algorithm"
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
-        path: /cirq/tutorials/QAOA_Demo
+        path: /cirq/tutorials/qaoa
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Quantum walks"
-        path: /cirq/tutorials/Quantum_Walk
+        path: /cirq/tutorials/quantum_walks
       - title: "Rabi oscillation experiment"
-        path: /cirq/tutorials/Rabi_Demo
+        path: /cirq/tutorials/rabi_oscillations
 
       ####  GOOGLE HARDWARE ####
       - heading: "Google hardware"
@@ -121,15 +126,19 @@ upper_tabs:
       - title: "Reservations"
         path: /cirq/tutorials/google/reservations
 
+      ####  AQT HARDWARE ####
+      - heading: "AQT hardware"
+      - title: "Getting started with AQT hardware"
+        path: /cirq/tutorials/aqt/getting_started
+
       ####  PASQAL HARDWARE ####
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/pasqal/getting_started
 
-
     - name: "Experiments"
       contents:
-      - include: /cirq/research/_toc.yaml
+      - include: /cirq/experiments/_toc.yaml
 
     - name: "Reference"
       skip_translation: true

@@ -13,12 +13,12 @@
 # limitations under the License.
 
 from typing import Any, TypeVar, Optional, Sequence
+
 import numpy as np
 from typing_extensions import Protocol
 
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols import unitary_protocol
-
 
 TDefault = TypeVar('TDefault')
 
@@ -32,7 +32,7 @@ class SupportsTraceDistanceBound(Protocol):
     negligible.
     """
 
-    @document
+    @doc_private
     def _trace_distance_bound_(self) -> float:
         """A maximum on the trace distance between `val`'s input and output.
 
