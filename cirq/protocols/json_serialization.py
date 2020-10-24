@@ -35,6 +35,7 @@ import pandas as pd
 import sympy
 from typing_extensions import Protocol
 
+from cirq._doc import doc_private
 from cirq.ops import raw_types  # Tells mypy that the raw_types module exists
 from cirq.type_workarounds import NotImplementedType
 
@@ -85,6 +86,7 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
+                'CalibrationTag': cirq.google.CalibrationTag,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
@@ -115,11 +117,13 @@ class _ResolverCache:
                 'ISwapPowGate': cirq.ISwapPowGate,
                 'IdentityGate': cirq.IdentityGate,
                 'IdentityOperation': _identity_operation_from_dict,
+                'InitObsSetting': cirq.work.InitObsSetting,
                 'LinearDict': cirq.LinearDict,
                 'LineQubit': cirq.LineQubit,
                 'LineQid': cirq.LineQid,
                 'MatrixGate': cirq.MatrixGate,
                 'MeasurementGate': cirq.MeasurementGate,
+                '_MeasurementSpec': cirq.work._MeasurementSpec,
                 'Moment': cirq.Moment,
                 '_XEigenState':
                 cirq.value.product_state._XEigenState,  # type: ignore
@@ -242,6 +246,7 @@ class SupportsJSON(Protocol):
     constructor.
     """
 
+    @doc_private
     def _json_dict_(self) -> Union[None, NotImplementedType, Dict[Any, Any]]:
         pass
 

@@ -51,7 +51,6 @@ User Documentation
     docs/tutorials/hidden_linear_function.ipynb
     docs/tutorials/quantum_walks.ipynb
     docs/tutorials/rabi_oscillations.ipynb
-    docs/tutorials/quantum_chess.ipynb
 
 
 .. toctree::
@@ -69,6 +68,12 @@ User Documentation
     docs/google/calibration
     docs/google/best_practices
 
+.. toctree::
+    :maxdepth: 1
+    :caption: AQT Documentation
+
+    docs/aqt/access
+    docs/tutorials/aqt/getting_started.ipynb
 
 .. toctree::
     :maxdepth: 1
@@ -77,6 +82,8 @@ User Documentation
     docs/pasqal/getting_started.ipynb
     docs/pasqal/devices
     docs/pasqal/sampler
+
+
 
 
 .. toctree::

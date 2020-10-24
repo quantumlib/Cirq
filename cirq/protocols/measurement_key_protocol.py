@@ -17,11 +17,9 @@ from typing import Any, Iterable, Tuple
 
 from typing_extensions import Protocol
 
-from cirq._doc import document
-
+from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import \
     _try_decompose_into_operations_and_qubits
-
 
 # This is a special indicator value used by the inverse method to determine
 # whether or not the caller provided a 'default' argument.
@@ -39,13 +37,17 @@ class SupportsMeasurementKey(Protocol):
     Note: Measurements, in contrast to general quantum channels, are
     distinguished by the recording of the quantum operation that occurred.
     That is a general quantum channel may enact the evolution
+        $$
         \rho \rightarrow \sum_k A_k \rho A_k^\dagger
+        $$
     where as a measurement enacts the evolution
+        $$
         \rho \rightarrow A_k \rho A_k^\dagger
-    conditional on the measurement outcome being k.
+        $$
+    conditional on the measurement outcome being $k$.
     """
 
-    @document
+    @doc_private
     def _measurement_key_(self) -> str:
         """Return the key that will be used to identify this measurement.
 
@@ -54,7 +56,7 @@ class SupportsMeasurementKey(Protocol):
         will be stored.
         """
 
-    @document
+    @doc_private
     def _measurement_keys_(self) -> Iterable[str]:
         """Return the keys for measurements performed by the receiving object.
 
