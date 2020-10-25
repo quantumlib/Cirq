@@ -20,17 +20,15 @@ def test_projector_qubit():
 def test_projector_plus():
     plus_projector = cirq.Projector([[1.0, 1.0]])
 
-    np.testing.assert_allclose(
-        cirq.channel(plus_projector),
-        ([[0.5, 0.5], [0.5, 0.5]],))
+    np.testing.assert_allclose(cirq.channel(plus_projector),
+                               ([[0.5, 0.5], [0.5, 0.5]],))
 
 
 def test_projector_dim2_qubit():
     dim2_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0]])
 
-    np.testing.assert_allclose(
-        cirq.channel(dim2_projector),
-        ([[1.0, 0.0], [0.0, 1.0]],))
+    np.testing.assert_allclose(cirq.channel(dim2_projector),
+                               ([[1.0, 0.0], [0.0, 1.0]],))
 
 
 def test_projector_qutrit():
