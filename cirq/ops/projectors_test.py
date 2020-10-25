@@ -56,7 +56,6 @@ def test_bad_constructors():
         cirq.Projector([[1.0, 0.0]], qid_shape=[2, 2])
 
 
-
 def test_get_values():
     d = cirq.Projector([[1.0, 0.0]])
 
