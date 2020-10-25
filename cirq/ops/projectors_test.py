@@ -70,4 +70,5 @@ def test_get_values():
 def test_repr():
     d = cirq.Projector([[1.0, 0.0]])
 
-    assert d.__repr__() == "cirq.Projector(projection_basis=[[1.0, 0.0]]),qid_shape=(2,))"
+    assert d.__repr__(
+    ) == "cirq.Projector(projection_basis=[[1.0, 0.0]]),qid_shape=(2,))"
