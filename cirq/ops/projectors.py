@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Tuple, TYPE_CHECKING
 
 import numpy as np
 
@@ -13,28 +13,26 @@ if TYPE_CHECKING:
 class Projector(raw_types.Gate):
     """A non-unitary gate that projects onto a single qubit."""
 
-    def __init__(self, projector_id: int, qid_shape: Tuple[int, ...] = (2,)):
+    def __init__(self,
+                 projection_basis: List[List[float]],
+                 qid_shape: Tuple[int, ...] = (2,)):
         """
         Args:
-            projector_id: An integer smaller than qid_shape that specifies the
-                projector on the qubit.
+            projection_basis: a (2**num_qubits, p) matrix that lists the
+                proection vectors.
             qid_shape: Specifies the dimension of the projection. The default is
                 2 (qubit).
 
         Raises:
-            ValueError: If the length of invert_mask is greater than num_qubits.
-                or if the length of qid_shape doesn't equal num_qubits.
+            ValueError: If the basis vector is empty.
         """
-        if len(qid_shape) != 1:
-            raise ValueError(f"qid_shape must have a single entry.")
-        if projector_id >= qid_shape[0]:
-            raise ValueError(f"projector_id={projector_id} must be less " +
-                             f"than qid_shape[0]={qid_shape[0]}")
-        self._projector_id = projector_id
+        if np.prod(qid_shape) != np.array(projection_basis).shape[1]:
+            raise ValueError(f"Invalid shape {np.array(projection_basis).shape} for qid_shape {qid_shape}")
+        self._projection_basis = projection_basis
         self._qid_shape = qid_shape
 
-    def _projector_id_(self) -> int:
-        return self._projector_id
+    def _projection_basis_(self):
+        return self._projection_basis
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -46,23 +44,24 @@ class Projector(raw_types.Gate):
         return False
 
     def _channel_(self):
-        result = np.zeros((self._qid_shape[0], self._qid_shape[0]))
-        result[self._projector_id][self._projector_id] = 1.0
+        A = np.array(self._projection_basis)
+        AH = np.transpose(np.conjugate(A))
+        result = AH * np.linalg.inv(np.matmul(A, AH)) * A
         return (result,)
 
     def _has_channel_(self):
         return True
 
     def __repr__(self):
-        return (f"cirq.Projector(projector_id={self._projector_id}," +
+        return (f"cirq.Projector(projection_basis={self._projection_basis})," +
                 f"qid_shape={self._qid_shape})")
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
             'cirq_type': self.__class__.__name__,
-            'projector_id': self._projector_id,
+            'projection_basis': self._projection_basis,
             'qid_shape': self._qid_shape,
         }
 
     def _value_equality_values_(self) -> Any:
-        return self._projector_id, self._qid_shape
+        return self._projection_basis, self._qid_shape

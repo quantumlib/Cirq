@@ -7,8 +7,8 @@ import cirq
 
 
 def test_projector_qubit():
-    zero_projector = cirq.Projector(projector_id=0)
-    one_projector = cirq.Projector(projector_id=1)
+    zero_projector = cirq.Projector([[1.0, 0.0]])
+    one_projector = cirq.Projector([[0.0, 1.0]])
 
     np.testing.assert_allclose(cirq.channel(zero_projector),
                                ([[1.0, 0.0], [0.0, 0.0]],))
@@ -17,10 +17,26 @@ def test_projector_qubit():
                                ([[0.0, 0.0], [0.0, 1.0]],))
 
 
+def test_projector_plus():
+    plus_projector = cirq.Projector([[1.0, 1.0]])
+
+    np.testing.assert_allclose(
+        cirq.channel(plus_projector),
+        ([[0.5, 0.5], [0.5, 0.5]],))
+
+
+def test_projector_dim2_qubit():
+    dim2_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0]])
+
+    np.testing.assert_allclose(
+        cirq.channel(dim2_projector),
+        ([[1.0, 0.0], [0.0, 1.0]],))
+
+
 def test_projector_qutrit():
-    zero_projector = cirq.Projector(projector_id=0, qid_shape=[3])
-    one_projector = cirq.Projector(projector_id=1, qid_shape=[3])
-    two_projector = cirq.Projector(projector_id=2, qid_shape=[3])
+    zero_projector = cirq.Projector([[1.0, 0.0, 0.0]], qid_shape=[3])
+    one_projector = cirq.Projector([[0.0, 1.0, 0.0]], qid_shape=[3])
+    two_projector = cirq.Projector([[0.0, 0.0, 1.0]], qid_shape=[3])
 
     np.testing.assert_allclose(
         cirq.channel(zero_projector),
@@ -36,19 +52,17 @@ def test_projector_qutrit():
 
 
 def test_bad_constructors():
-    with pytest.raises(ValueError, match="qid_shape must have a single entry."):
-        cirq.Projector(projector_id=0, qid_shape=[2, 2])
-
     with pytest.raises(
             ValueError,
-            match=re.escape("projector_id=2 must be less than qid_shape[0]=2")):
-        cirq.Projector(projector_id=2, qid_shape=[2])
+            match=re.escape("Invalid shape (1, 2) for qid_shape [2, 2]")):
+        cirq.Projector([[1.0, 0.0]], qid_shape=[2, 2])
+
 
 
 def test_get_values():
-    d = cirq.Projector(projector_id=0)
+    d = cirq.Projector([[1.0, 0.0]])
 
-    assert d._projector_id_() == 0
+    np.testing.assert_allclose(d._projection_basis_(), [[1.0, 0.0]])
     assert d._qid_shape_() == (2,)
     assert not d._has_unitary_()
     assert not d._is_parameterized_()
@@ -56,6 +70,6 @@ def test_get_values():
 
 
 def test_repr():
-    d = cirq.Projector(projector_id=0)
+    d = cirq.Projector([[1.0, 0.0]])
 
-    assert d.__repr__() == "cirq.Projector(projector_id=0,qid_shape=(2,))"
+    assert d.__repr__() == "cirq.Projector(projection_basis=[[1.0, 0.0]]),qid_shape=(2,))"
