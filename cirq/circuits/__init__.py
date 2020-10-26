@@ -24,11 +24,15 @@ from cirq.circuits.quil_output import (
     QuilOutput,)
 
 from cirq.circuits.circuit import (
-    Circuit,)
+    AbstractCircuit,
+    Circuit,
+)
 from cirq.circuits.circuit_dag import (
     CircuitDag,
     Unique,
 )
+from cirq.circuits.frozen_circuit import (
+    FrozenCircuit,)
 from cirq.circuits.insert_strategy import (
     InsertStrategy,)
 

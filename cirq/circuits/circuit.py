@@ -87,8 +87,22 @@ class AbstractCircuit(metaclass=abc.ABCMeta):
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy',
                  device: 'cirq.Device'):
+        """Initializes a circuit.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
+            device: Hardware that the circuit should be able to run on.
+        """
         pass
-    
+
     @property
     @abc.abstractmethod
     def moments(self) -> Sequence['cirq.Moment']:
@@ -161,24 +175,25 @@ class AbstractCircuit(metaclass=abc.ABCMeta):
             if len(key) != 2:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
-            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            # qubit_idx - Qid or Iterable[Qid].
             return self._moments[moment_idx][qubit_idx]
 
         raise TypeError(
             '__getitem__ called with key not of type int or tuple.')
+    # pylint: enable=function-redefined
 
     def __repr__(self) -> str:
         if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit()'
+            return 'cirq.AbstractCircuit()'
 
         if not self._moments:
-            return f'cirq.Circuit(device={self._device!r})'
+            return f'cirq.AbstractCircuit(device={self._device!r})'
 
         moment_str = _list_repr_with_indented_item_lines(self._moments)
         if self._device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.Circuit({moment_str})'
+            return f'cirq.AbstractCircuit({moment_str})'
 
-        return f'cirq.Circuit({moment_str}, device={self._device!r})'
+        return f'cirq.AbstractCircuit({moment_str}, device={self._device!r})'
 
     def __str__(self) -> str:
         return self.to_text_diagram()
@@ -205,6 +220,28 @@ class AbstractCircuit(metaclass=abc.ABCMeta):
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
+
+    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
+        """Raises an exception if any operation in `op_tree` has qids that don't
+        match its qid shape.
+
+        Args:
+            operation: The operation to validate.
+
+        Raises:
+            ValueError: The operation had qids that don't match its qid shape.
+        """
+        # Cast from Iterable[Operation, Moment] because preserve_moments is
+        # False.
+        for op in cast(Iterable['cirq.Operation'],
+                       ops.flatten_op_tree(op_tree)):
+            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
+                raise ValueError(
+                    'Invalid operation. '
+                    'An operation has qid shape <{!r}> but is on qids with '
+                    'shape <{!r}>. The operation is <{!r}>.'.format(
+                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
+                        op))
 
     def _has_unitary_(self) -> bool:
         if not self.are_all_measurements_terminal():
@@ -1157,6 +1194,11 @@ class Circuit(AbstractCircuit):
         final_state_vector
         to_text_diagram
         to_text_diagram_drawer
+        qid_shape
+        all_measurement_keys
+        to_quil
+        to_qasm
+        save_qasm
 
     Methods for mutation:
         insert
@@ -1195,20 +1237,6 @@ class Circuit(AbstractCircuit):
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
                  device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
-        """Initializes a circuit.
-
-        Args:
-            contents: The initial list of moments and operations defining the
-                circuit. You can also pass in operations, lists of operations,
-                or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
-                insertion strategy.
-            strategy: When initializing the circuit with operations and moments
-                from `contents`, this determines how the operations are packed
-                together. This option does not affect later insertions into the
-                circuit.
-            device: Hardware that the circuit should be able to run on.
-        """
         self._moments: List['cirq.Moment'] = []
         self._device = device
         self.append(contents, strategy=strategy)
@@ -1253,11 +1281,10 @@ class Circuit(AbstractCircuit):
             if len(key) != 2:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
-            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            # qubit_idx - Qid or Iterable[Qid].
             selected_moments = self._moments[moment_idx]
-            # selected_moments - Moment or list[Moment].
             if isinstance(selected_moments, list):
-                if isinstance(qubit_idx, cirq.Qid):
+                if isinstance(qubit_idx, ops.Qid):
                     qubit_idx = [qubit_idx]
                 new_circuit = Circuit(device=self.device)
                 new_circuit._moments = [
@@ -1367,6 +1394,18 @@ class Circuit(AbstractCircuit):
                 return NotImplemented
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
+
+    # String-formatting methods replace 'AbstractCircuit' with 'Circuit'.
+
+    def __repr__(self):
+        return super().__repr__().replace('AbstractCircuit', 'Circuit')
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text('Circuit(...)')
+        else:
+            super()._repr_pretty_(p, False)
 
     __hash__ = None  # type: ignore
 
@@ -1483,28 +1522,6 @@ class Circuit(AbstractCircuit):
     def _can_commute_past(self, moment_index: int,
                           operation: 'cirq.Operation') -> bool:
         return not self._moments[moment_index].operates_on(operation.qubits)
-
-    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
-        """Raises an exception if any operation in `op_tree` has qids that don't
-        match its qid shape.
-
-        Args:
-            operation: The operation to validate.
-
-        Raises:
-            ValueError: The operation had qids that don't match its qid shape.
-        """
-        # Cast from Iterable[Operation, Moment] because preserve_moments is
-        # False.
-        for op in cast(Iterable['cirq.Operation'],
-                       ops.flatten_op_tree(op_tree)):
-            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
-                raise ValueError(
-                    'Invalid operation. '
-                    'An operation has qid shape <{!r}> but is on qids with '
-                    'shape <{!r}>. The operation is <{!r}>.'.format(
-                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
-                        op))
 
     def insert(
             self,
