@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """An immutable version of the Circuit data structure with unassigned qubits.
 
 FrozenCircuits contain a tuple of pseudo-Moments, each of which contains a set
@@ -19,16 +18,15 @@ of Gate + qubit pairs. When the FrozenCircuit is applied to a set of qubits,
 its Gates will be assigned to the qubits as defined by the user.
 """
 
-import abc
-import numpy as np
-
-from typing import Any, Callable, Iterable, Sequence, Tuple, overload
+from typing import (TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple,
+                    overload)
 
 from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
-
+if TYPE_CHECKING:
+    import cirq
 
 
 class FrozenCircuit(AbstractCircuit):
@@ -36,7 +34,7 @@ class FrozenCircuit(AbstractCircuit):
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None: 
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
         base = Circuit(contents, strategy=strategy, device=device)
         self._moments = tuple(base.moments)
         self._device = base.device
@@ -50,7 +48,7 @@ class FrozenCircuit(AbstractCircuit):
     @property
     def moments(self) -> Sequence['cirq.Moment']:
         return self._moments
-    
+
     @property
     def device(self) -> devices.Device:
         return self._device
@@ -112,24 +110,12 @@ class FrozenCircuit(AbstractCircuit):
         return FrozenCircuit.freeze(other * self.base_circuit())
 
     def __pow__(self, other):
-        return FrozenCircuit.freeze(self.base_circuit() ** other)
+        try:
+            return FrozenCircuit.freeze(self.base_circuit()**other)
+        except:
+            return NotImplemented
 
     # pylint: disable=function-redefined
-    @overload
-    def __getitem__(self, key: slice) -> 'cirq.FrozenCircuit':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[slice, 'cirq.Qid']) -> 'cirq.FrozenCircuit':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[slice, Iterable['cirq.Qid']]
-                    ) -> 'cirq.FrozenCircuit':
-        pass
-
     def __getitem__(self, key):
         if isinstance(key, slice):
             sliced_circuit = FrozenCircuit(device=self.device)
@@ -146,8 +132,7 @@ class FrozenCircuit(AbstractCircuit):
                     qubit_idx = [qubit_idx]
                 new_circuit = FrozenCircuit(device=self.device)
                 new_circuit._moments = tuple(
-                    moment[qubit_idx] for moment in selected_moments
-                )
+                    moment[qubit_idx] for moment in selected_moments)
                 return new_circuit
 
         try:
@@ -155,12 +140,18 @@ class FrozenCircuit(AbstractCircuit):
         except TypeError:
             raise TypeError(
                 '__getitem__ called with key not of type slice, int or tuple.')
+
     # pylint: enable=function-redefined
 
     def with_device(
-            self,
-            new_device: 'cirq.Device',
-            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
+        self,
+        new_device: 'cirq.Device',
+        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
+        return FrozenCircuit.freeze(self.base_circuit().with_device(
+            new_device, qubit_mapping))
+
+    def _resolve_parameters_(
+            self, param_resolver: 'cirq.ParamResolver') -> 'FrozenCircuit':
         return FrozenCircuit.freeze(
-            self.base_circuit().with_device(new_device, qubit_mapping))
+            self.base_circuit()._resolve_parameters_(param_resolver))
