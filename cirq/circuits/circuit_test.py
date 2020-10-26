@@ -268,6 +268,15 @@ def test_radd_op_tree():
         _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
 
+def test_add_iadd_equivalence():
+    q0, q1 = cirq.LineQubit.range(2)
+    iadd_circuit = cirq.Circuit(cirq.X(q0))
+    iadd_circuit += cirq.H(q1)
+
+    add_circuit = cirq.Circuit(cirq.X(q0)) + cirq.H(q1)
+    assert iadd_circuit == add_circuit
+
+
 def test_bool():
     assert not cirq.Circuit()
     assert cirq.Circuit(cirq.X(cirq.NamedQubit('a')))

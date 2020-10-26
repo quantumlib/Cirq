@@ -19,6 +19,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
+from cirq._doc import doc_private
 from cirq.protocols.apply_unitary_protocol import (
     apply_unitary,
     ApplyUnitaryArgs,
@@ -115,6 +116,7 @@ class ApplyChannelArgs:
 class SupportsApplyChannel(Protocol):
     """An object that can efficiently implement a channel."""
 
+    @doc_private
     def _apply_channel_(self, args: ApplyChannelArgs
                        ) -> Union[np.ndarray, None, NotImplementedType]:
         """Efficiently applies a channel.

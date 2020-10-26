@@ -12,21 +12,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections.abc import Iterable
 import numbers
+from collections.abc import Iterable
 from typing import Any, Union
+
 import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols.approximate_equality_protocol import approx_eq
 
 
 class SupportsEqualUpToGlobalPhase(Protocol):
     """Object which can be compared for equality mod global phase."""
 
-    @document
+    @doc_private
     def _equal_up_to_global_phase_(self, other: Any, *,
                                    atol: Union[int, float]) -> bool:
         """Approximate comparator.

@@ -305,13 +305,12 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
         prod = np.prod(qid_shape, dtype=int)
 
         if len(qid_shape) == prod:
-            if (not isinstance(state_like, np.ndarray) or
-                    state_like.dtype.kind != 'c'):
+            if state_like.dtype.kind != 'c':
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
-                    'ambiguous whether or not the given `state_like` is a '
-                    'state vector or a list of computational basis values for '
-                    'the qudits. In this situation you are required to pass '
+                    'ambiguous whether the given `state_like` contains '
+                    'state vector amplitudes or per-qudit computational basis '
+                    'values. In this situation you are required to pass '
                     'in a state vector that is a numpy array with a complex '
                     'dtype.')
 

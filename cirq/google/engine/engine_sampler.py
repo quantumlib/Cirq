@@ -47,7 +47,7 @@ class QuantumEngineSampler(work.Sampler):
             program: Union['cirq.Circuit', 'cirq.google.EngineProgram'],
             params: 'cirq.Sweepable',
             repetitions: int = 1,
-    ) -> List['cirq.TrialResult']:
+    ) -> List['cirq.Result']:
         if isinstance(program, engine.EngineProgram):
             job = program.run_sweep(params=params,
                                     repetitions=repetitions,
@@ -66,7 +66,7 @@ class QuantumEngineSampler(work.Sampler):
             programs: List['cirq.Circuit'],
             params_list: Optional[List['cirq.Sweepable']] = None,
             repetitions: Union[int, List[int]] = 1,
-    ) -> List[List['cirq.TrialResult']]:
+    ) -> List[List['cirq.Result']]:
         """Runs the supplied circuits.
 
         In order to gain a speedup from using this method instead of other run

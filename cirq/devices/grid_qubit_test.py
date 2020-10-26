@@ -353,3 +353,8 @@ def test_immutable():
     with pytest.raises(AttributeError, match="can't set attribute"):
         q = cirq.GridQid(1, 2, dimension=3)
         q.dimension = 3
+
+
+def test_complex():
+    assert complex(cirq.GridQubit(row=1, col=2)) == 2 + 1j
+    assert isinstance(complex(cirq.GridQubit(row=1, col=2)), complex)

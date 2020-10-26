@@ -86,15 +86,18 @@ class SerializableGateSet:
     def supported_gate_types(self) -> Tuple:
         return tuple(self.serializers.keys())
 
+    def is_supported(self, op_tree: 'cirq.OP_TREE') -> bool:
+        """Whether the given object contains only supported operations."""
+        return all(
+            self.is_supported_operation(op)
+            for op in ops.flatten_to_ops(op_tree))
+
     def is_supported_operation(self, op: 'cirq.Operation') -> bool:
         """Whether or not the given gate can be serialized by this gate set."""
-        gate = op.gate
-        for gate_type_mro in type(gate).mro():
-            if gate_type_mro in self.serializers:
-                for serializer in self.serializers[gate_type_mro]:
-                    if serializer.can_serialize_operation(op):
-                        return True
-        return False
+        return any(
+            serializer.can_serialize_operation(op)
+            for gate_type in type(op.gate).mro()
+            for serializer in self.serializers.get(gate_type, []))
 
     def serialize(self,
                   program: 'cirq.Circuit',

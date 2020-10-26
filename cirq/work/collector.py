@@ -92,7 +92,7 @@ class Collector(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def on_job_result(self, job: CircuitSampleJob,
-                      result: study.TrialResult) -> None:
+                      result: study.Result) -> None:
         """Incorporates sampled results.
 
         This method is called by driving code when sample results have become

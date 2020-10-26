@@ -138,9 +138,11 @@ def kak_vector_infidelity(k_vec_a: np.ndarray,
 
     This is the quantity
 
-    \min 1 - F_e( exp(i k_a · (XX,YY,ZZ)) kL exp(i k_b · (XX,YY,ZZ)) kR)
+    $$
+    \min 1 - F_e( \exp(i k_a · (XX,YY,ZZ)) kL \exp(i k_b · (XX,YY,ZZ)) kR)
+    $$
 
-    where F_e is the entanglement (process) fidelity and the minimum is taken
+    where $F_e$ is the entanglement (process) fidelity and the minimum is taken
     over all 1-local unitaries kL, kR.
 
     Args:
@@ -252,8 +254,8 @@ def kak_vector_to_unitary(vector: np.ndarray) -> np.ndarray:
 
     Returns:
         unitary: Corresponding 2-qubit unitary, of the form
-           exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y
-                + i k_z \sigma_z \sigma_z).
+           $exp( i k_x \sigma_x \sigma_x + i k_y \sigma_y \sigma_y
+                + i k_z \sigma_z \sigma_z)$.
            matrix or tensor of matrices of shape (..., 4,4).
     """
     vector = np.asarray(vector)

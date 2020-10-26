@@ -194,7 +194,7 @@ class EngineProgram:
             processor_ids: Sequence[str] = ('xmonsim',),
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
-    ) -> study.TrialResult:
+    ) -> study.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -211,7 +211,7 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            A single TrialResult for this run.
+            A single Result for this run.
         """
         return list(
             self.run_sweep(job_id=job_id,

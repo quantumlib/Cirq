@@ -31,9 +31,8 @@ import string
 from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
                     Union, TYPE_CHECKING)
 
-from cirq.google.engine.client import quantum
 from google.protobuf import any_pb2
-
+from cirq.google.engine.client import quantum
 from cirq import circuits, study, value
 from cirq.google import serializable_gate_set as sgs
 from cirq.google.api import v2
@@ -185,7 +184,7 @@ class Engine:
             program_labels: Optional[Dict[str, str]] = None,
             job_description: Optional[str] = None,
             job_labels: Optional[Dict[str, str]] = None,
-    ) -> study.TrialResult:
+    ) -> study.Result:
         """Runs the supplied Circuit via Quantum Engine.
 
         Args:
@@ -213,7 +212,7 @@ class Engine:
             job_labels: Optional set of labels to set on the job.
 
         Returns:
-            A single TrialResult for this run.
+            A single Result for this run.
         """
         if not gate_set:
             raise ValueError('No gate set provided')

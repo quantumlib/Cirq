@@ -67,7 +67,7 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
 
         run_sweep(circuit, params, repetitions)
 
-    These methods return `TrialResult`s which contain both the measurement
+    These methods return `Result`s which contain both the measurement
     results, but also the parameters used for the parameterized
     circuit operations. The initial state of a run is always the all 0s state
     in the computational basis.
