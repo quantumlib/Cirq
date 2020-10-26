@@ -22,23 +22,26 @@ its Gates will be assigned to the qubits as defined by the user.
 import abc
 import numpy as np
 
-from typing import Any, Iterable, Sequence, Tuple, overload
+from typing import Any, Callable, Iterable, Sequence, Tuple, overload
 
 from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
-class FrozenCircuit(AbstractCircuit, ops.Gate):
+
+
+
+class FrozenCircuit(AbstractCircuit):
 
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
-        base_circuit = Circuit(contents, strategy=strategy, device=device)
-        self._moments = tuple(base_circuit.moments)
-        self._device = base_circuit.device
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None: 
+        base = Circuit(contents, strategy=strategy, device=device)
+        self._moments = tuple(base.moments)
+        self._device = base.device
 
-        # These variables are initialized when first requested.
+        # These variables are memoized when first requested.
         self._num_qubits = None
         self._qid_shape = None
         self._all_qubits = None
@@ -52,7 +55,12 @@ class FrozenCircuit(AbstractCircuit, ops.Gate):
     def device(self) -> devices.Device:
         return self._device
 
-    # String-formatting methods replace 'AbstractCircuit' with 'FrozenCircuit'.
+    @staticmethod
+    def freeze(circuit: Circuit) -> 'FrozenCircuit':
+        return FrozenCircuit(circuit.moments, device=circuit.device)
+
+    def base_circuit(self) -> Circuit:
+        return Circuit(self.moments, device=self.device)
 
     def __repr__(self):
         return super().__repr__().replace('AbstractCircuit', 'FrozenCircuit')
@@ -67,28 +75,44 @@ class FrozenCircuit(AbstractCircuit, ops.Gate):
         return hash((self.moments, self.device))
 
     # Memoized methods for commonly-retrieved properties.
-    # TODO: memoize common getters (all_qubits, all_operations, etc.)
 
     def _num_qubits_(self):
-        if not self._num_qubits:
+        if self._num_qubits is None:
             self._num_qubits = len(self.all_qubits())
         return self._num_qubits
 
     def _qid_shape_(self):
-        if not self._qid_shape:
+        if self._qid_shape is None:
             self._qid_shape = super()._qid_shape_()
         return self._qid_shape
 
     def all_qubits(self):
-        if not self._all_qubits:
+        if self._all_qubits is None:
             self._all_qubits = super().all_qubits()
         return self._all_qubits
 
     def all_operations(self):
-        if not self._all_operations:
-            self._all_operations = super().all_operations()
+        if self._all_operations is None:
+            self._all_operations = tuple(super().all_operations())
         return self._all_operations
 
+    # End of memoized methods.
+
+    def __add__(self, other):
+        return FrozenCircuit.freeze(self.base_circuit() + other)
+
+    def __radd__(self, other):
+        return FrozenCircuit.freeze(other + self.base_circuit())
+
+    # TODO: handle multiplication / powers differently?
+    def __mul__(self, other):
+        return FrozenCircuit.freeze(self.base_circuit() * other)
+
+    def __rmul__(self, other):
+        return FrozenCircuit.freeze(other * self.base_circuit())
+
+    def __pow__(self, other):
+        return FrozenCircuit.freeze(self.base_circuit() ** other)
 
     # pylint: disable=function-redefined
     @overload
@@ -133,13 +157,10 @@ class FrozenCircuit(AbstractCircuit, ops.Gate):
                 '__getitem__ called with key not of type slice, int or tuple.')
     # pylint: enable=function-redefined
 
-    # Gate methods.
-
-    def on(self, *qubits: 'cirq.Qid') -> 'ops.Operation':
-        return CircuitOperation(
-            cirq.Moment(
-                gate(qubits[i] for i in indices)
-                for gate, indices in pseudo_moment
-            )
-            for pseudo_moment in self._contents
-        )
+    def with_device(
+            self,
+            new_device: 'cirq.Device',
+            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
+    ) -> 'FrozenCircuit':
+        return FrozenCircuit.freeze(
+            self.base_circuit().with_device(new_device, qubit_mapping))

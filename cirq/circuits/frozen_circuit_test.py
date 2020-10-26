@@ -111,7 +111,6 @@ def test_approx_eq():
         cirq.FrozenCircuit([cirq.Moment([cirq.X(a)])]),
         cirq.FrozenCircuit([cirq.Moment([cirq.X(a)])], device=TestDevice()))
 
-# TODO: broken (define add)
 def test_add_op_tree():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -129,7 +128,6 @@ def test_add_op_tree():
     with pytest.raises(TypeError):
         _ = c + cirq.X
 
-# TODO: broken (define radd)
 def test_radd_op_tree():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -150,8 +148,7 @@ def test_radd_op_tree():
         _ = 0 + c
 
     # non-empty circuit addition
-    d = cirq.FrozenCircuit()
-    d.append(cirq.Y(b))
+    d = cirq.FrozenCircuit(cirq.Y(b))
     assert [cirq.X(a)] + d == cirq.FrozenCircuit(
         [cirq.Moment([cirq.X(a)]),
          cirq.Moment([cirq.Y(b)])])
@@ -364,7 +361,6 @@ def test_slice():
          cirq.Moment([cirq.CZ(a, b)])])
     assert c[0:2:-1] == cirq.FrozenCircuit()
 
-# TODO: broken (define with_device)
 def test_with_device():
     c = cirq.FrozenCircuit(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(cg.Foxtail,
@@ -390,7 +386,6 @@ def test_with_device():
     c = cirq.FrozenCircuit(cirq.X(cirq.GridQubit(0, 6)), device=cg.Foxtail)
     _ = c.with_device(cg.Bristlecone)
 
-# TODO: broken (define multiply)
 def test_multiply():
     a = cirq.NamedQubit('a')
 
@@ -1511,7 +1506,6 @@ a: ---PhX(0.43214321)^0.12341234---
                                     use_unicode_characters=False,
                                     precision=None)
 
-# TODO: broken (flaky?)
 def test_diagram_global_phase():
     qa = cirq.NamedQubit('a')
     global_phase = cirq.GlobalPhaseOperation(coefficient=1j)
@@ -1700,12 +1694,10 @@ def test_circuit_to_unitary_matrix():
     assert c.unitary(dtype=np.complex128).dtype == np.complex128
     assert c.unitary(dtype=np.float64).dtype == np.float64
 
-# TODO: broken
 def test_circuit_unitary():
     q = cirq.NamedQubit('q')
 
     with_inner_measure = cirq.FrozenCircuit(cirq.H(q), cirq.measure(q), cirq.H(q))
-    # TODO: bad pass to _decompose_ (gave 2, expect 1 arg)
     assert not cirq.has_unitary(with_inner_measure)
     assert cirq.unitary(with_inner_measure, None) is None
 
@@ -1719,7 +1711,6 @@ def test_circuit_unitary():
                                                     ]) * np.sqrt(0.5),
                                                     atol=1e-8)
 
-# TODO: broken (flaky?)
 def test_simple_circuits_to_unitary_matrix():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
@@ -1750,7 +1741,6 @@ def test_simple_circuits_to_unitary_matrix():
         m = c.unitary()
         cirq.testing.assert_allclose_up_to_global_phase(m, expected, atol=1e-8)
 
-# TODO: broken (flaky?)
 def test_composite_gate_to_unitary_matrix():
     class CnotComposite(cirq.TwoQubitGate):
         def _decompose_(self, qubits):
@@ -2003,7 +1993,7 @@ def test_resolve_parameters():
         cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
-# TODO: broken (maybe not?)
+# TODO: broken (define resolve_parameters)
 def test_parameter_names():
     a, b = cirq.LineQubit.range(2)
     circuit = cirq.FrozenCircuit(
@@ -2019,17 +2009,6 @@ def test_parameter_names():
         }))
     assert cirq.parameter_names(circuit) == {'u', 'v', 'w'}
     assert cirq.parameter_names(resolved_circuit) == set()
-
-# TODO: broken (define copy)
-def test_copy():
-    a = cirq.NamedQubit('a')
-    b = cirq.NamedQubit('b')
-    c = cirq.FrozenCircuit(cirq.X(a), cirq.CZ(a, b), cirq.Z(a), cirq.Z(b))
-    assert c == c.copy() == c.__copy__()
-    c2 = c.copy()
-    assert c2 == c
-    c2[:] = []
-    assert c2 != c
 
 
 def test_next_moments_operating_on():
@@ -2049,7 +2028,6 @@ def test_next_moments_operating_on():
                 p = circuit.prev_moment_operating_on([q], m - 1)
             assert (not p) or (p < start)
 
-# TODO: broken (flaky?)
 def test_to_qasm():
     q0 = cirq.NamedQubit('q0')
     circuit = cirq.FrozenCircuit(cirq.X(q0),)
@@ -2477,7 +2455,6 @@ def test_operation_shape_validation():
     with pytest.raises(ValueError, match='Invalid operation'):
         _ = cirq.FrozenCircuit(BadOperation2())
 
-# TODO: broken (not any more?)
 def test_json_dict():
     q0, q1 = cirq.LineQubit.range(2)
     c = cirq.FrozenCircuit(cirq.CNOT(q0, q1))
@@ -2633,7 +2610,6 @@ def test_indexing_by_numpy_integer():
     assert c[np.int32(1)] == cirq.Moment([cirq.Y(q)])
     assert c[np.int64(1)] == cirq.Moment([cirq.Y(q)])
 
-# TODO: broken
 def test_all_measurement_keys():
 
     class Unknown(cirq.SingleQubitGate):
@@ -2653,7 +2629,6 @@ def test_all_measurement_keys():
     )
 
     # Big case.
-    # TODO: breaks down in _decompose_ (same as above)
     assert c.all_measurement_keys() == ('x', 'y', 'xy', 'test')
 
     # Empty case.
