@@ -48,15 +48,7 @@ def test_gate_with_act_on():
     np.testing.assert_allclose(state.gamma, [0, 1, 0])
 
 
-def test_unitary_fallback():
-
-    class UnitaryXGate(cirq.Gate):
-
-        def num_qubits(self) -> int:
-            return 1
-
-        def _unitary_(self):
-            return np.array([[0, 1], [1, 0]])
+def test_unitary_fallback_y():
 
     class UnitaryYGate(cirq.Gate):
 
@@ -66,20 +58,33 @@ def test_unitary_fallback():
         def _unitary_(self):
             return np.array([[0, -1j], [1j, 0]])
 
-    def assert_state_equals(a: cirq.StabilizerStateChForm,
-                            b: cirq.StabilizerStateChForm):
-        np.testing.assert_allclose(a.state_vector(), b.state_vector())
-
     original_state = cirq.StabilizerStateChForm(num_qubits=3)
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
-
-    cirq.act_on(UnitaryXGate(), args)
-    assert_state_equals(
-        args.state, cirq.StabilizerStateChForm(num_qubits=3, initial_state=2))
 
     args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
     cirq.act_on(UnitaryYGate(), args)
     expected_args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
                                                    axes=[1])
     cirq.act_on(cirq.Y, expected_args)
-    assert_state_equals(args.state, expected_args.state)
+    np.testing.assert_allclose(args.state.state_vector(),
+                               expected_args.state.state_vector())
+
+
+def test_unitary_fallback_h():
+
+    class UnitaryHGate(cirq.Gate):
+
+        def num_qubits(self) -> int:
+            return 1
+
+        def _unitary_(self):
+            return np.array([[1, 1], [1, -1]]) / (2**0.5)
+
+    original_state = cirq.StabilizerStateChForm(num_qubits=3)
+
+    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
+    cirq.act_on(UnitaryHGate(), args)
+    expected_args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
+                                                   axes=[1])
+    cirq.act_on(cirq.H, expected_args)
+    np.testing.assert_allclose(args.state.state_vector(),
+                               expected_args.state.state_vector())

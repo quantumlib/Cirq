@@ -16,14 +16,14 @@ from typing import Any, Iterable, TYPE_CHECKING
 
 import numpy as np
 
-from cirq.ops import common_gates
-from cirq.ops import pauli_gates
+from cirq.ops import common_gates, pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.protocols import has_unitary, num_qubits, unitary
 from cirq.sim.clifford.stabilizer_state_ch_form import StabilizerStateChForm
 
 if TYPE_CHECKING:
     import cirq
+    from typing import Optional
 
 
 class ActOnStabilizerCHFormArgs:
@@ -67,23 +67,29 @@ def _strat_act_on_stabilizer_ch_form_from_single_qubit_decompose(
         u = unitary(val)
         clifford_gate = SingleQubitCliffordGate.from_unitary(u)
         if clifford_gate is not None:
+            # Gather the effective unitary applied so as to correct for the
+            # global phase later.
+            final_unitary = np.eye(2)
             for axis, quarter_turns in clifford_gate.decompose_rotation():
+                gate = None  # type: Optional[cirq.Gate]
                 if axis == pauli_gates.X:
-                    assert common_gates.XPowGate(exponent=quarter_turns /
-                                                 2)._act_on_(args)
+                    gate = common_gates.XPowGate(exponent=quarter_turns / 2)
+                    assert gate._act_on_(args)
                 elif axis == pauli_gates.Y:
-                    assert common_gates.YPowGate(exponent=quarter_turns /
-                                                 2)._act_on_(args)
+                    gate = common_gates.YPowGate(exponent=quarter_turns / 2)
+                    assert gate._act_on_(args)
                 else:
                     assert axis == pauli_gates.Z
-                    assert common_gates.ZPowGate(exponent=quarter_turns /
-                                                 2)._act_on_(args)
+                    gate = common_gates.ZPowGate(exponent=quarter_turns / 2)
+                    assert gate._act_on_(args)
+
+                final_unitary = np.matmul(unitary(gate), final_unitary)
 
             # Find the entry with the largest magnitude in the input unitary.
             k = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
             # Correct the global phase that wasn't conserved in the above
             # decomposition.
-            args.state.omega *= u[k] / unitary(clifford_gate)[k]
+            args.state.omega *= u[k] / final_unitary[k]
             return True
 
     return NotImplemented

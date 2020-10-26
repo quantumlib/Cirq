@@ -1,4 +1,4 @@
-# Copyright 2020 The Cirq Developers
+# Copyright 2019 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ from cirq.devices import LineQubit
 from cirq.ops import common_gates
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq import protocols
-from cirq import testing
 from cirq.sim import act_on_state_vector_args, final_state_vector
 from cirq.sim.clifford import (act_on_clifford_tableau_args, clifford_tableau,
                                stabilizer_state_ch_form,
@@ -75,14 +74,13 @@ def assert_all_implemented_act_on_effects_match_unitary(
     """
 
     # pylint: disable=unused-variable
-    __tracebackhide__ = True
+    # __tracebackhide__ = True
     # pylint: enable=unused-variable
 
     num_qubits_val = protocols.num_qubits(val)
 
-    if protocols.is_parameterized(val) or \
-            not protocols.has_unitary(val) or \
-            protocols.qid_shape(val) != (2,) * num_qubits_val:
+    if protocols.is_parameterized(val) or not protocols.has_unitary(
+            val) or protocols.qid_shape(val) != (2,) * num_qubits_val:
         if assert_tableau_implemented or assert_ch_form_implemented:
             assert False, ("Could not assert if any act_on methods were "
                            "implemented. Operating on qudits or with a "
@@ -126,10 +124,10 @@ def assert_all_implemented_act_on_effects_match_unitary(
                                                 "for the test circuit."
                                                 "\n\nval: {!r}".format(val))
     else:
-        testing.assert_allclose_up_to_global_phase(np.reshape(
-            stabilizer_ch_form.state_vector(), protocols.qid_shape(qubits)),
-                                                   state_vector,
-                                                   atol=1e-07)
+        np.testing.assert_allclose(np.reshape(stabilizer_ch_form.state_vector(),
+                                              protocols.qid_shape(qubits)),
+                                   state_vector,
+                                   atol=1e-07)
 
 
 def _final_clifford_tableau(circuit: Circuit, qubit_map

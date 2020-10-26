@@ -326,42 +326,18 @@ def test_x_act_on_tableau():
         cirq.act_on(cirq.X**foo, args)
 
 
-def test_x_act_on_ch_form():
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.X, object())
-    original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
-
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
-
-    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
-    cirq.act_on(cirq.X**0.5, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.X, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
-
-    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
-    cirq.act_on(cirq.X**3.5, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.X**2, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    foo = sympy.Symbol('foo')
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.X**foo, args)
-
-
-class PhaserGate(cirq.SingleQubitGate):
+class iZGate(cirq.SingleQubitGate):
     """Equivalent to an iZ gate without _act_on_ defined on it."""
 
     def _unitary_(self):
         return np.array([[1j, 0], [0, -1j]])
+
+
+class MinusOnePhaseGate(cirq.SingleQubitGate):
+    """Equivalent to a -1 global phase without _act_on_ defined on it."""
+
+    def _unitary_(self):
+        return np.array([[-1, 0], [0, -1]])
 
 
 def test_y_act_on_tableau():
@@ -379,58 +355,24 @@ def test_y_act_on_tableau():
 
     cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
     cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args)
+    cirq.act_on(iZGate(), args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
     cirq.act_on(cirq.Y, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args, allow_decompose=True)
+    cirq.act_on(iZGate(), args, allow_decompose=True)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
 
     cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
     cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args)
+    cirq.act_on(iZGate(), args)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
 
     cirq.act_on(cirq.Y**2, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == flipped_tableau
-
-    foo = sympy.Symbol('foo')
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.Y**foo, args)
-
-
-def test_y_act_on_ch_form():
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Y, object())
-    original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
-
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
-
-    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
-    cirq.act_on(cirq.Y**0.5, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.Y, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args, allow_decompose=True)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
-
-    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
-    cirq.act_on(cirq.Y**3.5, args, allow_decompose=False)
-    cirq.act_on(PhaserGate(), args)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.Y**2, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
@@ -491,55 +433,6 @@ def test_z_h_act_on_tableau():
         cirq.act_on(cirq.H**1.5, args)
 
 
-def test_z_h_act_on_ch_form():
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.Z, object())
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.H, object())
-    original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
-
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(), axes=[1])
-
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
-    cirq.act_on(cirq.Z**0.5, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.Z, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
-
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
-    cirq.act_on(cirq.Z**3.5, args, allow_decompose=False)
-    cirq.act_on(cirq.H, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.Z**2, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.H**2, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    foo = sympy.Symbol('foo')
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.Z**foo, args)
-
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.H**foo, args)
-
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.H**1.5, args)
-
-
 def test_cx_act_on_tableau():
     with pytest.raises(TypeError, match="Failed to act"):
         cirq.act_on(cirq.CX, object())
@@ -576,35 +469,6 @@ def test_cx_act_on_tableau():
     cirq.act_on(cirq.CX**4, args, allow_decompose=False)
     assert args.log_of_measurement_results == {}
     assert args.tableau == original_tableau
-
-    foo = sympy.Symbol('foo')
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CX**foo, args)
-
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CX**1.5, args)
-
-
-def test_cx_act_on_ch_form():
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CX, object())
-    original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
-
-    args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
-                                          axes=[0, 1])
-
-    cirq.act_on(cirq.CX, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               flipped_state.state_vector())
-
-    cirq.act_on(cirq.CX, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
-
-    cirq.act_on(cirq.CX**4, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
 
     foo = sympy.Symbol('foo')
     with pytest.raises(TypeError, match="Failed to act action on state"):
@@ -659,69 +523,102 @@ def test_cz_act_on_tableau():
         cirq.act_on(cirq.CZ**1.5, args)
 
 
-def test_cz_act_on_ch_form():
-    with pytest.raises(TypeError, match="Failed to act"):
-        cirq.act_on(cirq.CZ, object())
+foo = sympy.Symbol('foo')
+
+
+@pytest.mark.parametrize('input_gate_sequence, outcome', [
+    ([cirq.X**foo], 'Error'),
+    ([cirq.X**0.25], 'Error'),
+    ([cirq.X**4], 'Original'),
+    ([cirq.X**0.5, cirq.X**0.5], 'Flipped'),
+    ([cirq.X], 'Flipped'),
+    ([cirq.X**3.5, cirq.X**3.5], 'Flipped'),
+    ([cirq.Y**foo], 'Error'),
+    ([cirq.Y**0.25], 'Error'),
+    ([cirq.Y**4], 'Original'),
+    ([cirq.Y**0.5, cirq.Y**0.5, iZGate()], 'Flipped'),
+    ([cirq.Y, iZGate()], 'Flipped'),
+    ([cirq.Y**3.5, cirq.Y**3.5, iZGate()], 'Flipped'),
+    ([cirq.Z**foo], 'Error'),
+    ([cirq.H**foo], 'Error'),
+    ([cirq.H**1.5], 'Error'),
+    ([cirq.Z**4], 'Original'),
+    ([cirq.H**4], 'Original'),
+    ([cirq.H, cirq.S, cirq.S, cirq.H], 'Flipped'),
+    ([cirq.H, cirq.Z, cirq.H], 'Flipped'),
+    ([cirq.H, cirq.Z**3.5, cirq.Z**3.5, cirq.H], 'Flipped'),
+    ([cirq.CX**foo], 'Error'),
+    ([cirq.CX**1.5], 'Error'),
+    ([cirq.CX**4], 'Original'),
+    ([cirq.CX], 'Flipped'),
+    ([cirq.CZ**foo], 'Error'),
+    ([cirq.CZ**1.5], 'Error'),
+    ([cirq.CZ**4], 'Original'),
+    ([cirq.CZ, MinusOnePhaseGate()], 'Original'),
+])
+def test_act_on_ch_form(input_gate_sequence, outcome):
     original_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=31)
-    phased_state = original_state.copy()
-    phased_state.omega *= -1
-
+    num_qubits = cirq.num_qubits(input_gate_sequence[0])
+    if num_qubits == 1:
+        axes = [1]
+    else:
+        assert num_qubits == 2
+        axes = [0, 1]
     args = cirq.ActOnStabilizerCHFormArgs(state=original_state.copy(),
-                                          axes=[0, 1])
+                                          axes=axes)
 
-    cirq.act_on(cirq.CZ, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               phased_state.state_vector())
+    flipped_state = cirq.StabilizerStateChForm(num_qubits=5, initial_state=23)
 
-    cirq.act_on(cirq.CZ, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
+    if outcome == 'Error':
+        with pytest.raises(TypeError, match="Failed to act action on state"):
+            for input_gate in input_gate_sequence:
+                cirq.act_on(input_gate, args)
+        return
 
-    cirq.act_on(cirq.CZ**4, args, allow_decompose=False)
-    np.testing.assert_allclose(args.state.state_vector(),
-                               original_state.state_vector())
+    for input_gate in input_gate_sequence:
+        cirq.act_on(input_gate, args)
 
-    foo = sympy.Symbol('foo')
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CZ**foo, args)
+    if outcome == 'Original':
+        np.testing.assert_allclose(args.state.state_vector(),
+                                   original_state.state_vector())
 
-    with pytest.raises(TypeError, match="Failed to act action on state"):
-        cirq.act_on(cirq.CZ**1.5, args)
+    if outcome == 'Flipped':
+        np.testing.assert_allclose(args.state.state_vector(),
+                                   flipped_state.state_vector())
 
 
 @pytest.mark.parametrize(
-    'input_gate, assert_tableau_implemented, assert_ch_form_implemented',
+    'input_gate, assert_implemented',
     [
-        (cirq.X, True, True),
-        (cirq.Y, True, True),
-        (cirq.Z, True, True),
-        (cirq.X**0.5, True, True),
-        (cirq.Y**0.5, True, True),
-        (cirq.Z**0.5, True, True),
-        (cirq.X**3.5, True, True),
-        (cirq.Y**3.5, True, True),
-        (cirq.Z**3.5, True, True),
-        (cirq.X**4, True, True),
-        (cirq.Y**4, True, True),
-        (cirq.Z**4, True, True),
-        (cirq.H, True, True),
-        (cirq.CX, True, True),
-        (cirq.CZ, True, True),
-        (cirq.H**4, True, True),
-        (cirq.CX**4, True, True),
-        (cirq.CZ**4, True, True),
+        (cirq.X, True),
+        (cirq.Y, True),
+        (cirq.Z, True),
+        (cirq.X**0.5, True),
+        (cirq.Y**0.5, True),
+        (cirq.Z**0.5, True),
+        (cirq.X**3.5, True),
+        (cirq.Y**3.5, True),
+        (cirq.Z**3.5, True),
+        (cirq.X**4, True),
+        (cirq.Y**4, True),
+        (cirq.Z**4, True),
+        (cirq.H, True),
+        (cirq.CX, True),
+        (cirq.CZ, True),
+        (cirq.H**4, True),
+        (cirq.CX**4, True),
+        (cirq.CZ**4, True),
         # Unsupported gates should not fail too.
-        (cirq.X**0.25, False, False),
-        (cirq.Y**0.25, False, False),
-        (cirq.Z**0.25, False, False),
-        (cirq.H**0.5, False, False),
-        (cirq.CX**0.5, False, False),
-        (cirq.CZ**0.5, False, False),
+        (cirq.X**0.25, False),
+        (cirq.Y**0.25, False),
+        (cirq.Z**0.25, False),
+        (cirq.H**0.5, False),
+        (cirq.CX**0.5, False),
+        (cirq.CZ**0.5, False),
     ])
-def test_act_on_consistency(input_gate, assert_tableau_implemented,
-                            assert_ch_form_implemented):
+def test_act_on_consistency(input_gate, assert_implemented):
     cirq.testing.assert_all_implemented_act_on_effects_match_unitary(
-        input_gate, assert_tableau_implemented, assert_ch_form_implemented)
+        input_gate, assert_implemented, assert_implemented)
 
 
 def test_runtime_types_of_rot_gates():

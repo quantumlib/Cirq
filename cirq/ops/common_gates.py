@@ -109,6 +109,9 @@ class XPowGate(eigen_gate.EigenGate,
             assert all(
                 gate._act_on_(args) for gate in  # type: ignore
                 [H, ZPowGate(exponent=self._exponent), H])
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
 
         return NotImplemented
@@ -350,8 +353,10 @@ class YPowGate(eigen_gate.EigenGate,
                     gate._act_on_(args)  # type: ignore
                     for gate in [H, ZPowGate()])
                 state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
-
         return NotImplemented
 
     def in_su2(self) -> 'YPowGate':
@@ -531,6 +536,9 @@ class ZPowGate(eigen_gate.EigenGate,
                 # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.M[q, :] ^= state.G[q, :]
                 state.gamma[q] = (state.gamma[q] - 1) % 4
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
 
         return NotImplemented
@@ -831,6 +839,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                 delta = (state.gamma[q] + 2 * (alpha + beta)) % 4
 
                 state.update_sum(t, u, delta=delta, alpha=alpha)
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
 
         return NotImplemented
@@ -976,6 +987,9 @@ class CZPowGate(eigen_gate.EigenGate,
                 # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.M[q1, :] ^= state.G[q2, :]
                 state.M[q2, :] ^= state.G[q1, :]
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
 
         return NotImplemented
@@ -1183,7 +1197,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
             q2 = args.axes[1]
             state = args.state
             if self._exponent % 2 == 1:
-                # Prescription for CZ left multiplication.
+                # Prescription for CX left multiplication.
                 # Reference: https://arxiv.org/abs/1808.00128 Proposition 4 end
                 state.gamma[q1] = (
                     state.gamma[q1] + state.gamma[q2] + 2 *
@@ -1191,6 +1205,9 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
                 state.G[q2, :] ^= state.G[q1, :]
                 state.F[q1, :] ^= state.F[q2, :]
                 state.M[q1, :] ^= state.M[q2, :]
+            # Adjust the global phase based on the global_shift parameter.
+            args.state.omega *= np.exp(1j * np.pi * self.global_shift *
+                                       self.exponent)
             return True
 
         return NotImplemented
