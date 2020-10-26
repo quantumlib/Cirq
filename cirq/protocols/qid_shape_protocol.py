@@ -12,16 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TYPE_CHECKING, Any, Sequence, Tuple, TypeVar, Union
+from typing import Any, Sequence, Tuple, TypeVar, Union
 
 from typing_extensions import Protocol
 
 from cirq import ops
-from cirq._doc import document
+from cirq._doc import document, doc_private
 from cirq.type_workarounds import NotImplementedType
-
-if TYPE_CHECKING:
-    import cirq
 
 # This is a special indicator value used by the methods to determine whether or
 # not the caller provided a 'default' argument. It must be of type
@@ -39,7 +36,7 @@ class SupportsExplicitQidShape(Protocol):
     """A unitary, channel, mixture or other object that operates on a known
     number qubits/qudits/qids, each with a specific number of quantum levels."""
 
-    @document
+    @doc_private
     def _qid_shape_(self) -> Union[Tuple[int, ...], NotImplementedType]:
         """A tuple specifying the number of quantum levels of each qid this
         object operates on, e.g. (2, 2, 2) for a three-qubit gate.

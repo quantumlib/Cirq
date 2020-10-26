@@ -29,6 +29,7 @@ import numpy as np
 from typing_extensions import Protocol
 
 from cirq import linalg, qis
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
@@ -219,6 +220,7 @@ class ApplyUnitaryArgs:
 class SupportsConsistentApplyUnitary(Protocol):
     """An object that can be efficiently left-multiplied into tensors."""
 
+    @doc_private
     def _apply_unitary_(self, args: ApplyUnitaryArgs
                        ) -> Union[np.ndarray, None, NotImplementedType]:
         """Left-multiplies a unitary effect onto a tensor with good performance.
