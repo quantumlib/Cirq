@@ -1,0 +1,1 @@
+cirq.asymmetric_depolarize(error_probabilities={'II':0.8, 'XX':0.2})

@@ -27,59 +27,39 @@ upper_tabs:
   lower_tabs:
     # Subsite tabs
     other:
-    - name: "Tutorials"
-      contents:
-      - title: "Basics"
-        path: /cirq/tutorials/basics
-      - title: "Textbook examples"
-        path: /cirq/tutorials/examples
-      - title: "Quantum variational algorithm"
-        path: /cirq/tutorials/variational_algorithm
-      - title: "QAOA experiment"
-        path: /cirq/tutorials/QAOA_Demo
-      - title: "Hidden linear function problem"
-        path: /cirq/tutorials/hidden_linear_function
-      - title: "Quantum walks"
-        path: /cirq/tutorials/Quantum_Walk
-      - title: "Rabi oscillation experiment"
-        path: /cirq/tutorials/Rabi_Demo
-
     - name: "Guide"
       contents:
+      ####  FIRST STEPS ####
+      - heading: "First steps"
+
       - title: "Install"
         path: /cirq/install
-      - heading: "Concepts"
-      - title: "Gates"
+      ####  CONCEPTS ####
+      - heading: "Essential concepts"
+      - title: "Gates and operations"
         path: /cirq/gates
       - title: "Circuits"
         path: /cirq/circuits
       - title: "Simulation"
         path: /cirq/simulation
+
+      ####  FURTHER TOPICS ####
+      - heading: "Further topics"
       - title: "Noise"
         path: /cirq/noise
       - title: "Devices"
         path: /cirq/devices
-      - title: "Interoperability"
-        path: /cirq/interop
       - title: "Qudits"
         path: /cirq/qudits
-      - heading: "Google"
-      - title: "Google devices"
-        path: /cirq/google/devices
-      - title: "Quantum Engine"
-        path: /cirq/google/engine
-      - title: "Device Specifications"
-        path: /cirq/google/specification
-      - title: "Calibration metrics"
-        path: /cirq/google/calibration
-      - title: "Best practices"
-        path: /cirq/google/best_practices
-      - heading: "Design proposals"
-      - title: "Request for Comments process"
-        path: /cirq/dev/rfc_process
-      - heading: "Developers"
-      - title: "Development"
+      - title: "Import/export circuits"
+        path: /cirq/interop
+
+      ####  Contributor Guide ####
+      - heading: "Contributor guide"
+      - title: "Contribute"
         path: /cirq/dev/development
+      - title: "RFC process"
+        path: /cirq/dev/rfc_process
       - title: "Style guide"
         path: /cirq/dev/style
       - title: "Nomenclature"
@@ -91,14 +71,79 @@ upper_tabs:
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
 
-    - name: "Research"
+      ####  GOOGLE HARDWARE ####
+      - heading: "Google hardware"
+      - title: "Access and authentication"
+        path: /cirq/google/access
+      - title: "Concepts"
+        path: /cirq/google/concepts
+      - title: "Quantum Engine API"
+        path: /cirq/google/engine
+      - title: "Google devices"
+        path: /cirq/google/devices
+      - title: "Device specifications"
+        path: /cirq/google/specification
+      - title: "Calibration metrics"
+        path: /cirq/google/calibration
+      - title: "Best practices"
+        path: /cirq/google/best_practices
+
+      ####  AQT ####
+      - heading: "AQT hardware"
+      - title: "Access and authentication"
+        path: /cirq/aqt/access
+
+      ####  PASQAL ####
+      - heading: "Pasqal hardware"
+      - title: "Pasqal devices"
+        path: /cirq/pasqal/devices
+      - title: "Pasqal sampler"
+        path: /cirq/pasqal/sampler
+
+    - name: "Tutorials"
       contents:
-      - include: /cirq/research/_toc.yaml
+        ####  CIRQ ####
+      - heading: "Cirq"
+      - title: "Basics"
+        path: /cirq/tutorials/basics
+      - title: "Textbook examples"
+        path: /cirq/tutorials/examples
+      - title: "Quantum variational algorithm"
+        path: /cirq/tutorials/variational_algorithm
+      - title: "QAOA experiment"
+        path: /cirq/tutorials/qaoa
+      - title: "Hidden linear function problem"
+        path: /cirq/tutorials/hidden_linear_function
+      - title: "Quantum walks"
+        path: /cirq/tutorials/quantum_walks
+      - title: "Rabi oscillation experiment"
+        path: /cirq/tutorials/rabi_oscillations
+
+      ####  GOOGLE HARDWARE ####
+      - heading: "Google hardware"
+      - title: "Getting started with QCS"
+        path: /cirq/tutorials/google/start
+      - title: "Reservations"
+        path: /cirq/tutorials/google/reservations
+
+      ####  AQT HARDWARE ####
+      - heading: "AQT hardware"
+      - title: "Getting started with AQT hardware"
+        path: /cirq/tutorials/aqt/getting_started
+
+      ####  PASQAL HARDWARE ####
+      - heading: "Pasqal hardware"
+      - title: "Getting started with Pasqal hardware"
+        path: /cirq/pasqal/getting_started
+
+    - name: "Experiments"
+      contents:
+      - include: /cirq/experiments/_toc.yaml
 
     - name: "Reference"
       skip_translation: true
       contents:
-      - title: "All Symbols"
+      - title: "All symbols"
         path: /reference/python/cirq/all_symbols
       - include: /reference/python/cirq/_toc.yaml
 

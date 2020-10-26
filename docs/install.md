@@ -11,7 +11,7 @@ If you want to create a development environment, see the [development page](dev/
 
 ---
 
-## Alpha Disclaimer
+## Alpha disclaimer
 
 **Cirq is currently in alpha.**
 We may change or remove parts of Cirq's API when making new releases.

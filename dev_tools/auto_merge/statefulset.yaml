@@ -1,11 +1,24 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: v1
+kind: Service
 metadata:
-  name: cirq-automerge-deployment
+  name: cirq-automerge-headless-svc
+  labels:
+    app: cirq-automerge
+spec:
+  clusterIP: None
+  selector:
+    app: cirq-automerge
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cirq-automerge
 spec:
   selector:
     matchLabels:
       app: cirq-automerge
+  serviceName: automerge-headless-svc
+  replicas: 1
   template:
     metadata:
       labels:

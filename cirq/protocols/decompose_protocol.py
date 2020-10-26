@@ -27,9 +27,11 @@ from typing import (
     Union,
 )
 from collections import defaultdict
+
 from typing_extensions import Protocol
 
 from cirq import devices, ops
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -92,6 +94,7 @@ class SupportsDecompose(Protocol):
     raise a caller-provided error.
     """
 
+    @doc_private
     def _decompose_(self) -> DecomposeResult:
         pass
 

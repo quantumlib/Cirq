@@ -40,7 +40,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             program: 'cirq.Circuit',
             params: study.Sweepable,
             repetitions: int = 1,
-    ) -> List[study.TrialResult]:
+    ) -> List[study.Result]:
         """Samples circuit as if every measurement resulted in zero.
 
         Args:
@@ -49,7 +49,7 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
             repetitions: The number of times to sample.
 
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
 
         Raises:
@@ -65,6 +65,6 @@ class ZerosSampler(work.Sampler, metaclass=abc.ABCMeta):
                 measurements[key] = np.zeros((repetitions, len(op.qubits)),
                                              dtype=int)
         return [
-            study.TrialResult(params=param_resolver, measurements=measurements)
+            study.Result(params=param_resolver, measurements=measurements)
             for param_resolver in study.to_resolvers(params)
         ]

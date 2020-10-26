@@ -70,8 +70,7 @@ class PasqalSampler(cirq.work.Sampler):
 
     def _send_serialized_circuit(self,
                                  serialization_str: str,
-                                 repetitions: int = 1
-                                ) -> cirq.study.TrialResult:
+                                 repetitions: int = 1) -> cirq.study.Result:
         """Sends the json string to the remote Pasqal device
         Args:
             serialization_str: Json representation of the circuit.
@@ -101,7 +100,7 @@ class PasqalSampler(cirq.work.Sampler):
     def run_sweep(self,
                   program: cirq.Circuit,
                   params: cirq.study.Sweepable,
-                  repetitions: int = 1) -> List[cirq.study.TrialResult]:
+                  repetitions: int = 1) -> List[cirq.study.Result]:
         """Samples from the given Circuit.
         In contrast to run, this allows for sweeping over different parameter
         values.
@@ -110,7 +109,7 @@ class PasqalSampler(cirq.work.Sampler):
             params: Parameters to run with the program.
             repetitions: The number of repetitions to simulate.
         Returns:
-            TrialResult list for this run; one for each possible parameter
+            Result list for this run; one for each possible parameter
             resolver.
         """
         assert isinstance(program.device, cirq.pasqal.PasqalDevice)
