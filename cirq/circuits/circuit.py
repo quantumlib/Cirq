@@ -177,17 +177,14 @@ class AbstractCircuit(abc.ABC):
         pass
 
     @overload
-    @abc.abstractmethod
     def __getitem__(self, key: slice):
         pass
 
     @overload
-    @abc.abstractmethod
     def __getitem__(self, key: Tuple[slice, 'cirq.Qid']):
         pass
 
     @overload
-    @abc.abstractmethod
     def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]):
         pass
 
@@ -1191,7 +1188,7 @@ class AbstractCircuit(abc.ABC):
 
     @classmethod
     def _from_json_dict_(cls, moments, device, **kwargs):
-        return cls(moments, device=device)
+        return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
 
 
 class Circuit(AbstractCircuit):
@@ -2148,7 +2145,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
+def _apply_unitary_circuit(circuit: AbstractCircuit, state: np.ndarray,
                            qubits: Tuple['cirq.Qid', ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
