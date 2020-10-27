@@ -142,6 +142,29 @@ class AbstractCircuit(abc.ABC):
     def __str__(self) -> str:
         return self.to_text_diagram()
 
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        if not self.moments and self.device == devices.UNCONSTRAINED_DEVICE:
+            return f'cirq.{cls_name}()'
+
+        if not self.moments:
+            return f'cirq.{cls_name}(device={self.device!r})'
+
+        moment_str = _list_repr_with_indented_item_lines(self.moments)
+        if self.device == devices.UNCONSTRAINED_DEVICE:
+            return f'cirq.{cls_name}({moment_str})'
+
+        return f'cirq.{cls_name}({moment_str}, device={self.device!r})'
+
+    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
+        """Print ASCII diagram in Jupyter."""
+        cls_name = self.__class__.__name__
+        if cycle:
+            # There should never be a cycle.  This is just in case.
+            p.text(f'{cls_name}(...)')
+        else:
+            p.text(self.to_text_diagram())
+
     def _repr_html_(self) -> str:
         """Print ASCII diagram in Jupyter notebook without wrapping lines."""
         return ('<pre style="overflow: auto; white-space: pre;">' +
@@ -1354,19 +1377,6 @@ class Circuit(AbstractCircuit):
             inv_moments.append(inv_moment)
         return cirq.Circuit(inv_moments, device=self._device)
 
-    def __repr__(self) -> str:
-        if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit()'
-
-        if not self._moments:
-            return f'cirq.Circuit(device={self._device!r})'
-
-        moment_str = _list_repr_with_indented_item_lines(self._moments)
-        if self._device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.Circuit({moment_str})'
-
-        return f'cirq.Circuit({moment_str}, device={self._device!r})'
-
     __hash__ = None  # type: ignore
 
     def with_device(
@@ -1391,14 +1401,6 @@ class Circuit(AbstractCircuit):
             for moment in self._moments
         ],
                        device=new_device)
-
-    def _repr_pretty_(self, p: Any, cycle: bool) -> None:
-        """Print ASCII diagram in Jupyter."""
-        if cycle:
-            # There should never be a cycle.  This is just in case.
-            p.text('Circuit(...)')
-        else:
-            p.text(self.to_text_diagram())
 
     def transform_qubits(self,
                          func: Callable[['cirq.Qid'], 'cirq.Qid'],
