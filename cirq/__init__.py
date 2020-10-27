@@ -525,7 +525,9 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap,
+    InterHeatmap,
+)
 
 from cirq.work import (
     CircuitSampleJob,

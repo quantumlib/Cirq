@@ -303,6 +303,7 @@ Classes and methods for visualizing data.
     cirq.plot_state_histogram
     cirq.scatter_plot_normalized_kak_interaction_coefficients
     cirq.Heatmap
+    cirq.InterHeatmap
     cirq.TextDiagramDrawer
 
 

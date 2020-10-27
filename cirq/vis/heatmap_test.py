@@ -62,7 +62,7 @@ def test_cell_colors(ax, colormap_name):
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
     vmin, vmax = 1.5, 2.5
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin, vmax=vmax))
+        vmin, vmax, colormap_name))
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -103,8 +103,8 @@ def test_annotation_position_and_content(ax, format_string):
     qubits = ((0, 5), (8, 1), (7, 0), (13, 5), (1, 6), (3, 2), (2, 8))
     values = np.random.random(len(qubits))
     test_value_map = {qubit: value for qubit, value in zip(qubits, values)}
-    random_heatmap = (
-        heatmap.Heatmap(test_value_map).set_annotation_format(format_string))
+    random_heatmap = (heatmap.Heatmap(
+        test_value_map).unset_annotation().set_annotation_format(format_string))
     random_heatmap.plot(ax)
     actual_texts = set()
     for artist in ax.get_children():
@@ -175,8 +175,7 @@ def test_non_float_values(ax, format_string):
     colormap_name = 'viridis'
     vmin, vmax = 0.0, 1.0
     random_heatmap = (heatmap.Heatmap(test_value_map).set_colormap(
-        colormap_name, vmin=vmin,
-        vmax=vmax).set_annotation_format(format_string))
+        vmin, vmax, colormap_name).set_annotation_format(format_string))
     _, mesh, _ = random_heatmap.plot(ax)
 
     colormap = mpl.cm.get_cmap(colormap_name)
@@ -218,7 +217,8 @@ def test_urls(ax, test_GridQubit):
     extra_qubit = grid_qubit.GridQubit(10, 7) if test_GridQubit else (10, 7)
     test_url_map[extra_qubit] = 'http://google.com/10+7'
 
-    my_heatmap = heatmap.Heatmap(test_value_map).set_url_map(test_url_map)
+    my_heatmap = heatmap.Heatmap(test_value_map).unset_url_map().set_url_map(
+        test_url_map)
     _, mesh, _ = my_heatmap.plot(ax)
     expected_urls = [
         test_url_map.get(qubit, '')
@@ -244,3 +244,35 @@ def test_colorbar(ax):
     # TODO: Make this is a more thorough test, e.g., we should test that the
     # position, size and pad arguments are respected.
     # Github issue: https://github.com/quantumlib/Cirq/issues/2969
+
+
+def test_interheatmap():
+    value_map = {
+        (grid_qubit.GridQubit(3, 2), grid_qubit.GridQubit(4, 2)):
+        0.004619111460557768,
+        (grid_qubit.GridQubit(4, 1), grid_qubit.GridQubit(4, 2)):
+        0.0076079162393482835
+    }
+    value_map1 = {
+        ((3, 2), (4, 2)): 0.004619111460557768,
+        ((4, 1), (4, 2)): 0.0076079162393482835
+    }
+    test_heatmap = heatmap.InterHeatmap(value_map)
+    test_heatmap1 = heatmap.InterHeatmap(value_map1)
+    test_url_map = {
+        (3.5, 2): 'http://google.com/1',
+        (4, 1.5): 'http://google.com/2'
+    }
+    test_heatmap.unset_url_map().set_url_map(test_url_map)
+    test_heatmap.unset_colorbar().set_colorbar()
+
+    colormap_name = 'Greys'
+    test_heatmap.set_colormap(0.001, 0.01, colormap_name)
+
+    annot_map = {(3.5, 2): '.3e', (4, 1.5): '.2f'}
+    test_heatmap.unset_annotation()
+    test_heatmap.set_annotation_map(annot_map)
+    test_heatmap.set_annotation_format('.3e')
+
+    test_heatmap.plot()
+    test_heatmap1.plot()
