@@ -26,13 +26,16 @@ class Projector(raw_types.Gate):
         Raises:
             ValueError: If the basis vector is empty.
         """
-        if type(projection_basis) != np.ndarray:
-            projection_basis = np.array(projection_basis)
-        if np.prod(qid_shape) != projection_basis.shape[1]:
+        if type(projection_basis) == np.ndarray:
+            projection_array = projection_basis
+        else:
+            projection_array = np.array(projection_basis)
+
+        if np.prod(qid_shape) != projection_array.shape[1]:
             raise ValueError(
                 "Invalid shape " +
-                f"{np.array(projection_basis).shape} for qid_shape {qid_shape}")
-        self._projection_basis = projection_basis
+                f"{np.array(projection_array).shape} for qid_shape {qid_shape}")
+        self._projection_basis = projection_array
         self._qid_shape = qid_shape
 
     def _projection_basis_(self):
