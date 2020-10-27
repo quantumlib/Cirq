@@ -17,6 +17,12 @@ def test_projector_qubit():
                                ([[0.0, 0.0], [0.0, 1.0]],))
 
 
+def test_projector_from_np_array():
+    zero_projector = cirq.Projector(np.array([[1.0, 0.0]]))
+    np.testing.assert_allclose(cirq.channel(zero_projector),
+                               ([[1.0, 0.0], [0.0, 0.0]],))
+
+
 def test_projector_plus():
     plus_projector = cirq.Projector([[1.0, 1.0]])
 
