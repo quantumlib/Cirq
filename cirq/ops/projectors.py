@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Dict, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -27,7 +27,7 @@ class Projector(raw_types.Gate):
             ValueError: If the basis vector is empty.
         """
         if type(projection_basis) == np.ndarray:
-            projection_array = projection_basis
+            projection_array = cast(np.ndarray, projection_basis)
         else:
             projection_array = np.array(projection_basis)
 
