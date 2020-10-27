@@ -80,32 +80,60 @@ class AbstractCircuit(abc.ABC):
         save_qasm
     """
 
+    @abc.abstractmethod
+    def __init__(self, *contents: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy', device: 'cirq.Device'):
+        """Initializes a circuit.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
+            device: Hardware that the circuit should be able to run on.
+        """
+
+    @property
+    @abc.abstractmethod
+    def moments(self) -> Sequence['cirq.Moment']:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def device(self) -> devices.Device:
+        pass
+
     def __bool__(self):
-        return bool(self._moments)
+        return bool(self.moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._moments == other._moments and self._device == other._device
+        return self.moments == other.moments and self.device == other.device
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
         return cirq.protocols.approx_eq(
-            self._moments,
-            other._moments,
+            self.moments,
+            other.moments,
             atol=atol
-        ) and self._device == other._device
+        ) and self.device == other.device
 
     def __ne__(self, other) -> bool:
         return not self == other
 
     def __len__(self) -> int:
-        return len(self._moments)
+        return len(self.moments)
 
     def __iter__(self) -> Iterator['cirq.Moment']:
-        return iter(self._moments)
+        return iter(self.moments)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         """See `cirq.SupportsDecompose`."""
@@ -146,7 +174,7 @@ class AbstractCircuit(abc.ABC):
         Raises:
           ValueError: negative max_distance.
         """
-        max_circuit_distance = len(self._moments) - start_moment_index
+        max_circuit_distance = len(self.moments) - start_moment_index
         if max_distance is None:
             max_distance = max_circuit_distance
         elif max_distance < 0:
@@ -179,7 +207,7 @@ class AbstractCircuit(abc.ABC):
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            next_moments[q] = (len(self._moments) if next_moment is None else
+            next_moments[q] = (len(self.moments) if next_moment is None else
                                next_moment)
         return next_moments
 
@@ -206,18 +234,18 @@ class AbstractCircuit(abc.ABC):
             ValueError: negative max_distance.
         """
         if end_moment_index is None:
-            end_moment_index = len(self._moments)
+            end_moment_index = len(self.moments)
 
         if max_distance is None:
-            max_distance = len(self._moments)
+            max_distance = len(self.moments)
         elif max_distance < 0:
             raise ValueError('Negative max_distance: {}'.format(max_distance))
         else:
             max_distance = min(end_moment_index, max_distance)
 
         # Don't bother searching indices past the end of the list.
-        if end_moment_index > len(self._moments):
-            d = end_moment_index - len(self._moments)
+        if end_moment_index > len(self.moments):
+            d = end_moment_index - len(self.moments)
             end_moment_index -= d
             max_distance -= d
         if max_distance <= 0:
@@ -582,9 +610,9 @@ class AbstractCircuit(abc.ABC):
             None if there is no operation on the qubit at the given moment, or
             else the operation.
         """
-        if not 0 <= moment_index < len(self._moments):
+        if not 0 <= moment_index < len(self.moments):
             return None
-        for op in self._moments[moment_index].operations:
+        for op in self.moments[moment_index].operations:
             if qubit in op.qubits:
                 return op
         return None
@@ -604,7 +632,7 @@ class AbstractCircuit(abc.ABC):
         Returns:
             An iterator (index, operation)'s that satisfy the op_condition.
         """
-        for index, moment in enumerate(self._moments):
+        for index, moment in enumerate(self.moments):
             for op in moment.operations:
                 if predicate(op):
                     yield index, op
@@ -656,8 +684,8 @@ class AbstractCircuit(abc.ABC):
 
     def _has_op_at(self, moment_index: int,
                    qubits: Iterable['cirq.Qid']) -> bool:
-        return (0 <= moment_index < len(self._moments) and
-                self._moments[moment_index].operates_on(qubits))
+        return (0 <= moment_index < len(self.moments) and
+                self.moments[moment_index].operates_on(qubits))
 
     def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
         """Raises an exception if any operation in `op_tree` has qids that don't
@@ -683,7 +711,7 @@ class AbstractCircuit(abc.ABC):
 
     def all_qubits(self) -> FrozenSet['cirq.Qid']:
         """Returns the qubits acted upon by Operations in this circuit."""
-        return frozenset(q for m in self._moments for q in m.qubits)
+        return frozenset(q for m in self.moments for q in m.qubits)
 
     def all_operations(self) -> Iterator[ops.Operation]:
         """Iterates over the operations applied by this circuit.
@@ -965,7 +993,7 @@ class AbstractCircuit(abc.ABC):
                           'global phase:')
 
         moment_groups = []  # type: List[Tuple[int, int]]
-        for moment in self._moments:
+        for moment in self.moments:
             _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
                                     diagram, precision, moment_groups,
                                     get_circuit_diagram_info, include_tags)
