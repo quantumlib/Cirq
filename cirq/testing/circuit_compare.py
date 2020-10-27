@@ -177,8 +177,8 @@ def assert_circuits_with_terminal_measurements_are_equivalent(
 
 
 def assert_same_circuits(
-    actual: circuits.AbstractCircuit,
-    expected: circuits.AbstractCircuit,
+        actual: circuits.AbstractCircuit,
+        expected: circuits.AbstractCircuit,
 ) -> None:
     """Asserts that two circuits are identical, with a descriptive error.
 
@@ -209,9 +209,9 @@ def assert_same_circuits(
                          expected)
 
 
-def _first_differing_moment_index(
-        circuit1: circuits.AbstractCircuit,
-        circuit2: circuits.AbstractCircuit) -> Optional[int]:
+def _first_differing_moment_index(circuit1: circuits.AbstractCircuit,
+                                  circuit2: circuits.AbstractCircuit
+                                 ) -> Optional[int]:
     for i, (m1, m2) in enumerate(itertools.zip_longest(circuit1, circuit2)):
         if m1 != m2:
             return i

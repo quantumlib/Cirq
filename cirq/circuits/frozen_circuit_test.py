@@ -1347,17 +1347,15 @@ def test_diagram_with_unknown_exponent():
 
     class WeirdGate(cirq.SingleQubitGate):
 
-        def _circuit_diagram_info_(
-                self,
-                args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                  ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(wire_symbols=('B',),
                                            exponent='fancy')
 
     class WeirderGate(cirq.SingleQubitGate):
 
-        def _circuit_diagram_info_(
-                self,
-                args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                  ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(wire_symbols=('W',),
                                            exponent='fancy-that')
 
@@ -1447,8 +1445,8 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols():
 
     class BadGate(cirq.ThreeQubitGate):
 
-        def _circuit_diagram_info_(
-                self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, str]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                  ) -> Tuple[str, str]:
             return 'a', 'a'
 
     q1 = cirq.NamedQubit('(0, 0)')
@@ -1467,9 +1465,8 @@ def test_to_text_diagram_parameterized_value():
         def __init__(self, val):
             self.val = val
 
-        def _circuit_diagram_info_(
-                self,
-                args: cirq.CircuitDiagramInfoArgs) -> cirq.CircuitDiagramInfo:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                  ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(('P',), self.val)
 
     c = cirq.FrozenCircuit(
@@ -1836,8 +1833,8 @@ def test_expanding_gate_symbols():
         def num_qubits(self) -> int:
             return self._num_qubits
 
-        def _circuit_diagram_info_(
-                self, args: cirq.CircuitDiagramInfoArgs) -> Tuple[str, ...]:
+        def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
+                                  ) -> Tuple[str, ...]:
             assert args.known_qubit_count is not None
             return ('@',) + ('Z',) * (args.known_qubit_count - 1)
 

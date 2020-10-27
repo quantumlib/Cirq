@@ -18,10 +18,9 @@ identically to regular Circuits. Conversion between the two is handled with the
 `freeze` and `unfreeze` methods.
 """
 
-from typing import (TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple,
-                    overload)
+from typing import TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple
 
-from cirq import devices, ops
+from cirq import devices
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
@@ -135,14 +134,14 @@ class FrozenCircuit(AbstractCircuit):
     # pylint: enable=function-redefined
 
     def with_device(
-        self,
-        new_device: 'cirq.Device',
-        qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
+            self,
+            new_device: 'cirq.Device',
+            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
         return FrozenCircuit.freeze(self.unfreeze().with_device(
             new_device, qubit_mapping))
 
-    def _resolve_parameters_(
-            self, param_resolver: 'cirq.ParamResolver') -> 'FrozenCircuit':
+    def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
+                            ) -> 'FrozenCircuit':
         return FrozenCircuit.freeze(
             self.unfreeze()._resolve_parameters_(param_resolver))
