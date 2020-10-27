@@ -139,6 +139,48 @@ class AbstractCircuit(abc.ABC):
         """See `cirq.SupportsDecompose`."""
         return self.all_operations()
 
+    # pylint: disable=function-redefined
+    @overload
+    def __getitem__(self, key: int) -> 'cirq.Moment':
+        pass
+
+    @overload
+    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
+        pass
+
+    @overload
+    def __getitem__(self,
+                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
+        pass
+
+    @overload
+    @abc.abstractmethod
+    def __getitem__(self, key: slice):
+        pass
+
+    @overload
+    @abc.abstractmethod
+    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']):
+        pass
+
+    @overload
+    @abc.abstractmethod
+    def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]):
+        pass
+
+    def __getitem__(self, key):
+        if hasattr(key, '__index__'):
+            return self.moments[key]
+        if isinstance(key, tuple):
+            if len(key) != 2:
+                raise ValueError('If key is tuple, it must be a pair.')
+            moment_idx, qubit_idx = key
+            # qubit_idx - Qid or Iterable[Qid].
+            return self.moments[moment_idx][qubit_idx]
+
+        raise TypeError('__getitem__ called with key not of type int or tuple.')
+    # pylint: enable=function-redefined
+
     def __str__(self) -> str:
         return self.to_text_diagram()
 
@@ -1236,58 +1278,31 @@ class Circuit(AbstractCircuit):
         return copied_circuit
 
     # pylint: disable=function-redefined
-    @overload
-    def __getitem__(self, key: slice) -> 'cirq.Circuit':
-        pass
-
-    @overload
-    def __getitem__(self, key: int) -> 'cirq.Moment':
-        pass
-
-    @overload
-    def __getitem__(self, key: Tuple[int, 'cirq.Qid']) -> 'cirq.Operation':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[int, Iterable['cirq.Qid']]) -> 'cirq.Moment':
-        pass
-
-    @overload
-    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
-        pass
-
-    @overload
-    def __getitem__(self,
-                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
-        pass
-
     def __getitem__(self, key):
         if isinstance(key, slice):
             sliced_circuit = Circuit(device=self.device)
             sliced_circuit._moments = self._moments[key]
             return sliced_circuit
-        if hasattr(key, '__index__'):
-            return self._moments[key]
         if isinstance(key, tuple):
             if len(key) != 2:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
-            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            # qubit_idx - Qid or Iterable[Qid].
             selected_moments = self._moments[moment_idx]
-            # selected_moments - Moment or list[Moment].
             if isinstance(selected_moments, list):
-                if isinstance(qubit_idx, cirq.Qid):
+                if isinstance(qubit_idx, ops.Qid):
                     qubit_idx = [qubit_idx]
                 new_circuit = Circuit(device=self.device)
                 new_circuit._moments = [
                     moment[qubit_idx] for moment in selected_moments
                 ]
                 return new_circuit
-            return selected_moments[qubit_idx]
 
-        raise TypeError(
-            '__getitem__ called with key not of type slice, int or tuple.')
+        try:
+            return super().__getitem__(key)
+        except TypeError:
+            raise TypeError(
+                '__getitem__ called with key not of type slice, int or tuple.')
 
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
