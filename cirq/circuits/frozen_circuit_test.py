@@ -2733,22 +2733,22 @@ def test_all_measurement_keys():
     )
 
     # Big case.
-    assert c.all_measurement_keys() == ('x', 'y', 'xy', 'test')
+    assert c.all_measurement_keys() == {'x', 'y', 'xy', 'test'}
 
     # Empty case.
-    assert cirq.FrozenCircuit().all_measurement_keys() == ()
+    assert cirq.FrozenCircuit().all_measurement_keys() == set()
 
-    # Output order matches insertion order, not qubit order.
+    # Order does not matter.
     assert cirq.FrozenCircuit(
         cirq.Moment([
             cirq.measure(a, key='x'),
             cirq.measure(b, key='y'),
-        ])).all_measurement_keys() == ('x', 'y')
+        ])).all_measurement_keys() == {'x', 'y'}
     assert cirq.FrozenCircuit(
         cirq.Moment([
             cirq.measure(b, key='y'),
             cirq.measure(a, key='x'),
-        ])).all_measurement_keys() == ('y', 'x')
+        ])).all_measurement_keys() == {'y', 'x'}
 
 
 def test_deprecated():
