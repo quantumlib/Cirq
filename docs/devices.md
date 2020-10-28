@@ -1,11 +1,5 @@
 # Devices
 
-The Cirq platform currently supports the following quantum hardware providers:
-
-- [Google]()   
-
-## The ``cirq.Device`` class
-
 The ``Device`` class is an abstract class which encapsulates constraints
 (or lack thereof) that come when running a circuit on actual hardware.
 For instance, most hardware only allows certain gates to be enacted

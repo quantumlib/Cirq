@@ -34,7 +34,7 @@ Example output:
 
 # Learn more about quantum computing
 
-In case you would like to learn more about Quantum Computing, check out our [education page](/education). 
+In case you would like to learn more about Quantum Computing, check out our [education page](https://quantumai.google/education). 
 
 # Hardware vs simulation
 
