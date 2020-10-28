@@ -40,6 +40,14 @@ def test_protocols():
                                atol=1e-8)
 
 
+@pytest.mark.parametrize('phase', [1, 1j, -1])
+def test_act_on(phase):
+    state = cirq.StabilizerStateChForm(0)
+    args = cirq.ActOnStabilizerCHFormArgs(state, [])
+    cirq.act_on(cirq.GlobalPhaseOperation(phase), args, allow_decompose=False)
+    assert state.state_vector() == [[phase]]
+
+
 def test_str():
     assert str(cirq.GlobalPhaseOperation(1j)) == '1j'
 
