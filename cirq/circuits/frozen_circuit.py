@@ -53,13 +53,6 @@ class FrozenCircuit(AbstractCircuit):
     def device(self) -> devices.Device:
         return self._device
 
-    @staticmethod
-    def freeze(circuit: Circuit) -> 'FrozenCircuit':
-        return FrozenCircuit(circuit.moments, device=circuit.device)
-
-    def unfreeze(self) -> Circuit:
-        return Circuit(self.moments, device=self.device)
-
     def __hash__(self):
         return hash((self.moments, self.device))
 
@@ -88,21 +81,21 @@ class FrozenCircuit(AbstractCircuit):
     # End of memoized methods.
 
     def __add__(self, other):
-        return FrozenCircuit.freeze(self.unfreeze() + other)
+        return (self.unfreeze() + other).freeze()
 
     def __radd__(self, other):
-        return FrozenCircuit.freeze(other + self.unfreeze())
+        return (other + self.unfreeze()).freeze()
 
     # TODO: handle multiplication / powers differently?
     def __mul__(self, other):
-        return FrozenCircuit.freeze(self.unfreeze() * other)
+        return (self.unfreeze() * other).freeze()
 
     def __rmul__(self, other):
-        return FrozenCircuit.freeze(other * self.unfreeze())
+        return (other * self.unfreeze()).freeze()
 
     def __pow__(self, other):
         try:
-            return FrozenCircuit.freeze(self.unfreeze()**other)
+            return (self.unfreeze()**other).freeze()
         except:
             return NotImplemented
 
