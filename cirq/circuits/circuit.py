@@ -48,7 +48,7 @@ T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
 
 
 class AbstractCircuit(abc.ABC):
-    """A collection of const methods for Circuit-like objects.
+    """The base class for Circuit-like objects.
 
     A circuit-like object must have a list of moments (which can be empty) and
     a device (which may be `devices.UNCONSTRAINED_DEVICE`).
@@ -1530,10 +1530,11 @@ class Circuit(AbstractCircuit):
             index: int,
             moment_or_operation_tree: Union['cirq.Operation', 'cirq.OP_TREE'],
             strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST) -> int:
-        """ Inserts operations into the circuit.
-            Operations are inserted into the moment specified by the index and
-            'InsertStrategy'.
-            Moments within the operation tree are inserted intact.
+        """Inserts operations into the circuit.
+
+        Operations are inserted into the moment specified by the index and
+        'InsertStrategy'.
+        Moments within the operation tree are inserted intact.
 
         Args:
             index: The index to insert all of the operations at.
