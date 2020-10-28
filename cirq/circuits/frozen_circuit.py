@@ -11,12 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""An immutable version of the Circuit data structure with unassigned qubits.
 
-FrozenCircuits are immutable (and therefore hashable), but otherwise behave
-identically to regular Circuits. Conversion between the two is handled with the
-`freeze` and `unfreeze` methods.
-"""
+"""An immutable version of the Circuit data structure."""
 
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple
 
@@ -29,6 +25,12 @@ if TYPE_CHECKING:
 
 
 class FrozenCircuit(AbstractCircuit):
+    """An immutable version of the Circuit data structure.
+
+    FrozenCircuits are immutable (and therefore hashable), but otherwise behave
+    identically to regular Circuits. Conversion between the two is handled with
+    the `freeze` and `unfreeze` methods from AbstractCircuit.
+    """
 
     def __init__(self,
                  *contents: 'cirq.OP_TREE',
