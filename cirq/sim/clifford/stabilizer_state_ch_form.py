@@ -52,7 +52,7 @@ class StabilizerStateChForm():
         self.v = np.zeros(self.n, dtype=bool)
         self.s = np.zeros(self.n, dtype=bool)
 
-        self.omega = 1
+        self.omega = 1  # type: complex
 
         # Apply X for every non-zero element of initial_state
         for (i, val) in enumerate(
