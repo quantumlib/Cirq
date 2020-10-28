@@ -62,7 +62,7 @@ class GlobalPhaseOperation(raw_types.Operation):
     def _act_on_(self, args: Any):
         from cirq.sim import clifford
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self.coefficient
+            args.state.omega *= self.coefficient  # type: ignore
             return True
 
         return NotImplemented
