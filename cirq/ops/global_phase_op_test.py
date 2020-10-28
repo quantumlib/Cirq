@@ -45,7 +45,7 @@ def test_act_on(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(state, [])
     cirq.act_on(cirq.GlobalPhaseOperation(phase), args, allow_decompose=False)
-    assert state.omega == phase
+    assert state.state_vector() == [[phase]]
 
 
 def test_str():
