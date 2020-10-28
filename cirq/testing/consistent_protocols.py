@@ -20,7 +20,7 @@ import sympy
 
 from cirq import ops, protocols, value
 from cirq.testing.consistent_act_on import (
-    assert_act_on_clifford_tableau_effect_matches_unitary)
+    assert_all_implemented_act_on_effects_match_unitary)
 from cirq.testing.circuit_compare import (assert_has_consistent_apply_unitary,
                                           assert_has_consistent_qid_shape)
 from cirq.testing.consistent_decomposition import (
@@ -138,7 +138,7 @@ def _assert_meets_standards_helper(val: Any, *, ignoring_global_phase: bool,
     assert_specifies_has_unitary_if_unitary(val)
     assert_has_consistent_qid_shape(val)
     assert_has_consistent_apply_unitary(val)
-    assert_act_on_clifford_tableau_effect_matches_unitary(val)
+    assert_all_implemented_act_on_effects_match_unitary(val)
     assert_qasm_is_consistent_with_unitary(val)
     assert_has_consistent_trace_distance_bound(val)
     assert_decompose_is_consistent_with_unitary(val,

@@ -21,6 +21,7 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq import protocols, value
+from cirq._doc import doc_private
 
 if TYPE_CHECKING:
     import cirq
@@ -304,6 +305,7 @@ CircuitDiagramInfoArgs.UNINFORMED_DEFAULT = CircuitDiagramInfoArgs(
 class SupportsCircuitDiagramInfo(Protocol):
     """A diagrammable operation on qubits."""
 
+    @doc_private
     def _circuit_diagram_info_(
             self, args: CircuitDiagramInfoArgs
     ) -> Union[str, Iterable[str], CircuitDiagramInfo]:
