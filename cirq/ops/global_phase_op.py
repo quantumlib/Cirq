@@ -61,8 +61,13 @@ class GlobalPhaseOperation(raw_types.Operation):
 
     def _act_on_(self, args: Any):
         from cirq.sim import clifford
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            # Since CliffordTableau does not keep track of the global phase,
+            # it's safe to just ignore it here.
+            return True
+
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
-            args.state.omega *= self.coefficient  # type: ignore
+            args.state.omega *= self.coefficient
             return True
 
         return NotImplemented
