@@ -41,6 +41,28 @@ class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
 moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
 
 
+def test_freeze_and_unfreeze():
+    a, b = cirq.LineQubit.range(2)
+    c = cirq.Circuit(cirq.X(a), cirq.H(b))
+
+    f = c.freeze()
+    assert f.moments == tuple(c.moments)
+
+    ff = f.freeze()
+    assert ff is f
+
+    unf = f.unfreeze()
+    assert unf.moments == c.moments
+    assert unf is not c
+
+    cc = c.unfreeze()
+    assert cc is c
+
+    fcc = cc.freeze()
+    assert fcc.moments == f.moments
+    assert fcc is not f
+
+
 def test_equality():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')

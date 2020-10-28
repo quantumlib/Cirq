@@ -108,6 +108,29 @@ class AbstractCircuit(abc.ABC):
     def device(self) -> devices.Device:
         pass
 
+    def freeze(self) -> 'cirq.FrozenCircuit':
+        '''Creates a FrozenCircuit from this circuit.
+        
+        If 'self' is a FrozenCircuit, the original object is returned.
+        '''
+        from cirq.circuits import FrozenCircuit
+        if isinstance(self, FrozenCircuit):
+            return self
+        return FrozenCircuit(self,
+                             strategy=InsertStrategy.EARLIEST,
+                             device=self.device)
+
+    def unfreeze(self) -> 'cirq.Circuit':
+        '''Creates a Circuit from this circuit.
+        
+        If 'self' is a Circuit, the original object is returned.
+        '''
+        if isinstance(self, Circuit):
+            return self
+        return Circuit(self,
+                       strategy=InsertStrategy.EARLIEST,
+                       device=self.device)
+
     def __bool__(self):
         return bool(self.moments)
 
