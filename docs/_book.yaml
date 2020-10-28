@@ -34,6 +34,8 @@ upper_tabs:
 
       - title: "Install"
         path: /cirq/install
+      - title: "Getting started"
+        path: /cirq/start
       ####  CONCEPTS ####
       - heading: "Essential concepts"
       - title: "Gates and operations"
@@ -136,7 +138,7 @@ upper_tabs:
       ####  PASQAL HARDWARE ####
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
-        path: /cirq/pasqal/getting_started
+        path: /cirq/tutorials/pasqal/getting_started
 
     - name: "Experiments"
       contents:

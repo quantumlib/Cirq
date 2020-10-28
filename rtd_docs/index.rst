@@ -24,6 +24,7 @@ User Documentation
 .. toctree::
     :maxdepth: 2
 
+    docs/start
     docs/install
     docs/tutorials/basics.ipynb
     docs/ecosystem
@@ -81,7 +82,7 @@ User Documentation
     :maxdepth: 1
     :caption: Pasqal Documentation
 
-    docs/pasqal/getting_started.ipynb
+    docs/tutorials/pasqal/getting_started.ipynb
     docs/pasqal/devices
     docs/pasqal/sampler
 
