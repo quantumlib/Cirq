@@ -2,13 +2,13 @@ The following document provides an ecosystem overview of how the various tools c
 
 ![image alt text](images/ecosystem.png )
 
-* **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices
+* **Research Libraries and Tools:** Libraries and tools used for researching new quantum algorithms and designing and preparing experiments on quantum devices.
 
-* **Cirq**: A framework specifically for programming noisy intermediate quantum computers
+* **Cirq**: A framework specifically for programming noisy intermediate quantum computers.
 
-* **Quantum Cloud Services:** Cirq can connect to a variety of quantum cloud services. Behind each cloud service, one can invoke either an actual quantum computer or a quantum circuit simulator
+* **Quantum Cloud Services:** Cirq can connect to a variety of quantum cloud services. Behind each cloud service, quantum algorithms run on either a quantum processor or simulator.
 
-* **Quantum Circuit Simulators:** Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion
+* **Quantum Circuit Simulators:** Cirq is compatible with a number of quantum circuit simulators that can run either locally or in a distributed fashion.
 
 # Research libraries and tools 
 
@@ -32,7 +32,7 @@ The following document provides an ecosystem overview of how the various tools c
 |[Orquestra](https://www.zapatacomputing.com/orquestra/)|Zapata|A proprietary workflow management tool for quantum computing|
 |[pyGSTi](https://www.pygsti.info/)|Sandia National Labs|An open-source library for modeling and characterizing noisy quantum information processors|
 |[QUEKO](https://github.com/UCLA-VAST/QUEKO-benchmark)|UCLA|An open-source tool to generate benchmarks with the known optimal solutions|
-|[t\|ket>](https://cqcl.github.io/pytket/build/html/index.html#)|Cambridge Quantum|A proprietary and platform agnostic SDK for circuit optimisation, compilation and noise mitigation|
+|[tket](https://cqcl.github.io/pytket/build/html/index.html#)|Cambridge Quantum|A proprietary and platform agnostic SDK for circuit optimisation, compilation and noise mitigation|
 |[True-Q](https://trueq.quantumbenchmark.com/)|Quantum Benchmark|A proprietary library for assessing and optimizing quantum hardware and algorithm performance.|
 
 
