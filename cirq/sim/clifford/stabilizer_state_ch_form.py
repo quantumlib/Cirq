@@ -18,6 +18,7 @@ import numpy as np
 import cirq
 from cirq import protocols, value
 from cirq.ops import pauli_gates
+from cirq.sim.clifford import act_on_stabilizer_ch_form_args
 from cirq.value import big_endian_int_to_digits
 from cirq._compat import deprecated
 
@@ -61,9 +62,10 @@ class StabilizerStateChForm():
                                          digit_count=num_qubits,
                                          base=2)):
             if val:
-                from cirq.sim.clifford import ActOnStabilizerCHFormArgs
-                protocols.act_on(pauli_gates.X,
-                                 ActOnStabilizerCHFormArgs(self, [i]))
+                protocols.act_on(
+                    pauli_gates.X,
+                    act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
+                        self, [i]))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
