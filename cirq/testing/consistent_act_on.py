@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ def assert_all_implemented_act_on_effects_match_unitary(
     """
 
     # pylint: disable=unused-variable
-    # __tracebackhide__ = True
+    __tracebackhide__ = True
     # pylint: enable=unused-variable
 
     num_qubits_val = protocols.num_qubits(val)
