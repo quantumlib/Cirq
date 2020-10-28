@@ -128,15 +128,18 @@ class Hierarchy_tree:
 
 class Qubits_partitioning:
 
-    def __init__(self, tree, program_circuits):
+    def __init__(self, tree, program_circuits, single_er, two_er, twoQ_gate_type):
         self.tree = tree
         self.program_circuits = program_circuits
+        self.single_er = single_er
+        self.two_er = two_er
+        self.twoQ_gate_type = twoQ_gate_type
 
     def circuits_descending(self):
         cnot_density = []
         for circuit in self.program_circuits:
             density = len(
-                list(circuit.findall_operations(lambda op: op.gate == cirq.CZ))
+                list(circuit.findall_operations(lambda op: op.gate == self.twoQ_gate_type))
             ) / float(len(circuit.all_qubits()))
             cnot_density.append(density)
         """ computing indices regarding descending order of cnot densities """
@@ -153,12 +156,54 @@ class Qubits_partitioning:
 
         return circuits_temp
 
-    def find_best_candidate(self, cands):
+    def compute_EPST(self, partition, cir):
+        print(partition)
+        twoQ_gs = len(list(cir.findall_operations(lambda op: op.gate == self.twoQ_gate_type)))
+        oneQ_gs = len(list(cir.all_operations())) - twoQ_gs
+        qubits = len(cir.all_qubits())
+
+        err_2 = 0
+        count_2 = 0
+        err_1 = 0
+        for i in range(len(partition)-1):
+            for j in range(i+1,len(partition)):
+                if (partition[i], partition[j]) in self.two_er: 
+                    err_2 = err_2 + self.two_er[(partition[i], partition[j])][0]
+                    count_2 = count_2 + 1
+                elif (partition[j], partition[i]) in self.two_er:
+                    err_2 = err_2 + self.two_er[(partition[j], partition[i])][0]
+                    count_2 = count_2 + 1
+        for i in range(len(partition)):
+            err_1 = err_1 + self.single_er[(partition[i],)][0]
+
+        avgF_2 = 1 - float(err_2/count_2)
+        avgF_1 = 1 - float(err_1/len(partition))
+        # to do : readout error
+
+        return pow(avgF_2,twoQ_gs) * pow(avgF_1, oneQ_gs) * pow(avgF_1, qubits)
+
+
+
+    def find_best_candidate(self, cands, cir):
+        """ 
+        find best candidate based on average fidelity
+        """
         print("cands:")
         print(cands)
-        best_cand = list(self.tree.nodes())[0]  # to do
+        best_cand = cands[0]
+        max_f = -inf
+        # if len(cands)==1:
+        #     return tuple(best_cand)
 
-        return tuple(best_cand)
+        for cand in cands:
+            epst = self.compute_EPST(cand, cir)
+            print("epst:")
+            print(epst)
+            if epst > max_f:
+                max_f = epst
+                best_cand = cand
+
+        return best_cand
 
     def qubits_allocation(self, desc_prog_circuits):
         #self.circuits_descending()
@@ -178,6 +223,10 @@ class Qubits_partitioning:
                             if c == leaf:
                                 exist = 1
                                 break
+                            elif set(c).issubset(leaf): 
+                                """ keep independent candidates"""
+                                exist = 1
+                                break
                         if not exist:
                             candidates.append(leaf)
                         break
@@ -187,7 +236,7 @@ class Qubits_partitioning:
             if len(candidates) == 0:
                 print("fail -- run programs seperately")
             #print(candidates)
-            best_cand = self.find_best_candidate(candidates)
+            best_cand = self.find_best_candidate(candidates, cir)
             partition.append(best_cand)
             """ remove nodes from tree & relabel remaining nodes"""
             successors = list(self.tree.successors(best_cand))
@@ -204,17 +253,18 @@ class Qubits_partitioning:
 
 class X_SWAP:
 
-    def __init__(self, device_graph, desc_program_circuits, partitions):
+    def __init__(self, device_graph, desc_program_circuits, partitions, twoQ_gate_type):
         self.device_graph = device_graph
         self.desc_program_circuits = desc_program_circuits
         self.partitions = partitions
+        self.twoQ_gate_type = twoQ_gate_type
 
-    def generate_2qGates_dags(self, twoq_gateType):
+    def generate_2qGates_dags(self):
         cir_dags = []
         for c in self.desc_prog_circuits:
             """ remove single qubit gates before creating dag """
             singleq_gates = list(
-                c.findall_operations(lambda op: op.gate != twoq_gateType))
+                c.findall_operations(lambda op: op.gate != self.twoQ_gate_type))
             c.batch_remove(singleq_gates)
             """ create dag """
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
@@ -334,8 +384,10 @@ class X_SWAP:
 
     def update_mapping(self, mappings, swap):
         new_maps = mappings.copy()
-        pidx0 = None
-        pidx1 = None
+        pidx0 = 0
+        pidx1 = 0
+        print("update mapping")
+        print(swap[1])
         for i in range(len(mappings)):
             for l, p in mappings[i].items():
                 if l == swap[0]:
@@ -472,23 +524,25 @@ class X_SWAP:
 
 
 def multi_prog_map(device_graph, single_er, two_er, prog_circuits):
+    twoQ_gate_type = cirq.CZ
     treeObj = Hierarchy_tree(device_graph, single_er, two_er)
     tree = treeObj.tree_construction()
+    print("tree")
 
     #print(len(tree.nodes))
-    #print(tree.nodes)
+    print(tree.nodes)
 
     #print((list(tree.nodes)[1]))
-    parObj = Qubits_partitioning(tree, prog_circuits)
+    parObj = Qubits_partitioning(tree, prog_circuits, single_er, two_er, twoQ_gate_type)
     desc_cirs = parObj.circuits_descending()
 
     partitions = parObj.qubits_allocation(desc_cirs)
-    partitions.reverse()
+    
     print("partitions:")
     print(partitions)
 
-    xswap = X_SWAP(device_graph, desc_cirs, partitions)
-    xswap.insert_SWAP_and_generate_schedule(cirq.CZ)
+    xswap = X_SWAP(device_graph, desc_cirs, partitions, twoQ_gate_type)
+    xswap.insert_SWAP_and_generate_schedule()
 
     #parObj.reorder_program_circuits()
 
