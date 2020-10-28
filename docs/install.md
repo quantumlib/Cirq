@@ -144,7 +144,7 @@ This will use a Docker image that will isolate Cirq's installation from the rest
 1. Pull the docker image:
     ```bash
     docker pull quantumlib/cirq
-     ```
+    ```
 
 2. Check that it works!
 
@@ -160,5 +160,5 @@ This will use a Docker image that will isolate Cirq's installation from the rest
 3. To run the image:
     ```bash
     docker run -it quantumlib/cirq
-     ```
+    ```
 
