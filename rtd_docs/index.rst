@@ -26,6 +26,7 @@ User Documentation
 
     docs/install
     docs/tutorials/basics.ipynb
+    docs/ecosystem
 
 .. toctree::
     :maxdepth: 1
