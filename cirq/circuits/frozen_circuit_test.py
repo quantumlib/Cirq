@@ -23,7 +23,6 @@ import sympy
 import cirq
 import cirq.google as cg
 import cirq.testing
-from cirq import ops
 
 
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):

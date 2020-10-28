@@ -191,6 +191,7 @@ Circuits, Operations, and Moments.
     cirq.transform_op_tree
     cirq.Circuit
     cirq.CircuitDag
+    cirq.FrozenCircuit
     cirq.GateOperation
     cirq.InsertStrategy
     cirq.Moment

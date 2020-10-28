@@ -20,7 +20,7 @@ identically to regular Circuits. Conversion between the two is handled with the
 
 from typing import TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple
 
-from cirq import devices
+from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 
