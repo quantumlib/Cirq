@@ -26,6 +26,7 @@ User Documentation
 
     docs/install
     docs/tutorials/basics.ipynb
+    docs/ecosystem
 
 .. toctree::
     :maxdepth: 1
@@ -38,6 +39,7 @@ User Documentation
     docs/devices
     docs/interop.ipynb
     docs/qudits.ipynb
+    docs/custom_gates.ipynb
     api
 
 

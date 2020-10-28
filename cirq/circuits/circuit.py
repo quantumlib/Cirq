@@ -1499,7 +1499,7 @@ class Circuit:
             self.all_qubits())
         return protocols.qid_shape(qids)
 
-    def all_measurement_keys(self) -> Tuple[str, ...]:
+    def all_measurement_keys(self) -> AbstractSet[str]:
         return protocols.measurement_keys(self)
 
     def _qid_shape_(self) -> Tuple[int, ...]:
