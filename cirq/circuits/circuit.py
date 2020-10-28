@@ -110,7 +110,7 @@ class AbstractCircuit(abc.ABC):
 
     def freeze(self) -> 'cirq.FrozenCircuit':
         '''Creates a FrozenCircuit from this circuit.
-        
+
         If 'self' is a FrozenCircuit, the original object is returned.
         '''
         from cirq.circuits import FrozenCircuit
@@ -122,7 +122,7 @@ class AbstractCircuit(abc.ABC):
 
     def unfreeze(self) -> 'cirq.Circuit':
         '''Creates a Circuit from this circuit.
-        
+
         If 'self' is a Circuit, the original object is returned.
         '''
         if isinstance(self, Circuit):
