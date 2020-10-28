@@ -1,4 +1,4 @@
-from typing import Any, cast, Dict, List, Tuple, TYPE_CHECKING, Union
+from typing import Any, cast, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class Projector(raw_types.Gate):
-    """A non-unitary gate that projects onto a single qubit."""
+    """A non-unitary gate that projects onto one or more qubits."""
 
     def __init__(self,
                  projection_basis: Union[List[List[float]], np.ndarray],
@@ -26,10 +26,7 @@ class Projector(raw_types.Gate):
         Raises:
             ValueError: If the basis vector is empty.
         """
-        if type(projection_basis) == np.ndarray:
-            projection_array = cast(np.ndarray, projection_basis)
-        else:
-            projection_array = np.array(projection_basis)
+        projection_array = np.asarray(projection_basis)
 
         if np.prod(qid_shape) != projection_array.shape[1]:
             raise ValueError(
@@ -38,8 +35,8 @@ class Projector(raw_types.Gate):
         self._projection_basis = projection_array
         self._qid_shape = qid_shape
 
-    def _projection_basis_(self):
-        return self._projection_basis.tolist()
+    def _projection_basis_(self) -> np.ndarray:
+        return self._projection_basis
 
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
@@ -50,16 +47,16 @@ class Projector(raw_types.Gate):
     def _is_parameterized_(self) -> bool:
         return False
 
-    def _channel_(self):
+    def _channel_(self) -> Iterable[np.ndarray]:
         A = self._projection_basis
         AH = np.transpose(np.conjugate(A))
-        result = AH * np.linalg.inv(np.matmul(A, AH)) * A
+        result = np.matmul(np.matmul(AH, np.linalg.inv(np.matmul(A, AH))), A)
         return (result,)
 
-    def _has_channel_(self):
+    def _has_channel_(self) -> bool:
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return ("cirq.Projector(projection_basis=" +
                 f"{self._projection_basis.tolist()})," +
                 f"qid_shape={self._qid_shape})")

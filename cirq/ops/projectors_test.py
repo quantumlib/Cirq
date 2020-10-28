@@ -30,11 +30,22 @@ def test_projector_plus():
                                ([[0.5, 0.5], [0.5, 0.5]],))
 
 
+def test_projector_overcomplete_basis():
+    overcomplete_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
+
+    with pytest.raises(np.linalg.LinAlgError, match="Singular matrix"):
+        cirq.channel(overcomplete_projector)
+
+
 def test_projector_dim2_qubit():
     dim2_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0]])
+    not_colinear_projector = cirq.Projector([[1.0, 0.0], [1.0, 1.0]])
 
     np.testing.assert_allclose(cirq.channel(dim2_projector),
                                ([[1.0, 0.0], [0.0, 1.0]],))
+
+    np.testing.assert_allclose(cirq.channel(not_colinear_projector),
+                              ([[1.0, 0.0], [0.0, 1.0]],))
 
 
 def test_projector_qutrit():
