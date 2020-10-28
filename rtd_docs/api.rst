@@ -592,7 +592,7 @@ operation.
     cirq.LinearDict
     cirq.PeriodicValue
     cirq.testing.DEFAULT_GATE_DOMAIN
-    cirq.testing.assert_act_on_clifford_tableau_effect_matches_unitary
+    cirq.testing.assert_all_implemented_act_on_effects_match_unitary
     cirq.testing.assert_allclose_up_to_global_phase
     cirq.testing.assert_circuits_with_terminal_measurements_are_equivalent
     cirq.testing.assert_commutes_magic_method_consistent_with_unitaries
