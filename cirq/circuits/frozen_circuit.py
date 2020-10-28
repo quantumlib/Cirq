@@ -13,7 +13,7 @@
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
 
-from typing import TYPE_CHECKING, Any, Callable, Iterable, Sequence, Tuple
+from typing import TYPE_CHECKING, Callable, Sequence, Tuple
 
 from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
@@ -44,6 +44,10 @@ class FrozenCircuit(AbstractCircuit):
         self._qid_shape = None
         self._all_qubits = None
         self._all_operations = None
+        self._unitary = None
+        self._has_measurements = None
+        self._all_measurement_keys = None
+        self._are_all_measurements_terminal = None
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
@@ -68,6 +72,11 @@ class FrozenCircuit(AbstractCircuit):
             self._qid_shape = super()._qid_shape_()
         return self._qid_shape
 
+    def _unitary_(self):
+        if self._unitary is None:
+            self._unitary = super()._unitary_()
+        return self._unitary
+
     def all_qubits(self):
         if self._all_qubits is None:
             self._all_qubits = super().all_qubits()
@@ -77,6 +86,22 @@ class FrozenCircuit(AbstractCircuit):
         if self._all_operations is None:
             self._all_operations = tuple(super().all_operations())
         return self._all_operations
+
+    def has_measurements(self):
+        if self._has_measurements is None:
+            self._has_measurements = super().has_measurements()
+        return self._has_measurements
+
+    def all_measurement_keys(self):
+        if self._all_measurement_keys is None:
+            self._all_measurement_keys = super().all_measurement_keys()
+        return self._all_measurement_keys
+
+    def are_all_measurements_terminal(self):
+        if self._are_all_measurements_terminal is None:
+            self._are_all_measurements_terminal = super(
+            ).are_all_measurements_terminal()
+        return self._are_all_measurements_terminal
 
     # End of memoized methods.
 
