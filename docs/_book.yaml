@@ -112,6 +112,8 @@ upper_tabs:
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
         path: /cirq/tutorials/qaoa
+      - title: "Ion device class"
+      - path: /cirq/tutorials/ion_device
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Quantum walks"
