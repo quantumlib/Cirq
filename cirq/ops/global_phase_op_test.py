@@ -41,7 +41,16 @@ def test_protocols():
 
 
 @pytest.mark.parametrize('phase', [1, 1j, -1])
-def test_act_on(phase):
+def test_act_on_tableau(phase):
+    original_tableau = cirq.CliffordTableau(0)
+    args = cirq.ActOnCliffordTableauArgs(original_tableau.copy(), [],
+                                         np.random.RandomState(), {})
+    cirq.act_on(cirq.GlobalPhaseOperation(phase), args, allow_decompose=False)
+    assert args.tableau == original_tableau
+
+
+@pytest.mark.parametrize('phase', [1, 1j, -1])
+def test_act_on_ch_form(phase):
     state = cirq.StabilizerStateChForm(0)
     args = cirq.ActOnStabilizerCHFormArgs(state, [])
     cirq.act_on(cirq.GlobalPhaseOperation(phase), args, allow_decompose=False)
