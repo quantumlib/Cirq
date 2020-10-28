@@ -23,6 +23,13 @@ def test_projector_from_np_array():
                                ([[1.0, 0.0], [0.0, 0.0]],))
 
 
+def test_projector_bad_rank():
+    with pytest.raises(
+            ValueError,
+            match="The input projection_basis must be a 2D array"):
+        cirq.Projector(np.array([1.0, 0.0]))
+
+
 def test_projector_plus():
     plus_projector = cirq.Projector([[1.0, 1.0]])
 

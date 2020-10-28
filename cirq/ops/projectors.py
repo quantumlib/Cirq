@@ -28,6 +28,9 @@ class Projector(raw_types.Gate):
         """
         projection_array = np.asarray(projection_basis)
 
+        if len(projection_array.shape) != 2:
+            raise ValueError('The input projection_basis must be a 2D array')
+
         if np.prod(qid_shape) != projection_array.shape[1]:
             raise ValueError(
                 "Invalid shape " +
