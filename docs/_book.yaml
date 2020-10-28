@@ -53,6 +53,8 @@ upper_tabs:
         path: /cirq/qudits
       - title: "Import/export circuits"
         path: /cirq/interop
+      - title: "Custom gates"
+        path: /cirq/custom_gates
 
       ####  Contributor Guide ####
       - heading: "Contributor guide"
