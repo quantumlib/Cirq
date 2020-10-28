@@ -25,22 +25,6 @@ import cirq.google as cg
 import cirq.testing
 
 
-class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
-
-    def validate_operation(self, operation):
-        if not isinstance(operation, cirq.Operation):
-            raise ValueError('not isinstance({!r}, {!r})'.format(
-                operation, cirq.Operation))
-
-    def validate_moment(self, moment):
-        if not isinstance(moment, cirq.Moment):
-            raise ValueError('not isinstance({!r}, {!r})'.format(
-                moment, cirq.Moment))
-
-
-moment_and_op_type_validating_device = _MomentAndOpTypeValidatingDeviceType()
-
-
 def test_freeze_and_unfreeze():
     a, b = cirq.LineQubit.range(2)
     c = cirq.Circuit(cirq.X(a), cirq.H(b))
@@ -2495,8 +2479,8 @@ def test_pow_valid_only_for_minus_1():
 
 
 def test_device_propagates():
-    c = cirq.FrozenCircuit(device=moment_and_op_type_validating_device)
-    assert c[:].device is moment_and_op_type_validating_device
+    c = cirq.FrozenCircuit(device=cg.Foxtail)
+    assert c[:].device is cg.Foxtail
 
 
 def test_moment_groups():
