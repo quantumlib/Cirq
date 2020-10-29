@@ -1,6 +1,6 @@
 # Devices
 
-Devices are an abstract concept in Cirq, that can represent constraints of an actual quantum processor. 
+``Device`` is an abstract concept in Cirq, that can represent constraints of an actual quantum processor. 
 This page describes this abstract concept. 
 
 If you are looking for ways of running quantum algorithms, take a look at 
