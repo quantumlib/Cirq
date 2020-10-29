@@ -57,6 +57,8 @@ upper_tabs:
         path: /cirq/transform
       - title: "Qudits"
         path: /cirq/qudits
+      - title: "Protocols"
+        path: /cirq/protocols
       - title: "Import/export circuits"
         path: /cirq/interop
       - title: "Custom gates"
