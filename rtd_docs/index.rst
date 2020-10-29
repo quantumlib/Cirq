@@ -55,7 +55,6 @@ User Documentation
     docs/tutorials/quantum_walks.ipynb
     docs/tutorials/rabi_oscillations.ipynb
 
-
 .. toctree::
     :maxdepth: 1
     :caption: Google Documentation
@@ -86,8 +85,16 @@ User Documentation
     docs/pasqal/devices
     docs/pasqal/sampler
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Educator workshops
 
-
+    docs/tutorials/educators/intro.ipynb
+    docs/tutorials/educators/textbook_algorithms.ipynb
+    docs/tutorials/educators/chemistry.ipynb
+    docs/tutorials/educators/qaoa_ising.ipynb
+    docs/tutorials/educators/neutral_atom.ipynb
+    docs/tutorials/educators/ion_device.ipynb
 
 .. toctree::
     :maxdepth: 1
@@ -95,3 +102,4 @@ User Documentation
 
     dev/index.rst
     docs/dev/development
+
