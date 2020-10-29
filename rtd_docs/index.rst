@@ -38,7 +38,7 @@ User Documentation
     docs/simulation.ipynb
     docs/noise.ipynb
     docs/devices
-    docs/transform
+    docs/transform.ipynb
     docs/interop.ipynb
     docs/qudits.ipynb
     docs/custom_gates.ipynb
