@@ -31,15 +31,24 @@ User Documentation
 
 .. toctree::
     :maxdepth: 1
-    :caption: Concepts
+    :caption: Essential concepts
 
+    docs/qubits.ipynb
     docs/gates.ipynb
     docs/circuits.ipynb
     docs/simulation.ipynb
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Further topics
+
     docs/noise.ipynb
     docs/devices
+    docs/transform.ipynb
     docs/interop.ipynb
     docs/qudits.ipynb
+    docs/protocols.ipynb
     docs/custom_gates.ipynb
     api
 

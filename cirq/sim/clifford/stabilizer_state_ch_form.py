@@ -17,6 +17,8 @@ import numpy as np
 
 import cirq
 from cirq import protocols, value
+from cirq.ops import pauli_gates
+from cirq.sim import clifford
 from cirq.value import big_endian_int_to_digits
 from cirq._compat import deprecated
 
@@ -60,7 +62,8 @@ class StabilizerStateChForm():
                                          digit_count=num_qubits,
                                          base=2)):
             if val:
-                self._X(i)
+                protocols.act_on(pauli_gates.X,
+                                 clifford.ActOnStabilizerCHFormArgs(self, [i]))
 
     def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(
@@ -133,32 +136,10 @@ class StabilizerStateChForm():
     def wave_function(self) -> np.ndarray:
         return self.state_vector()
 
-    def _S(self, q):
-        self.M[q, :] ^= self.G[q, :]
-        self.gamma[q] = (self.gamma[q] - 1) % 4
-
     def _S_right(self, q):
         r"""Right multiplication version of S gate."""
         self.M[:, q] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] - self.F[:, q]) % 4
-
-    def _Z(self, q):
-        self._S(q)
-        self._S(q)
-
-    def _X(self, q):
-        self._H(q)
-        self._Z(q)
-        self._H(q)
-
-    def _Y(self, q):
-        self._Z(q)
-        self._X(q)
-        self.omega *= 1j
-
-    def _CZ(self, q, r):
-        self.M[q, :] ^= self.G[r, :]
-        self.M[r, :] ^= self.G[q, :]
 
     def _CZ_right(self, q, r):
         r"""Right multiplication version of CZ gate."""
@@ -166,32 +147,11 @@ class StabilizerStateChForm():
         self.M[:, r] ^= self.F[:, q]
         self.gamma[:] = (self.gamma[:] + 2 * self.F[:, q] * self.F[:, r]) % 4
 
-    def _CNOT(self, q, r):
-        self.gamma[q] = (self.gamma[q] + self.gamma[r] + 2 *
-                         (sum(self.M[q, :] & self.F[r, :]) % 2)) % 4
-        self.G[r, :] ^= self.G[q, :]
-        self.F[q, :] ^= self.F[r, :]
-        self.M[q, :] ^= self.M[r, :]
-
     def _CNOT_right(self, q, r):
         r"""Right multiplication version of CNOT gate."""
         self.G[:, q] ^= self.G[:, r]
         self.F[:, r] ^= self.F[:, q]
         self.M[:, q] ^= self.M[:, r]
-
-    def _H(self, p):
-        t = self.s ^ (self.G[p, :] & self.v)
-        u = self.s ^ (self.F[p, :] & (~self.v)) ^ (self.M[p, :] & self.v)
-
-        alpha = sum(self.G[p, :] & (~self.v) & self.s) % 2
-        beta = sum(self.M[p, :] & (~self.v) & self.s)
-        beta += sum(self.F[p, :] & self.v & self.M[p, :])
-        beta += sum(self.F[p, :] & self.v & self.s)
-        beta %= 2
-
-        delta = (self.gamma[p] + 2 * (alpha + beta)) % 4
-
-        self.update_sum(t, u, delta=delta, alpha=alpha)
 
     def update_sum(self, t, u, delta=0, alpha=0):
         """ Implements the transformation (Proposition 4 in Bravyi et al)
