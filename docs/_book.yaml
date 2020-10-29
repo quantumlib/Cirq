@@ -51,6 +51,8 @@ upper_tabs:
         path: /cirq/noise
       - title: "Devices"
         path: /cirq/devices
+      - title: "Transform circuits"
+        path: /cirq/transform
       - title: "Qudits"
         path: /cirq/qudits
       - title: "Import/export circuits"
