@@ -48,6 +48,7 @@ User Documentation
     docs/transform.ipynb
     docs/interop.ipynb
     docs/qudits.ipynb
+    docs/protocols.ipynb
     docs/custom_gates.ipynb
     api
 
