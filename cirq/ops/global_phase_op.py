@@ -59,6 +59,19 @@ class GlobalPhaseOperation(raw_types.Operation):
         args.target_tensor *= self.coefficient
         return args.target_tensor
 
+    def _act_on_(self, args: Any):
+        from cirq.sim import clifford
+        if isinstance(args, clifford.ActOnCliffordTableauArgs):
+            # Since CliffordTableau does not keep track of the global phase,
+            # it's safe to just ignore it here.
+            return True
+
+        if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
+            args.state.omega *= self.coefficient
+            return True
+
+        return NotImplemented
+
     def __str__(self) -> str:
         return str(self.coefficient)
 
