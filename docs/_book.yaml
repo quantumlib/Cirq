@@ -34,8 +34,12 @@ upper_tabs:
 
       - title: "Install"
         path: /cirq/install
+      - title: "Getting started"
+        path: /cirq/start
       ####  CONCEPTS ####
       - heading: "Essential concepts"
+      - title: "Qubits"
+        path: /cirq/qubits
       - title: "Gates and operations"
         path: /cirq/gates
       - title: "Circuits"
@@ -49,8 +53,12 @@ upper_tabs:
         path: /cirq/noise
       - title: "Devices"
         path: /cirq/devices
+      - title: "Transform circuits"
+        path: /cirq/transform
       - title: "Qudits"
         path: /cirq/qudits
+      - title: "Protocols"
+        path: /cirq/protocols
       - title: "Import/export circuits"
         path: /cirq/interop
       - title: "Custom gates"
@@ -114,6 +122,8 @@ upper_tabs:
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
         path: /cirq/tutorials/qaoa
+      - title: "Ion device class"
+      - path: /cirq/tutorials/ion_device
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Quantum walks"
@@ -136,7 +146,7 @@ upper_tabs:
       ####  PASQAL HARDWARE ####
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
-        path: /cirq/pasqal/getting_started
+        path: /cirq/tutorials/pasqal/getting_started
 
     - name: "Experiments"
       contents:
