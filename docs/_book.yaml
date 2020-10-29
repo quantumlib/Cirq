@@ -140,6 +140,22 @@ upper_tabs:
       - title: "Getting started with Pasqal hardware"
         path: /cirq/tutorials/pasqal/getting_started
 
+      ####  EDUCATORS WORKSHOP ####
+      - heading: "Educators workshop"
+      - title: "Cirq intro workshop"
+      - path: /cirq/tutorials/educators/intro
+      - title: "Textbook algorithms in Cirq"
+      - path: /cirq/tutorials/educators/textbook_algorithms
+      - title: "Quantum chemistry with OpenFermion"
+      - path: /cirq/tutorials/educators/chemistry
+      - title: "QAOA: Ising model"
+      - path: /cirq/tutorials/educators/qaoa_ising
+      - title: "Neutral atom device"
+      - path: /cirq/tutorials/educators/neutral_atom
+      - title: "Ion device"
+      - path: /cirq/tutorials/educators/ion_device
+
+
     - name: "Experiments"
       contents:
       - include: /cirq/experiments/_toc.yaml
