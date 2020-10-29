@@ -514,6 +514,7 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.SYC
     cirq.google.SYC_GATESET
     cirq.google.XMON
+    cirq.google.arg_from_proto
     cirq.google.get_engine
     cirq.google.get_engine_calibration
     cirq.google.get_engine_device

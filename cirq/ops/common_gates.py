@@ -342,17 +342,17 @@ class YPowGate(eigen_gate.EigenGate,
                 assert all(
                     gate._act_on_(args)  # type: ignore
                     for gate in [ZPowGate(), H])
-                state.omega *= (1 + 1j) / (2**0.5)  # type: ignore
+                state.omega *= (1 + 1j) / (2**0.5)
             elif effective_exponent == 1:
                 assert all(
                     gate._act_on_(args) for gate in  # type: ignore
                     [ZPowGate(), H, ZPowGate(), H])
-                state.omega *= 1j  # type: ignore
+                state.omega *= 1j
             elif effective_exponent == 1.5:
                 assert all(
                     gate._act_on_(args)  # type: ignore
                     for gate in [H, ZPowGate()])
-                state.omega *= (1 - 1j) / (2**0.5)  # type: ignore
+                state.omega *= (1 - 1j) / (2**0.5)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift *
                                        self.exponent)
