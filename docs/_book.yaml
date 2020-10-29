@@ -38,6 +38,8 @@ upper_tabs:
         path: /cirq/start
       ####  CONCEPTS ####
       - heading: "Essential concepts"
+      - title: "Qubits"
+        path: /cirq/qubits
       - title: "Gates and operations"
         path: /cirq/gates
       - title: "Circuits"
