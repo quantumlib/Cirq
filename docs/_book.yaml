@@ -105,6 +105,8 @@ upper_tabs:
 
       ####  PASQAL ####
       - heading: "Pasqal hardware"
+      - title: "Access and authentication"
+        path: /cirq/pasqal/access
       - title: "Pasqal devices"
         path: /cirq/pasqal/devices
       - title: "Pasqal sampler"
