@@ -253,11 +253,13 @@ class Qubits_partitioning:
 
 class X_SWAP:
 
-    def __init__(self, device_graph, desc_program_circuits, partitions, twoQ_gate_type):
+    def __init__(self, device_graph, desc_program_circuits, partitions, twoQ_gate_type, l_to_ph = {}, ph_to_l = {}):
         self.device_graph = device_graph
         self.desc_program_circuits = desc_program_circuits
         self.partitions = partitions
         self.twoQ_gate_type = twoQ_gate_type
+        self.l_to_ph = l_to_ph
+        self.ph_to_l = ph_to_l
 
     def generate_2qGates_dags(self):
         cir_dags = []
@@ -292,7 +294,7 @@ class X_SWAP:
 
         return flayers
 
-    def generate_front_layers(self, cir_dags, twoq_gate_type):
+    def generate_front_layers(self, cir_dags):
         """ check all dags are empty """
         counter = 0
         for dag in cir_dags:
@@ -313,7 +315,7 @@ class X_SWAP:
                 else:
                     counter = 0
                     for p in list(dag.predecessors(nodes[i])):
-                        if p.val.gate != twoq_gate_type:
+                        if p.val.gate != self.twoQ_gate_type:
                             counter = counter + 1
                     if counter == len(list(dag.predecessors(nodes[i]))):
                         fl.append(nodes[i])  # .val  # fl.append(ops[i]) ??
@@ -329,88 +331,80 @@ class X_SWAP:
         return secondl
 
     def initial_mapping(self):
-        """ return a list of dictionaries that shows mapping 
-        between logical qubits (key) and physical qubits (value) """
-        mappings = []
+        """ initialize 2 dictionaries l_to_ph and ph_to_l in order """
+        total_l_qubits = 0
+        total_ph_qubits = len(self.device_graph.nodes)
         for i in range(len(self.desc_program_circuits)):
-            map = {}
             logical_qubits = list(self.desc_program_circuits[i].all_qubits())
-            print(self.desc_program_circuits[i])
+            total_l_qubits = total_l_qubits + len(logical_qubits)
             for j in range(len(logical_qubits)):
-                print("yes")
-                print(len(logical_qubits))
-                print(len(self.partitions[i]))
-                print(self.partitions[i][j])
-                print(logical_qubits[j])
-                map[logical_qubits[j]] = self.partitions[i][j]
-            mappings.append(map)
-        return mappings
+                self.l_to_ph[(logical_qubits[j],i)] = self.partitions[i][j]
+                self.ph_to_l[self.partitions[i][j]] = (logical_qubits[j], i)
 
-    def log_to_phy_edge(self, log_edge, mappings):
-        phy0 = None
-        phy1 = None
-        for map in mappings:
-            for log, phy in map.items():
-                if log_edge[0] == log:
-                    phy0 = phy
-                elif log_edge[1] == log:
-                    phy1 = phy
+        """ manage unused qubits and map them to a unreal program with id = -1 """
+        l_qubits = cirq.LineQubit.range(total_ph_qubits - total_l_qubits)
+        i = 0
+        for ph_q in list(self.device_graph.nodes):
+            if ph_q not in self.ph_to_l:
+                self.ph_to_l[ph_q] = (l_qubits[i], -1)
+                self.l_to_ph[(l_qubits[i], -1)] = ph_q
+                i = i + 1
+        print("logical to physical")
+        print(self.l_to_ph)
+        print("physical to logical")
+        print(self.ph_to_l)
+                
+        return 
 
+    def log_to_phy_edge(self, log_edge, pid):
+        phy0 = self.l_to_ph[(log_edge[0], pid)]
+        phy1 = self.l_to_ph[(log_edge[1], pid)]
         return (phy0, phy1)
 
-    def phy_to_log_edge(self, phy_edge, mappings):
-        log0 = None
-        log1 = None
-        for map in mappings:
-            for log, phy in map.items():
-                if phy_edge[0] == phy:
-                    log0 = log
-                elif phy_edge[1] == phy:
-                    log1 = log
-        return (log0, log1)
+    def phy_to_log_edge(self, phy_edge):
+        log_pid0 = self.ph_to_l[phy_edge[0]]
+        log_pid1 = self.ph_to_l[phy_edge[1]]
+        return [log_pid0, log_pid1]
 
-    def obtain_swaps(self, node_gates, mappings):
+    def obtain_swaps(self, node_gates, pid):
         swaps = []
         for n in node_gates:
             g = n.val
-            phy_qs = self.log_to_phy_edge(g.qubits, mappings)
+            phy_qs = self.log_to_phy_edge(g.qubits, pid)
             neighbors0 = list(self.device_graph.neighbors(phy_qs[0]))
             neighbors1 = list(self.device_graph.neighbors(phy_qs[1]))
             for ne in neighbors0:
-                swaps.append(self.phy_to_log_edge((phy_qs[0], ne), mappings))
+                swaps.append(self.phy_to_log_edge((phy_qs[0], ne)))
             for ne in neighbors1:
-                swaps.append(self.phy_to_log_edge((phy_qs[1], ne), mappings))
+                swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(self, mappings, swap):
-        new_maps = mappings.copy()
-        pidx0 = 0
-        pidx1 = 0
-        print("update mapping")
-        print(swap[1])
-        for i in range(len(mappings)):
-            for l, p in mappings[i].items():
-                if l == swap[0]:
-                    pidx0 = i
-                elif l == swap[1]:
-                    pidx1 = i
-        new_maps[pidx0][swap[0]] = mappings[pidx1][swap[1]]
-        new_maps[pidx1][swap[1]] = mappings[pidx0][swap[0]]
+    def update_mapping(self, swap):
+        new_ph_l = self.ph_to_l.copy()
+        new_l_ph = self.l_to_ph.copy()
 
-        return new_maps
+        ph0 = self.l_to_ph[swap[0]]
+        ph1 = self.l_to_ph[swap[1]]
+        new_l_ph[swap[0]] = ph1
+        new_l_ph[swap[1]] = ph0
+        new_ph_l[ph0] = self.ph_to_l[ph1]
+        new_ph_l[ph1] = self.ph_to_l[ph0]
 
-    def compute_H(self, flayers, maps):
+        return new_l_ph, new_ph_l
+
+    def compute_H(self, flayers, new_l_ph, new_ph_l):
         H_cost = 0
         for i in range(len(flayers)):
             if len(flayers[i]) == 0:
                 continue
             for n in flayers[i]:
-                phy_edge = self.log_to_phy_edge(n.val.qubits, maps)
+                lq = n.val.qubits
+                phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)]) #self.log_to_phy_edge(n.val.qubits, maps)
                 H_cost = H_cost + len(
                     list(
                         nx.all_shortest_paths(self.device_graph, phy_edge[0],
                                               phy_edge[1]))[0])
-        return H_cost
+        return H_cost -1
 
     def compute_path_in_sameP(self, edge, pidx):
         paths = list(
@@ -425,7 +419,7 @@ class X_SWAP:
                     distance = len(p)
         return distance
 
-    def compute_gainCost(self, flayers, maps, swap):
+    def compute_gainCost(self, flayers, new_l_ph, new_ph_l, swap):
         gain_cost = 0
 
         for i in range(len(flayers)):
@@ -433,50 +427,67 @@ class X_SWAP:
                 continue
             cost_i = 0
             for n in flayers[i]:
-                phy_edge = self.log_to_phy_edge(n.val.qubits, maps)
+                lq = n.val.qubits
+                new_phy_edge = (new_l_ph[(lq[0], i)], new_l_ph[(lq[1], i)])
+                new_paths = nx.all_shortest_paths(self.device_graph, new_phy_edge[0],
+                                              new_phy_edge[1])
+
+                phy_edge = (self.l_to_ph[(lq[0], i)], self.l_to_ph[(lq[1], i)])
                 paths = nx.all_shortest_paths(self.device_graph, phy_edge[0],
                                               phy_edge[1])
+                path_len = len(list(paths)[0])
+                new_path_len = len(list(new_paths)[0])
+
+                print("path")
+                print(list(paths))
                 in_path = 0
-                for p in paths:
-                    if swap in p:
-                        in_path = 1
-                D_allp = len(
-                    list(
-                        nx.all_shortest_paths(self.device_graph, phy_edge[0],
-                                              phy_edge[1]))[0])
+                
+                if new_path_len<path_len:
+                    in_path = 1
+                D_allp = new_path_len
                 D_singlep = self.compute_path_in_sameP(phy_edge, i)
                 cost_i = cost_i + (D_allp - D_singlep) * in_path
+                print("in path")
+                print(in_path)
+                print(cost_i)
+                print("next i")
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
-    def find_best_swap(self, swap_candidate_lists, mappings, flayers):
+    def find_best_swap(self, swap_candidate_lists, flayers):
         min_cost = inf
         best_swap = None
         for swaps in swap_candidate_lists:
             for s in swaps:
-                new_maps = self.update_mapping(mappings, s)
-                H_cost = self.compute_H(flayers, new_maps)
-                gain_cost = self.compute_gainCost(flayers, new_maps, s)
+                new_l_ph, new_ph_l = self.update_mapping(s)
+                H_cost = self.compute_H(flayers, new_l_ph, new_ph_l)
+                gain_cost = self.compute_gainCost(flayers, new_l_ph, new_ph_l, s)
                 cost = H_cost + gain_cost
-                if (cost < min_score):
+                print("cost")
+                print(H_cost)
+                print(gain_cost)
+                print(cost)
+                if (cost < min_cost):
                     min_cost = cost
                     best_swap = s
         return best_swap
 
-    def insert_SWAP_and_generate_schedule(self, twoq_gateType):
+    def insert_SWAP_and_generate_schedule(self):
         schedule = cirq.Circuit()
-        #twoq_dags = self.generate_2qGates_dags(twoq_gateType)
-
-        initial_maps = self.initial_mapping()
         dags = self.generate_dags()
+        self.initial_mapping()
 
-        mappings = self.initial_mapping()
-
-        flayers = self.generate_front_layers(dags, twoq_gateType)
+        sig = 0
+        flayers = self.generate_front_layers(dags)
         while flayers != None:
+            if sig == 3:
+                break
+            sig = sig +1
             """ solve hardware-compliant gates 
             i specify program index """
             require_swap = 0
+            print("flayers")
+            print(flayers)
             for i in range(len(flayers)):
                 if len(flayers[i]) == 0:
                     continue
@@ -489,8 +500,7 @@ class X_SWAP:
                         flayers[i].remove(n)
                     else:
                         if self.log_to_phy_edge(
-                                n.val.qubits,
-                                mappings) in self.device_graph.edges:
+                                n.val.qubits, i) in self.device_graph.edges:
                             schedule.append(n.val)
                             dags[i].remove_node(n)
                             # update front layer
@@ -503,21 +513,25 @@ class X_SWAP:
                 swap_candidate_lists = []
                 for i in range(len(flayers)):
                     if len(flayers[i]) == 0:
+                        swap_candidate_lists.append([])
                         continue
                     critical_node_gates = flayers[i].copy()  # to do ??
-                    swap_candidates = self.obtain_swaps(critical_node_gates,
-                                                        mappings)
+                    swap_candidates = self.obtain_swaps(critical_node_gates, i)
                     swap_candidate_lists.append(swap_candidates)
                 """ find best SWAP """
-                best_swap = self.find_best_swap(swap_candidate_lists, mappings,
+                best_swap = self.find_best_swap(swap_candidate_lists,
                                                 flayers)
-                schedule.append(cirq.SWAP(best_swap[0], best_swap[1]))
+
+                print("best swap")
+                print(swap_candidate_lists)
+                print(best_swap)
+                #schedule.append(cirq.SWAP(best_swap[0], best_swap[1]))
                 """ update mapping """
-                mappings = self.update_mapping(mappings, best_swap)
+                mappings = self.update_mapping(best_swap)
 
-            flayers = self.generate_front_layers(dags, twoq_gateType)
+            flayers = self.generate_front_layers(dags)
 
-        return initial_maps, schedule
+        return  schedule
 
 
 ############################################################
