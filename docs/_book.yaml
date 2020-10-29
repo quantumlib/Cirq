@@ -116,7 +116,7 @@ upper_tabs:
       contents:
       ####  OVERVIEW  ####
       - title: "Cirq tutorials and examples"
-        path: /cirq/tutorials/examples
+        path: /cirq/tutorials/index
 
       ####  BEGINNER  ####
       - heading: "Beginner"
