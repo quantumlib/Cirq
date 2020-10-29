@@ -60,11 +60,9 @@ User Documentation
     docs/tutorials/examples
     docs/tutorials/variational_algorithm.ipynb
     docs/tutorials/qaoa.ipynb
-    docs/tutorials/ion_device.ipynb
     docs/tutorials/hidden_linear_function.ipynb
     docs/tutorials/quantum_walks.ipynb
     docs/tutorials/rabi_oscillations.ipynb
-
 
 .. toctree::
     :maxdepth: 1
@@ -96,12 +94,10 @@ User Documentation
     docs/pasqal/devices
     docs/pasqal/sampler
 
-
-
-
 .. toctree::
     :maxdepth: 1
     :caption: Developer Documentation
 
     dev/index.rst
     docs/dev/development
+
