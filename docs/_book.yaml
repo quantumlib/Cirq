@@ -29,14 +29,14 @@ upper_tabs:
     other:
     - name: "Guide"
       contents:
-      ####  FIRST STEPS ####
+      ####  FIRST STEPS  ####
       - heading: "First steps"
 
       - title: "Install"
         path: /cirq/install
       - title: "Getting started"
         path: /cirq/start
-      ####  CONCEPTS ####
+      ####  CONCEPTS  ####
       - heading: "Essential concepts"
       - title: "Qubits"
         path: /cirq/qubits
@@ -47,7 +47,7 @@ upper_tabs:
       - title: "Simulation"
         path: /cirq/simulation
 
-      ####  FURTHER TOPICS ####
+      ####  FURTHER TOPICS  ####
       - heading: "Further topics"
       - title: "Noise"
         path: /cirq/noise
@@ -64,7 +64,7 @@ upper_tabs:
       - title: "Custom gates"
         path: /cirq/custom_gates
 
-      ####  Contributor Guide ####
+      ####  Contributor Guide  ####
       - heading: "Contributor guide"
       - title: "Contribute"
         path: /cirq/dev/development
@@ -81,7 +81,7 @@ upper_tabs:
       - title: "Serialization guidelines"
         path: /cirq/dev/serialization
 
-      ####  GOOGLE HARDWARE ####
+      ####  GOOGLE HARDWARE  ####
       - heading: "Google hardware"
       - title: "Access and authentication"
         path: /cirq/google/access
@@ -98,12 +98,12 @@ upper_tabs:
       - title: "Best practices"
         path: /cirq/google/best_practices
 
-      ####  AQT ####
+      ####  AQT  ####
       - heading: "AQT hardware"
       - title: "Access and authentication"
         path: /cirq/aqt/access
 
-      ####  PASQAL ####
+      ####  PASQAL  ####
       - heading: "Pasqal hardware"
       - title: "Access and authentication"
         path: /cirq/pasqal/access
@@ -114,12 +114,22 @@ upper_tabs:
 
     - name: "Tutorials"
       contents:
-        ####  CIRQ ####
-      - heading: "Cirq"
+      ####  OVERVIEW  ####
+      - title: "Cirq tutorials and examples"
+        path: /cirq/tutorials/index
+
+      ####  BEGINNER  ####
+      - heading: "Beginner"
       - title: "Basics"
         path: /cirq/tutorials/basics
-      - title: "Textbook examples"
-        path: /cirq/tutorials/examples
+
+      ####  INTERMEDIATE  ####
+      - heading: "Intermediate"
+      - title: "Shor's algorithm"
+        path: /cirq/tutorials/shor
+
+      ####  ADVANCED  ####
+      - heading: "Advanced"
       - title: "Quantum variational algorithm"
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
@@ -131,24 +141,24 @@ upper_tabs:
       - title: "Rabi oscillation experiment"
         path: /cirq/tutorials/rabi_oscillations
 
-      ####  GOOGLE HARDWARE ####
+      ####  GOOGLE HARDWARE  ####
       - heading: "Google hardware"
       - title: "Getting started with QCS"
         path: /cirq/tutorials/google/start
       - title: "Reservations"
         path: /cirq/tutorials/google/reservations
 
-      ####  AQT HARDWARE ####
+      ####  AQT HARDWARE  ####
       - heading: "AQT hardware"
       - title: "Getting started with AQT hardware"
         path: /cirq/tutorials/aqt/getting_started
 
-      ####  PASQAL HARDWARE ####
+      ####  PASQAL HARDWARE  ####
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
         path: /cirq/tutorials/pasqal/getting_started
 
-      ####  EDUCATORS WORKSHOP ####
+      ####  EDUCATORS WORKSHOP  ####
       - heading: "Educators workshop"
       - title: "Cirq intro workshop"
         path: /cirq/tutorials/educators/intro
