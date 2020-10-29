@@ -40,10 +40,7 @@ from cirq import circuits, study, ops, protocols, value
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
 from cirq.protocols import act_on, unitary
-from cirq.sim import simulator
-from cirq.sim.clifford import (act_on_clifford_tableau_args,
-                               act_on_stabilizer_ch_form_args, clifford_tableau,
-                               stabilizer_state_ch_form)
+from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
 
 
@@ -278,9 +275,8 @@ class CliffordState():
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.tableau = clifford_tableau.CliffordTableau(self.n, initial_state)
-        self.ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
-            self.n, initial_state)
+        self.tableau = clifford.CliffordTableau(self.n, initial_state)
+        self.ch_form = clifford.StabilizerStateChForm(self.n, initial_state)
 
     def _json_dict_(self):
         return {
@@ -337,10 +333,10 @@ class CliffordState():
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        tableau_args = act_on_clifford_tableau_args.ActOnCliffordTableauArgs(
+        tableau_args = clifford.ActOnCliffordTableauArgs(
             self.tableau, [self.qubit_map[i] for i in op.qubits],
             np.random.RandomState(), {})
-        ch_form_args = act_on_stabilizer_ch_form_args.ActOnStabilizerCHFormArgs(
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
             self.ch_form, [self.qubit_map[i] for i in op.qubits])
         try:
             act_on(op, tableau_args)
