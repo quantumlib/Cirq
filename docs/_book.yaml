@@ -51,6 +51,8 @@ upper_tabs:
         path: /cirq/noise
       - title: "Devices"
         path: /cirq/devices
+      - title: "Transform circuits"
+        path: /cirq/transform
       - title: "Qudits"
         path: /cirq/qudits
       - title: "Protocols"
@@ -118,6 +120,8 @@ upper_tabs:
         path: /cirq/tutorials/variational_algorithm
       - title: "QAOA experiment"
         path: /cirq/tutorials/qaoa
+      - title: "Ion device class"
+      - path: /cirq/tutorials/ion_device
       - title: "Hidden linear function problem"
         path: /cirq/tutorials/hidden_linear_function
       - title: "Quantum walks"
