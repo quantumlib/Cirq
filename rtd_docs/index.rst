@@ -91,6 +91,7 @@ User Documentation
     :caption: Pasqal Documentation
 
     docs/tutorials/pasqal/getting_started.ipynb
+    docs/pasqal/access
     docs/pasqal/devices
     docs/pasqal/sampler
 
@@ -100,4 +101,3 @@ User Documentation
 
     dev/index.rst
     docs/dev/development
-
