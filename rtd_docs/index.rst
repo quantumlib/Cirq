@@ -57,7 +57,8 @@ User Documentation
     :maxdepth: 1
     :caption: Tutorials
 
-    docs/tutorials/examples
+    docs/tutorials/index
+    docs/tutorials/shor.ipynb
     docs/tutorials/variational_algorithm.ipynb
     docs/tutorials/qaoa.ipynb
     docs/tutorials/hidden_linear_function.ipynb
