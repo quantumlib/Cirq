@@ -34,8 +34,12 @@ upper_tabs:
 
       - title: "Install"
         path: /cirq/install
+      - title: "Getting started"
+        path: /cirq/start
       ####  CONCEPTS ####
       - heading: "Essential concepts"
+      - title: "Qubits"
+        path: /cirq/qubits
       - title: "Gates and operations"
         path: /cirq/gates
       - title: "Circuits"
@@ -49,10 +53,16 @@ upper_tabs:
         path: /cirq/noise
       - title: "Devices"
         path: /cirq/devices
+      - title: "Transform circuits"
+        path: /cirq/transform
       - title: "Qudits"
         path: /cirq/qudits
+      - title: "Protocols"
+        path: /cirq/protocols
       - title: "Import/export circuits"
         path: /cirq/interop
+      - title: "Custom gates"
+        path: /cirq/custom_gates
 
       ####  Contributor Guide ####
       - heading: "Contributor guide"
@@ -134,7 +144,23 @@ upper_tabs:
       ####  PASQAL HARDWARE ####
       - heading: "Pasqal hardware"
       - title: "Getting started with Pasqal hardware"
-        path: /cirq/pasqal/getting_started
+        path: /cirq/tutorials/pasqal/getting_started
+
+      ####  EDUCATORS WORKSHOP ####
+      - heading: "Educators workshop"
+      - title: "Cirq intro workshop"
+      - path: /cirq/tutorials/educators/intro
+      - title: "Textbook algorithms in Cirq"
+      - path: /cirq/tutorials/educators/textbook_algorithms
+      - title: "Quantum chemistry with OpenFermion"
+      - path: /cirq/tutorials/educators/chemistry
+      - title: "QAOA: Ising model"
+      - path: /cirq/tutorials/educators/qaoa_ising
+      - title: "Neutral atom device"
+      - path: /cirq/tutorials/educators/neutral_atom
+      - title: "Ion device"
+      - path: /cirq/tutorials/educators/ion_device
+
 
     - name: "Experiments"
       contents:

@@ -24,20 +24,32 @@ User Documentation
 .. toctree::
     :maxdepth: 2
 
+    docs/start
     docs/install
     docs/tutorials/basics.ipynb
+    docs/ecosystem
 
 .. toctree::
     :maxdepth: 1
-    :caption: Concepts
+    :caption: Essential concepts
 
+    docs/qubits.ipynb
     docs/gates.ipynb
     docs/circuits.ipynb
     docs/simulation.ipynb
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Further topics
+
     docs/noise.ipynb
     docs/devices
+    docs/transform.ipynb
     docs/interop.ipynb
     docs/qudits.ipynb
+    docs/protocols.ipynb
+    docs/custom_gates.ipynb
     api
 
 
@@ -51,7 +63,6 @@ User Documentation
     docs/tutorials/hidden_linear_function.ipynb
     docs/tutorials/quantum_walks.ipynb
     docs/tutorials/rabi_oscillations.ipynb
-
 
 .. toctree::
     :maxdepth: 1
@@ -79,12 +90,9 @@ User Documentation
     :maxdepth: 1
     :caption: Pasqal Documentation
 
-    docs/pasqal/getting_started.ipynb
+    docs/tutorials/pasqal/getting_started.ipynb
     docs/pasqal/devices
     docs/pasqal/sampler
-
-
-
 
 .. toctree::
     :maxdepth: 1
@@ -92,3 +100,4 @@ User Documentation
 
     dev/index.rst
     docs/dev/development
+
