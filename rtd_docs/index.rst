@@ -57,7 +57,8 @@ User Documentation
     :maxdepth: 1
     :caption: Tutorials
 
-    docs/tutorials/examples
+    docs/tutorials/index
+    docs/tutorials/shor.ipynb
     docs/tutorials/variational_algorithm.ipynb
     docs/tutorials/qaoa.ipynb
     docs/tutorials/hidden_linear_function.ipynb
@@ -91,6 +92,7 @@ User Documentation
     :caption: Pasqal Documentation
 
     docs/tutorials/pasqal/getting_started.ipynb
+    docs/pasqal/access
     docs/pasqal/devices
     docs/pasqal/sampler
 
@@ -100,4 +102,3 @@ User Documentation
 
     dev/index.rst
     docs/dev/development
-
