@@ -2,7 +2,7 @@ import numbers
 from typing import (AbstractSet, Any, Dict, Optional, Sequence, Tuple,
                     TYPE_CHECKING, Union)
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import value, ops, protocols, linalg

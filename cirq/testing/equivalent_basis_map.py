@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Dict, Optional, Sequence
-import numpy as np
+import cupy as np
 
 import cirq
 from cirq import circuits

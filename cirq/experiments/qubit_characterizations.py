@@ -16,7 +16,7 @@ import dataclasses
 import itertools
 
 from typing import Any, Iterator, List, Optional, Sequence, Tuple
-import numpy as np
+import cupy as np
 import sympy
 
 from matplotlib import pyplot as plt
@@ -473,7 +473,7 @@ def two_qubit_state_tomography(sampler: work.Sampler,
     Since there are 9 possible combinations of rotations (each producing 3
     independent probabilities) and a total of 15 unknown coefficients $c_{ij}$,
     one can cast all the measurement results into a overdetermined set of
-    linear equations numpy.dot(mat, c) = probs. Here c is of length 15 and
+    linear equations cupy.dot(mat, c) = probs. Here c is of length 15 and
     contains all the $c_{ij}$'s (except $c_{00}$ which is set to 1), and mat
     is a 27 by 15 matrix having three non-zero elements in each row that are
     either 1 or -1.

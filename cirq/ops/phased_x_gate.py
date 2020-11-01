@@ -17,7 +17,7 @@ from typing import (AbstractSet, Any, cast, Dict, Optional, Sequence, Tuple,
                     Union)
 
 import math
-import numpy as np
+import cupy as np
 import sympy
 
 import cirq

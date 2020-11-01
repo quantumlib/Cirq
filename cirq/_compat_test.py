@@ -14,7 +14,7 @@
 
 import types
 
-import numpy as np
+import cupy as np
 import pandas as pd
 import sympy
 

@@ -15,7 +15,7 @@
 import itertools
 import collections
 from typing import Any, Iterable, cast, DefaultDict, TYPE_CHECKING, FrozenSet
-from numpy import sqrt
+from cupy import sqrt
 from cirq import devices, ops, circuits, value
 from cirq.devices.grid_qubit import GridQubit
 from cirq.ops import MeasurementGate, raw_types

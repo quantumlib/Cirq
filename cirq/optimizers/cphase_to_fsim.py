@@ -1,6 +1,6 @@
 from typing import Optional, Sequence, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import devices, ops, protocols
 

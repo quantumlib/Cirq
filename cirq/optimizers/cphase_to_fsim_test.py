@@ -1,7 +1,7 @@
 from typing import List, Sequence, Tuple
 
 import itertools
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

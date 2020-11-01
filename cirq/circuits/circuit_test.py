@@ -17,7 +17,7 @@ from typing import Tuple
 from collections import defaultdict
 from random import randint, random, sample, randrange
 import os
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 
@@ -3789,7 +3789,7 @@ def test_indexing_by_pair():
         _ = c[q[1], 0]
 
 
-def test_indexing_by_numpy_integer():
+def test_indexing_by_cupy_integer():
     q = cirq.NamedQubit('q')
     c = cirq.Circuit(cirq.X(q), cirq.Y(q))
 

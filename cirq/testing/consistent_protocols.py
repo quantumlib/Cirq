@@ -15,7 +15,7 @@
 import itertools
 from typing import Any, Dict, Optional, Sequence, Type, Union
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import ops, protocols, value
@@ -45,7 +45,7 @@ def assert_implements_consistent_protocols(
                                     sympy.Symbol('s')),
         qubit_count: Optional[int] = None,
         ignoring_global_phase: bool = False,
-        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
+        setup_code: str = 'import cirq\nimport cupy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that a value is internally consistent and has a good __repr__."""
@@ -77,7 +77,7 @@ def assert_eigengate_implements_consistent_protocols(
         global_shifts: Sequence[float] = (0, -0.5, 0.1),
         qubit_count: Optional[int] = None,
         ignoring_global_phase: bool = False,
-        setup_code: str = 'import cirq\nimport numpy as np\nimport sympy',
+        setup_code: str = 'import cirq\nimport cupy as np\nimport sympy',
         global_vals: Optional[Dict[str, Any]] = None,
         local_vals: Optional[Dict[str, Any]] = None) -> None:
     """Checks that an EigenGate subclass is internally consistent and has a

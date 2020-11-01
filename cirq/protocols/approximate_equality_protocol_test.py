@@ -15,7 +15,7 @@
 from fractions import Fraction
 from decimal import Decimal
 from numbers import Number
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 import cirq
@@ -45,7 +45,7 @@ def test_approx_eq_mixed_primitives():
     assert not cirq.approx_eq(1, 1.0 + 1e-10, atol=1e-11)
 
 
-def test_numpy_dtype_compatibility():
+def test_cupy_dtype_compatibility():
     i_a, i_b, i_c = 0, 1, 2
     i_types = [np.intc, np.intp, np.int0, np.int8, np.int16, np.int32, np.int64]
     for i_type in i_types:

@@ -17,7 +17,7 @@ import abc
 
 from typing import Any, cast, Dict, Iterator, Sequence, TYPE_CHECKING, Tuple
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops, study, value
 from cirq.sim import simulator, state_vector
@@ -86,7 +86,7 @@ class SimulatesIntermediateStateVector(simulator.SimulatesAmplitudes,
         trial_results = self.simulate_sweep(program, params, qubit_order)
 
         # 1-dimensional tuples don't trigger advanced Numpy array indexing
-        # https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html
+        # https://docs.scipy.org/doc/cupy/reference/arrays.indexing.html
         if isinstance(bitstrings, tuple):
             bitstrings = list(bitstrings)
 

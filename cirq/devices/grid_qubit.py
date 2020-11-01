@@ -18,7 +18,7 @@ from typing import (Any, Dict, Iterable, List, Optional, Tuple, Set, TypeVar,
 
 import abc
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, protocols
 
@@ -123,7 +123,7 @@ class GridQid(_BaseGridQid):
         GridQid(0, 0, dimension=2) < GridQid(0, 1, dimension=2)
         < GridQid(1, 0, dimension=2) < GridQid(1, 1, dimension=2)
 
-    New GridQid can be constructed by adding or subtracting tuples or numpy
+    New GridQid can be constructed by adding or subtracting tuples or cupy
     arrays
 
         >>> cirq.GridQid(2, 3, dimension=2) + (3, 1)

@@ -14,7 +14,7 @@
 
 from typing import Dict, List
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

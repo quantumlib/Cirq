@@ -33,7 +33,7 @@ from typing import (Any, Dict, Iterator, List, Sequence, Tuple, Optional,
 import abc
 import collections
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops, protocols, study, value, work
 
@@ -99,7 +99,7 @@ class SimulatesSamples(work.Sampler, metaclass=abc.ABCMeta):
         Returns:
             A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
+            cupy array, the first dimension corresponding to the repetition
             and the second to the actual boolean measurement results (ordered
             by the qubits being measured.)
         """
@@ -427,7 +427,7 @@ class StepResult(metaclass=abc.ABCMeta):
             Measurement results with True corresponding to the ``|1⟩`` state.
             The outer list is for repetitions, and the inner corresponds to
             measurements ordered by the supplied qubits. These lists
-            are wrapped as an numpy ndarray.
+            are wrapped as an cupy ndarray.
         """
         raise NotImplementedError()
 
@@ -454,7 +454,7 @@ class StepResult(metaclass=abc.ABCMeta):
 
         Returns: A dictionary from measurement gate key to measurement
             results. Measurement results are stored in a 2-dimensional
-            numpy array, the first dimension corresponding to the repetition
+            cupy array, the first dimension corresponding to the repetition
             and the second to the actual boolean measurement results (ordered
             by the qubits being measured.)
 
@@ -515,7 +515,7 @@ class SimulationTrialResult:
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a cupy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
     """

@@ -13,7 +13,7 @@
 # limitations under the License.
 import re
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 
@@ -42,11 +42,11 @@ def test_single_qubit_init():
 
     with pytest.raises(ValueError, match='Not a .*unitary matrix'):
         cirq.MatrixGate(np.zeros((2, 2)))
-    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
+    with pytest.raises(ValueError, match='must be a square 2d cupy array'):
         cirq.MatrixGate(cirq.eye_tensor((2, 2), dtype=float))
-    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
+    with pytest.raises(ValueError, match='must be a square 2d cupy array'):
         cirq.MatrixGate(np.ones((3, 4)))
-    with pytest.raises(ValueError, match='must be a square 2d numpy array'):
+    with pytest.raises(ValueError, match='must be a square 2d cupy array'):
         cirq.MatrixGate(np.ones((2, 2, 2)))
 
 
@@ -233,9 +233,9 @@ def test_repr():
 
 
 def test_matrix_gate_init_validation():
-    with pytest.raises(ValueError, match='square 2d numpy array'):
+    with pytest.raises(ValueError, match='square 2d cupy array'):
         _ = cirq.MatrixGate(np.ones(shape=(1, 1, 1)))
-    with pytest.raises(ValueError, match='square 2d numpy array'):
+    with pytest.raises(ValueError, match='square 2d cupy array'):
         _ = cirq.MatrixGate(np.ones(shape=(2, 1)))
     with pytest.raises(ValueError, match='not a power of 2'):
         _ = cirq.MatrixGate(np.ones(shape=(0, 0)))

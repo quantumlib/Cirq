@@ -14,7 +14,7 @@
 
 from typing import AbstractSet, Any, Dict, Union
 
-import numpy as np
+import cupy as np
 import sympy
 
 import cirq

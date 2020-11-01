@@ -15,7 +15,7 @@ import abc
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Iterator
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols
 from cirq._doc import document

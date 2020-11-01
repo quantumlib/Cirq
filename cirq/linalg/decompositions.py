@@ -20,7 +20,7 @@ from typing import (Any, Callable, Iterable, List, Optional, Sequence, Set,
 
 import math
 import cmath
-import numpy as np
+import cupy as np
 import scipy
 import matplotlib.pyplot as plt
 
@@ -117,9 +117,9 @@ def unitary_eig(matrix: np.ndarray,
 
     All hermitian and unitary matrices are normal matrices. This method was
     introduced as for certain classes of unitary matrices (where the eigenvalues
-    are close to each other) the eigenvectors returned by `numpy.linalg.eig` are
+    are close to each other) the eigenvectors returned by `cupy.linalg.eig` are
     not guaranteed to be orthogonal.
-    For more information, see https://github.com/numpy/numpy/issues/15461.
+    For more information, see https://github.com/cupy/numpy/issues/15461.
 
     Args:
         matrix: a normal matrix. If not normal, this method is not
@@ -772,7 +772,7 @@ KAK_MAGIC = np.array([[1, 0, 0, 1j],
                       [0, 1j, -1, 0],
                       [1, 0, 0, -1j]]) * np.sqrt(0.5)
 
-KAK_MAGIC_DAG = np.conjugate(np.transpose(KAK_MAGIC))
+KAK_MAGIC_DAG = np.conj(np.transpose(KAK_MAGIC))
 KAK_GAMMA = np.array([[1, 1, 1, 1],
                       [1, 1, -1, -1],
                       [-1, 1, -1, 1],

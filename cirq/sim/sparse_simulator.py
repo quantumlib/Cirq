@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""A simulator that uses numpy's einsum for sparse matrix operations."""
+"""A simulator that uses cupy's einsum for sparse matrix operations."""
 
 import collections
 from typing import Dict, Iterator, List, Type, TYPE_CHECKING, DefaultDict, \
     Tuple, cast, Set
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops, protocols, qis, study, value
 from cirq.sim import (
@@ -34,7 +34,7 @@ if TYPE_CHECKING:
 
 class Simulator(simulator.SimulatesSamples,
                 state_vector_simulator.SimulatesIntermediateStateVector):
-    """A sparse matrix state vector simulator that uses numpy.
+    """A sparse matrix state vector simulator that uses cupy.
 
     This simulator can be applied on circuits that are made up of operations
     that have a `_unitary_` method, or `_has_unitary_` and
@@ -118,8 +118,8 @@ class Simulator(simulator.SimulatesSamples,
         """A sparse matrix simulator.
 
         Args:
-            dtype: The `numpy.dtype` used by the simulation. One of
-                `numpy.complex64` or `numpy.complex128`.
+            dtype: The `cupy.dtype` used by the simulation. One of
+                `cupy.complex64` or `numpy.complex128`.
             seed: The random seed to use for this simulator.
         """
         if np.dtype(dtype).kind != 'c':
@@ -282,8 +282,8 @@ class SparseSimulatorStep(state_vector.StateVectorMixin,
         """
         super().__init__(measurements=measurements, qubit_map=qubit_map)
         self._dtype = dtype
-        size = np.prod(protocols.qid_shape(self), dtype=int)
-        self._state_vector = np.reshape(state_vector, size)
+        size = np.prod(np.array(protocols.qid_shape(self)), dtype=int)
+        self._state_vector = np.reshape(state_vector, int(size))
 
     def _simulator_state(self
                         ) -> state_vector_simulator.StateVectorSimulatorState:

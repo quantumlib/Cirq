@@ -18,13 +18,13 @@ import warnings
 from typing import Any, Callable, Optional, Dict, Tuple, Type
 from types import ModuleType
 
-import numpy as np
+import cupy as np
 import pandas as pd
 import sympy
 
 
 def proper_repr(value: Any) -> str:
-    """Overrides sympy and numpy returning repr strings that don't parse."""
+    """Overrides sympy and cupy returning repr strings that don't parse."""
 
     if isinstance(value, sympy.Basic):
         result = sympy.srepr(value)
@@ -67,9 +67,9 @@ def proper_repr(value: Any) -> str:
 def proper_eq(a: Any, b: Any) -> bool:
     """Compares objects for equality, working around __eq__ not always working.
 
-    For example, in numpy a == b broadcasts and returns an array instead of
+    For example, in cupy a == b broadcasts and returns an array instead of
     doing what np.array_equal(a, b) does. This method uses np.array_equal(a, b)
-    when dealing with numpy arrays.
+    when dealing with cupy arrays.
     """
     if type(a) == type(b):
         if isinstance(a, np.ndarray):

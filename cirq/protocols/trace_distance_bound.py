@@ -14,7 +14,7 @@
 
 from typing import Any, TypeVar, Optional, Sequence
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private

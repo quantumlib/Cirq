@@ -19,7 +19,7 @@ Filename is a reference to multiplexing.
 
 from typing import List, Optional, Type, Union, cast, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, protocols, study, devices, ops, value
 from cirq._doc import document
@@ -59,9 +59,9 @@ def sample(program: 'cirq.Circuit',
         noise: Noise model to use while running the simulation.
         param_resolver: Parameters to run with the program.
         repetitions: The number of samples to take.
-        dtype: The `numpy.dtype` used by the simulation. Typically one of
-            `numpy.complex64` or `numpy.complex128`.
-            Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        dtype: The `cupy.dtype` used by the simulation. Typically one of
+            `cupy.complex64` or `numpy.complex128`.
+            Favors speed over precision by default, i.e. uses `cupy.complex64`.
         seed: The random seed to use for this simulator.
     """
     noise_model = devices.NoiseModel.from_noise_model_like(noise)
@@ -125,13 +125,13 @@ def final_state_vector(
             is a np.ndarray it is the full initial state. In this case it
             must be the correct size, be normalized (an L2 norm of 1), and
             be safely castable to an appropriate dtype for the simulator.
-        dtype: The `numpy.dtype` used by the simulation. Typically one of
-            `numpy.complex64` or `numpy.complex128`.
+        dtype: The `cupy.dtype` used by the simulation. Typically one of
+            `cupy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
 
     Returns:
         The state vector resulting from applying the given unitary operations to
-        the desired initial state. Specifically, a numpy array containing the
+        the desired initial state. Specifically, a cupy array containing the
         the amplitudes in np.kron order, where the order of arguments to kron
         is determined by the qubit order argument (which defaults to just
         sorting the qubits that are present into an ascending order).
@@ -183,9 +183,9 @@ def sample_sweep(program: 'cirq.Circuit',
         noise: Noise model to use while running the simulation.
         repetitions: The number of repetitions to simulate, per set of
             parameter values.
-        dtype: The `numpy.dtype` used by the simulation. Typically one of
-            `numpy.complex64` or `numpy.complex128`.
-            Favors speed over precision by default, i.e. uses `numpy.complex64`.
+        dtype: The `cupy.dtype` used by the simulation. Typically one of
+            `cupy.complex64` or `numpy.complex128`.
+            Favors speed over precision by default, i.e. uses `cupy.complex64`.
         seed: The random seed to use for this simulator.
 
     Returns:
@@ -236,8 +236,8 @@ def final_density_matrix(
             is a np.ndarray it is the full initial state. In this case it
             must be the correct size, be normalized (an L2 norm of 1), and
             be safely castable to an appropriate dtype for the simulator.
-        dtype: The `numpy.dtype` used by the simulation. Typically one of
-            `numpy.complex64` or `numpy.complex128`.
+        dtype: The `cupy.dtype` used by the simulation. Typically one of
+            `cupy.complex64` or `numpy.complex128`.
         seed: The random seed to use for this simulator.
         ignore_measurement_results: Defaults to True. When True, the returned
             density matrix is not conditioned on any measurement results.

@@ -15,7 +15,7 @@
 
 from typing import Any, Iterable, Sequence, Tuple, TYPE_CHECKING, Union, Dict
 
-import numpy as np
+import cupy as np
 
 from cirq import linalg, protocols
 from cirq.protocols.decompose_protocol import (
@@ -31,7 +31,7 @@ class ActOnStateVectorArgs:
     There are three common ways to act on this object:
 
     1. Directly edit the `target_tensor` property, which is storing the state
-        vector of the quantum system as a numpy array with one axis per qudit.
+        vector of the quantum system as a cupy array with one axis per qudit.
     2. Overwrite the `available_buffer` property with the new state vector, and
         then pass `available_buffer` into `swap_target_tensor_for`.
     3. Call `record_measurement_result(key, val)` to log a measurement result.
@@ -42,7 +42,7 @@ class ActOnStateVectorArgs:
                  log_of_measurement_results: Dict[str, Any]):
         """
         Args:
-            target_tensor: The state vector to act on, stored as a numpy array
+            target_tensor: The state vector to act on, stored as a cupy array
                 with one dimension for each qubit in the system. Operations are
                 expected to perform inplace edits of this object.
             available_buffer: A workspace with the same shape and dtype as

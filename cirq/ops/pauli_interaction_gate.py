@@ -14,7 +14,7 @@
 
 from typing import List, Sequence, Tuple, cast, Dict, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import value, protocols
 from cirq._compat import proper_repr

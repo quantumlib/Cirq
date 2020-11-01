@@ -25,7 +25,7 @@ The native gate set consists of the local gates: X,Y, and XX entangling gates
 """
 import json
 from typing import Union, Tuple, List, Dict, Sequence, Any, cast
-import numpy as np
+import cupy as np
 from cirq import ops, devices, study
 from cirq import Circuit, LineQubit, IonDevice, Duration
 from cirq import DensityMatrixSimulator

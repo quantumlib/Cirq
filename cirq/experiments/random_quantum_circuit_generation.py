@@ -22,7 +22,7 @@ from cirq import circuits, devices, google, ops, protocols, value
 from cirq._doc import document
 
 if TYPE_CHECKING:
-    import numpy as np
+    import cupy as np
     import cirq
 
 

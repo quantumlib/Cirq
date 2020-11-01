@@ -14,7 +14,7 @@
 """Utility methods for checking properties of matrices."""
 from typing import cast, List, Optional, Sequence, Union, Tuple
 
-import numpy as np
+import cupy as np
 
 from cirq.linalg import tolerance, transformations
 from cirq import value
@@ -194,8 +194,8 @@ def allclose_up_to_global_phase(a: np.ndarray,
     """Determines if a ~= b * exp(i t) for some t.
 
     Args:
-        a: A numpy array.
-        b: Another numpy array.
+        a: A cupy array.
+        b: Another cupy array.
         rtol: Relative error tolerance.
         atol: Absolute error tolerance.
         equal_nan: Whether or not NaN entries should be considered equal to

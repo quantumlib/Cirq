@@ -24,7 +24,7 @@ from typing import (
     FrozenSet,
 )
 
-import numpy as np
+import cupy as np
 import sympy
 from cirq.google.api import v2
 
@@ -126,7 +126,7 @@ def _arg_to_proto(value: ARG_LIKE,
         msg.arg_value.string_value = value
     elif (isinstance(value, (list, tuple, np.ndarray)) and
           all(isinstance(x, (bool, np.bool_)) for x in value)):
-        # Some protobuf / numpy combinations do not support np.bool_, so cast.
+        # Some protobuf / cupy combinations do not support np.bool_, so cast.
         msg.arg_value.bool_values.values.extend([bool(x) for x in value])
     elif isinstance(value, sympy.Symbol):
         msg.symbol = str(value.free_symbols.pop())

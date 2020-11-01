@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq
@@ -25,7 +25,7 @@ def test_external():
 
     cirq.testing.assert_equivalent_repr(
         np.array([5]),
-        setup_code='from numpy import array')
+        setup_code='from cupy import array')
 
     with pytest.raises(AssertionError, match='not defined'):
         cirq.testing.assert_equivalent_repr(

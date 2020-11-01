@@ -18,7 +18,7 @@ from typing import (Any, Callable, Dict, Iterable, Optional, Sequence,
 
 import collections
 import io
-import numpy as np
+import cupy as np
 import pandas as pd
 
 from cirq import value, ops
@@ -110,7 +110,7 @@ class Result:
                 converted_dict[key] = [
                     value.big_endian_bits_to_int(m_vals) for m_vals in val
                 ]
-            # Note that when a numpy array is produced from this data frame,
+            # Note that when a cupy array is produced from this data frame,
             # Pandas will try to use np.int64 as dtype, but will upgrade to
             # object if any value is too large to fit.
             self._data = pd.DataFrame(converted_dict, dtype=np.int64)

@@ -15,7 +15,7 @@
 from typing import (Any, Callable, cast, Dict, Iterable, List, Mapping,
                     NamedTuple, Optional, Sequence, Tuple, Union)
 
-import numpy as np
+import cupy as np
 
 from cirq import value
 from cirq.circuits._block_diagram_drawer import BlockDiagramDrawer

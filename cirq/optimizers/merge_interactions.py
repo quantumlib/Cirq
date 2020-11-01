@@ -17,7 +17,7 @@
 from typing import Callable, List, Optional, Sequence, Tuple, cast, \
     TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops, protocols
 from cirq.optimizers import two_qubit_decompositions

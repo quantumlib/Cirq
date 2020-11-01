@@ -16,7 +16,7 @@ from typing import Sequence
 import itertools
 import math
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq
@@ -34,7 +34,7 @@ def sample_noisy_bitstrings(circuit: cirq.Circuit,
     circuit_with_measurements = cirq.Circuit(
         circuit, cirq.measure(*qubit_order, key='m'))
     r = cirq.sample(circuit_with_measurements, repetitions=n_coherent)
-    coherent_samples = r.data['m'].to_numpy()
+    coherent_samples = r.data['m'].to_cupy()
     return np.concatenate((coherent_samples, incoherent_samples))
 
 

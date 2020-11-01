@@ -14,7 +14,7 @@
 import warnings
 from typing import Any, List, Sequence
 
-import numpy as np
+import cupy as np
 
 from cirq import devices, linalg, ops, protocols
 from cirq.testing import lin_alg_utils

@@ -14,7 +14,7 @@
 
 from typing import List, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import ops
 from cirq.linalg import is_unitary, is_special_unitary, map_eigenvalues
@@ -233,7 +233,7 @@ def decompose_multi_controlled_rotation(matrix: np.ndarray,
             https://arxiv.org/pdf/quant-ph/9503016.pdf
 
     Args:
-        matrix - 2x2 numpy unitary matrix (of real or complex dtype).
+        matrix - 2x2 cupy unitary matrix (of real or complex dtype).
         controls - control qubits.
         targets - target qubits.
 

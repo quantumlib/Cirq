@@ -17,7 +17,7 @@ from fractions import Fraction
 from decimal import Decimal
 
 import numbers
-import numpy as np
+import cupy as np
 import sympy
 
 from typing_extensions import Protocol

@@ -1,6 +1,6 @@
 import random
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

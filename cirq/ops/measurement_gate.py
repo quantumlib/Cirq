@@ -14,7 +14,7 @@
 
 from typing import Any, Dict, Iterable, Optional, Tuple, Sequence, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types

@@ -15,7 +15,7 @@
 from typing import (Any, cast, Dict, NamedTuple, Optional, Sequence, Tuple,
                     TYPE_CHECKING, Union)
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols, value, linalg
 from cirq._doc import document

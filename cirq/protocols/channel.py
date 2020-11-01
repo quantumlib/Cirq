@@ -17,7 +17,7 @@
 from typing import Any, Sequence, Tuple, TypeVar, Union
 
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
@@ -71,7 +71,7 @@ class SupportsChannel(Protocol):
         the object being called. For example, for GateOperations these matrices
         must be ordered with respect to the list of qubits that the channel is
         applied to. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        ordering of cupy.kron(A, B), where A is a qubit earlier in the list
         than the qubit B.
 
         Returns:

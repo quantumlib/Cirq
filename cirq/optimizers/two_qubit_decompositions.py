@@ -16,7 +16,7 @@
 
 from typing import Iterable, List, Tuple, Optional, cast, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.optimizers import (

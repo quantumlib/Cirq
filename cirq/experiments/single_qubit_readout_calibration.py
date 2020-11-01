@@ -17,7 +17,7 @@ from typing import Any, Dict, Iterable, TYPE_CHECKING
 import dataclasses
 import time
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops
 

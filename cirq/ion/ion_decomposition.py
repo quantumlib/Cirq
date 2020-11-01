@@ -23,7 +23,7 @@ Gate compilation methods implemented here are following the paper below:
 
 from typing import Iterable, List, Optional, cast, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, linalg, protocols, optimizers, circuits
 from cirq.ion import ms

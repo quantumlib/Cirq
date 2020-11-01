@@ -14,7 +14,7 @@
 
 from typing import Any
 
-import numpy as np
+import cupy as np
 
 from cirq import devices, protocols, ops, circuits
 from cirq.testing import lin_alg_utils

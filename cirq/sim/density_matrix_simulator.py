@@ -17,7 +17,7 @@ import collections
 
 from typing import Any, Dict, Iterator, List, TYPE_CHECKING, Tuple, Type, Union
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, ops, protocols, qis, study, value, devices
 from cirq.sim import density_matrix_utils, simulator
@@ -125,8 +125,8 @@ class DensityMatrixSimulator(simulator.SimulatesSamples,
         """Density matrix simulator.
 
          Args:
-            dtype: The `numpy.dtype` used by the simulation. One of
-                `numpy.complex64` or `numpy.complex128`
+            dtype: The `cupy.dtype` used by the simulation. One of
+                `cupy.complex64` or `numpy.complex128`
             noise: A noise model to apply while simulating.
             seed: The random seed to use for this simulator.
             ignore_measurement_results: if True, then the simulation
@@ -374,7 +374,7 @@ class DensityMatrixStepResult(simulator.StepResult):
             measurements: The measurements for this step of the simulation.
             qubit_map: A map from qid to index used to define the
                 ordering of the basis in density_matrix.
-            dtype: The numpy dtype for the density matrix.
+            dtype: The cupy dtype for the density matrix.
         """
         super().__init__(measurements)
         self._density_matrix = density_matrix
@@ -522,7 +522,7 @@ class DensityMatrixTrialResult(simulator.SimulationTrialResult):
     Attributes:
         params: A ParamResolver of settings used for this result.
         measurements: A dictionary from measurement gate key to measurement
-            results. Measurement results are a numpy ndarray of actual boolean
+            results. Measurement results are a cupy ndarray of actual boolean
             measurement results (ordered by the qubits acted on by the
             measurement gate.)
         final_simulator_state: The final simulator state of the system after the

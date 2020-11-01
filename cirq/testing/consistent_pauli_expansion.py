@@ -14,7 +14,7 @@
 
 from typing import Any
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols
 from cirq.linalg import operator_spaces

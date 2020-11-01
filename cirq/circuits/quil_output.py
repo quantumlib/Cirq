@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Callable, Dict, Set, Tuple, Union
-import numpy as np
+import cupy as np
 import cirq
 from cirq import protocols, value, ops
 

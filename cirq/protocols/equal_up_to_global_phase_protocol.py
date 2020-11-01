@@ -16,7 +16,7 @@ import numbers
 from collections.abc import Iterable
 from typing import Any, Union
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
@@ -88,7 +88,7 @@ def equal_up_to_global_phase(val: Any,
             return result
 
     # Fall back to special check for numeric arrays.
-    # Defer to numpy automatic type casting to determine numeric type.
+    # Defer to cupy automatic type casting to determine numeric type.
     if isinstance(val, Iterable) and isinstance(other, Iterable):
         a = np.asarray(val)
         b = np.asarray(other)

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from typing import Optional, overload
-import numpy as np
+import cupy as np
 import sympy
 from cirq.value import type_alias
 

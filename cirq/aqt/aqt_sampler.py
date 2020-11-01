@@ -27,7 +27,7 @@ import time
 import uuid
 from typing import Iterable, List, Union, Tuple, Dict, cast, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 from requests import put
 from cirq import circuits, Sampler, resolve_parameters, LineQubit
 from cirq.study.sweeps import Sweep

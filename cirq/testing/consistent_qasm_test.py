@@ -15,7 +15,7 @@
 from typing import Tuple
 
 import warnings
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq

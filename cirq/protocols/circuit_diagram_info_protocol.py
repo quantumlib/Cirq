@@ -16,7 +16,7 @@ from fractions import Fraction
 from typing import (Any, TYPE_CHECKING, Optional, Union, TypeVar, Dict,
                     overload, Iterable, List, Sequence)
 
-import numpy as np
+import cupy as np
 import sympy
 from typing_extensions import Protocol
 

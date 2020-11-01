@@ -24,7 +24,7 @@ This file contains the following serializers (and corresponding deserializers)
 """
 from typing import cast, List, Union
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import ops, protocols, value

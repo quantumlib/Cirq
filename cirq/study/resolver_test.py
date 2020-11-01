@@ -15,7 +15,7 @@
 """Tests for parameter resolvers."""
 import fractions
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

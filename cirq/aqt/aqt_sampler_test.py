@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from unittest import mock
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

@@ -20,7 +20,7 @@ import cmath
 import math
 import numbers
 
-import numpy as np
+import cupy as np
 
 from cirq import value, protocols, linalg, qis
 from cirq._doc import document
@@ -667,7 +667,7 @@ class PauliString(raw_types.Operation, Generic[TKey]):
         return self
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        """Override behavior of numpy's exp method."""
+        """Override behavior of cupy's exp method."""
         if ufunc == np.exp and len(inputs) == 1 and inputs[0] is self:
             return math.e**self
         return NotImplemented

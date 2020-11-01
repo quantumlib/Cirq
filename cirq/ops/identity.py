@@ -16,7 +16,7 @@
 from typing import (Any, Dict, Iterable, List, Optional, Tuple, Union,
                     TYPE_CHECKING)
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import protocols, value

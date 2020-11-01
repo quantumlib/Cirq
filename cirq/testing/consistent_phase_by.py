@@ -14,7 +14,7 @@
 
 from typing import Any
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import protocols, linalg

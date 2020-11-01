@@ -14,7 +14,7 @@
 
 """Tests for visualize."""
 
-import numpy as np
+import cupy as np
 from matplotlib import pyplot as pl
 
 import cirq

@@ -15,7 +15,7 @@
 """Tool to visualize the results of a study."""
 
 from typing import TYPE_CHECKING
-import numpy as np
+import cupy as np
 
 if TYPE_CHECKING:
     from cirq.study import result

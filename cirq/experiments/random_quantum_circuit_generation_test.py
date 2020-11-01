@@ -15,7 +15,7 @@
 from typing import (Callable, Dict, Iterable, List, Optional, Sequence, Set,
                     Tuple, cast)
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq

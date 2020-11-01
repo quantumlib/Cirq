@@ -14,7 +14,7 @@
 """A no-qubit global phase operation."""
 from typing import Any, Dict, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import value, protocols
 from cirq.ops import raw_types

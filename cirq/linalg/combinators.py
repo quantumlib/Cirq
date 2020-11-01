@@ -17,7 +17,7 @@
 import functools
 from typing import Union, Type
 
-import numpy as np
+import cupy as np
 
 from cirq._doc import document
 

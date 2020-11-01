@@ -16,7 +16,7 @@ from typing import Any, Iterable, List, Optional, TYPE_CHECKING, Union
 import abc
 import asyncio
 
-import numpy as np
+import cupy as np
 
 from cirq import circuits, study, value
 from cirq.work import work_pool

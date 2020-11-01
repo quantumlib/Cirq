@@ -19,7 +19,7 @@ so that occurs outside of the StateTomographyExperiment class.
 """
 from typing import List, Optional, Sequence, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import circuits, ops, protocols, study

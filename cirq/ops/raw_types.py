@@ -19,7 +19,7 @@ from typing import (AbstractSet, Any, Callable, Collection, Dict, Hashable,
 
 import abc
 import functools
-import numpy as np
+import cupy as np
 
 from cirq import protocols, value
 from cirq.type_workarounds import NotImplementedType

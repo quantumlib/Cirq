@@ -68,7 +68,7 @@ class QubitPermutationGate(raw_types.Gate):
             assert args.target_tensor.shape[ai] == args.target_tensor.shape[aj]
             permuted_axes[aj] = ai
 
-        # Delegate to numpy to do the permuted copy.
+        # Delegate to cupy to do the permuted copy.
         args.available_buffer[...] = args.target_tensor.transpose(permuted_axes)
         return args.available_buffer
 

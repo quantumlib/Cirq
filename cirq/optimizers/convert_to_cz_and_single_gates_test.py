@@ -14,7 +14,7 @@
 
 import pytest
 
-import numpy as np
+import cupy as np
 
 import cirq
 

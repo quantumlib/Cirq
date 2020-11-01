@@ -14,7 +14,7 @@
 """Types and methods related to performing linear algebra.
 
 Focuses on methods useful for analyzing and optimizing quantum circuits.
-Avoids duplicating functionality present in numpy.
+Avoids duplicating functionality present in cupy.
 """
 
 from cirq.linalg.combinators import (

@@ -14,7 +14,7 @@
 
 from typing import Any, Optional
 
-import numpy as np
+import cupy as np
 
 from cirq.circuits.circuit import Circuit
 from cirq.devices import LineQubit

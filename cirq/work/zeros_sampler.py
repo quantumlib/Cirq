@@ -15,7 +15,7 @@
 import abc
 from typing import Dict, List, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import devices, work, study, protocols
 

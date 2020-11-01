@@ -15,7 +15,7 @@
 
 from typing import Any, Iterable, Optional, Sequence, TypeVar, Tuple, Union
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
@@ -153,7 +153,7 @@ class SupportsApplyChannel(Protocol):
             `args.target_tensor` in the next call, and vice versa).
 
             The receiving object is also permitted to allocate a new
-            numpy.ndarray and return that as its result.
+            cupy.ndarray and return that as its result.
         """
 
 
@@ -320,7 +320,7 @@ def _apply_kraus_single_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
 
 def _apply_kraus_multi_qubit(kraus: Union[Tuple[Any], Sequence[Any]],
                              args: 'ApplyChannelArgs') -> np.ndarray:
-    """Use numpy's einsum to apply a multi-qubit channel."""
+    """Use cupy's einsum to apply a multi-qubit channel."""
     qid_shape = tuple(args.target_tensor.shape[i] for i in args.left_axes)
     for kraus_op in kraus:
         np.copyto(dst=args.target_tensor, src=args.auxiliary_buffer0)

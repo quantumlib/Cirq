@@ -30,7 +30,7 @@ import itertools
 import multiprocessing
 import os
 
-import numpy as np
+import cupy as np
 
 from cirq import devices, ops, protocols, sim, value
 from cirq.experiments.cross_entropy_benchmarking import (CrossEntropyResult,

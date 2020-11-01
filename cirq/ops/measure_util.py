@@ -14,7 +14,7 @@
 
 from typing import Callable, Iterable, List, Optional, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols
 from cirq.ops import raw_types
@@ -52,8 +52,8 @@ def measure(*target: 'cirq.Qid',
     for qubit in target:
         if isinstance(qubit, np.ndarray):
             raise ValueError(
-                'measure() was called a numpy ndarray. Perhaps you meant '
-                'to call measure_state_vector on numpy array?')
+                'measure() was called a cupy ndarray. Perhaps you meant '
+                'to call measure_state_vector on cupy array?')
         elif not isinstance(qubit, raw_types.Qid):
             raise ValueError(
                 'measure() was called with type different than Qid.')

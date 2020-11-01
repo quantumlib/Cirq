@@ -1,0 +1,36 @@
+1- In /content/drive/My Drive/Cirq/cirq/linalg/decompositions.py line 775: 
+AttributeError: module 'cupy' has no attribute 'conjugate' 
+
+
+2- /content/drive/My Drive/Cirq/cirq/ops/eigen_gate.py line 341:
+AttributeError: 'list' object has no attribute 'sum'
+
+
+3- In /content/drive/My Drive/Cirq/cirq/ops/common_gates.py line 758
+ValueError: Unsupported dtype object
+
+4- In /content/drive/My Drive/Cirq/cirq/ops/eigen_gate.py line 426:
+AttributeError: module 'cupy' has no attribute 'round'
+
+
+5- In /content/drive/My Drive/Cirq/cirq/ops/eigen_gate.py line 431:
+AttributeError: module 'cupy' has no attribute 'round'
+
+
+6-
+
+7- In /content/drive/My Drive/Cirq/cirq/qis/states.py line 410:
+AttributeError: 'tuple' object has no attribute 'prod'
+
+
+8- In /content/drive/My Drive/Cirq/cirq/sim/sparse_simulator.py line 285:
+AttributeError: 'tuple' object has no attribute 'prod'
+
+
+9- In /content/drive/My Drive/Cirq/cirq/sim/sparse_simulator.py line 286:
+TypeError: iteration over a 0-d array
+
+
+10- /content/drive/My Drive/Cirq/cirq/qis/states.py line 206:
+TypeError: type cupy.core.core.ndarray doesn't define __round__ method
+...

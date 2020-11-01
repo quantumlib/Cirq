@@ -16,7 +16,7 @@
 
 from typing import Any, cast, Dict, Iterable, Optional, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import linalg, protocols
 from cirq._compat import proper_repr
@@ -41,7 +41,7 @@ class MatrixGate(raw_types.Gate):
                 matrix is supposed to apply to qubits.
         """
         if len(matrix.shape) != 2 or matrix.shape[0] != matrix.shape[1]:
-            raise ValueError('`matrix` must be a square 2d numpy array.')
+            raise ValueError('`matrix` must be a square 2d cupy array.')
 
         if qid_shape is None:
             n = int(np.round(np.log2(matrix.shape[0] or 1)))

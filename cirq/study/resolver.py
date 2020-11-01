@@ -15,7 +15,7 @@
 """Resolves ParameterValues to assigned values."""
 import numbers
 from typing import Any, Dict, Iterator, Optional, TYPE_CHECKING, Union, cast
-import numpy as np
+import cupy as np
 import sympy
 from sympy.core import numbers as sympy_numbers
 from cirq._compat import proper_repr

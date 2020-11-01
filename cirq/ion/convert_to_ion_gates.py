@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, protocols, optimizers, circuits
 from cirq.ion import ms, two_qubit_matrix_to_ion_operations

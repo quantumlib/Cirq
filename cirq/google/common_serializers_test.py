@@ -15,7 +15,7 @@
 from typing import Dict
 import math
 import pytest
-import numpy as np
+import cupy as np
 import sympy
 
 from google.protobuf import json_format

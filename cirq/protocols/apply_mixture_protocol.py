@@ -15,7 +15,7 @@
 
 from typing import Any, cast, Iterable, Optional, Tuple, TypeVar, Union
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import linalg
@@ -150,7 +150,7 @@ class SupportsApplyMixture(Protocol):
             call, and vice versa).
 
             The receiving object is also permitted to allocate a new
-            numpy.ndarray and return that as its result.
+            cupy.ndarray and return that as its result.
         """
 
 
@@ -168,14 +168,14 @@ def apply_mixture(val: Any,
             go to step B.
         2. If '_apply_mixture_' is present and returns None conclude that
             `val` has no effect and return.
-        3. If '_apply_mixture_' is present and returns a numpy array conclude
+        3. If '_apply_mixture_' is present and returns a cupy array conclude
             that the mixture was applied successfully and forward result to
             caller.
 
     B. Construct an ApplyUnitaryArgs object `uargs` from `args` and then
         try to use `cirq.apply_unitary(val, uargs, None)`.
         1. If `None` is returned then go to step C.
-        2. If a numpy array is returned forward this result back to the caller
+        2. If a cupy array is returned forward this result back to the caller
             and return.
 
     C. Try to use `val._mixture_()`.

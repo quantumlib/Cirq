@@ -18,7 +18,7 @@ import re
 from typing import (AbstractSet, Any, cast, Dict, FrozenSet, Iterable, List,
                     Optional, Sequence, Tuple, TypeVar, TYPE_CHECKING, Union)
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types, gate_features

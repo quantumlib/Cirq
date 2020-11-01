@@ -15,7 +15,7 @@
 
 from typing import Any, TypeVar, Union
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import linalg, ops
@@ -102,9 +102,9 @@ def commutes(v1: Any,
 
     Args:
         v1: One of the values to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a cupy matrix.
         v2: The other value to check for commutativity. Can be a cirq object
-            such as an operation, or a numpy matrix.
+            such as an operation, or a cupy matrix.
         default: A fallback value to return, instead of raising a ValueError, if
             it is indeterminate whether or not the two values commute.
         atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1 have a

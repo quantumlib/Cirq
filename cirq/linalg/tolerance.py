@@ -16,7 +16,7 @@
 tolerances."""
 from typing import Union, Iterable
 
-import numpy as np
+import cupy as np
 
 
 def all_near_zero(a: Union[float, complex, Iterable[float], np.ndarray],

@@ -18,7 +18,7 @@ from typing import (AbstractSet, Any, cast, Dict, Iterable, List, NamedTuple,
 import abc
 
 import math
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import value, protocols
@@ -334,11 +334,11 @@ class EigenGate(raw_types.Gate):
         if self._is_parameterized_():
             return NotImplemented
         e = cast(float, self._exponent)
-        return np.sum([
+        return np.sum(np.array([
             component * 1j**(
                     2 * e * (half_turns + self._global_shift))
             for half_turns, component in self._eigen_components()
-        ], axis=0)
+        ]), axis=0)
 
     def _is_parameterized_(self) -> bool:
         return protocols.is_parameterized(self._exponent)
@@ -422,13 +422,13 @@ def _approximate_common_period(periods: List[float],
     if len(periods) == 1:
         return abs(periods[0])
     approx_rational_periods = [
-        fractions.Fraction(int(np.round(abs(p) * approx_denom)), approx_denom)
+        fractions.Fraction(int(np.around(abs(p) * approx_denom)), approx_denom)
         for p in periods
     ]
     common = float(_common_rational_period(approx_rational_periods))
 
     for p in periods:
-        if p != 0 and abs(p * np.round(common / p) - common) > reject_atol:
+        if p != 0 and abs(p * np.around(common / p) - common) > reject_atol:
             return None
 
     return common

@@ -18,7 +18,7 @@ from typing import (Any, cast, Iterable, Optional, Sequence, TYPE_CHECKING,
 
 import itertools
 
-import numpy as np
+import cupy as np
 
 from cirq._compat import deprecated, deprecated_parameter
 from cirq import value
@@ -52,21 +52,21 @@ def bloch_vector_from_state_vector(state_vector: np.ndarray,
 
     Calculates the bloch vector of the qubit at index in the state vector,
     assuming state vector follows the standard Kronecker convention of
-    numpy.kron.
+    cupy.kron.
 
     Args:
         state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
-            convention of numpy.kron (big-endian).
+            convention of cupy.kron (big-endian).
         index: index of qubit who's bloch vector we want to find.
-            follows the standard Kronecker convention of numpy.kron.
+            follows the standard Kronecker convention of cupy.kron.
         qid_shape: specifies the dimensions of the qudits for the input
             `state_vector`.  If not specified, qubits are assumed and the
             `state_vector` must have a dimension a power of two.
             The qudit at `index` must be a qubit.
 
     Returns:
-        A length 3 numpy array representing the qubit's bloch vector.
+        A length 3 cupy array representing the qubit's bloch vector.
 
     Raises:
         ValueError: if the size of `state_vector `is not a power of 2 and the
@@ -103,7 +103,7 @@ def density_matrix_from_state_vector(
     with the qubits not in indices that are present in state vector traced out.
     If indices is None the full density matrix for `state_vector` is returned.
     We assume `state_vector` follows the standard Kronecker convention of
-    numpy.kron (big-endian).
+    cupy.kron (big-endian).
 
     For example:
     state_vector = np.array([1/np.sqrt(2), 1/np.sqrt(2)], dtype=np.complex64)
@@ -120,17 +120,17 @@ def density_matrix_from_state_vector(
     Args:
         state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
-            convention of numpy.kron (big-endian).
+            convention of cupy.kron (big-endian).
         indices: list containing indices for qubits that you would like
             to include in the density matrix (i.e.) qubits that WON'T
             be traced out. follows the standard Kronecker convention of
-            numpy.kron.
+            cupy.kron.
         qid_shape: specifies the dimensions of the qudits for the input
             `state_vector`.  If not specified, qubits are assumed and the
             `state_vector` must have a dimension a power of two.
 
     Returns:
-        A numpy array representing the density matrix.
+        A cupy array representing the density matrix.
 
     Raises:
         ValueError: if the size of `state_vector` is not a power of 2 and the
@@ -181,7 +181,7 @@ def dirac_notation(state_vector: np.ndarray,
     Args:
         state_vector: A sequence representing a state vector in which
             the ordering mapping to qubits follows the standard Kronecker
-            convention of numpy.kron (big-endian).
+            convention of cupy.kron (big-endian).
         decimals: How many decimals to include in the pretty print.
         qid_shape: specifies the dimensions of the qudits for the input
             `state_vector`.  If not specified, qubits are assumed and the
@@ -203,18 +203,17 @@ def dirac_notation(state_vector: np.ndarray,
     ket = "|{}⟩"
     for x in range(len(perm_list)):
         format_str = "({:." + str(decimals) + "g})"
-        val = (round(state_vector[x].real, decimals) +
-               1j * round(state_vector[x].imag, decimals))
+        val = np.float64(np.around(state_vector[x].real, decimals)) + 1j *np.float64(np.around(state_vector[x].imag, decimals))
 
-        if round(val.real, decimals) == 0 and round(val.imag, decimals) != 0:
+        if np.around(val.real, decimals) == 0 and np.around(val.imag, decimals) != 0:
             val = val.imag
             format_str = "{:." + str(decimals) + "g}j"
-        elif round(val.imag, decimals) == 0 and round(val.real, decimals) != 0:
+        elif np.around(val.imag, decimals) == 0 and np.around(val.real, decimals) != 0:
             val = val.real
             format_str = "{:." + str(decimals) + "g}"
         if val != 0:
-            if round(state_vector[x].real, decimals) == 1 and \
-               round(state_vector[x].imag, decimals) == 0:
+            if np.around(state_vector[x].real, decimals) == 1 and \
+               np.around(state_vector[x].imag, decimals) == 0:
                 components.append(ket.format(perm_list[x]))
             else:
                 components.append((format_str + ket).format(val, perm_list[x]))
@@ -239,7 +238,7 @@ def to_valid_state_vector(
 
     Args:
         state_rep: If an int, the state vector returned is the state vector
-            corresponding to a computational basis state. If an numpy array
+            corresponding to a computational basis state. If an cupy array
             this is the full state vector. Both of these are validated for
             the given number of qubits, and the state must be properly
             normalized and of the appropriate dtype.
@@ -247,14 +246,14 @@ def to_valid_state_vector(
             must be valid for this number of qubits.
         qid_shape: The expected qid shape of the state vector. Specify this
             argument when using qudits.
-        dtype: The numpy dtype of the state vector, will be used when creating
+        dtype: The cupy dtype of the state vector, will be used when creating
             the state for a computational basis state, or validated against if
-            state_rep is a numpy array.
+            state_rep is a cupy array.
         atol: Numerical tolerance for verifying that the norm of the state
             vector is close to 1.
 
     Returns:
-        A numpy ndarray corresponding to the state vector on the given number of
+        A cupy ndarray corresponding to the state vector on the given number of
         qubits.
 
     Raises:
@@ -302,7 +301,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
         if converted.shape:
             state_like = converted
     if isinstance(state_like, np.ndarray):
-        prod = np.prod(qid_shape, dtype=int)
+        prod = np.prod(np.array(qid_shape, dtype=int))
 
         if len(qid_shape) == prod:
             if state_like.dtype.kind != 'c':
@@ -311,7 +310,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                     'ambiguous whether the given `state_like` contains '
                     'state vector amplitudes or per-qudit computational basis '
                     'values. In this situation you are required to pass '
-                    'in a state vector that is a numpy array with a complex '
+                    'in a state vector that is a cupy array with a complex '
                     'dtype.')
 
         if state_like.shape == (prod,) or state_like.shape == qid_shape:
@@ -327,7 +326,7 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                                  dtype=dtype)
 
         raise ValueError(
-            '`state_like` was convertible to a numpy array, but its '
+            '`state_like` was convertible to a cupy array, but its '
             'shape was neither the shape of a list of computational basis '
             'values (`len(qid_shape)`) nor the shape of a list or tensor of '
             'state vector amplitudes (`qid_shape` or `(product(qid_shape),)`.\n'
@@ -407,7 +406,7 @@ def validate_normalized_state_vector(
         dtype: Type[np.number] = np.complex64,
         atol: float = 1e-7) -> None:
     """Validates that the given state vector is a valid."""
-    if state_vector.size != np.prod(qid_shape, dtype=int):
+    if state_vector.size != np.prod(np.array(qid_shape, dtype=int)):
         raise ValueError(
             'state_vector has incorrect size. Expected {} but was {}.'.format(
                 np.prod(qid_shape, dtype=int), state_vector.size))
@@ -478,21 +477,21 @@ def to_valid_density_matrix(
     or a computational basis state as a representation of a state.
 
     Args:
-        density_matrix_rep: If an numpy array, if it is of rank 2 (a matrix),
-            then this is the density matrix. If it is a numpy array of rank 1
+        density_matrix_rep: If an cupy array, if it is of rank 2 (a matrix),
+            then this is the density matrix. If it is a cupy array of rank 1
             (a vector) then this is a state vector. If this is an int,
             then this is the computation basis state.
         num_qubits: The number of qubits for the density matrix. The
             density_matrix_rep must be valid for this number of qubits.
         qid_shape: The qid shape of the state vector. Specify this argument
             when using qudits.
-        dtype: The numpy dtype of the density matrix, will be used when creating
+        dtype: The cupy dtype of the density matrix, will be used when creating
             the state for a computational basis state (int), or validated
-            against if density_matrix_rep is a numpy array.
+            against if density_matrix_rep is a cupy array.
         atol: Numerical tolerance for verifying density matrix properties.
 
     Returns:
-        A numpy matrix corresponding to the density matrix on the given number
+        A cupy matrix corresponding to the density matrix on the given number
         of qubits. Note that this matrix may share memory with the input
         `density_matrix_rep`.
 
@@ -555,7 +554,7 @@ def one_hot(*,
             shape: Union[int, Sequence[int]],
             value: Any = 1,
             dtype: Type[np.number]) -> np.ndarray:
-    """Returns a numpy array with all 0s and a single non-zero entry(default 1).
+    """Returns a cupy array with all 0s and a single non-zero entry(default 1).
 
     Args:
         index: The index that should store the `value` argument instead of 0.
@@ -565,7 +564,7 @@ def one_hot(*,
         dtype: The dtype of the array.
 
     Returns:
-        The created numpy array.
+        The created cupy array.
     """
     if index is None:
         index = 0 if isinstance(shape, int) else (0,) * len(shape)
@@ -584,10 +583,10 @@ def eye_tensor(
         half_shape: A tuple representing the number of quantum levels of each
             qubit the returned matrix applies to.  `half_shape` is (2, 2, 2) for
             a three-qubit identity operation tensor.
-        dtype: The numpy dtype of the new array.
+        dtype: The cupy dtype of the new array.
 
     Returns:
-        The created numpy array with shape `half_shape + half_shape`.
+        The created cupy array with shape `half_shape + half_shape`.
     """
     identity = np.eye(np.prod(half_shape, dtype=int), dtype=dtype)
     identity.shape = half_shape * 2

@@ -15,7 +15,7 @@
 import random
 from typing import Tuple, Optional
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq

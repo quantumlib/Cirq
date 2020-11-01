@@ -15,7 +15,7 @@
 from typing import (AbstractSet, Any, cast, Collection, Dict, Optional,
                     Sequence, Tuple, Union)
 
-import numpy as np
+import cupy as np
 
 import cirq
 from cirq import protocols, value

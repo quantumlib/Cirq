@@ -17,7 +17,7 @@ from typing import (AbstractSet, Any, Callable, cast, Dict, Iterable, List,
                     Union)
 import abc
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import protocols, linalg, value
@@ -63,8 +63,8 @@ class BaseDensePauliString(raw_types.Gate, metaclass=abc.ABCMeta):
                 can be a string like "IXYYZ", or a numeric list like
                 [0, 1, 3, 2] with I=0, X=1, Y=2, Z=3=X|Y.
 
-                The internal representation is a 1-dimensional uint8 numpy array
-                containing numeric values. If such a numpy array is given, and
+                The internal representation is a 1-dimensional uint8 cupy array
+                containing numeric values. If such a cupy array is given, and
                 the pauli string is mutable, the argument will be used directly
                 instead of being copied.
             coefficient: A complex number. Usually +1, -1, 1j, or -1j but other

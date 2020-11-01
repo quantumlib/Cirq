@@ -23,7 +23,7 @@ raised to a power (i.e. cirq.ISWAP**0.5). See the definition in EigenGate.
 
 from typing import Optional, Tuple, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import protocols, value

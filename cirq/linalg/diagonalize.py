@@ -16,7 +16,7 @@
 
 from typing import Tuple, Callable, List
 
-import numpy as np
+import cupy as np
 
 from cirq.linalg import combinators, predicates, tolerance
 

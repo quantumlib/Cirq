@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import (Any, Callable, List, Optional, Type, TypeVar, Union,
                     TYPE_CHECKING)
 
-import numpy as np
+import cupy as np
 
 from cirq import ops
 from cirq.google.api import v2

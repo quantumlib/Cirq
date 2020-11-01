@@ -15,7 +15,7 @@ from typing import (AbstractSet, Any, cast, Collection, Dict, List, Optional,
                     Sequence, Tuple, Union, TYPE_CHECKING)
 
 import itertools
-import numpy as np
+import cupy as np
 
 from cirq import protocols, qis, value
 from cirq.ops import raw_types, gate_operation, controlled_gate

@@ -25,7 +25,7 @@ import cmath
 import math
 from typing import AbstractSet, Any, Dict, Optional, Tuple
 
-import numpy as np
+import cupy as np
 
 import cirq
 from cirq import protocols, value

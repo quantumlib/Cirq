@@ -16,7 +16,7 @@
 from typing import (Dict, List, Optional, Tuple, TYPE_CHECKING, Sequence)
 
 import abc
-import numpy as np
+import cupy as np
 
 from cirq import linalg, ops, qis, value
 from cirq.sim import simulator
@@ -137,7 +137,7 @@ class StateVectorMixin():
         Any qubits not in the list that are present in self.state_vector() will
         be traced out. If qubits is None the full density matrix for
         self.state_vector() is returned, given self.state_vector() follows
-        standard Kronecker convention of numpy.kron.
+        standard Kronecker convention of cupy.kron.
 
         For example:
         self.state_vector() = np.array([1/np.sqrt(2), 1/np.sqrt(2)],
@@ -157,7 +157,7 @@ class StateVectorMixin():
                 be traced out.
 
         Returns:
-            A numpy array representing the density matrix.
+            A cupy array representing the density matrix.
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
@@ -175,13 +175,13 @@ class StateVectorMixin():
         Calculates the bloch vector of the given qubit
         in the state given by self.state_vector(), given that
         self.state_vector() follows the standard Kronecker convention of
-        numpy.kron.
+        cupy.kron.
 
         Args:
             qubit: qubit who's bloch vector we want to find.
 
         Returns:
-            A length 3 numpy array representing the qubit's bloch vector.
+            A length 3 cupy array representing the qubit's bloch vector.
 
         Raises:
             ValueError: if the size of the state represents more than 25 qubits.
@@ -229,7 +229,7 @@ def sample_state_vector(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as an cupy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of `state_vector`
@@ -254,7 +254,7 @@ def sample_state_vector(
     probs = _probs(state_vector, indices, shape)
 
     # We now have the probability vector, correctly ordered, so sample over
-    # it. Note that we us ints here, since numpy's choice does not allow for
+    # it. Note that we us ints here, since cupy's choice does not allow for
     # choosing from a list of tuples or list of lists.
     result = prng.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
@@ -304,9 +304,9 @@ def measure_state_vector(
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and an cupy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement state vector. This state vector has
+        cupy array is the post measurement state vector. This state vector has
         the same shape and dtype as the input `state_vector`.
 
     Raises:

@@ -16,7 +16,7 @@
 
 from typing import Tuple, Optional, Sequence, List, Union, TypeVar
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols
 from cirq.linalg import predicates
@@ -71,8 +71,8 @@ def match_global_phase(a: np.ndarray,
     the two matrices.
 
     Args:
-        a: A numpy array.
-        b: Another numpy array.
+        a: A cupy array.
+        b: Another cupy array.
 
     Returns:
         A tuple (a', b') where a' == b' implies a == b*exp(i t) for some t.
@@ -157,8 +157,8 @@ def targeted_left_multiply(left_matrix: np.ndarray,
                      right_target, data_indices,
                      output_indices,
                      # We would prefer to omit 'optimize=' (it's faster),
-                     # but this is a workaround for a bug in numpy:
-                     #     https://github.com/numpy/numpy/issues/10926
+                     # but this is a workaround for a bug in cupy:
+                     #     https://github.com/cupy/numpy/issues/10926
                      optimize=len(all_indices) >= 26,
                      # And this is workaround for *another* bug!
                      # Supposed to be able to just say 'old=old'.
@@ -227,7 +227,7 @@ def apply_matrix_to_slices(target: np.ndarray,
                            slices: Sequence[_TSlice],
                            *,
                            out: Optional[np.ndarray] = None) -> np.ndarray:
-    """Left-multiplies an NxN matrix onto N slices of a numpy array.
+    """Left-multiplies an NxN matrix onto N slices of a cupy array.
 
     Example:
         The 4x4 matrix of a fractional SWAP gate can be expressed as
@@ -258,7 +258,7 @@ def apply_matrix_to_slices(target: np.ndarray,
             that the matrix should operate on. May be integers or complicated
             multi-dimensional slices into a tensor. The slices must refer to
             non-overlapping sections of the input all with the same shape.
-        out: Where to write the output. If not specified, a new numpy array is
+        out: Where to write the output. If not specified, a new cupy array is
             created, with the same shape and dtype as the target, to store the
             output.
 

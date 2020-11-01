@@ -28,7 +28,7 @@ from typing import (AbstractSet, Any, Callable, cast, Dict, FrozenSet, Iterable,
                     Type, TYPE_CHECKING, TypeVar, Union)
 
 import html
-import numpy as np
+import cupy as np
 
 from cirq import devices, ops, protocols, qis
 from cirq.circuits._bucket_priority_queue import BucketPriorityQueue
@@ -1547,14 +1547,14 @@ class Circuit:
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
+            dtype: The cupy dtype for the returned unitary. Defaults to
                 np.complex128. Specifying np.complex64 will run faster at the
                 cost of precision. `dtype` must be a complex np.dtype, unless
                 all operations in the circuit have unitary matrices with
                 exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
-            A (possibly gigantic) 2d numpy array corresponding to a matrix
+            A (possibly gigantic) 2d cupy array corresponding to a matrix
             equivalent to the circuit's effect on a quantum state.
 
         Raises:
@@ -1615,9 +1615,9 @@ class Circuit:
                 When this is an int, it refers to a computational
                 basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
 
-                If this is a vector of amplitudes (a flat numpy array of the
+                If this is a vector of amplitudes (a flat cupy array of the
                 correct length for the system) or a tensor of amplitudes (a
-                numpy array whose shape equals this circuit's `qid_shape`), it
+                cupy array whose shape equals this circuit's `qid_shape`), it
                 directly specifies the initial state's amplitudes. The vector
                 type must be convertible to the given `dtype` argument.
             qubit_order: Determines how qubits are ordered when passing matrices
@@ -1628,14 +1628,14 @@ class Circuit:
             ignore_terminal_measurements: When set, measurements at the end of
                 the circuit are ignored instead of causing the method to
                 fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
+            dtype: The cupy dtype for the returned unitary. Defaults to
                 np.complex128. Specifying np.complex64 will run faster at the
                 cost of precision. `dtype` must be a complex np.dtype, unless
                 all operations in the circuit have unitary matrices with
                 exclusively real coefficients (e.g. an H + TOFFOLI circuit).
 
         Returns:
-            A (possibly gigantic) numpy array storing the superposition that
+            A (possibly gigantic) cupy array storing the superposition that
             came out of the circuit for the given input state.
 
         Raises:
@@ -2066,7 +2066,7 @@ def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
         qubits: The qubits in the state tensor. Determines which axes operations
             apply to. An operation targeting the k'th qubit in this list will
             operate on the k'th axis of the state tensor.
-        dtype: The numpy dtype to use for applying the unitary. Must be a
+        dtype: The cupy dtype to use for applying the unitary. Must be a
             complex dtype.
 
     Returns:

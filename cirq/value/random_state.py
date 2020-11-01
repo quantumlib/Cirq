@@ -14,7 +14,7 @@
 
 from typing import cast, Any
 
-import numpy as np
+import cupy as np
 
 from cirq._doc import document
 

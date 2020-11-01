@@ -16,7 +16,7 @@
 
 from typing import Optional, Callable, List, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, linalg, protocols, circuits
 from cirq.optimizers import decompositions

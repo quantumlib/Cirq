@@ -1,5 +1,5 @@
 import os
-import numpy as np
+import cupy as np
 import cirq
 from cirq.experiments import (collect_grid_parallel_two_qubit_xeb_data,
                               compute_grid_parallel_two_qubit_xeb_results)

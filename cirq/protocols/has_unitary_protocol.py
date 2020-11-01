@@ -18,7 +18,7 @@ from typing import (
     Optional,
 )
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import qis
@@ -73,7 +73,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
     3. Try to use `val._apply_unitary_(args)`.
         Case a) Method not present or returns `NotImplemented`.
             Inconclusive.
-        Case b) Method returns a numpy array.
+        Case b) Method returns a cupy array.
             Unitary.
         Case c) Method returns `None`.
             Not unitary.
@@ -81,7 +81,7 @@ def has_unitary(val: Any, *, allow_decompose: bool = True) -> bool:
     4. Try to use `val._unitary_()`.
         Case a) Method not present or returns `NotImplemented`.
             Continue to next strategy.
-        Case b) Method returns a numpy array.
+        Case b) Method returns a cupy array.
             Unitary.
         Case c) Method returns `None`.
             Not unitary.

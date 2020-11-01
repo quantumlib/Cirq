@@ -18,7 +18,7 @@ from typing import Any, Dict, Optional
 def assert_equivalent_repr(value: Any,
                            *,
                            setup_code: str = ('import cirq\n'
-                                              'import numpy as np\n'
+                                              'import cupy as np\n'
                                               'import sympy\n'
                                               'import pandas as pd\n'),
                            global_vals: Optional[Dict[str, Any]] = None,

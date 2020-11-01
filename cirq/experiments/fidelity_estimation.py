@@ -15,7 +15,7 @@
 
 from typing import Callable, List, Mapping, Optional, Sequence, Tuple, cast
 
-import numpy as np
+import cupy as np
 
 from cirq.circuits import Circuit
 from cirq.ops import QubitOrder, QubitOrderOrList

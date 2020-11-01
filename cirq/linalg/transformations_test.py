@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq
@@ -607,7 +607,7 @@ def test_partial_trace_of_state_vector_as_mixture_pure_result():
         cirq.partial_trace_of_state_vector_as_mixture(state, [5, 6, 7, 8],
                                                       atol=1e-8), ((1.0, c),))
 
-    # Return mixture will defer to numpy.linalg.eigh's builtin tolerance.
+    # Return mixture will defer to cupy.linalg.eigh's builtin tolerance.
     state = np.array([1, 0, 0, 1]) / np.sqrt(2)
     truth = ((0.5, np.array([1, 0])), (0.5, np.array([0, 1])))
     assert mixtures_equal(cirq.partial_trace_of_state_vector_as_mixture(

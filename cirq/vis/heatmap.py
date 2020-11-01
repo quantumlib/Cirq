@@ -20,7 +20,7 @@ an interactive session.
 from typing import (Any, Dict, List, Mapping, Optional, SupportsFloat, Tuple,
                     Union)
 
-import numpy as np
+import cupy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -49,7 +49,7 @@ def relative_luminance(color: np.ndarray) -> float:
     Spec: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance.
 
     Args:
-        color: a numpy array with the first 3 elements red, green, and blue
+        color: a cupy array with the first 3 elements red, green, and blue
             with values in [0, 1].
     Returns:
         relative luminance of color in [0, 1].

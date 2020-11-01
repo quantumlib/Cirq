@@ -13,7 +13,7 @@
 # limitations under the License.
 """Measures on and between quantum states and operations."""
 
-import numpy as np
+import cupy as np
 import scipy
 import scipy.stats
 

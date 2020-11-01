@@ -17,7 +17,7 @@ from collections import defaultdict
 import itertools
 import random
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import circuits, ops, linalg, protocols, qis

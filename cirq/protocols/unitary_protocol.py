@@ -19,7 +19,7 @@ from typing import (
     Optional,
 )
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq import qis
@@ -63,7 +63,7 @@ class SupportsUnitary(Protocol):
         with respect to the list of qubits that the gate is applied to. For
         operations, the matrix is ordered to match the list returned by its
         `qubits` attribute. The qubit-to-amplitude order mapping matches the
-        ordering of numpy.kron(A, B), where A is a qubit earlier in the list
+        ordering of cupy.kron(A, B), where A is a qubit earlier in the list
         than the qubit B.
 
         Returns:

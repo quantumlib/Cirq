@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-import numpy as np
+import cupy as np
 import cirq
 
 
@@ -54,7 +54,7 @@ def test_equal_up_to_global_numeric_iterables():
     assert not cirq.equal_up_to_global_phase((1j, 1), (1, 1j), atol=1e-09)
 
 
-def test_equal_up_to_global_numpy_array():
+def test_equal_up_to_global_cupy_array():
     assert cirq.equal_up_to_global_phase(np.asarray([1j, 1j]),
                                          np.asarray([1, 1], dtype=np.complex64))
     assert not cirq.equal_up_to_global_phase(

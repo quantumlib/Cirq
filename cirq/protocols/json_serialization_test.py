@@ -22,7 +22,7 @@ from typing import Tuple, Iterator, Type, List, Set, Any
 
 import pytest
 
-import numpy as np
+import cupy as np
 import pandas as pd
 import sympy
 
@@ -366,7 +366,7 @@ def test_builtins():
     })
 
 
-def test_numpy():
+def test_cupy():
     x = np.ones(1)[0]
 
     assert_json_roundtrip_works(x.astype(np.bool))

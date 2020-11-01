@@ -26,7 +26,7 @@ raised to a power (i.e. cirq.H**0.5). See the definition in EigenGate.
 """
 from typing import Any, cast, Collection, Optional, Sequence, Tuple, Union
 
-import numpy as np
+import cupy as np
 import sympy
 
 import cirq
@@ -751,7 +751,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """
 
     def _eigen_components(self):
-        s = np.sqrt(2)
+        s = np.float64(np.sqrt(2))
 
         component0 = np.array([
             [3 + 2 * s, 1 + s],

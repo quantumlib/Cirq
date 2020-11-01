@@ -13,7 +13,7 @@
 # limitations under the License.
 from typing import Iterable, cast
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 

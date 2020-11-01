@@ -13,7 +13,7 @@
 # limitations under the License.
 import re
 import os
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq

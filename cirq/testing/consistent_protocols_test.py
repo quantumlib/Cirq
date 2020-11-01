@@ -16,7 +16,7 @@ from typing import AbstractSet, Sequence, Union
 
 import pytest
 
-import numpy as np
+import cupy as np
 import sympy
 
 import cirq

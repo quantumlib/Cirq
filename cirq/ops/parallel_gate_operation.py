@@ -16,7 +16,7 @@
 from typing import (AbstractSet, Sequence, Tuple, Union, Any, Optional,
                     TYPE_CHECKING)
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols, value
 from cirq.ops import raw_types

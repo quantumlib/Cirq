@@ -16,7 +16,7 @@ from typing import (AbstractSet, Mapping, Optional, Tuple, Union, List,
                     FrozenSet, DefaultDict, TYPE_CHECKING)
 import numbers
 
-import numpy as np
+import cupy as np
 
 from cirq import linalg, protocols, qis, value
 from cirq._doc import document

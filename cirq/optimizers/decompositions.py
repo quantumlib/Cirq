@@ -17,7 +17,7 @@
 import math
 from typing import List, Optional, Tuple, cast
 
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import ops, linalg, protocols

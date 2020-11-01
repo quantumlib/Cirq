@@ -16,7 +16,7 @@ import itertools
 import math
 from typing import List, cast
 
-import numpy as np
+import cupy as np
 import pytest
 import sympy
 
@@ -548,7 +548,7 @@ def test_rpow():
     np.testing.assert_allclose(u, np.diag([-1, -1, -1, -1]), atol=1e-8)
 
 
-def test_numpy_ufunc():
+def test_cupy_ufunc():
     with pytest.raises(TypeError, match="returned NotImplemented"):
         _ = np.sin(cirq.PauliString())
     with pytest.raises(NotImplementedError, match="non-Hermitian"):

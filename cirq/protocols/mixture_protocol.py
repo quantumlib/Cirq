@@ -15,7 +15,7 @@
 import functools
 from typing import Any, Sequence, Tuple, Union
 
-import numpy as np
+import cupy as np
 from typing_extensions import Protocol
 
 from cirq._compat import deprecated
@@ -43,7 +43,7 @@ class SupportsMixture(Protocol):
 
         A mixture is described by an iterable of tuples of the form
 
-            (probability of unitary, unitary as numpy array)
+            (probability of unitary, unitary as cupy array)
 
         The probability components of the tuples must sum to 1.0 and be between
         0 and 1 (inclusive).
@@ -71,7 +71,7 @@ def mixture(val: Any, default: Any = RaiseTypeErrorIfNotProvided
 
     A mixture is described by an iterable of tuples of the form
 
-        (probability of unitary, unitary as numpy array)
+        (probability of unitary, unitary as cupy array)
 
     The probability components of the tuples must sum to 1.0 and be
     non-negative.

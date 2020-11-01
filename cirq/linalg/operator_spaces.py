@@ -16,7 +16,7 @@
 
 from typing import Dict, Tuple
 
-import numpy as np
+import cupy as np
 
 from cirq import value
 from cirq._doc import document

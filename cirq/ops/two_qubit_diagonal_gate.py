@@ -18,7 +18,7 @@ passed as a list.
 """
 
 from typing import AbstractSet, Any, Tuple, List, Optional, TYPE_CHECKING
-import numpy as np
+import cupy as np
 import sympy
 
 from cirq import protocols, value

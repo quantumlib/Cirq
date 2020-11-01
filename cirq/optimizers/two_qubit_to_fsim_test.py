@@ -2,7 +2,7 @@ import itertools
 import random
 from typing import Any
 
-import numpy as np
+import cupy as np
 import pytest
 
 import cirq

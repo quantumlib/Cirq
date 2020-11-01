@@ -16,7 +16,7 @@
 
 from typing import Optional, Tuple, Union, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq import protocols
 from cirq._compat import proper_repr

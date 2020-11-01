@@ -17,7 +17,7 @@ import abc
 import itertools
 from typing import Union, Iterable, List, Sequence, cast, TypeVar, TYPE_CHECKING
 
-import numpy as np
+import cupy as np
 
 from cirq.ops.raw_types import Operation
 

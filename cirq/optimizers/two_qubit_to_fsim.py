@@ -9,7 +9,7 @@ from typing import (
     Optional,
 )
 
-import numpy as np
+import cupy as np
 
 from cirq import ops, linalg, circuits, devices
 from cirq.optimizers import merge_single_qubit_gates, drop_empty_moments
@@ -52,7 +52,7 @@ def decompose_two_qubit_interaction_into_four_fsim_gates(
 
     Args:
         interaction: The two qubit operation to synthesize. This can either be
-            a cirq object (such as a gate, operation, or circuit) or a raw numpy
+            a cirq object (such as a gate, operation, or circuit) or a raw cupy
             array specifying the 4x4 unitary matrix.
         fsim_gate: The only two qubit gate that is permitted to appear in the
             output. Must satisfy 3/8π < phi < 5/8π and abs(theta) < pi/4.

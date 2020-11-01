@@ -15,7 +15,7 @@
 
 from typing import List, Optional, TYPE_CHECKING, Tuple
 
-import numpy as np
+import cupy as np
 
 from cirq import linalg, qis, value
 from cirq._compat import deprecated
@@ -63,7 +63,7 @@ def sample_density_matrix(
         Measurement results with True corresponding to the ``|1⟩`` state.
         The outer list is for repetitions, and the inner corresponds to
         measurements ordered by the supplied qubits. These lists
-        are wrapped as an numpy ndarray.
+        are wrapped as an cupy ndarray.
 
     Raises:
         ValueError: ``repetitions`` is less than one or size of ``matrix`` is
@@ -92,7 +92,7 @@ def sample_density_matrix(
     probs = _probs(density_matrix, indices, qid_shape)
 
     # We now have the probability vector, correctly ordered, so sample over
-    # it. Note that we us ints here, since numpy's choice does not allow for
+    # it. Note that we us ints here, since cupy's choice does not allow for
     # choosing from a list of tuples or list of lists.
     result = prng.choice(len(probs), size=repetitions, p=probs)
     # Convert to individual qudit measurements.
@@ -135,9 +135,9 @@ def measure_density_matrix(density_matrix: np.ndarray,
         seed: A seed for the pseudorandom number generator.
 
     Returns:
-        A tuple of a list and an numpy array. The list is an array of booleans
+        A tuple of a list and an cupy array. The list is an array of booleans
         corresponding to the measurement values (ordered by the indices). The
-        numpy array is the post measurement matrix. This matrix has the same
+        cupy array is the post measurement matrix. This matrix has the same
         shape and dtype as the input matrix.
 
     Raises:
