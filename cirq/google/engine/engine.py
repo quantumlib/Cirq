@@ -31,9 +31,8 @@ import string
 from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
                     Union, TYPE_CHECKING)
 
-from cirq.google.engine.client import quantum
 from google.protobuf import any_pb2
-
+from cirq.google.engine.client import quantum
 from cirq import circuits, study, value
 from cirq.google import serializable_gate_set as sgs
 from cirq.google.api import v2

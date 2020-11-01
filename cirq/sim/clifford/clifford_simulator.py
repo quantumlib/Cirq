@@ -37,12 +37,10 @@ from cirq.ops.global_phase_op import GlobalPhaseOperation
 
 import cirq
 from cirq import circuits, study, ops, protocols, value
-from cirq.ops import pauli_gates
 from cirq.ops.clifford_gate import SingleQubitCliffordGate
 from cirq.ops.dense_pauli_string import DensePauliString
-from cirq.protocols import unitary
-from cirq.sim import simulator
-from cirq.sim.clifford import clifford_tableau, stabilizer_state_ch_form
+from cirq.protocols import act_on, unitary
+from cirq.sim import clifford, simulator
 from cirq._compat import deprecated, deprecated_parameter
 
 
@@ -277,9 +275,8 @@ class CliffordState():
         self.qubit_map = qubit_map
         self.n = len(qubit_map)
 
-        self.tableau = clifford_tableau.CliffordTableau(self.n, initial_state)
-        self.ch_form = stabilizer_state_ch_form.StabilizerStateChForm(
-            self.n, initial_state)
+        self.tableau = clifford.CliffordTableau(self.n, initial_state)
+        self.ch_form = clifford.StabilizerStateChForm(self.n, initial_state)
 
     def _json_dict_(self):
         return {
@@ -336,94 +333,18 @@ class CliffordState():
         return self.state_vector()
 
     def apply_unitary(self, op: 'cirq.Operation'):
-        if len(op.qubits) == 1:
-            self.apply_single_qubit_unitary(op)
-        elif isinstance(op, GlobalPhaseOperation):
-            self.ch_form.omega *= op.coefficient
-        elif op.gate == cirq.CNOT:
-            self.tableau._CNOT(self.qubit_map[op.qubits[0]],
-                               self.qubit_map[op.qubits[1]])
-            self.ch_form._CNOT(self.qubit_map[op.qubits[0]],
-                               self.qubit_map[op.qubits[1]])
-        elif op.gate == cirq.CZ:
-            self.tableau._CZ(self.qubit_map[op.qubits[0]],
-                             self.qubit_map[op.qubits[1]])
-            self.ch_form._CZ(self.qubit_map[op.qubits[0]],
-                             self.qubit_map[op.qubits[1]])
-        else:
+        tableau_args = clifford.ActOnCliffordTableauArgs(
+            self.tableau, [self.qubit_map[i] for i in op.qubits],
+            np.random.RandomState(), {})
+        ch_form_args = clifford.ActOnStabilizerCHFormArgs(
+            self.ch_form, [self.qubit_map[i] for i in op.qubits])
+        try:
+            act_on(op, tableau_args)
+            act_on(op, ch_form_args)
+        except TypeError:
             raise ValueError('%s cannot be run with Clifford simulator.' %
                              str(op.gate))  # type: ignore
-
-    def apply_single_qubit_unitary(self, op: 'cirq.Operation'):
-        qubit = self.qubit_map[op.qubits[0]]
-        if op.gate == cirq.I:
-            return
-
-        if op.gate == cirq.X:
-            self._apply_X(qubit)
-            return
-
-        if op.gate == cirq.Y:
-            self._apply_Y(qubit)
-            return
-
-        if op.gate == cirq.Z:
-            self._apply_Z(qubit)
-            return
-
-        if op.gate == cirq.H:
-            self._apply_H(qubit)
-            return
-
-        u = unitary(op)
-        clifford_gate = SingleQubitCliffordGate.from_unitary(u)
-        if clifford_gate is None:
-            raise ValueError('%s cannot be run with Clifford simulator.' %
-                             str(op.gate))
-
-        h = unitary(ops.H)
-        s = unitary(ops.S)
-        applied_unitary = np.eye(2)
-        for axis, quarter_turns in clifford_gate.decompose_rotation():
-            for _ in range(quarter_turns % 4):
-                if axis == pauli_gates.X:
-                    self._apply_H(qubit)
-                    self._apply_S(qubit)
-                    self._apply_H(qubit)
-                    applied_unitary = h @ s @ h @ applied_unitary
-                elif axis == pauli_gates.Y:
-                    self._apply_S(qubit)
-                    self._apply_S(qubit)
-                    self._apply_H(qubit)
-                    applied_unitary = h @ s @ s @ applied_unitary
-                else:
-                    assert axis == pauli_gates.Z
-                    self._apply_S(qubit)
-                    applied_unitary = s @ applied_unitary
-
-        max_idx = max(np.ndindex(*u.shape), key=lambda t: abs(u[t]))
-        phase_shift = u[max_idx] / applied_unitary[max_idx]
-        self.ch_form.omega *= phase_shift
-
-    def _apply_H(self, qubit: int):
-        self.tableau._H(qubit)
-        self.ch_form._H(qubit)
-
-    def _apply_S(self, qubit: int):
-        self.tableau._S(qubit)
-        self.ch_form._S(qubit)
-
-    def _apply_X(self, qubit: int):
-        self.tableau._X(qubit)
-        self.ch_form._X(qubit)
-
-    def _apply_Z(self, qubit: int):
-        self.tableau._Z(qubit)
-        self.ch_form._Z(qubit)
-
-    def _apply_Y(self, qubit: int):
-        self.tableau._Y(qubit)
-        self.ch_form._Y(qubit)
+        return
 
     @deprecated_parameter(
         deadline='v0.10.0',
