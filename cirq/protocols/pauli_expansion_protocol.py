@@ -17,6 +17,7 @@ from typing import Any, TypeVar, Union
 from typing_extensions import Protocol
 
 from cirq import value
+from cirq._doc import doc_private
 from cirq.linalg import operator_spaces
 from cirq.protocols import qid_shape_protocol, unitary_protocol
 
@@ -29,6 +30,7 @@ RaiseTypeErrorIfNotProvided = (value.LinearDict({})
 class SupportsPauliExpansion(Protocol):
     """An object that knows its expansion in the Pauli basis."""
 
+    @doc_private
     def _pauli_expansion_(self) -> value.LinearDict[str]:
         """Efficiently obtains expansion of self in the Pauli basis.
 

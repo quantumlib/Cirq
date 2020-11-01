@@ -28,9 +28,9 @@ Documentation for the latest **unstable** version of cirq (tracks the repository
 Documentation for the latest **stable** version of cirq (what you get if you ``pip install cirq``) is available at `cirq.readthedocs.io/stable <https://cirq.readthedocs.io/en/stable/>`_.
 
 
-- `Installation <https://cirq.readthedocs.io/en/stable/install.html>`_
+- `Installation <https://cirq.readthedocs.io/en/stable/docs/install.html>`_
 - `Documentation <https://cirq.readthedocs.io>`_
-- `Tutorial <https://cirq.readthedocs.io/en/stable/tutorial.html>`_
+- `Tutorial <https://cirq.readthedocs.io/en/stable/docs/tutorials/basics.html>`_
 
 For the latest news regarding Cirq, sign up to the `Cirq-announce email list <https://groups.google.com/forum/#!forum/cirq-announce>`__!
 
@@ -83,20 +83,26 @@ For questions about how to use Cirq post to
 How to cite Cirq
 ----------------
 
-Cirq is uploaded to Zenodo automatically. Click on this badge [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg)](https://doi.org/10.5281/zenodo.4062499) to see all the citation formats for all versions.
+Cirq is uploaded to Zenodo automatically. Click on the badge below to see all the citation formats for all versions.
+
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.4062499.svg
+  :target: https://doi.org/10.5281/zenodo.4062499
+  :alt: DOI
 
 An equivalent BibTex format reference is below for all the versions:
 
-@software{quantum_ai_team_and_collaborators_2020_4062499,
-  author       = {Quantum AI team and collaborators},
-  title        = {Cirq},
-  month        = Oct,
-  year         = 2020,
-  publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.4062499},
-  url          = {https://doi.org/10.5281/zenodo.4062499}
-}
-```
+.. code-block::
+
+    @software{quantum_ai_team_and_collaborators_2020_4062499,
+      author       = {Quantum AI team and collaborators},
+      title        = {Cirq},
+      month        = Oct,
+      year         = 2020,
+      publisher    = {Zenodo},
+      doi          = {10.5281/zenodo.4062499},
+      url          = {https://doi.org/10.5281/zenodo.4062499}
+    }
+
 
 Cirq Contributors Community
 ---------------------------

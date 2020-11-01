@@ -16,11 +16,10 @@
 from typing import Any, TypeVar, Union
 
 import numpy as np
-
 from typing_extensions import Protocol
 
 from cirq import linalg, ops
-from cirq._doc import document
+from cirq._doc import doc_private
 from cirq.protocols import qid_shape_protocol, unitary_protocol
 from cirq.type_workarounds import NotImplementedType
 
@@ -36,7 +35,7 @@ TDefault = TypeVar('TDefault')
 class SupportsCommutes(Protocol):
     """An object that can determine commutation relationships vs others."""
 
-    @document
+    @doc_private
     def _commutes_(self, other: Any,
                    atol: float) -> Union[None, bool, NotImplementedType]:
         r"""Determines if this object commutes with the other object.

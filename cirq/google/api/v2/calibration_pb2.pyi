@@ -5,6 +5,7 @@ from cirq.google.api.v2.metrics_pb2 import (
 )
 
 from cirq.google.api.v2.program_pb2 import (
+    Arg as cirq___google___api___v2___program_pb2___Arg,
     Program as cirq___google___api___v2___program_pb2___Program,
 )
 
@@ -23,6 +24,8 @@ from google.protobuf.message import (
 from typing import (
     Iterable as typing___Iterable,
     List as typing___List,
+    Mapping as typing___Mapping,
+    MutableMapping as typing___MutableMapping,
     Optional as typing___Optional,
     Text as typing___Text,
     Tuple as typing___Tuple,
@@ -71,14 +74,39 @@ class FocusedCalibration(google___protobuf___message___Message):
         def ClearField(self, field_name: typing_extensions___Literal[b"layers"]) -> None: ...
 
 class CalibrationLayer(google___protobuf___message___Message):
+    class ArgsEntry(google___protobuf___message___Message):
+        key = ... # type: typing___Text
+
+        @property
+        def value(self) -> cirq___google___api___v2___program_pb2___Arg: ...
+
+        def __init__(self,
+            key : typing___Optional[typing___Text] = None,
+            value : typing___Optional[cirq___google___api___v2___program_pb2___Arg] = None,
+            ) -> None: ...
+        @classmethod
+        def FromString(cls, s: bytes) -> CalibrationLayer.ArgsEntry: ...
+        def MergeFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
+        def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
+        if sys.version_info >= (3,):
+            def HasField(self, field_name: typing_extensions___Literal[u"value"]) -> bool: ...
+            def ClearField(self, field_name: typing_extensions___Literal[u"key",u"value"]) -> None: ...
+        else:
+            def HasField(self, field_name: typing_extensions___Literal[u"value",b"value"]) -> bool: ...
+            def ClearField(self, field_name: typing_extensions___Literal[b"key",b"value"]) -> None: ...
+
     calibration_type = ... # type: typing___Text
 
     @property
     def layer(self) -> cirq___google___api___v2___program_pb2___Program: ...
 
+    @property
+    def args(self) -> typing___MutableMapping[typing___Text, cirq___google___api___v2___program_pb2___Arg]: ...
+
     def __init__(self,
         calibration_type : typing___Optional[typing___Text] = None,
         layer : typing___Optional[cirq___google___api___v2___program_pb2___Program] = None,
+        args : typing___Optional[typing___Mapping[typing___Text, cirq___google___api___v2___program_pb2___Arg]] = None,
         ) -> None: ...
     @classmethod
     def FromString(cls, s: bytes) -> CalibrationLayer: ...
@@ -86,10 +114,10 @@ class CalibrationLayer(google___protobuf___message___Message):
     def CopyFrom(self, other_msg: google___protobuf___message___Message) -> None: ...
     if sys.version_info >= (3,):
         def HasField(self, field_name: typing_extensions___Literal[u"layer"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[u"calibration_type",u"layer"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[u"args",u"calibration_type",u"layer"]) -> None: ...
     else:
         def HasField(self, field_name: typing_extensions___Literal[u"layer",b"layer"]) -> bool: ...
-        def ClearField(self, field_name: typing_extensions___Literal[b"calibration_type",b"layer"]) -> None: ...
+        def ClearField(self, field_name: typing_extensions___Literal[b"args",b"calibration_type",b"layer"]) -> None: ...
 
 class FocusedCalibrationResult(google___protobuf___message___Message):
 

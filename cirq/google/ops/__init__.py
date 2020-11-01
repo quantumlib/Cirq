@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from cirq.google.ops.calibration_tag import (
+    CalibrationTag,)
+
+from cirq.google.ops.physical_z_tag import (
+    PhysicalZTag,)
+
 from cirq.google.ops.sycamore_gate import (
     SycamoreGate,
     SYC,
 )
-
-from cirq.google.ops.physical_z_tag import (
-    PhysicalZTag,)

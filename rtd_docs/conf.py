@@ -132,8 +132,14 @@ def autodoc_process(app, what: str, name: str, obj: Any, options,
 
 
 def source_read(app, docname, source):
-    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"',
-                       r'"**\1**"', source[0])
+    source[0] = re.sub(r'"##### (Copyright 20\d\d The Cirq Developers)"', r'""',
+                       source[0])
+    source[0] = re.sub(
+        r'(\{\s*?"cell_type": "code".*?"#@title.*License.".*?\},)',
+        r'',
+        source[0],
+        flags=re.S)
+
     source[0] = re.sub(r'"<table.*tfo-notebook-buttons.*"</table>"',
                        r'""',
                        source[0],
@@ -200,7 +206,10 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    '_build', 'Thumbs.db', '.DS_Store', 'docs/citation.md',
+    'docs/tutorials/educators/*'
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'

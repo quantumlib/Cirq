@@ -20,7 +20,7 @@ from google.protobuf import json_format
 
 import cirq
 from cirq.google.arg_func_langs import (
-    _arg_from_proto,
+    arg_from_proto,
     _arg_to_proto,
     ARG_LIKE,
     LANGUAGE_ORDER,
@@ -96,9 +96,9 @@ def test_correspondence(min_lang: str, value: ARG_LIKE,
                                match='not supported by arg_function_language'):
                 _ = _arg_to_proto(value, arg_function_language=lang)
             with pytest.raises(ValueError, match='Unrecognized function type'):
-                _ = _arg_from_proto(msg, arg_function_language=lang)
+                _ = arg_from_proto(msg, arg_function_language=lang)
         else:
-            parsed = _arg_from_proto(msg, arg_function_language=lang)
+            parsed = arg_from_proto(msg, arg_function_language=lang)
             packed = json_format.MessageToDict(
                 _arg_to_proto(value, arg_function_language=lang),
                 including_default_value_fields=True,
@@ -116,7 +116,7 @@ def test_double_value():
     """
     msg = v2.program_pb2.Arg()
     msg.arg_value.double_value = 1.0
-    parsed = _arg_from_proto(msg, arg_function_language='')
+    parsed = arg_from_proto(msg, arg_function_language='')
     assert parsed == 1
 
 
@@ -138,7 +138,7 @@ def test_unsupported_function_language():
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
         _ = _arg_to_proto(1, arg_function_language='NEVER GONNAH APPEN')
     with pytest.raises(ValueError, match='Unrecognized arg_function_language'):
-        _ = _arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
+        _ = arg_from_proto(None, arg_function_language='NEVER GONNAH APPEN')
 
 
 @pytest.mark.parametrize('value,proto', [
