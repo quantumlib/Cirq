@@ -13,6 +13,7 @@
 # limitations under the License.
 import enum
 
+
 class ResultType(enum.Enum):
     """Expected type of the results from a engine job call.
 
