@@ -33,9 +33,11 @@ from typing import (Dict, Iterable, List, Optional, Sequence, Set, TypeVar,
 
 from google.protobuf import any_pb2
 from cirq.google.engine.client import quantum
+from cirq.google.engine.result_type import ResultType
 from cirq import circuits, study, value
 from cirq.google import serializable_gate_set as sgs
 from cirq.google.api import v2
+from cirq.google.arg_func_langs import arg_to_proto
 from cirq.google.engine import (engine_client, engine_program, engine_job,
                                 engine_processor, engine_sampler)
 
@@ -360,6 +362,65 @@ class Engine:
                                         description=job_description,
                                         labels=job_labels)
 
+    def run_calibration(
+            self,
+            layers: List['cirq.google.CalibrationLayer'],
+            program_id: Optional[str] = None,
+            job_id: Optional[str] = None,
+            processor_ids: Sequence[str] = (),
+            gate_set: Optional[sgs.SerializableGateSet] = None,
+            program_description: Optional[str] = None,
+            program_labels: Optional[Dict[str, str]] = None,
+            job_description: Optional[str] = None,
+            job_labels: Optional[Dict[str, str]] = None,
+    ) -> engine_job.EngineJob:
+        """Runs the supplied Circuits via Quantum Engine.Creates
+
+        This will combine each Circuit provided in `programs` into
+        a BatchProgram.  Each circuit will pair with the associated
+        parameter sweep provided in the `params_list`.  The number of
+        programs is required to match the number of sweeps.
+
+        This method does not block until a result is returned.  However,
+        no results will be available until the entire batch is complete.
+
+        Args:
+            programs: The Circuits to execute as a batch.
+            program_id: A user-provided identifier for the program. This must
+                be unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
+            job_id: Job identifier to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor.
+            program_description: An optional description to set on the program.
+            program_labels: Optional set of labels to set on the program.
+            job_description: An optional description to set on the job.
+            job_labels: Optional set of labels to set on the job.
+
+        Returns:
+            An EngineJob. If this is iterated over it returns a list of
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
+        """
+        if not processor_ids:
+            raise ValueError('Processor id must be specified.')
+        engine_program = self.create_calibration_program(
+            layers, program_id, gate_set, program_description, program_labels)
+        return engine_program.run_calibration(job_id=job_id,
+                                              processor_ids=processor_ids,
+                                              description=job_description,
+                                              labels=job_labels)
+
     def create_program(
             self,
             program: 'cirq.Circuit',
@@ -446,7 +507,58 @@ class Engine:
                                             new_program_id,
                                             self.context,
                                             new_program,
-                                            batch_mode=True)
+                                            result_type=ResultType.Batch)
+
+    def create_calibration_program(
+            self,
+            layers: List['cirq.google.CalibrationLayer'],
+            program_id: Optional[str] = None,
+            gate_set: Optional[sgs.SerializableGateSet] = None,
+            description: Optional[str] = None,
+            labels: Optional[Dict[str, str]] = None,
+    ) -> engine_program.EngineProgram:
+        """Wraps a list of Circuits into a BatchProgram for the Quantum Engine.
+
+        Args:
+            programs: The Circuits to execute within a batch.
+            program_id: A user-provided identifier for the program. This must be
+                unique within the Google Cloud project being used. If this
+                parameter is not provided, a random id of the format
+                'prog-################YYMMDD' will be generated, where # is
+                alphanumeric and YYMMDD is the current year, month, and day.
+            gate_set: The gate set used to serialize the circuit. The gate set
+                must be supported by the selected processor
+            description: An optional description to set on the program.
+            labels: Optional set of labels to set on the program.
+
+        Returns:
+            A EngineProgram for the newly created program.
+        """
+        if not gate_set:
+            raise ValueError('Gate set must be specified.')
+        if not program_id:
+            program_id = _make_random_id('calibration-')
+
+        calibration = v2.calibration_pb2.FocusedCalibration()
+        for layer in layers:
+            new_layer = calibration.layers.add()
+            new_layer.calibration_type = layer.calibration_type
+            for arg in layer.args:
+                arg_to_proto(layer.args[arg], out=new_layer.args[arg])
+            gate_set.serialize(layer.program, msg=new_layer.layer)
+
+        new_program_id, new_program = self.context.client.create_program(
+            self.project_id,
+            program_id,
+            code=self._pack_any(calibration),
+            description=description,
+            labels=labels)
+
+        return engine_program.EngineProgram(self.project_id,
+                                            new_program_id,
+                                            self.context,
+                                            new_program,
+                                            result_type=ResultType.Calibration)
 
     def _serialize_program(self, program: 'cirq.Circuit',
                            gate_set: sgs.SerializableGateSet) -> any_pb2.Any:

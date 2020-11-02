@@ -13,12 +13,12 @@
 # limitations under the License.
 
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, \
-    Union
+from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, Union
 
 from cirq import study
 from cirq.google.engine.client import quantum
 from cirq.google.engine.client.quantum import types as qtypes
+from cirq.google.engine.result_type import ResultType
 from cirq.google import gate_sets
 from cirq.google.api import v2
 from cirq.google.engine import engine_job
@@ -44,7 +44,7 @@ class EngineProgram:
                  program_id: str,
                  context: 'engine_base.EngineContext',
                  _program: Optional[qtypes.QuantumProgram] = None,
-                 batch_mode: bool = False) -> None:
+                 result_type: ResultType = ResultType.Program) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -52,13 +52,13 @@ class EngineProgram:
             program_id: Unique ID of the program within the parent project.
             context: Engine configuration and context to use.
             _program: The optional current program state.
-            batch_mode: Whether the program was created using a BatchProgram.
+            result_type: Whether the program was created using a BatchProgram.
         """
         self.project_id = project_id
         self.program_id = program_id
         self.context = context
         self._program = _program
-        self.batch_mode = batch_mode
+        self.result_type = result_type
 
     def run_sweep(
             self,
@@ -92,7 +92,7 @@ class EngineProgram:
             TrialResults, one for each parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
-        if self.batch_mode:
+        if self.result_type != ResultType.Program:
             raise ValueError('Please use run_batch() for batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
@@ -150,7 +150,7 @@ class EngineProgram:
             parameter sweep.
         """
         import cirq.google.engine.engine as engine_base
-        if not self.batch_mode:
+        if self.result_type != ResultType.Batch:
             raise ValueError('Can only use run_batch() in batch mode.')
         if not job_id:
             job_id = engine_base._make_random_id('job-')
@@ -184,7 +184,65 @@ class EngineProgram:
                                     created_job_id,
                                     self.context,
                                     job,
-                                    batch_mode=True)
+                                    result_type=ResultType.Batch)
+
+    def run_calibration(
+            self,
+            job_id: Optional[str] = None,
+            processor_ids: Sequence[str] = (),
+            description: Optional[str] = None,
+            labels: Optional[Dict[str, str]] = None,
+    ) -> engine_job.EngineJob:
+        """Runs a batch of circuits on the QuantumEngine.
+
+        This method should only be used if the Program object was created
+        with a BatchProgram.  The number of parameter sweeps should match
+        the number of circuits within that BatchProgram.
+
+        This method does not block until a result is returned.  However,
+        no results will be available until the entire batch is complete.
+
+        Args:
+            job_id: Optional job id to use. If this is not provided, a random id
+                of the format 'job-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            processor_ids: The engine processors that should be candidates
+                to run the program. Only one of these will be scheduled for
+                execution.
+            description: An optional description to set on the job.
+            labels: Optional set of labels to set on the job.
+
+        Returns:
+            An EngineJob. If this is iterated over it returns a list of
+            TrialResults. All TrialResults for the first circuit are listed
+            first, then the TrialResults for the second, etc. The TrialResults
+            for a circuit are listed in the order imposed by the associated
+            parameter sweep.
+        """
+        import cirq.google.engine.engine as engine_base
+        if not job_id:
+            job_id = engine_base._make_random_id('job-')
+        if not processor_ids:
+            raise ValueError('No processors specified')
+
+        # Default run context
+        any_context = qtypes.any_pb2.Any()
+        any_context.Pack(v2.run_context_pb2.RunContext())
+        created_job_id, job = self.context.client.create_job(
+            project_id=self.project_id,
+            program_id=self.program_id,
+            job_id=job_id,
+            processor_ids=processor_ids,
+            run_context=any_context,
+            description=description,
+            labels=labels)
+        return engine_job.EngineJob(self.project_id,
+                                    self.program_id,
+                                    created_job_id,
+                                    self.context,
+                                    job,
+                                    result_type=ResultType.Batch)
 
     def run(
             self,

@@ -21,8 +21,9 @@ from google.protobuf.text_format import Merge
 import cirq
 import cirq.google as cg
 from cirq.google.api import v1, v2
-from cirq.google.engine.engine import EngineContext
 from cirq.google.engine.client.quantum_v1alpha1 import types as qtypes
+from cirq.google.engine.engine import EngineContext
+from cirq.google.engine.result_type import ResultType
 
 
 def _to_any(proto):
@@ -49,7 +50,7 @@ def test_run_batch_delegation(create_job):
     program = cg.EngineProgram('my-meow',
                                'my-meow',
                                EngineContext(),
-                               batch_mode=True)
+                               result_type=ResultType.Batch)
     resolver_list = [
         cirq.Points('cats', [1.0, 2.0, 3.0]),
         cirq.Points('cats', [4.0, 5.0, 6.0])
@@ -61,11 +62,33 @@ def test_run_batch_delegation(create_job):
     assert job._job == qtypes.QuantumJob()
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+def test_run_calibration_delegation(create_job):
+    create_job.return_value = ('dogs', qtypes.QuantumJob())
+    program = cg.EngineProgram('woof',
+                               'woof',
+                               EngineContext(),
+                               result_type=ResultType.Calibration)
+    job = program.run_calibration(processor_ids=['lazydog'])
+    assert job._job == qtypes.QuantumJob()
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+def test_run_calibration_no_processors(create_job):
+    create_job.return_value = ('dogs', qtypes.QuantumJob())
+    program = cg.EngineProgram('woof',
+                               'woof',
+                               EngineContext(),
+                               result_type=ResultType.Calibration)
+    with pytest.raises(ValueError, match='No processors specified'):
+        _ = program.run_calibration(job_id='spot')
+
+
 def test_run_batch_no_sweeps():
     program = cg.EngineProgram('no-meow',
                                'no-meow',
                                EngineContext(),
-                               batch_mode=True)
+                               result_type=ResultType.Batch)
     with pytest.raises(ValueError, match='No parameter list specified'):
         _ = program.run_batch(repetitions=1, processor_ids=['lazykitty'])
 
@@ -74,7 +97,7 @@ def test_run_batch_no_processors():
     program = cg.EngineProgram('no-meow',
                                'no-meow',
                                EngineContext(),
-                               batch_mode=True)
+                               result_type=ResultType.Batch)
     resolver_list = [
         cirq.Points('cats', [1.0, 2.0]),
         cirq.Points('cats', [3.0, 4.0])
@@ -99,7 +122,7 @@ def test_run__in_batch_mode():
     program = cg.EngineProgram('no-meow',
                                'no-meow',
                                EngineContext(),
-                               batch_mode=True)
+                               result_type=ResultType.Batch)
     with pytest.raises(ValueError, match='Please use run_batch'):
         _ = program.run_sweep(repetitions=1,
                               processor_ids=['lazykitty'],

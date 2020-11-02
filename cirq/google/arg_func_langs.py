@@ -85,11 +85,11 @@ def _function_languages_from_arg(arg_proto: v2.program_pb2.Arg
                 yield from _function_languages_from_arg(a)
 
 
-def _arg_to_proto(value: ARG_LIKE,
-                  *,
-                  arg_function_language: Optional[str],
-                  out: Optional[v2.program_pb2.Arg] = None
-                 ) -> v2.program_pb2.Arg:
+def arg_to_proto(value: ARG_LIKE,
+                 *,
+                 arg_function_language: Optional[str] = None,
+                 out: Optional[v2.program_pb2.Arg] = None
+                ) -> v2.program_pb2.Arg:
     """Writes an argument value into an Arg proto.
 
     Args:
@@ -133,21 +133,21 @@ def _arg_to_proto(value: ARG_LIKE,
     elif isinstance(value, sympy.Add):
         msg.func.type = check_support('add')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     elif isinstance(value, sympy.Mul):
         msg.func.type = check_support('mul')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     elif isinstance(value, sympy.Pow):
         msg.func.type = check_support('pow')
         for arg in value.args:
-            _arg_to_proto(arg,
-                          arg_function_language=arg_function_language,
-                          out=msg.func.args.add())
+            arg_to_proto(arg,
+                         arg_function_language=arg_function_language,
+                         out=msg.func.args.add())
     else:
         raise ValueError(f'Unrecognized arg type: {type(value)}')
 
