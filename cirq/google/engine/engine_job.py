@@ -299,7 +299,7 @@ class EngineJob:
         return response.result
 
     def results(self) -> List[study.Result]:
-        """Returns the job res100ults, blocking until the job is complete.
+        """Returns the job results, blocking until the job is complete.
         """
         import cirq.google.engine.engine as engine_base
         if not self._results:

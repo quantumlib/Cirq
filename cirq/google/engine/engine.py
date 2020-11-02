@@ -374,25 +374,28 @@ class Engine:
             job_description: Optional[str] = None,
             job_labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs the supplied Circuits via Quantum Engine.Creates
+        """Runs the specified calibrations via the Calibration API.
 
-        This will combine each Circuit provided in `programs` into
-        a BatchProgram.  Each circuit will pair with the associated
-        parameter sweep provided in the `params_list`.  The number of
-        programs is required to match the number of sweeps.
+        Each calibration will be specified by a `CalibrationLayer`
+        that contains the type of the calibrations to run, a `Circuit`
+        to optimize, and any arguments needed by the calibration routine.
 
-        This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
+        Arguments and circuits needed for each layer will vary based on the
+        calibration type.  However, the typical calibration routine may
+        require a single moment defining the gates to optimize, for example.
+
+        Note: this is an experimental API and is not yet fully supported
+        for all users.
 
         Args:
-            programs: The Circuits to execute as a batch.
+            layers: The layers of calibration to execute as a batch.
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
+                'calibration-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
             job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
+                of the format 'calibration-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
             processor_ids: The engine processors that should be candidates
@@ -406,11 +409,8 @@ class Engine:
             job_labels: Optional set of labels to set on the job.
 
         Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
+            An EngineJob whose results can be retrieved by calling
+            calibration_results().
         """
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
@@ -524,7 +524,7 @@ class Engine:
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'prog-################YYMMDD' will be generated, where # is
+                'calibration-################YYMMDD' will be generated, where # is
                 alphanumeric and YYMMDD is the current year, month, and day.
             gate_set: The gate set used to serialize the circuit. The gate set
                 must be supported by the selected processor

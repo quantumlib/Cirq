@@ -204,9 +204,9 @@ class EngineProgram:
 
         Args:
             job_id: Optional job id to use. If this is not provided, a random id
-                of the format 'job-################YYMMDD' will be generated,
-                where # is alphanumeric and YYMMDD is the current year, month,
-                and day.
+                of the format 'calibration-################YYMMDD' will be
+                generated, where # is alphanumeric and YYMMDD is the current
+                year, month, and day.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
@@ -222,7 +222,7 @@ class EngineProgram:
         """
         import cirq.google.engine.engine as engine_base
         if not job_id:
-            job_id = engine_base._make_random_id('job-')
+            job_id = engine_base._make_random_id('calibration-')
         if not processor_ids:
             raise ValueError('No processors specified')
 
