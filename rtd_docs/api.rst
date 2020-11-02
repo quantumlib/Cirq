@@ -622,6 +622,7 @@ operation.
     .. autofunction:: cirq.testing.random_circuit
     cirq.testing.random_density_matrix
     cirq.testing.random_orthogonal
+    cirq.testing.random_two_qubit_circuit_with_czs
     cirq.testing.random_special_orthogonal
     cirq.testing.random_special_unitary
     cirq.testing.random_superposition
