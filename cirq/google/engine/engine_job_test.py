@@ -444,9 +444,9 @@ results: [{
     code: ERROR_CALIBRATION_FAILED
     error_message: 'uh oh'
     token: 'abc'
-    valid_until_ms: 12345000
+    valid_until_ms: 1234567891000
     metrics: {
-        timestamp_ms: 12344000,
+        timestamp_ms: 1234567890000,
         metrics: [{
             name: 'theta',
             targets: ['0_0', '0_1'],
@@ -547,7 +547,7 @@ def test_calibration_results(get_job_results):
     assert data[0].code == v2.calibration_pb2.ERROR_CALIBRATION_FAILED
     assert data[0].error_message == 'uh oh'
     assert data[0].token == 'abc'
-    assert data[0].valid_until.timestamp() == 12345
+    assert data[0].valid_until.timestamp() == 1234567891
     assert len(data[0].metrics)
     assert data[0].metrics['theta'] == {
         (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999]
