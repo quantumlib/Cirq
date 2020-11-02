@@ -13,11 +13,15 @@
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
 
-from typing import TYPE_CHECKING, Callable, Sequence, Tuple
+from typing import (TYPE_CHECKING, AbstractSet, Callable, FrozenSet, Iterator,
+                    Optional, Sequence, Tuple, Union)
+
+import numpy as np
 
 from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
+from cirq.type_workarounds import NotImplementedType
 
 if TYPE_CHECKING:
     import cirq
@@ -40,14 +44,14 @@ class FrozenCircuit(AbstractCircuit):
         self._device = base.device
 
         # These variables are memoized when first requested.
-        self._num_qubits = None
-        self._qid_shape = None
-        self._all_qubits = None
-        self._all_operations = None
-        self._unitary = None
-        self._has_measurements = None
-        self._all_measurement_keys = None
-        self._are_all_measurements_terminal = None
+        self._num_qubits: Optional[int] = None
+        self._unitary: Optional[Union[np.ndarray, NotImplementedType]] = None
+        self._qid_shape: Optional[Tuple[int, ...]] = None
+        self._all_qubits: Optional[FrozenSet['cirq.Qid']] = None
+        self._all_operations: Optional[Tuple[ops.Operation, ...]] = None
+        self._has_measurements: Optional[bool] = None
+        self._all_measurement_keys: Optional[AbstractSet[str]] = None
+        self._are_all_measurements_terminal: Optional[bool] = None
 
     @property
     def moments(self) -> Sequence['cirq.Moment']:
@@ -62,42 +66,42 @@ class FrozenCircuit(AbstractCircuit):
 
     # Memoized methods for commonly-retrieved properties.
 
-    def _num_qubits_(self):
+    def _num_qubits_(self) -> int:
         if self._num_qubits is None:
             self._num_qubits = len(self.all_qubits())
         return self._num_qubits
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         if self._qid_shape is None:
             self._qid_shape = super()._qid_shape_()
         return self._qid_shape
 
-    def _unitary_(self):
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
         if self._unitary is None:
             self._unitary = super()._unitary_()
         return self._unitary
 
-    def all_qubits(self):
+    def all_qubits(self) -> FrozenSet['cirq.Qid']:
         if self._all_qubits is None:
             self._all_qubits = super().all_qubits()
         return self._all_qubits
 
-    def all_operations(self):
+    def all_operations(self) -> Iterator[ops.Operation]:
         if self._all_operations is None:
             self._all_operations = tuple(super().all_operations())
-        return self._all_operations
+        return iter(self._all_operations)
 
-    def has_measurements(self):
+    def has_measurements(self) -> bool:
         if self._has_measurements is None:
             self._has_measurements = super().has_measurements()
         return self._has_measurements
 
-    def all_measurement_keys(self):
+    def all_measurement_keys(self) -> AbstractSet[str]:
         if self._all_measurement_keys is None:
             self._all_measurement_keys = super().all_measurement_keys()
         return self._all_measurement_keys
 
-    def are_all_measurements_terminal(self):
+    def are_all_measurements_terminal(self) -> bool:
         if self._are_all_measurements_terminal is None:
             self._are_all_measurements_terminal = super(
             ).are_all_measurements_terminal()
@@ -105,20 +109,20 @@ class FrozenCircuit(AbstractCircuit):
 
     # End of memoized methods.
 
-    def __add__(self, other):
+    def __add__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() + other).freeze()
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> 'FrozenCircuit':
         return (other + self.unfreeze()).freeze()
 
     # TODO: handle multiplication / powers differently?
-    def __mul__(self, other):
+    def __mul__(self, other) -> 'FrozenCircuit':
         return (self.unfreeze() * other).freeze()
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> 'FrozenCircuit':
         return (other * self.unfreeze()).freeze()
 
-    def __pow__(self, other):
+    def __pow__(self, other) -> 'FrozenCircuit':
         try:
             return (self.unfreeze()**other).freeze()
         except:
@@ -157,10 +161,8 @@ class FrozenCircuit(AbstractCircuit):
             new_device: 'cirq.Device',
             qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
     ) -> 'FrozenCircuit':
-        return FrozenCircuit.freeze(self.unfreeze().with_device(
-            new_device, qubit_mapping))
+        return self.unfreeze().with_device(new_device, qubit_mapping).freeze()
 
     def _resolve_parameters_(self, param_resolver: 'cirq.ParamResolver'
                             ) -> 'FrozenCircuit':
-        return FrozenCircuit.freeze(
-            self.unfreeze()._resolve_parameters_(param_resolver))
+        return self.unfreeze()._resolve_parameters_(param_resolver).freeze()
