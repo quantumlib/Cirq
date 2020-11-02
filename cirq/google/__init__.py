@@ -14,6 +14,9 @@
 
 from cirq.google import api
 
+from cirq.google.arg_func_langs import (
+    arg_from_proto,)
+
 from cirq.google.devices import (
     Bristlecone,
     Foxtail,
