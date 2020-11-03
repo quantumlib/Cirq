@@ -392,12 +392,13 @@ class Engine:
             program_id: A user-provided identifier for the program. This must
                 be unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            job_id: Job identifier to use. If this is not provided, a random id
-                of the format 'calibration-################YYMMDD' will be generated,
+                'calibration-################YYMMDD' will be generated,
                 where # is alphanumeric and YYMMDD is the current year, month,
                 and day.
+            job_id: Job identifier to use. If this is not provided, a random id
+                of the format 'calibration-################YYMMDD' will be
+                generated, where # is alphanumeric and YYMMDD is the current
+                year, month, and day.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
@@ -517,17 +518,18 @@ class Engine:
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> engine_program.EngineProgram:
-        """Wraps a list of Circuits into a BatchProgram for the Quantum Engine.
+        """Wraps a list of calibration layers into an Any for Quantum Engine.
 
         Args:
-            programs: The Circuits to execute within a batch.
+            layers: The calibration routines to execute within a batch.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
-                'calibration-################YYMMDD' will be generated, where # is
-                alphanumeric and YYMMDD is the current year, month, and day.
-            gate_set: The gate set used to serialize the circuit. The gate set
-                must be supported by the selected processor
+                'calibration-################YYMMDD' will be generated,
+                where # is alphanumeric and YYMMDD is the current year, month,
+                and day.
+            gate_set: The gate set used to serialize the circuits in each
+                layer.  The gate set must be supported by the processor.
             description: An optional description to set on the program.
             labels: Optional set of labels to set on the program.
 

@@ -31,4 +31,3 @@ class CalibrationResult:
     token: str
     valid_until: datetime.datetime
     metrics: 'cirq.google.Calibration'
-

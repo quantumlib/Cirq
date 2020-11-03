@@ -193,14 +193,13 @@ class EngineProgram:
             description: Optional[str] = None,
             labels: Optional[Dict[str, str]] = None,
     ) -> engine_job.EngineJob:
-        """Runs a batch of circuits on the QuantumEngine.
+        """Runs layers of calibration routines on the Quantum Engine.
 
         This method should only be used if the Program object was created
-        with a BatchProgram.  The number of parameter sweeps should match
-        the number of circuits within that BatchProgram.
+        with a `FocusedCalibration`.
 
         This method does not block until a result is returned.  However,
-        no results will be available until the entire batch is complete.
+        no results will be available until all calibration routines complete.
 
         Args:
             job_id: Optional job id to use. If this is not provided, a random id
@@ -214,11 +213,7 @@ class EngineProgram:
             labels: Optional set of labels to set on the job.
 
         Returns:
-            An EngineJob. If this is iterated over it returns a list of
-            TrialResults. All TrialResults for the first circuit are listed
-            first, then the TrialResults for the second, etc. The TrialResults
-            for a circuit are listed in the order imposed by the associated
-            parameter sweep.
+            An EngineJob.  Results can be accessed with calibration_results().
         """
         import cirq.google.engine.engine as engine_base
         if not job_id:
