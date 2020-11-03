@@ -1,4 +1,5 @@
 [MASTER]
+load-plugins=pylint.extensions.docparams,pylint.extensions.docstyle
 max-line-length=80
 disable=all
 ignore-patterns=.*_pb2\.py,quantum_engine_service_client.py,engine_pb2_grpc.py
@@ -64,3 +65,4 @@ ignore-long-lines=^(.*#\w*pylint: disable.*|\s*(# )?<?https?://\S+>?)$
 # system, and so shouldn't trigger E1101 when accessed. Python regular
 # expressions are accepted.
 generated-members=numpy.*
+
