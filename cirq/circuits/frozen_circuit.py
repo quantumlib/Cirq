@@ -134,9 +134,7 @@ class FrozenCircuit(AbstractCircuit):
             sliced_circuit = FrozenCircuit(device=self.device)
             sliced_circuit._moments = tuple(self._moments[key])
             return sliced_circuit
-        if isinstance(key, tuple):
-            if len(key) != 2:
-                raise ValueError('If key is tuple, it must be a pair.')
+        if isinstance(key, tuple) and len(key) == 2:
             moment_idx, qubit_idx = key
             # qubit_idx - Qid or Iterable[Qid].
             selected_moments = self._moments[moment_idx]
