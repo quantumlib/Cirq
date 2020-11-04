@@ -25,7 +25,8 @@ class Projector(raw_types.Gate):
 
     def __init__(self,
                  projection_basis: Union[List[List[float]], np.ndarray],
-                 qid_shape: Tuple[int, ...] = (2,)):
+                 qid_shape: Tuple[int, ...] = (2,),
+                 enfore_orthogonal_basis = False):
         """
         Args:
             projection_basis: a (2**num_qubits, p) matrix that lists the
@@ -34,6 +35,8 @@ class Projector(raw_types.Gate):
                 p = 1.
             qid_shape: Specifies the dimension of the projection. The default is
                 2 (qubit).
+            enfore_orthogonal_basis: Whether to enfore the input basis to be
+                orthogonal.
 
         Raises:
             ValueError: If the basis vector is empty.
@@ -42,6 +45,11 @@ class Projector(raw_types.Gate):
 
         if len(projection_array.shape) != 2:
             raise ValueError('The input projection_basis must be a 2D array')
+
+        if enfore_orthogonal_basis:
+            B = projection_array @ np.transpose(np.conjugate(projection_array))
+            if not np.allclose(B, np.eye(projection_array.shape[0])):
+                raise ValueError('The basis must be orthogonal')
 
         if np.prod(qid_shape) != projection_array.shape[1]:
             raise ValueError(

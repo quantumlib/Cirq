@@ -44,6 +44,14 @@ def test_projector_overcomplete_basis():
         cirq.channel(overcomplete_projector)
 
 
+def test_projector_non_orthogonal_basis():
+    cirq.Projector([[1.0, 0.0]], enfore_orthogonal_basis=True)
+    cirq.Projector([[1.0, 0.0], [0.0, 1.0]], enfore_orthogonal_basis=True)
+
+    with pytest.raises(ValueError, match="The basis must be orthogonal"):
+        cirq.Projector([[1.0, 0.0], [1.0, 1.0]], enfore_orthogonal_basis=True)
+
+
 def test_projector_dim2_qubit():
     dim2_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0]])
     not_colinear_projector = cirq.Projector([[1.0, 0.0], [1.0, 1.0]])
