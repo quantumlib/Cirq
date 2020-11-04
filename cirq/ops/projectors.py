@@ -11,7 +11,17 @@ if TYPE_CHECKING:
 
 @value.value_equality
 class Projector(raw_types.Gate):
-    """A non-unitary gate that projects onto one or more qubits."""
+    """A non-unitary gate that projects onto one or more qubits.
+
+    The input is a matrix representing the basis of the space we project onto.
+    The basis vectors need not be orthogonal, but they must be independent (i.e.
+    the matrix has full rank).
+
+    For example, if you want to project on |0>, you would provide the basis
+    [[1, 0]]. To project onto |10>, you would provide the basis [[0, 0, 1, 0]].
+    If you want to project on the space spanned by |10> and |11>, you could
+    provide the basis [[0, 0, 1, 0], [0, 0, 1, 0]].
+    """
 
     def __init__(self,
                  projection_basis: Union[List[List[float]], np.ndarray],
@@ -19,7 +29,9 @@ class Projector(raw_types.Gate):
         """
         Args:
             projection_basis: a (2**num_qubits, p) matrix that lists the
-                projection vectors.
+                projection vectors, where p is the dimension of the subspace
+                we're projecting on. If you project onto a single vector, then
+                p = 1.
             qid_shape: Specifies the dimension of the projection. The default is
                 2 (qubit).
 
@@ -53,7 +65,7 @@ class Projector(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         A = self._projection_basis
         AH = np.transpose(np.conjugate(A))
-        result = np.matmul(np.matmul(AH, np.linalg.inv(np.matmul(A, AH))), A)
+        result = AH @ np.linalg.inv(A @ AH) @ A
         return (result,)
 
     def _has_channel_(self) -> bool:
