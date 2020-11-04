@@ -454,3 +454,69 @@ def test_defaults_not_serialized():
         }]
     })
     assert with_default == serializer.to_proto(GateWithAttribute(1.0)(q))
+
+
+def test_token_serialization():
+    serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             op_getter='val')
+                                     ])
+    q = cirq.GridQubit(1, 2)
+    tag = cg.CalibrationTag('my_token')
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'token_value': 'my_token'
+    })
+    assert expected == serializer.to_proto(
+        GateWithAttribute(0.125)(q).with_tags(tag))
+
+
+def test_token_serialization_with_constant_reference():
+    serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             op_getter='val')
+                                     ])
+    q = cirq.GridQubit(1, 2)
+    tag = cg.CalibrationTag('my_token')
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'constant_index': 0
+    })
+    constants = []
+    assert expected == serializer.to_proto(
+        GateWithAttribute(0.125)(q).with_tags(tag), constants=constants)
+    constant = v2.program_pb2.Constant()
+    constant.string_value = 'my_token'
+    assert constants == [constant]

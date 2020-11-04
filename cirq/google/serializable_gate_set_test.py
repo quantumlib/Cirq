@@ -240,6 +240,56 @@ def test_serialize_deserialize_op():
         exponent=0.125)(q0)
 
 
+def test_serialize_deserialize_op_with_token():
+    q0 = cirq.GridQubit(1, 1)
+    proto = op_proto({
+        'gate': {
+            'id': 'x_pow'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }],
+        'token_value': 'abc123'
+    })
+    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(
+        cg.CalibrationTag('abc123'))
+    assert proto == MY_GATE_SET.serialize_op(op)
+    assert MY_GATE_SET.deserialize_op(proto) == op
+
+
+def test_serialize_deserialize_op_with_constants():
+    q0 = cirq.GridQubit(1, 1)
+    proto = op_proto({
+        'gate': {
+            'id': 'x_pow'
+        },
+        'args': {
+            'half_turns': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            },
+        },
+        'qubits': [{
+            'id': '1_1'
+        }],
+        'constant_index': 0
+    })
+    op = cirq.XPowGate(exponent=0.125)(q0).with_tags(
+        cg.CalibrationTag('abc123'))
+    assert proto == MY_GATE_SET.serialize_op(op, constants=[])
+    constant = v2.program_pb2.Constant()
+    constant.string_value = 'abc123'
+    assert MY_GATE_SET.deserialize_op(proto, constants=[constant]) == op
+
+
 def test_serialize_deserialize_op_subclass():
     q0 = cirq.GridQubit(1, 1)
     proto = op_proto({
