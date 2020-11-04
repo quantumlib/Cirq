@@ -154,7 +154,7 @@ def _arg_to_proto(value: ARG_LIKE,
     return msg
 
 
-def _arg_from_proto(
+def arg_from_proto(
         arg_proto: v2.program_pb2.Arg,
         *,
         arg_function_language: str,
@@ -211,25 +211,25 @@ def _arg_from_proto(
 
         if func.type == 'add':
             return sympy.Add(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='An addition argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='An addition argument')
                 for a in func.args
             ])
 
         if func.type == 'mul':
             return sympy.Mul(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='A multiplication argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='A multiplication argument')
                 for a in func.args
             ])
 
         if func.type == 'pow':
             return sympy.Pow(*[
-                _arg_from_proto(a,
-                                arg_function_language=arg_function_language,
-                                required_arg_name='A power argument')
+                arg_from_proto(a,
+                               arg_function_language=arg_function_language,
+                               required_arg_name='A power argument')
                 for a in func.args
             ])
 

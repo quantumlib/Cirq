@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import Any, Iterable, Tuple
+from typing import AbstractSet, Any, Iterable
 
 from typing_extensions import Protocol
 
@@ -89,7 +89,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
     result = measurement_keys(val)
 
     if len(result) == 1:
-        return result[0]
+        return next(iter(result))
 
     if len(result) > 1:
         raise ValueError(f'Got multiple measurement keys ({result!r}) '
@@ -102,7 +102,7 @@ def measurement_key(val: Any, default: Any = RaiseTypeErrorIfNotProvided):
 
 
 def measurement_keys(val: Any, *,
-                     allow_decompose: bool = True) -> Tuple[str, ...]:
+                     allow_decompose: bool = True) -> AbstractSet[str]:
     """Gets the measurement keys of measurements within the given value.
 
     Args:
@@ -121,20 +121,19 @@ def measurement_keys(val: Any, *,
     getter = getattr(val, '_measurement_keys_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return tuple(result)
+        return set(result)
 
     getter = getattr(val, '_measurement_key_', None)
     result = NotImplemented if getter is None else getter()
     if result is not NotImplemented and result is not None:
-        return result,
+        return {result}
 
     if allow_decompose:
         operations, _, _ = _try_decompose_into_operations_and_qubits(val)
         if operations is not None:
-            return tuple(
-                key for op in operations for key in measurement_keys(op))
+            return {key for op in operations for key in measurement_keys(op)}
 
-    return ()
+    return set()
 
 
 def is_measurement(val: Any) -> bool:

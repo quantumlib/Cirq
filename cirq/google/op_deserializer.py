@@ -119,7 +119,7 @@ class GateOpDeserializer:
                         f'Argument {arg.serialized_name} '
                         'not in deserializing args, but is required.')
 
-            value = arg_func_langs._arg_from_proto(
+            value = arg_func_langs.arg_from_proto(
                 proto.args[arg.serialized_name],
                 arg_function_language=arg_function_language,
                 required_arg_name=None
