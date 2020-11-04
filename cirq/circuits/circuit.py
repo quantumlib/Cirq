@@ -144,10 +144,8 @@ class AbstractCircuit(abc.ABC):
         if not isinstance(other, type(self)):
             return NotImplemented
         return cirq.protocols.approx_eq(
-            self.moments,
-            other.moments,
-            atol=atol
-        ) and self.device == other.device
+            self.moments, other.moments,
+            atol=atol) and self.device == other.device
 
     def __ne__(self, other) -> bool:
         return not self == other
@@ -199,6 +197,7 @@ class AbstractCircuit(abc.ABC):
             return self.moments[moment_idx][qubit_idx]
 
         raise TypeError('__getitem__ called with key not of type int or tuple.')
+
     # pylint: enable=function-redefined
 
     def __str__(self) -> str:
@@ -292,8 +291,8 @@ class AbstractCircuit(abc.ABC):
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            next_moments[q] = (len(self.moments) if next_moment is None else
-                               next_moment)
+            next_moments[q] = (len(self.moments)
+                               if next_moment is None else next_moment)
         return next_moments
 
     def prev_moment_operating_on(self,
