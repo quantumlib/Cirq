@@ -37,11 +37,9 @@ def test_projector_plus():
 
 
 def test_projector_overcomplete_basis():
-    overcomplete_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0], [1.0,
-                                                                      1.0]])
-
-    with pytest.raises(np.linalg.LinAlgError, match="Singular matrix"):
-        cirq.channel(overcomplete_projector)
+    with pytest.raises(ValueError,
+                       match="Vectors in basis must be linearly independent"):
+        cirq.Projector([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])
 
 
 def test_projector_non_orthogonal_basis():

@@ -20,7 +20,7 @@ class Projector(raw_types.Gate):
     For example, if you want to project on |0>, you would provide the basis
     [[1, 0]]. To project onto |10>, you would provide the basis [[0, 0, 1, 0]].
     If you want to project on the space spanned by |10> and |11>, you could
-    provide the basis [[0, 0, 1, 0], [0, 0, 1, 0]].
+    provide the basis [[0, 0, 1, 0], [0, 0, 0, 1]].
     """
 
     def __init__(self,
@@ -29,10 +29,10 @@ class Projector(raw_types.Gate):
                  enfore_orthogonal_basis: bool = False):
         """
         Args:
-            projection_basis: a (2**num_qubits, p) matrix that lists the
+            projection_basis: a (p, 2**num_qubits) matrix that lists the
                 projection vectors, where p is the dimension of the subspace
                 we're projecting on. If you project onto a single vector, then
-                p = 1.
+                p = 1 and thus the matrix reduces to a single row.
             qid_shape: Specifies the dimension of the projection. The default is
                 2 (qubit).
             enfore_orthogonal_basis: Whether to enfore the input basis to be
@@ -50,6 +50,9 @@ class Projector(raw_types.Gate):
             B = projection_array @ np.transpose(np.conjugate(projection_array))
             if not np.allclose(B, np.eye(projection_array.shape[0])):
                 raise ValueError('The basis must be orthogonal')
+
+        if np.linalg.matrix_rank(projection_array) < projection_array.shape[0]:
+            raise ValueError('Vectors in basis must be linearly independent')
 
         if np.prod(qid_shape) != projection_array.shape[1]:
             raise ValueError(
@@ -73,8 +76,8 @@ class Projector(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         A = self._projection_basis
         AH = np.transpose(np.conjugate(A))
-        result = AH @ np.linalg.inv(A @ AH) @ A
-        return (result,)
+        pseudoinverse = AH @ np.linalg.inv(A @ AH)
+        return (pseudoinverse @ A,)
 
     def _has_channel_(self) -> bool:
         return True
