@@ -26,7 +26,6 @@ from cirq.google.api import v2
 from cirq import ops
 
 
-
 def test_moment_is_measurements():
     q = cirq.LineQubit.range(2)
     circ = cirq.Circuit([cirq.X(q[0]), cirq.X(q[1]), cirq.measure(*q, key='z')])
