@@ -26,7 +26,7 @@ class Projector(raw_types.Gate):
     def __init__(self,
                  projection_basis: Union[List[List[float]], np.ndarray],
                  qid_shape: Tuple[int, ...] = (2,),
-                 enfore_orthogonal_basis = False):
+                 enfore_orthogonal_basis: bool = False):
         """
         Args:
             projection_basis: a (2**num_qubits, p) matrix that lists the
