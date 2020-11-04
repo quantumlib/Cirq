@@ -789,8 +789,7 @@ class Circuit:
         """
 
         if not ignore_terminal_measurements and any(
-                protocols.is_measurement(op)
-                for op in self.all_operations()):
+                protocols.is_measurement(op) for op in self.all_operations()):
             raise ValueError('Circuit contains a measurement.')
 
         if not self.are_all_measurements_terminal():
@@ -934,12 +933,10 @@ class Circuit:
             qubit_order=qubit_order,
             transpose=transpose)
 
-        return diagram.render(
-            crossing_char=(None
-                           if use_unicode_characters
-                           else ('-' if transpose else '|')),
-            horizontal_spacing=1 if transpose else 3,
-            use_unicode_characters=use_unicode_characters)
+        return diagram.render(crossing_char=(None if use_unicode_characters else
+                                             ('-' if transpose else '|')),
+                              horizontal_spacing=1 if transpose else 3,
+                              use_unicode_characters=use_unicode_characters)
 
     def to_text_diagram_drawer(
             self,
@@ -1001,8 +998,7 @@ class Circuit:
 
         if moment_groups and draw_moment_groups:
             _draw_moment_groups_in_diagram(moment_groups,
-                                           use_unicode_characters,
-                                           diagram)
+                                           use_unicode_characters, diagram)
 
         if transpose:
             diagram = diagram.transpose()
@@ -1010,8 +1006,8 @@ class Circuit:
         return diagram
 
     def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op)
-                   for op in self.all_operations())
+        return any(
+            protocols.is_parameterized(op) for op in self.all_operations())
 
     def _parameter_names_(self) -> AbstractSet[str]:
         return {
@@ -1038,8 +1034,7 @@ class Circuit:
                 register.
         """
         if header is None:
-            header = 'Generated from Cirq v{}'.format(
-                cirq._version.__version__)
+            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
         qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.all_qubits())
         return QasmOutput(operations=self.all_operations(),
@@ -1221,6 +1216,7 @@ class Circuit:
                 self._validate_op_tree_qids(moment)
 
         self._moments[key] = value
+
     # pylint: enable=function-redefined
 
     def __delitem__(self, key: Union[int, slice]):
@@ -1262,8 +1258,7 @@ class Circuit:
     def __mul__(self, repetitions: int):
         if not isinstance(repetitions, int):
             return NotImplemented
-        return Circuit(self._moments * repetitions,
-                       device=self._device)
+        return Circuit(self._moments * repetitions, device=self._device)
 
     def __rmul__(self, repetitions: int):
         if not isinstance(repetitions, int):
@@ -1420,8 +1415,7 @@ class Circuit:
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(
-            operation,
-            self._moments[moment_index])
+            operation, self._moments[moment_index])
 
     def _can_commute_past(self, moment_index: int,
                           operation: 'cirq.Operation') -> bool:
@@ -1464,8 +1458,9 @@ class Circuit:
             self._validate_op_tree_qids(moment_or_op)
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
-        k = max(min(index if index >= 0 else len(self._moments) + index,
-                    len(self._moments)), 0)
+        k = max(
+            min(index if index >= 0 else len(self._moments) + index,
+                len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
                 self._moments.insert(k, moment_or_op)
@@ -1503,8 +1498,7 @@ class Circuit:
             IndexError: Bad inline_start and/or inline_end.
         """
         if not 0 <= start <= end <= len(self):
-            raise IndexError('Bad insert indices: [{}, {})'.format(
-                start, end))
+            raise IndexError('Bad insert indices: [{}, {})'.format(start, end))
 
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
@@ -1588,13 +1582,13 @@ class Circuit:
         """
         if update_qubits is None:
             update_qubits = set(early_frontier).difference(late_frontier)
-        n_new_moments = (max(early_frontier.get(q, 0) - late_frontier[q]
-                             for q in late_frontier)
+        n_new_moments = (max(
+            early_frontier.get(q, 0) - late_frontier[q] for q in late_frontier)
                          if late_frontier else 0)
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
-            self._moments[insert_index:insert_index] = (
-                [ops.Moment()] * n_new_moments)
+            self._moments[insert_index:insert_index] = ([ops.Moment()] *
+                                                        n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -1755,8 +1749,7 @@ class Circuit:
                     "Can't remove {} @ {} because it doesn't exist.".format(
                         op, i))
             copy._moments[i] = ops.Moment(
-                old_op
-                for old_op in copy._moments[i].operations
+                old_op for old_op in copy._moments[i].operations
                 if op != old_op)
         self._device.validate_circuit(copy)
         self._moments = copy._moments
@@ -1845,8 +1838,7 @@ class Circuit:
                                         value=lambda e: e[1])
         for i, group in groups:
             insert_index = i + shift
-            next_index = copy.insert(insert_index,
-                                     reversed(group),
+            next_index = copy.insert(insert_index, reversed(group),
                                      InsertStrategy.EARLIEST)
             if next_index > insert_index:
                 shift += next_index - insert_index
