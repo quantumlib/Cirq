@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import protocols, value
+from cirq import value
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
