@@ -16,14 +16,16 @@ from typing import (
     Any,
     Callable,
     Dict,
+    List,
     Optional,
     Sequence,
     TYPE_CHECKING,
 )
 from dataclasses import dataclass
 
-from cirq.google.api import v2
 from cirq.google import arg_func_langs
+from cirq.google.api import v2
+from cirq.google.ops.calibration_tag import CalibrationTag
 
 if TYPE_CHECKING:
     import cirq
@@ -68,7 +70,8 @@ class GateOpDeserializer:
             args: Sequence[DeserializingArg],
             num_qubits_param: Optional[str] = None,
             op_wrapper: Callable[['cirq.Operation', v2.program_pb2.Operation],
-                                 'cirq.Operation'] = lambda x, y: x):
+                                 'cirq.Operation'] = lambda x, y: x,
+            deserialize_tokens: Optional[bool] = True):
         """Constructs a deserializer.
 
         Args:
@@ -85,17 +88,22 @@ class GateOpDeserializer:
                 no number of qubits is passed to the constructor.
             op_wrapper: An optional Callable to modify the resulting
                 GateOperation, for instance, to add tags
+            deserialize_tokens: Whether to convert tokens to
+                CalibrationTags. Defaults to True.
         """
         self.serialized_gate_id = serialized_gate_id
         self.gate_constructor = gate_constructor
         self.args = args
         self.num_qubits_param = num_qubits_param
         self.op_wrapper = op_wrapper
+        self.deserialize_tokens = deserialize_tokens
 
     def from_proto(self,
                    proto: v2.program_pb2.Operation,
                    *,
-                   arg_function_language: str = '') -> 'cirq.Operation':
+                   arg_function_language: str = '',
+                   constants: List[v2.program_pb2.Constant] = None
+                  ) -> 'cirq.Operation':
         """Turns a cirq.google.api.v2.Operation proto into a GateOperation."""
         qubits = [v2.qubit_from_proto_id(q.id) for q in proto.qubits]
         args = self._args_from_proto(
@@ -103,7 +111,20 @@ class GateOpDeserializer:
         if self.num_qubits_param is not None:
             args[self.num_qubits_param] = len(qubits)
         gate = self.gate_constructor(**args)
-        return self.op_wrapper(gate.on(*qubits), proto)
+        op = self.op_wrapper(gate.on(*qubits), proto)
+        if self.deserialize_tokens:
+            which = proto.WhichOneof('token')
+            if which == 'token_constant_index':
+                if not constants:
+                    raise ValueError('Proto has references to constants table '
+                                     'but none was passed in, value ='
+                                     f'{proto}')
+                op = op.with_tags(
+                    CalibrationTag(
+                        constants[proto.token_constant_index].string_value))
+            elif which == 'token_value':
+                op = op.with_tags(CalibrationTag(proto.token_value))
+        return op
 
     def _args_from_proto(self, proto: v2.program_pb2.Operation, *,
                          arg_function_language: str
