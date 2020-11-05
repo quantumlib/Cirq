@@ -2,7 +2,7 @@ from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 
 import numpy as np
 
-from cirq import value
+from cirq import protocols, value
 from cirq.ops import raw_types
 
 if TYPE_CHECKING:
@@ -26,7 +26,7 @@ class Projector(raw_types.Gate):
     def __init__(self,
                  projection_basis: Union[List[List[float]], np.ndarray],
                  qid_shape: Tuple[int, ...] = (2,),
-                 enfore_orthogonal_basis: bool = False):
+                 enforce_orthonormal_basis: bool = False):
         """
         Args:
             projection_basis: a (p, 2**num_qubits) matrix that lists the
@@ -35,7 +35,7 @@ class Projector(raw_types.Gate):
                 p = 1 and thus the matrix reduces to a single row.
             qid_shape: Specifies the dimension of the projection. The default is
                 2 (qubit).
-            enfore_orthogonal_basis: Whether to enfore the input basis to be
+            enforce_orthonormal_basis: Whether to enfore the input basis to be
                 orthogonal.
 
         Raises:
@@ -46,8 +46,8 @@ class Projector(raw_types.Gate):
         if len(projection_array.shape) != 2:
             raise ValueError('The input projection_basis must be a 2D array')
 
-        if enfore_orthogonal_basis:
-            B = projection_array @ np.transpose(np.conjugate(projection_array))
+        if enforce_orthonormal_basis:
+            B = projection_array @ projection_array.T.conj()
             if not np.allclose(B, np.eye(projection_array.shape[0])):
                 raise ValueError('The basis must be orthogonal')
 
@@ -75,8 +75,7 @@ class Projector(raw_types.Gate):
 
     def _channel_(self) -> Iterable[np.ndarray]:
         A = self._projection_basis
-        AH = np.transpose(np.conjugate(A))
-        pseudoinverse = AH @ np.linalg.inv(A @ AH)
+        pseudoinverse = A.T.conj() @ np.linalg.inv(A @ A.T.conj())
         return (pseudoinverse @ A,)
 
     def _has_channel_(self) -> bool:
@@ -86,6 +85,11 @@ class Projector(raw_types.Gate):
         return ("cirq.Projector(projection_basis=" +
                 f"{self._projection_basis.tolist()})," +
                 f"qid_shape={self._qid_shape})")
+
+    def _circuit_diagram_info_(self,
+                              args: 'protocols.CircuitDiagramInfoArgs') -> str:
+        with np.printoptions(precision=args.precision):
+            return (f"Proj({self._projection_basis.tolist()})")
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {

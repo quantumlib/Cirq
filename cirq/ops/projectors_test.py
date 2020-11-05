@@ -6,6 +6,15 @@ import pytest
 import cirq
 
 
+def test_projector_circuit_diagram():
+    q = cirq.NamedQubit('q')
+    projector = cirq.Projector([[1.0, 0.0]])
+    cirq.testing.assert_has_diagram(cirq.Circuit(projector(q)),
+        "q: ───Proj([[1.0, 0.0]])───", precision=None)
+    cirq.testing.assert_has_diagram(cirq.Circuit(projector(q)),
+        "q: ───Proj([[1.0, 0.0]])───", precision=2)
+
+
 def test_projector_qubit():
     zero_projector = cirq.Projector([[1.0, 0.0]])
     one_projector = cirq.Projector([[0.0, 1.0]])
@@ -43,11 +52,11 @@ def test_projector_overcomplete_basis():
 
 
 def test_projector_non_orthogonal_basis():
-    cirq.Projector([[1.0, 0.0]], enfore_orthogonal_basis=True)
-    cirq.Projector([[1.0, 0.0], [0.0, 1.0]], enfore_orthogonal_basis=True)
+    cirq.Projector([[1.0, 0.0]], enforce_orthonormal_basis=True)
+    cirq.Projector([[1.0, 0.0], [0.0, 1.0]], enforce_orthonormal_basis=True)
 
     with pytest.raises(ValueError, match="The basis must be orthogonal"):
-        cirq.Projector([[1.0, 0.0], [1.0, 1.0]], enfore_orthogonal_basis=True)
+        cirq.Projector([[1.0, 0.0], [1.0, 1.0]], enforce_orthonormal_basis=True)
 
 
 def test_projector_dim2_qubit():
