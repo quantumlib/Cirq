@@ -7,6 +7,7 @@ from cirq.ops import raw_types
 
 if TYPE_CHECKING:
     import cirq
+    from cirq import protocols
 
 
 @value.value_equality
