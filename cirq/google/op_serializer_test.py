@@ -14,6 +14,7 @@
 
 from typing import Dict, List
 
+import copy
 import numpy as np
 import pytest
 import sympy
@@ -454,3 +455,82 @@ def test_defaults_not_serialized():
         }]
     })
     assert with_default == serializer.to_proto(GateWithAttribute(1.0)(q))
+
+
+def test_token_serialization():
+    serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             op_getter='val')
+                                     ])
+    q = cirq.GridQubit(1, 2)
+    tag = cg.CalibrationTag('my_token')
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'token_value': 'my_token'
+    })
+    assert expected == serializer.to_proto(
+        GateWithAttribute(0.125)(q).with_tags(tag))
+
+
+ONE_CONSTANT = [v2.program_pb2.Constant(string_value='my_token')]
+TWO_CONSTANTS = [
+    v2.program_pb2.Constant(string_value='other_token'),
+    v2.program_pb2.Constant(string_value='my_token')
+]
+
+
+@pytest.mark.parametrize(('constants', 'expected_index', 'expected_constants'),
+                         (
+                             ([], 0, ONE_CONSTANT),
+                             (ONE_CONSTANT, 0, ONE_CONSTANT),
+                             (TWO_CONSTANTS, 1, TWO_CONSTANTS),
+                         ))
+def test_token_serialization_with_constant_reference(constants, expected_index,
+                                                     expected_constants):
+    serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
+                                     serialized_gate_id='my_gate',
+                                     args=[
+                                         cg.SerializingArg(
+                                             serialized_name='my_val',
+                                             serialized_type=float,
+                                             op_getter='val')
+                                     ])
+    # Make a local copy since we are modifying the array in-place.
+    constants = copy.copy(constants)
+    q = cirq.GridQubit(1, 2)
+    tag = cg.CalibrationTag('my_token')
+    expected = op_proto({
+        'gate': {
+            'id': 'my_gate'
+        },
+        'args': {
+            'my_val': {
+                'arg_value': {
+                    'float_value': 0.125
+                }
+            }
+        },
+        'qubits': [{
+            'id': '1_2'
+        }],
+        'token_constant_index': expected_index
+    })
+    assert expected == serializer.to_proto(
+        GateWithAttribute(0.125)(q).with_tags(tag), constants=constants)
+    assert constants == expected_constants

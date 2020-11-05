@@ -678,6 +678,10 @@ def test_insert_op_tree_new():
         cirq.Moment([cirq.X(b)]),
     ])
 
+    BAD_INSERT = cirq.InsertStrategy('BAD', 'Bad strategy for testing.')
+    with pytest.raises(ValueError):
+        c.insert(1, cirq.X(a), BAD_INSERT)
+
 
 def test_insert_op_tree_newinline():
     a = cirq.NamedQubit('alice')
@@ -917,6 +921,33 @@ x: ───X───X───Z───@───X───X───
                   │
 y: ───────────────@───────────
 """)
+
+    c.insert_into_range([cirq.Y(y), cirq.Y(y), cirq.Y(y), cirq.CX(y, x)], 1, 4)
+    cirq.testing.assert_has_diagram(
+        c, """
+x: ───X───X───Z───@───X───X───X───
+                  │       │
+y: ───────Y───Y───@───Y───@───────
+""")
+
+    c.insert_into_range([cirq.H(y), cirq.H(y)], 6, 7)
+    cirq.testing.assert_has_diagram(
+        c, """
+x: ───X───X───Z───@───X───X───X───────
+                  │       │
+y: ───────Y───Y───@───Y───@───H───H───
+""")
+
+    c.insert_into_range([cirq.T(y)], 0, 1)
+    cirq.testing.assert_has_diagram(
+        c, """
+x: ───X───X───Z───@───X───X───X───────
+                  │       │
+y: ───T───Y───Y───@───Y───@───H───H───
+""")
+
+    with pytest.raises(IndexError):
+        c.insert_into_range([cirq.CZ(x, y)], 10, 10)
 
 
 def test_next_moment_operating_on():
