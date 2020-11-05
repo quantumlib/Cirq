@@ -407,7 +407,8 @@ class Engine:
             program_description: An optional description to set on the program.
             program_labels: Optional set of labels to set on the program.
             job_description: An optional description to set on the job.
-            job_labels: Optional set of labels to set on the job.
+            job_labels: Optional set of labels to set on the job.  By defauly,
+                this will add a 'calibration' label to the job.
 
         Returns:
             An EngineJob whose results can be retrieved by calling
@@ -415,6 +416,8 @@ class Engine:
         """
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
+        if job_labels is None:
+            job_labels: {'calibration': ''}
         engine_program = self.create_calibration_program(
             layers, program_id, gate_set, program_description, program_labels)
         return engine_program.run_calibration(job_id=job_id,
