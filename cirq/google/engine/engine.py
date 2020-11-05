@@ -417,7 +417,7 @@ class Engine:
         if not processor_ids:
             raise ValueError('Processor id must be specified.')
         if job_labels is None:
-            job_labels: {'calibration': ''}
+            job_labels = {'calibration': ''}
         engine_program = self.create_calibration_program(
             layers, program_id, gate_set, program_description, program_labels)
         return engine_program.run_calibration(job_id=job_id,
