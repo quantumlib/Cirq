@@ -71,7 +71,7 @@ class GateOpDeserializer:
             num_qubits_param: Optional[str] = None,
             op_wrapper: Callable[['cirq.Operation', v2.program_pb2.Operation],
                                  'cirq.Operation'] = lambda x, y: x,
-            auto_deserialize_tokens: Optional[bool] = True):
+            deserialize_tokens: Optional[bool] = True):
         """Constructs a deserializer.
 
         Args:
@@ -88,7 +88,7 @@ class GateOpDeserializer:
                 no number of qubits is passed to the constructor.
             op_wrapper: An optional Callable to modify the resulting
                 GateOperation, for instance, to add tags
-            auto_deserialize_tokens: Whether to convert tokens to
+            deserialize_tokens: Whether to convert tokens to
                 CalibrationTags. Defaults to True.
         """
         self.serialized_gate_id = serialized_gate_id
@@ -96,7 +96,7 @@ class GateOpDeserializer:
         self.args = args
         self.num_qubits_param = num_qubits_param
         self.op_wrapper = op_wrapper
-        self.auto_deserialize_tokens = auto_deserialize_tokens
+        self.deserialize_tokens = deserialize_tokens
 
     def from_proto(self,
                    proto: v2.program_pb2.Operation,
@@ -112,12 +112,17 @@ class GateOpDeserializer:
             args[self.num_qubits_param] = len(qubits)
         gate = self.gate_constructor(**args)
         op = self.op_wrapper(gate.on(*qubits), proto)
-        if self.auto_deserialize_tokens:
-            if proto.HasField('constant_index') and constants:
+        if self.deserialize_tokens:
+            which = proto.WhichOneof('token')
+            if which == 'token_constant_index':
+                if not constants:
+                    raise ValueError('Proto has references to constants table '
+                                     'but none was passed in, value ='
+                                     f'{proto}')
                 op = op.with_tags(
                     CalibrationTag(
-                        constants[proto.constant_index].string_value))
-            if proto.token_value:
+                        constants[proto.token_constant_index].string_value))
+            elif which == 'token_value':
                 op = op.with_tags(CalibrationTag(proto.token_value))
         return op
 

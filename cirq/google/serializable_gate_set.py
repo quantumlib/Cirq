@@ -122,7 +122,8 @@ class SerializableGateSet:
                                     msg.circuit,
                                     arg_function_language=arg_function_language,
                                     constants=constants)
-            msg.constants.extend(constants)
+            if constants is not None:
+                msg.constants.extend(constants)
             if arg_function_language is None:
                 arg_function_language = (
                     arg_func_langs._infer_function_language_from_circuit(

@@ -117,9 +117,9 @@ message Operation {
   //
   // The token can be specified as a string or as a reference to
   // the constant table of the circuit.
-  oneof arg {
+  oneof token {
     string token_value = 4;
-    int32 constant_index = 5;
+    int32 token_constant_index = 5;
   }
 }
 

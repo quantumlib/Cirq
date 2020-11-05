@@ -442,7 +442,7 @@ def test_token_with_references():
         'qubits': [{
             'id': '1_2'
         }],
-        'constant_index': 1
+        'token_constant_index': 1
     })
     op = GateWithAttribute(1.25)(cirq.GridQubit(1, 2))
     op = op.with_tags(cg.CalibrationTag('abc123'))
@@ -454,3 +454,7 @@ def test_token_with_references():
     constant.string_value = 'abc123'
     constants.append(constant)
     assert deserializer.from_proto(serialized, constants=constants) == op
+
+    with pytest.raises(ValueError,
+                       match='Proto has references to constants table'):
+        deserializer.from_proto(serialized)

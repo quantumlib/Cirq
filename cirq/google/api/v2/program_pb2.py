@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=b'\n\035com.google.cirq.google.api.v2B\014ProgramProtoP\001',
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\" \n\x08\x43onstant\x12\x14\n\x0cstring_value\x18\x01 \x01(\t\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x93\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x18\n\x0e\x63onstant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x05\n\x03\x61rg\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3'
+  serialized_pb=b'\n cirq/google/api/v2/program.proto\x12\x12\x63irq.google.api.v2\"\xd7\x01\n\x07Program\x12.\n\x08language\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.Language\x12.\n\x07\x63ircuit\x18\x02 \x01(\x0b\x32\x1b.cirq.google.api.v2.CircuitH\x00\x12\x30\n\x08schedule\x18\x03 \x01(\x0b\x32\x1c.cirq.google.api.v2.ScheduleH\x00\x12/\n\tconstants\x18\x04 \x03(\x0b\x32\x1c.cirq.google.api.v2.ConstantB\t\n\x07program\" \n\x08\x43onstant\x12\x14\n\x0cstring_value\x18\x01 \x01(\t\"\xd4\x01\n\x07\x43ircuit\x12K\n\x13scheduling_strategy\x18\x01 \x01(\x0e\x32..cirq.google.api.v2.Circuit.SchedulingStrategy\x12+\n\x07moments\x18\x02 \x03(\x0b\x32\x1a.cirq.google.api.v2.Moment\"O\n\x12SchedulingStrategy\x12#\n\x1fSCHEDULING_STRATEGY_UNSPECIFIED\x10\x00\x12\x14\n\x10MOMENT_BY_MOMENT\x10\x01\";\n\x06Moment\x12\x31\n\noperations\x18\x01 \x03(\x0b\x32\x1d.cirq.google.api.v2.Operation\"P\n\x08Schedule\x12\x44\n\x14scheduled_operations\x18\x03 \x03(\x0b\x32&.cirq.google.api.v2.ScheduledOperation\"`\n\x12ScheduledOperation\x12\x30\n\toperation\x18\x01 \x01(\x0b\x32\x1d.cirq.google.api.v2.Operation\x12\x18\n\x10start_time_picos\x18\x02 \x01(\x03\";\n\x08Language\x12\x10\n\x08gate_set\x18\x01 \x01(\t\x12\x1d\n\x15\x61rg_function_language\x18\x02 \x01(\t\"\x9b\x02\n\tOperation\x12&\n\x04gate\x18\x01 \x01(\x0b\x32\x18.cirq.google.api.v2.Gate\x12\x35\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\'.cirq.google.api.v2.Operation.ArgsEntry\x12)\n\x06qubits\x18\x03 \x03(\x0b\x32\x19.cirq.google.api.v2.Qubit\x12\x15\n\x0btoken_value\x18\x04 \x01(\tH\x00\x12\x1e\n\x14token_constant_index\x18\x05 \x01(\x05H\x00\x1a\x44\n\tArgsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12&\n\x05value\x18\x02 \x01(\x0b\x32\x17.cirq.google.api.v2.Arg:\x02\x38\x01\x42\x07\n\x05token\"\x12\n\x04Gate\x12\n\n\x02id\x18\x01 \x01(\t\"\x13\n\x05Qubit\x12\n\n\x02id\x18\x02 \x01(\t\"\x9c\x01\n\x03\x41rg\x12\x31\n\targ_value\x18\x01 \x01(\x0b\x32\x1c.cirq.google.api.v2.ArgValueH\x00\x12\x10\n\x06symbol\x18\x02 \x01(\tH\x00\x12/\n\x04\x66unc\x18\x03 \x01(\x0b\x32\x1f.cirq.google.api.v2.ArgFunctionH\x00\x12\x18\n\x0e\x63onstant_index\x18\x04 \x01(\x05H\x00\x42\x05\n\x03\x61rg\"\x9a\x01\n\x08\x41rgValue\x12\x15\n\x0b\x66loat_value\x18\x01 \x01(\x02H\x00\x12:\n\x0b\x62ool_values\x18\x02 \x01(\x0b\x32#.cirq.google.api.v2.RepeatedBooleanH\x00\x12\x16\n\x0cstring_value\x18\x03 \x01(\tH\x00\x12\x16\n\x0c\x64ouble_value\x18\x04 \x01(\x01H\x00\x42\x0b\n\targ_value\"!\n\x0fRepeatedBoolean\x12\x0e\n\x06values\x18\x01 \x03(\x08\"B\n\x0b\x41rgFunction\x12\x0c\n\x04type\x18\x01 \x01(\t\x12%\n\x04\x61rgs\x18\x02 \x03(\x0b\x32\x17.cirq.google.api.v2.ArgB/\n\x1d\x63om.google.cirq.google.api.v2B\x0cProgramProtoP\x01\x62\x06proto3'
 )
 
 
@@ -356,8 +356,8 @@ _OPERATION_ARGSENTRY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1026,
-  serialized_end=1094,
+  serialized_start=1032,
+  serialized_end=1100,
 )
 
 _OPERATION = _descriptor.Descriptor(
@@ -397,7 +397,7 @@ _OPERATION = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
     _descriptor.FieldDescriptor(
-      name='constant_index', full_name='cirq.google.api.v2.Operation.constant_index', index=4,
+      name='token_constant_index', full_name='cirq.google.api.v2.Operation.token_constant_index', index=4,
       number=5, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
@@ -415,13 +415,13 @@ _OPERATION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='arg', full_name='cirq.google.api.v2.Operation.arg',
+      name='token', full_name='cirq.google.api.v2.Operation.token',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
   serialized_start=826,
-  serialized_end=1101,
+  serialized_end=1109,
 )
 
 
@@ -452,8 +452,8 @@ _GATE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1103,
-  serialized_end=1121,
+  serialized_start=1111,
+  serialized_end=1129,
 )
 
 
@@ -484,8 +484,8 @@ _QUBIT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1123,
-  serialized_end=1142,
+  serialized_start=1131,
+  serialized_end=1150,
 )
 
 
@@ -542,8 +542,8 @@ _ARG = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1145,
-  serialized_end=1301,
+  serialized_start=1153,
+  serialized_end=1309,
 )
 
 
@@ -600,8 +600,8 @@ _ARGVALUE = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=1304,
-  serialized_end=1458,
+  serialized_start=1312,
+  serialized_end=1466,
 )
 
 
@@ -632,8 +632,8 @@ _REPEATEDBOOLEAN = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1460,
-  serialized_end=1493,
+  serialized_start=1468,
+  serialized_end=1501,
 )
 
 
@@ -671,8 +671,8 @@ _ARGFUNCTION = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1495,
-  serialized_end=1561,
+  serialized_start=1503,
+  serialized_end=1569,
 )
 
 _PROGRAM.fields_by_name['language'].message_type = _LANGUAGE
@@ -696,12 +696,12 @@ _OPERATION_ARGSENTRY.containing_type = _OPERATION
 _OPERATION.fields_by_name['gate'].message_type = _GATE
 _OPERATION.fields_by_name['args'].message_type = _OPERATION_ARGSENTRY
 _OPERATION.fields_by_name['qubits'].message_type = _QUBIT
-_OPERATION.oneofs_by_name['arg'].fields.append(
+_OPERATION.oneofs_by_name['token'].fields.append(
   _OPERATION.fields_by_name['token_value'])
-_OPERATION.fields_by_name['token_value'].containing_oneof = _OPERATION.oneofs_by_name['arg']
-_OPERATION.oneofs_by_name['arg'].fields.append(
-  _OPERATION.fields_by_name['constant_index'])
-_OPERATION.fields_by_name['constant_index'].containing_oneof = _OPERATION.oneofs_by_name['arg']
+_OPERATION.fields_by_name['token_value'].containing_oneof = _OPERATION.oneofs_by_name['token']
+_OPERATION.oneofs_by_name['token'].fields.append(
+  _OPERATION.fields_by_name['token_constant_index'])
+_OPERATION.fields_by_name['token_constant_index'].containing_oneof = _OPERATION.oneofs_by_name['token']
 _ARG.fields_by_name['arg_value'].message_type = _ARGVALUE
 _ARG.fields_by_name['func'].message_type = _ARGFUNCTION
 _ARG.oneofs_by_name['arg'].fields.append(

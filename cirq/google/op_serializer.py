@@ -61,7 +61,7 @@ class GateOpSerializer:
     Attributes:
         gate_type: The type of the gate that can be serialized.
         serialized_gate_id: The id used when serializing the gate.
-        auto_serialize_tokens: Whether to convert CalibrationTags into tokens
+        serialize_tokens: Whether to convert CalibrationTags into tokens
             on the Operation proto.  Defaults to True.
     """
 
@@ -72,7 +72,7 @@ class GateOpSerializer:
                  args: List[SerializingArg],
                  can_serialize_predicate: Callable[['cirq.Operation'], bool] =
                  lambda x: True,
-                 auto_serialize_tokens: Optional[bool] = True):
+                 serialize_tokens: Optional[bool] = True):
         """Construct the serializer.
 
         Args:
@@ -91,7 +91,7 @@ class GateOpSerializer:
         self.serialized_gate_id = serialized_gate_id
         self.args = args
         self.can_serialize_predicate = can_serialize_predicate
-        self.auto_serialize_tokens = auto_serialize_tokens
+        self.serialize_tokens = serialize_tokens
 
     def can_serialize_operation(self, op: 'cirq.Operation') -> bool:
         """Whether the given operation can be serialized by this serializer.
@@ -137,20 +137,18 @@ class GateOpSerializer:
                 _arg_to_proto(value,
                               out=msg.args[arg.serialized_name],
                               arg_function_language=arg_function_language)
-        if self.auto_serialize_tokens:
+        if self.serialize_tokens:
             for tag in op.tags:
                 if isinstance(tag, CalibrationTag):
                     if constants is not None:
+                        constant = v2.program_pb2.Constant()
+                        constant.string_value = tag.token
                         try:
-                            constant = v2.program_pb2.Constant()
-                            constant.string_value = tag.token
-                            msg.constant_index = constants.index(constant)
+                            msg.token_constant_index = constants.index(constant)
                         except ValueError:
                             # Token not found, add it to the list
-                            msg.constant_index = len(constants)
-                            new_constant = v2.program_pb2.Constant()
-                            new_constant.string_value = tag.token
-                            constants.append(new_constant)
+                            msg.token_constant_index = len(constants)
+                            constants.append(constant)
                     else:
                         msg.token_value = tag.token
         return msg

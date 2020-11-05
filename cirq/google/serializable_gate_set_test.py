@@ -151,12 +151,12 @@ def test_serialize_deserialize_circuit_with_tokens():
     op1.gate.id = 'x_pow'
     op1.args['half_turns'].arg_value.float_value = 1.0
     op1.qubits.add().id = '1_1'
-    op1.constant_index = 0
+    op1.token_constant_index = 0
     op2 = v2.program_pb2.Operation()
     op2.gate.id = 'x_pow'
     op2.args['half_turns'].arg_value.float_value = 1.0
     op2.qubits.add().id = '1_2'
-    op2.constant_index = 1
+    op2.token_constant_index = 1
     proto = v2.program_pb2.Program(
         language=v2.program_pb2.Language(arg_function_language='',
                                          gate_set='my_gate_set'),
@@ -317,7 +317,7 @@ def test_serialize_deserialize_op_with_constants():
         'qubits': [{
             'id': '1_1'
         }],
-        'constant_index': 0
+        'token_constant_index': 0
     })
     op = cirq.XPowGate(exponent=0.125)(q0).with_tags(
         cg.CalibrationTag('abc123'))

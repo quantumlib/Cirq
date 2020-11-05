@@ -14,6 +14,7 @@
 
 from typing import Dict, List
 
+import copy
 import numpy as np
 import pytest
 import sympy
@@ -487,7 +488,21 @@ def test_token_serialization():
         GateWithAttribute(0.125)(q).with_tags(tag))
 
 
-def test_token_serialization_with_constant_reference():
+ONE_CONSTANT = [v2.program_pb2.Constant(string_value='my_token')]
+TWO_CONSTANTS = [
+    v2.program_pb2.Constant(string_value='other_token'),
+    v2.program_pb2.Constant(string_value='my_token')
+]
+
+
+@pytest.mark.parametrize(('constants', 'expected_index', 'expected_constants'),
+                         (
+                             ([], 0, ONE_CONSTANT),
+                             (ONE_CONSTANT, 0, ONE_CONSTANT),
+                             (TWO_CONSTANTS, 1, TWO_CONSTANTS),
+                         ))
+def test_token_serialization_with_constant_reference(constants, expected_index,
+                                                     expected_constants):
     serializer = cg.GateOpSerializer(gate_type=GateWithAttribute,
                                      serialized_gate_id='my_gate',
                                      args=[
@@ -496,6 +511,8 @@ def test_token_serialization_with_constant_reference():
                                              serialized_type=float,
                                              op_getter='val')
                                      ])
+    # Make a local copy since we are modifying the array in-place.
+    constants = copy.copy(constants)
     q = cirq.GridQubit(1, 2)
     tag = cg.CalibrationTag('my_token')
     expected = op_proto({
@@ -512,11 +529,8 @@ def test_token_serialization_with_constant_reference():
         'qubits': [{
             'id': '1_2'
         }],
-        'constant_index': 0
+        'token_constant_index': expected_index
     })
-    constants = []
     assert expected == serializer.to_proto(
         GateWithAttribute(0.125)(q).with_tags(tag), constants=constants)
-    constant = v2.program_pb2.Constant()
-    constant.string_value = 'my_token'
-    assert constants == [constant]
+    assert constants == expected_constants
