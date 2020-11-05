@@ -393,7 +393,8 @@ class EngineProgram:
 
         Args:
             program_num: if this is a batch program, the index of the circuit in
-                the batch.  This argument is zero-indexed.
+                the batch.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
@@ -408,19 +409,19 @@ class EngineProgram:
                              program_num: Optional[int] = None) -> 'Circuit':
         import cirq.google.engine.engine as engine_base
         code_type = code.type_url[len(engine_base.TYPE_PREFIX):]
+        program = None
         if (code_type == 'cirq.google.api.v1.Program' or
                 code_type == 'cirq.api.google.v1.Program'):
             raise ValueError('deserializing a v1 Program is not supported')
-        program = None
-        if (code_type == 'cirq.google.api.v2.Program' or
-                code_type == 'cirq.api.google.v2.Program'):
+        elif (code_type == 'cirq.google.api.v2.Program' or
+              code_type == 'cirq.api.google.v2.Program'):
             program = v2.program_pb2.Program.FromString(code.value)
-        if code_type == 'cirq.google.api.v2.BatchProgram':
+        elif code_type == 'cirq.google.api.v2.BatchProgram':
             if program_num is None:
                 raise ValueError('A program number must be specified when '
                                  'deserializing a Batch Program')
             batch = v2.batch_pb2.BatchProgram.FromString(code.value)
-            if program_num >= len(batch.programs):
+            if abs(program_num) >= len(batch.programs):
                 raise ValueError(f'Only {len(batch.programs)} in the batch but '
                                  f'index {program_num} was specified')
 
