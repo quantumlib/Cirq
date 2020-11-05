@@ -87,7 +87,7 @@ class Projector(raw_types.Gate):
                 f"qid_shape={self._qid_shape})")
 
     def _circuit_diagram_info_(self,
-                              args: 'protocols.CircuitDiagramInfoArgs') -> str:
+                               args: 'protocols.CircuitDiagramInfoArgs') -> str:
         with np.printoptions(precision=args.precision):
             return (f"Proj({self._projection_basis.tolist()})")
 
