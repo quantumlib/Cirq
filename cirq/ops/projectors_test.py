@@ -17,6 +17,7 @@ def test_projector1d_circuit_diagram():
                                     "q: ───Proj([[1.0, 0.0]])───",
                                     precision=2)
 
+
 def test_projector2d_circuit_diagram():
     q1 = cirq.NamedQubit('q1')
     q2 = cirq.NamedQubit('q2')
