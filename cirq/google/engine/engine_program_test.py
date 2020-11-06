@@ -397,6 +397,86 @@ circuit {
     get_program.assert_called_once_with('a', 'b', True)
 
 
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+def test_get_circuit_batch(get_program):
+    circuit = cirq.Circuit(
+        cirq.X(cirq.GridQubit(5, 2))**0.5,
+        cirq.measure(cirq.GridQubit(5, 2), key='result'))
+
+    program_proto = Merge(
+        """programs { language {
+  gate_set: "xmon"
+}
+circuit {
+  scheduling_strategy: MOMENT_BY_MOMENT
+  moments {
+    operations {
+      gate {
+        id: "xy"
+      }
+      args {
+        key: "axis_half_turns"
+        value {
+          arg_value {
+            float_value: 0.0
+          }
+        }
+      }
+      args {
+        key: "half_turns"
+        value {
+          arg_value {
+            float_value: 0.5
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+  moments {
+    operations {
+      gate {
+        id: "meas"
+      }
+      args {
+        key: "invert_mask"
+        value {
+          arg_value {
+            bool_values {
+            }
+          }
+        }
+      }
+      args {
+        key: "key"
+        value {
+          arg_value {
+            string_value: "result"
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+}
+}
+""", v2.batch_pb2.BatchProgram())
+    program = cg.EngineProgram('a', 'b', EngineContext())
+    get_program.return_value = qtypes.QuantumProgram(
+        code=_to_any(program_proto))
+    with pytest.raises(ValueError, match='A program number must be specified'):
+        program.get_circuit()
+    with pytest.raises(ValueError,
+                       match='Only 1 in the batch but index 1 was specified'):
+        program.get_circuit(1)
+    assert program.get_circuit(0) == circuit
+    get_program.assert_called_once_with('a', 'b', True)
+
+
 @pytest.fixture(scope='session', autouse=True)
 def mock_grpc_client():
     with mock.patch('cirq.google.engine.engine_client'
