@@ -90,8 +90,8 @@ class Projector(raw_types.Gate):
                 f"{self._projection_basis.tolist()})," +
                 f"qid_shape={self._qid_shape})")
 
-    def _circuit_diagram_info_(self,
-                               args: 'protocols.CircuitDiagramInfoArgs') -> Tuple[str]:
+    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
+                              ) -> Tuple[str, ...]:
         with np.printoptions(precision=args.precision):
             return (f"Proj({self._projection_basis.tolist()})",
                    ) + ("Proj",) * (len(self._qid_shape) - 1)
