@@ -50,7 +50,7 @@ class Projector(raw_types.Gate):
         if enforce_orthonormal_basis:
             B = projection_array @ projection_array.T.conj()
             if not np.allclose(B, np.eye(projection_array.shape[0])):
-                raise ValueError('The basis must be orthogonal')
+                raise ValueError('The basis must be orthonormal')
 
         if np.linalg.matrix_rank(projection_array) < projection_array.shape[0]:
             raise ValueError('Vectors in basis must be linearly independent')
