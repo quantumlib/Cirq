@@ -28,6 +28,7 @@ def test_freeze_and_unfreeze():
     f = c.freeze()
     assert f.moments == tuple(c.moments)
 
+    # Freezing a FrozenCircuit will return the original.
     ff = f.freeze()
     assert ff is f
 
@@ -35,8 +36,9 @@ def test_freeze_and_unfreeze():
     assert unf.moments == c.moments
     assert unf is not c
 
+    # Unfreezing always returns a copy.
     cc = c.unfreeze()
-    assert cc is c
+    assert cc is not c
 
     fcc = cc.freeze()
     assert fcc.moments == f.moments

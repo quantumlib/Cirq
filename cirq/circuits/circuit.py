@@ -45,6 +45,7 @@ if TYPE_CHECKING:
     import cirq
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
+CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 
 
 class AbstractCircuit(abc.ABC):
@@ -105,10 +106,10 @@ class AbstractCircuit(abc.ABC):
     def unfreeze(self) -> 'cirq.Circuit':
         """Creates a Circuit from this circuit.
 
-        If 'self' is a Circuit, the original object is returned.
+        If 'self' is a Circuit, this returns a copy of that circuit.
         """
         if isinstance(self, Circuit):
-            return self
+            return Circuit.copy(self)
         return Circuit(self,
                        strategy=InsertStrategy.EARLIEST,
                        device=self.device)
@@ -157,15 +158,17 @@ class AbstractCircuit(abc.ABC):
         pass
 
     @overload
-    def __getitem__(self, key: slice):
+    def __getitem__(self: CIRCUIT_TYPE, key: slice) -> CIRCUIT_TYPE:
         pass
 
     @overload
-    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']):
+    def __getitem__(self: CIRCUIT_TYPE,
+                    key: Tuple[slice, 'cirq.Qid']) -> CIRCUIT_TYPE:
         pass
 
     @overload
-    def __getitem__(self, key: Tuple[slice, Iterable['cirq.Qid']]):
+    def __getitem__(self: CIRCUIT_TYPE,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> CIRCUIT_TYPE:
         pass
 
     def __getitem__(self, key):
