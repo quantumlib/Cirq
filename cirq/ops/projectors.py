@@ -75,9 +75,12 @@ class Projector(raw_types.Gate):
         return False
 
     def _channel_(self) -> Iterable[np.ndarray]:
-        A = self._projection_basis
-        pseudoinverse = A.T.conj() @ np.linalg.inv(A @ A.T.conj())
-        return (pseudoinverse @ A,)
+        # Make rows into columns:
+        A = self._projection_basis.T
+        # Left pseudo-inverse:
+        pseudoinverse = np.linalg.pinv(A)
+        # Projector to the range of A:
+        return (A @ pseudoinverse,)
 
     def _has_channel_(self) -> bool:
         return True
@@ -90,7 +93,7 @@ class Projector(raw_types.Gate):
     def _circuit_diagram_info_(self,
                                args: 'protocols.CircuitDiagramInfoArgs') -> str:
         with np.printoptions(precision=args.precision):
-            return (f"Proj({self._projection_basis.tolist()})")
+            return (f"Proj({self._projection_basis.tolist()})",) + ("Proj",) * (len(self._qid_shape) - 1)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
@@ -100,4 +103,4 @@ class Projector(raw_types.Gate):
         }
 
     def _value_equality_values_(self) -> Any:
-        return self._projection_basis.tolist(), self._qid_shape
+        return self._projection_basis.tobytes(), self._qid_shape
