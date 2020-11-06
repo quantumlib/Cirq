@@ -27,12 +27,6 @@ import cirq.testing
 from cirq import ops
 
 
-def MaybeFrozenCircuit(frozen: bool, *args, **kwargs):
-    if frozen:
-        return cirq.Circuit(*args, **kwargs).freeze()
-    return cirq.Circuit(*args, **kwargs)
-
-
 class _MomentAndOpTypeValidatingDeviceType(cirq.Device):
     def validate_operation(self, operation):
         if not isinstance(operation, cirq.Operation):
@@ -83,51 +77,45 @@ def test_setitem():
     ])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_equality(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_equality(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     eq = cirq.testing.EqualsTester()
 
     # Default is empty. Iterables get listed.
-    eq.add_equality_group(
-        MaybeFrozenCircuit(frozen),
-        MaybeFrozenCircuit(frozen, device=cirq.UNCONSTRAINED_DEVICE),
-        MaybeFrozenCircuit(frozen, []), MaybeFrozenCircuit(frozen, ()))
-    eq.add_equality_group(MaybeFrozenCircuit(frozen, [cirq.Moment()]),
-                          MaybeFrozenCircuit(frozen, (cirq.Moment(),)))
-    eq.add_equality_group(MaybeFrozenCircuit(frozen, device=cg.Foxtail))
+    eq.add_equality_group(circuit_cls(),
+                          circuit_cls(device=cirq.UNCONSTRAINED_DEVICE),
+                          circuit_cls([]), circuit_cls(()))
+    eq.add_equality_group(circuit_cls([cirq.Moment()]),
+                          circuit_cls((cirq.Moment(),)))
+    eq.add_equality_group(circuit_cls(device=cg.Foxtail))
 
     # Equality depends on structure and contents.
-    eq.add_equality_group(MaybeFrozenCircuit(frozen,
-                                             [cirq.Moment([cirq.X(a)])]))
-    eq.add_equality_group(MaybeFrozenCircuit(frozen,
-                                             [cirq.Moment([cirq.X(b)])]))
+    eq.add_equality_group(circuit_cls([cirq.Moment([cirq.X(a)])]))
+    eq.add_equality_group(circuit_cls([cirq.Moment([cirq.X(b)])]))
     eq.add_equality_group(
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.X(a)]),
-                            cirq.Moment([cirq.X(b)])]))
-    eq.add_equality_group(
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.X(a), cirq.X(b)])]))
+        circuit_cls([cirq.Moment([cirq.X(a)]),
+                     cirq.Moment([cirq.X(b)])]))
+    eq.add_equality_group(circuit_cls([cirq.Moment([cirq.X(a), cirq.X(b)])]))
 
     # Big case.
     eq.add_equality_group(
-        MaybeFrozenCircuit(frozen, [
+        circuit_cls([
             cirq.Moment([cirq.H(a), cirq.H(b)]),
             cirq.Moment([cirq.CZ(a, b)]),
             cirq.Moment([cirq.H(b)]),
         ]))
     eq.add_equality_group(
-        MaybeFrozenCircuit(frozen, [
+        circuit_cls([
             cirq.Moment([cirq.H(a)]),
             cirq.Moment([cirq.CNOT(a, b)]),
         ]))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_approx_eq(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_approx_eq(circuit_cls):
 
     class TestDevice(cirq.Device):
 
@@ -137,39 +125,29 @@ def test_approx_eq(frozen):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    assert not cirq.approx_eq(
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])]),
-        cirq.Moment([cirq.X(a)]))
+    assert not cirq.approx_eq(circuit_cls([cirq.Moment([cirq.X(a)])]),
+                              cirq.Moment([cirq.X(a)]))
+
+    assert cirq.approx_eq(circuit_cls([cirq.Moment([cirq.X(a)])]),
+                          circuit_cls([cirq.Moment([cirq.X(a)])]))
+    assert not cirq.approx_eq(circuit_cls([cirq.Moment([cirq.X(a)])]),
+                              circuit_cls([cirq.Moment([cirq.X(b)])]))
 
     assert cirq.approx_eq(
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])]),
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])]))
-    assert not cirq.approx_eq(
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])]),
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(b)])]))
-
-    assert cirq.approx_eq(
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=1e-9)(a)])]))
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=1e-9)(a)])]))
 
     assert not cirq.approx_eq(
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]))
     assert cirq.approx_eq(
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
-        MaybeFrozenCircuit(frozen,
-                           [cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=0)(a)])]),
+        circuit_cls([cirq.Moment([cirq.XPowGate(exponent=1e-7)(a)])]),
         atol=1e-6)
 
     assert not cirq.approx_eq(
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])]),
-        MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])],
-                           device=TestDevice()))
+        circuit_cls([cirq.Moment([cirq.X(a)])]),
+        circuit_cls([cirq.Moment([cirq.X(a)])], device=TestDevice()))
 
 
 def test_append_single():
@@ -233,70 +211,66 @@ def test_append_moments():
     ])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_add_op_tree(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_add_op_tree(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen)
-    assert c + [cirq.X(a), cirq.Y(b)] == MaybeFrozenCircuit(
-        frozen, [
-            cirq.Moment([cirq.X(a), cirq.Y(b)]),
-        ])
+    c = circuit_cls()
+    assert c + [cirq.X(a), cirq.Y(b)] == circuit_cls([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
 
-    assert c + cirq.X(a) == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert c + [cirq.X(a)] == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert c + [[[cirq.X(a)], []]] == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert c + (cirq.X(a),) == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert c + (cirq.X(a) for _ in range(1)) == MaybeFrozenCircuit(
-        frozen, cirq.X(a))
+    assert c + cirq.X(a) == circuit_cls(cirq.X(a))
+    assert c + [cirq.X(a)] == circuit_cls(cirq.X(a))
+    assert c + [[[cirq.X(a)], []]] == circuit_cls(cirq.X(a))
+    assert c + (cirq.X(a),) == circuit_cls(cirq.X(a))
+    assert c + (cirq.X(a) for _ in range(1)) == circuit_cls(cirq.X(a))
     with pytest.raises(TypeError):
         _ = c + cirq.X
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_radd_op_tree(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_radd_op_tree(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen)
-    assert [cirq.X(a), cirq.Y(b)] + c == MaybeFrozenCircuit(
-        frozen, [
-            cirq.Moment([cirq.X(a), cirq.Y(b)]),
-        ])
+    c = circuit_cls()
+    assert [cirq.X(a), cirq.Y(b)] + c == circuit_cls([
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+    ])
 
-    assert cirq.X(a) + c == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert [cirq.X(a)] + c == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert [[[cirq.X(a)], []]] + c == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert (cirq.X(a),) + c == MaybeFrozenCircuit(frozen, cirq.X(a))
-    assert (cirq.X(a) for _ in range(1)) + c == MaybeFrozenCircuit(
-        frozen, cirq.X(a))
+    assert cirq.X(a) + c == circuit_cls(cirq.X(a))
+    assert [cirq.X(a)] + c == circuit_cls(cirq.X(a))
+    assert [[[cirq.X(a)], []]] + c == circuit_cls(cirq.X(a))
+    assert (cirq.X(a),) + c == circuit_cls(cirq.X(a))
+    assert (cirq.X(a) for _ in range(1)) + c == circuit_cls(cirq.X(a))
     with pytest.raises(AttributeError):
         _ = cirq.X + c
     with pytest.raises(TypeError):
         _ = 0 + c
 
     # non-empty circuit addition
-    if frozen:
+    if circuit_cls == cirq.FrozenCircuit:
         d = cirq.FrozenCircuit(cirq.Y(b))
     else:
         d = cirq.Circuit()
         d.append(cirq.Y(b))
-    assert [cirq.X(a)] + d == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.X(a)]),
-                 cirq.Moment([cirq.Y(b)])])
-    assert cirq.Moment([cirq.X(a)]) + d == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.X(a)]),
-                 cirq.Moment([cirq.Y(b)])])
+    assert [cirq.X(a)] + d == circuit_cls(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
+    assert cirq.Moment([cirq.X(a)]) + d == circuit_cls(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.Y(b)])])
 
     # Preserves device.
-    c = MaybeFrozenCircuit(frozen, device=cirq.google.Bristlecone)
+    c = circuit_cls(device=cirq.google.Bristlecone)
     c2 = [] + c
     assert c2.device is cirq.google.Bristlecone
     assert c2 == c
 
     # Validates versus device.
-    c = MaybeFrozenCircuit(frozen, device=cirq.google.Bristlecone)
+    c = circuit_cls(device=cirq.google.Bristlecone)
     with pytest.raises(ValueError, match='Unsupported qubit'):
         _ = [cirq.X(cirq.NamedQubit('a'))] + c
 
@@ -310,26 +284,25 @@ def test_add_iadd_equivalence():
     assert iadd_circuit == add_circuit
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_bool(frozen):
-    assert not MaybeFrozenCircuit(frozen)
-    assert MaybeFrozenCircuit(frozen, cirq.X(cirq.NamedQubit('a')))
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_bool(circuit_cls):
+    assert not circuit_cls()
+    assert circuit_cls(cirq.X(cirq.NamedQubit('a')))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_repr(frozen):
-    type_name = 'FrozenCircuit' if frozen else 'Circuit'
-    assert repr(MaybeFrozenCircuit(frozen)) == f'cirq.{type_name}()'
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_repr(circuit_cls):
+    assert repr(circuit_cls()) == f'cirq.{circuit_cls.__name__}()'
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.H(a), cirq.H(b)]),
         cirq.Moment(),
         cirq.Moment([cirq.CZ(a, b)]),
     ])
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f"""cirq.{type_name}([
+    assert repr(c) == f"""cirq.{circuit_cls.__name__}([
     cirq.Moment(
         cirq.H(cirq.NamedQubit('a')),
         cirq.H(cirq.NamedQubit('b')),
@@ -340,29 +313,25 @@ def test_repr(frozen):
     ),
 ])"""
 
-    c = MaybeFrozenCircuit(frozen, device=cg.Foxtail)
+    c = circuit_cls(device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f'cirq.{type_name}(device=cirq.google.Foxtail)'
+    assert repr(c) == f'cirq.{circuit_cls.__name__}(device=cirq.google.Foxtail)'
 
-    c = MaybeFrozenCircuit(frozen,
-                           cirq.Z(cirq.GridQubit(0, 0)),
-                           device=cg.Foxtail)
+    c = circuit_cls(cirq.Z(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     cirq.testing.assert_equivalent_repr(c)
-    assert repr(c) == f"""cirq.{type_name}([
+    assert repr(c) == f"""cirq.{circuit_cls.__name__}([
     cirq.Moment(
         cirq.Z(cirq.GridQubit(0, 0)),
     ),
 ], device=cirq.google.Foxtail)"""
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_empty_moments(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_empty_moments(circuit_cls):
     # 1-qubit test
     op = cirq.X(cirq.NamedQubit('a'))
     op_moment = cirq.Moment([op])
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        [op_moment, op_moment, cirq.Moment(), op_moment])
+    circuit = circuit_cls([op_moment, op_moment, cirq.Moment(), op_moment])
 
     cirq.testing.assert_has_diagram(circuit,
                                     "a: ───X───X───────X───",
@@ -404,9 +373,7 @@ X
     # 2-qubit test
     op = cirq.CNOT(cirq.NamedQubit('a'), cirq.NamedQubit('b'))
     op_moment = cirq.Moment([op])
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        [op_moment, op_moment, cirq.Moment(), op_moment])
+    circuit = circuit_cls([op_moment, op_moment, cirq.Moment(), op_moment])
 
     cirq.testing.assert_has_diagram(circuit, """
 a: ───@───@───────@───
@@ -448,12 +415,11 @@ a b
         transpose=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_symbol_addition_in_gate_exponent(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_symbol_addition_in_gate_exponent(circuit_cls):
     # 1-qubit test
     qubit = cirq.NamedQubit('a')
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.X(qubit)**0.5,
         cirq.YPowGate(exponent=sympy.Symbol('a') + sympy.Symbol('b')).on(qubit))
     cirq.testing.assert_has_diagram(circuit,
@@ -491,34 +457,32 @@ Y^(a + b)
                                     transpose=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_slice(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_slice(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.H(a), cirq.H(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.H(b)]),
     ])
-    assert c[0:1] == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.H(a), cirq.H(b)])])
-    assert c[::2] == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.H(a), cirq.H(b)]),
-                 cirq.Moment([cirq.H(b)])])
-    assert c[0:1:2] == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.H(a), cirq.H(b)])])
-    assert c[1:3:] == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.CZ(a, b)]),
-                 cirq.Moment([cirq.H(b)])])
-    assert c[::-1] == MaybeFrozenCircuit(frozen, [
+    assert c[0:1] == circuit_cls([cirq.Moment([cirq.H(a), cirq.H(b)])])
+    assert c[::2] == circuit_cls(
+        [cirq.Moment([cirq.H(a), cirq.H(b)]),
+         cirq.Moment([cirq.H(b)])])
+    assert c[0:1:2] == circuit_cls([cirq.Moment([cirq.H(a), cirq.H(b)])])
+    assert c[1:3:] == circuit_cls(
+        [cirq.Moment([cirq.CZ(a, b)]),
+         cirq.Moment([cirq.H(b)])])
+    assert c[::-1] == circuit_cls([
         cirq.Moment([cirq.H(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.H(a), cirq.H(b)])
     ])
-    assert c[3:0:-1] == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.H(b)]),
-                 cirq.Moment([cirq.CZ(a, b)])])
-    assert c[0:2:-1] == MaybeFrozenCircuit(frozen)
+    assert c[3:0:-1] == circuit_cls(
+        [cirq.Moment([cirq.H(b)]),
+         cirq.Moment([cirq.CZ(a, b)])])
+    assert c[0:2:-1] == circuit_cls()
 
 
 def test_concatenate():
@@ -574,36 +538,30 @@ def test_concatenate_with_device():
     assert len(cone) == 0
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_with_device(frozen):
-    c = MaybeFrozenCircuit(frozen, cirq.X(cirq.LineQubit(0)))
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_with_device(circuit_cls):
+    c = circuit_cls(cirq.X(cirq.LineQubit(0)))
     c2 = c.with_device(cg.Foxtail,
                                 lambda e: cirq.GridQubit(e.x, 0))
-    assert c2 == MaybeFrozenCircuit(frozen,
-                                    cirq.X(cirq.GridQubit(0, 0)),
-                                    device=cg.Foxtail)
+    assert c2 == circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
 
     # Qubit type must be correct.
-    c = MaybeFrozenCircuit(frozen, cirq.X(cirq.LineQubit(0)))
+    c = circuit_cls(cirq.X(cirq.LineQubit(0)))
     with pytest.raises(ValueError, match='Unsupported qubit type'):
         _ = c.with_device(cg.Foxtail)
 
     # Operations must be compatible from the start
-    c = MaybeFrozenCircuit(frozen, cirq.X(cirq.GridQubit(0, 0)))
+    c = circuit_cls(cirq.X(cirq.GridQubit(0, 0)))
     _ = c.with_device(cg.Foxtail)
-    c = MaybeFrozenCircuit(frozen, cirq.H(cirq.GridQubit(0, 0)))
+    c = circuit_cls(cirq.H(cirq.GridQubit(0, 0)))
     with pytest.raises(ValueError, match='Unsupported gate type'):
         _ = c.with_device(cg.Foxtail)
 
     # Some qubits exist on multiple devices.
-    c = MaybeFrozenCircuit(frozen,
-                           cirq.X(cirq.GridQubit(0, 0)),
-                           device=cg.Foxtail)
+    c = circuit_cls(cirq.X(cirq.GridQubit(0, 0)), device=cg.Foxtail)
     with pytest.raises(ValueError):
         _ = c.with_device(cg.Bristlecone)
-    c = MaybeFrozenCircuit(frozen,
-                           cirq.X(cirq.GridQubit(0, 6)),
-                           device=cg.Foxtail)
+    c = circuit_cls(cirq.X(cirq.GridQubit(0, 6)), device=cg.Foxtail)
     _ = c.with_device(cg.Bristlecone)
 
 
@@ -621,24 +579,24 @@ def test_set_device():
     assert c.device == cg.Foxtail
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_multiply(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_multiply(circuit_cls):
     a = cirq.NamedQubit('a')
 
-    c = MaybeFrozenCircuit(frozen)
-    d = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])])
+    c = circuit_cls()
+    d = circuit_cls([cirq.Moment([cirq.X(a)])])
 
-    assert c * 0 == MaybeFrozenCircuit(frozen)
-    assert d * 0 == MaybeFrozenCircuit(frozen)
-    assert d * 2 == MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.X(a)]),
-                 cirq.Moment([cirq.X(a)])])
-    assert 1 * c == MaybeFrozenCircuit(frozen)
-    assert -1 * d == MaybeFrozenCircuit(frozen)
-    assert 1 * d == MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])])
+    assert c * 0 == circuit_cls()
+    assert d * 0 == circuit_cls()
+    assert d * 2 == circuit_cls(
+        [cirq.Moment([cirq.X(a)]),
+         cirq.Moment([cirq.X(a)])])
+    assert 1 * c == circuit_cls()
+    assert -1 * d == circuit_cls()
+    assert 1 * d == circuit_cls([cirq.Moment([cirq.X(a)])])
 
     d *= 3
-    assert d == MaybeFrozenCircuit(frozen, [
+    assert d == circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(a)])
@@ -652,11 +610,11 @@ def test_multiply(frozen):
         c *= 'a'
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_container_methods(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_container_methods(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.H(a), cirq.H(b)]),
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment([cirq.H(b)]),
@@ -672,11 +630,11 @@ def test_container_methods(frozen):
     assert len(c) == 3
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_bad_index(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_bad_index(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.H(a), cirq.H(b)])])
+    c = circuit_cls([cirq.Moment([cirq.H(a), cirq.H(b)])])
     with pytest.raises(TypeError):
         _ = c['string']
 
@@ -1010,24 +968,24 @@ y: ───T───Y───Y───@───Y───@───H──�
         c.insert_into_range([cirq.CZ(x, y)], 10, 10)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_next_moment_operating_on(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_next_moment_operating_on(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert c.next_moment_operating_on([a]) is None
     assert c.next_moment_operating_on([a], 0) is None
     assert c.next_moment_operating_on([a], 102) is None
 
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])])
+    c = circuit_cls([cirq.Moment([cirq.X(a)])])
     assert c.next_moment_operating_on([a]) == 0
     assert c.next_moment_operating_on([a], 0) == 0
     assert c.next_moment_operating_on([a, b]) == 0
     assert c.next_moment_operating_on([a], 1) is None
     assert c.next_moment_operating_on([b]) is None
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment(),
         cirq.Moment([cirq.X(a)]),
         cirq.Moment(),
@@ -1053,11 +1011,11 @@ def test_next_moment_operating_on(frozen):
     assert c.next_moment_operating_on([a, b], 4) is None
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_next_moment_operating_on_distance(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_next_moment_operating_on_distance(circuit_cls):
     a = cirq.NamedQubit('a')
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment(),
         cirq.Moment(),
         cirq.Moment(),
@@ -1087,24 +1045,24 @@ def test_next_moment_operating_on_distance(frozen):
     assert c.next_moment_operating_on([a], 5, max_distance=10**100) is None
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_prev_moment_operating_on(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_prev_moment_operating_on(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert c.prev_moment_operating_on([a]) is None
     assert c.prev_moment_operating_on([a], 0) is None
     assert c.prev_moment_operating_on([a], 102) is None
 
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])])
+    c = circuit_cls([cirq.Moment([cirq.X(a)])])
     assert c.prev_moment_operating_on([a]) == 0
     assert c.prev_moment_operating_on([a], 1) == 0
     assert c.prev_moment_operating_on([a, b]) == 0
     assert c.prev_moment_operating_on([a], 0) is None
     assert c.prev_moment_operating_on([b]) is None
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.CZ(a, b)]),
         cirq.Moment(),
         cirq.Moment([cirq.X(a)]),
@@ -1130,11 +1088,11 @@ def test_prev_moment_operating_on(frozen):
     assert c.prev_moment_operating_on([a, b], 0) is None
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_prev_moment_operating_on_distance(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_prev_moment_operating_on_distance(circuit_cls):
     a = cirq.NamedQubit('a')
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment(),
         cirq.Moment([cirq.X(a)]),
         cirq.Moment(),
@@ -1166,32 +1124,31 @@ def test_prev_moment_operating_on_distance(frozen):
     assert c.prev_moment_operating_on([a], 1, max_distance=10**100) is None
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_operation_at(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_operation_at(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert c.operation_at(a, 0) is None
     assert c.operation_at(a, -1) is None
     assert c.operation_at(a, 102) is None
 
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment()])
+    c = circuit_cls([cirq.Moment()])
     assert c.operation_at(a, 0) is None
 
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(a)])])
+    c = circuit_cls([cirq.Moment([cirq.X(a)])])
     assert c.operation_at(b, 0) is None
     assert c.operation_at(a, 1) is None
     assert c.operation_at(a, 0) == cirq.X(a)
 
-    c = MaybeFrozenCircuit(
-        frozen, [cirq.Moment(), cirq.Moment([cirq.CZ(a, b)])])
+    c = circuit_cls([cirq.Moment(), cirq.Moment([cirq.CZ(a, b)])])
     assert c.operation_at(a, 0) is None
     assert c.operation_at(a, 1) == cirq.CZ(a, b)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_findall_operations(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_findall_operations(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1204,42 +1161,42 @@ def test_findall_operations(frozen):
         return (isinstance(op, cirq.GateOperation) and
                 isinstance(op.gate, cirq.XPowGate))
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert list(c.findall_operations(is_x)) == []
 
-    c = MaybeFrozenCircuit(frozen, xa)
+    c = circuit_cls(xa)
     assert list(c.findall_operations(is_x)) == [(0, xa)]
 
-    c = MaybeFrozenCircuit(frozen, za)
+    c = circuit_cls(za)
     assert list(c.findall_operations(is_x)) == []
 
-    c = MaybeFrozenCircuit(frozen, [za, zb] * 8)
+    c = circuit_cls([za, zb] * 8)
     assert list(c.findall_operations(is_x)) == []
 
-    c = MaybeFrozenCircuit(frozen, xa, xb)
+    c = circuit_cls(xa, xb)
     assert list(c.findall_operations(is_x)) == [(0, xa), (0, xb)]
 
-    c = MaybeFrozenCircuit(frozen, xa, zb)
+    c = circuit_cls(xa, zb)
     assert list(c.findall_operations(is_x)) == [(0, xa)]
 
-    c = MaybeFrozenCircuit(frozen, xa, za)
+    c = circuit_cls(xa, za)
     assert list(c.findall_operations(is_x)) == [(0, xa)]
 
-    c = MaybeFrozenCircuit(frozen, [xa] * 8)
+    c = circuit_cls([xa] * 8)
     assert list(c.findall_operations(is_x)) == list(enumerate([xa] * 8))
 
-    c = MaybeFrozenCircuit(frozen, za, zb, xa, xb)
+    c = circuit_cls(za, zb, xa, xb)
     assert list(c.findall_operations(is_x)) == [(1, xa), (1, xb)]
 
-    c = MaybeFrozenCircuit(frozen, xa, zb, za, xb)
+    c = circuit_cls(xa, zb, za, xb)
     assert list(c.findall_operations(is_x)) == [(0, xa), (1, xb)]
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_findall_operations_with_gate(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_findall_operations_with_gate(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.Z(a), cirq.Z(b)]),
         cirq.Moment([cirq.X(a), cirq.X(b)]),
@@ -1285,17 +1242,16 @@ def assert_findall_operations_until_blocked_as_expected(circuit=None,
     assert sorted(found_ops) == sorted(expected_ops)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_findall_operations_until_blocked(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_findall_operations_until_blocked(circuit_cls):
     a, b, c, d = cirq.LineQubit.range(4)
 
     assert_findall_operations_until_blocked_as_expected()
 
-    circuit = MaybeFrozenCircuit(frozen, cirq.H(a), cirq.CZ(a, b), cirq.H(b),
-                                 cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
-                                 cirq.H(d), cirq.CZ(c, d), cirq.H(c),
-                                 cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
-                                 cirq.H(a))
+    circuit = circuit_cls(cirq.H(a), cirq.CZ(a, b), cirq.H(b), cirq.CZ(b, c),
+                          cirq.H(c), cirq.CZ(c, d), cirq.H(d), cirq.CZ(c, d),
+                          cirq.H(c), cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                          cirq.H(a))
     expected_diagram = """
 0: ───H───@───────────────────────────────────────@───H───
           │                                       │
@@ -1368,9 +1324,7 @@ def test_findall_operations_until_blocked(frozen):
             is_blocker=stop_if_h_on_a,
             expected_ops=[(11, cirq.CZ.on(a, b))])
 
-    circuit = MaybeFrozenCircuit(
-        frozen, [cirq.CZ(a, b), cirq.CZ(a, b),
-                 cirq.CZ(b, c)])
+    circuit = circuit_cls([cirq.CZ(a, b), cirq.CZ(a, b), cirq.CZ(b, c)])
     expected_diagram = """
 0: ───@───@───────
       │   │
@@ -1390,7 +1344,7 @@ def test_findall_operations_until_blocked(frozen):
         is_blocker=is_blocker,
         expected_ops=expected_ops)
 
-    circuit = MaybeFrozenCircuit(frozen, [cirq.ZZ(a, b), cirq.ZZ(b, c)])
+    circuit = circuit_cls([cirq.ZZ(a, b), cirq.ZZ(b, c)])
     expected_diagram = """
 0: ───ZZ────────
       │
@@ -1409,8 +1363,7 @@ def test_findall_operations_until_blocked(frozen):
         is_blocker=is_blocker,
         expected_ops=[])
 
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         [cirq.ZZ(a, b), cirq.XX(c, d),
          cirq.ZZ(b, c), cirq.Z(b)])
     expected_diagram = """
@@ -1433,8 +1386,7 @@ def test_findall_operations_until_blocked(frozen):
         is_blocker=is_blocker,
         expected_ops=[(0, cirq.ZZ(a, b))])
 
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         [cirq.XX(a, b),
          cirq.Z(a),
          cirq.ZZ(b, c),
@@ -1461,8 +1413,8 @@ def test_findall_operations_until_blocked(frozen):
 
 
 @pytest.mark.parametrize('seed', [randint(0, 2**31)])
-@pytest.mark.parametrize('frozen', [False, True])
-def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_findall_operations_until_blocked_docstring_examples(seed, circuit_cls):
     prng = np.random.RandomState(seed)
 
     class ExampleGate(cirq.Gate):
@@ -1490,7 +1442,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     M2 = ExampleGate(2, 'M')
     a, b, c, d = cirq.LineQubit.range(4)
 
-    circuit = MaybeFrozenCircuit(frozen, [F2(a, b), F2(a, b), T2(b, c)])
+    circuit = circuit_cls([F2(a, b), F2(a, b), T2(b, c)])
     start = {a: 0, b: 0}
     expected_diagram = """
 0: ───F───F───────
@@ -1501,7 +1453,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     """
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
     expected_ops = [(0, F2(a, b)), (1, F2(a, b))]
-    new_circuit = MaybeFrozenCircuit(frozen, [op for _, op in expected_ops])
+    new_circuit = circuit_cls([op for _, op in expected_ops])
     expected_diagram = """
 0: ───F───F───
       │   │
@@ -1511,9 +1463,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     assert (circuit.findall_operations_until_blocked(
         start, is_blocker) == expected_ops)
 
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        [M2(a, b), M2(b, c), F2(a, b), M2(c, d)])
+    circuit = circuit_cls([M2(a, b), M2(b, c), F2(a, b), M2(c, d)])
     start = {a: 2, b: 2}
     expected_diagram = """
 0: ───M───────F───
@@ -1526,7 +1476,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     """
     cirq.testing.assert_has_diagram(circuit, expected_diagram)
     expected_ops = [(2, F2(a, b))]
-    new_circuit = MaybeFrozenCircuit(frozen, [op for _, op in expected_ops])
+    new_circuit = circuit_cls([op for _, op in expected_ops])
     expected_diagram = """
 0: ───F───
       │
@@ -1536,9 +1486,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     assert (circuit.findall_operations_until_blocked(
         start, is_blocker) == expected_ops)
 
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        [M2(a, b), T2(b, c), M2(a, b), M2(c, d)])
+    circuit = circuit_cls([M2(a, b), T2(b, c), M2(a, b), M2(c, d)])
     start = {a: 1, b: 1}
     expected_diagram = """
 0: ───M───────M───
@@ -1553,7 +1501,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     assert circuit.findall_operations_until_blocked(start, is_blocker) == []
 
     ops = [(0, F2(a, b)), (1, F2(a, b))]
-    circuit = MaybeFrozenCircuit(frozen, [op for _, op in ops])
+    circuit = circuit_cls([op for _, op in ops])
     start = {a: 0, b: 1}
     expected_diagram = """
 0: ───F───F───
@@ -1564,7 +1512,7 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     assert circuit.findall_operations_until_blocked(start, is_blocker) == ops
 
     ops = [F2(a, b), F2(b, c), F2(c, d)]
-    circuit = MaybeFrozenCircuit(frozen, ops)
+    circuit = circuit_cls(ops)
     start = {a: 0, d: 0}
     expected_diagram = """
 0: ───F───────────
@@ -1581,8 +1529,8 @@ def test_findall_operations_until_blocked_docstring_examples(seed, frozen):
     ])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_has_measurements(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_has_measurements(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1592,42 +1540,42 @@ def test_has_measurements(frozen):
     ma = cirq.measure(a)
     mb = cirq.measure(b)
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert not c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, xa, xb)
+    c = circuit_cls(xa, xb)
     assert not c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, ma)
+    c = circuit_cls(ma)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, ma, mb)
+    c = circuit_cls(ma, mb)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma)
+    c = circuit_cls(xa, ma)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xb, mb)
+    c = circuit_cls(xa, ma, xb, mb)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, ma, xa)
+    c = circuit_cls(ma, xa)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, ma, xa, mb)
+    c = circuit_cls(ma, xa, mb)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xb, xa)
+    c = circuit_cls(xa, ma, xb, xa)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, ma, ma)
+    c = circuit_cls(ma, ma)
     assert c.has_measurements()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xa)
+    c = circuit_cls(xa, ma, xa)
     assert c.has_measurements()
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_are_all_measurements_terminal(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_are_all_measurements_terminal(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
@@ -1637,42 +1585,42 @@ def test_are_all_measurements_terminal(frozen):
     ma = cirq.measure(a)
     mb = cirq.measure(b)
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, xa, xb)
+    c = circuit_cls(xa, xb)
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, ma)
+    c = circuit_cls(ma)
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, ma, mb)
+    c = circuit_cls(ma, mb)
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma)
+    c = circuit_cls(xa, ma)
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xb, mb)
+    c = circuit_cls(xa, ma, xb, mb)
     assert c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, ma, xa)
+    c = circuit_cls(ma, xa)
     assert not c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, ma, xa, mb)
+    c = circuit_cls(ma, xa, mb)
     assert not c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xb, xa)
+    c = circuit_cls(xa, ma, xb, xa)
     assert not c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, ma, ma)
+    c = circuit_cls(ma, ma)
     assert not c.are_all_measurements_terminal()
 
-    c = MaybeFrozenCircuit(frozen, xa, ma, xa)
+    c = circuit_cls(xa, ma, xa)
     assert not c.are_all_measurements_terminal()
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_all_terminal(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_all_terminal(circuit_cls):
 
     def is_x_pow_gate(op):
         return isinstance(op.gate, cirq.XPowGate)
@@ -1686,37 +1634,37 @@ def test_all_terminal(frozen):
     ya = cirq.Y.on(a)
     yb = cirq.Y.on(b)
 
-    c = MaybeFrozenCircuit(frozen)
+    c = circuit_cls()
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xa)
+    c = circuit_cls(xa)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xb)
+    c = circuit_cls(xb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, ya)
+    c = circuit_cls(ya)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, ya, yb)
+    c = circuit_cls(ya, yb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, ya, yb, xa)
+    c = circuit_cls(ya, yb, xa)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, ya, yb, xa, xb)
+    c = circuit_cls(ya, yb, xa, xb)
     assert c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xa, xa)
+    c = circuit_cls(xa, xa)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xa, ya)
+    c = circuit_cls(xa, ya)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xb, ya, yb)
+    c = circuit_cls(xb, ya, yb)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
 
-    c = MaybeFrozenCircuit(frozen, xa, ya, xa)
+    c = circuit_cls(xa, ya, xa)
     assert not c.are_all_matches_terminal(is_x_pow_gate)
 
 
@@ -1773,76 +1721,70 @@ def test_clear_operations_touching():
     ])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_all_qubits(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_all_qubits(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(b)]),
     ])
     assert c.all_qubits() == {a, b}
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(a)]),
     ])
     assert c.all_qubits() == {a}
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.CZ(a, b)]),
     ])
     assert c.all_qubits() == {a, b}
 
-    c = MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.CZ(a, b)]),
-                 cirq.Moment([cirq.X(a)])])
+    c = circuit_cls([cirq.Moment([cirq.CZ(a, b)]), cirq.Moment([cirq.X(a)])])
     assert c.all_qubits() == {a, b}
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_all_operations(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_all_operations(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(b)]),
     ])
     assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a), cirq.X(b)]),
     ])
     assert list(c.all_operations()) == [cirq.X(a), cirq.X(b)]
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(a)]),
     ])
     assert list(c.all_operations()) == [cirq.X(a), cirq.X(a)]
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.CZ(a, b)]),
     ])
     assert list(c.all_operations()) == [cirq.CZ(a, b)]
 
-    c = MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.CZ(a, b)]),
-                 cirq.Moment([cirq.X(a)])])
+    c = circuit_cls([cirq.Moment([cirq.CZ(a, b)]), cirq.Moment([cirq.X(a)])])
     assert list(c.all_operations()) == [cirq.CZ(a, b), cirq.X(a)]
 
-    c = MaybeFrozenCircuit(
-        frozen,
-        [
-            cirq.Moment([]),
-            cirq.Moment([cirq.X(a), cirq.Y(b)]),
-            cirq.Moment([]),
-            cirq.Moment([cirq.CNOT(a, b)]),
-            cirq.Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
-            cirq.Moment([])
-        ])
+    c = circuit_cls([
+        cirq.Moment([]),
+        cirq.Moment([cirq.X(a), cirq.Y(b)]),
+        cirq.Moment([]),
+        cirq.Moment([cirq.CNOT(a, b)]),
+        cirq.Moment([cirq.Z(b), cirq.H(a)]),  # Different qubit order
+        cirq.Moment([])
+    ])
 
     assert list(c.all_operations()) == [
         cirq.X(a),
@@ -1853,13 +1795,13 @@ def test_all_operations(frozen):
     ]
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_qid_shape_qubit(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_qid_shape_qubit(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
 
-    circuit = MaybeFrozenCircuit(frozen, [
+    circuit = circuit_cls([
         cirq.Moment([cirq.X(a)]),
         cirq.Moment([cirq.X(b)]),
     ])
@@ -1872,8 +1814,8 @@ def test_qid_shape_qubit(frozen):
         _ = circuit.qid_shape(qubit_order=[a])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_qid_shape_qudit(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_qid_shape_qudit(circuit_cls):
 
     class PlusOneMod3Gate(cirq.SingleQubitGate):
 
@@ -1892,8 +1834,7 @@ def test_qid_shape_qudit(frozen):
 
     a, b, c = cirq.LineQid.for_qid_shape((3, 2, 1))
 
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         PlusOneMod3Gate().on(a),
         C2NotGate().on(a, b),
         IdentityGate().on_each(c),
@@ -1907,14 +1848,14 @@ def test_qid_shape_qudit(frozen):
         _ = circuit.qid_shape(qubit_order=[b, c])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_text_diagram_teleportation_to_diagram(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_teleportation_to_diagram(circuit_cls):
     ali = cirq.NamedQubit('(0, 0)')
     bob = cirq.NamedQubit('(0, 1)')
     msg = cirq.NamedQubit('(1, 0)')
     tmp = cirq.NamedQubit('(1, 1)')
 
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.Moment([cirq.H(ali)]),
         cirq.Moment([cirq.CNOT(ali, bob)]),
         cirq.Moment([cirq.X(msg)**0.5]),
@@ -1970,8 +1911,8 @@ M      |      M      |
 """, use_unicode_characters=False, transpose=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_diagram_with_unknown_exponent(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_diagram_with_unknown_exponent(circuit_cls):
 
     class WeirdGate(cirq.SingleQubitGate):
         def _circuit_diagram_info_(self,
@@ -1987,8 +1928,7 @@ def test_diagram_with_unknown_exponent(frozen):
             return cirq.CircuitDiagramInfo(wire_symbols=('W',),
                                            exponent='fancy-that')
 
-    c = MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(
         WeirdGate().on(cirq.NamedQubit('q')),
         WeirderGate().on(cirq.NamedQubit('q')),
     )
@@ -1997,8 +1937,8 @@ def test_diagram_with_unknown_exponent(frozen):
     cirq.testing.assert_has_diagram(c, 'q: ───B^fancy───W^(fancy-that)───')
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_circuit_diagram_on_gate_without_info(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_circuit_diagram_on_gate_without_info(circuit_cls):
     q = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
@@ -2015,7 +1955,7 @@ def test_circuit_diagram_on_gate_without_info(frozen):
 
     # Fallback to repr.
     f = FGate()
-    cirq.testing.assert_has_diagram(MaybeFrozenCircuit(frozen, [
+    cirq.testing.assert_has_diagram(circuit_cls([
         cirq.Moment([f.on(q)]),
     ]),
                                     """
@@ -2025,7 +1965,7 @@ def test_circuit_diagram_on_gate_without_info(frozen):
 
     f3 = FGate(3)
     # When used on multiple qubits, show the qubit order as a digit suffix.
-    cirq.testing.assert_has_diagram(MaybeFrozenCircuit(frozen, [
+    cirq.testing.assert_has_diagram(circuit_cls([
         cirq.Moment([f3.on(q, q3, q2)]),
     ]),
                                     """
@@ -2038,12 +1978,12 @@ def test_circuit_diagram_on_gate_without_info(frozen):
                                     use_unicode_characters=False)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_text_diagram_multi_qubit_gate(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_multi_qubit_gate(circuit_cls):
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
-    c = MaybeFrozenCircuit(frozen, cirq.measure(q1, q2, q3, key='msg'))
+    c = circuit_cls(cirq.measure(q1, q2, q3, key='msg'))
     cirq.testing.assert_has_diagram(c, """
 (0, 0): ───M('msg')───
            │
@@ -2066,8 +2006,9 @@ M('msg')─M──────M
 """, transpose=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(
+        circuit_cls):
 
     class BadGate(cirq.ThreeQubitGate):
         def _circuit_diagram_info_(self, args: cirq.CircuitDiagramInfoArgs
@@ -2076,13 +2017,13 @@ def test_to_text_diagram_many_qubits_gate_but_multiple_wire_symbols(frozen):
     q1 = cirq.NamedQubit('(0, 0)')
     q2 = cirq.NamedQubit('(0, 1)')
     q3 = cirq.NamedQubit('(0, 2)')
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([BadGate().on(q1, q2, q3)])])
+    c = circuit_cls([cirq.Moment([BadGate().on(q1, q2, q3)])])
     with pytest.raises(ValueError, match='BadGate'):
         c.to_text_diagram()
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_text_diagram_parameterized_value(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_parameterized_value(circuit_cls):
     q = cirq.NamedQubit('cube')
 
     class PGate(cirq.SingleQubitGate):
@@ -2093,8 +2034,7 @@ def test_to_text_diagram_parameterized_value(frozen):
                                    ) -> cirq.CircuitDiagramInfo:
             return cirq.CircuitDiagramInfo(('P',), self.val)
 
-    c = MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(
         PGate(1).on(q),
         PGate(2).on(q),
         PGate(sympy.Symbol('a')).on(q),
@@ -2103,15 +2043,13 @@ def test_to_text_diagram_parameterized_value(frozen):
     assert str(c).strip() == 'cube: ───P───P^2───P^a───P^(%$&#*()───'
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_text_diagram_custom_order(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_text_diagram_custom_order(circuit_cls):
     qa = cirq.NamedQubit('2')
     qb = cirq.NamedQubit('3')
     qc = cirq.NamedQubit('4')
 
-    c = MaybeFrozenCircuit(
-        frozen, [cirq.Moment([cirq.X(qa), cirq.X(qb),
-                              cirq.X(qc)])])
+    c = circuit_cls([cirq.Moment([cirq.X(qa), cirq.X(qb), cirq.X(qc)])])
     cirq.testing.assert_has_diagram(c, """
 3: ---X---
 
@@ -2122,41 +2060,41 @@ def test_to_text_diagram_custom_order(frozen):
                                     use_unicode_characters=False)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_overly_precise_diagram(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_overly_precise_diagram(circuit_cls):
     # Test default precision of 3
     qa = cirq.NamedQubit('a')
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(qa)**0.12345678])])
+    c = circuit_cls([cirq.Moment([cirq.X(qa)**0.12345678])])
     cirq.testing.assert_has_diagram(c, """
 a: ---X^0.123---
 """, use_unicode_characters=False)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_none_precision_diagram(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_none_precision_diagram(circuit_cls):
     # Test default precision of 3
     qa = cirq.NamedQubit('a')
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(qa)**0.4921875])])
+    c = circuit_cls([cirq.Moment([cirq.X(qa)**0.4921875])])
     cirq.testing.assert_has_diagram(c, """
 a: ---X^0.4921875---
 """, use_unicode_characters=False, precision=None)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_diagram_custom_precision(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_diagram_custom_precision(circuit_cls):
     qa = cirq.NamedQubit('a')
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([cirq.X(qa)**0.12341234])])
+    c = circuit_cls([cirq.Moment([cirq.X(qa)**0.12341234])])
     cirq.testing.assert_has_diagram(c, """
 a: ---X^0.12341---
 """, use_unicode_characters=False, precision=5)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_diagram_wgate(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_diagram_wgate(circuit_cls):
     qa = cirq.NamedQubit('a')
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([test_wgate.on(qa)])])
+    c = circuit_cls([cirq.Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c,
                                     """
 a: ---PhX(0.43)^(1/8)---
@@ -2165,12 +2103,12 @@ a: ---PhX(0.43)^(1/8)---
                                     precision=2)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_diagram_wgate_none_precision(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_diagram_wgate_none_precision(circuit_cls):
     qa = cirq.NamedQubit('a')
     test_wgate = cirq.PhasedXPowGate(
         exponent=0.12341234, phase_exponent=0.43214321)
-    c = MaybeFrozenCircuit(frozen, [cirq.Moment([test_wgate.on(qa)])])
+    c = circuit_cls([cirq.Moment([test_wgate.on(qa)])])
     cirq.testing.assert_has_diagram(c,
                                     """
 a: ---PhX(0.43214321)^0.12341234---
@@ -2179,11 +2117,11 @@ a: ---PhX(0.43214321)^0.12341234---
                                     precision=None)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_diagram_global_phase(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_diagram_global_phase(circuit_cls):
     qa = cirq.NamedQubit('a')
     global_phase = cirq.GlobalPhaseOperation(coefficient=1j)
-    c = MaybeFrozenCircuit(frozen, [global_phase])
+    c = circuit_cls([global_phase])
     cirq.testing.assert_has_diagram(c,
                                     "\n\nglobal phase:   0.5pi",
                                     use_unicode_characters=False,
@@ -2193,7 +2131,7 @@ def test_diagram_global_phase(frozen):
                                     use_unicode_characters=True,
                                     precision=2)
 
-    c = MaybeFrozenCircuit(frozen, [cirq.X(qa), global_phase, global_phase])
+    c = circuit_cls([cirq.X(qa), global_phase, global_phase])
     cirq.testing.assert_has_diagram(c,
                                     """\
 a: ─────────────X───
@@ -2201,8 +2139,8 @@ a: ─────────────X───
 global phase:   π""",
                                     use_unicode_characters=True,
                                     precision=2)
-    c = MaybeFrozenCircuit(frozen, [cirq.X(qa), global_phase],
-                           cirq.Moment([cirq.X(qa), global_phase]))
+    c = circuit_cls([cirq.X(qa), global_phase],
+                    cirq.Moment([cirq.X(qa), global_phase]))
     cirq.testing.assert_has_diagram(c,
                                     """\
 a: ─────────────X──────X──────
@@ -2213,8 +2151,8 @@ global phase:   0.5π   0.5π
                                     precision=2)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_has_unitary(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_has_unitary(circuit_cls):
 
     class NonUnitary(cirq.SingleQubitGate):
         pass
@@ -2226,25 +2164,24 @@ def test_has_unitary(frozen):
     q = cirq.NamedQubit('q')
 
     # Non-unitary operations cause a non-unitary circuit.
-    assert cirq.has_unitary(MaybeFrozenCircuit(frozen, cirq.X(q)))
-    assert not cirq.has_unitary(MaybeFrozenCircuit(frozen, NonUnitary().on(q)))
+    assert cirq.has_unitary(circuit_cls(cirq.X(q)))
+    assert not cirq.has_unitary(circuit_cls(NonUnitary().on(q)))
 
     # Terminal measurements are ignored, though.
-    assert cirq.has_unitary(MaybeFrozenCircuit(frozen, cirq.measure(q)))
-    assert not cirq.has_unitary(
-        MaybeFrozenCircuit(frozen, cirq.measure(q), cirq.measure(q)))
+    assert cirq.has_unitary(circuit_cls(cirq.measure(q)))
+    assert not cirq.has_unitary(circuit_cls(cirq.measure(q), cirq.measure(q)))
 
     # Still unitary if operations decompose into unitary operations.
-    assert cirq.has_unitary(MaybeFrozenCircuit(frozen, EventualUnitary().on(q)))
+    assert cirq.has_unitary(circuit_cls(EventualUnitary().on(q)))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_text_diagram_jupyter(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_text_diagram_jupyter(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    circuit = MaybeFrozenCircuit(
-        frozen, (cirq.CNOT(a, b), cirq.CNOT(b, c), cirq.CNOT(c, a)) * 50)
+    circuit = circuit_cls(
+        (cirq.CNOT(a, b), cirq.CNOT(b, c), cirq.CNOT(c, a)) * 50)
     text_expected = circuit.to_text_diagram()
 
     # Test Jupyter console output from
@@ -2259,9 +2196,8 @@ def test_text_diagram_jupyter(frozen):
 
     # Test cycle handling
     p = FakePrinter()
-    type_name = 'FrozenCircuit' if frozen else 'Circuit'
     circuit._repr_pretty_(p, True)
-    assert p.text_pretty == f'{type_name}(...)'
+    assert p.text_pretty == f'{circuit_cls.__name__}(...)'
 
     # Test Jupyter notebook html output
     text_html = circuit._repr_html_()
@@ -2269,14 +2205,13 @@ def test_text_diagram_jupyter(frozen):
     assert text_expected in text_html
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_circuit_to_unitary_matrix(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_circuit_to_unitary_matrix(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     # Single qubit gates.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen,
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
         cirq.X(a)**0.5).unitary(),
                                                     np.array([
                                                         [1j, 1],
@@ -2284,12 +2219,11 @@ def test_circuit_to_unitary_matrix(frozen):
                                                     ]) * np.sqrt(0.5),
                                                     atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen,
-                           cirq.Y(a)**0.25).unitary(),
+        circuit_cls(cirq.Y(a)**0.25).unitary(),
         cirq.unitary(cirq.Y(a)**0.25),
         atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.Z(a), cirq.X(b)).unitary(),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.Z(a), cirq.X(b)).unitary(),
                                                     np.array([
                                                         [0, 1, 0, 0],
                                                         [1, 0, 0, 0],
@@ -2299,8 +2233,8 @@ def test_circuit_to_unitary_matrix(frozen):
                                                     atol=1e-8)
 
     # Single qubit gates and two qubit gate.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.Z(a), cirq.X(b), cirq.CNOT(a, b)).unitary(),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.Z(a), cirq.X(b), cirq.CNOT(a, b)).unitary(),
                                                     np.array([
                                                         [0, 1, 0, 0],
                                                         [1, 0, 0, 0],
@@ -2308,8 +2242,8 @@ def test_circuit_to_unitary_matrix(frozen):
                                                         [0, 0, 0, -1],
                                                     ]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.H(b),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.H(b),
         cirq.CNOT(b, a)**0.5,
         cirq.Y(a)**0.5).unitary(),
                                                     np.array([
@@ -2321,18 +2255,18 @@ def test_circuit_to_unitary_matrix(frozen):
                                                     atol=1e-8)
 
     # Measurement gate has no corresponding matrix.
-    c = MaybeFrozenCircuit(frozen, cirq.measure(a))
+    c = circuit_cls(cirq.measure(a))
     with pytest.raises(ValueError):
         _ = c.unitary(ignore_terminal_measurements=False)
 
     # Ignoring terminal measurements.
-    c = MaybeFrozenCircuit(frozen, cirq.measure(a))
+    c = circuit_cls(cirq.measure(a))
     cirq.testing.assert_allclose_up_to_global_phase(c.unitary(),
                                                     np.eye(2),
                                                     atol=1e-8)
 
     # Ignoring terminal measurements with further cirq.
-    c = MaybeFrozenCircuit(frozen, cirq.Z(a), cirq.measure(a), cirq.Z(b))
+    c = circuit_cls(cirq.Z(a), cirq.measure(a), cirq.Z(b))
     cirq.testing.assert_allclose_up_to_global_phase(c.unitary(),
                                                     np.array([[1, 0, 0, 0],
                                                               [0, -1, 0, 0],
@@ -2341,18 +2275,17 @@ def test_circuit_to_unitary_matrix(frozen):
                                                     atol=1e-8)
 
     # Optionally don't ignoring terminal measurements.
-    c = MaybeFrozenCircuit(frozen, cirq.measure(a))
+    c = circuit_cls(cirq.measure(a))
     with pytest.raises(ValueError, match="measurement"):
         _ = c.unitary(ignore_terminal_measurements=False),
 
     # Non-terminal measurements are not ignored.
-    c = MaybeFrozenCircuit(frozen, cirq.measure(a), cirq.X(a))
+    c = circuit_cls(cirq.measure(a), cirq.X(a))
     with pytest.raises(ValueError):
         _ = c.unitary()
 
     # Non-terminal measurements are not ignored (multiple qubits).
-    c = MaybeFrozenCircuit(frozen, cirq.measure(a), cirq.measure(b),
-                           cirq.CNOT(a, b))
+    c = circuit_cls(cirq.measure(a), cirq.measure(b), cirq.CNOT(a, b))
     with pytest.raises(ValueError):
         _ = c.unitary()
 
@@ -2360,35 +2293,33 @@ def test_circuit_to_unitary_matrix(frozen):
     class MysteryGate(cirq.TwoQubitGate):
         pass
 
-    c = MaybeFrozenCircuit(frozen, MysteryGate()(a, b))
+    c = circuit_cls(MysteryGate()(a, b))
     with pytest.raises(TypeError):
         _ = c.unitary()
 
     # Accounts for measurement bit flipping.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.measure(a, invert_mask=(True,))).unitary(),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.measure(a, invert_mask=(True,))).unitary(),
                                                     cirq.unitary(cirq.X),
                                                     atol=1e-8)
 
     # dtype
-    c = MaybeFrozenCircuit(frozen, cirq.X(a))
+    c = circuit_cls(cirq.X(a))
     assert c.unitary(dtype=np.complex64).dtype == np.complex64
     assert c.unitary(dtype=np.complex128).dtype == np.complex128
     assert c.unitary(dtype=np.float64).dtype == np.float64
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_circuit_unitary(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_circuit_unitary(circuit_cls):
     q = cirq.NamedQubit('q')
 
-    with_inner_measure = MaybeFrozenCircuit(frozen, cirq.H(q), cirq.measure(q),
-                                            cirq.H(q))
+    with_inner_measure = circuit_cls(cirq.H(q), cirq.measure(q), cirq.H(q))
     assert not cirq.has_unitary(with_inner_measure)
     assert cirq.unitary(with_inner_measure, None) is None
 
     cirq.testing.assert_allclose_up_to_global_phase(cirq.unitary(
-        MaybeFrozenCircuit(frozen,
-                           cirq.X(q)**0.5),
+        circuit_cls(cirq.X(q)**0.5),
         cirq.measure(q),
     ),
                                                     np.array([
@@ -2398,13 +2329,13 @@ def test_circuit_unitary(frozen):
                                                     atol=1e-8)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_simple_circuits_to_unitary_matrix(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_simple_circuits_to_unitary_matrix(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     # Phase parity.
-    c = MaybeFrozenCircuit(frozen, cirq.CNOT(a, b), cirq.Z(b), cirq.CNOT(a, b))
+    c = circuit_cls(cirq.CNOT(a, b), cirq.Z(b), cirq.CNOT(a, b))
     assert cirq.has_unitary(c)
     m = c.unitary()
     cirq.testing.assert_allclose_up_to_global_phase(
@@ -2425,13 +2356,13 @@ def test_simple_circuits_to_unitary_matrix(frozen):
             def _unitary_(self) -> np.ndarray:
                 return expected
 
-        c = MaybeFrozenCircuit(frozen, Passthrough()(a, b))
+        c = circuit_cls(Passthrough()(a, b))
         m = c.unitary()
         cirq.testing.assert_allclose_up_to_global_phase(m, expected, atol=1e-8)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_composite_gate_to_unitary_matrix(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_composite_gate_to_unitary_matrix(circuit_cls):
 
     class CnotComposite(cirq.TwoQubitGate):
         def _decompose_(self, qubits):
@@ -2440,9 +2371,9 @@ def test_composite_gate_to_unitary_matrix(frozen):
 
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
-    c = MaybeFrozenCircuit(frozen, cirq.X(a),
-                           CnotComposite()(a, b), cirq.X(a), cirq.measure(a),
-                           cirq.X(b), cirq.measure(b))
+    c = circuit_cls(cirq.X(a),
+                    CnotComposite()(a, b), cirq.X(a), cirq.measure(a),
+                    cirq.X(b), cirq.measure(b))
     assert cirq.has_unitary(c)
 
     mat = c.unitary()
@@ -2452,8 +2383,8 @@ def test_composite_gate_to_unitary_matrix(frozen):
                                                     atol=1e-8)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_expanding_gate_symbols(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_expanding_gate_symbols(circuit_cls):
 
     class MultiTargetCZ(cirq.Gate):
 
@@ -2472,9 +2403,9 @@ def test_expanding_gate_symbols(frozen):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
     c = cirq.NamedQubit('c')
-    t0 = MaybeFrozenCircuit(frozen, MultiTargetCZ(1).on(c))
-    t1 = MaybeFrozenCircuit(frozen, MultiTargetCZ(2).on(c, a))
-    t2 = MaybeFrozenCircuit(frozen, MultiTargetCZ(3).on(c, a, b))
+    t0 = circuit_cls(MultiTargetCZ(1).on(c))
+    t1 = circuit_cls(MultiTargetCZ(2).on(c, a))
+    t2 = circuit_cls(MultiTargetCZ(3).on(c, a, b))
 
     cirq.testing.assert_has_diagram(t0, """
 c: ───@───
@@ -2495,11 +2426,10 @@ c: ───@───
 """)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_transposed_diagram_exponent_order(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_transposed_diagram_exponent_order(circuit_cls):
     a, b, c = cirq.LineQubit.range(3)
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.CZ(a, b)**-0.5,
         cirq.CZ(a, c)**0.5,
         cirq.CZ(b, c)**0.125,
@@ -2539,124 +2469,112 @@ def test_insert_moments():
     assert c._moments[0] == m2
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_apply_unitary_effect_to_state(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_apply_unitary_effect_to_state(circuit_cls):
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
 
     # State ordering.
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen,
-                           cirq.X(a)**0.5).final_state_vector(),
+        circuit_cls(cirq.X(a)**0.5).final_state_vector(),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen,
-                           cirq.X(a)**0.5).final_state_vector(initial_state=0),
+        circuit_cls(cirq.X(a)**0.5).final_state_vector(initial_state=0),
         np.array([1j, 1]) * np.sqrt(0.5),
         atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen,
-                           cirq.X(a)**0.5).final_state_vector(initial_state=1),
+        circuit_cls(cirq.X(a)**0.5).final_state_vector(initial_state=1),
         np.array([1, 1j]) * np.sqrt(0.5),
         atol=1e-8)
 
     # Vector state.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen,
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
         cirq.X(a)**0.5).final_state_vector(initial_state=np.array([1j, 1]) *
                                            np.sqrt(0.5)),
                                                     np.array([0, 1]),
                                                     atol=1e-8)
 
     # Qubit ordering.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a, b)).final_state_vector(initial_state=0),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=0),
                                                     np.array([1, 0, 0, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a, b)).final_state_vector(initial_state=1),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=1),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a, b)).final_state_vector(initial_state=2),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=2),
                                                     np.array([0, 0, 0, 1]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a, b)).final_state_vector(initial_state=3),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=3),
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
     # Product state
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen,
-        cirq.CNOT(a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
-                                            cirq.KET_ZERO(b)),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
+                                  cirq.KET_ZERO(b)),
                                                     np.array([1, 0, 0, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen,
-        cirq.CNOT(a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
-                                            cirq.KET_ONE(b)),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ZERO(a) *
+                                  cirq.KET_ONE(b)),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a,
-                          b)).final_state_vector(initial_state=cirq.KET_ONE(a) *
-                                                 cirq.KET_ZERO(b)),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a, b)).final_state_vector(initial_state=cirq.KET_ONE(a) *
+                                  cirq.KET_ZERO(b)),
                                                     np.array([0, 0, 0, 1]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.CNOT(a,
-                          b)).final_state_vector(initial_state=cirq.KET_ONE(a) *
-                                                 cirq.KET_ONE(b)),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(cirq.CNOT(
+        a,
+        b)).final_state_vector(initial_state=cirq.KET_ONE(a) * cirq.KET_ONE(b)),
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
     # Measurements.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.measure(a)).final_state_vector(),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.measure(a)).final_state_vector(),
                                                     np.array([1, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.X(a), cirq.measure(a)).final_state_vector(),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.X(a), cirq.measure(a)).final_state_vector(),
                                                     np.array([0, 1]),
                                                     atol=1e-8)
     with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-            frozen, cirq.measure(a), cirq.X(a)).final_state_vector(),
+        cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+            cirq.measure(a), cirq.X(a)).final_state_vector(),
                                                         np.array([1, 0]),
                                                         atol=1e-8)
     with pytest.raises(ValueError):
-        cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-            frozen, cirq.measure(a)).final_state_vector(
+        cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+            cirq.measure(a)).final_state_vector(
                 ignore_terminal_measurements=False),
                                                         np.array([1, 0]),
                                                         atol=1e-8)
 
     # Extra qubits.
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen).final_state_vector(),
-        np.array([1]),
-        atol=1e-8)
+        circuit_cls().final_state_vector(), np.array([1]), atol=1e-8)
     cirq.testing.assert_allclose_up_to_global_phase(
-        MaybeFrozenCircuit(frozen).final_state_vector(
-            qubits_that_should_be_present=[a]),
+        circuit_cls().final_state_vector(qubits_that_should_be_present=[a]),
         np.array([1, 0]),
         atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen,
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
         cirq.X(b)).final_state_vector(qubits_that_should_be_present=[a]),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
 
     # Qubit order.
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[a, b]),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[a, b]),
                                                     np.array([0, 1, 0, 0]),
                                                     atol=1e-8)
-    cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-        frozen, cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[b, a]),
+    cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
+        cirq.Z(a), cirq.X(b)).final_state_vector(qubit_order=[b, a]),
                                                     np.array([0, 0, 1, 0]),
                                                     atol=1e-8)
 
@@ -2665,8 +2583,7 @@ def test_apply_unitary_effect_to_state(frozen):
     if hasattr(np, 'complex256'):  # Some systems don't support 128 bit floats.
         dtypes.append(np.complex256)
     for dt in dtypes:
-        cirq.testing.assert_allclose_up_to_global_phase(MaybeFrozenCircuit(
-            frozen,
+        cirq.testing.assert_allclose_up_to_global_phase(circuit_cls(
             cirq.X(a)**0.5).final_state_vector(initial_state=np.array([1j, 1]) *
                                                np.sqrt(0.5),
                                                dtype=dt),
@@ -2674,11 +2591,10 @@ def test_apply_unitary_effect_to_state(frozen):
                                                         atol=1e-8)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_is_parameterized(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_is_parameterized(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
         cirq.X(a)**sympy.Symbol('v'),
         cirq.Y(b)**sympy.Symbol('w'),
@@ -2694,11 +2610,10 @@ def test_is_parameterized(frozen):
     assert not cirq.is_parameterized(circuit)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_resolve_parameters(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_resolve_parameters(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
         cirq.X(a)**sympy.Symbol('v'),
         cirq.Y(b)**sympy.Symbol('w'),
@@ -2713,29 +2628,27 @@ def test_resolve_parameters(frozen):
 """)
     q = cirq.NamedQubit('q')
     # no-op parameter resolution
-    circuit = MaybeFrozenCircuit(
-        frozen, [cirq.Moment(), cirq.Moment([cirq.X(q)])])
+    circuit = circuit_cls([cirq.Moment(), cirq.Moment([cirq.X(q)])])
     resolved_circuit = cirq.resolve_parameters(
         circuit,
         cirq.ParamResolver({}))
     cirq.testing.assert_same_circuits(circuit, resolved_circuit)
     # actually resolve something
-    circuit = MaybeFrozenCircuit(
-        frozen, [cirq.Moment(),
-                 cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
+    circuit = circuit_cls(
+        [cirq.Moment(),
+         cirq.Moment([cirq.X(q)**sympy.Symbol('x')])])
     resolved_circuit = cirq.resolve_parameters(
         circuit,
         cirq.ParamResolver({'x': 0.2}))
-    expected_circuit = MaybeFrozenCircuit(
-        frozen, [cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
+    expected_circuit = circuit_cls(
+        [cirq.Moment(), cirq.Moment([cirq.X(q)**0.2])])
     cirq.testing.assert_same_circuits(expected_circuit, resolved_circuit)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_parameter_names(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_parameter_names(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.CZ(a, b)**sympy.Symbol('u'),
         cirq.X(a)**sympy.Symbol('v'),
         cirq.Y(b)**sympy.Symbol('w'),
@@ -3115,8 +3028,8 @@ def test_batch_insert_doesnt_overshift_due_to_inline_inserts():
                              cirq.SWAP(a, b))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_next_moments_operating_on(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_next_moments_operating_on(circuit_cls):
     for _ in range(20):
         n_moments = randint(1, 10)
         circuit = cirq.testing.random_circuit(randint(1, 20), n_moments,
@@ -3323,13 +3236,10 @@ def test_decomposes_while_appending():
                               cirq.GridQubit(0, 4)))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_to_qasm(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_to_qasm(circuit_cls):
     q0 = cirq.NamedQubit('q0')
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        cirq.X(q0),
-    )
+    circuit = circuit_cls(cirq.X(q0),)
     assert circuit.to_qasm() == cirq.qasm(circuit)
     assert (circuit.to_qasm() == """// Generated from Cirq v{}
 
@@ -3345,14 +3255,11 @@ x q[0];
 """.format(cirq.__version__))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_save_qasm(tmpdir, frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_save_qasm(tmpdir, circuit_cls):
     file_path = os.path.join(tmpdir, 'test.qasm')
     q0 = cirq.NamedQubit('q0')
-    circuit = MaybeFrozenCircuit(
-        frozen,
-        cirq.X(q0),
-    )
+    circuit = circuit_cls(cirq.X(q0),)
 
     circuit.save_qasm(file_path)
     with open(file_path, 'r') as f:
@@ -3371,8 +3278,8 @@ x q[0];
 """.format(cirq.__version__))
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_findall_operations_between(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_findall_operations_between(circuit_cls):
     a, b, c, d = cirq.LineQubit.range(4)
 
     #    0: ───H───@───────────────────────────────────────@───H───
@@ -3384,11 +3291,10 @@ def test_findall_operations_between(frozen):
     #    3: ───────────────────────@───H───@───────────────────────
     #
     # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
-    circuit = MaybeFrozenCircuit(frozen, cirq.H(a), cirq.CZ(a, b), cirq.H(b),
-                                 cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
-                                 cirq.H(d), cirq.CZ(c, d), cirq.H(c),
-                                 cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
-                                 cirq.H(a))
+    circuit = circuit_cls(cirq.H(a), cirq.CZ(a, b), cirq.H(b), cirq.CZ(b, c),
+                          cirq.H(c), cirq.CZ(c, d), cirq.H(d), cirq.CZ(c, d),
+                          cirq.H(c), cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                          cirq.H(a))
 
     # Empty frontiers means no results.
     actual = circuit.findall_operations_between(
@@ -3484,8 +3390,8 @@ def test_findall_operations_between(frozen):
     ]
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_reachable_frontier_from(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_reachable_frontier_from(circuit_cls):
     a, b, c, d = cirq.LineQubit.range(4)
 
     #    0: ───H───@───────────────────────────────────────@───H───
@@ -3497,26 +3403,22 @@ def test_reachable_frontier_from(frozen):
     #    3: ───────────────────────@───H───@───────────────────────
     #
     # moments: 0   1   2   3   4   5   6   7   8   9   10  11  12
-    circuit = MaybeFrozenCircuit(frozen, cirq.H(a), cirq.CZ(a, b), cirq.H(b),
-                                 cirq.CZ(b, c), cirq.H(c), cirq.CZ(c, d),
-                                 cirq.H(d), cirq.CZ(c, d), cirq.H(c),
-                                 cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
-                                 cirq.H(a))
+    circuit = circuit_cls(cirq.H(a), cirq.CZ(a, b), cirq.H(b), cirq.CZ(b, c),
+                          cirq.H(c), cirq.CZ(c, d), cirq.H(d), cirq.CZ(c, d),
+                          cirq.H(c), cirq.CZ(b, c), cirq.H(b), cirq.CZ(a, b),
+                          cirq.H(a))
 
     # Empty cases.
-    assert MaybeFrozenCircuit(frozen).reachable_frontier_from(
-        start_frontier={}) == {}
+    assert circuit_cls().reachable_frontier_from(start_frontier={}) == {}
     assert circuit.reachable_frontier_from(start_frontier={}) == {}
 
     # Clamped input cases.
-    assert MaybeFrozenCircuit(frozen).reachable_frontier_from(
-        start_frontier={a: 5}) == {
-            a: 5
-        }
-    assert MaybeFrozenCircuit(frozen).reachable_frontier_from(
-        start_frontier={a: -100}) == {
-            a: 0
-        }
+    assert circuit_cls().reachable_frontier_from(start_frontier={a: 5}) == {
+        a: 5
+    }
+    assert circuit_cls().reachable_frontier_from(start_frontier={a: -100}) == {
+        a: 0
+    }
     assert circuit.reachable_frontier_from(
         start_frontier={a: 100}) == {a: 100}
 
@@ -3564,11 +3466,10 @@ def test_reachable_frontier_from(frozen):
         }
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_submoments(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_submoments(circuit_cls):
     a, b, c, d, e, f = cirq.LineQubit.range(6)
-    circuit = MaybeFrozenCircuit(
-        frozen,
+    circuit = circuit_cls(
         cirq.H.on(a),
         cirq.H.on(d),
         cirq.CZ.on(a, d),
@@ -3649,46 +3550,42 @@ def test_submoments(frozen):
 """, use_unicode_characters=False, transpose=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_decompose(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_decompose(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    assert cirq.decompose(
-        MaybeFrozenCircuit(frozen, cirq.X(a), cirq.Y(b), cirq.CZ(
-            a, b))) == [cirq.X(a), cirq.Y(b),
-                        cirq.CZ(a, b)]
+    assert cirq.decompose(circuit_cls(cirq.X(a), cirq.Y(b), cirq.CZ(
+        a, b))) == [cirq.X(a), cirq.Y(b), cirq.CZ(a, b)]
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_inverse(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_inverse(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = MaybeFrozenCircuit(frozen, (cirq.X**0.5)(a), (cirq.Y**-0.2)(b),
-                                 cirq.CZ(a, b))
-    backward = MaybeFrozenCircuit(frozen, (cirq.CZ**(-1.0))(a, b),
-                                  (cirq.X**(-0.5))(a), (cirq.Y**(0.2))(b))
+    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
+    backward = circuit_cls((cirq.CZ**(-1.0))(a, b), (cirq.X**(-0.5))(a),
+                           (cirq.Y**(0.2))(b))
     cirq.testing.assert_same_circuits(cirq.inverse(forward), backward)
 
-    cirq.testing.assert_same_circuits(cirq.inverse(MaybeFrozenCircuit(frozen)),
-                                      MaybeFrozenCircuit(frozen))
+    cirq.testing.assert_same_circuits(cirq.inverse(circuit_cls()),
+                                      circuit_cls())
 
-    no_inverse = MaybeFrozenCircuit(frozen, cirq.measure(a, b))
+    no_inverse = circuit_cls(cirq.measure(a, b))
     with pytest.raises(TypeError, match='__pow__'):
         cirq.inverse(no_inverse)
 
     # Default when there is no inverse for an op.
-    default = MaybeFrozenCircuit(frozen, (cirq.X**0.5)(a), (cirq.Y**-0.2)(b))
+    default = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b))
     cirq.testing.assert_same_circuits(cirq.inverse(no_inverse, default),
                                       default)
     assert cirq.inverse(no_inverse, None) is None
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_pow_valid_only_for_minus_1(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_pow_valid_only_for_minus_1(circuit_cls):
     a, b = cirq.LineQubit.range(2)
-    forward = MaybeFrozenCircuit(frozen, (cirq.X**0.5)(a), (cirq.Y**-0.2)(b),
-                                 cirq.CZ(a, b))
+    forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
 
-    backward = MaybeFrozenCircuit(frozen, (cirq.CZ**(-1.0))(a, b),
-                                  (cirq.X**(-0.5))(a), (cirq.Y**(0.2))(b))
+    backward = circuit_cls((cirq.CZ**(-1.0))(a, b), (cirq.X**(-0.5))(a),
+                           (cirq.Y**(0.2))(b))
 
     cirq.testing.assert_same_circuits(cirq.pow(forward, -1), backward)
     with pytest.raises(TypeError, match='__pow__'):
@@ -3699,14 +3596,14 @@ def test_pow_valid_only_for_minus_1(frozen):
         cirq.pow(forward, -2.5)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_device_propagates(frozen):
-    c = MaybeFrozenCircuit(frozen, device=moment_and_op_type_validating_device)
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_device_propagates(circuit_cls):
+    c = circuit_cls(device=moment_and_op_type_validating_device)
     assert c[:].device is moment_and_op_type_validating_device
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_moment_groups(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_moment_groups(circuit_cls):
     qubits = [cirq.GridQubit(x, y) for x in range(8) for y in range(8)]
     c0 = cirq.H(qubits[0])
     c7 = cirq.H(qubits[7])
@@ -3717,7 +3614,7 @@ def test_moment_groups(frozen):
     moment2 = cirq.Moment([c0, cz14, cz25, cz36, c7])
     moment3 = cirq.Moment([cz14, cz25, cz36])
     moment4 = cirq.Moment([cz25, cz36])
-    circuit = MaybeFrozenCircuit(frozen, (moment1, moment2, moment3, moment4))
+    circuit = circuit_cls((moment1, moment2, moment3, moment4))
     cirq.testing.assert_has_diagram(circuit, r"""
            ┌──┐   ┌───┐   ┌───┐   ┌──┐
 (0, 0): ────H──────H─────────────────────
@@ -3739,16 +3636,16 @@ def test_moment_groups(frozen):
 """, use_unicode_characters=True)
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_moments_property(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_moments_property(circuit_cls):
     q = cirq.NamedQubit('q')
-    c = MaybeFrozenCircuit(frozen, cirq.X(q), cirq.Y(q))
+    c = circuit_cls(cirq.X(q), cirq.Y(q))
     assert c.moments[0] == cirq.Moment([cirq.X(q)])
     assert c.moments[1] == cirq.Moment([cirq.Y(q)])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_operation_shape_validation(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_operation_shape_validation(circuit_cls):
 
     class BadOperation1(cirq.Operation):
 
@@ -3774,22 +3671,22 @@ def test_operation_shape_validation(frozen):
         def with_qubits(self, *qubits):
             raise NotImplementedError
 
-    _ = MaybeFrozenCircuit(frozen, cirq.X(cirq.LineQid(0, 2)))  # Valid
+    _ = circuit_cls(cirq.X(cirq.LineQid(0, 2)))  # Valid
     with pytest.raises(ValueError, match='Invalid operation'):
-        _ = MaybeFrozenCircuit(frozen, BadOperation1())
+        _ = circuit_cls(BadOperation1())
     with pytest.raises(ValueError, match='Invalid operation'):
-        _ = MaybeFrozenCircuit(frozen, BadOperation2())
+        _ = circuit_cls(BadOperation2())
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_json_dict(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_json_dict(circuit_cls):
     q0, q1 = cirq.LineQubit.range(2)
-    c = MaybeFrozenCircuit(frozen, cirq.CNOT(q0, q1))
+    c = circuit_cls(cirq.CNOT(q0, q1))
     moments = [cirq.Moment([cirq.CNOT(q0, q1)])]
-    if frozen:
+    if circuit_cls == cirq.FrozenCircuit:
         moments = tuple(moments)
     assert c._json_dict_() == {
-        'cirq_type': 'FrozenCircuit' if frozen else 'Circuit',
+        'cirq_type': circuit_cls.__name__,
         'moments': moments,
         'device': cirq.UNCONSTRAINED_DEVICE,
     }
@@ -3854,13 +3751,12 @@ def test_with_noise():
     )
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_init_contents(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_init_contents(circuit_cls):
     a, b = cirq.LineQubit.range(2)
 
     # Moments are not subject to insertion rules.
-    c = MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(
         cirq.Moment([cirq.H(a)]),
         cirq.Moment([cirq.X(b)]),
         cirq.Moment([cirq.CNOT(a, b)]),
@@ -3868,32 +3764,28 @@ def test_init_contents(frozen):
     assert len(c.moments) == 3
 
     # Earliest packing by default.
-    c = MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(
         cirq.H(a),
         cirq.X(b),
         cirq.CNOT(a, b),
     )
-    assert c == MaybeFrozenCircuit(
-        frozen,
+    assert c == circuit_cls(
         cirq.Moment([cirq.H(a), cirq.X(b)]),
         cirq.Moment([cirq.CNOT(a, b)]),
     )
 
     # Packing can be controlled.
-    c = MaybeFrozenCircuit(frozen,
-                           cirq.H(a),
-                           cirq.X(b),
-                           cirq.CNOT(a, b),
-                           strategy=cirq.InsertStrategy.NEW)
-    assert c == MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(cirq.H(a),
+                    cirq.X(b),
+                    cirq.CNOT(a, b),
+                    strategy=cirq.InsertStrategy.NEW)
+    assert c == circuit_cls(
         cirq.Moment([cirq.H(a)]),
         cirq.Moment([cirq.X(b)]),
         cirq.Moment([cirq.CNOT(a, b)]),
     )
 
-    MaybeFrozenCircuit(frozen)
+    circuit_cls()
 
 
 def test_transform_qubits():
@@ -3912,15 +3804,15 @@ def test_transform_qubits():
                              ).device is cg.Bristlecone
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_indexing_by_pair(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_indexing_by_pair(circuit_cls):
     # 0: ───H───@───X───@───
     #           │       │
     # 1: ───────H───@───@───
     #               │   │
     # 2: ───────────H───X───
     q = cirq.LineQubit.range(3)
-    c = MaybeFrozenCircuit(frozen, [
+    c = circuit_cls([
         cirq.H(q[0]),
         cirq.H(q[1]).controlled_by(q[0]),
         cirq.H(q[2]).controlled_by(q[1]),
@@ -3952,19 +3844,19 @@ def test_indexing_by_pair(frozen):
     assert c[np.int64(2), q[0:2]] == c[2]
 
     # Indexing by single qubit.
-    assert c[:, q[0]] == MaybeFrozenCircuit(frozen, [
+    assert c[:, q[0]] == circuit_cls([
         cirq.Moment([cirq.H(q[0])]),
         cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
         cirq.Moment([cirq.X(q[0])]),
         cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
     ])
-    assert c[:, q[1]] == MaybeFrozenCircuit(frozen, [
+    assert c[:, q[1]] == circuit_cls([
         cirq.Moment([]),
         cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
         cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
         cirq.Moment([cirq.CCNOT(q[0], q[1], q[2])]),
     ])
-    assert c[:, q[2]] == MaybeFrozenCircuit(frozen, [
+    assert c[:, q[2]] == circuit_cls([
         cirq.Moment([]),
         cirq.Moment([]),
         cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
@@ -3973,7 +3865,7 @@ def test_indexing_by_pair(frozen):
 
     # Indexing by several qubits.
     assert c[:, q] == c[:, q[0:2]] == c[:, [q[0], q[2]]] == c
-    assert c[:, q[1:3]] == MaybeFrozenCircuit(frozen, [
+    assert c[:, q[1:3]] == circuit_cls([
         cirq.Moment([]),
         cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
         cirq.Moment([cirq.H(q[2]).controlled_by(q[1])]),
@@ -3981,21 +3873,21 @@ def test_indexing_by_pair(frozen):
     ])
 
     # Indexing by several moments and one qubit.
-    assert c[1:3, q[0]] == MaybeFrozenCircuit(frozen, [
+    assert c[1:3, q[0]] == circuit_cls([
         cirq.H(q[1]).controlled_by(q[0]),
         cirq.X(q[0]),
     ])
-    assert c[1::2, q[2]] == MaybeFrozenCircuit(frozen, [
+    assert c[1::2, q[2]] == circuit_cls([
         cirq.Moment([]),
         cirq.Moment([cirq.CCNOT(*q)]),
     ])
 
     # Indexing by several moments and several qubits.
-    assert c[0:2, q[1:3]] == MaybeFrozenCircuit(frozen, [
+    assert c[0:2, q[1:3]] == circuit_cls([
         cirq.Moment([]),
         cirq.Moment([cirq.H(q[1]).controlled_by(q[0])]),
     ])
-    assert c[::2, q[0:2]] == MaybeFrozenCircuit(frozen, [
+    assert c[::2, q[0:2]] == circuit_cls([
         cirq.Moment([cirq.H(q[0])]),
         cirq.Moment([cirq.H(q[2]).controlled_by(q[1]),
                      cirq.X(q[0])]),
@@ -4013,17 +3905,17 @@ def test_indexing_by_pair(frozen):
         _ = c[q[1], 0]
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_indexing_by_numpy_integer(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_indexing_by_numpy_integer(circuit_cls):
     q = cirq.NamedQubit('q')
-    c = MaybeFrozenCircuit(frozen, cirq.X(q), cirq.Y(q))
+    c = circuit_cls(cirq.X(q), cirq.Y(q))
 
     assert c[np.int32(1)] == cirq.Moment([cirq.Y(q)])
     assert c[np.int64(1)] == cirq.Moment([cirq.Y(q)])
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_all_measurement_keys(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_all_measurement_keys(circuit_cls):
 
     class Unknown(cirq.SingleQubitGate):
 
@@ -4031,8 +3923,7 @@ def test_all_measurement_keys(frozen):
             return 'test'
 
     a, b = cirq.LineQubit.range(2)
-    c = MaybeFrozenCircuit(
-        frozen,
+    c = circuit_cls(
         cirq.X(a),
         cirq.CNOT(a, b),
         cirq.measure(a, key='x'),
@@ -4046,27 +3937,25 @@ def test_all_measurement_keys(frozen):
     assert c.all_measurement_keys() == {'x', 'y', 'xy', 'test'}
 
     # Empty case.
-    assert MaybeFrozenCircuit(frozen).all_measurement_keys() == set()
+    assert circuit_cls().all_measurement_keys() == set()
 
     # Order does not matter.
-    assert MaybeFrozenCircuit(
-        frozen,
+    assert circuit_cls(
         cirq.Moment([
             cirq.measure(a, key='x'),
             cirq.measure(b, key='y'),
         ])).all_measurement_keys() == {'x', 'y'}
-    assert MaybeFrozenCircuit(
-        frozen,
+    assert circuit_cls(
         cirq.Moment([
             cirq.measure(b, key='y'),
             cirq.measure(a, key='x'),
         ])).all_measurement_keys() == {'x', 'y'}
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_deprecated(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_deprecated(circuit_cls):
     q = cirq.NamedQubit('q')
-    circuit = MaybeFrozenCircuit(frozen, [cirq.H(q)])
+    circuit = circuit_cls([cirq.H(q)])
     with cirq.testing.assert_logs('final_state_vector', 'deprecated'):
         _ = circuit.final_wavefunction()
 
@@ -4124,8 +4013,8 @@ def test_zip():
         )
 
 
-@pytest.mark.parametrize('frozen', [False, True])
-def test_repr_html_escaping(frozen):
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_repr_html_escaping(circuit_cls):
 
     class TestGate(cirq.Gate):
 
@@ -4140,7 +4029,7 @@ def test_repr_html_escaping(frozen):
     a = cirq.LineQubit(1)
     c = cirq.NamedQubit("|c>")
 
-    circuit = MaybeFrozenCircuit(frozen, [F2(a, c)])
+    circuit = circuit_cls([F2(a, c)])
 
     # Escaping Special Characters in Gate names.
     assert '&lt; &#x27; F &#x27; &gt;' in circuit._repr_html_()

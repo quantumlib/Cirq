@@ -80,24 +80,6 @@ class AbstractCircuit(abc.ABC):
         save_qasm
     """
 
-    @abc.abstractmethod
-    def __init__(self, *contents: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy', device: 'cirq.Device'):
-        """Initializes a circuit.
-
-        Args:
-            contents: The initial list of moments and operations defining the
-                circuit. You can also pass in operations, lists of operations,
-                or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
-                insertion strategy.
-            strategy: When initializing the circuit with operations and moments
-                from `contents`, this determines how the operations are packed
-                together. This option does not affect later insertions into the
-                circuit.
-            device: Hardware that the circuit should be able to run on.
-        """
-
     @property
     @abc.abstractmethod
     def moments(self) -> Sequence['cirq.Moment']:
@@ -109,10 +91,10 @@ class AbstractCircuit(abc.ABC):
         pass
 
     def freeze(self) -> 'cirq.FrozenCircuit':
-        '''Creates a FrozenCircuit from this circuit.
+        """Creates a FrozenCircuit from this circuit.
 
         If 'self' is a FrozenCircuit, the original object is returned.
-        '''
+        """
         from cirq.circuits import FrozenCircuit
         if isinstance(self, FrozenCircuit):
             return self
@@ -121,10 +103,10 @@ class AbstractCircuit(abc.ABC):
                              device=self.device)
 
     def unfreeze(self) -> 'cirq.Circuit':
-        '''Creates a Circuit from this circuit.
+        """Creates a Circuit from this circuit.
 
         If 'self' is a Circuit, the original object is returned.
-        '''
+        """
         if isinstance(self, Circuit):
             return self
         return Circuit(self,
@@ -187,18 +169,34 @@ class AbstractCircuit(abc.ABC):
         pass
 
     def __getitem__(self, key):
+        if isinstance(key, slice):
+            sliced_moments = self.moments[key]
+            return self._with_sliced_moments(sliced_moments)
         if hasattr(key, '__index__'):
             return self.moments[key]
         if isinstance(key, tuple):
             if len(key) != 2:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
-            # qubit_idx - Qid or Iterable[Qid].
-            return self.moments[moment_idx][qubit_idx]
+            # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
+            selected_moments = self.moments[moment_idx]
+            if isinstance(selected_moments, Sequence):
+                if isinstance(qubit_idx, ops.Qid):
+                    qubit_idx = [qubit_idx]
+                sliced_moments = [
+                    moment[qubit_idx] for moment in selected_moments
+                ]
+                return self._with_sliced_moments(sliced_moments)
+            return selected_moments[qubit_idx]
 
-        raise TypeError('__getitem__ called with key not of type int or tuple.')
+        raise TypeError(
+            '__getitem__ called with key not of type slice, int, or tuple.')
 
     # pylint: enable=function-redefined
+
+    @abc.abstractmethod
+    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+        """Helper method for constructing circuits from __getitem__."""
 
     def __str__(self) -> str:
         return self.to_text_diagram()
@@ -211,11 +209,11 @@ class AbstractCircuit(abc.ABC):
         if not self.moments:
             return f'cirq.{cls_name}(device={self.device!r})'
 
-        moment_str = _list_repr_with_indented_item_lines(self.moments)
+        moment_repr = _list_repr_with_indented_item_lines(self.moments)
         if self.device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.{cls_name}({moment_str})'
+            return f'cirq.{cls_name}({moment_repr})'
 
-        return f'cirq.{cls_name}({moment_str}, device={self.device!r})'
+        return f'cirq.{cls_name}({moment_repr}, device={self.device!r})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
@@ -1291,31 +1289,12 @@ class Circuit(AbstractCircuit):
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
+    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+        new_circuit = Circuit(device=self.device)
+        new_circuit._moments = moments
+        return new_circuit
+
     # pylint: disable=function-redefined
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            sliced_circuit = Circuit(device=self.device)
-            sliced_circuit._moments = self._moments[key]
-            return sliced_circuit
-        if isinstance(key, tuple) and len(key) == 2:
-            moment_idx, qubit_idx = key
-            # qubit_idx - Qid or Iterable[Qid].
-            selected_moments = self._moments[moment_idx]
-            if isinstance(selected_moments, list):
-                if isinstance(qubit_idx, ops.Qid):
-                    qubit_idx = [qubit_idx]
-                new_circuit = Circuit(device=self.device)
-                new_circuit._moments = [
-                    moment[qubit_idx] for moment in selected_moments
-                ]
-                return new_circuit
-
-        try:
-            return super().__getitem__(key)
-        except TypeError:
-            raise TypeError(
-                '__getitem__ called with key not of type slice, int or tuple.')
-
     @overload
     def __setitem__(self, key: int, value: 'cirq.Moment'):
         pass

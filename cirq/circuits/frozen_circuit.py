@@ -39,6 +39,19 @@ class FrozenCircuit(AbstractCircuit):
                  *contents: 'cirq.OP_TREE',
                  strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
                  device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
+        """Initializes a frozen circuit.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together.
+            device: Hardware that the circuit should be able to run on.
+        """
         base = Circuit(contents, strategy=strategy, device=device)
         self._moments = tuple(base.moments)
         self._device = base.device
@@ -128,31 +141,10 @@ class FrozenCircuit(AbstractCircuit):
         except:
             return NotImplemented
 
-    # pylint: disable=function-redefined
-    def __getitem__(self, key):
-        if isinstance(key, slice):
-            sliced_circuit = FrozenCircuit(device=self.device)
-            sliced_circuit._moments = tuple(self._moments[key])
-            return sliced_circuit
-        if isinstance(key, tuple) and len(key) == 2:
-            moment_idx, qubit_idx = key
-            # qubit_idx - Qid or Iterable[Qid].
-            selected_moments = self._moments[moment_idx]
-            if isinstance(selected_moments, tuple):
-                if isinstance(qubit_idx, ops.Qid):
-                    qubit_idx = [qubit_idx]
-                new_circuit = FrozenCircuit(device=self.device)
-                new_circuit._moments = tuple(
-                    moment[qubit_idx] for moment in selected_moments)
-                return new_circuit
-
-        try:
-            return super().__getitem__(key)
-        except TypeError:
-            raise TypeError(
-                '__getitem__ called with key not of type slice, int or tuple.')
-
-    # pylint: enable=function-redefined
+    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+        new_circuit = FrozenCircuit(device=self.device)
+        new_circuit._moments = tuple(moments)
+        return new_circuit
 
     def with_device(
             self,
