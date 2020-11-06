@@ -1289,7 +1289,8 @@ class Circuit(AbstractCircuit):
         copied_circuit._moments = self._moments[:]
         return copied_circuit
 
-    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+    def _with_sliced_moments(self,
+                             moments: Sequence['cirq.Moment']) -> 'Circuit':
         new_circuit = Circuit(device=self.device)
         new_circuit._moments = list(moments)
         return new_circuit
