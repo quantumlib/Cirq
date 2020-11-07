@@ -280,7 +280,7 @@ class Moment:
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
         from cirq.circuits import circuit
-        if isinstance(other, circuit.Circuit):
+        if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
