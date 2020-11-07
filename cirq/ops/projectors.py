@@ -20,7 +20,7 @@ class Projector(raw_types.Gate):
 
     For example, if you want to project on |0⟩, you would provide the basis
     [[1, 0]]. To project onto |10⟩, you would provide the basis [[0, 0, 1, 0]].
-    If you want to project on the space spanned by |10> and |11>, you could
+    If you want to project on the space spanned by |10⟩ and |11⟩, you could
     provide the basis [[0, 0, 1, 0], [0, 0, 0, 1]].
     """
 
