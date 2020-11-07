@@ -100,6 +100,7 @@ class _ResolverCache:
                 'DepolarizingChannel': cirq.DepolarizingChannel,
                 'ConstantQubitNoiseModel': cirq.ConstantQubitNoiseModel,
                 'Duration': cirq.Duration,
+                'FrozenCircuit': cirq.FrozenCircuit,
                 'FSimGate': cirq.FSimGate,
                 'DensePauliString': cirq.DensePauliString,
                 'MutableDensePauliString': cirq.MutableDensePauliString,
