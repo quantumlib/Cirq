@@ -77,7 +77,7 @@ class Projector(raw_types.Gate):
     def _channel_(self) -> Iterable[np.ndarray]:
         # Make rows into columns
         A = self._projection_basis.T
-        # Left pseudo-inverse:
+        # Left pseudo-inverse
         pseudoinverse = np.linalg.pinv(A)
         # Projector to the range of A:
         return (A @ pseudoinverse,)
