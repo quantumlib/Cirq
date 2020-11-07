@@ -39,5 +39,8 @@ ipykernel
 # For verifying rst
 rstcheck~=3.3.1
 
+# for verifying codeowners
+codeowners
+
 # For testing time specific logic
 freezegun~=0.3.15
