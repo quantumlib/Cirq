@@ -166,7 +166,6 @@ class EngineClient:
                 raise TimeoutError(
                     'Reached max retry attempts for error: {}'.format(message))
             if self.verbose:
-                print(message, file=sys.stderr)
                 print('Waiting ',
                       current_delay,
                       'seconds before retrying.',
