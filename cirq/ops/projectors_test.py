@@ -11,10 +11,10 @@ def test_projector1d_circuit_diagram():
     q = cirq.NamedQubit('q')
     projector = cirq.Projector([[1.0, 0.0]])
     cirq.testing.assert_has_diagram(cirq.Circuit(projector(q)),
-                                    "q: ───Proj([[1.0, 0.0]])───",
+                                    "q: ───P(|0⟩)───",
                                     precision=None)
     cirq.testing.assert_has_diagram(cirq.Circuit(projector(q)),
-                                    "q: ───Proj([[1.0, 0.0]])───",
+                                    "q: ───P(|0⟩)───",
                                     precision=2)
 
 
@@ -25,9 +25,11 @@ def test_projector2d_circuit_diagram():
         2,
         2,
     ))
-    cirq.testing.assert_has_diagram(cirq.Circuit(projector(
-        q1, q2)), ("q1: ───Proj([[1.0, 0.0, 0.0, 0.0]])───\n" + "       │\n" +
-                   "q2: ───Proj───────────────────────────"))
+    cirq.testing.assert_has_diagram(cirq.Circuit(projector(q1, q2)), ("""
+q1: ───P(|00⟩)───
+       │
+q2: ───P─────────
+"""))
 
 
 def test_projector_qubit():

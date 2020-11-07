@@ -4,6 +4,7 @@ import numpy as np
 
 from cirq import value
 from cirq.ops import raw_types
+from cirq.qis import states
 
 if TYPE_CHECKING:
     import cirq
@@ -92,9 +93,8 @@ class Projector(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> Tuple[str, ...]:
-        with np.printoptions(precision=args.precision):
-            return (f"Proj({self._projection_basis.tolist()})",
-                   ) + ("Proj",) * (len(self._qid_shape) - 1)
+        dirac_basis = ",".join([states.dirac_notation(v, args.precision) for v in self._projection_basis])
+        return (f"P({dirac_basis})",) + ("P",) * (len(self._qid_shape) - 1)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
