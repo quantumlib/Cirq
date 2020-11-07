@@ -79,7 +79,7 @@ class Projector(raw_types.Gate):
         A = self._projection_basis.T
         # Left pseudo-inverse
         pseudoinverse = np.linalg.pinv(A)
-        # Projector to the range of A:
+        # Projector to the range (column space) of A
         return (A @ pseudoinverse,)
 
     def _has_channel_(self) -> bool:
