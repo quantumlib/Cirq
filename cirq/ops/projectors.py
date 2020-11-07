@@ -18,7 +18,7 @@ class Projector(raw_types.Gate):
     The basis vectors need not be orthogonal, but they must be independent (i.e.
     the matrix has full rank).
 
-    For example, if you want to project on |0>, you would provide the basis
+    For example, if you want to project on |0⟩, you would provide the basis
     [[1, 0]]. To project onto |10>, you would provide the basis [[0, 0, 1, 0]].
     If you want to project on the space spanned by |10> and |11>, you could
     provide the basis [[0, 0, 1, 0], [0, 0, 0, 1]].
