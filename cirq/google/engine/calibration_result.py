@@ -14,7 +14,7 @@
 #
 import dataclasses
 import datetime
-from typing import TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
     import cirq
@@ -27,7 +27,7 @@ class CalibrationResult:
     cirq.google.api.v2.calibration_pb2.CalibrationLayerResult for use
     in Engine calls."""
     code: 'calibration_pb2.CalibrationLayerCode'
-    error_message: str
-    token: str
-    valid_until: datetime.datetime
+    error_message: Optional[str]
+    token: Optional[str]
+    valid_until: Optional[datetime.datetime]
     metrics: 'cirq.google.Calibration'

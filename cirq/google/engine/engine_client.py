@@ -154,6 +154,7 @@ class EngineClient:
             try:
                 return request()
             except GoogleAPICallError as err:
+                print(err)
                 message = err.message
                 # Raise RuntimeError for exceptions that are not retryable.
                 # Otherwise, pass through to retry.
