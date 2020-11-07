@@ -93,7 +93,10 @@ class Projector(raw_types.Gate):
 
     def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
                               ) -> Tuple[str, ...]:
-        dirac_basis = ",".join([states.dirac_notation(v, args.precision) for v in self._projection_basis])
+        dirac_basis = ",".join([
+            states.dirac_notation(v, args.precision)
+            for v in self._projection_basis
+        ])
         return (f"P({dirac_basis})",) + ("P",) * (len(self._qid_shape) - 1)
 
     def _json_dict_(self) -> Dict[str, Any]:
