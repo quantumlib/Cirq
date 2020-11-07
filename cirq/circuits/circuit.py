@@ -183,14 +183,12 @@ class AbstractCircuit(abc.ABC):
             moment_idx, qubit_idx = key
             # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
             selected_moments = self.moments[moment_idx]
-            if isinstance(selected_moments, Sequence):
-                if isinstance(qubit_idx, ops.Qid):
-                    qubit_idx = [qubit_idx]
-                sliced_moments = [
-                    moment[qubit_idx] for moment in selected_moments
-                ]
-                return self._with_sliced_moments(sliced_moments)
-            return selected_moments[qubit_idx]
+            if isinstance(selected_moments, ops.Moment):
+                return selected_moments[qubit_idx]
+            if isinstance(qubit_idx, ops.Qid):
+                qubit_idx = [qubit_idx]
+            sliced_moments = [moment[qubit_idx] for moment in selected_moments]
+            return self._with_sliced_moments(sliced_moments)
 
         raise TypeError(
             '__getitem__ called with key not of type slice, int, or tuple.')
