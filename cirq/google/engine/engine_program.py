@@ -223,8 +223,14 @@ class EngineProgram:
             raise ValueError('No processors specified')
 
         # Default run context
+        # Note that Quantum Engine currently requires at least one repetition
+        # on a run context in order to succeed validation.
+        # Remove this once that validation is removed for calibration.
         any_context = qtypes.any_pb2.Any()
-        any_context.Pack(v2.run_context_pb2.RunContext())
+        rc = v2.run_context_pb2.RunContext()
+        rc.parameter_sweeps.add().repetitions = 1
+
+        any_context.Pack(rc)
         created_job_id, job = self.context.client.create_job(
             project_id=self.project_id,
             program_id=self.program_id,
