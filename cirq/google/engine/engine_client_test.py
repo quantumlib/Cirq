@@ -106,7 +106,8 @@ def test_list_program(client_constructor):
 
     client = EngineClient()
     assert client.list_programs(project_id='proj') == results
-    assert grpc_client.list_quantum_programs.call_args[0] == ('projects/proj',)
+    assert grpc_client.list_quantum_programs.call_args[0] == (
+        'projects/proj', )
     assert grpc_client.list_quantum_programs.call_args[1] == {
         'filter_': '',
     }
@@ -187,7 +188,8 @@ def test_set_program_description(client_constructor):
     grpc_client.update_quantum_program.return_value = result
 
     client = EngineClient()
-    assert client.set_program_description('proj', 'prog', 'A program') == result
+    assert client.set_program_description('proj', 'prog',
+                                          'A program') == result
     assert grpc_client.update_quantum_program.call_args[0] == (
         'projects/proj/programs/prog',
         qtypes.QuantumProgram(name='projects/proj/programs/prog',
@@ -427,7 +429,8 @@ def test_create_job(client_constructor):
                     processor_names=['projects/proj/processors/processor0'])),
         ), False)
 
-    with pytest.raises(ValueError, match='priority must be between 0 and 1000'):
+    with pytest.raises(ValueError,
+                       match='priority must be between 0 and 1000'):
         client.create_job('proj',
                           'prog',
                           job_id=None,
@@ -461,7 +464,8 @@ def test_set_job_description(client_constructor):
     grpc_client.update_quantum_job.return_value = result
 
     client = EngineClient()
-    assert client.set_job_description('proj', 'prog', 'job0', 'A job') == result
+    assert client.set_job_description('proj', 'prog', 'job0',
+                                      'A job') == result
     assert grpc_client.update_quantum_job.call_args[0] == (
         'projects/proj/programs/prog/jobs/job0',
         qtypes.QuantumJob(name='projects/proj/programs/prog/jobs/job0',
@@ -604,7 +608,7 @@ def test_delete_job(client_constructor):
     client = EngineClient()
     assert not client.delete_job('proj', 'prog', 'job0')
     assert grpc_client.delete_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+        'projects/proj/programs/prog/jobs/job0', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -614,7 +618,7 @@ def test_cancel_job(client_constructor):
     client = EngineClient()
     assert not client.cancel_job('proj', 'prog', 'job0')
     assert grpc_client.cancel_quantum_job.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+        'projects/proj/programs/prog/jobs/job0', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -628,7 +632,7 @@ def test_job_results(client_constructor):
     client = EngineClient()
     assert client.get_job_results('proj', 'prog', 'job0') == result
     assert grpc_client.get_quantum_result.call_args[0] == (
-        'projects/proj/programs/prog/jobs/job0',)
+        'projects/proj/programs/prog/jobs/job0', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -644,14 +648,14 @@ def test_list_jobs(client_constructor):
     client = EngineClient()
     assert client.list_jobs(project_id='proj', program_id='prog1') == results
     assert grpc_client.list_quantum_jobs.call_args[0] == (
-        'projects/proj/programs/prog1',)
+        'projects/proj/programs/prog1', )
     assert grpc_client.list_quantum_jobs.call_args[1] == {
         'filter_': '',
     }
 
     assert client.list_jobs(project_id='proj') == results
     assert grpc_client.list_quantum_jobs.call_args[0] == (
-        'projects/proj/programs/-',)
+        'projects/proj/programs/-', )
     assert grpc_client.list_quantum_jobs.call_args[1] == {
         'filter_': '',
     }
@@ -752,7 +756,7 @@ def test_list_processors(client_constructor):
     client = EngineClient()
     assert client.list_processors('proj') == results
     assert grpc_client.list_quantum_processors.call_args[0] == (
-        'projects/proj',)
+        'projects/proj', )
     assert grpc_client.list_quantum_processors.call_args[1] == {
         'filter_': '',
     }
@@ -762,13 +766,14 @@ def test_list_processors(client_constructor):
 def test_get_processor(client_constructor):
     grpc_client = setup_mock_(client_constructor)
 
-    result = qtypes.QuantumProcessor(name='projects/proj/processors/processor0')
+    result = qtypes.QuantumProcessor(
+        name='projects/proj/processors/processor0')
     grpc_client.get_quantum_processor.return_value = result
 
     client = EngineClient()
     assert client.get_processor('proj', 'processor0') == result
     assert grpc_client.get_quantum_processor.call_args[0] == (
-        'projects/proj/processors/processor0',)
+        'projects/proj/processors/processor0', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -786,7 +791,7 @@ def test_list_calibrations(client_constructor):
     client = EngineClient()
     assert client.list_calibrations('proj', 'processor0') == results
     assert grpc_client.list_quantum_calibrations.call_args[0] == (
-        'projects/proj/processors/processor0',)
+        'projects/proj/processors/processor0', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -800,7 +805,7 @@ def test_get_calibration(client_constructor):
     client = EngineClient()
     assert client.get_calibration('proj', 'processor0', 123456) == result
     assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/123456',)
+        'projects/proj/processors/processor0/calibrations/123456', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -814,7 +819,7 @@ def test_get_current_calibration(client_constructor):
     client = EngineClient()
     assert client.get_current_calibration('proj', 'processor0') == result
     assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/current',)
+        'projects/proj/processors/processor0/calibrations/current', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -827,7 +832,7 @@ def test_get_current_calibration_does_not_exist(client_constructor):
     client = EngineClient()
     assert client.get_current_calibration('proj', 'processor0') is None
     assert grpc_client.get_quantum_calibration.call_args[0] == (
-        'projects/proj/processors/processor0/calibrations/current',)
+        'projects/proj/processors/processor0/calibrations/current', )
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
@@ -880,7 +885,9 @@ def test_api_retry_times(client_constructor, mock_time):
         client.get_program('proj', 'prog', False)
     assert grpc_client.get_quantum_program.call_count == 3
 
-    assert [a.args for a in mock_time.call_args_list] == [(0.1,), (0.2,)]
+    assert len(mock_time.call_args_list) == 2
+    assert all(x.args == y
+               for x, y in zip(mock_time.call_args_list, [(0.1, ), (0.2, )]))
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
