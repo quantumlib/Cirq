@@ -58,8 +58,7 @@ from cirq import (
 # End dependency order list of sub-modules
 
 from cirq._version import (
-    __version__,
-)
+    __version__, )
 
 # Flattened sub-modules.
 
@@ -530,7 +529,7 @@ from cirq.neutral_atoms import (
 )
 
 from cirq.vis import (
-    Heatmap,)
+    Heatmap, )
 
 from cirq.work import (
     CircuitSampleJob,
@@ -547,6 +546,7 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    ionq,
     pasqal,
     testing,
 )
