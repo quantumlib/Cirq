@@ -25,9 +25,17 @@ if TYPE_CHECKING:
 class CalibrationResult:
     """Python implementation of the proto found in
     cirq.google.api.v2.calibration_pb2.CalibrationLayerResult for use
-    in Engine calls."""
+    in Engine calls.
+
+    Note that, if these fields are not filled out by the calibration API,
+    they will be set to the default values in the proto, as defined here:
+    https://developers.google.com/protocol-buffers/docs/proto3#default
+
+    In particular, error_message and token will be empty string, and
+    valid_until will be epoch timestamp 0.
+    """
     code: 'calibration_pb2.CalibrationLayerCode'
-    error_message: Optional[str]
-    token: Optional[str]
-    valid_until: Optional[datetime.datetime]
+    error_message: str
+    token: str
+    valid_until: datetime.datetime
     metrics: 'cirq.google.Calibration'
