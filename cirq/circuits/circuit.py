@@ -27,6 +27,7 @@ from typing import (AbstractSet, Any, Callable, cast, Dict, FrozenSet, Iterable,
                     Iterator, List, Optional, overload, Sequence, Set, Tuple,
                     Type, TYPE_CHECKING, TypeVar, Union)
 
+import abc
 import html
 import numpy as np
 
@@ -44,12 +45,17 @@ if TYPE_CHECKING:
     import cirq
 
 T_DESIRED_GATE_TYPE = TypeVar('T_DESIRED_GATE_TYPE', bound='ops.Gate')
+CIRCUIT_TYPE = TypeVar('CIRCUIT_TYPE', bound='AbstractCircuit')
 
 
-class Circuit:
-    """A mutable list of groups of operations to apply to some qubits.
+class AbstractCircuit(abc.ABC):
+    """The base class for Circuit-like objects.
 
-    Methods returning information about the circuit:
+    A circuit-like object must have a list of moments (which can be empty) and
+    a device (which may be `devices.UNCONSTRAINED_DEVICE`).
+
+    These methods return information about the circuit, and can be called on
+    either Circuit or FrozenCircuit objects:
         next_moment_operating_on
         prev_moment_operating_on
         next_moments_operating_on
@@ -68,115 +74,76 @@ class Circuit:
         final_state_vector
         to_text_diagram
         to_text_diagram_drawer
-
-    Methods for mutation:
-        insert
-        append
-        insert_into_range
-        clear_operations_touching
-        batch_insert
-        batch_remove
-        batch_insert_into
-        insert_at_frontier
-
-    Circuits can also be iterated over,
-        for moment in circuit:
-            ...
-    and sliced,
-        circuit[1:3] is a new Circuit made up of two moments, the first being
-            circuit[1] and the second being circuit[2];
-        circuit[:, qubit] is a new Circuit with the same moments, but with only
-            those operations which act on the given Qubit;
-        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
-            with the same moments, but only with those operations which touch
-            any of the given qubits;
-        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
-        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
-    and concatenated,
-        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
-            followed by the moments in circuit2;
-    and multiplied by an integer,
-        circuit * k is a new Circuit made up of the moments in circuit repeated
-            k times.
-    and mutated,
-        circuit[1:7] = [Moment(...)]
+        qid_shape
+        all_measurement_keys
+        to_quil
+        to_qasm
+        save_qasm
     """
 
-    def __init__(self,
-                 *contents: 'cirq.OP_TREE',
-                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
-                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
-        """Initializes a circuit.
-
-        Args:
-            contents: The initial list of moments and operations defining the
-                circuit. You can also pass in operations, lists of operations,
-                or generally anything meeting the `cirq.OP_TREE` contract.
-                Non-moment entries will be inserted according to the specified
-                insertion strategy.
-            strategy: When initializing the circuit with operations and moments
-                from `contents`, this determines how the operations are packed
-                together. This option does not affect later insertions into the
-                circuit.
-            device: Hardware that the circuit should be able to run on.
-        """
-        self._moments: List['cirq.Moment'] = []
-        self._device = device
-        self.append(contents, strategy=strategy)
+    @property
+    @abc.abstractmethod
+    def moments(self) -> Sequence['cirq.Moment']:
+        pass
 
     @property
+    @abc.abstractmethod
     def device(self) -> devices.Device:
-        return self._device
+        pass
 
-    @device.setter
-    def device(self, new_device: 'cirq.Device') -> None:
-        new_device.validate_circuit(self)
-        self._device = new_device
+    def freeze(self) -> 'cirq.FrozenCircuit':
+        """Creates a FrozenCircuit from this circuit.
 
-    def __copy__(self) -> 'Circuit':
-        return self.copy()
+        If 'self' is a FrozenCircuit, the original object is returned.
+        """
+        from cirq.circuits import FrozenCircuit
+        if isinstance(self, FrozenCircuit):
+            return self
+        return FrozenCircuit(self,
+                             strategy=InsertStrategy.EARLIEST,
+                             device=self.device)
 
-    def copy(self) -> 'Circuit':
-        copied_circuit = Circuit(device=self._device)
-        copied_circuit._moments = self._moments[:]
-        return copied_circuit
+    def unfreeze(self) -> 'cirq.Circuit':
+        """Creates a Circuit from this circuit.
+
+        If 'self' is a Circuit, this returns a copy of that circuit.
+        """
+        if isinstance(self, Circuit):
+            return Circuit.copy(self)
+        return Circuit(self,
+                       strategy=InsertStrategy.EARLIEST,
+                       device=self.device)
 
     def __bool__(self):
-        return bool(self._moments)
+        return bool(self.moments)
 
     def __eq__(self, other):
         if not isinstance(other, type(self)):
             return NotImplemented
-        return self._moments == other._moments and self._device == other._device
+        return self.moments == other.moments and self.device == other.device
 
     def _approx_eq_(self, other: Any, atol: Union[int, float]) -> bool:
         """See `cirq.protocols.SupportsApproximateEquality`."""
         if not isinstance(other, type(self)):
             return NotImplemented
         return cirq.protocols.approx_eq(
-            self._moments,
-            other._moments,
-            atol=atol
-        ) and self._device == other._device
+            self.moments, other.moments,
+            atol=atol) and self.device == other.device
 
     def __ne__(self, other) -> bool:
         return not self == other
 
     def __len__(self) -> int:
-        return len(self._moments)
+        return len(self.moments)
 
     def __iter__(self) -> Iterator['cirq.Moment']:
-        return iter(self._moments)
+        return iter(self.moments)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         """See `cirq.SupportsDecompose`."""
         return self.all_operations()
 
     # pylint: disable=function-redefined
-    @overload
-    def __getitem__(self, key: slice) -> 'cirq.Circuit':
-        pass
-
     @overload
     def __getitem__(self, key: int) -> 'cirq.Moment':
         pass
@@ -191,180 +158,70 @@ class Circuit:
         pass
 
     @overload
-    def __getitem__(self, key: Tuple[slice, 'cirq.Qid']) -> 'cirq.Circuit':
+    def __getitem__(self: CIRCUIT_TYPE, key: slice) -> CIRCUIT_TYPE:
         pass
 
     @overload
-    def __getitem__(self,
-                    key: Tuple[slice, Iterable['cirq.Qid']]) -> 'cirq.Circuit':
+    def __getitem__(self: CIRCUIT_TYPE,
+                    key: Tuple[slice, 'cirq.Qid']) -> CIRCUIT_TYPE:
+        pass
+
+    @overload
+    def __getitem__(self: CIRCUIT_TYPE,
+                    key: Tuple[slice, Iterable['cirq.Qid']]) -> CIRCUIT_TYPE:
         pass
 
     def __getitem__(self, key):
         if isinstance(key, slice):
-            sliced_circuit = Circuit(device=self.device)
-            sliced_circuit._moments = self._moments[key]
-            return sliced_circuit
+            sliced_moments = self.moments[key]
+            return self._with_sliced_moments(sliced_moments)
         if hasattr(key, '__index__'):
-            return self._moments[key]
+            return self.moments[key]
         if isinstance(key, tuple):
             if len(key) != 2:
                 raise ValueError('If key is tuple, it must be a pair.')
             moment_idx, qubit_idx = key
             # moment_idx - int or slice; qubit_idx - Qid or Iterable[Qid].
-            selected_moments = self._moments[moment_idx]
-            # selected_moments - Moment or list[Moment].
-            if isinstance(selected_moments, list):
-                if isinstance(qubit_idx, cirq.Qid):
-                    qubit_idx = [qubit_idx]
-                new_circuit = Circuit(device=self.device)
-                new_circuit._moments = [
-                    moment[qubit_idx] for moment in selected_moments
-                ]
-                return new_circuit
-            return selected_moments[qubit_idx]
+            selected_moments = self.moments[moment_idx]
+            if isinstance(selected_moments, ops.Moment):
+                return selected_moments[qubit_idx]
+            if isinstance(qubit_idx, ops.Qid):
+                qubit_idx = [qubit_idx]
+            sliced_moments = [moment[qubit_idx] for moment in selected_moments]
+            return self._with_sliced_moments(sliced_moments)
 
         raise TypeError(
-            '__getitem__ called with key not of type slice, int or tuple.')
+            '__getitem__ called with key not of type slice, int, or tuple.')
 
-    @overload
-    def __setitem__(self, key: int, value: 'cirq.Moment'):
-        pass
-
-    @overload
-    def __setitem__(self, key: slice, value: Iterable['cirq.Moment']):
-        pass
-
-    def __setitem__(self, key, value):
-        if isinstance(key, int):
-            if not isinstance(value, ops.Moment):
-                raise TypeError('Can only assign Moments into Circuits.')
-            self._device.validate_moment(value)
-            self._validate_op_tree_qids(value)
-
-        if isinstance(key, slice):
-            value = list(value)
-            if any(not isinstance(v, ops.Moment) for v in value):
-                raise TypeError('Can only assign Moments into Circuits.')
-            for moment in value:
-                self._device.validate_moment(moment)
-                self._validate_op_tree_qids(moment)
-
-        self._moments[key] = value
     # pylint: enable=function-redefined
 
-    def __delitem__(self, key: Union[int, slice]):
-        del self._moments[key]
-
-    def __iadd__(self, other):
-        self.append(other)
-        return self
-
-    def __add__(self, other):
-        if isinstance(other, type(self)):
-            if (devices.UNCONSTRAINED_DEVICE not in [
-                    self._device, other.device
-            ] and self._device != other.device):
-                raise ValueError(
-                    "Can't add circuits with incompatible devices.")
-        elif not isinstance(other, (ops.Operation, Iterable)):
-            return NotImplemented
-
-        result = self.copy()
-        return result.__iadd__(other)
-
-    def __radd__(self, other):
-        # The Circuit + Circuit case is handled by __add__
-        if not isinstance(other, (ops.Operation, Iterable)):
-            return NotImplemented
-        # Auto wrap OP_TREE inputs into a circuit.
-        result = self.copy()
-        result._moments[:0] = Circuit(other)._moments
-        result._device.validate_circuit(result)
-        return result
-
-    def __imul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
-            return NotImplemented
-        self._moments *= repetitions
-        return self
-
-    def __mul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
-            return NotImplemented
-        return Circuit(self._moments * repetitions,
-                       device=self._device)
-
-    def __rmul__(self, repetitions: int):
-        if not isinstance(repetitions, int):
-            return NotImplemented
-        return self * repetitions
-
-    def __pow__(self, exponent: int) -> 'Circuit':
-        """A circuit raised to a power, only valid for exponent -1, the inverse.
-
-        This will fail if anything other than -1 is passed to the Circuit by
-        returning NotImplemented.  Otherwise this will return the inverse
-        circuit, which is the circuit with its moment order reversed and for
-        every moment all the moment's operations are replaced by its inverse.
-        If any of the operations do not support inverse, NotImplemented will be
-        returned.
-        """
-        if exponent != -1:
-            return NotImplemented
-        inv_moments = []
-        for moment in self[::-1]:
-            inv_moment = cirq.inverse(moment, default=NotImplemented)
-            if inv_moment is NotImplemented:
-                return NotImplemented
-            inv_moments.append(inv_moment)
-        return cirq.Circuit(inv_moments, device=self._device)
-
-    def __repr__(self) -> str:
-        if not self._moments and self._device == devices.UNCONSTRAINED_DEVICE:
-            return 'cirq.Circuit()'
-
-        if not self._moments:
-            return f'cirq.Circuit(device={self._device!r})'
-
-        moment_str = _list_repr_with_indented_item_lines(self._moments)
-        if self._device == devices.UNCONSTRAINED_DEVICE:
-            return f'cirq.Circuit({moment_str})'
-
-        return f'cirq.Circuit({moment_str}, device={self._device!r})'
+    @abc.abstractmethod
+    def _with_sliced_moments(self, moments: Sequence['cirq.Moment']):
+        """Helper method for constructing circuits from __getitem__."""
 
     def __str__(self) -> str:
         return self.to_text_diagram()
 
-    __hash__ = None  # type: ignore
+    def __repr__(self) -> str:
+        cls_name = self.__class__.__name__
+        if not self.moments and self.device == devices.UNCONSTRAINED_DEVICE:
+            return f'cirq.{cls_name}()'
 
-    def with_device(
-            self,
-            new_device: 'cirq.Device',
-            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
-    ) -> 'Circuit':
-        """Maps the current circuit onto a new device, and validates.
+        if not self.moments:
+            return f'cirq.{cls_name}(device={self.device!r})'
 
-        Args:
-            new_device: The new device that the circuit should be on.
-            qubit_mapping: How to translate qubits from the old device into
-                qubits on the new device.
+        moment_repr = _list_repr_with_indented_item_lines(self.moments)
+        if self.device == devices.UNCONSTRAINED_DEVICE:
+            return f'cirq.{cls_name}({moment_repr})'
 
-        Returns:
-            The translated circuit.
-        """
-        return Circuit([
-            ops.Moment(
-                operation.transform_qubits(qubit_mapping)
-                for operation in moment.operations)
-            for moment in self._moments
-        ],
-                       device=new_device)
+        return f'cirq.{cls_name}({moment_repr}, device={self.device!r})'
 
     def _repr_pretty_(self, p: Any, cycle: bool) -> None:
         """Print ASCII diagram in Jupyter."""
+        cls_name = self.__class__.__name__
         if cycle:
             # There should never be a cycle.  This is just in case.
-            p.text('Circuit(...)')
+            p.text(f'{cls_name}(...)')
         else:
             p.text(self.to_text_diagram())
 
@@ -400,7 +257,7 @@ class Circuit:
         Raises:
           ValueError: negative max_distance.
         """
-        max_circuit_distance = len(self._moments) - start_moment_index
+        max_circuit_distance = len(self.moments) - start_moment_index
         if max_distance is None:
             max_distance = max_circuit_distance
         elif max_distance < 0:
@@ -433,8 +290,8 @@ class Circuit:
         for q in qubits:
             next_moment = self.next_moment_operating_on(
                 [q], start_moment_index)
-            next_moments[q] = (len(self._moments) if next_moment is None else
-                               next_moment)
+            next_moments[q] = (len(self.moments)
+                               if next_moment is None else next_moment)
         return next_moments
 
     def prev_moment_operating_on(self,
@@ -460,18 +317,18 @@ class Circuit:
             ValueError: negative max_distance.
         """
         if end_moment_index is None:
-            end_moment_index = len(self._moments)
+            end_moment_index = len(self.moments)
 
         if max_distance is None:
-            max_distance = len(self._moments)
+            max_distance = len(self.moments)
         elif max_distance < 0:
             raise ValueError('Negative max_distance: {}'.format(max_distance))
         else:
             max_distance = min(end_moment_index, max_distance)
 
         # Don't bother searching indices past the end of the list.
-        if end_moment_index > len(self._moments):
-            d = end_moment_index - len(self._moments)
+        if end_moment_index > len(self.moments):
+            d = end_moment_index - len(self.moments)
             end_moment_index -= d
             max_distance -= d
         if max_distance <= 0:
@@ -480,43 +337,6 @@ class Circuit:
         return self._first_moment_operating_on(qubits,
                                                (end_moment_index - k - 1
                                                 for k in range(max_distance)))
-
-    def transform_qubits(self,
-                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
-                         *,
-                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
-        """Returns the same circuit, but with different qubits.
-
-        Note that this method does essentially the same thing as
-        `cirq.Circuit.with_device`. It is included regardless because there are
-        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
-
-        Args:
-            func: The function to use to turn each current qubit into a desired
-                new qubit.
-            new_device: The device to use for the new circuit, if different.
-                If this is not set, the new device defaults to the current
-                device.
-
-        Returns:
-            The receiving circuit but with qubits transformed by the given
-                function, and with an updated device (if specified).
-        """
-        return self.with_device(
-            new_device=self.device if new_device is None else new_device,
-            qubit_mapping=func)
-
-    def _prev_moment_available(self, op: 'cirq.Operation',
-                               end_moment_index: int) -> Optional[int]:
-        last_available = end_moment_index
-        k = end_moment_index
-        while k > 0:
-            k -= 1
-            if not self._can_commute_past(k, op):
-                return last_available
-            if self._can_add_op_at(k, op):
-                last_available = k
-        return last_available
 
     def reachable_frontier_from(
             self,
@@ -873,9 +693,9 @@ class Circuit:
             None if there is no operation on the qubit at the given moment, or
             else the operation.
         """
-        if not 0 <= moment_index < len(self._moments):
+        if not 0 <= moment_index < len(self.moments):
             return None
-        for op in self._moments[moment_index].operations:
+        for op in self.moments[moment_index].operations:
             if qubit in op.qubits:
                 return op
         return None
@@ -895,7 +715,7 @@ class Circuit:
         Returns:
             An iterator (index, operation)'s that satisfy the op_condition.
         """
-        for index, moment in enumerate(self._moments):
+        for index, moment in enumerate(self.moments):
             for op in moment.operations:
                 if predicate(op):
                     yield index, op
@@ -945,6 +765,693 @@ class Circuit:
             (i, op) in self.findall_operations(predicate)
         )
 
+    def _has_op_at(self, moment_index: int,
+                   qubits: Iterable['cirq.Qid']) -> bool:
+        return (0 <= moment_index < len(self.moments) and
+                self.moments[moment_index].operates_on(qubits))
+
+    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
+        """Raises an exception if any operation in `op_tree` has qids that don't
+        match its qid shape.
+
+        Args:
+            operation: The operation to validate.
+
+        Raises:
+            ValueError: The operation had qids that don't match its qid shape.
+        """
+        # Cast from Iterable[Operation, Moment] because preserve_moments is
+        # False.
+        for op in cast(Iterable['cirq.Operation'],
+                       ops.flatten_op_tree(op_tree)):
+            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
+                raise ValueError(
+                    'Invalid operation. '
+                    'An operation has qid shape <{!r}> but is on qids with '
+                    'shape <{!r}>. The operation is <{!r}>.'.format(
+                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
+                        op))
+
+    def all_qubits(self) -> FrozenSet['cirq.Qid']:
+        """Returns the qubits acted upon by Operations in this circuit."""
+        return frozenset(q for m in self.moments for q in m.qubits)
+
+    def all_operations(self) -> Iterator[ops.Operation]:
+        """Iterates over the operations applied by this circuit.
+
+        Operations from earlier moments will be iterated over first. Operations
+        within a moment are iterated in the order they were given to the
+        moment's constructor.
+        """
+        return (op for moment in self for op in moment.operations)
+
+    def qid_shape(self,
+                  qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+                 ) -> Tuple[int, ...]:
+        qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return protocols.qid_shape(qids)
+
+    def all_measurement_keys(self) -> AbstractSet[str]:
+        return protocols.measurement_keys(self)
+
+    def _qid_shape_(self) -> Tuple[int, ...]:
+        return self.qid_shape()
+
+    def _has_unitary_(self) -> bool:
+        if not self.are_all_measurements_terminal():
+            return False
+
+        unitary_ops = protocols.decompose(
+            self.all_operations(),
+            keep=protocols.has_unitary,
+            intercepting_decomposer=_decompose_measurement_inversions,
+            on_stuck_raise=None)
+        return all(protocols.has_unitary(e) for e in unitary_ops)
+
+    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
+        """Converts the circuit into a unitary matrix, if possible.
+
+        If the circuit contains any non-terminal measurements, the conversion
+        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
+        measurements are ignored when computing the unitary matrix. The unitary
+        matrix is the product of the unitary matrix of all operations in the
+        circuit (after expanding them to apply to the whole system).
+        """
+        if not self._has_unitary_():
+            return NotImplemented
+        return self.unitary(ignore_terminal_measurements=True)
+
+    def unitary(self,
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+                qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+                ignore_terminal_measurements: bool = True,
+                dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Converts the circuit into a unitary matrix, if possible.
+
+        Returns the same result as `cirq.unitary`, but provides more options.
+
+        Args:
+            qubit_order: Determines how qubits are ordered when passing matrices
+                into np.kron.
+            qubits_that_should_be_present: Qubits that may or may not appear
+                in operations within the circuit, but that should be included
+                regardless when generating the matrix.
+            ignore_terminal_measurements: When set, measurements at the end of
+                the circuit are ignored instead of causing the method to
+                fail.
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
+
+        Returns:
+            A (possibly gigantic) 2d numpy array corresponding to a matrix
+            equivalent to the circuit's effect on a quantum state.
+
+        Raises:
+            ValueError: The circuit contains measurement gates that are not
+                ignored.
+            TypeError: The circuit contains gates that don't have a known
+                unitary matrix, e.g. gates parameterized by a Symbol.
+        """
+
+        if not ignore_terminal_measurements and any(
+                protocols.is_measurement(op) for op in self.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+
+        if not self.are_all_measurements_terminal():
+            raise ValueError('Circuit contains a non-terminal measurement.')
+
+        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits().union(qubits_that_should_be_present))
+
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = self.qid_shape(qubit_order=qs)
+        side_len = np.product(qid_shape, dtype=int)
+
+        state = qis.eye_tensor(qid_shape, dtype=dtype)
+
+        result = _apply_unitary_circuit(self, state, qs, dtype)
+        return result.reshape((side_len, side_len))
+
+    def final_state_vector(
+            self,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Left-multiplies a state vector by the circuit's unitary effect.
+
+        A circuit's "unitary effect" is the unitary matrix produced by
+        multiplying together all of its gates' unitary matrices. A circuit
+        with non-unitary gates (such as measurement or parameterized gates) does
+        not have a well-defined unitary effect, and the method will fail if such
+        operations are present.
+
+        For convenience, terminal measurements are automatically ignored
+        instead of causing a failure. Set the `ignore_terminal_measurements`
+        argument to False to disable this behavior.
+
+        This method is equivalent to left-multiplying the input state by
+        `cirq.unitary(circuit)` but it's computed in a more efficient
+        way.
+
+        Args:
+            initial_state: The input state for the circuit. This can be a list
+                of qudit values, a big endian int encoding the qudit values,
+                a vector of amplitudes, or a tensor of amplitudes.
+
+                When this is an int, it refers to a computational
+                basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
+
+                If this is a vector of amplitudes (a flat numpy array of the
+                correct length for the system) or a tensor of amplitudes (a
+                numpy array whose shape equals this circuit's `qid_shape`), it
+                directly specifies the initial state's amplitudes. The vector
+                type must be convertible to the given `dtype` argument.
+            qubit_order: Determines how qubits are ordered when passing matrices
+                into np.kron.
+            qubits_that_should_be_present: Qubits that may or may not appear
+                in operations within the circuit, but that should be included
+                regardless when generating the matrix.
+            ignore_terminal_measurements: When set, measurements at the end of
+                the circuit are ignored instead of causing the method to
+                fail.
+            dtype: The numpy dtype for the returned unitary. Defaults to
+                np.complex128. Specifying np.complex64 will run faster at the
+                cost of precision. `dtype` must be a complex np.dtype, unless
+                all operations in the circuit have unitary matrices with
+                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
+
+        Returns:
+            A (possibly gigantic) numpy array storing the superposition that
+            came out of the circuit for the given input state.
+
+        Raises:
+            ValueError: The circuit contains measurement gates that are not
+                ignored.
+            TypeError: The circuit contains gates that don't have a known
+                unitary matrix, e.g. gates parameterized by a Symbol.
+        """
+
+        if not ignore_terminal_measurements and any(
+                protocols.is_measurement(op) for op in self.all_operations()):
+            raise ValueError('Circuit contains a measurement.')
+
+        if not self.are_all_measurements_terminal():
+            raise ValueError('Circuit contains a non-terminal measurement.')
+
+        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits().union(qubits_that_should_be_present))
+
+        # Force qubits to have dimension at least 2 for backwards compatibility.
+        qid_shape = self.qid_shape(qubit_order=qs)
+        state_len = np.product(qid_shape, dtype=int)
+
+        state = qis.to_valid_state_vector(initial_state,
+                                          qid_shape=qid_shape,
+                                          dtype=dtype).reshape(qid_shape)
+        result = _apply_unitary_circuit(self, state, qs, dtype)
+        return result.reshape((state_len,))
+
+    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
+    def final_wavefunction(
+            self,
+            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
+            ignore_terminal_measurements: bool = True,
+            dtype: Type[np.number] = np.complex128) -> np.ndarray:
+        """Deprecated. Please use `final_state_vector`."""
+        return self.final_state_vector(
+            initial_state=initial_state,
+            qubit_order=qubit_order,
+            qubits_that_should_be_present=qubits_that_should_be_present,
+            ignore_terminal_measurements=ignore_terminal_measurements,
+            dtype=dtype)
+
+    def to_text_diagram(
+            self,
+            *,
+            use_unicode_characters: bool = True,
+            transpose: bool = False,
+            include_tags: bool = True,
+            precision: Optional[int] = 3,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> str:
+        """Returns text containing a diagram describing the circuit.
+
+        Args:
+            use_unicode_characters: Determines if unicode characters are
+                allowed (as opposed to ascii-only diagrams).
+            transpose: Arranges qubit wires vertically instead of horizontally.
+            include_tags: Whether tags on TaggedOperations should be printed
+            precision: Number of digits to display in text diagram
+            qubit_order: Determines how qubits are ordered in the diagram.
+
+        Returns:
+            The text diagram.
+        """
+        diagram = self.to_text_diagram_drawer(
+            use_unicode_characters=use_unicode_characters,
+            include_tags=include_tags,
+            precision=precision,
+            qubit_order=qubit_order,
+            transpose=transpose)
+
+        return diagram.render(crossing_char=(None if use_unicode_characters else
+                                             ('-' if transpose else '|')),
+                              horizontal_spacing=1 if transpose else 3,
+                              use_unicode_characters=use_unicode_characters)
+
+    def to_text_diagram_drawer(
+            self,
+            *,
+            use_unicode_characters: bool = True,
+            qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
+            transpose: bool = False,
+            include_tags: bool = True,
+            draw_moment_groups: bool = True,
+            precision: Optional[int] = 3,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+            get_circuit_diagram_info: Optional[
+                Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
+                         'cirq.CircuitDiagramInfo']] = None
+    ) -> TextDiagramDrawer:
+        """Returns a TextDiagramDrawer with the circuit drawn into it.
+
+        Args:
+            use_unicode_characters: Determines if unicode characters are
+                allowed (as opposed to ascii-only diagrams).
+            qubit_namer: Names qubits in diagram. Defaults to str.
+            transpose: Arranges qubit wires vertically instead of horizontally.
+            draw_moment_groups: Whether to draw moment symbol or not
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the diagram.
+            get_circuit_diagram_info: Gets circuit diagram info. Defaults to
+                protocol with fallback.
+
+        Returns:
+            The TextDiagramDrawer instance.
+        """
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        qubit_map = {qubits[i]: i for i in range(len(qubits))}
+
+        if qubit_namer is None:
+            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
+        diagram = TextDiagramDrawer()
+        diagram.write(0, 0, '')
+        for q, i in qubit_map.items():
+            diagram.write(0, i, qubit_namer(q))
+
+        if any(
+                isinstance(op.untagged, cirq.GlobalPhaseOperation)
+                for op in self.all_operations()):
+            diagram.write(0,
+                          max(qubit_map.values(), default=0) + 1,
+                          'global phase:')
+
+        moment_groups = []  # type: List[Tuple[int, int]]
+        for moment in self.moments:
+            _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
+                                    diagram, precision, moment_groups,
+                                    get_circuit_diagram_info, include_tags)
+
+        w = diagram.width()
+        for i in qubit_map.values():
+            diagram.horizontal_line(i, 0, w)
+
+        if moment_groups and draw_moment_groups:
+            _draw_moment_groups_in_diagram(moment_groups,
+                                           use_unicode_characters, diagram)
+
+        if transpose:
+            diagram = diagram.transpose()
+
+        return diagram
+
+    def _is_parameterized_(self) -> bool:
+        return any(
+            protocols.is_parameterized(op) for op in self.all_operations())
+
+    def _parameter_names_(self) -> AbstractSet[str]:
+        return {
+            name for op in self.all_operations()
+            for name in protocols.parameter_names(op)
+        }
+
+    def _qasm_(self) -> str:
+        return self.to_qasm()
+
+    def _to_qasm_output(
+            self,
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> QasmOutput:
+        """Returns a QASM object equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM. Defaults to a cirq version specifier.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+        """
+        if header is None:
+            header = 'Generated from Cirq v{}'.format(cirq._version.__version__)
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QasmOutput(operations=self.all_operations(),
+                          qubits=qubits,
+                          header=header,
+                          precision=precision,
+                          version='2.0')
+
+    def _to_quil_output(
+            self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+    ) -> QuilOutput:
+        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
+            self.all_qubits())
+        return QuilOutput(operations=self.all_operations(), qubits=qubits)
+
+    def to_qasm(
+            self,
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> str:
+        """Returns QASM equivalent to the circuit.
+
+        Args:
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM. Defaults to a cirq version specifier.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+        """
+
+        return str(self._to_qasm_output(header, precision, qubit_order))
+
+    def to_quil(self,
+                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
+               ) -> str:
+        return str(self._to_quil_output(qubit_order))
+
+    def save_qasm(
+            self,
+            file_path: Union[str, bytes, int],
+            header: Optional[str] = None,
+            precision: int = 10,
+            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
+    ) -> None:
+        """Save a QASM file equivalent to the circuit.
+
+        Args:
+            file_path: The location of the file where the qasm will be written.
+            header: A multi-line string that is placed in a comment at the top
+                of the QASM. Defaults to a cirq version specifier.
+            precision: Number of digits to use when representing numbers.
+            qubit_order: Determines how qubits are ordered in the QASM
+                register.
+        """
+        self._to_qasm_output(header, precision, qubit_order).save(file_path)
+
+    def _json_dict_(self):
+        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
+
+    @classmethod
+    def _from_json_dict_(cls, moments, device, **kwargs):
+        return cls(moments, strategy=InsertStrategy.EARLIEST, device=device)
+
+
+class Circuit(AbstractCircuit):
+    """A mutable list of groups of operations to apply to some qubits.
+
+    Methods returning information about the circuit (inherited from
+    AbstractCircuit):
+        next_moment_operating_on
+        prev_moment_operating_on
+        next_moments_operating_on
+        operation_at
+        all_qubits
+        all_operations
+        findall_operations
+        findall_operations_between
+        findall_operations_until_blocked
+        findall_operations_with_gate_type
+        reachable_frontier_from
+        has_measurements
+        are_all_matches_terminal
+        are_all_measurements_terminal
+        unitary
+        final_state_vector
+        to_text_diagram
+        to_text_diagram_drawer
+        qid_shape
+        all_measurement_keys
+        to_quil
+        to_qasm
+        save_qasm
+
+    Methods for mutation:
+        insert
+        append
+        insert_into_range
+        clear_operations_touching
+        batch_insert
+        batch_remove
+        batch_insert_into
+        insert_at_frontier
+
+    Circuits can also be iterated over,
+        for moment in circuit:
+            ...
+    and sliced,
+        circuit[1:3] is a new Circuit made up of two moments, the first being
+            circuit[1] and the second being circuit[2];
+        circuit[:, qubit] is a new Circuit with the same moments, but with only
+            those operations which act on the given Qubit;
+        circuit[:, qubits], where 'qubits' is list of Qubits, is a new Circuit
+            with the same moments, but only with those operations which touch
+            any of the given qubits;
+        circuit[1:3, qubit] is equivalent to circuit[1:3][:, qubit];
+        circuit[1:3, qubits] is equivalent to circuit[1:3][:, qubits];
+    and concatenated,
+        circuit1 + circuit2 is a new Circuit made up of the moments in circuit1
+            followed by the moments in circuit2;
+    and multiplied by an integer,
+        circuit * k is a new Circuit made up of the moments in circuit repeated
+            k times.
+    and mutated,
+        circuit[1:7] = [Moment(...)]
+    """
+
+    def __init__(self,
+                 *contents: 'cirq.OP_TREE',
+                 strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST,
+                 device: 'cirq.Device' = devices.UNCONSTRAINED_DEVICE) -> None:
+        """Initializes a circuit.
+
+        Args:
+            contents: The initial list of moments and operations defining the
+                circuit. You can also pass in operations, lists of operations,
+                or generally anything meeting the `cirq.OP_TREE` contract.
+                Non-moment entries will be inserted according to the specified
+                insertion strategy.
+            strategy: When initializing the circuit with operations and moments
+                from `contents`, this determines how the operations are packed
+                together. This option does not affect later insertions into the
+                circuit.
+            device: Hardware that the circuit should be able to run on.
+        """
+        self._moments: List['cirq.Moment'] = []
+        self._device = device
+        self.append(contents, strategy=strategy)
+
+    @property
+    def device(self) -> devices.Device:
+        return self._device
+
+    @device.setter
+    def device(self, new_device: 'cirq.Device') -> None:
+        new_device.validate_circuit(self)
+        self._device = new_device
+
+    def __copy__(self) -> 'Circuit':
+        return self.copy()
+
+    def copy(self) -> 'Circuit':
+        copied_circuit = Circuit(device=self._device)
+        copied_circuit._moments = self._moments[:]
+        return copied_circuit
+
+    def _with_sliced_moments(self,
+                             moments: Sequence['cirq.Moment']) -> 'Circuit':
+        new_circuit = Circuit(device=self.device)
+        new_circuit._moments = list(moments)
+        return new_circuit
+
+    # pylint: disable=function-redefined
+    @overload
+    def __setitem__(self, key: int, value: 'cirq.Moment'):
+        pass
+
+    @overload
+    def __setitem__(self, key: slice, value: Iterable['cirq.Moment']):
+        pass
+
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            if not isinstance(value, ops.Moment):
+                raise TypeError('Can only assign Moments into Circuits.')
+            self._device.validate_moment(value)
+            self._validate_op_tree_qids(value)
+
+        if isinstance(key, slice):
+            value = list(value)
+            if any(not isinstance(v, ops.Moment) for v in value):
+                raise TypeError('Can only assign Moments into Circuits.')
+            for moment in value:
+                self._device.validate_moment(moment)
+                self._validate_op_tree_qids(moment)
+
+        self._moments[key] = value
+
+    # pylint: enable=function-redefined
+
+    def __delitem__(self, key: Union[int, slice]):
+        del self._moments[key]
+
+    def __iadd__(self, other):
+        self.append(other)
+        return self
+
+    def __add__(self, other):
+        if isinstance(other, type(self)):
+            if (devices.UNCONSTRAINED_DEVICE not in [
+                    self._device, other.device
+            ] and self._device != other.device):
+                raise ValueError(
+                    "Can't add circuits with incompatible devices.")
+        elif not isinstance(other, (ops.Operation, Iterable)):
+            return NotImplemented
+
+        result = self.copy()
+        return result.__iadd__(other)
+
+    def __radd__(self, other):
+        # The Circuit + Circuit case is handled by __add__
+        if not isinstance(other, (ops.Operation, Iterable)):
+            return NotImplemented
+        # Auto wrap OP_TREE inputs into a circuit.
+        result = self.copy()
+        result._moments[:0] = Circuit(other)._moments
+        result._device.validate_circuit(result)
+        return result
+
+    def __imul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        self._moments *= repetitions
+        return self
+
+    def __mul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return Circuit(self._moments * repetitions, device=self._device)
+
+    def __rmul__(self, repetitions: int):
+        if not isinstance(repetitions, int):
+            return NotImplemented
+        return self * repetitions
+
+    def __pow__(self, exponent: int) -> 'Circuit':
+        """A circuit raised to a power, only valid for exponent -1, the inverse.
+
+        This will fail if anything other than -1 is passed to the Circuit by
+        returning NotImplemented.  Otherwise this will return the inverse
+        circuit, which is the circuit with its moment order reversed and for
+        every moment all the moment's operations are replaced by its inverse.
+        If any of the operations do not support inverse, NotImplemented will be
+        returned.
+        """
+        if exponent != -1:
+            return NotImplemented
+        inv_moments = []
+        for moment in self[::-1]:
+            inv_moment = cirq.inverse(moment, default=NotImplemented)
+            if inv_moment is NotImplemented:
+                return NotImplemented
+            inv_moments.append(inv_moment)
+        return cirq.Circuit(inv_moments, device=self._device)
+
+    __hash__ = None  # type: ignore
+
+    def with_device(
+            self,
+            new_device: 'cirq.Device',
+            qubit_mapping: Callable[['cirq.Qid'], 'cirq.Qid'] = lambda e: e,
+    ) -> 'Circuit':
+        """Maps the current circuit onto a new device, and validates.
+
+        Args:
+            new_device: The new device that the circuit should be on.
+            qubit_mapping: How to translate qubits from the old device into
+                qubits on the new device.
+
+        Returns:
+            The translated circuit.
+        """
+        return Circuit([
+            ops.Moment(
+                operation.transform_qubits(qubit_mapping)
+                for operation in moment.operations)
+            for moment in self._moments
+        ],
+                       device=new_device)
+
+    def transform_qubits(self,
+                         func: Callable[['cirq.Qid'], 'cirq.Qid'],
+                         *,
+                         new_device: 'cirq.Device' = None) -> 'cirq.Circuit':
+        """Returns the same circuit, but with different qubits.
+
+        Note that this method does essentially the same thing as
+        `cirq.Circuit.with_device`. It is included regardless because there are
+        also `transform_qubits` methods on `cirq.Operation` and `cirq.Moment`.
+
+        Args:
+            func: The function to use to turn each current qubit into a desired
+                new qubit.
+            new_device: The device to use for the new circuit, if different.
+                If this is not set, the new device defaults to the current
+                device.
+
+        Returns:
+            The receiving circuit but with qubits transformed by the given
+                function, and with an updated device (if specified).
+        """
+        return self.with_device(
+            new_device=self.device if new_device is None else new_device,
+            qubit_mapping=func)
+
+    def _prev_moment_available(self, op: 'cirq.Operation',
+                               end_moment_index: int) -> Optional[int]:
+        last_available = end_moment_index
+        k = end_moment_index
+        while k > 0:
+            k -= 1
+            if not self._can_commute_past(k, op):
+                return last_available
+            if self._can_add_op_at(k, op):
+                last_available = k
+        return last_available
+
     def _pick_or_create_inserted_op_moment_index(self, splitter_index: int,
                                                  op: 'cirq.Operation',
                                                  strategy: 'cirq.InsertStrategy'
@@ -987,54 +1494,27 @@ class Circuit:
 
         raise ValueError('Unrecognized append strategy: {}'.format(strategy))
 
-    def _has_op_at(self, moment_index: int,
-                   qubits: Iterable['cirq.Qid']) -> bool:
-        return (0 <= moment_index < len(self._moments) and
-                self._moments[moment_index].operates_on(qubits))
-
     def _can_add_op_at(self, moment_index: int,
                        operation: 'cirq.Operation') -> bool:
         if not 0 <= moment_index < len(self._moments):
             return True
         return self._device.can_add_operation_into_moment(
-            operation,
-            self._moments[moment_index])
+            operation, self._moments[moment_index])
 
     def _can_commute_past(self, moment_index: int,
                           operation: 'cirq.Operation') -> bool:
         return not self._moments[moment_index].operates_on(operation.qubits)
-
-    def _validate_op_tree_qids(self, op_tree: 'cirq.OP_TREE') -> None:
-        """Raises an exception if any operation in `op_tree` has qids that don't
-        match its qid shape.
-
-        Args:
-            operation: The operation to validate.
-
-        Raises:
-            ValueError: The operation had qids that don't match its qid shape.
-        """
-        # Cast from Iterable[Operation, Moment] because preserve_moments is
-        # False.
-        for op in cast(Iterable['cirq.Operation'],
-                       ops.flatten_op_tree(op_tree)):
-            if protocols.qid_shape(op) != protocols.qid_shape(op.qubits):
-                raise ValueError(
-                    'Invalid operation. '
-                    'An operation has qid shape <{!r}> but is on qids with '
-                    'shape <{!r}>. The operation is <{!r}>.'.format(
-                        protocols.qid_shape(op), protocols.qid_shape(op.qubits),
-                        op))
 
     def insert(
             self,
             index: int,
             moment_or_operation_tree: Union['cirq.Operation', 'cirq.OP_TREE'],
             strategy: 'cirq.InsertStrategy' = InsertStrategy.EARLIEST) -> int:
-        """ Inserts operations into the circuit.
-            Operations are inserted into the moment specified by the index and
-            'InsertStrategy'.
-            Moments within the operation tree are inserted intact.
+        """Inserts operations into the circuit.
+
+        Operations are inserted into the moment specified by the index and
+        'InsertStrategy'.
+        Moments within the operation tree are inserted intact.
 
         Args:
             index: The index to insert all of the operations at.
@@ -1063,8 +1543,9 @@ class Circuit:
             self._validate_op_tree_qids(moment_or_op)
 
         # limit index to 0..len(self._moments), also deal with indices smaller 0
-        k = max(min(index if index >= 0 else len(self._moments) + index,
-                    len(self._moments)), 0)
+        k = max(
+            min(index if index >= 0 else len(self._moments) + index,
+                len(self._moments)), 0)
         for moment_or_op in moments_and_operations:
             if isinstance(moment_or_op, ops.Moment):
                 self._moments.insert(k, moment_or_op)
@@ -1102,8 +1583,7 @@ class Circuit:
             IndexError: Bad inline_start and/or inline_end.
         """
         if not 0 <= start <= end <= len(self):
-            raise IndexError('Bad insert indices: [{}, {})'.format(
-                start, end))
+            raise IndexError('Bad insert indices: [{}, {})'.format(start, end))
 
         flat_ops = list(ops.flatten_to_ops(operations))
         for op in flat_ops:
@@ -1187,13 +1667,13 @@ class Circuit:
         """
         if update_qubits is None:
             update_qubits = set(early_frontier).difference(late_frontier)
-        n_new_moments = (max(early_frontier.get(q, 0) - late_frontier[q]
-                             for q in late_frontier)
+        n_new_moments = (max(
+            early_frontier.get(q, 0) - late_frontier[q] for q in late_frontier)
                          if late_frontier else 0)
         if n_new_moments > 0:
             insert_index = min(late_frontier.values())
-            self._moments[insert_index:insert_index] = (
-                [ops.Moment()] * n_new_moments)
+            self._moments[insert_index:insert_index] = ([ops.Moment()] *
+                                                        n_new_moments)
             for q in update_qubits:
                 if early_frontier.get(q, 0) > insert_index:
                     early_frontier[q] += n_new_moments
@@ -1354,8 +1834,7 @@ class Circuit:
                     "Can't remove {} @ {} because it doesn't exist.".format(
                         op, i))
             copy._moments[i] = ops.Moment(
-                old_op
-                for old_op in copy._moments[i].operations
+                old_op for old_op in copy._moments[i].operations
                 if op != old_op)
         self._device.validate_circuit(copy)
         self._moments = copy._moments
@@ -1444,8 +1923,7 @@ class Circuit:
                                         value=lambda e: e[1])
         for i, group in groups:
             insert_index = i + shift
-            next_index = copy.insert(insert_index,
-                                     reversed(group),
+            next_index = copy.insert(insert_index, reversed(group),
                                      InsertStrategy.EARLIEST)
             if next_index > insert_index:
                 shift += next_index - insert_index
@@ -1479,322 +1957,6 @@ class Circuit:
                 self._moments[k] = self._moments[k].without_operations_touching(
                     qubits)
 
-    def all_qubits(self) -> FrozenSet['cirq.Qid']:
-        """Returns the qubits acted upon by Operations in this circuit."""
-        return frozenset(q for m in self._moments for q in m.qubits)
-
-    def all_operations(self) -> Iterator[ops.Operation]:
-        """Iterates over the operations applied by this circuit.
-
-        Operations from earlier moments will be iterated over first. Operations
-        within a moment are iterated in the order they were given to the
-        moment's constructor.
-        """
-        return (op for moment in self for op in moment.operations)
-
-    def qid_shape(self,
-                  qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-                 ) -> Tuple[int, ...]:
-        qids = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        return protocols.qid_shape(qids)
-
-    def all_measurement_keys(self) -> AbstractSet[str]:
-        return protocols.measurement_keys(self)
-
-    def _qid_shape_(self) -> Tuple[int, ...]:
-        return self.qid_shape()
-
-    def _has_unitary_(self) -> bool:
-        if not self.are_all_measurements_terminal():
-            return False
-
-        unitary_ops = protocols.decompose(
-            self.all_operations(),
-            keep=protocols.has_unitary,
-            intercepting_decomposer=_decompose_measurement_inversions,
-            on_stuck_raise=None)
-        return all(protocols.has_unitary(e) for e in unitary_ops)
-
-    def _unitary_(self) -> Union[np.ndarray, NotImplementedType]:
-        """Converts the circuit into a unitary matrix, if possible.
-
-        If the circuit contains any non-terminal measurements, the conversion
-        into a unitary matrix fails (i.e. returns NotImplemented). Terminal
-        measurements are ignored when computing the unitary matrix. The unitary
-        matrix is the product of the unitary matrix of all operations in the
-        circuit (after expanding them to apply to the whole system).
-        """
-        if not self._has_unitary_():
-            return NotImplemented
-        return self.unitary(ignore_terminal_measurements=True)
-
-    def unitary(self,
-                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-                qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-                ignore_terminal_measurements: bool = True,
-                dtype: Type[np.number] = np.complex128) -> np.ndarray:
-        """Converts the circuit into a unitary matrix, if possible.
-
-        Returns the same result as `cirq.unitary`, but provides more options.
-
-        Args:
-            qubit_order: Determines how qubits are ordered when passing matrices
-                into np.kron.
-            qubits_that_should_be_present: Qubits that may or may not appear
-                in operations within the circuit, but that should be included
-                regardless when generating the matrix.
-            ignore_terminal_measurements: When set, measurements at the end of
-                the circuit are ignored instead of causing the method to
-                fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
-                np.complex128. Specifying np.complex64 will run faster at the
-                cost of precision. `dtype` must be a complex np.dtype, unless
-                all operations in the circuit have unitary matrices with
-                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
-
-        Returns:
-            A (possibly gigantic) 2d numpy array corresponding to a matrix
-            equivalent to the circuit's effect on a quantum state.
-
-        Raises:
-            ValueError: The circuit contains measurement gates that are not
-                ignored.
-            TypeError: The circuit contains gates that don't have a known
-                unitary matrix, e.g. gates parameterized by a Symbol.
-        """
-
-        if not ignore_terminal_measurements and any(
-                protocols.is_measurement(op)
-                for op in self.all_operations()):
-            raise ValueError('Circuit contains a measurement.')
-
-        if not self.are_all_measurements_terminal():
-            raise ValueError('Circuit contains a non-terminal measurement.')
-
-        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits().union(qubits_that_should_be_present))
-
-        # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = self.qid_shape(qubit_order=qs)
-        side_len = np.product(qid_shape, dtype=int)
-
-        state = qis.eye_tensor(qid_shape, dtype=dtype)
-
-        result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((side_len, side_len))
-
-    def final_state_vector(
-            self,
-            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
-        """Left-multiplies a state vector by the circuit's unitary effect.
-
-        A circuit's "unitary effect" is the unitary matrix produced by
-        multiplying together all of its gates' unitary matrices. A circuit
-        with non-unitary gates (such as measurement or parameterized gates) does
-        not have a well-defined unitary effect, and the method will fail if such
-        operations are present.
-
-        For convenience, terminal measurements are automatically ignored
-        instead of causing a failure. Set the `ignore_terminal_measurements`
-        argument to False to disable this behavior.
-
-        This method is equivalent to left-multiplying the input state by
-        `cirq.unitary(circuit)` but it's computed in a more efficient
-        way.
-
-        Args:
-            initial_state: The input state for the circuit. This can be a list
-                of qudit values, a big endian int encoding the qudit values,
-                a vector of amplitudes, or a tensor of amplitudes.
-
-                When this is an int, it refers to a computational
-                basis state (e.g. 5 means initialize to ``|5⟩ = |...000101⟩``).
-
-                If this is a vector of amplitudes (a flat numpy array of the
-                correct length for the system) or a tensor of amplitudes (a
-                numpy array whose shape equals this circuit's `qid_shape`), it
-                directly specifies the initial state's amplitudes. The vector
-                type must be convertible to the given `dtype` argument.
-            qubit_order: Determines how qubits are ordered when passing matrices
-                into np.kron.
-            qubits_that_should_be_present: Qubits that may or may not appear
-                in operations within the circuit, but that should be included
-                regardless when generating the matrix.
-            ignore_terminal_measurements: When set, measurements at the end of
-                the circuit are ignored instead of causing the method to
-                fail.
-            dtype: The numpy dtype for the returned unitary. Defaults to
-                np.complex128. Specifying np.complex64 will run faster at the
-                cost of precision. `dtype` must be a complex np.dtype, unless
-                all operations in the circuit have unitary matrices with
-                exclusively real coefficients (e.g. an H + TOFFOLI circuit).
-
-        Returns:
-            A (possibly gigantic) numpy array storing the superposition that
-            came out of the circuit for the given input state.
-
-        Raises:
-            ValueError: The circuit contains measurement gates that are not
-                ignored.
-            TypeError: The circuit contains gates that don't have a known
-                unitary matrix, e.g. gates parameterized by a Symbol.
-        """
-
-        if not ignore_terminal_measurements and any(
-                protocols.is_measurement(op) for op in self.all_operations()):
-            raise ValueError('Circuit contains a measurement.')
-
-        if not self.are_all_measurements_terminal():
-            raise ValueError('Circuit contains a non-terminal measurement.')
-
-        qs = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits().union(qubits_that_should_be_present))
-
-        # Force qubits to have dimension at least 2 for backwards compatibility.
-        qid_shape = self.qid_shape(qubit_order=qs)
-        state_len = np.product(qid_shape, dtype=int)
-
-        state = qis.to_valid_state_vector(initial_state,
-                                          qid_shape=qid_shape,
-                                          dtype=dtype).reshape(qid_shape)
-        result = _apply_unitary_circuit(self, state, qs, dtype)
-        return result.reshape((state_len,))
-
-    @deprecated(deadline='v0.10.0', fix='Use final_state_vector instead.')
-    def final_wavefunction(
-            self,
-            initial_state: 'cirq.STATE_VECTOR_LIKE' = 0,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-            qubits_that_should_be_present: Iterable['cirq.Qid'] = (),
-            ignore_terminal_measurements: bool = True,
-            dtype: Type[np.number] = np.complex128) -> np.ndarray:
-        """Deprecated. Please use `final_state_vector`."""
-        return self.final_state_vector(
-            initial_state=initial_state,
-            qubit_order=qubit_order,
-            qubits_that_should_be_present=qubits_that_should_be_present,
-            ignore_terminal_measurements=ignore_terminal_measurements,
-            dtype=dtype)
-
-    def to_text_diagram(
-            self,
-            *,
-            use_unicode_characters: bool = True,
-            transpose: bool = False,
-            include_tags: bool = True,
-            precision: Optional[int] = 3,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> str:
-        """Returns text containing a diagram describing the circuit.
-
-        Args:
-            use_unicode_characters: Determines if unicode characters are
-                allowed (as opposed to ascii-only diagrams).
-            transpose: Arranges qubit wires vertically instead of horizontally.
-            include_tags: Whether tags on TaggedOperations should be printed
-            precision: Number of digits to display in text diagram
-            qubit_order: Determines how qubits are ordered in the diagram.
-
-        Returns:
-            The text diagram.
-        """
-        diagram = self.to_text_diagram_drawer(
-            use_unicode_characters=use_unicode_characters,
-            include_tags=include_tags,
-            precision=precision,
-            qubit_order=qubit_order,
-            transpose=transpose)
-
-        return diagram.render(
-            crossing_char=(None
-                           if use_unicode_characters
-                           else ('-' if transpose else '|')),
-            horizontal_spacing=1 if transpose else 3,
-            use_unicode_characters=use_unicode_characters)
-
-    def to_text_diagram_drawer(
-            self,
-            *,
-            use_unicode_characters: bool = True,
-            qubit_namer: Optional[Callable[['cirq.Qid'], str]] = None,
-            transpose: bool = False,
-            include_tags: bool = True,
-            draw_moment_groups: bool = True,
-            precision: Optional[int] = 3,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-            get_circuit_diagram_info: Optional[
-                Callable[['cirq.Operation', 'cirq.CircuitDiagramInfoArgs'],
-                         'cirq.CircuitDiagramInfo']] = None
-    ) -> TextDiagramDrawer:
-        """Returns a TextDiagramDrawer with the circuit drawn into it.
-
-        Args:
-            use_unicode_characters: Determines if unicode characters are
-                allowed (as opposed to ascii-only diagrams).
-            qubit_namer: Names qubits in diagram. Defaults to str.
-            transpose: Arranges qubit wires vertically instead of horizontally.
-            draw_moment_groups: Whether to draw moment symbol or not
-            precision: Number of digits to use when representing numbers.
-            qubit_order: Determines how qubits are ordered in the diagram.
-            get_circuit_diagram_info: Gets circuit diagram info. Defaults to
-                protocol with fallback.
-
-        Returns:
-            The TextDiagramDrawer instance.
-        """
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        qubit_map = {qubits[i]: i for i in range(len(qubits))}
-
-        if qubit_namer is None:
-            qubit_namer = lambda q: str(q) + ('' if transpose else ': ')
-        diagram = TextDiagramDrawer()
-        diagram.write(0, 0, '')
-        for q, i in qubit_map.items():
-            diagram.write(0, i, qubit_namer(q))
-
-        if any(
-                isinstance(op.untagged, cirq.GlobalPhaseOperation)
-                for op in self.all_operations()):
-            diagram.write(0,
-                          max(qubit_map.values(), default=0) + 1,
-                          'global phase:')
-
-        moment_groups = []  # type: List[Tuple[int, int]]
-        for moment in self._moments:
-            _draw_moment_in_diagram(moment, use_unicode_characters, qubit_map,
-                                    diagram, precision, moment_groups,
-                                    get_circuit_diagram_info, include_tags)
-
-        w = diagram.width()
-        for i in qubit_map.values():
-            diagram.horizontal_line(i, 0, w)
-
-        if moment_groups and draw_moment_groups:
-            _draw_moment_groups_in_diagram(moment_groups,
-                                           use_unicode_characters,
-                                           diagram)
-
-        if transpose:
-            diagram = diagram.transpose()
-
-        return diagram
-
-    def _is_parameterized_(self) -> bool:
-        return any(protocols.is_parameterized(op)
-                   for op in self.all_operations())
-
-    def _parameter_names_(self) -> AbstractSet[str]:
-        return {
-            name for op in self.all_operations()
-            for name in protocols.parameter_names(op)
-        }
-
     def _resolve_parameters_(self,
                              param_resolver: 'cirq.ParamResolver') -> 'Circuit':
         resolved_moments = []
@@ -1807,94 +1969,9 @@ class Circuit:
         resolved_circuit = Circuit(resolved_moments, device=self.device)
         return resolved_circuit
 
-    def _qasm_(self) -> str:
-        return self.to_qasm()
-
-    def _to_qasm_output(
-            self,
-            header: Optional[str] = None,
-            precision: int = 10,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> QasmOutput:
-        """Returns a QASM object equivalent to the circuit.
-
-        Args:
-            header: A multi-line string that is placed in a comment at the top
-                of the QASM. Defaults to a cirq version specifier.
-            precision: Number of digits to use when representing numbers.
-            qubit_order: Determines how qubits are ordered in the QASM
-                register.
-        """
-        if header is None:
-            header = 'Generated from Cirq v{}'.format(
-                cirq._version.__version__)
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        return QasmOutput(operations=self.all_operations(),
-                          qubits=qubits,
-                          header=header,
-                          precision=precision,
-                          version='2.0')
-
-    def _to_quil_output(
-            self, qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-    ) -> QuilOutput:
-        qubits = ops.QubitOrder.as_qubit_order(qubit_order).order_for(
-            self.all_qubits())
-        return QuilOutput(operations=self.all_operations(), qubits=qubits)
-
-    def to_qasm(
-            self,
-            header: Optional[str] = None,
-            precision: int = 10,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> str:
-        """Returns QASM equivalent to the circuit.
-
-        Args:
-            header: A multi-line string that is placed in a comment at the top
-                of the QASM. Defaults to a cirq version specifier.
-            precision: Number of digits to use when representing numbers.
-            qubit_order: Determines how qubits are ordered in the QASM
-                register.
-        """
-
-        return str(self._to_qasm_output(header, precision, qubit_order))
-
-    def to_quil(self,
-                qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT
-               ) -> str:
-        return str(self._to_quil_output(qubit_order))
-
-    def save_qasm(
-            self,
-            file_path: Union[str, bytes, int],
-            header: Optional[str] = None,
-            precision: int = 10,
-            qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ) -> None:
-        """Save a QASM file equivalent to the circuit.
-
-        Args:
-            file_path: The location of the file where the qasm will be written.
-            header: A multi-line string that is placed in a comment at the top
-                of the QASM. Defaults to a cirq version specifier.
-            precision: Number of digits to use when representing numbers.
-            qubit_order: Determines how qubits are ordered in the QASM
-                register.
-        """
-        self._to_qasm_output(header, precision, qubit_order).save(file_path)
-
     @property
     def moments(self):
         return self._moments
-
-    def _json_dict_(self):
-        return protocols.obj_to_dict_helper(self, ['moments', 'device'])
-
-    @classmethod
-    def _from_json_dict_(cls, moments, device, **kwargs):
-        return cls(moments, device=device)
 
     def with_noise(self, noise: 'cirq.NOISE_MODEL_LIKE') -> 'cirq.Circuit':
         """Make a noisy version of the circuit.
@@ -2047,7 +2124,7 @@ def _draw_moment_groups_in_diagram(moment_groups: List[Tuple[int, int]],
     out_diagram.force_vertical_padding_after(h - 1, 0.5)
 
 
-def _apply_unitary_circuit(circuit: Circuit, state: np.ndarray,
+def _apply_unitary_circuit(circuit: AbstractCircuit, state: np.ndarray,
                            qubits: Tuple['cirq.Qid', ...],
                            dtype: Type[np.number]) -> np.ndarray:
     """Applies a circuit's unitary effect to the given vector or matrix.
