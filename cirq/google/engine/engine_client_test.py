@@ -882,7 +882,7 @@ def test_api_retry_times(client_constructor, mock_time):
 
     assert len(mock_time.call_args_list) == 2
     assert all(
-        x.args == y for x, y in zip(mock_time.call_args_list, [(0.1,), (0.2,)]))
+        x == y for (x, _), y in zip(mock_time.call_args_list, [(0.1,), (0.2,)]))
 
 
 @mock.patch.object(quantum, 'QuantumEngineServiceClient', autospec=True)
