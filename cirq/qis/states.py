@@ -211,7 +211,7 @@ def quantum_state(
         dim = np.prod(qid_shape, dtype=int)
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
-        data = np.array(state)
+        data = np.array(state, copy=False)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
         if data.ndim == 1:
