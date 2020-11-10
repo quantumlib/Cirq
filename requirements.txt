@@ -3,7 +3,6 @@
 # for python 3.6 and below dataclasses needs to be installed
 dataclasses; python_version < '3.7'
 
-freezegun~=0.3.15
 google-api-core[grpc] >= 1.14.0, < 2.0.0dev
 matplotlib~=3.0
 networkx~=2.4
