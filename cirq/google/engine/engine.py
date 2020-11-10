@@ -524,7 +524,10 @@ class Engine:
         """Wraps a list of calibration layers into an Any for Quantum Engine.
 
         Args:
-            layers: The calibration routines to execute within a batch.
+            layers: The calibration routines to execute.  All layers will be
+                executed within the same API call in the order they are specified,
+                though some layers may be interleaved together using
+                hardware-specific batching.
             program_id: A user-provided identifier for the program. This must be
                 unique within the Google Cloud project being used. If this
                 parameter is not provided, a random id of the format
