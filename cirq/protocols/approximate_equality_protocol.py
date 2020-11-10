@@ -22,10 +22,13 @@ import sympy
 
 from typing_extensions import Protocol
 
+from cirq._doc import doc_private
+
 
 class SupportsApproximateEquality(Protocol):
     """Object which can be compared approximately."""
 
+    @doc_private
     def _approx_eq_(self, other: Any, *, atol: Union[int, float]) -> bool:
         """Approximate comparator.
 

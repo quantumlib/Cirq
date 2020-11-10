@@ -136,35 +136,6 @@ class CliffordTableau():
 
         return string
 
-    def _CZ(self, q, r):
-        self._H(r)
-        self._CNOT(q, r)
-        self._H(r)
-
-    def _X(self, q):
-        self.rs[:] ^= self.zs[:, q]
-
-    def _Y(self, q):
-        self.rs[:] ^= self.xs[:, q] ^ self.zs[:, q]
-
-    def _Z(self, q):
-        self.rs[:] ^= self.xs[:, q]
-
-    def _S(self, q):
-        self.rs[:] ^= (self.xs[:, q] & self.zs[:, q])
-        self.zs[:, q] ^= self.xs[:, q]
-
-    def _H(self, q):
-        (self.xs[:, q], self.zs[:, q]) = (self.zs[:, q].copy(),
-                                          self.xs[:, q].copy())
-        self.rs[:] ^= (self.xs[:, q] & self.zs[:, q])
-
-    def _CNOT(self, q1, q2):
-        self.rs[:] ^= self.xs[:,q1] & self.zs[:,q2] & \
-            (~(self.xs[:,q2] ^ self.zs[:,q1]))
-        self.xs[:, q2] ^= self.xs[:, q1]
-        self.zs[:, q1] ^= self.zs[:, q2]
-
     def _rowsum(self, q1, q2):
         """Implements the "rowsum" routine defined by
         Aaronson and Gottesman.

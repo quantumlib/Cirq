@@ -1,4 +1,4 @@
-# Google Devices
+# Google devices
 
 This section describes the devices in Cirq for Google hardware devices and their usage.
 Since quantum hardware is an active area of research, hardware specifications and best
