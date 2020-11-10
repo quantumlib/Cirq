@@ -64,6 +64,10 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
         if len(state1) != len(state2):
             raise ValueError('Mismatched number of qubits in product states: '
                              f'{len(state1)} and {len(state2)}.')
+        if validate and qid_shape is not None and qid_shape != (2,) * len(state1):
+            raise ValueError('Mismatched qid shape: Specified shape '
+                             f'{qid_shape} but product state has shape '
+                             f'{(2,) * len(state1)}.')
         return np.prod([
             np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
             for s1, s2 in zip(state1, state2)
