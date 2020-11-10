@@ -344,11 +344,15 @@ class EngineJob:
             cal_results = []
             for layer in parsed_val.results:
                 metrics = calibration.Calibration(layer.metrics)
+                message = layer.error_message or None
+                token = layer.token or None
+                if layer.valid_until_ms > 0:
+                    ts = datetime.datetime.fromtimestamp(layer.valid_until_ms /
+                                                         1000)
+                else:
+                    ts = None
                 cal_results.append(
-                    CalibrationResult(
-                        layer.code, layer.error_message, layer.token,
-                        datetime.datetime.fromtimestamp(layer.valid_until_ms /
-                                                        1000), metrics))
+                    CalibrationResult(layer.code, message, token, ts, metrics))
             self._calibration_results = cal_results
         return self._calibration_results
 

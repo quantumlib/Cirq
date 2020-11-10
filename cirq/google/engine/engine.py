@@ -525,7 +525,7 @@ class Engine:
 
         Args:
             layers: The calibration routines to execute.  All layers will be
-                executed within the same API call in the order they are specified,
+                executed within the same API call in the order specified,
                 though some layers may be interleaved together using
                 hardware-specific batching.
             program_id: A user-provided identifier for the program. This must be
