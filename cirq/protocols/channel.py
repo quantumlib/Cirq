@@ -20,6 +20,7 @@ from typing import Any, Sequence, Tuple, TypeVar, Union
 import numpy as np
 from typing_extensions import Protocol
 
+from cirq._doc import doc_private
 from cirq.protocols.decompose_protocol import (
     _try_decompose_into_operations_and_qubits,)
 from cirq.protocols.mixture_protocol import has_mixture
@@ -42,17 +43,22 @@ TDefault = TypeVar('TDefault')
 class SupportsChannel(Protocol):
     """An object that may be describable as a quantum channel."""
 
+    @doc_private
     def _channel_(self) -> Union[Sequence[np.ndarray], NotImplementedType]:
         r"""A list of matrices describing the quantum channel.
 
-        These matrices are the terms in the operator sum representation of
-        a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
+        These matrices are the terms in the operator sum representation of a
+        quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
         then this describes the channel:
-            \rho \rightarrow \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
+            $$
+            \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+            $$
         These matrices are required to satisfy the trace preserving condition
-            \sum_{k=0}^{r-1} A_i^\dagger A_i = I
-        where I is the identity matrix. The matrices A_i are sometimes called
-        Kraus or noise operators.
+            $$
+            \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+            $$
+        where $I$ is the identity matrix. The matrices $A_k$ are sometimes
+        called Kraus or noise operators.
 
         This method is used by the global `cirq.channel` method. If this method
         or the _unitary_ method is not present, or returns NotImplement,
@@ -72,6 +78,8 @@ class SupportsChannel(Protocol):
             A list of matrices describing the channel (Kraus operators), or
             NotImplemented if there is no such matrix.
         """
+
+    @doc_private
     def _has_channel_(self) -> bool:
         """Whether this value has a channel representation.
 
@@ -92,12 +100,16 @@ def channel(val: Any, default: Any = RaiseTypeErrorIfNotProvided
     r"""Returns a list of matrices describing the channel for the given value.
 
     These matrices are the terms in the operator sum representation of
-    a quantum channel. If the returned matrices are {A_0,A_1,..., A_{r-1}},
+    a quantum channel. If the returned matrices are ${A_0,A_1,..., A_{r-1}}$,
     then this describes the channel:
-        \rho \rightarrow \sum_{k=0}^{r-1} A_0 \rho A_0^\dagger
+        $$
+        \rho \rightarrow \sum_{k=0}^{r-1} A_k \rho A_k^\dagger
+        $$
     These matrices are required to satisfy the trace preserving condition
-        \sum_{k=0}^{r-1} A_i^\dagger A_i = I
-    where I is the identity matrix. The matrices A_i are sometimes called
+        $$
+        \sum_{k=0}^{r-1} A_k^\dagger A_k = I
+        $$
+    where $I$ is the identity matrix. The matrices $A_k$ are sometimes called
     Kraus or noise operators.
 
     Args:

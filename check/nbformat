@@ -29,7 +29,7 @@ cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
 # Install a pinned version of tf-docs
-TF_DOCS_COMMIT=ec2bfadbec885fc40268b4193d8b87648ab45791
+TF_DOCS_COMMIT=b3dc8a922d8bdc6e998a8ad4f4953359dc6e576a
 TF_DOCS_INSTALLED=$(pip list | grep  -c $TF_DOCS_COMMIT)
 
 if [ "$TF_DOCS_INSTALLED" != "1" ]; then

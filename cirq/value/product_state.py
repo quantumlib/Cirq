@@ -13,7 +13,7 @@
 # limitations under the License.
 import abc
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, Iterable, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Sequence, Tuple, Iterator
 
 import numpy as np
 
@@ -96,7 +96,7 @@ class ProductState:
         """Return the _NamedOneQubitState at the given qubit."""
         return self.states[qubit]
 
-    def __iter__(self) -> Iterable[Tuple['cirq.Qid', _NamedOneQubitState]]:
+    def __iter__(self) -> Iterator[Tuple['cirq.Qid', _NamedOneQubitState]]:
         yield from self.states.items()
 
     def __len__(self) -> int:

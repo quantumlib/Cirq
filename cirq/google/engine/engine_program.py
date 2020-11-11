@@ -13,7 +13,7 @@
 # limitations under the License.
 
 import datetime
-from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, \
+from typing import Dict, List, Optional, Sequence, Set, TYPE_CHECKING, \
     Union
 
 from cirq import study
@@ -387,9 +387,14 @@ class EngineProgram:
             self.project_id, self.program_id, keys)
         return self
 
-    def get_circuit(self) -> 'Circuit':
+    def get_circuit(self, program_num: Optional[int] = None) -> 'Circuit':
         """Returns the cirq Circuit for the Quantum Engine program. This is only
         supported if the program was created with the V2 protos.
+
+        Args:
+            program_num: if this is a batch program, the index of the circuit in
+                the batch.  This argument is zero-indexed. Negative values
+                indexing from the end of the list.
 
         Returns:
             The program's cirq Circuit.
@@ -397,18 +402,31 @@ class EngineProgram:
         if not self._program or not self._program.HasField('code'):
             self._program = self.context.client.get_program(
                 self.project_id, self.program_id, True)
-        return self._deserialize_program(self._program.code)
+        return self._deserialize_program(self._program.code, program_num)
 
     @staticmethod
-    def _deserialize_program(code: qtypes.any_pb2.Any) -> 'Circuit':
+    def _deserialize_program(code: qtypes.any_pb2.Any,
+                             program_num: Optional[int] = None) -> 'Circuit':
         import cirq.google.engine.engine as engine_base
         code_type = code.type_url[len(engine_base.TYPE_PREFIX):]
+        program = None
         if (code_type == 'cirq.google.api.v1.Program' or
                 code_type == 'cirq.api.google.v1.Program'):
             raise ValueError('deserializing a v1 Program is not supported')
-        if (code_type == 'cirq.google.api.v2.Program' or
-                code_type == 'cirq.api.google.v2.Program'):
+        elif (code_type == 'cirq.google.api.v2.Program' or
+              code_type == 'cirq.api.google.v2.Program'):
             program = v2.program_pb2.Program.FromString(code.value)
+        elif code_type == 'cirq.google.api.v2.BatchProgram':
+            if program_num is None:
+                raise ValueError('A program number must be specified when '
+                                 'deserializing a Batch Program')
+            batch = v2.batch_pb2.BatchProgram.FromString(code.value)
+            if abs(program_num) >= len(batch.programs):
+                raise ValueError(f'Only {len(batch.programs)} in the batch but '
+                                 f'index {program_num} was specified')
+
+            program = batch.programs[program_num]
+        if program:
             gate_set_map = {
                 g.gate_set_name: g for g in gate_sets.GOOGLE_GATESETS
             }
@@ -418,6 +436,7 @@ class EngineProgram:
             except KeyError:
                 raise ValueError('unsupported gateset: {}'.format(
                     program.language.gate_set))
+
         raise ValueError('unsupported program type: {}'.format(code_type))
 
     def delete(self, delete_jobs: bool = False) -> None:

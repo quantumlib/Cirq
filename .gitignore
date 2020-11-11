@@ -23,6 +23,9 @@ __pycache__
 _build
 rtd_docs/generated
 
+# API docs
+docs/api_docs
+
 # swap files
 *.swp
 
