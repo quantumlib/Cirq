@@ -367,6 +367,7 @@ class Engine:
             layers: List['cirq.google.CalibrationLayer'],
             program_id: Optional[str] = None,
             job_id: Optional[str] = None,
+            processor_id: str = None,
             processor_ids: Sequence[str] = (),
             gate_set: Optional[sgs.SerializableGateSet] = None,
             program_description: Optional[str] = None,
@@ -399,6 +400,8 @@ class Engine:
                 of the format 'calibration-################YYMMDD' will be
                 generated, where # is alphanumeric and YYMMDD is the current
                 year, month, and day.
+            processor_id: The engine processor that should run the calibration.
+                If this is specified, processor_ids should not be specified.
             processor_ids: The engine processors that should be candidates
                 to run the program. Only one of these will be scheduled for
                 execution.
@@ -414,8 +417,13 @@ class Engine:
             An EngineJob whose results can be retrieved by calling
             calibration_results().
         """
-        if not processor_ids:
+        if processor_id and processor_ids:
+            raise ValueError('Only one of processor_id and processor_ids '
+                             'can be specified.')
+        if not processor_ids and not processor_id:
             raise ValueError('Processor id must be specified.')
+        if processor_id:
+            processor_ids = [processor_id]
         if job_labels is None:
             job_labels = {'calibration': ''}
         engine_program = self.create_calibration_program(

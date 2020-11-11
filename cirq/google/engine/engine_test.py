@@ -669,7 +669,7 @@ def test_run_calibration(client):
     job = engine.run_calibration(gate_set=cg.FSIM_GATESET,
                                  layers=[layer1, layer2],
                                  job_id='job-id',
-                                 processor_ids=['mysim'])
+                                 processor_id='mysim')
     results = job.calibration_results()
     assert len(results) == 2
     assert results[0].code == v2.calibration_pb2.SUCCESS
@@ -680,6 +680,19 @@ def test_run_calibration(client):
     assert results[0].metrics['fidelity'][(q1, q2)] == [0.75]
     assert results[1].code == v2.calibration_pb2.SUCCESS
     assert results[1].error_message == 'Second success'
+
+    # assert label is correct
+    client().create_job.assert_called_once_with(
+        project_id='proj',
+        program_id='prog',
+        job_id='job-id',
+        processor_ids=['mysim'],
+        run_context=_to_any(
+            v2.run_context_pb2.RunContext(parameter_sweeps=[
+                v2.run_context_pb2.ParameterSweep(repetitions=1)
+            ])),
+        description=None,
+        labels={'calibration': ''})
 
 
 def test_run_calibration_validation_fails():
@@ -702,6 +715,12 @@ def test_run_calibration_validation_fails():
     with pytest.raises(ValueError, match='Gate set must be specified'):
         _ = engine.run_calibration(layers=[layer1, layer2],
                                    processor_ids=['mysim'],
+                                   job_id='job-id')
+    with pytest.raises(ValueError, match='processor_id and processor_ids'):
+        _ = engine.run_calibration(layers=[layer1, layer2],
+                                   processor_ids=['mysim'],
+                                   processor_id='mysim',
+                                   gate_set=cg.XMON,
                                    job_id='job-id')
 
 
