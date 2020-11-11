@@ -65,7 +65,9 @@ class GateOperation(raw_types.Operation):
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         new_gate = protocols.with_measurement_key_mapping(self.gate, key_map)
-        if self.gate is new_gate:
+        if new_gate is NotImplemented:
+            return NotImplemented
+        if new_gate is self.gate:
             return self
         return new_gate.on(*self.qubits)
 

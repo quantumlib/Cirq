@@ -532,6 +532,8 @@ class TaggedOperation(Operation):
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
         sub_op = protocols.with_measurement_key_mapping(self.sub_operation,
                                                         key_map)
+        if sub_op is NotImplemented:
+            return NotImplemented
         if sub_op is self.sub_operation:
             return self
         return TaggedOperation(sub_op, *self.tags)

@@ -381,6 +381,13 @@ def test_with_measurement_key_mapping():
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
 
 
+def test_cannot_remap_non_measurement_gate():
+    a = cirq.LineQubit(0)
+    op = cirq.X(a)
+
+    assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
+
+
 def test_is_parameterized():
 
     class No1(cirq.Gate):

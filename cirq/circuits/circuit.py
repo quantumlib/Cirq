@@ -815,6 +815,14 @@ class AbstractCircuit(abc.ABC):
     def all_measurement_keys(self) -> AbstractSet[str]:
         return protocols.measurement_keys(self)
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        remapped_ops = [
+            protocols.with_measurement_key_mapping(op, key_map)
+            if protocols.is_measurement(op) else op
+            for op in self.all_operations()
+        ]
+        return type(self)(remapped_ops, device=self.device)
+
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self.qid_shape()
 
@@ -1391,14 +1399,6 @@ class Circuit(AbstractCircuit):
         return cirq.Circuit(inv_moments, device=self._device)
 
     __hash__ = None  # type: ignore
-
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        remapped_ops = [
-            protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.is_measurement(op) else op
-            for op in self.all_operations()
-        ]
-        return Circuit(remapped_ops, device=self.device)
 
     def with_device(
             self,

@@ -471,6 +471,13 @@ def test_tagged_measurement():
     assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
 
 
+def test_cannot_remap_non_measurement_gate():
+    a = cirq.LineQubit(0)
+    op = cirq.X(a).with_tags('tag')
+
+    assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
+
+
 def test_circuit_diagram():
 
     class TaggyTag:
