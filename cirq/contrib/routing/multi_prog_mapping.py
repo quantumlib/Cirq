@@ -149,8 +149,6 @@ class Qubits_partitioning:
         idxs = np.argsort(cnot_density)
         idxs_descending = np.flip(idxs)
 
-        print(cnot_density)
-        print(idxs_descending)
         """ reorder list of program_circuits """
         circuits_temp = []  #copy.deepcopy(self.program_circuits)
         #self.program_circuits.clear()
@@ -160,7 +158,6 @@ class Qubits_partitioning:
         return circuits_temp
 
     def compute_EPST(self, partition, cir):
-        print(partition)
         twoQ_gs = len(
             list(
                 cir.findall_operations(
@@ -192,8 +189,6 @@ class Qubits_partitioning:
         """ 
         find best candidate based on average fidelity
         """
-        print("cands:")
-        print(cands)
         best_cand = cands[0]
         max_f = -inf
         # if len(cands)==1:
@@ -201,8 +196,6 @@ class Qubits_partitioning:
 
         for cand in cands:
             epst = self.compute_EPST(cand, cir)
-            print("epst:")
-            print(epst)
             if epst > max_f:
                 max_f = epst
                 best_cand = cand
@@ -239,7 +232,7 @@ class Qubits_partitioning:
 
             if len(candidates) == 0:
                 print("fail -- run programs seperately")
-            #print(candidates)
+            
             best_cand = self.find_best_candidate(candidates, cir)
             partition.append(best_cand)
             """ remove nodes from tree & relabel remaining nodes"""
@@ -449,8 +442,6 @@ class X_SWAP:
                 path_len = len(list(paths)[0])
                 new_path_len = len(list(new_paths)[0])
 
-                print("path")
-                print(list(paths))
                 in_path = 0
 
                 if new_path_len < path_len:
@@ -458,10 +449,6 @@ class X_SWAP:
                 D_allp = new_path_len
                 D_singlep = self.compute_path_in_sameP(phy_edge, i)
                 cost_i = cost_i + (D_allp - D_singlep) * in_path
-                print("in path")
-                print(in_path)
-                print(cost_i)
-                print("next i")
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
@@ -475,10 +462,7 @@ class X_SWAP:
                 gain_cost = self.compute_gainCost(flayers, new_l_ph, new_ph_l,
                                                   s)
                 cost = H_cost + gain_cost
-                print("cost")
-                print(H_cost)
-                print(gain_cost)
-                print(cost)
+
                 if (cost < min_cost):
                     min_cost = cost
                     best_swap = s
@@ -498,22 +482,30 @@ class X_SWAP:
             """ solve hardware-compliant gates 
             i specify program index """
             require_swap = 0
-            print("flayers")
-            print(flayers)
+            
             for i in range(len(flayers)):
                 if len(flayers[i]) == 0:
                     continue
                 gate_nodes = flayers[i].copy()
                 for n in gate_nodes:
                     if len(n.val.qubits) == 1:
-                        schedule.append(n.val)
+                        g = n.val.gate
+                        lq = n.val.qubit
+                        phq = self.l_to_ph[(lq,i)]
+                        
+                        schedule.append(g(phq))
                         dags[i].remove_node(n)
                         # update front layer
                         flayers[i].remove(n)
                     else:
                         if self.log_to_phy_edge(n.val.qubits,
                                                 i) in self.device_graph.edges:
-                            schedule.append(n.val)
+                            g = n.val.gate
+                            lqs = n.val.qubits
+                            phq0 = self.l_to_ph[(lqs[0],i)]
+                            phq1 = self.l_to_ph[(lqs[1],i)]
+                            schedule.append(g(phq0, phq1))
+                            
                             dags[i].remove_node(n)
                             # update front layer
                             flayers[i].remove(n)
@@ -531,14 +523,20 @@ class X_SWAP:
                     swap_candidates = self.obtain_swaps(critical_node_gates, i)
                     swap_candidate_lists.append(swap_candidates)
                 """ find best SWAP """
+                """ list of 2 pairs: show each qubit belongs to which program id"""
                 best_swap = self.find_best_swap(swap_candidate_lists, flayers)
 
-                print("best swap")
-                print(swap_candidate_lists)
-                print(best_swap)
-                #schedule.append(cirq.SWAP(best_swap[0], best_swap[1]))
+                ph0 = self.l_to_ph[best_swap[0]]
+                ph1 = self.l_to_ph[best_swap[1]]
+                schedule.append(cirq.SWAP(ph0, ph1) ) 
                 """ update mapping """
-                mappings = self.update_mapping(best_swap)
+                ph0 = self.l_to_ph[best_swap[0]]
+                ph1 = self.l_to_ph[best_swap[1]]
+                self.l_to_ph[best_swap[0]] = ph1
+                self.l_to_ph[best_swap[1]] = ph0
+                self.ph_to_l[ph0] = self.ph_to_l[ph1]
+                self.ph_to_l[ph1] = self.ph_to_l[ph0]
+                #mappings = self.update_mapping(best_swap)
 
             flayers = self.generate_front_layers(dags)
 
@@ -568,7 +566,9 @@ def multi_prog_map(device_graph, single_er, two_er, prog_circuits):
     print(partitions)
 
     xswap = X_SWAP(device_graph, desc_cirs, partitions, twoQ_gate_type)
-    xswap.insert_SWAP_and_generate_schedule()
+    schedule = xswap.insert_SWAP_and_generate_schedule()
+    print("schedule:")
+    print(schedule)
 
     #parObj.reorder_program_circuits()
 
