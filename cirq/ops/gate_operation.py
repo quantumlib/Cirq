@@ -63,6 +63,12 @@ class GateOperation(raw_types.Operation):
             return self
         return new_gate.on(*self.qubits)
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        if not protocols.is_measurement(self.gate):
+            return self
+        new_gate = protocols.with_measurement_key_mapping(self.gate, key_map)
+        return new_gate.on(*self.qubits)
+
     def __repr__(self):
         if hasattr(self.gate, '_op_repr_'):
             result = self.gate._op_repr_(self.qubits)
