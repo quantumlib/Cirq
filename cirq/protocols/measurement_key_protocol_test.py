@@ -167,8 +167,8 @@ def test_measurement_key_mapping():
     with pytest.raises(ValueError):
         cirq.with_measurement_key_mapping(mkg_ab, {'a': 'c'})
 
-    with pytest.raises(NotImplementedError):
-        cirq.with_measurement_key_mapping(cirq.X(), {'a': 'c'})
+    assert cirq.with_measurement_key_mapping(cirq.X,
+                                             {'a': 'c'}) is NotImplemented
 
     mkg_cdx = cirq.with_measurement_key_mapping(mkg_ab, {
         'a': 'c',
