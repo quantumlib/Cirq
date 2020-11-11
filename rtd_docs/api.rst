@@ -716,6 +716,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
