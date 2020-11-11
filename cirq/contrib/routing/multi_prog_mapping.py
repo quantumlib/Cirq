@@ -473,12 +473,8 @@ class X_SWAP:
         dags = self.generate_dags()
         self.initial_mapping()
 
-        sig = 0
         flayers = self.generate_front_layers(dags)
         while flayers != None:
-            if sig == 3:
-                break
-            sig = sig + 1
             """ solve hardware-compliant gates 
             i specify program index """
             require_swap = 0
@@ -604,8 +600,7 @@ def prepare_couplingGraph_errorValues(device_graph):
     qubits = cirq.LineQubit.range(3)
     circuit1 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]),
-                            cirq.CZ(qubits[1], qubits[2]),
-                            cirq.measure(*qubits))
+                            cirq.CZ(qubits[1], qubits[2]))
     qubits = cirq.LineQubit.range(2)
     circuit2 = cirq.Circuit(cirq.X(qubits[0]), cirq.Y(qubits[1]),
                             cirq.CZ(qubits[0], qubits[1]))
