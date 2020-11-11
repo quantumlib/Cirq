@@ -542,7 +542,6 @@ def test_calibration_results(get_job_results):
     job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
     data = job.calibration_results()
     get_job_results.assert_called_once_with('a', 'b', 'steve')
-    print(data)
     assert len(data) == 1
     assert data[0].code == v2.calibration_pb2.ERROR_CALIBRATION_FAILED
     assert data[0].error_message == 'uh oh'
@@ -552,6 +551,24 @@ def test_calibration_results(get_job_results):
     assert data[0].metrics['theta'] == {
         (cirq.GridQubit(0, 0), cirq.GridQubit(0, 1)): [0.9999]
     }
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
+def test_calibration_defaults(get_job_results):
+    qjob = qtypes.QuantumJob(execution_status=qtypes.ExecutionStatus(
+        state=qtypes.ExecutionStatus.State.SUCCESS))
+    result = v2.calibration_pb2.FocusedCalibrationResult()
+    result.results.add()
+    get_job_results.return_value = qtypes.QuantumResult(result=_to_any(result))
+    job = cg.EngineJob('a', 'b', 'steve', EngineContext(), _job=qjob)
+    data = job.calibration_results()
+    get_job_results.assert_called_once_with('a', 'b', 'steve')
+    assert len(data) == 1
+    assert data[0].code == v2.calibration_pb2.CALIBRATION_RESULT_UNSPECIFIED
+    assert data[0].error_message is None
+    assert data[0].token is None
+    assert data[0].valid_until is None
+    assert len(data[0].metrics) == 0
 
 
 @mock.patch('cirq.google.engine.engine_client.EngineClient.get_job_results')
