@@ -356,7 +356,7 @@ def test_validate_density_matrix():
                                               dtype=np.complex64),
                                      qid_shape=(2,),
                                      dtype=np.complex128)
-    with pytest.raises(ValueError, match='square'):
+    with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.array([[1, 0]]), qid_shape=(2,))
     with pytest.raises(ValueError, match='hermitian'):
         cirq.to_valid_density_matrix(np.array([[1, 0.1], [0, 0]]),
@@ -399,14 +399,14 @@ def test_to_valid_density_matrix_from_density_matrix():
 
 
 def test_to_valid_density_matrix_not_square():
-    with pytest.raises(ValueError, match='square'):
+    with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.array([[1], [0]]), num_qubits=1)
 
 
 def test_to_valid_density_matrix_size_mismatch_num_qubits():
-    with pytest.raises(ValueError, match='size'):
+    with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.array([[1, 0], [0, 0]]), num_qubits=2)
-    with pytest.raises(ValueError, match='size'):
+    with pytest.raises(ValueError, match='shape'):
         cirq.to_valid_density_matrix(np.eye(4) / 4.0, num_qubits=1)
 
 

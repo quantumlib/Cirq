@@ -550,25 +550,28 @@ def validate_density_matrix(
 
     Raises:
         ValueError: The density matrix does not have the correct dtype.
-        ValueError: The density matrix is not square and of size 2**num_qubits.
+        ValueError: The density matrix does not have the correct shape.
+            It should be a square matrix with dimension prod(qid_shape).
         ValueError: The density matrix is not Hermitian.
         ValueError: The density matrix does not have trace 1.
         ValueError: The density matrix is not positive semidefinite.
     """
     if dtype and density_matrix.dtype != dtype:
-        raise ValueError('Density matrix had dtype {} but expected {}'.format(
-            density_matrix.dtype, dtype))
-    if density_matrix.shape != (np.prod(qid_shape, dtype=int),) * 2:
         raise ValueError(
-            'Density matrix was not square and of size 2**num_qubits, '
-            'instead was {}'.format(density_matrix.shape))
-    if not np.allclose(
-            density_matrix, np.transpose(np.conj(density_matrix)), atol=atol):
+            f'Incorrect dtype for density matrix: Expected {dtype} '
+            f'but has dtype {density_matrix.dtype}.')
+    expected_shape = (np.prod(qid_shape, dtype=int),) * 2
+    if density_matrix.shape != expected_shape:
+        raise ValueError(
+            f'Incorrect shape for density matrix: Expected {expected_shape} '
+            f'but has shape {density_matrix.shape}.')
+    if not np.allclose(density_matrix, density_matrix.conj().T, atol=atol):
         raise ValueError('The density matrix is not hermitian.')
-    if not np.isclose(np.trace(density_matrix), 1.0, atol=atol):
+    trace = np.trace(density_matrix)
+    if not np.isclose(trace, 1.0, atol=atol):
         raise ValueError(
-            'Density matrix did not have trace 1 but instead {}'.format(
-                np.trace(density_matrix)))
+            'Density matrix does not have trace 1. Instead, it has '
+            f'trace {trace}.')
     if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
         raise ValueError('The density matrix is not positive semidefinite.')
 
