@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Utility methods for creating vectors and matrices."""
+"""Classes and methods for quantum states."""
 
 from typing import (Any, cast, Iterable, Optional, Sequence, Set, TYPE_CHECKING,
                     Tuple, Type, Union)
