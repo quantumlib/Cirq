@@ -372,6 +372,15 @@ def test_with_gate():
     assert g1.with_gate(cirq.Y) == g2
 
 
+def test_with_measurement_key_mapping():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m')
+
+    remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
+    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
+
+
 def test_is_parameterized():
 
     class No1(cirq.Gate):

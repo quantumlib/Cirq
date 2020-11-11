@@ -530,11 +530,11 @@ class TaggedOperation(Operation):
                                *self._tags)
 
     def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        if not protocols.is_measurement(self.sub_operation):
+        sub_op = protocols.with_measurement_key_mapping(self.sub_operation,
+                                                        key_map)
+        if sub_op is self.sub_operation:
             return self
-        return TaggedOperation(
-            protocols.with_measurement_key_mapping(self.sub_operation, key_map),
-            *self.tags)
+        return TaggedOperation(sub_op, *self.tags)
 
     def controlled_by(self,
                       *control_qubits: 'cirq.Qid',
