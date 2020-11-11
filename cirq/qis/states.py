@@ -343,7 +343,7 @@ def _potential_qid_shapes(state: _NON_INT_STATE_LIKE) -> '_QidShapeSet':
             # definitely state vector amplitudes
             return _QidShapeSet(unfactorized_total_dimension=dim)
         # could also be per-qudit computational basis values
-        min_qudit_dimensions = tuple(state.astype(int) + 1)
+        min_qudit_dimensions = tuple(state.astype(int, copy=False) + 1)
         return _QidShapeSet(unfactorized_total_dimension=dim,
                             min_qudit_dimensions=min_qudit_dimensions)
     if state.ndim == 2:
