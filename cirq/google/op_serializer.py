@@ -21,8 +21,8 @@ import numpy as np
 from cirq import ops
 from cirq.google.api import v2
 from cirq.google import arg_func_langs
+from cirq.google.arg_func_langs import arg_to_proto
 from cirq.google.ops.calibration_tag import CalibrationTag
-from cirq.google.arg_func_langs import _arg_to_proto
 
 if TYPE_CHECKING:
     import cirq
@@ -134,9 +134,9 @@ class GateOpSerializer:
         for arg in self.args:
             value = self._value_from_gate(op, arg)
             if value is not None and (not arg.default or value != arg.default):
-                _arg_to_proto(value,
-                              out=msg.args[arg.serialized_name],
-                              arg_function_language=arg_function_language)
+                arg_to_proto(value,
+                             out=msg.args[arg.serialized_name],
+                             arg_function_language=arg_function_language)
         if self.serialize_tokens:
             for tag in op.tags:
                 if isinstance(tag, CalibrationTag):
