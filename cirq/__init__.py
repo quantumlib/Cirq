@@ -328,6 +328,7 @@ from cirq.qis import (
     one_hot,
     QUANTUM_STATE_LIKE,
     QuantumState,
+    quantum_state,
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,

@@ -719,6 +719,7 @@ Quantum Information Science
     cirq.fidelity
     cirq.infer_qid_shape
     cirq.one_hot
+    cirq.quantum_state
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
     cirq.validate_density_matrix

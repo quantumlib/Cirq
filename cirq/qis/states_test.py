@@ -37,6 +37,85 @@ def assert_valid_density_matrix(matrix, num_qubits=None, qid_shape=None):
                                      dtype=matrix.dtype), matrix)
 
 
+def test_quantum_state_computational_basis_state():
+    state = cirq.quantum_state(7, qid_shape=(3, 4))
+    np.testing.assert_allclose(
+        state.data, cirq.one_hot(index=7, shape=(12,), dtype=np.complex64))
+    assert state.qid_shape == (3, 4)
+    assert state.dtype == np.complex64
+
+    state = cirq.quantum_state((0, 1, 2, 3),
+                               qid_shape=(1, 2, 3, 4),
+                               dtype=np.complex128)
+    np.testing.assert_allclose(
+        state.data,
+        cirq.one_hot(index=(0, 1, 2, 3), shape=(1, 2, 3, 4),
+                     dtype=np.complex64))
+    assert state.qid_shape == (1, 2, 3, 4)
+    assert state.dtype == np.complex128
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state(7)
+
+    with pytest.raises(IndexError, match='out of bounds'):
+        _ = cirq.quantum_state(7, qid_shape=(2, 2))
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state((0, 1, 2, 3))
+
+    with pytest.raises(ValueError, match='out of bounds'):
+        _ = cirq.quantum_state((0, 1, 2, 3), qid_shape=(2, 2, 2, 2))
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state((0, 0, 1, 1), qid_shape=(1, 1, 2, 2))
+
+
+def test_quantum_state_state_vector_state_tensor():
+    state_vector_1 = cirq.one_hot(shape=(4,), dtype=np.complex128)
+    state_tensor_1 = np.reshape(state_vector_1, (2, 2))
+
+    state = cirq.quantum_state(state_vector_1)
+    assert np.array_equal(state.data, state_vector_1)
+    assert state.qid_shape == (2, 2)
+    assert state.dtype == np.complex128
+
+    state = cirq.quantum_state(state_tensor_1, qid_shape=(2, 2))
+    assert np.array_equal(state.data, state_tensor_1)
+    assert state.qid_shape == (2, 2)
+    assert state.dtype == np.complex128
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.quantum_state(state_tensor_1)
+
+    with pytest.raises(ValueError, match='not compatible'):
+        _ = cirq.quantum_state(state_tensor_1, qid_shape=(2, 3))
+
+
+def test_quantum_state_density_matrix():
+    density_matrix_1 = np.eye(4, dtype=np.complex64) / 4
+
+    state = cirq.quantum_state(density_matrix_1, qid_shape=(4,))
+    assert np.array_equal(state.data, density_matrix_1)
+    assert state.qid_shape == (4,)
+    assert state.dtype == np.complex64
+
+    with pytest.raises(ValueError, match='not compatible'):
+        _ = cirq.quantum_state(density_matrix_1, qid_shape=(8,))
+
+
+def test_quantum_state_product_state():
+    q0, q1, q2 = cirq.LineQubit.range(3)
+    product_state_1 = cirq.KET_PLUS(q0) * cirq.KET_PLUS(q1) * cirq.KET_ONE(q2)
+
+    state = cirq.quantum_state(product_state_1)
+    np.testing.assert_allclose(state.data, product_state_1.state_vector())
+    assert state.qid_shape == (2, 2, 2)
+    assert state.dtype == np.complex64
+
+    with pytest.raises(ValueError, match='qid shape'):
+        _ = cirq.quantum_state(product_state_1, qid_shape=(2, 2))
+
+
 def test_infer_qid_shape():
     computational_basis_state_1 = [0, 0, 0, 1]
     computational_basis_state_2 = [0, 1, 2, 3]

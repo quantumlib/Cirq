@@ -191,7 +191,7 @@ def quantum_state(
         copy: Whether to copy the data underlying the state.
         validate: Whether to check if the given data and qid shape
             represent a valid quantum state with the given dtype.
-        dtype: The expected data type.
+        dtype: The desired data type.
         atol: Absolute numerical tolerance to use for validation.
 
     Raises:
@@ -202,28 +202,37 @@ def quantum_state(
         if qid_shape is not None and state.qid_shape != qid_shape:
             raise ValueError('The specified qid shape must be the same as the '
                              'qid shape of the given state.\n'
-                             'Specified shape: {qid_shape}\n'
-                             'Shape of state: {state.qid_shape}.')
-        if dtype and state.dtype != dtype:
-            raise ValueError('The specified dtype must be the same as the '
-                             'dtype of the given state. If you did not do so, '
-                             'try using the dtype argument.\n'
-                             'Specified dtype: {dtype}\n'
-                             'dtype of state: {state.dtype}.')
+                             f'Specified shape: {qid_shape}\n'
+                             f'Shape of state: {state.qid_shape}.')
+        if copy:
+            if dtype and dtype != state.dtype:
+                data = state.data.astype(dtype, casting='unsafe', copy=True)
+            else:
+                data = state.data.copy()
+            new_state = QuantumState(data, state.qid_shape)
+        else:
+            if dtype and state.dtype != dtype:
+                raise ValueError(
+                    'The specified dtype must be the same as the '
+                    'dtype of the given state. If you did not do so, '
+                    'try using the dtype argument, or set copy=True.\n'
+                    f'Specified dtype: {dtype}\n'
+                    f'dtype of state: {state.dtype}.')
+            new_state = state
         if validate:
-            state.validate(dtype=dtype, atol=atol)
-        return state.copy() if copy else state
+            new_state.validate(dtype=dtype, atol=atol)
+        return new_state
 
     if isinstance(state, value.ProductState):
         actual_qid_shape = (2,) * len(state)
         if qid_shape is not None and qid_shape != actual_qid_shape:
             raise ValueError('The specified qid shape must be the same as the '
                              'qid shape of the given state.\n'
-                             'Specified shape: {qid_shape}\n'
-                             'Shape of state: {actual_qid_state}.')
+                             f'Specified shape: {qid_shape}\n'
+                             f'Shape of state: {actual_qid_shape}.')
         if dtype is None:
             dtype = np.complex64
-        data = state.state_vector().astype(dtype, casting='unsafe')
+        data = state.state_vector().astype(dtype, casting='unsafe', copy=False)
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
         if qid_shape is None:
@@ -253,6 +262,8 @@ def quantum_state(
                 data = _qudit_values_to_state_tensor(state_vector=data,
                                                      qid_shape=qid_shape,
                                                      dtype=dtype)
+        if dtype:
+            data = data.astype(dtype, casting='unsafe', copy=False)
     return QuantumState(data=data,
                         qid_shape=qid_shape,
                         validate=validate,
