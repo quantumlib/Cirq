@@ -100,22 +100,6 @@ class QuantumState:
     def dtype(self) -> np.ndarray:
         return self._data.dtype
 
-    def is_state_vector(self) -> bool:
-        """Whether this quantum state is a state vector.
-
-        A state vector stores the amplitudes of a pure state as a
-        one-dimensional array.
-        """
-        return self.data.shape == (self._dim,)
-
-    def is_state_tensor(self) -> bool:
-        """Whether this quantum state is a state tensor.
-
-        A state tensor stores the amplitudes of a pure state as an array with
-        shape equal to the qid shape of the state.
-        """
-        return self.data.shape == self.qid_shape
-
     def is_density_matrix(self) -> bool:
         """Whether this quantum state is a density matrix.
 
@@ -155,7 +139,9 @@ class QuantumState:
             dtype: Optional[Type[np.number]] = None,
             atol=1e-7) -> None:
         """Check if this quantum state is valid."""
-        if self.is_state_vector() or self.is_state_tensor():
+        is_state_vector = self.data.shape == (self._dim,)
+        is_state_tensor = self.data.shape == self.qid_shape
+        if is_state_vector or is_state_tensor:
             validate_normalized_state_vector(self.state_vector(),
                                              qid_shape=self.qid_shape,
                                              dtype=dtype,
@@ -169,10 +155,6 @@ class QuantumState:
             raise ValueError('Invalid quantum state: '
                              f'Data shape of {self.data.shape} is not '
                              f'compatible with qid shape of {self.qid_shape}.')
-
-    def copy(self) -> 'QuantumState':
-        """Return a copy of the quantum state."""
-        return QuantumState(self.data.copy(), self.qid_shape)
 
 
 def quantum_state(
