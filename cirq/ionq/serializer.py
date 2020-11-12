@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Support for serializing gates supported by IonQ's API."""
-from typing import cast
+from typing import cast, TYPE_CHECKING
 
 import numpy as np
 
 from cirq.ops import common_gates, gate_operation, parity_gates
 from cirq.devices import line_qubit
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Serializer:
@@ -34,7 +37,7 @@ class Serializer:
             ValueError: if the circuit has gates that are not supported or
                 is otherwise invalid.
         """
-        num_qubits = max(circuit.all_qubits()).x + 1
+        num_qubits = cast(line_qubit.LineQubit, max(circuit.all_qubits())).x + 1
         return {
             'qubits': num_qubits,
             'circuit': self._serialize_circuit(circuit, num_qubits)
@@ -58,7 +61,7 @@ class Serializer:
             raise ValueError(
                 f'IonQ API only supports LineQubits but op {gate_op} had '
                 f'qubits {gate_op.qubits}.')
-        targets = [q.x for q in gate_op.qubits]
+        targets = [cast(line_qubit.LineQubit, q).x for q in gate_op.qubits]
         if any(x >= num_qubits or x < 0 for x in targets):
             raise ValueError(
                 'IonQ API must use LineQubits from 0 to number of qubits - 1. '

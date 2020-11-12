@@ -14,10 +14,13 @@
 """Represents a job created via the IonQ API."""
 
 import time
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
 from cirq.ionq import results
 from cirq._doc import document
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Job():
@@ -40,11 +43,11 @@ class Job():
     ALL_STATES = TERMINAL_STATES + NON_TERMINAL_STATES
     document(ALL_STATES, 'All states that an IonQ API job can exist in.')
 
-    def __init__(self, client: 'ionq_client._IonQClient', job: dict):
-        """Construct and IonQJob.
+    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient', job: dict):
+        """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`,
-        use `get_job` on `cirq.ionq.IonQService`.
+        use `get_job` on `cirq.ionq.Service`.
 
         Args:
             client: The client used for calling the API.
@@ -78,7 +81,7 @@ class Job():
         return self._job['status']
 
     def target(self) -> str:
-        """Returns the target where the job is to be run or was run.
+        """Returns the target where the job is to be run, or was run.
 
         Returns:
             'qpu' or 'simulator' depending on where the job was run or is
@@ -106,9 +109,8 @@ class Job():
             return int(self._job['metadata']['shots'])
         return None
 
-    def results(
-            self, timeout_seconds=7200, polling_seconds=1
-    ) -> Union['cirq.ionq.QQPUResults', 'cirq.ionq.QSimulatorResults']:
+    def results(self, timeout_seconds=7200, polling_seconds=1
+               ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
         Args:
@@ -116,9 +118,9 @@ class Job():
             polling_seconds: The interval with which to poll.
 
         Returns:
-            Either a `cirq.ionQQPUResults` or `cirq.ionq.IonQSimulatorResults`
-            depending on whether the job was running on a simulator or on
-            an actual quantum processor.
+            Either a `cirq.ionq.QPUResults` or `cirq.ionq.SimulatorResults`
+            depending on whether the job was running on an actual quantum
+            processor or a simulator.
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
@@ -133,7 +135,8 @@ class Job():
                 k: int(self.repetitions() * v)
                 for k, v in self._job['data']['histogram'].items()
             }
-            return results.QPUResult(counts=counts, num_qubits=self.num_qubits)
+            return results.QPUResult(counts=counts,
+                                     num_qubits=self.num_qubits())
         else:
             return results.SimulatorResult(
                 probabilities=self._job['data']['histogram'],

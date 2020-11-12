@@ -12,9 +12,12 @@
 # limitations under the License.
 """Service to access IonQs API."""
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from cirq.ionq import ionq_client, job, serializer
+
+if TYPE_CHECKING:
+    import cirq
 
 
 class Service:

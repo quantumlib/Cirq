@@ -10,7 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Return types for the IonQ API."""
+"""Result types for the IonQ API."""
 
 from typing import Dict
 
@@ -41,7 +41,7 @@ class QPUResult():
 
     def repetitions(self) -> int:
         """Returns the number of times the circuit was run."""
-        return sum(self.counts.values())
+        return sum(self._counts.values())
 
     def counts(self) -> Dict[int, int]:
         """Returns the raw counts of the measurement results.

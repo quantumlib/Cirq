@@ -13,6 +13,7 @@
 """Client for making requests to IonQ's API."""
 
 import sys
+import time
 import urllib
 from typing import Callable, Optional
 import requests
@@ -84,7 +85,7 @@ class _IonQClient:
         assert url.scheme is not None and url.netloc is not None, (
             f'Specified remote_host {remote_host} is not a valid url, '
             'for example http://example.com')
-        assert api_version in SUPPORTED_VERSIONS, (
+        assert api_version in self.SUPPORTED_VERSIONS, (
             f'Only api v0.1 is accepted but was {api_version}')
         assert default_target in self.SUPPORTED_TARGETS, (
             f'Target can only be one of  {self.SUPPORTED_TARGETS} but was '
@@ -101,7 +102,7 @@ class _IonQClient:
         self.max_retry_seconds = max_retry_seconds
         self.verbose = verbose
 
-    def _target(self, target: Optional[str]):
+    def _target(self, target: Optional[str]) -> str:
         """Returns the target if not None or the default target.
 
         Raises:
@@ -128,7 +129,7 @@ class _IonQClient:
             The request.Response from the final successful request call.
         """
         # Initial backoff of 100ms.
-        delay_secs = 0.1
+        delay_seconds = 0.1
 
         while True:
             try:
@@ -140,7 +141,7 @@ class _IonQClient:
                         '"Not authorized" returned by IonQ API. Check to '
                         'ensure you have supplied the correct API key.',
                         response.status_code)
-                if response.statu_code == requests.codes.not_found:
+                if response.status_code == requests.codes.not_found:
                     raise IonQNotFoundException(
                         'IonQ could not find requested resource.')
                 if (response.status_code not in self.RETRIABLE_STATUS_CODES):
@@ -148,19 +149,20 @@ class _IonQClient:
                         'Non-retry-able error making request to IonQ API. '
                         f'Status: {response.status_code} '
                         f'Error :{response.reason}', response.status_code)
+                # Fallthrough should retry.
             except requests.RequestException as e:
                 # Connection error, timeout at server, or too many redirects.
                 # Retry these.
                 response = e.response
-            message = response.message
-            if current_delay > self.max_retry_seconds:
+            message = response.reason
+            if delay_seconds > self.max_retry_seconds:
                 raise TimeoutError(
                     f'Reached maximum number of retries. Last error: {message}')
             if self.verbose:
                 print(message, file=sys.stderr)
-                print(f'Waiting {delay_secs} seconds before retrying.')
-            time.sleep(delay_secs)
-            delay_secs *= 2
+                print(f'Waiting {delay_seconds} seconds before retrying.')
+            time.sleep(delay_seconds)
+            delay_seconds *= 2
 
     def create_job(
             self,
@@ -168,7 +170,7 @@ class _IonQClient:
             repetitions: Optional[int] = None,
             target: Optional[str] = None,
             name: Optional[str] = None,
-    ):
+    ) -> dict:
         """Create a job.
 
         Args:
@@ -182,7 +184,8 @@ class _IonQClient:
                 the job.
 
         Returns:
-            The json body of the response.
+            The json body of the response. This does not contain popualted
+            information about the job, but does contain the job id.
 
         Raises:
             An IonQ exception if the request fails.
@@ -191,7 +194,7 @@ class _IonQClient:
         assert actual_target != 'qpu' or repetitions is not None, (
             'If the target is qpu, reptitions must be specified.')
         assert actual_target != 'simulator' or repetitions is None, (
-            'If the target is simulator, repetitions should not be specified',
+            'If the target is simulator, repetitions should not be specified '
             'as the simulator is a full wavefunction simulator.')
         json = {
             'target': actual_target,
@@ -201,9 +204,8 @@ class _IonQClient:
         if name:
             json['name'] = name
         if repetitions:
-            json['shots'] = repetitions
-            # System does not return number of shots, only histogram of
-            # percentages.
+            # API does not return number of shots, only histogram of
+            # percentages, so we set it as metadata.
             json['metadata'] = {'shots': str(repetitions)}
 
         def request():
