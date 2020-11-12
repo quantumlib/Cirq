@@ -129,7 +129,8 @@ def test_ionq_client_create_job_default_target(mock_post):
                                           api_key='to_my_heart',
                                           default_target='simulator')
     _ = client.create_job(circuit_dict={'job': 'mine'})
-    assert mock_post.call_args.kwargs['json']['target'] == 'simulator'
+    print(mock_post.call_args[1])
+    assert mock_post.call_args[1]['json']['target'] == 'simulator'
 
 
 @mock.patch('requests.post')
@@ -143,7 +144,7 @@ def test_ionq_client_create_job_target_overrides_default_target(mock_post):
     _ = client.create_job(circuit_dict={'job': 'mine'},
                           target='qpu',
                           repetitions=1)
-    assert mock_post.call_args.kwargs['json']['target'] == 'qpu'
+    assert mock_post.call_args[1]['json']['target'] == 'qpu'
 
 
 def test_ionq_client_create_job_no_targets():

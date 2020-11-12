@@ -42,7 +42,7 @@ def test_service_create_job():
                              target='qpu',
                              name='bacon')
     assert job.status() == 'completed'
-    create_job_kwargs = mock_client.create_job.call_args.kwargs
+    create_job_kwargs = mock_client.create_job.call_args[1]
     # Serialization induces a float, so we don't validate full circuit.
     assert create_job_kwargs['circuit_dict']['qubits'] == 1
     assert create_job_kwargs['repetitions'] == 100
