@@ -62,12 +62,17 @@ def test_fidelity_commuting_matrices():
 def test_fidelity_known_values():
     vec1 = np.array([1, 1j, -1, -1j]) * 0.5
     vec2 = np.array([1, -1, 1, -1], dtype=np.complex128) * 0.5
+    vec3 = np.array([1, 0, 0, 0], dtype=np.complex128)
+    tensor1 = np.reshape(vec1, (2, 2))
     mat1 = cirq.density_matrix(np.outer(vec1, vec1.conj()))
     mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()))
     mat3 = 0.3 * mat1.density_matrix() + 0.7 * mat2.density_matrix()
 
     np.testing.assert_allclose(cirq.fidelity(vec1, vec1), 1)
     np.testing.assert_allclose(cirq.fidelity(vec2, vec2), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec3), 0.25)
+    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1), 1)
     np.testing.assert_allclose(cirq.fidelity(mat1, mat1), 1)
     np.testing.assert_allclose(cirq.fidelity(mat2, mat2), 1)
     np.testing.assert_allclose(cirq.fidelity(vec1, mat1), 1)
@@ -76,7 +81,85 @@ def test_fidelity_known_values():
     np.testing.assert_allclose(cirq.fidelity(vec1, mat2), 0)
     np.testing.assert_allclose(cirq.fidelity(mat1, vec2), 0)
     np.testing.assert_allclose(cirq.fidelity(vec1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, mat3), 0.3)
+    np.testing.assert_allclose(cirq.fidelity(mat3, tensor1), 0.3)
     np.testing.assert_allclose(cirq.fidelity(mat3, vec2), 0.7)
+
+
+def test_fidelity_numpy_arrays():
+    vec1 = np.array([1, 0, 0, 0, 0, 0, 0, 0], dtype=np.complex64)
+    vec2 = np.array([1, 0, 0, 0], dtype=np.complex64)
+    tensor1 = np.reshape(vec1, (2, 2, 2))
+    tensor2 = np.reshape(vec2, (2, 2))
+    mat1 = np.outer(vec1, vec1.conj())
+
+    np.testing.assert_allclose(cirq.fidelity(vec1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, tensor1), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, vec1), 1)
+    np.testing.assert_allclose(cirq.fidelity(vec1, mat1), 1)
+    np.testing.assert_allclose(cirq.fidelity(tensor1, mat1), 1)
+    np.testing.assert_allclose(
+        cirq.fidelity(tensor2, tensor2, qid_shape=(2, 2)), 1)
+    np.testing.assert_allclose(cirq.fidelity(mat1, mat1, qid_shape=(8,)), 1)
+
+    with pytest.raises(ValueError, match='dimension'):
+        _ = cirq.fidelity(vec1, vec1, qid_shape=(4,))
+
+    with pytest.raises(ValueError, match='Mismatched'):
+        _ = cirq.fidelity(vec1, vec2)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.fidelity(tensor2, tensor2)
+
+    with pytest.raises(ValueError, match='ambiguous'):
+        _ = cirq.fidelity(mat1, mat1)
+
+
+def test_fidelity_ints():
+    assert cirq.fidelity(3, 4) == 0.0
+    assert cirq.fidelity(4, 4) == 1.0
+
+    with pytest.raises(ValueError, match='maximum'):
+        _ = cirq.fidelity(4, 1, qid_shape=(2,))
+    with pytest.raises(ValueError, match='maximum'):
+        _ = cirq.fidelity(1, 4, qid_shape=(2,))
+
+
+def test_fidelity_product_states():
+    a, b = cirq.LineQubit.range(2)
+
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
+            cirq.KET_ZERO(a) * cirq.KET_ZERO(b)), 1.0)
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
+            cirq.KET_ZERO(a) * cirq.KET_ONE(b)), 0.0)
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_ZERO(a) * cirq.KET_ZERO(b),
+            cirq.KET_ZERO(a) * cirq.KET_PLUS(b)), 0.5)
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_ONE(a) * cirq.KET_ONE(b),
+            cirq.KET_MINUS(a) * cirq.KET_PLUS(b)), 0.25)
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
+            cirq.KET_MINUS(a) * cirq.KET_PLUS(b)), 1.0)
+    np.testing.assert_allclose(
+        cirq.fidelity(
+            cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
+            cirq.KET_PLUS(a) * cirq.KET_MINUS(b)), 0.0)
+
+    with pytest.raises(ValueError, match='Mismatched'):
+        _ = cirq.fidelity(cirq.KET_MINUS(a),
+                          cirq.KET_PLUS(a) * cirq.KET_MINUS(b))
+    with pytest.raises(ValueError, match='qid shape'):
+        _ = cirq.fidelity(cirq.KET_MINUS(a) * cirq.KET_PLUS(b),
+                          cirq.KET_PLUS(a) * cirq.KET_MINUS(b),
+                          qid_shape=(4,))
 
 
 def test_fidelity_bad_shape():

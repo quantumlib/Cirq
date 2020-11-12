@@ -479,14 +479,13 @@ class _QidShapeSet:
 
     def infer_qid_shape(self) -> Optional[Tuple[int, ...]]:
         """Return a qid shape from this set, or None."""
-        if self.min_qudit_dimensions is not None:
+        if self.is_ambiguous():
+            # coverage: ignore
             return None
         if self.unfactorized_total_dimension is not None:
-            if self.explicit_qid_shapes:
-                return None
             return _infer_qid_shape_from_dimension(
                 self.unfactorized_total_dimension)
-        if len(self.explicit_qid_shapes) != 1:
+        if len(self.explicit_qid_shapes) == 0:
             return None
         return self.explicit_qid_shapes.pop()
 
