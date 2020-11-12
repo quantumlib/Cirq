@@ -85,10 +85,11 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
             raise ValueError('Invalid state for given qid shape: '
                              f'Specified shape {qid_shape} but product state '
                              f'has shape {(2,) * len(state1)}.')
-        return np.prod([
-            np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
-            for s1, s2 in zip(state1, state2)
-        ])**2
+        prod = 1.0
+        for q, s1 in state1:
+            s2 = state2[q]
+            prod *= np.abs(np.vdot(s1.state_vector(), s2.state_vector()))
+        return prod**2
 
     # Two numpy arrays that are either state vector, state tensor, or
     # density matrix
@@ -103,11 +104,9 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
         qid_shape = infer_qid_shape(state1, state2)
     state1 = quantum_state(state1,
                            qid_shape=qid_shape,
-                           dtype=state1.dtype,
                            validate=validate)
     state2 = quantum_state(state2,
                            qid_shape=qid_shape,
-                           dtype=state2.dtype,
                            validate=validate)
     state1 = state1.density_matrix() if state1.is_density_matrix(
     ) else state1.state_vector()
@@ -118,7 +117,7 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
 
 def _numpy_arrays_to_state_vectors_or_density_matrices(
         state1: np.ndarray, state2: np.ndarray,
-        qid_shape: Optional[Tuple[int, ...]], validate: bool) -> float:
+        qid_shape: Optional[Tuple[int, ...]], validate: bool) -> Tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or state1.ndim == 2 and state1.shape[0] != state1.shape[
             1]:
         # State tensor, convert to state vector

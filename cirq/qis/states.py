@@ -231,6 +231,8 @@ def quantum_state(
                              'Please specify the qid shape explicitly using '
                              'the qid_shape argument.')
         dim = np.prod(qid_shape, dtype=int)
+        if dtype is None:
+            dtype = np.complex64
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
         data = np.array(state, copy=copy)
@@ -486,7 +488,7 @@ class _QidShapeSet:
             return False
         return len(self.explicit_qid_shapes) > 1
 
-    def infer_qid_shape(self) -> Optional[Tuple[int]]:
+    def infer_qid_shape(self) -> Optional[Tuple[int, ...]]:
         """Return a qid shape from this set, or None."""
         if self.min_qudit_dimensions is not None:
             return None
