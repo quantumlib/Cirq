@@ -549,6 +549,7 @@ from cirq.work import (
 from cirq import (
     contrib,
     google,
+    ionq,
     pasqal,
     testing,
 )
