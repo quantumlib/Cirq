@@ -59,8 +59,6 @@ class GateOperation(raw_types.Operation):
         return cast(TSelf, self.gate.on(*new_qubits))
 
     def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
-        if self.gate is new_gate:
-            return self
         return new_gate.on(*self.qubits)
 
     def __repr__(self):
