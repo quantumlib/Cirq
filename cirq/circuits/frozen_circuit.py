@@ -18,7 +18,7 @@ from typing import (TYPE_CHECKING, AbstractSet, Callable, Dict, FrozenSet,
 
 import numpy as np
 
-from cirq import devices, ops, protocols
+from cirq import devices, ops
 from cirq.circuits import AbstractCircuit, Circuit
 from cirq.circuits.insert_strategy import InsertStrategy
 from cirq.type_workarounds import NotImplementedType
