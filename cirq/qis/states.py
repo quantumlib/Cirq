@@ -186,20 +186,13 @@ def quantum_state(
                              'qid shape of the given state.\n'
                              f'Specified shape: {qid_shape}\n'
                              f'Shape of state: {state.qid_shape}.')
-        if copy:
+        if copy or dtype and dtype != state.dtype:
             if dtype and dtype != state.dtype:
                 data = state.data.astype(dtype, casting='unsafe', copy=True)
             else:
                 data = state.data.copy()
             new_state = QuantumState(data, state.qid_shape)
         else:
-            if dtype and state.dtype != dtype:
-                raise ValueError(
-                    'The specified dtype must be the same as the '
-                    'dtype of the given state. If you did not do so, '
-                    'try using the dtype argument, or set copy=True.\n'
-                    f'Specified dtype: {dtype}\n'
-                    f'dtype of state: {state.dtype}.')
             new_state = state
         if validate:
             new_state.validate(dtype=dtype, atol=atol)
@@ -226,12 +219,12 @@ def quantum_state(
             dtype = np.complex64
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
-        data = np.array(state, copy=copy)
+        data = np.array(state, copy=False)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
         if data.ndim == 1:
-            prod = np.prod(qid_shape, dtype=int)
-            if len(qid_shape) == prod and data.dtype.kind != 'c':
+            if len(qid_shape) == np.prod(qid_shape,
+                                         dtype=int) and data.dtype.kind != 'c':
                 raise ValueError(
                     'Because len(qid_shape) == product(qid_shape), it is '
                     'ambiguous whether the given state contains '
@@ -244,8 +237,11 @@ def quantum_state(
                 data = _qudit_values_to_state_tensor(state_vector=data,
                                                      qid_shape=qid_shape,
                                                      dtype=dtype)
-        if dtype:
-            data = data.astype(dtype, casting='unsafe', copy=False)
+        if copy or dtype and dtype != data.dtype:
+            if dtype and dtype != data.dtype:
+                data = data.astype(dtype, casting='unsafe', copy=True)
+            else:
+                data = data.copy()
     return QuantumState(data=data,
                         qid_shape=qid_shape,
                         validate=validate,
