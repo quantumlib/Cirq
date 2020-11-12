@@ -170,11 +170,16 @@ class QuantumState:
                              f'Data shape of {self.data.shape} is not '
                              f'compatible with qid shape of {self.qid_shape}.')
 
+    def copy(self) -> 'QuantumState':
+        """Return a copy of the quantum state."""
+        return QuantumState(self.data.copy(), self.qid_shape)
+
 
 def quantum_state(
         state: 'cirq.QUANTUM_STATE_LIKE',
         qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
+        copy: bool = False,
         validate: bool = True,
         dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> QuantumState:
@@ -183,6 +188,7 @@ def quantum_state(
     Args:
         state: The state-like object.
         qid_shape: The qid shape.
+        copy: Whether to copy the data underlying the state.
         validate: Whether to check if the the given data and qid shape
             represent a valid quantum state with the given dtype.
         dtype: The expected data type.
@@ -206,7 +212,7 @@ def quantum_state(
                              'dtype of state: {state.dtype}.')
         if validate:
             state.validate(dtype=dtype, atol=atol)
-        return state
+        return state.copy() if copy else state
 
     if isinstance(state, value.ProductState):
         actual_qid_shape = (2,) * len(state)
@@ -227,7 +233,7 @@ def quantum_state(
         dim = np.prod(qid_shape, dtype=int)
         data = one_hot(index=state, shape=(dim,), dtype=dtype)
     else:
-        data = np.array(state, copy=False)
+        data = np.array(state, copy=copy)
         if qid_shape is None:
             qid_shape = infer_qid_shape(state)
         if data.ndim == 1:
@@ -256,14 +262,16 @@ def density_matrix(
         state: np.ndarray,
         qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
+        copy: bool = False,
         validate: bool = True,
         dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> QuantumState:
     """Create a QuantumState object from a density matrix.
 
     Args:
-        state: The density_matrix.
+        state: The density matrix.
         qid_shape: The qid shape.
+        copy: Whether to copy the density matrix.
         validate: Whether to check if the the given data and qid shape
             represent a valid quantum state with the given dtype.
         dtype: The expected data type.
@@ -278,7 +286,7 @@ def density_matrix(
     dim, _ = state.shape
     if qid_shape is None:
         qid_shape = _infer_qid_shape_from_dimension(dim)
-    return QuantumState(data=state,
+    return QuantumState(data=state.copy() if copy else state,
                         qid_shape=qid_shape,
                         dtype=dtype,
                         validate=validate,
