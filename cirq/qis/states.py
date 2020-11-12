@@ -63,7 +63,7 @@ class QuantumState:
             data: np.ndarray,
             qid_shape: Optional[Tuple[int, ...]] = None,
             *,  # Force keyword arguments
-            dtype: Type[np.number] = np.complex64,
+            dtype: Optional[Type[np.number]] = None,
             validate: bool = True,
             atol: float = 1e-7) -> None:
         """Initialize a quantum state object.
@@ -72,8 +72,8 @@ class QuantumState:
             data: The data representing the quantum state.
             qid_shape: The qid shape.
             validate: Whether to check if the the given data and qid shape
-                represent a valid quantum state.
-            dtype: The data type.
+                represent a valid quantum state with the given dtype.
+            dtype: The expected data type.
             atol: Absolute numerical tolerance to use for validation.
 
         Raises:
@@ -152,7 +152,7 @@ class QuantumState:
     def validate(
             self,
             *,  # Force keyword arguments
-            dtype: Type[np.number] = np.complex64,
+            dtype: Optional[Type[np.number]] = None,
             atol=1e-7) -> None:
         """Check if this quantum state is valid."""
         if self.is_state_vector() or self.is_state_tensor():
@@ -176,15 +176,29 @@ def quantum_state(
         qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
         validate: bool = True,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> QuantumState:
+    """Create a QuantumState object from a state-like object.
+
+    Args:
+        state: The state-like object.
+        qid_shape: The qid shape.
+        validate: Whether to check if the the given data and qid shape
+            represent a valid quantum state with the given dtype.
+        dtype: The expected data type.
+        atol: Absolute numerical tolerance to use for validation.
+
+    Raises:
+        ValueError: Invalid quantum state.
+        ValueError: The qid shape was not specified and could not be inferred.
+    """
     if isinstance(state, QuantumState):
         if qid_shape is not None and state.qid_shape != qid_shape:
             raise ValueError('The specified qid shape must be the same as the '
                              'qid shape of the given state.\n'
                              'Specified shape: {qid_shape}\n'
                              'Shape of state: {state.qid_shape}.')
-        if state.dtype != dtype:
+        if dtype and state.dtype != dtype:
             raise ValueError('The specified dtype must be the same as the '
                              'dtype of the given state. If you did not do so, '
                              'try using the dtype argument.\n'
@@ -201,6 +215,8 @@ def quantum_state(
                              'qid shape of the given state.\n'
                              'Specified shape: {qid_shape}\n'
                              'Shape of state: {actual_qid_state}.')
+        if dtype is None:
+            dtype = np.complex64
         data = state.state_vector().astype(dtype, casting='unsafe')
         qid_shape = actual_qid_shape
     elif isinstance(state, int):
@@ -241,8 +257,21 @@ def density_matrix(
         qid_shape: Optional[Tuple[int, ...]] = None,
         *,  # Force keyword arguments
         validate: bool = True,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> QuantumState:
+    """Create a QuantumState object from a density matrix.
+
+    Args:
+        state: The density_matrix.
+        qid_shape: The qid shape.
+        validate: Whether to check if the the given data and qid shape
+            represent a valid quantum state with the given dtype.
+        dtype: The expected data type.
+        atol: Absolute numerical tolerance to use for validation.
+
+    Raises:
+        ValueError: Invalid density matrix.
+    """
     if state.ndim != 2 or state.shape[0] != state.shape[1]:
         raise ValueError('A density matrix must be a square matrix. '
                          f'Got shape {state.shape}.')

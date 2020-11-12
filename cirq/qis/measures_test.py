@@ -30,24 +30,21 @@ def test_fidelity_symmetric():
                                cirq.fidelity(VEC2, VEC1))
     np.testing.assert_allclose(cirq.fidelity(VEC1, MAT1),
                                cirq.fidelity(MAT1, VEC1))
-    np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1, dtype=np.complex128), MAT2),
-        cirq.fidelity(cirq.density_matrix(MAT2, dtype=np.complex128), MAT1))
+    np.testing.assert_allclose(cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+                               cirq.fidelity(cirq.density_matrix(MAT2), MAT1))
 
 
 def test_fidelity_between_zero_and_one():
     assert 0 <= cirq.fidelity(VEC1, VEC2) <= 1
     assert 0 <= cirq.fidelity(VEC1, MAT1) <= 1
-    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1, dtype=np.complex128),
-                              MAT2) <= 1
+    assert 0 <= cirq.fidelity(cirq.density_matrix(MAT1), MAT2) <= 1
 
 
 def test_fidelity_invariant_under_unitary_transformation():
     np.testing.assert_allclose(
-        cirq.fidelity(cirq.density_matrix(MAT1, dtype=np.complex128), MAT2),
-        cirq.fidelity(
-            cirq.density_matrix(U @ MAT1 @ U.T.conj(), dtype=np.complex128),
-            U @ MAT2 @ U.T.conj()))
+        cirq.fidelity(cirq.density_matrix(MAT1), MAT2),
+        cirq.fidelity(cirq.density_matrix(U @ MAT1 @ U.T.conj()),
+                      U @ MAT2 @ U.T.conj()))
 
 
 def test_fidelity_commuting_matrices():
@@ -55,8 +52,7 @@ def test_fidelity_commuting_matrices():
     d1 /= np.sum(d1)
     d2 = np.random.uniform(size=N)
     d2 /= np.sum(d2)
-    mat1 = cirq.density_matrix(U @ np.diag(d1) @ U.T.conj(),
-                               dtype=np.complex128)
+    mat1 = cirq.density_matrix(U @ np.diag(d1) @ U.T.conj())
     mat2 = U @ np.diag(d2) @ U.T.conj()
 
     np.testing.assert_allclose(cirq.fidelity(mat1, mat2),
@@ -66,8 +62,8 @@ def test_fidelity_commuting_matrices():
 def test_fidelity_known_values():
     vec1 = np.array([1, 1j, -1, -1j]) * 0.5
     vec2 = np.array([1, -1, 1, -1], dtype=np.complex128) * 0.5
-    mat1 = cirq.density_matrix(np.outer(vec1, vec1.conj()), dtype=np.complex128)
-    mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()), dtype=np.complex128)
+    mat1 = cirq.density_matrix(np.outer(vec1, vec1.conj()))
+    mat2 = cirq.density_matrix(np.outer(vec2, vec2.conj()))
     mat3 = 0.3 * mat1.density_matrix() + 0.7 * mat2.density_matrix()
 
     np.testing.assert_allclose(cirq.fidelity(vec1, vec1), 1)
