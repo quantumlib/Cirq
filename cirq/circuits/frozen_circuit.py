@@ -147,14 +147,6 @@ class FrozenCircuit(AbstractCircuit):
         new_circuit._moments = tuple(moments)
         return new_circuit
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
-        remapped_ops = [
-            protocols.with_measurement_key_mapping(op, key_map)
-            if protocols.is_measurement(op) else op
-            for op in self.all_operations()
-        ]
-        return FrozenCircuit(remapped_ops, device=self.device)
-
     def with_device(
             self,
             new_device: 'cirq.Device',

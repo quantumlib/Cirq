@@ -3590,6 +3590,24 @@ def test_measurement_key_mapping(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_measurement_key_mapping_preserves_moments(circuit_cls):
+    a, b = cirq.LineQubit.range(2)
+    c = circuit_cls(
+        cirq.Moment(cirq.X(a)),
+        cirq.Moment(),
+        cirq.Moment(cirq.measure(a, key='m1')),
+        cirq.Moment(cirq.measure(b, key='m2')),
+    )
+
+    key_map = {'m1': 'p1'}
+    remapped_circuit = cirq.with_measurement_key_mapping(c, key_map)
+    assert list(remapped_circuit.moments) == [
+        cirq.with_measurement_key_mapping(moment, key_map)
+        for moment in c.moments
+    ]
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_inverse(circuit_cls):
     a, b = cirq.LineQubit.range(2)
     forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))
