@@ -17,7 +17,7 @@
 cd "$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "$(git rev-parse --show-toplevel)"
 
-PYTEST_ARGS=()
+PYTEST_ARGS=("-c=dev_tools/config/conftest.py")
 ACTUALLY_QUIET=""
 for arg in $@; do
     if [[ "${arg}" == "--actually-quiet" ]]; then
