@@ -33,6 +33,17 @@ def test_invalid_gate_operation():
         cirq.GateOperation(three_qubit_gate, single_qubit)
 
 
+def test_immutable():
+    a, b = cirq.LineQubit.range(2)
+    op = cirq.X(a)
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        op.gate = cirq.Y
+
+    with pytest.raises(AttributeError, match="can't set attribute"):
+        op.qubits = [b]
+
+
 def test_gate_operation_eq():
     g1 = cirq.SingleQubitGate()
     g2 = cirq.SingleQubitGate()

@@ -534,8 +534,6 @@ class TaggedOperation(Operation):
                                                         key_map)
         if sub_op is NotImplemented:
             return NotImplemented
-        if sub_op is self.sub_operation:
-            return self
         return TaggedOperation(sub_op, *self.tags)
 
     def controlled_by(self,

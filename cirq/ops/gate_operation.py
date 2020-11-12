@@ -33,7 +33,10 @@ TSelf = TypeVar('TSelf', bound='GateOperation')
 
 @value.value_equality(approximate=True)
 class GateOperation(raw_types.Operation):
-    """An application of a gate to a sequence of qubits."""
+    """An application of a gate to a sequence of qubits.
+
+    Objects of this type are immutable.
+    """
 
     def __init__(self, gate: 'cirq.Gate', qubits: Sequence['cirq.Qid']) -> None:
         """
@@ -60,6 +63,7 @@ class GateOperation(raw_types.Operation):
 
     def with_gate(self, new_gate: 'cirq.Gate') -> 'cirq.Operation':
         if self.gate is new_gate:
+            # As GateOperation is immutable, this can return the original.
             return self
         return new_gate.on(*self.qubits)
 
@@ -68,6 +72,7 @@ class GateOperation(raw_types.Operation):
         if new_gate is NotImplemented:
             return NotImplemented
         if new_gate is self.gate:
+            # As GateOperation is immutable, this can return the original.
             return self
         return new_gate.on(*self.qubits)
 

@@ -468,7 +468,7 @@ def test_tagged_measurement():
     remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
     assert remap_op.tags == ('tag',)
     assert cirq.measurement_keys(remap_op) == {'k'}
-    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) is op
+    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
 
 
 def test_cannot_remap_non_measurement_gate():
