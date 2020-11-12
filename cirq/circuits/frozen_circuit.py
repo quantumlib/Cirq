@@ -13,8 +13,8 @@
 # limitations under the License.
 """An immutable version of the Circuit data structure."""
 
-from typing import (TYPE_CHECKING, AbstractSet, Callable, FrozenSet, Iterator,
-                    Optional, Sequence, Tuple, Union)
+from typing import (TYPE_CHECKING, AbstractSet, Callable, Dict, FrozenSet,
+                    Iterator, Optional, Sequence, Tuple, Union)
 
 import numpy as np
 
