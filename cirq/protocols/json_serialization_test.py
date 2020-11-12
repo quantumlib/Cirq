@@ -315,6 +315,7 @@ NOT_YET_SERIALIZABLE = [
     'Product',
     'QasmArgs',
     'QasmOutput',
+    'QuantumState',
     'QubitOrder',
     'QubitPermutationGate',
     'QuilFormatter',
