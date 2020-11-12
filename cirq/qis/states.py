@@ -71,7 +71,7 @@ class QuantumState:
         Args:
             data: The data representing the quantum state.
             qid_shape: The qid shape.
-            validate: Whether to check if the the given data and qid shape
+            validate: Whether to check if the given data and qid shape
                 represent a valid quantum state with the given dtype.
             dtype: The expected data type.
             atol: Absolute numerical tolerance to use for validation.
@@ -189,7 +189,7 @@ def quantum_state(
         state: The state-like object.
         qid_shape: The qid shape.
         copy: Whether to copy the data underlying the state.
-        validate: Whether to check if the the given data and qid shape
+        validate: Whether to check if the given data and qid shape
             represent a valid quantum state with the given dtype.
         dtype: The expected data type.
         atol: Absolute numerical tolerance to use for validation.
@@ -274,7 +274,7 @@ def density_matrix(
         state: The density matrix.
         qid_shape: The qid shape.
         copy: Whether to copy the density matrix.
-        validate: Whether to check if the the given data and qid shape
+        validate: Whether to check if the given data and qid shape
             represent a valid quantum state with the given dtype.
         dtype: The expected data type.
         atol: Absolute numerical tolerance to use for validation.

@@ -121,7 +121,8 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
 
 def _numpy_arrays_to_state_vectors_or_density_matrices(
         state1: np.ndarray, state2: np.ndarray,
-        qid_shape: Optional[Tuple[int, ...]], validate: bool, atol: float) -> Tuple[np.ndarray, np.ndarray]:
+        qid_shape: Optional[Tuple[int, ...]], validate: bool,
+        atol: float) -> Tuple[np.ndarray, np.ndarray]:
     if state1.ndim > 2 or state1.ndim == 2 and state1.shape[0] != state1.shape[
             1]:
         # State tensor, convert to state vector
@@ -178,11 +179,15 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
         if state1.ndim == 2:
             validate_density_matrix(state1, qid_shape=qid_shape, atol=atol)
         else:
-            validate_normalized_state_vector(state1, qid_shape=qid_shape, atol=atol)
+            validate_normalized_state_vector(state1,
+                                             qid_shape=qid_shape,
+                                             atol=atol)
         if state2.ndim == 2:
             validate_density_matrix(state2, qid_shape=qid_shape, atol=atol)
         else:
-            validate_normalized_state_vector(state2, qid_shape=qid_shape, atol=atol)
+            validate_normalized_state_vector(state2,
+                                             qid_shape=qid_shape,
+                                             atol=atol)
 
     return state1, state2
 
