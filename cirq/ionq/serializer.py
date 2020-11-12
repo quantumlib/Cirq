@@ -37,7 +37,13 @@ class Serializer:
             ValueError: if the circuit has gates that are not supported or
                 is otherwise invalid.
         """
-        num_qubits = cast(line_qubit.LineQubit, max(circuit.all_qubits())).x + 1
+        if len(circuit) == 0:
+            raise ValueError('Cannot serializer empty circuit.')
+        all_qubits = circuit.all_qubits()
+        if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
+            raise ValueError('All qubits must be cirq.LineQubits but were '
+                             f'{set(type(q) for q in all_qubits)}')
+        num_qubits = cast(line_qubit.LineQubit, max(all_qubits)).x + 1
         return {
             'qubits': num_qubits,
             'circuit': self._serialize_circuit(circuit, num_qubits)
@@ -45,24 +51,16 @@ class Serializer:
 
     def _serialize_circuit(self, circuit: 'cirq.Circuit',
                            num_qubits: int) -> list:
-        return [
-            self._serialize_op(op, num_qubits)
-            for moment in circuit
-            for op in moment
-        ]
+        return [self._serialize_op(op) for moment in circuit for op in moment]
 
-    def _serialize_op(self, op: 'cirq.Operation', num_qubits: int) -> dict:
+    def _serialize_op(self, op: 'cirq.Operation') -> dict:
         if not isinstance(op, gate_operation.GateOperation):
             raise ValueError(
                 'Attempt to serialize circuit with an operation which is '
                 f'not a cirq.GateOperation. Type: {type(op)} Op: {op}.')
         gate_op = cast(gate_operation.GateOperation, op)
-        if any(not isinstance(q, line_qubit.LineQubit) for q in gate_op.qubits):
-            raise ValueError(
-                f'IonQ API only supports LineQubits but op {gate_op} had '
-                f'qubits {gate_op.qubits}.')
         targets = [cast(line_qubit.LineQubit, q).x for q in gate_op.qubits]
-        if any(x >= num_qubits or x < 0 for x in targets):
+        if any(x < 0 for x in targets):
             raise ValueError(
                 'IonQ API must use LineQubits from 0 to number of qubits - 1. '
                 f'Instead found line qubits with indices {targets}.')

@@ -15,7 +15,7 @@
 import sys
 import time
 import urllib
-from typing import Callable, Optional
+from typing import Callable, cast, Optional
 import requests
 
 
@@ -58,7 +58,7 @@ class _IonQClient:
             self,
             remote_host: str,
             api_key: str,
-            default_target: str = None,
+            default_target: Optional[str] = None,
             api_version: str = 'v0.1',
             max_retry_seconds: int = 3600,  # 1 hour
             verbose: bool = False):
@@ -76,7 +76,7 @@ class _IonQClient:
                 `http://example.com` of `http://example.com/test`.
             api_key: The key used for authenticating against the IonQ API.
             default_target: The default target to run against. Supports
-                one of 'qpu' and 'simulator'. Can be overriden by calls with
+                one of 'qpu' and 'simulator'. Can be overridden by calls with
                 target in their signature.
             api_version: Which version fo the api to use. Currently accepts
                 'v0.1' only, which is the default.
@@ -114,10 +114,10 @@ class _IonQClient:
         Raises:
             AssertionError: if both `target` and `default_target` are not set.
         """
-        assert target or self.default_target, (
+        assert target is not None or self.default_target is not None, (
             'One must specify a target on this call, or a default_target on '
             'the service/client, but neither were set.')
-        return target or self.default_target
+        return cast(str, target or self.default_target)
 
     def _make_request(self, request: Callable[[], requests.Response]
                      ) -> requests.Response:
@@ -155,12 +155,12 @@ class _IonQClient:
                         'Non-retry-able error making request to IonQ API. '
                         f'Status: {response.status_code} '
                         f'Error :{response.reason}', response.status_code)
+                message = response.reason
                 # Fallthrough should retry.
             except requests.RequestException as e:
                 # Connection error, timeout at server, or too many redirects.
                 # Retry these.
-                response = e.response
-            message = response.reason
+                message = f'RequestException of type {type(e)}.'
             if delay_seconds > self.max_retry_seconds:
                 raise TimeoutError(
                     f'Reached maximum number of retries. Last error: {message}')
@@ -172,7 +172,7 @@ class _IonQClient:
 
     def create_job(
             self,
-            job_dict: dict,
+            circuit_dict: dict,
             repetitions: Optional[int] = None,
             target: Optional[str] = None,
             name: Optional[str] = None,
@@ -180,18 +180,19 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            job_dict: A dict corresponding to the json encoding of the IonQ API.
+            circuit_dict: A dict corresponding to the json encoding of the
+                circuit for the IonQ API.
             repetitions: The number of times to repeat the circuit. Only can
                 be set if the target is `qpu`. If not specified and target is
                 `qpu`
             target: If supplied the target to run on. Supports one of `qpu` or
-                `simulator`. If not set, uses `defaul_target`.
+                `simulator`. If not set, uses `default_target`.
             name: An optional name of the job. Different than the `job_id` of
                 the job.
 
         Returns:
             The json body of the response as a dict. This does not contain
-            popualted information about the job, but does contain the job id.
+            populated information about the job, but does contain the job id.
 
         Raises:
             An IonQ exception if the request fails.
@@ -204,7 +205,7 @@ class _IonQClient:
             'as the simulator is a full wavefunction simulator.')
         json = {
             'target': actual_target,
-            'body': job_dict,
+            'body': circuit_dict,
             'lang': 'json',
         }
         if name:

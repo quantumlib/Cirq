@@ -11,9 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import contextlib
+import io
+from unittest import mock
+
 import requests
 import pytest
-from unittest import mock
 
 import cirq.ionq as ionq
 
@@ -29,7 +32,7 @@ def test_ionq_not_found_exception_str():
 
 
 def test_ionq_client_invalid_remote_host():
-    for invalid_url in ('', 'myurl', 'http://', 'ftp://', 'http://'):
+    for invalid_url in ('', 'url', 'http://', 'ftp://', 'http://'):
         with pytest.raises(AssertionError, match='not a valid url'):
             _ = ionq.ionq_client._IonQClient(remote_host=invalid_url,
                                              api_key='a')
@@ -69,13 +72,13 @@ def test_ionq_client_time_travel():
 
 def test_ionq_client_attributes():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='qpu',
                                           max_retry_seconds=10,
                                           verbose=True)
     assert client.url == 'http://example.com/v0.1'
     assert client.headers == {
-        'Authorization': 'apiKey tomyheart',
+        'Authorization': 'apiKey to_my_heart',
         'Content-Type': 'application/json'
     }
     assert client.default_target == 'qpu'
@@ -89,9 +92,9 @@ def test_ionq_client_create_job(mock_post):
     mock_post.return_value.json.return_value = {'foo': 'bar'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart')
-    job_dict = {'job': 'mine'}
-    response = client.create_job(job_dict=job_dict,
+                                          api_key='to_my_heart')
+    circuit_dict = {'job': 'mine'}
+    response = client.create_job(circuit_dict=circuit_dict,
                                  repetitions=200,
                                  target='qpu',
                                  name='bacon')
@@ -109,7 +112,7 @@ def test_ionq_client_create_job(mock_post):
         }
     }
     expected_headers = {
-        'Authorization': 'apiKey tomyheart',
+        'Authorization': 'apiKey to_my_heart',
         'Content-Type': 'application/json'
     }
     mock_post.assert_called_with('http://example.com/v0.1/jobs',
@@ -123,9 +126,9 @@ def test_ionq_client_create_job_default_target(mock_post):
     mock_post.return_value.json.return_value = {'foo'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
-    _ = client.create_job(job_dict={'job': 'mine'})
+    _ = client.create_job(circuit_dict={'job': 'mine'})
     assert mock_post.call_args.kwargs['json']['target'] == 'simulator'
 
 
@@ -135,31 +138,33 @@ def test_ionq_client_create_job_target_overrides_default_target(mock_post):
     mock_post.return_value.json.return_value = {'foo'}
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
-    _ = client.create_job(job_dict={'job': 'mine'}, target='qpu', repetitions=1)
+    _ = client.create_job(circuit_dict={'job': 'mine'},
+                          target='qpu',
+                          repetitions=1)
     assert mock_post.call_args.kwargs['json']['target'] == 'qpu'
 
 
 def test_ionq_client_create_job_no_targets():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart')
+                                          api_key='to_my_heart')
     with pytest.raises(AssertionError, match='neither were set'):
-        _ = client.create_job(job_dict={'job': 'mine'})
+        _ = client.create_job(circuit_dict={'job': 'mine'})
 
 
 def test_ionq_client_create_job_qpu_but_no_repetitions():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart')
+                                          api_key='to_my_heart')
     with pytest.raises(AssertionError, match='qpu'):
-        _ = client.create_job(job_dict={'job': 'mine'}, target='qpu')
+        _ = client.create_job(circuit_dict={'job': 'mine'}, target='qpu')
 
 
 def test_ionq_client_create_job_simulator_but_repetitions():
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart')
+                                          api_key='to_my_heart')
     with pytest.raises(AssertionError, match='simulator'):
-        _ = client.create_job(job_dict={'job': 'mine'},
+        _ = client.create_job(circuit_dict={'job': 'mine'},
                               target='simulator',
                               repetitions=10)
 
@@ -170,22 +175,22 @@ def test_ionq_client_create_job_unauthorized(mock_post):
     mock_post.return_value.status_code = requests.codes.unauthorized
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQException, match='Not authorized'):
-        _ = client.create_job(job_dict={'job': 'mine'})
+        _ = client.create_job(circuit_dict={'job': 'mine'})
 
 
 @mock.patch('requests.post')
 def test_ionq_client_create_job_not_found(mock_post):
-    (mock_post.return_value).ok = False
-    (mock_post.return_value).status_code = requests.codes.not_found
+    mock_post.return_value.ok = False
+    mock_post.return_value.status_code = requests.codes.not_found
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQNotFoundException, match='not find'):
-        _ = client.create_job(job_dict={'job': 'mine'})
+        _ = client.create_job(circuit_dict={'job': 'mine'})
 
 
 @mock.patch('requests.post')
@@ -194,10 +199,10 @@ def test_ionq_client_create_job_not_retriable(mock_post):
     mock_post.return_value.status_code = requests.codes.not_implemented
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQException, match='Status: 501'):
-        _ = client.create_job(job_dict={'job': 'mine'})
+        _ = client.create_job(circuit_dict={'job': 'mine'})
 
 
 @mock.patch('requests.post')
@@ -209,27 +214,40 @@ def test_ionq_client_create_job_retry(mock_post):
     response1.status_code = requests.codes.service_unavailable
     response2.ok = True
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
-                                          default_target='simulator')
-    _ = client.create_job(job_dict={'job': 'mine'})
+                                          api_key='to_my_heart',
+                                          default_target='simulator',
+                                          verbose=True)
+    test_stdout = io.StringIO()
+    with contextlib.redirect_stdout(test_stdout):
+        _ = client.create_job(circuit_dict={'job': 'mine'})
+    assert (test_stdout.getvalue().strip() ==
+            'Waiting 0.1 seconds before retrying.')
     assert mock_post.call_count == 2
 
 
 @mock.patch('requests.post')
-def test_ionq_client_create_job_retry(mock_post):
-    response1 = mock.MagicMock()
+def test_ionq_client_create_job_retry_request_error(mock_post):
     response2 = mock.MagicMock()
-    mock_post.side_effect = [
-        requests.RequestException(response=mock.MagicMock()), response2
-    ]
-    response1.ok = False
-    response1.status_code = requests.codes.service_unavailable
+    mock_post.side_effect = [requests.exceptions.ConnectionError(), response2]
     response2.ok = True
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
-    _ = client.create_job(job_dict={'job': 'mine'})
+    _ = client.create_job(circuit_dict={'job': 'mine'})
     assert mock_post.call_count == 2
+
+
+@mock.patch('requests.post')
+def test_ionq_client_create_job_timeout(mock_post):
+    mock_post.return_value.ok = False
+    mock_post.return_value.status_code = requests.codes.service_unavailable
+
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart',
+                                          default_target='simulator',
+                                          max_retry_seconds=0.2)
+    with pytest.raises(TimeoutError):
+        _ = client.create_job(circuit_dict={'job': 'mine'})
 
 
 @mock.patch('requests.get')
@@ -237,15 +255,15 @@ def test_ionq_client_get_job(mock_get):
     mock_get.return_value.ok = True
     mock_get.return_value.json.return_value = {'foo': 'bar'}
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart')
-    response = client.get_job(job_id='jobid')
+                                          api_key='to_my_heart')
+    response = client.get_job(job_id='job_id')
     assert response == {'foo': 'bar'}
 
     expected_headers = {
-        'Authorization': 'apiKey tomyheart',
+        'Authorization': 'apiKey to_my_heart',
         'Content-Type': 'application/json'
     }
-    mock_get.assert_called_with('http://example.com/v0.1/jobs/jobid',
+    mock_get.assert_called_with('http://example.com/v0.1/jobs/job_id',
                                 headers=expected_headers)
 
 
@@ -255,10 +273,10 @@ def test_ionq_client_get_job_unauthorized(mock_get):
     mock_get.return_value.status_code = requests.codes.unauthorized
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQException, match='Not authorized'):
-        _ = client.get_job('jobid')
+        _ = client.get_job('job_id')
 
 
 @mock.patch('requests.get')
@@ -267,10 +285,10 @@ def test_ionq_client_get_job_not_found(mock_get):
     (mock_get.return_value).status_code = requests.codes.not_found
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQNotFoundException, match='not find'):
-        _ = client.get_job('jobid')
+        _ = client.get_job('job_id')
 
 
 @mock.patch('requests.get')
@@ -279,10 +297,10 @@ def test_ionq_client_get_job_not_retriable(mock_get):
     mock_get.return_value.status_code = requests.codes.not_implemented
 
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
     with pytest.raises(ionq.IonQException, match='Status: 501'):
-        _ = client.get_job('jobid')
+        _ = client.get_job('job_id')
 
 
 @mock.patch('requests.get')
@@ -294,7 +312,7 @@ def test_ionq_client_get_job_retry(mock_get):
     response1.status_code = requests.codes.service_unavailable
     response2.ok = True
     client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
-                                          api_key='tomyheart',
+                                          api_key='to_my_heart',
                                           default_target='simulator')
-    _ = client.get_job('jobid')
+    _ = client.get_job('job_id')
     assert mock_get.call_count == 2

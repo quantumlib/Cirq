@@ -15,24 +15,24 @@
 from typing import Dict
 
 from cirq.value import digits
-from cirq import study
 
 
-def _little_endian_to_big(value: int, bit_count: int) -> int:
-    return digits.big_endian_bits_to_int(
-        digits.big_endian_int_to_bits(value, bit_count=bit_count)[::-1])
+def _pretty_str_dict(value: dict, bit_count: int) -> str:
+    """Pretty prints a dict, converting int dict values to bit strings."""
+    strs = []
+    for k, v in value.items():
+        bits = ''.join(
+            str(b)
+            for b in digits.big_endian_int_to_bits(k, bit_count=bit_count))
+        strs.append(f'{bits}: {v}')
+    return '\n'.join(strs)
 
 
 class QPUResult():
     """The results of running on an IonQ QPU."""
 
     def __init__(self, counts: dict, num_qubits: int):
-        # IonQ returns results in little endian, Cirq prefers to use big endian,
-        # so we convert.
-        self._counts = {
-            _little_endian_to_big(int(k), num_qubits): v
-            for k, v in counts.items()
-        }
+        self._counts = counts
         self._num_qubits = num_qubits
 
     def num_qubits(self) -> int:
@@ -60,10 +60,17 @@ class QPUResult():
         """
         return self._counts
 
-    def to_cirq_result(self) -> study.Result:
-        # TODO: Convert his to cirq result objects.
-        # https://github.com/quantumlib/Cirq/issues/3479
-        return NotImplemented
+    def __eq__(self, other):
+        if not isinstance(other, QPUResult):
+            return NotImplemented
+        return (self._counts == other._counts and
+                self._num_qubits == other._num_qubits)
+
+    def __str__(self) -> str:
+        return _pretty_str_dict(self._counts, self._num_qubits)
+
+    # TODO: Convert his to cirq result objects.
+    # https://github.com/quantumlib/Cirq/issues/3479
 
 
 # TODO: Implement the sampler interface.
@@ -76,13 +83,7 @@ class SimulatorResult():
     """
 
     def __init__(self, probabilities: dict, num_qubits: int):
-        # IonQ returns results in little endian, Cirq prefers to use big endian,
-        # so we convert.
-        print(probabilities)
-        self._probabilities = {
-            _little_endian_to_big(int(k), num_qubits): v
-            for k, v in probabilities.items()
-        }
+        self._probabilities = probabilities
         self._num_qubits = num_qubits
 
     def num_qubits(self):
@@ -92,7 +93,7 @@ class SimulatorResult():
     def probabilities(self):
         """Returns the probabilities of the measurement results.
 
-        These are the probabilites arrising when measuring all qubits in the
+        These are the probabilities arrising when measuring all qubits in the
         circuit.
 
         The key in this dictionary is the computational basis state measured.
@@ -103,3 +104,12 @@ class SimulatorResult():
         The value is a float of the probability of this bit string occuring.
         """
         return self._probabilities
+
+    def __eq__(self, other):
+        if not isinstance(other, SimulatorResult):
+            return NotImplemented
+        return (self._probabilities == other._probabilities and
+                self._num_qubits == other._num_qubits)
+
+    def __str__(self) -> str:
+        return _pretty_str_dict(self._probabilities, self._num_qubits)

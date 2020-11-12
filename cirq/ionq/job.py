@@ -17,13 +17,19 @@ import time
 from typing import Optional, Union, TYPE_CHECKING
 
 from cirq.ionq import results
+from cirq.value import digits
 from cirq._doc import document
 
 if TYPE_CHECKING:
     import cirq
 
 
-class Job():
+def _little_endian_to_big(value: int, bit_count: int) -> int:
+    return digits.big_endian_bits_to_int(
+        digits.big_endian_int_to_bits(value, bit_count=bit_count)[::-1])
+
+
+class Job:
     """A job created on the IonQ API.
 
     Note that this is mutable, when calls to get status or results are made
@@ -43,7 +49,8 @@ class Job():
     ALL_STATES = TERMINAL_STATES + NON_TERMINAL_STATES
     document(ALL_STATES, 'All states that an IonQ API job can exist in.')
 
-    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient', job: dict):
+    def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient',
+                 job_dict: dict):
         """Construct an IonQJob.
 
         Users should not call this themselves. If you only know the `job_id`,
@@ -55,7 +62,7 @@ class Job():
                 client.
         """
         self._client = client
-        self._job = job
+        self._job = job_dict
 
     def _refresh_job(self):
         """If the last fetched job is not terminal, gets the job from the API.
@@ -74,7 +81,7 @@ class Job():
         """Gets the current status of the job.
 
         This will get a new job if the status of the job previously was
-        determined to not be in a terminal state. A full list of state is
+        determined to not be in a terminal state. A full list of states is
         given in  `cirq.ionq.IonQJob.ALL_STATES`.
         """
         self._refresh_job()
@@ -109,7 +116,7 @@ class Job():
             return int(self._job['metadata']['shots'])
         return None
 
-    def results(self, timeout_seconds=7200, polling_seconds=1
+    def results(self, timeout_seconds: int = 7200, polling_seconds: int = 1
                ) -> Union[results.QPUResult, results.SimulatorResult]:
         """Polls the IonQ api for results.
 
@@ -121,26 +128,40 @@ class Job():
             Either a `cirq.ionq.QPUResults` or `cirq.ionq.SimulatorResults`
             depending on whether the job was running on an actual quantum
             processor or a simulator.
+
+        Raises:
+            RuntimeError: if the job was not successfully completed (cancelled
+                or failed).
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
-            self._refresh_job()
-            if self._job['status'] in self.TERMINAL_STATES:
+            # Status does a refresh.
+            if self.status() in self.TERMINAL_STATES:
                 break
             time.sleep(polling_seconds)
             time_waited_seconds += polling_seconds
-
+        if self.status() != 'completed':
+            raise RuntimeError('Job was not completed successful. Instead had'
+                               f' status: {self.status()}')
+        # IonQ returns results in little endian, Cirq prefers to use big endian,
+        # so we convert.
         if self.target() == 'qpu':
+            repetitions = self.repetitions()
+            assert repetitions is not None
             counts = {
-                k: int(self.repetitions() * v)
+                _little_endian_to_big(int(k), self.num_qubits()):
+                int(repetitions * float(v))
                 for k, v in self._job['data']['histogram'].items()
             }
             return results.QPUResult(counts=counts,
                                      num_qubits=self.num_qubits())
         else:
-            return results.SimulatorResult(
-                probabilities=self._job['data']['histogram'],
-                num_qubits=self.num_qubits())
+            probabilities = {
+                _little_endian_to_big(int(k), self.num_qubits()): float(v)
+                for k, v in self._job['data']['histogram'].items()
+            }
+            return results.SimulatorResult(probabilities=probabilities,
+                                           num_qubits=self.num_qubits())
 
     def __str__(self) -> str:
-        return f'cirq.ionq.Job({self.job_id})'
+        return f'cirq.ionq.Job(job_id={self.job_id()})'

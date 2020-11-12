@@ -73,8 +73,8 @@ class Service:
         Raises:
             IonQException: If there was an error accessing the API.
         """
-        json_circuit = serializer.Serializer().serialize(circuit)
-        result = self._client.create_job(json_circuit=json_circuit,
+        serialized_circuit = serializer.Serializer().serialize(circuit)
+        result = self._client.create_job(circuit_dict=serialized_circuit,
                                          repetitions=repetitions,
                                          target=target,
                                          name=name)
@@ -97,4 +97,4 @@ class Service:
             IonQException: If there was an error accessing the API.
         """
         job_dict = self._client.get_job(job_id=job_id)
-        return job.Job(client=self._client, job=job_dict)
+        return job.Job(client=self._client, job_dict=job_dict)
