@@ -364,6 +364,7 @@ the magic methods that can be implemented.
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list
     cirq.unitary
+    cirq.with_measurement_key_mapping
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
     cirq.ApplyUnitaryArgs
