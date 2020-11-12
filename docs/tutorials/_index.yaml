@@ -10,6 +10,8 @@ landing_page:
         intermediate, and advanced quantum algorithms that demonstrate the
         main features of the library.
         </p>
+
+
   - heading: Beginner
     description: Explore Cirq through introductory quantum information examples.
     - items:
@@ -47,62 +49,62 @@ landing_page:
       path: https://github.com/quantumlib/Cirq/blob/master/examples/superdense_coding.py
 
 
-    - heading: Intermediate
-      description: Use Cirq for intermediate-level subroutines and algorithms.
-     - items:
-     - heading: Arithmetic
-       description: Algorithms for adding and multiplying numbers represented by quantum states.
-       path: https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py
-     - heading: Grover's Algorithm
-       description: Use a quantum computer to find a needle in a haystack.
-       path: https://github.com/quantumlib/Cirq/blob/master/examples/grover.py
-     - heading: Shor's Code
-       description: Quantum error correction with Shor's nine-qubit code.
-       path: https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py
-
-     - items:
-     - heading: Quantum Fourier Transform
-       description: Change from the computational basis to the frequency basis and vice versa.
-       path: https://github.com/quantumlib/Cirq/blob/master/examples/quantum_fourier_transform.py
-     - heading: Phase Estimation
-       description: Find the eigenvalues of a unitary operator.
-       path: https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py
-     - heading: Shor's Algorithm
-       description: Factor numbers using a quantum computer.
-       path: /cirq/tutorials/shor
+  - heading: Intermediate
+    description: Use Cirq for intermediate-level subroutines and algorithms.
+    - items:
+    - heading: Arithmetic
+      description: Algorithms for adding and multiplying numbers represented by quantum states.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py
+    - heading: Grover's Algorithm
+      description: Use a quantum computer to find a needle in a haystack.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/grover.py
+    - heading: Shor's Code
+      description: Quantum error correction with Shor's nine-qubit code.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/shors_code.py
 
     - items:
-    - heading: Swap Networks
-      description: Algorithm for efficiently emulating full connectivity on a limited connectivity grid of qubits.
-      path: https://github.com/quantumlib/Cirq/blob/master/examples/swap_networks.py
-    - heading: Direct Fidelity
-      description: Direct fidelity estimation to distinguish a desired state fromt he actual state using few Pauli measurements.
-      path: https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py
-    - heading: XEB
-      description: Fidelity estimation using cross-entropy benchmarking (XEB).
-      path: https://github.com/quantumlib/Cirq/blob/master/examples/cross_entropy_benchmarking_example.py
+    - heading: Quantum Fourier Transform
+      description: Change from the computational basis to the frequency basis and vice versa.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/quantum_fourier_transform.py
+    - heading: Phase Estimation
+      description: Find the eigenvalues of a unitary operator.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py
+    - heading: Shor's Algorithm
+      description: Factor numbers using a quantum computer.
+      path: /cirq/tutorials/shor
+
+   - items:
+   - heading: Swap Networks
+     description: Algorithm for efficiently emulating full connectivity on a limited connectivity grid of qubits.
+     path: https://github.com/quantumlib/Cirq/blob/master/examples/swap_networks.py
+   - heading: Direct Fidelity
+     description: Direct fidelity estimation to distinguish a desired state fromt he actual state using few Pauli measurements.
+     path: https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py
+   - heading: XEB
+     description: Fidelity estimation using cross-entropy benchmarking (XEB).
+     path: https://github.com/quantumlib/Cirq/blob/master/examples/cross_entropy_benchmarking_example.py
 
 
-    - heading: Advanced
-      description: Utilize Cirq features to implement advanced quantum algorithms.
-      - items:
-      - heading: Quantum Variational Algorithm
-        description: Use the variational quantum eigensolver to find the ground state of the Ising model.
-        path: /cirq/tutorials/variational_algorithm
-      - heading: Approximate Optimization
-        description: Use a quantum computer to find approximately optimal cuts in a graph.
-        path: /cirq/tutorials/qaoa
-      - heading: Hidden Linear Function
-        description: Find a hidden vector with a constant depth quantum circuit.
-        path: /cirq/tutorials/hidden_linear_function
+  - heading: Advanced
+    description: Utilize Cirq features to implement advanced quantum algorithms.
+    - items:
+    - heading: Quantum Variational Algorithm
+      description: Use the variational quantum eigensolver to find the ground state of the Ising model.
+      path: /cirq/tutorials/variational_algorithm
+    - heading: Approximate Optimization
+      description: Use a quantum computer to find approximately optimal cuts in a graph.
+      path: /cirq/tutorials/qaoa
+    - heading: Hidden Linear Function
+      description: Find a hidden vector with a constant depth quantum circuit.
+      path: /cirq/tutorials/hidden_linear_function
 
-      - items:
-      - heading: Quantum Walks
-        description: Demonstration of classical and quantum random walks on a graph.
-        path: /cirq/tutorials/quantum_walks
-      - heading: HHL
-        description: Algorithm for solving linear systems using quantum phase estimation.
-        path: https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py
-      - heading: Rabi Oscillation
-        description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
-        path: /cirq/tutorials/rabi_oscillations
+    - items:
+    - heading: Quantum Walks
+      description: Demonstration of classical and quantum random walks on a graph.
+      path: /cirq/tutorials/quantum_walks
+    - heading: HHL
+      description: Algorithm for solving linear systems using quantum phase estimation.
+      path: https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py
+    - heading: Rabi Oscillation
+      description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
+      path: /cirq/tutorials/rabi_oscillations
