@@ -141,3 +141,6 @@ class Job():
             return results.SimulatorResult(
                 probabilities=self._job['data']['histogram'],
                 num_qubits=self.num_qubits())
+
+    def __str__(self) -> str:
+        return f'cirq.ionq.Job({self.job_id})'

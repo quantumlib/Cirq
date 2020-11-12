@@ -28,11 +28,12 @@ class IonQException(Exception):
     """
 
     def __init__(self, message, status_code: int = None):
-        super().__init__(message)
+        super().__init__(f'Status code: {status_code}, Message: \'{message}\'')
         self.status_code = status_code
 
 
 class IonQNotFoundException(IonQException):
+    """An exception for errors from IonQ's API when a resource is not found."""
 
     def __init__(self, message):
         super().__init__(message, status_code=requests.codes.not_found)
@@ -70,6 +71,9 @@ class _IonQClient:
 
         Args:
             remote_host: The url of the server exposing the IonQ API.
+                This will strip anything besides the base scheme and netloc,
+                i.e. it only takes the part of the host of the form
+                `http://example.com` of `http://example.com/test`.
             api_key: The key used for authenticating against the IonQ API.
             default_target: The default target to run against. Supports
                 one of 'qpu' and 'simulator'. Can be overriden by calls with
@@ -82,14 +86,16 @@ class _IonQClient:
                 that are encountered.
         """
         url = urllib.parse.urlparse(remote_host)
-        assert url.scheme is not None and url.netloc is not None, (
+        assert url.scheme and url.netloc, (
             f'Specified remote_host {remote_host} is not a valid url, '
             'for example http://example.com')
         assert api_version in self.SUPPORTED_VERSIONS, (
             f'Only api v0.1 is accepted but was {api_version}')
-        assert default_target in self.SUPPORTED_TARGETS, (
-            f'Target can only be one of  {self.SUPPORTED_TARGETS} but was '
-            f'{default_target}.')
+        assert (
+            default_target is None or
+            default_target in self.SUPPORTED_TARGETS), (
+                f'Target can only be one of {self.SUPPORTED_TARGETS} but was '
+                f'{default_target}.')
         assert max_retry_seconds >= 0, (
             'Negative retry not possible without time machine.')
 
@@ -166,7 +172,7 @@ class _IonQClient:
 
     def create_job(
             self,
-            json_circuit: dict,
+            job_dict: dict,
             repetitions: Optional[int] = None,
             target: Optional[str] = None,
             name: Optional[str] = None,
@@ -174,31 +180,31 @@ class _IonQClient:
         """Create a job.
 
         Args:
-            json_circuit: A dict corresponding to the json encoding of the
-                IonQ API.
+            job_dict: A dict corresponding to the json encoding of the IonQ API.
             repetitions: The number of times to repeat the circuit. Only can
-                be set if the target is 'qpu'.
-            target: If supplied the target to run on. Supports one of 'qpu' or
-                'simulator'. If not set, uses `defaul_target`.
+                be set if the target is `qpu`. If not specified and target is
+                `qpu`
+            target: If supplied the target to run on. Supports one of `qpu` or
+                `simulator`. If not set, uses `defaul_target`.
             name: An optional name of the job. Different than the `job_id` of
                 the job.
 
         Returns:
-            The json body of the response. This does not contain popualted
-            information about the job, but does contain the job id.
+            The json body of the response as a dict. This does not contain
+            popualted information about the job, but does contain the job id.
 
         Raises:
             An IonQ exception if the request fails.
         """
         actual_target = self._target(target)
         assert actual_target != 'qpu' or repetitions is not None, (
-            'If the target is qpu, reptitions must be specified.')
+            'If the target is qpu, repetitions must be specified.')
         assert actual_target != 'simulator' or repetitions is None, (
             'If the target is simulator, repetitions should not be specified '
             'as the simulator is a full wavefunction simulator.')
         json = {
             'target': actual_target,
-            'body': json_circuit,
+            'body': job_dict,
             'lang': 'json',
         }
         if name:

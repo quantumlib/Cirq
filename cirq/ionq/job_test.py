@@ -11,22 +11,3 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from cirq.ionq.ionq_client import (
-    IonQException,
-    IonQNotFoundException,
-)
-
-from cirq.ionq.job import (
-    Job,)
-
-from cirq.ionq.results import (
-    QPUResult,
-    SimulatorResult,
-)
-
-from cirq.ionq.serializer import (
-    Serializer,)
-
-from cirq.ionq.service import (
-    Service,)
