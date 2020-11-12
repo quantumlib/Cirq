@@ -19,16 +19,25 @@ from numpy import inf
 
 import cirq
 import cirq.contrib.routing as ccr
+from cirq import circuits, ops, value
+
+import itertools
+from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple, TYPE_CHECKING)
+
+SWAP_type_logical = [Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 
 
 class Hierarchy_tree:
 
-    def __init__(self, device_graph, single_er, two_er):
+    def __init__(self, device_graph: nx.Graph, single_er: dict(),
+                 two_er: dict()):
         self.device_graph = device_graph
         self.single_er = single_er
         self.two_er = two_er
 
-    def compute_F(self, com1, com2, Q1, Q2, fidelity):
+    def compute_F(self, com1: List[ops.Qid], com2: List[ops.Qid], Q1: float,
+                  Q2: float, fidelity: float) -> (float, float):
         edges_count = len(list(self.device_graph.edges))
         omega = 1.0
         inside_edges = 0
@@ -62,7 +71,8 @@ class Hierarchy_tree:
 
         return F_value, Qmerged
 
-    def find_edge_among_coms(self, com1, com2):
+    def find_edge_among_coms(self, com1: List[ops.Qid],
+                             com2: List[ops.Qid]) -> float:
         fidelity = 0.0
         for c1 in com1:
             for c2 in com2:
@@ -79,7 +89,8 @@ class Hierarchy_tree:
 
         return fidelity
 
-    def compute_new_node(self, communities, Qvalues):
+    def compute_new_node(self, communities: List[List[ops.Qid]],
+                         Qvalues: List[float]) -> (int, int, float):
         idx1 = 0
         idx2 = 1
         Qmerged = 0.0
@@ -104,7 +115,7 @@ class Hierarchy_tree:
         else:
             return idx2, idx1, Qmerged
 
-    def tree_construction(self):
+    def tree_construction(self) -> nx.DiGraph():
         tree = nx.DiGraph()
         label = 0
         communities = []
@@ -140,15 +151,16 @@ class Hierarchy_tree:
 
 class Qubits_partitioning:
 
-    def __init__(self, tree, program_circuits, single_er, two_er,
-                 twoQ_gate_type):
+    def __init__(self, tree: nx.DiGraph(),
+                 program_circuits: List[circuits.Circuit], single_er: dict(),
+                 two_er: dict(), twoQ_gate_type: ops.Operation):
         self.tree = tree
         self.program_circuits = program_circuits
         self.single_er = single_er
         self.two_er = two_er
         self.twoQ_gate_type = twoQ_gate_type
 
-    def circuits_descending(self):
+    def circuits_descending(self) -> List[circuits.Circuit]:
         cnot_density = []
         for circuit in self.program_circuits:
             density = len(
@@ -160,7 +172,6 @@ class Qubits_partitioning:
         """ computing indices regarding descending order of cnot densities """
         idxs = np.argsort(cnot_density)
         idxs_descending = np.flip(idxs)
-
         """ reorder list of program_circuits """
         circuits_temp = []  #copy.deepcopy(self.program_circuits)
         #self.program_circuits.clear()
@@ -169,7 +180,8 @@ class Qubits_partitioning:
 
         return circuits_temp
 
-    def compute_EPST(self, partition, cir):
+    def compute_EPST(self, partition: List[ops.Qid],
+                     cir: circuits.Circuit) -> float:
         twoQ_gs = len(
             list(
                 cir.findall_operations(
@@ -197,7 +209,8 @@ class Qubits_partitioning:
 
         return pow(avgF_2, twoQ_gs) * pow(avgF_1, oneQ_gs) * pow(avgF_1, qubits)
 
-    def find_best_candidate(self, cands, cir):
+    def find_best_candidate(self, cands: List[List[ops.Qid]],
+                            cir: circuits.Circuit) -> List[ops.Qid]:
         """ 
         find best candidate based on average fidelity
         """
@@ -214,7 +227,9 @@ class Qubits_partitioning:
 
         return best_cand
 
-    def qubits_allocation(self, desc_prog_circuits):
+    def qubits_allocation(
+            self,
+            desc_prog_circuits: List[circuits.Circuit]) -> List[List[ops.Qid]]:
         #self.circuits_descending()
         partition = []
 
@@ -244,7 +259,7 @@ class Qubits_partitioning:
 
             if len(candidates) == 0:
                 print("fail -- run programs seperately")
-            
+
             best_cand = self.find_best_candidate(candidates, cir)
             partition.append(best_cand)
             """ remove nodes from tree & relabel remaining nodes"""
@@ -263,10 +278,10 @@ class Qubits_partitioning:
 class X_SWAP:
 
     def __init__(self,
-                 device_graph,
-                 desc_program_circuits,
-                 partitions,
-                 twoQ_gate_type,
+                 device_graph: nx.Graph,
+                 desc_program_circuits: List[circuits.Circuit],
+                 partitions: List[List[ops.Qid]],
+                 twoQ_gate_type: ops.Operation,
                  l_to_ph={},
                  ph_to_l={}):
         self.device_graph = device_graph
@@ -276,7 +291,7 @@ class X_SWAP:
         self.l_to_ph = l_to_ph
         self.ph_to_l = ph_to_l
 
-    def generate_2qGates_dags(self):
+    def generate_2qGates_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_prog_circuits:
             """ remove single qubit gates before creating dag """
@@ -288,7 +303,7 @@ class X_SWAP:
 
         return cir_dags
 
-    def generate_dags(self):
+    def generate_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_program_circuits:
             """ create dag """
@@ -296,7 +311,8 @@ class X_SWAP:
 
         return cir_dags
 
-    def generate_2qGates_front_layers(self, cir_dags):
+    def generate_2qGates_front_layers(
+            self, cir_dags: List[cirq.CircuitDag]) -> List[List[ops.Operation]]:
         flayers = []
         for dag in cir_dags:
             fl = []
@@ -309,7 +325,8 @@ class X_SWAP:
 
         return flayers
 
-    def generate_front_layers(self, cir_dags):
+    def generate_front_layers(
+            self, cir_dags: cirq.CircuitDag) -> List[List[ops.Operation]]:
         """ check all dags are empty """
         counter = 0
         for dag in cir_dags:
@@ -345,7 +362,7 @@ class X_SWAP:
 
         return secondl
 
-    def initial_mapping(self):
+    def initial_mapping(self) -> None:
         """ initialize 2 dictionaries l_to_ph and ph_to_l in order """
         total_l_qubits = 0
         total_ph_qubits = len(self.device_graph.nodes)
@@ -370,17 +387,20 @@ class X_SWAP:
 
         return
 
-    def log_to_phy_edge(self, log_edge, pid):
+    def log_to_phy_edge(self, log_edge: (ops.Qid, ops.Qid),
+                        pid: int) -> (ops.Qid, ops.Qid):
         phy0 = self.l_to_ph[(log_edge[0], pid)]
         phy1 = self.l_to_ph[(log_edge[1], pid)]
         return (phy0, phy1)
 
-    def phy_to_log_edge(self, phy_edge):
+    def phy_to_log_edge(
+        self, phy_edge: (ops.Qid, ops.Qid)) -> SWAP_type_logical:
         log_pid0 = self.ph_to_l[phy_edge[0]]
         log_pid1 = self.ph_to_l[phy_edge[1]]
         return [log_pid0, log_pid1]
 
-    def obtain_swaps(self, node_gates, pid):
+    def obtain_swaps(self, node_gates: cirq.CircuitDag.nodes,
+                     pid: int) -> [SWAP_type_logical]:
         swaps = []
         for n in node_gates:
             g = n.val
@@ -393,7 +413,7 @@ class X_SWAP:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(self, swap):
+    def update_mapping(self, swap: SWAP_type_logical) -> (dict(), dict()):
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -406,7 +426,10 @@ class X_SWAP:
 
         return new_l_ph, new_ph_l
 
-    def compute_H(self, flayers, new_l_ph, new_ph_l):
+    def compute_H(
+        self, flayers: List[List[ops.Operation]], new_l_ph: dict(),
+        new_ph_l: dict()
+    ) -> float:
         H_cost = 0
         for i in range(len(flayers)):
             if len(flayers[i]) == 0:
@@ -421,7 +444,7 @@ class X_SWAP:
                                               phy_edge[1]))[0])
         return H_cost - 1
 
-    def compute_path_in_sameP(self, edge, pidx):
+    def compute_path_in_sameP(self, edge: (ops.Qid, ops.Qid), pidx: int) -> int:
         paths = list(
             nx.all_simple_paths(self.device_graph,
                                 edge[0],
@@ -434,7 +457,9 @@ class X_SWAP:
                     distance = len(p)
         return distance
 
-    def compute_gainCost(self, flayers, new_l_ph, new_ph_l, swap):
+    def compute_gainCost(self, flayers: List[List[ops.Operation]],
+                         new_l_ph: dict(), new_ph_l: dict(),
+                         swap: SWAP_type_logical) -> float:
         gain_cost = 0
 
         for i in range(len(flayers)):
@@ -464,7 +489,8 @@ class X_SWAP:
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
-    def find_best_swap(self, swap_candidate_lists, flayers):
+    def find_best_swap(self, swap_candidate_lists: [SWAP_type_logical],
+                       flayers: List[List[ops.Operation]]) -> SWAP_type_logical:
         min_cost = inf
         best_swap = None
         for swaps in swap_candidate_lists:
@@ -480,7 +506,7 @@ class X_SWAP:
                     best_swap = s
         return best_swap
 
-    def insert_SWAP_and_generate_schedule(self):
+    def insert_SWAP_and_generate_schedule(self) -> circuits.Circuit:
         schedule = cirq.Circuit()
         dags = self.generate_dags()
         self.initial_mapping()
@@ -490,7 +516,7 @@ class X_SWAP:
             """ solve hardware-compliant gates 
             i specify program index """
             require_swap = 0
-            
+
             for i in range(len(flayers)):
                 if len(flayers[i]) == 0:
                     continue
@@ -499,21 +525,23 @@ class X_SWAP:
                     if len(n.val.qubits) == 1:
                         g = n.val.gate
                         lq = n.val.qubit
-                        phq = self.l_to_ph[(lq,i)]
-                        
+                        phq = self.l_to_ph[(lq, i)]
+
                         schedule.append(g(phq))
                         dags[i].remove_node(n)
                         # update front layer
                         flayers[i].remove(n)
                     else:
-                        if self.log_to_phy_edge(n.val.qubits,
-                                                i) in self.device_graph.edges:
+                        ph0 = self.l_to_ph[(n.val.qubits[0], i)]
+                        ph1 = self.l_to_ph[(n.val.qubits[1], i)]
+                        if (ph0, ph1) in self.device_graph.edges or (
+                                ph1, ph0) in self.device_graph.edges:
                             g = n.val.gate
                             lqs = n.val.qubits
-                            phq0 = self.l_to_ph[(lqs[0],i)]
-                            phq1 = self.l_to_ph[(lqs[1],i)]
+                            phq0 = self.l_to_ph[(lqs[0], i)]
+                            phq1 = self.l_to_ph[(lqs[1], i)]
                             schedule.append(g(phq0, phq1))
-                            
+
                             dags[i].remove_node(n)
                             # update front layer
                             flayers[i].remove(n)
@@ -536,7 +564,7 @@ class X_SWAP:
 
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
-                schedule.append(cirq.SWAP(ph0, ph1) ) 
+                schedule.append(cirq.SWAP(ph0, ph1))
                 """ update mapping """
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
@@ -554,16 +582,14 @@ class X_SWAP:
 ############################################################
 
 
-def multi_prog_map(device_graph, single_er, two_er, prog_circuits):
+def multi_prog_map(device_graph: nx.Graph, single_er: dict(), two_er: dict(),
+                   prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
     treeObj = Hierarchy_tree(device_graph, single_er, two_er)
     tree = treeObj.tree_construction()
     print("tree")
-
-    #print(len(tree.nodes))
     print(tree.nodes)
 
-    #print((list(tree.nodes)[1]))
     parObj = Qubits_partitioning(tree, prog_circuits, single_er, two_er,
                                  twoQ_gate_type)
     desc_cirs = parObj.circuits_descending()
@@ -577,8 +603,6 @@ def multi_prog_map(device_graph, single_er, two_er, prog_circuits):
     schedule = xswap.insert_SWAP_and_generate_schedule()
     print("schedule:")
     print(schedule)
-
-    #parObj.reorder_program_circuits()
 
 
 def prepare_couplingGraph_errorValues(device_graph):
