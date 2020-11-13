@@ -147,7 +147,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
             if state2.shape == qid_shape:
                 # State tensor, convert to state vector
                 state2 = np.reshape(state2, (np.prod(qid_shape),))
-        if state1.shape[0] < state2.shape[0]:
+        elif state1.shape[0] < state2.shape[0]:
             # state1 is state tensor and state2 is density matrix.
             # Convert state1 to state vector
             state1 = np.reshape(state1, (np.prod(state1.shape),))
