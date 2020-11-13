@@ -66,6 +66,7 @@ from cirq._version import (
 from cirq.circuits import (
     Circuit,
     CircuitDag,
+    FrozenCircuit,
     InsertStrategy,
     PointOptimizationSummary,
     PointOptimizer,
@@ -326,6 +327,7 @@ from cirq.qis import (
     STATE_VECTOR_LIKE,
     to_valid_density_matrix,
     to_valid_state_vector,
+    validate_density_matrix,
     validate_indices,
     validate_normalized_state,
     validate_normalized_state_vector,
@@ -514,6 +516,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_measurement_key_mapping,
 )
 
 from cirq.ion import (

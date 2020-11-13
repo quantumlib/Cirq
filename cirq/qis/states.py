@@ -229,7 +229,7 @@ def to_valid_state_vector(
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Sequence[int]] = None,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> np.ndarray:
     """Verifies the state_rep is valid and converts it to ndarray form.
 
@@ -286,7 +286,7 @@ def to_valid_state_vector(
 
 def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
                                 qid_shape: Tuple[int, ...],
-                                dtype: Type[np.number],
+                                dtype: Optional[Type[np.number]],
                                 atol: float) -> np.ndarray:
 
     if isinstance(state_like, int):
@@ -347,8 +347,10 @@ def _state_like_to_state_tensor(*, state_like: 'cirq.STATE_VECTOR_LIKE',
 
 def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
                                           qid_shape: Tuple[int, ...],
-                                          dtype: Type[np.number],
+                                          dtype: Optional[Type[np.number]],
                                           atol: float) -> np.ndarray:
+    if dtype is None:
+        dtype = np.complex64
     result = np.array(state_vector, dtype=dtype).reshape(qid_shape)
     validate_normalized_state_vector(result,
                                      qid_shape=qid_shape,
@@ -359,7 +361,8 @@ def _amplitudes_to_validated_state_tensor(*, state_vector: np.ndarray,
 
 def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                                   qid_shape: Tuple[int, ...],
-                                  dtype: Type[np.number]) -> np.ndarray:
+                                  dtype: Optional[Type[np.number]]
+                                 ) -> np.ndarray:
 
     for i in range(len(qid_shape)):
         s = state_vector[i]
@@ -380,6 +383,8 @@ def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
                          f'qid_shape={qid_shape!r}\n'
                          f'state={state_vector!r}\n')
 
+    if dtype is None:
+        dtype = np.complex64
     return one_hot(index=tuple(int(e) for e in state_vector),
                    shape=qid_shape,
                    dtype=dtype)
@@ -387,7 +392,7 @@ def _qudit_values_to_state_tensor(*, state_vector: np.ndarray,
 
 def _computational_basis_state_to_state_tensor(*, state_rep: int,
                                                qid_shape: Tuple[int, ...],
-                                               dtype: Type[np.number]
+                                               dtype: Optional[Type[np.number]]
                                               ) -> np.ndarray:
     n = np.prod(qid_shape, dtype=int)
     if not 0 <= state_rep < n:
@@ -397,6 +402,8 @@ def _computational_basis_state_to_state_tensor(*, state_rep: int,
                          f'MIN_STATE=0\n'
                          f'MAX_STATE=product(qid_shape)-1={n-1}\n'
                          f'qid_shape={qid_shape!r}\n')
+    if dtype is None:
+        dtype = np.complex64
     return one_hot(index=state_rep, shape=n, dtype=dtype).reshape(qid_shape)
 
 
@@ -404,17 +411,29 @@ def validate_normalized_state_vector(
         state_vector: np.ndarray,
         *,  # Force keyword arguments
         qid_shape: Tuple[int, ...],
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> None:
-    """Validates that the given state vector is a valid."""
+    """Checks that the given state vector is valid.
+
+    Args:
+        state_vector: The state vector to validate.
+        qid_shape: The expected qid shape of the state.
+        dtype: The expected dtype of the state.
+        atol: Absolute numerical tolerance.
+
+    Raises:
+        ValueError: State has invalid dtype.
+        ValueError: State has incorrect size.
+        ValueError: State is not normalized.
+    """
+    if dtype and state_vector.dtype != dtype:
+        raise ValueError(
+            'state_vector has invalid dtype. Expected {} but was {}'.format(
+                dtype, state_vector.dtype))
     if state_vector.size != np.prod(qid_shape, dtype=int):
         raise ValueError(
             'state_vector has incorrect size. Expected {} but was {}.'.format(
                 np.prod(qid_shape, dtype=int), state_vector.size))
-    if state_vector.dtype != dtype:
-        raise ValueError(
-            'state_vector has invalid dtype. Expected {} but was {}'.format(
-                dtype, state_vector.dtype))
     norm = np.sum(np.abs(state_vector)**2)
     if not np.isclose(norm, 1, atol=atol):
         raise ValueError(
@@ -470,7 +489,7 @@ def to_valid_density_matrix(
         num_qubits: Optional[int] = None,
         *,  # Force keyword arguments
         qid_shape: Optional[Tuple[int, ...]] = None,
-        dtype: Type[np.number] = np.complex64,
+        dtype: Optional[Type[np.number]] = None,
         atol: float = 1e-7) -> np.ndarray:
     """Verifies the density_matrix_rep is valid and converts it to ndarray form.
 
@@ -502,24 +521,10 @@ def to_valid_density_matrix(
     qid_shape = _qid_shape_from_args(num_qubits, qid_shape)
     if (isinstance(density_matrix_rep, np.ndarray) and
             density_matrix_rep.ndim == 2):
-        if density_matrix_rep.shape != (np.prod(qid_shape, dtype=int),) * 2:
-            raise ValueError(
-                'Density matrix was not square and of size 2 ** num_qubit, '
-                'instead was {}'.format(density_matrix_rep.shape))
-        if not np.allclose(density_matrix_rep,
-                           np.transpose(np.conj(density_matrix_rep)),
-                           atol=atol):
-            raise ValueError('The density matrix is not hermitian.')
-        if not np.isclose(np.trace(density_matrix_rep), 1.0, atol=atol):
-            raise ValueError(
-                'Density matrix did not have trace 1 but instead {}'.format(
-                    np.trace(density_matrix_rep)))
-        if density_matrix_rep.dtype != dtype:
-            raise ValueError(
-                'Density matrix had dtype {} but expected {}'.format(
-                    density_matrix_rep.dtype, dtype))
-        if not np.all(np.linalg.eigvalsh(density_matrix_rep) > -atol):
-            raise ValueError('The density matrix is not positive semidefinite.')
+        validate_density_matrix(density_matrix_rep,
+                                qid_shape=qid_shape,
+                                dtype=dtype,
+                                atol=atol)
         return density_matrix_rep
 
     state_vector = to_valid_state_vector(density_matrix_rep,
@@ -527,6 +532,48 @@ def to_valid_density_matrix(
                                          qid_shape=qid_shape,
                                          dtype=dtype)
     return np.outer(state_vector, np.conj(state_vector))
+
+
+def validate_density_matrix(
+        density_matrix: np.ndarray,
+        *,  # Force keyword arguments
+        qid_shape: Tuple[int, ...],
+        dtype: Optional[Type[np.number]] = None,
+        atol: float = 1e-7) -> None:
+    """Checks that the given density matrix is valid.
+
+    Args:
+        density_matrix: The density matrix to validate.
+        qid_shape: The expected qid shape.
+        dtype: The expected dtype.
+        atol: Absolute numerical tolerance.
+
+    Raises:
+        ValueError: The density matrix does not have the correct dtype.
+        ValueError: The density matrix does not have the correct shape.
+            It should be a square matrix with dimension prod(qid_shape).
+        ValueError: The density matrix is not Hermitian.
+        ValueError: The density matrix does not have trace 1.
+        ValueError: The density matrix is not positive semidefinite.
+    """
+    if dtype and density_matrix.dtype != dtype:
+        raise ValueError(
+            f'Incorrect dtype for density matrix: Expected {dtype} '
+            f'but has dtype {density_matrix.dtype}.')
+    expected_shape = (np.prod(qid_shape, dtype=int),) * 2
+    if density_matrix.shape != expected_shape:
+        raise ValueError(
+            f'Incorrect shape for density matrix: Expected {expected_shape} '
+            f'but has shape {density_matrix.shape}.')
+    if not np.allclose(density_matrix, density_matrix.conj().T, atol=atol):
+        raise ValueError('The density matrix is not hermitian.')
+    trace = np.trace(density_matrix)
+    if not np.isclose(trace, 1.0, atol=atol):
+        raise ValueError(
+            'Density matrix does not have trace 1. Instead, it has '
+            f'trace {trace}.')
+    if not np.all(np.linalg.eigvalsh(density_matrix) > -atol):
+        raise ValueError('The density matrix is not positive semidefinite.')
 
 
 def _qid_shape_from_args(num_qubits: Optional[int],

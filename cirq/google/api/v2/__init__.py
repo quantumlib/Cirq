@@ -15,6 +15,7 @@
 
 from cirq.google.api.v2 import (
     batch_pb2,
+    calibration_pb2,
     device_pb2,
     metrics_pb2,
     program_pb2,

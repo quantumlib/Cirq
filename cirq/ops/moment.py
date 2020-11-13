@@ -195,6 +195,11 @@ class Moment:
                 return op
         raise KeyError("Moment doesn't act on given qubit")
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        return Moment(
+            protocols.with_measurement_key_mapping(op, key_map) if protocols.
+            is_measurement(op) else op for op in self.operations)
+
     def __copy__(self):
         return type(self)(self.operations)
 
@@ -280,7 +285,7 @@ class Moment:
 
     def __add__(self, other: 'cirq.OP_TREE') -> 'cirq.Moment':
         from cirq.circuits import circuit
-        if isinstance(other, circuit.Circuit):
+        if isinstance(other, circuit.AbstractCircuit):
             return NotImplemented  # Delegate to Circuit.__radd__.
         return self.with_operations(other)
 
