@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """A helper for jobs that have been created on the Quantum Engine."""
-
+import datetime
 import time
 
 from typing import Dict, Iterator, List, Optional, overload, Tuple, \
@@ -20,7 +20,9 @@ from typing import Dict, Iterator, List, Optional, overload, Tuple, \
 
 from cirq import study
 from cirq.google.engine import calibration
+from cirq.google.engine.calibration_result import CalibrationResult
 from cirq.google.engine.client import quantum
+from cirq.google.engine.result_type import ResultType
 from cirq.google.api import v1, v2
 
 if TYPE_CHECKING:
@@ -59,7 +61,7 @@ class EngineJob:
                  job_id: str,
                  context: 'engine_base.EngineContext',
                  _job: Optional[quantum.types.QuantumJob] = None,
-                 batch_mode: bool = False) -> None:
+                 result_type: ResultType = ResultType.Program) -> None:
         """A job submitted to the engine.
 
         Args:
@@ -68,7 +70,8 @@ class EngineJob:
             job_id: Unique ID of the job within the parent program.
             context: Engine configuration and context to use.
             _job: The optional current job state.
-            batch_mode: If this was created with a BatchProgram/BatchRunContext.
+            result_type: What type of results are expected, such as
+               batched results or the result of a focused calibration.
         """
         self.project_id = project_id
         self.program_id = program_id
@@ -76,8 +79,9 @@ class EngineJob:
         self.context = context
         self._job = _job
         self._results: Optional[List[study.Result]] = None
+        self._calibration_results: Optional[CalibrationResult] = None
         self._batched_results: Optional[List[List[study.Result]]] = None
-        self.batch_mode = batch_mode
+        self.result_type = result_type
 
     def engine(self) -> 'engine_base.Engine':
         """Returns the parent Engine object."""
@@ -276,26 +280,30 @@ class EngineJob:
             raise ValueError('batched_results called for a non-batch result.')
         return self._batched_results
 
+    def _wait_for_result(self):
+        job = self._refresh_job()
+        total_seconds_waited = 0.0
+        timeout = self.context.timeout
+        while True:
+            if timeout and total_seconds_waited >= timeout:
+                break
+            if job.execution_status.state in TERMINAL_STATES:
+                break
+            time.sleep(0.5)
+            total_seconds_waited += 0.5
+            job = self._refresh_job()
+        self._raise_on_failure(job)
+        response = self.context.client.get_job_results(self.project_id,
+                                                       self.program_id,
+                                                       self.job_id)
+        return response.result
+
     def results(self) -> List[study.Result]:
         """Returns the job results, blocking until the job is complete.
         """
         import cirq.google.engine.engine as engine_base
         if not self._results:
-            job = self._refresh_job()
-            total_seconds_waited = 0.0
-            timeout = self.context.timeout
-            while True:
-                if timeout and total_seconds_waited >= timeout:
-                    break
-                if job.execution_status.state in TERMINAL_STATES:
-                    break
-                time.sleep(0.5)
-                total_seconds_waited += 0.5
-                job = self._refresh_job()
-            self._raise_on_failure(job)
-            response = self.context.client.get_job_results(
-                self.project_id, self.program_id, self.job_id)
-            result = response.result
+            result = self._wait_for_result()
             result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
             if (result_type == 'cirq.google.api.v1.Result' or
                     result_type == 'cirq.api.google.v1.Result'):
@@ -316,6 +324,37 @@ class EngineJob:
                 raise ValueError(
                     'invalid result proto version: {}'.format(result_type))
         return self._results
+
+    def calibration_results(self):
+        """Returns the results of a run_calibration() call.
+
+        This function will fail if any other type of results were returned
+        by the Engine.
+        """
+        import cirq.google.engine.engine as engine_base
+        if not self._calibration_results:
+            result = self._wait_for_result()
+            result_type = result.type_url[len(engine_base.TYPE_PREFIX):]
+            if result_type != 'cirq.google.api.v2.FocusedCalibrationResult':
+                raise ValueError(
+                    'Did not find calibration results, instead found: {}'.
+                    format(result_type))
+            parsed_val = v2.calibration_pb2.FocusedCalibrationResult.FromString(
+                result.value)
+            cal_results = []
+            for layer in parsed_val.results:
+                metrics = calibration.Calibration(layer.metrics)
+                message = layer.error_message or None
+                token = layer.token or None
+                if layer.valid_until_ms > 0:
+                    ts = datetime.datetime.fromtimestamp(layer.valid_until_ms /
+                                                         1000)
+                else:
+                    ts = None
+                cal_results.append(
+                    CalibrationResult(layer.code, message, token, ts, metrics))
+            self._calibration_results = cal_results
+        return self._calibration_results
 
     @staticmethod
     def _get_job_results_v1(result: v1.program_pb2.Result
