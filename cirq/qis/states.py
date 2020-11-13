@@ -355,8 +355,7 @@ def infer_qid_shape(*states: 'cirq.QUANTUM_STATE_LIKE') -> Tuple[int, ...]:
         raise ValueError('Failed to infer the qid shape of the given states.')
 
     # check if the shape is compatible with the states specified as integers
-    if integer_states and np.prod(qid_shape,
-                                  dtype=int) < max(integer_states) + 1:
+    if integer_states and np.prod(qid_shape, dtype=int) <= max(integer_states):
         raise ValueError('Failed to infer the qid shape of the given states.')
 
     return qid_shape
