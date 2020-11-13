@@ -174,7 +174,7 @@ def test_von_neumann_entropy():
     assert cirq.von_neumann_entropy(np.array([[1]])) == 0
     # An EPR pair state (|00> + |11>)(<00| + <11|)
     assert cirq.von_neumann_entropy(
-        np.array([1, 0, 0, 1] * np.array([[1], [0], [0], [1]]))) == 0
+        0.5 * np.array([1, 0, 0, 1] * np.array([[1], [0], [0], [1]]))) == 0
     # Maximally mixed state
     # yapf: disable
     assert cirq.von_neumann_entropy(np.array(
@@ -185,7 +185,7 @@ def test_von_neumann_entropy():
         np.array(
             [[0.5, 0.5j, 1],
             [-0.5j, 0.5, 0],
-            [0.7, 0.4, 0.6]])),
+            [0.7, 0.4, 0.6]]), validate=False),
                       1.37,
                       atol=1e-01)
     # 4X4 state
@@ -194,7 +194,7 @@ def test_von_neumann_entropy():
             [[0.5, 0.5j, 1, 3],
             [-0.5j, 0.5, 0, 4],
             [0.7, 0.4, 0.6, 5],
-            [6, 7, 8, 9]])),
+            [6, 7, 8, 9]]), validate=False),
                       1.12,
                       atol=1e-01)
     # yapf: enable
@@ -215,3 +215,10 @@ def test_von_neumann_entropy():
         np.diag([0, 0, 0.1, 0, 0.2, 0.3, 0.4, 0])),
                       1.8464,
                       atol=1e-04)
+
+    # QuantumState object
+    assert cirq.von_neumann_entropy(
+        cirq.quantum_state(np.array([[0.5, 0], [0, 0.5]]), qid_shape=(2,))) == 1
+    assert cirq.von_neumann_entropy(
+        cirq.quantum_state(np.array([[0.5, 0.5], [0.5, 0.5]]),
+                           qid_shape=(2, 2))) == 0

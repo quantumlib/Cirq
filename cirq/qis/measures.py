@@ -19,7 +19,8 @@ import numpy as np
 import scipy
 import scipy.stats
 from cirq import value
-from cirq.qis.states import (infer_qid_shape, quantum_state,
+from cirq._compat import deprecated_parameter
+from cirq.qis.states import (QuantumState, infer_qid_shape, quantum_state,
                              validate_density_matrix,
                              validate_normalized_state_vector)
 
@@ -213,12 +214,48 @@ def _fidelity_state_vectors_or_density_matrices(state1: np.ndarray,
                      f'Got shapes {state1.shape} and {state2.shape}.')
 
 
-def von_neumann_entropy(density_matrix: np.ndarray) -> float:
-    """Calculates von Neumann entropy of density matrix in bits.
+@deprecated_parameter(
+    deadline='v0.11.0',
+    fix='Use state instead.',
+    parameter_desc='density_matrix',
+    match=lambda args, kwargs: 'density_matrix' in kwargs,
+    rewrite=lambda args, kwargs: (args, {('state' if k == 'density_matrix' else
+                                          k): v for k, v in kwargs.items()}))
+def von_neumann_entropy(state: 'cirq.QUANTUM_STATE_LIKE',
+                        qid_shape: Optional[Tuple[int, ...]] = None,
+                        validate: bool = True,
+                        atol: float = 1e-7) -> float:
+    """Calculates the von Neumann entropy of a quantum state in bits.
+
+    If `state` is a square matrix, it is assumed to be a density matrix rather
+    than a (pure) state tensor.
+
     Args:
-        density_matrix: The density matrix.
+        state: The quantum state.
+        qid_shape: The qid shape of the given state.
+        validate: Whether to check if the given state is a valid quantum state.
+        atol: Absolute numerical tolerance to use for validation.
+
     Returns:
         The calculated von Neumann entropy.
     """
-    eigenvalues = np.linalg.eigvalsh(density_matrix)
-    return scipy.stats.entropy(np.abs(eigenvalues), base=2)
+    if isinstance(state, QuantumState) and state.is_density_matrix():
+        state = state.data
+    if isinstance(state, np.ndarray
+                 ) and state.ndim == 2 and state.shape[0] == state.shape[1]:
+        if validate:
+            if qid_shape is None:
+                qid_shape = (state.shape[0],)
+            validate_density_matrix(state,
+                                    qid_shape=qid_shape,
+                                    dtype=state.dtype,
+                                    atol=atol)
+        eigenvalues = np.linalg.eigvalsh(state)
+        return scipy.stats.entropy(np.abs(eigenvalues), base=2)
+    if validate:
+        _ = quantum_state(state,
+                          qid_shape=qid_shape,
+                          copy=False,
+                          validate=True,
+                          atol=atol)
+    return 0.0
