@@ -83,6 +83,7 @@ def create_base_env(proto_dir):
     shell_tools.run_cmd(pip_path, "install", *PACKAGES)
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize("notebook_path", TESTED_NOTEBOOKS)
 def test_notebooks(notebook_path, base_env):
     """Ensures testing the notebooks in isolated virtual environments."""
