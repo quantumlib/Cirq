@@ -85,6 +85,7 @@ from cirq.protocols.measurement_key_protocol import (
     is_measurement,
     measurement_key,
     measurement_keys,
+    with_measurement_key_mapping,
     SupportsMeasurementKey,
 )
 from cirq.protocols.mixture_protocol import (

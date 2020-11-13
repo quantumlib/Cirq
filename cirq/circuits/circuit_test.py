@@ -3558,6 +3558,56 @@ def test_decompose(circuit_cls):
 
 
 @pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_measurement_key_mapping(circuit_cls):
+    a, b = cirq.LineQubit.range(2)
+    c = circuit_cls(
+        cirq.X(a),
+        cirq.measure(a, key='m1'),
+        cirq.measure(b, key='m2'),
+    )
+    assert c.all_measurement_keys() == {'m1', 'm2'}
+
+    assert cirq.with_measurement_key_mapping(c, {
+        'm1': 'p1'
+    }).all_measurement_keys() == {'p1', 'm2'}
+
+    assert cirq.with_measurement_key_mapping(c, {
+        'm1': 'p1',
+        'm2': 'p2'
+    }).all_measurement_keys() == {'p1', 'p2'}
+
+    c_swapped = cirq.with_measurement_key_mapping(c, {'m1': 'm2', 'm2': 'm1'})
+    assert c_swapped.all_measurement_keys() == {'m1', 'm2'}
+
+    # Verify that the keys were actually swapped.
+    simulator = cirq.Simulator()
+    assert simulator.run(c).measurements == {'m1': 1, 'm2': 0}
+    assert simulator.run(c_swapped).measurements == {'m1': 0, 'm2': 1}
+
+    assert cirq.with_measurement_key_mapping(c, {
+        'x': 'z',
+    }).all_measurement_keys() == {'m1', 'm2'}
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
+def test_measurement_key_mapping_preserves_moments(circuit_cls):
+    a, b = cirq.LineQubit.range(2)
+    c = circuit_cls(
+        cirq.Moment(cirq.X(a)),
+        cirq.Moment(),
+        cirq.Moment(cirq.measure(a, key='m1')),
+        cirq.Moment(cirq.measure(b, key='m2')),
+    )
+
+    key_map = {'m1': 'p1'}
+    remapped_circuit = cirq.with_measurement_key_mapping(c, key_map)
+    assert list(remapped_circuit.moments) == [
+        cirq.with_measurement_key_mapping(moment, key_map)
+        for moment in c.moments
+    ]
+
+
+@pytest.mark.parametrize('circuit_cls', [cirq.Circuit, cirq.FrozenCircuit])
 def test_inverse(circuit_cls):
     a, b = cirq.LineQubit.range(2)
     forward = circuit_cls((cirq.X**0.5)(a), (cirq.Y**-0.2)(b), cirq.CZ(a, b))

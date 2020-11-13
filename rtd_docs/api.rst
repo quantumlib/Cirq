@@ -364,6 +364,7 @@ the magic methods that can be implemented.
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list
     cirq.unitary
+    cirq.with_measurement_key_mapping
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
     cirq.ApplyUnitaryArgs
@@ -526,6 +527,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.CalibrationLayer
+    cirq.google.CalibrationResult
     cirq.google.CalibrationTag
     cirq.google.ConvertToSqrtIswapGates
     cirq.google.ConvertToSycamoreGates
@@ -716,6 +719,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
