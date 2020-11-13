@@ -73,12 +73,13 @@ class QuantumState:
             qid_shape: The qid shape.
             validate: Whether to check if the given data and qid shape
                 represent a valid quantum state with the given dtype.
-            dtype: The expected data type.
+            dtype: The expected data type of the quantum state.
             atol: Absolute numerical tolerance to use for validation.
 
         Raises:
             ValueError: The qid shape was not specified and could not be
                 inferred.
+            ValueError: Invalid quantum state.
         """
         if qid_shape is None:
             qid_shape = infer_qid_shape(data)
@@ -90,28 +91,25 @@ class QuantumState:
 
     @property
     def data(self) -> np.ndarray:
+        """The data underlying the quantum state."""
         return self._data
 
     @property
     def qid_shape(self) -> Tuple[int, ...]:
+        """The qid shape of the quantum state."""
         return self._qid_shape
 
     @property
     def dtype(self) -> np.ndarray:
+        """The data type of the quantum state."""
         return self._data.dtype
-
-    def _is_density_matrix(self) -> bool:
-        """Whether this quantum state is a density matrix.
-
-        A density matrix stores the entries of a density matrix as a matrix
-        (a two-dimensional array).
-        """
-        return self.data.shape == (self._dim, self._dim)
 
     def state_vector(self) -> Optional[np.ndarray]:
         """Return the state vector of this state.
 
-        If the state is a density matrix, returns None.
+        A state vector stores the amplitudes of a pure state as a
+        one-dimensional array.
+        If the state is a density matrix, this method returns None.
         """
         if self._is_density_matrix():
             return None
@@ -120,25 +118,43 @@ class QuantumState:
     def state_tensor(self) -> Optional[np.ndarray]:
         """Return the state tensor of this state.
 
-        If the state is a density matrix, returns None.
+        A state tensor stores the amplitudes of a pure state as an array with
+        shape equal to the qid shape of the state.
+        If the state is a density matrix, this method returns None.
         """
         if self._is_density_matrix():
             return None
         return np.reshape(self.data, self.qid_shape)
 
     def density_matrix(self) -> np.ndarray:
-        """Return the density matrix of this state."""
+        """Return the density matrix of this state.
+
+        A density matrix stores the entries of a density matrix as a matrix
+        (a two-dimensional array).
+        """
         if not self._is_density_matrix():
             state_vector = self.state_vector()
             return np.outer(state_vector, np.conj(state_vector))
         return self.data
+
+    def _is_density_matrix(self) -> bool:
+        """Whether this quantum state is a density matrix."""
+        return self.data.shape == (self._dim, self._dim)
 
     def validate(
             self,
             *,  # Force keyword arguments
             dtype: Optional[Type[np.number]] = None,
             atol=1e-7) -> None:
-        """Check if this quantum state is valid."""
+        """Check if this quantum state is valid.
+
+        Args:
+            dtype: The expected data type of the quantum state.
+            atol: Absolute numerical tolerance to use for validation.
+
+        Raises:
+            ValueError: Invalid quantum state.
+        """
         is_state_vector = self.data.shape == (self._dim,)
         is_state_tensor = self.data.shape == self.qid_shape
         if is_state_vector or is_state_tensor:

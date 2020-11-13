@@ -60,6 +60,7 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
     Raises:
         ValueError: The qid shape of the given states was not specified and
             could not be inferred.
+        ValueError: Invalid quantum state.
     """
     # Two ints
     if isinstance(state1, int) and isinstance(state2, int):
@@ -238,6 +239,9 @@ def von_neumann_entropy(state: 'cirq.QUANTUM_STATE_LIKE',
 
     Returns:
         The calculated von Neumann entropy.
+
+    Raises:
+        ValueError: Invalid quantum state.
     """
     if isinstance(state, QuantumState) and state._is_density_matrix():
         state = state.data
