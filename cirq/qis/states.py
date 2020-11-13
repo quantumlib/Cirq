@@ -100,7 +100,7 @@ class QuantumState:
     def dtype(self) -> np.ndarray:
         return self._data.dtype
 
-    def is_density_matrix(self) -> bool:
+    def _is_density_matrix(self) -> bool:
         """Whether this quantum state is a density matrix.
 
         A density matrix stores the entries of a density matrix as a matrix
@@ -113,7 +113,7 @@ class QuantumState:
 
         If the state is a density matrix, returns None.
         """
-        if self.is_density_matrix():
+        if self._is_density_matrix():
             return None
         return np.reshape(self.data, (self._dim,))
 
@@ -122,13 +122,13 @@ class QuantumState:
 
         If the state is a density matrix, returns None.
         """
-        if self.is_density_matrix():
+        if self._is_density_matrix():
             return None
         return np.reshape(self.data, self.qid_shape)
 
     def density_matrix(self) -> np.ndarray:
         """Return the density matrix of this state."""
-        if not self.is_density_matrix():
+        if not self._is_density_matrix():
             state_vector = self.state_vector()
             return np.outer(state_vector, np.conj(state_vector))
         return self.data
@@ -146,7 +146,7 @@ class QuantumState:
                                              qid_shape=self.qid_shape,
                                              dtype=dtype,
                                              atol=atol)
-        elif self.is_density_matrix():
+        elif self._is_density_matrix():
             validate_density_matrix(self.density_matrix(),
                                     qid_shape=self.qid_shape,
                                     dtype=dtype,

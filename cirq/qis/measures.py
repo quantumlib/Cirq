@@ -113,9 +113,9 @@ def fidelity(state1: 'cirq.QUANTUM_STATE_LIKE',
                            qid_shape=qid_shape,
                            validate=validate,
                            atol=atol)
-    state1 = state1.density_matrix() if state1.is_density_matrix(
+    state1 = state1.density_matrix() if state1._is_density_matrix(
     ) else state1.state_vector()
-    state2 = state2.density_matrix() if state2.is_density_matrix(
+    state2 = state2.density_matrix() if state2._is_density_matrix(
     ) else state2.state_vector()
     return _fidelity_state_vectors_or_density_matrices(state1, state2)
 
@@ -239,7 +239,7 @@ def von_neumann_entropy(state: 'cirq.QUANTUM_STATE_LIKE',
     Returns:
         The calculated von Neumann entropy.
     """
-    if isinstance(state, QuantumState) and state.is_density_matrix():
+    if isinstance(state, QuantumState) and state._is_density_matrix():
         state = state.data
     if isinstance(state, np.ndarray
                  ) and state.ndim == 2 and state.shape[0] == state.shape[1]:

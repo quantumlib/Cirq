@@ -46,7 +46,6 @@ def test_quantum_state():
     assert state.data is state_vector_1
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex128
-    assert not state.is_density_matrix()
     np.testing.assert_array_equal(state.state_vector(), state_vector_1)
     np.testing.assert_array_equal(state.state_tensor(), state_tensor_1)
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
@@ -55,7 +54,6 @@ def test_quantum_state():
     assert state.data is state_tensor_1
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex128
-    assert not state.is_density_matrix()
     np.testing.assert_array_equal(state.state_vector(), state_vector_1)
     np.testing.assert_array_equal(state.state_tensor(), state_tensor_1)
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
@@ -64,7 +62,6 @@ def test_quantum_state():
     assert state.data is density_matrix_1
     assert state.qid_shape == (2, 2)
     assert state.dtype == np.complex128
-    assert state.is_density_matrix()
     assert state.state_vector() is None
     assert state.state_tensor() is None
     np.testing.assert_array_equal(state.density_matrix(), density_matrix_1)
