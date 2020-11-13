@@ -107,9 +107,7 @@ class CliffordSimulator(simulator.SimulatesSamples,
 
             for op in moment:
                 if isinstance(op.gate, ops.MeasurementGate):
-                    key = protocols.measurement_key(op)
-                    measurements[key].extend(
-                        state.perform_measurement(op.qubits, self._prng))
+                    state.apply_measurement(op, measurements, self._prng)
                 elif protocols.has_unitary(op):
                     state.apply_unitary(op)
                 else:
@@ -248,15 +246,15 @@ class CliffordSimulatorStepResult(simulator.StepResult):
                repetitions: int = 1,
                seed: 'cirq.RANDOM_STATE_OR_SEED_LIKE' = None) -> np.ndarray:
 
-        measurements = []
+        measurements = {}  # type: Dict[str, List[np.ndarray]]
 
-        for _ in range(repetitions):
-            measurements.append(
-                self.state.perform_measurement(qubits,
-                                               value.parse_random_state(seed),
-                                               collapse_state_vector=False))
+        for i in range(repetitions):
+            self.state.apply_measurement(cirq.measure(*qubits, key=str(i)),
+                                         measurements,
+                                         value.parse_random_state(seed),
+                                         collapse_state_vector=False)
 
-        return np.array(measurements, dtype=bool)
+        return np.array(list(measurements.values()), dtype=bool)
 
 
 @value.value_equality
@@ -346,6 +344,26 @@ class CliffordState():
                              str(op.gate))  # type: ignore
         return
 
+    def apply_measurement(self,
+                          op: 'cirq.Operation',
+                          measurements: Dict[str, List[np.ndarray]],
+                          prng: np.random.RandomState,
+                          collapse_state_vector=True):
+        if collapse_state_vector:
+            state = self
+        else:
+            state = self.copy()
+
+        key = cirq.measurement_key(op)
+        qids = [self.qubit_map[i] for i in op.qubits]
+
+        args = clifford.ActOnCliffordTableauArgs(state.tableau, qids, prng,
+                                                 measurements)
+        act_on(op, args)
+
+        for i, qid in enumerate(qids):
+            state.ch_form.project_Z(qid, measurements[key][i])
+
     @deprecated_parameter(
         deadline='v0.10.0',
         fix='Use collapse_state_vector instead.',
@@ -354,6 +372,7 @@ class CliffordState():
         rewrite=lambda args, kwargs: (args, {('collapse_state_vector' if k ==
                                               'collapse_wavefunction' else k): v
                                              for k, v in kwargs.items()}))
+    @deprecated(deadline='v0.10.0', fix='Use the apply_measurement instead')
     def perform_measurement(self,
                             qubits: Sequence[ops.Qid],
                             prng: np.random.RandomState,
