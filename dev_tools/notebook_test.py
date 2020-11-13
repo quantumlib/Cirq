@@ -31,6 +31,10 @@ SKIP_NOTEBOOKS = [
     # skipping quantum volume notebooks as they have issues
     # see https://github.com/quantumlib/Cirq/issues/3501
     "examples/advanced/*.ipynb",
+
+    # skipping fidelity estimation due to
+    # https://github.com/quantumlib/Cirq/issues/3502
+    "examples/*fidelity*"
 ]
 
 
