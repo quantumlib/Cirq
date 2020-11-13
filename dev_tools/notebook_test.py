@@ -16,6 +16,9 @@ import glob
 import os
 import sys
 
+import pytest
+from filelock import FileLock
+
 from dev_tools import shell_tools
 from dev_tools.env_tools import create_virtual_env
 
@@ -36,9 +39,15 @@ def _tested_notebooks():
     skipped_notebooks = functools.reduce(
         lambda a, b: a.union(b),
         list(set(glob.glob(g, recursive=True)) for g in SKIP_NOTEBOOKS))
-    return (
+
+    # sorted is important otherwise pytest-xdist will complain that
+    # the workers have differnent parametrization:
+    # https://github.com/pytest-dev/pytest-xdist/issues/432
+    return sorted(
         os.path.abspath(n) for n in all_notebooks.difference(skipped_notebooks))
 
+
+TESTED_NOTEBOOKS = _tested_notebooks()
 
 PACKAGES = [
     # for running the notebooks
@@ -49,10 +58,8 @@ PACKAGES = [
     "seaborn",
 ]
 
-import pytest
-from filelock import FileLock
 
-
+@pytest.mark.slow
 @pytest.fixture(scope="session")
 def base_env(tmp_path_factory, worker_id):
     # get the temp directory shared by all workers
@@ -76,8 +83,7 @@ def create_base_env(proto_dir):
     shell_tools.run_cmd(pip_path, "install", *PACKAGES)
 
 
-@pytest.mark.slow
-@pytest.mark.parametrize("notebook_path", _tested_notebooks())
+@pytest.mark.parametrize("notebook_path", TESTED_NOTEBOOKS)
 def test_notebooks(notebook_path, base_env):
     """Ensures testing the notebooks in isolated virtual environments."""
     tmpdir, proto_dir = base_env
