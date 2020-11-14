@@ -150,7 +150,7 @@ def _numpy_arrays_to_state_vectors_or_density_matrices(
             # state1 is state tensor and state2 is density matrix.
             # Convert state1 to state vector
             state1 = np.reshape(state1, (np.prod(state1.shape),))
-        else: # state1.shape[0] > state2.shape[0]
+        else:  # state1.shape[0] > state2.shape[0]
             # state2 is state tensor and state1 is density matrix.
             # Convert state2 to state vector
             state2 = np.reshape(state2, (np.prod(state2.shape),))
