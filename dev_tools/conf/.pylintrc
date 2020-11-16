@@ -16,6 +16,7 @@ enable=
     consider-merging-isinstance,
     continue-in-finally,
     dangerous-default-value,
+    docstyle,
     duplicate-argument-name,
     expression-not-assigned,
     function-redefined,
