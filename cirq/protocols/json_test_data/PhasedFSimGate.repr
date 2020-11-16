@@ -1,0 +1,1 @@
+cirq.PhasedFSimGate(theta=-0.1, phi=0.2, delta_plus=-0.3, delta_minus=0.4, delta_minus_off_diagonal=-0.5)

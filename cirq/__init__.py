@@ -241,6 +241,7 @@ from cirq.ops import (
     phase_flip,
     PhaseDampingChannel,
     PhaseGradientGate,
+    PhasedFSimGate,
     PhasedISwapPowGate,
     PhasedXPowGate,
     PhasedXZGate,
