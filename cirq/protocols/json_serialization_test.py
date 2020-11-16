@@ -277,6 +277,8 @@ NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
     'Calibration',
+    'CalibrationLayer',
+    'CalibrationResult',
     'CircuitDag',
     'CircuitDiagramInfo',
     'CircuitDiagramInfoArgs',
