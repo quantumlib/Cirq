@@ -516,6 +516,7 @@ from cirq.protocols import (
     trace_distance_from_angle_list,
     unitary,
     validate_mixture,
+    with_measurement_key_mapping,
 )
 
 from cirq.ion import (
