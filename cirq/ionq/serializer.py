@@ -38,7 +38,7 @@ class Serializer:
                 is otherwise invalid.
         """
         if len(circuit) == 0:
-            raise ValueError('Cannot serializer empty circuit.')
+            raise ValueError('Cannot serialize empty circuit.')
         all_qubits = circuit.all_qubits()
         if any(not isinstance(q, line_qubit.LineQubit) for q in all_qubits):
             raise ValueError('All qubits must be cirq.LineQubits but were '
