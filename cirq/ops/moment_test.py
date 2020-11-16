@@ -458,3 +458,22 @@ aa │
 0 │ Empty
   │
     """)
+
+def test_commutes():
+    a = cirq.NamedQubit('a')
+    b = cirq.NamedQubit('b')
+    c = cirq.NamedQubit('c')
+    d = cirq.NamedQubit('d')
+
+    moment = cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)])
+
+    assert cirq.commutes(moment, cirq.X(a))
+    assert cirq.commutes(moment, cirq.Y(b))
+    assert cirq.commutes(moment, cirq.H(c))
+    assert cirq.commutes(moment, cirq.H(d))
+
+    # X and H do not commute
+    assert not cirq.commutes(moment, cirq.H(a))
+    assert not cirq.commutes(moment, cirq.H(b))
+    assert not cirq.commutes(moment, cirq.X(c))
+    
