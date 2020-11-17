@@ -190,7 +190,10 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     Note that the phase factors are not independent.
 
     This parametrization follows eq (18) in https://arxiv.org/abs/2010.07965.
-    See also eq (43) in https://arxiv.org/abs/1910.11333 for an older variant.
+    See also eq (43) in https://arxiv.org/abs/1910.11333 for an older variant
+    which uses the same θ and φ parameters, but its three phase angles have
+    different names and opposite sign. Specifically, ∆+ angle corresponds to
+    -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
 
     There is another useful parametrization of PhasedFSimGate based on the fact
     that the gate is equivalent up to global phase to the following circuit:
