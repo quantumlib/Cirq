@@ -13,7 +13,7 @@
 # limitations under the License.
 """Protocol for object that have measurement keys."""
 
-from typing import AbstractSet, Any, Iterable
+from typing import AbstractSet, Any, Dict, Iterable
 
 from typing_extensions import Protocol
 
@@ -63,6 +63,13 @@ class SupportsMeasurementKey(Protocol):
         When a measurement occurs, either on hardware, or in a simulation,
         these are the key values under which the results of the measurements
         will be stored.
+        """
+
+    @doc_private
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        """Return a copy of this object with the measurement keys remapped.
+
+        This method allows measurement keys to be reassigned at runtime.
         """
 
 
@@ -143,3 +150,13 @@ def is_measurement(val: Any) -> bool:
     a non-empty result for them.
     """
     return bool(measurement_keys(val))
+
+
+def with_measurement_key_mapping(val: Any, key_map: Dict[str, str]):
+    """Remaps the target's measurement keys according to the provided key_map.
+
+    This method can be used to reassign measurement keys at runtime, or to
+    assign measurement keys from a higher-level object (such as a Circuit).
+    """
+    getter = getattr(val, '_with_measurement_key_mapping_', None)
+    return NotImplemented if getter is None else getter(key_map)
