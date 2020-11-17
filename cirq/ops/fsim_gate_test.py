@@ -252,21 +252,17 @@ def test_fsim_json_dict():
 def test_phased_fsim_init():
     f = cirq.PhasedFSimGate(1, 2, 3, 4, 5)
     assert f.theta == 1
-    assert f.phi == 2
-    assert f.delta_plus == 3
-    assert f.delta_minus == 4 - 2 * np.pi
-    assert f.delta_minus_off_diagonal == 5 - 2 * np.pi
+    assert f.zeta == 2
+    assert f.chi == 3
+    assert f.gamma == 4 - 2 * np.pi
+    assert f.phi == 5 - 2 * np.pi
 
-    f2 = cirq.PhasedFSimGate(theta=1,
-                             phi=2,
-                             delta_plus=3,
-                             delta_minus=4,
-                             delta_minus_off_diagonal=5)
+    f2 = cirq.PhasedFSimGate(theta=1, zeta=2, chi=3, gamma=4, phi=5)
     assert f2.theta == 1
-    assert f2.phi == 2
-    assert f.delta_plus == 3
-    assert f.delta_minus == 4 - 2 * np.pi
-    assert f.delta_minus_off_diagonal == 5 - 2 * np.pi
+    assert f2.zeta == 2
+    assert f2.chi == 3
+    assert f2.gamma == 4 - 2 * np.pi
+    assert f2.phi == 5 - 2 * np.pi
 
 
 @pytest.mark.parametrize('theta, phi, phase_angles_before, phase_angles_after',
@@ -358,29 +354,26 @@ def test_phased_fsim_approx_eq():
                           atol=0.01)
 
 
-@pytest.mark.parametrize(
-    'theta, phi, delta_plus, delta_minus, delta_minus_off_diagonal', [
-        (0, 0, 0, 0, 0),
-        (0, 0, 1, 0, 0),
-        (0, 0, 0, 1, 0),
-        (0, 0, 0, 0, 1),
-        (np.pi / 3, np.pi / 5, 0, 0, 0),
-        (np.pi / 3, np.pi / 5, 1, 0, 0),
-        (np.pi / 3, np.pi / 5, 0, 1, 0),
-        (np.pi / 3, np.pi / 5, 0, 0, 1),
-        (-np.pi / 3, np.pi / 5, 1, 0, 0),
-        (np.pi / 3, -np.pi / 5, 0, 1, 0),
-        (-np.pi / 3, -np.pi / 5, 0, 0, 1),
-        (np.pi, 0, 0, 0, sympy.Symbol('a')),
-    ])
-def test_phased_fsim_consistent(theta, phi, delta_plus, delta_minus,
-                                delta_minus_off_diagonal):
-    gate = cirq.PhasedFSimGate(
-        theta=theta,
-        phi=phi,
-        delta_plus=delta_plus,
-        delta_minus=delta_minus,
-        delta_minus_off_diagonal=delta_minus_off_diagonal)
+@pytest.mark.parametrize('theta, zeta, chi, gamma, phi', [
+    (0, 0, 0, 0, 0),
+    (0, 1, 0, 0, 0),
+    (0, 0, 1, 0, 0),
+    (0, 0, 0, 1, 0),
+    (np.pi / 3, 0, 0, 0, np.pi / 5),
+    (np.pi / 3, 1, 0, 0, np.pi / 5),
+    (np.pi / 3, 0, 1, 0, np.pi / 5),
+    (np.pi / 3, 0, 0, 1, np.pi / 5),
+    (-np.pi / 3, 1, 0, 0, np.pi / 5),
+    (np.pi / 3, 0, 1, 0, -np.pi / 5),
+    (-np.pi / 3, 0, 0, 1, -np.pi / 5),
+    (np.pi, 0, 0, sympy.Symbol('a'), 0),
+])
+def test_phased_fsim_consistent(theta, zeta, chi, gamma, phi):
+    gate = cirq.PhasedFSimGate(theta=theta,
+                               zeta=zeta,
+                               chi=chi,
+                               gamma=gamma,
+                               phi=phi)
     cirq.testing.assert_implements_consistent_protocols(gate)
 
 
@@ -565,14 +558,11 @@ def test_phased_fsim_unitary():
         atol=1e-8,
     )
 
-    # Deltas
-    w6 = np.exp(1j * np.pi / 6)
+    # Zeta, gamma, chi
+    w6 = np.exp(-1j * np.pi / 6)
     np.testing.assert_allclose(
         cirq.unitary(
-            cirq.PhasedFSimGate(theta=0,
-                                phi=0,
-                                delta_plus=np.pi / 2,
-                                delta_minus=np.pi / 3)),
+            cirq.PhasedFSimGate(theta=0, gamma=np.pi / 2, zeta=np.pi / 3)),
         np.array([
             [1, 0, 0, 0],
             [0, -w6.conjugate(), 0, 0],
@@ -583,22 +573,17 @@ def test_phased_fsim_unitary():
     )
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=0)),
-        cirq.unitary(
-            cirq.PhasedFSimGate(theta=0, phi=0, delta_minus_off_diagonal=0.2)),
+        cirq.unitary(cirq.PhasedFSimGate(theta=0, phi=0, chi=0.2)),
         atol=1e-8)
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(theta=np.pi, phi=0)),
-        cirq.unitary(
-            cirq.PhasedFSimGate(theta=np.pi,
-                                phi=0,
-                                delta_minus_off_diagonal=0.2)),
+        cirq.unitary(cirq.PhasedFSimGate(theta=np.pi, chi=0.2)),
         atol=1e-8)
     np.testing.assert_allclose(
         cirq.unitary(
             cirq.PhasedFSimGate(theta=-np.pi / 2,
-                                phi=0,
-                                delta_plus=np.pi / 2,
-                                delta_minus_off_diagonal=np.pi / 3)),
+                                gamma=np.pi / 2,
+                                chi=np.pi / 3)),
         np.array([
             [1, 0, 0, 0],
             [0, 0, 1j * w6, 0],
@@ -607,20 +592,14 @@ def test_phased_fsim_unitary():
         ]),
         atol=1e-8,
     )
-    np.testing.assert_allclose(cirq.unitary(
-        cirq.PhasedFSimGate(theta=np.pi / 2, phi=0)),
-                               cirq.unitary(
-                                   cirq.PhasedFSimGate(theta=np.pi / 2,
-                                                       phi=0,
-                                                       delta_minus=0.2)),
-                               atol=1e-8)
-    np.testing.assert_allclose(cirq.unitary(
-        cirq.PhasedFSimGate(theta=-np.pi / 2, phi=0)),
-                               cirq.unitary(
-                                   cirq.PhasedFSimGate(theta=-np.pi / 2,
-                                                       phi=0,
-                                                       delta_minus=0.2)),
-                               atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(theta=np.pi / 2, phi=0)),
+        cirq.unitary(cirq.PhasedFSimGate(theta=np.pi / 2, zeta=0.2, phi=0)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(theta=-np.pi / 2, phi=0)),
+        cirq.unitary(cirq.PhasedFSimGate(theta=-np.pi / 2, zeta=0.2)),
+        atol=1e-8)
 
 
 @pytest.mark.parametrize('theta, phi', (
@@ -635,7 +614,7 @@ def test_phased_fsim_unitary():
 ))
 def test_phased_fsim_vs_fsim(theta, phi):
     g1 = cirq.FSimGate(theta, phi)
-    g2 = cirq.PhasedFSimGate(theta, phi)
+    g2 = cirq.PhasedFSimGate(theta, 0, 0, 0, phi)
     assert np.allclose(cirq.unitary(g1), cirq.unitary(g2))
 
 
@@ -648,14 +627,14 @@ def test_phased_fsim_repr():
 
 def test_phased_fsim_json_dict():
     assert cirq.PhasedFSimGate(theta=0.12,
-                               phi=0.34,
-                               delta_plus=0.56,
-                               delta_minus=0.78,
-                               delta_minus_off_diagonal=0.9)._json_dict_() == {
+                               zeta=0.34,
+                               chi=0.56,
+                               gamma=0.78,
+                               phi=0.9)._json_dict_() == {
                                    'cirq_type': 'PhasedFSimGate',
                                    'theta': 0.12,
-                                   'phi': 0.34,
-                                   'delta_plus': 0.56,
-                                   'delta_minus': 0.78,
-                                   'delta_minus_off_diagonal': 0.9,
+                                   'zeta': 0.34,
+                                   'chi': 0.56,
+                                   'gamma': 0.78,
+                                   'phi': 0.9,
                                }

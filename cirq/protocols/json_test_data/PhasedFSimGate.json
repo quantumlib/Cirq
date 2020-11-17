@@ -1,8 +1,8 @@
 {
   "cirq_type": "PhasedFSimGate",
   "theta": -0.1,
-  "phi": 0.2,
-  "delta_plus": -0.3,
-  "delta_minus": 0.4,
-  "delta_minus_off_diagonal": -0.5
+  "zeta": 0.2,
+  "chi": -0.3,
+  "gamma": 0.4,
+  "phi": -0.5
 }
