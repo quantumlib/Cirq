@@ -1,0 +1,34 @@
+[cirq.CircuitGate(
+    cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.H(cirq.LineQubit(0)),
+            cirq.H(cirq.LineQubit(1)),
+            cirq.H(cirq.LineQubit(2)),
+            cirq.H(cirq.LineQubit(3)),
+            cirq.H(cirq.LineQubit(4)),
+        ),
+        cirq.Moment(
+            cirq.MeasurementGate(5, '0,1,2,3,4', ()).on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), cirq.LineQubit(3), cirq.LineQubit(4)),
+        ),
+    ])
+), cirq.CircuitGate(
+    cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.S(cirq.LineQubit(0)),
+        ),
+    ]), exp_modulus=4
+), cirq.CircuitGate(
+    cirq.FrozenCircuit([
+        cirq.Moment(
+            (cirq.X**sympy.Symbol('theta')).on(cirq.LineQubit(0)),
+        ),
+    ]), name='xpow' 
+), cirq.CircuitGate(
+    cirq.FrozenCircuit([
+        cirq.Moment(
+            cirq.X(cirq.LineQubit(0)),
+            cirq.X(cirq.LineQubit(1)),
+            cirq.X(cirq.LineQubit(2)),
+        ),
+    ]), name='flip_three', exp_modulus=2
+)]

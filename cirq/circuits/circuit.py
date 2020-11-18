@@ -758,12 +758,26 @@ class AbstractCircuit(abc.ABC):
 
         Returns:
             Whether or not all `Operation` s in a circuit that satisfy the
-            given predicate are terminal.
+            given predicate are terminal. Also checks within any CircuitGates
+            the circuit may contain.
         """
-        return all(
-            self.next_moment_operating_on(op.qubits, i + 1) is None for
-            (i, op) in self.findall_operations(predicate)
-        )
+        from cirq.circuits import CircuitGate
+        if not all(
+                self.next_moment_operating_on(op.qubits, i + 1) is None
+                for (i, op) in self.findall_operations(predicate)
+                if not isinstance(op.gate, CircuitGate)):
+            return False
+
+        for index, _, gate in self.findall_operations_with_gate_type(
+                CircuitGate):
+            if not gate.circuit.are_all_matches_terminal(predicate):
+                return False
+            if index < len(self.moments) - 1 and not all(
+                    self.next_moment_operating_on(op.qubits, index + 1) is None
+                    for _, op in gate.circuit.findall_operations(predicate)):
+                return False
+
+        return True
 
     def _has_op_at(self, moment_index: int,
                    qubits: Iterable['cirq.Qid']) -> bool:
