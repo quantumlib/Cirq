@@ -44,9 +44,14 @@ def test_circuit_gate():
     assert g.circuit == gn.circuit
     assert g != gn
 
-    gn = cirq.CircuitGate(cirq.CZ(a, b), exp_modulus=2)
+    gexp = cirq.CircuitGate(cirq.CZ(a, b), exp_modulus=2)
     assert g.circuit == gn.circuit
     assert g != gn
+
+    # Verify that hashes are unique.
+    assert hash(g) != hash(gn)
+    assert hash(g) != hash(gexp)
+    assert hash(gn) != hash(gexp)
 
 
 def test_circuit_op():
@@ -134,6 +139,24 @@ def test_circuit_gate_shape():
     assert qubit_gate.num_qubits() == 3
 
 
+def test_circuit_gate_remap_measurements():
+    a, b = cirq.LineQubit.range(2)
+    cg = cirq.CircuitGate(cirq.X(a), cirq.measure(b, key='mb'),
+                          cirq.measure(a, key='ma'))
+
+    cg2 = cirq.with_measurement_key_mapping(cg, {'ma': 'pa', 'mb': 'kb'})
+    assert cg2 == cirq.CircuitGate(cirq.X(a), cirq.measure(b, key='kb'),
+                                   cirq.measure(a, key='pa'))
+
+
+def test_circuit_gate_commutes_unsupported():
+    a, b = cirq.LineQubit.range(2)
+    cg = cirq.CircuitGate(cirq.X(a), cirq.Z(b))
+
+    with pytest.raises(TypeError):
+        _ = cirq.commutes(cg, cirq.X(a))
+
+
 def test_circuit_gate_json_dict():
     cg = cirq.CircuitGate(cirq.X(cirq.LineQubit(0)))
     assert cg._json_dict_() == {
@@ -157,6 +180,43 @@ CircuitGate:
 [ 1: ───H───@───M──────── ]
 [           │   │         ]
 [ 2: ───────X───M──────── ]"""
+
+    assert repr(cg) == """\
+cirq.CircuitGate(cirq.FrozenCircuit([
+    cirq.Moment(
+        cirq.X(cirq.LineQubit(0)),
+        cirq.H(cirq.LineQubit(1)),
+    ),
+    cirq.Moment(
+        cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(2)),
+    ),
+    cirq.Moment(
+        cirq.measure(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2), key='m'),
+    ),
+]))"""
+
+    cg = cirq.CircuitGate(cirq.X(x),
+                          cirq.H(y),
+                          cirq.CX(y, x),
+                          name='new_gate',
+                          exp_modulus=2)
+
+    assert str(cg) == """\
+new_gate:
+[ 0: ───X───X─── ]
+[           │    ]
+[ 1: ───H───@─── ]"""
+
+    assert repr(cg) == """\
+cirq.CircuitGate(cirq.FrozenCircuit([
+    cirq.Moment(
+        cirq.X(cirq.LineQubit(0)),
+        cirq.H(cirq.LineQubit(1)),
+    ),
+    cirq.Moment(
+        cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
+    ),
+]), name='new_gate', exp_modulus=2)"""
 
 
 # Test CircuitGates in Circuits.

@@ -120,7 +120,7 @@ class CircuitGate(ops.Gate):
     def __repr__(self) -> str:
         base_repr = repr(self.circuit)
         if self.name is not None:
-            base_repr += f', name={self.name}'
+            base_repr += f""", name='{self.name}'"""
         if self.exp_modulus is not None:
             base_repr += f', exp_modulus={self.exp_modulus}'
         return f'cirq.CircuitGate({base_repr})'
@@ -137,6 +137,7 @@ class CircuitGate(ops.Gate):
 
     def _commutes_(self, other: Any,
                    atol: float) -> Union[None, NotImplementedType, bool]:
+        # Until Circuit supports _commutes_, this will return NotImplemented.
         return protocols.commutes(self.circuit, other, atol=atol)
 
     def _has_unitary_(self) -> bool:
@@ -186,6 +187,4 @@ class CircuitOperation(ops.GateOperation):
     # TODO: Fully implement this class.
 
     def __init__(self, gate: 'CircuitGate', qubits: Sequence['cirq.Qid']):
-        if not isinstance(gate, CircuitGate):
-            raise TypeError('CircuitOperations must contain CircuitGates.')
         super().__init__(gate, qubits)
