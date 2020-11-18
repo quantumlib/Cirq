@@ -155,7 +155,7 @@ class CircuitGate(ops.Gate):
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
     ) -> Sequence['cirq.Qid']:
         """Returns the qubits in the contained circuit.
-        
+
         Args:
             qubit_order: The order in which to return the circuit's qubits.
         """
