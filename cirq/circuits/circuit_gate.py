@@ -18,7 +18,7 @@ of a larger circuit, a CircuitGate will execute all component gates in order,
 including any nested CircuitGates.
 """
 
-from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Sequence, Tuple, Union
 
 from cirq import circuits, devices, ops, protocols
 from cirq.circuits.insert_strategy import InsertStrategy
@@ -65,27 +65,36 @@ class CircuitGate(ops.Gate):
         self._exp_modulus = exp_modulus
 
     @property
-    def circuit(self):
+    def circuit(self) -> 'cirq.FrozenCircuit':
+        """The circuit represented by this gate."""
         return self._circuit
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
+        """The name used to represent this gate in serialization."""
         return self._name
 
     @property
-    def exp_modulus(self):
+    def exp_modulus(self) -> Optional[int]:
+        """The exponential modulus of this gate.
+
+        Operations which wrap this gate will have their exponent mapped to the
+        range [-exp_modulus / 2, exp_modulus / 2) if invertible, or
+        [0, exp_modulus) otherwise.
+        """
         return self._exp_modulus
 
-    def _num_qubits_(self):
+    def _num_qubits_(self) -> int:
         return protocols.num_qubits(self.circuit)
 
-    def _qid_shape_(self):
+    def _qid_shape_(self) -> Tuple[int, ...]:
         return protocols.qid_shape(self.circuit)
 
     def on(self, *qubits: 'cirq.Qid') -> 'CircuitOperation':
         return CircuitOperation(self, qubits)
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]
+                                      ) -> 'CircuitGate':
         new_gate = CircuitGate()
         new_gate._circuit = protocols.with_measurement_key_mapping(
             self.circuit, key_map)
@@ -93,22 +102,22 @@ class CircuitGate(ops.Gate):
         new_gate._exp_modulus = self.exp_modulus
         return new_gate
 
-    def __eq__(self, other):
+    def __eq__(self, other) -> bool:
         if type(other) != type(self):
             return False
         return (self.circuit == other.circuit and self.name == other.name and
                 self.exp_modulus == other.exp_modulus)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.circuit, self.name, self.exp_modulus))
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> 'CircuitGate':
         try:
             return CircuitGate(self.circuit**power, device=self.circuit.device)
         except:
             return NotImplemented
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         base_repr = repr(self.circuit)
         if self.name is not None:
             base_repr += f', name={self.name}'
@@ -116,7 +125,7 @@ class CircuitGate(ops.Gate):
             base_repr += f', exp_modulus={self.exp_modulus}'
         return f'cirq.CircuitGate({base_repr})'
 
-    def __str__(self):
+    def __str__(self) -> str:
         header = 'CircuitGate:' if self.name is None else f'{self.name}:'
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
@@ -130,10 +139,10 @@ class CircuitGate(ops.Gate):
                    atol: float) -> Union[None, NotImplementedType, bool]:
         return protocols.commutes(self.circuit, other, atol=atol)
 
-    def _has_unitary_(self):
+    def _has_unitary_(self) -> bool:
         return protocols.has_unitary(self.circuit)
 
-    def _decompose_(self, qubits=None):
+    def _decompose_(self, qubits=None) -> 'cirq.OP_TREE':
         applied_circuit = self.circuit.unfreeze()
         if qubits is not None and qubits != self.ordered_qubits():
             qmap = {old: new for old, new in zip(self.ordered_qubits(), qubits)}
@@ -144,16 +153,22 @@ class CircuitGate(ops.Gate):
     def ordered_qubits(
             self,
             qubit_order: 'cirq.QubitOrderOrList' = ops.QubitOrder.DEFAULT,
-    ):
+    ) -> Sequence['cirq.Qid']:
+        """Returns the qubits in the contained circuit.
+        
+        Args:
+            qubit_order: The order in which to return the circuit's qubits.
+        """
         return ops.QubitOrder.as_qubit_order(qubit_order).order_for(
             self.circuit.all_qubits())
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         return protocols.obj_to_dict_helper(self,
                                             ['circuit', 'name', 'exp_modulus'])
 
     @classmethod
-    def _from_json_dict_(cls, circuit, name, exp_modulus, **kwargs):
+    def _from_json_dict_(cls, circuit, name, exp_modulus,
+                         **kwargs) -> 'CircuitGate':
         return cls(circuit,
                    strategy=InsertStrategy.EARLIEST,
                    device=circuit.device,
