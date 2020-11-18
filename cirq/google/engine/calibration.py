@@ -50,9 +50,15 @@ class Calibration(abc.Mapping):
             the epoch.
     """
 
-    def __init__(self, calibration: v2.metrics_pb2.MetricsSnapshot) -> None:
+    def __init__(self,
+                 calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
+                 MetricsSnapshot(),
+                 metric_dict: Optional[
+                     Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
+                ) -> None:
         self.timestamp = calibration.timestamp_ms
-        self._metric_dict = self._compute_metric_dict(calibration.metrics)
+        self._metric_dict = (metric_dict or
+                             self._compute_metric_dict(calibration.metrics))
 
     def _compute_metric_dict(
             self, metrics: v2.metrics_pb2.MetricsSnapshot
@@ -103,8 +109,39 @@ class Calibration(abc.Mapping):
         return len(self._metric_dict)
 
     def __str__(self) -> str:
+        return f'Calibration(keys={list(sorted(self.keys()))})'
 
-        return 'Calibration(keys={})'.format(list(sorted(self.keys())))
+    def __repr__(self) -> str:
+        return ('cirq.google.Calibration(metric_dict='
+                f'{repr(dict(self._metric_dict))})')
+
+    @classmethod
+    def _from_json_dict_(cls, metrics, **kwargs):
+        metric_dict = {}
+        for metric in metrics:
+            metric_dict[metric['name']] = {}
+            for idx, val in enumerate(metric['targets']):
+                key = tuple(v2.grid_qubit_from_proto_id(q) for q in val)
+                metric_dict[metric['name']][key] = metric['values'][idx]
+
+        return cls(metric_dict=metric_dict)
+
+    def _json_dict_(self):
+        rtn = []
+        count = 0
+        for key in self._metric_dict:
+            metric_dict = {}
+            rtn.append(metric_dict)
+            metric_dict['name'] = key
+            cur_dict = self._metric_dict[key]
+            metric_dict['targets'] = [
+                [v2.qubit_to_proto_id(q) for q in k] for k in cur_dict
+            ]
+            metric_dict['values'] = [
+                [val for val in cur_dict[k]] for k in cur_dict
+            ]
+            count += 1
+        return {'cirq_type': 'Calibration', 'metrics': rtn}
 
     def timestamp_str(self,
                       tz: Optional[datetime.tzinfo] = None,

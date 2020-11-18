@@ -94,6 +94,11 @@ def test_calibration_str():
                                 "'xeb'])")
 
 
+def test_calibration_repr():
+    calibration = cg.Calibration(_CALIBRATION_DATA)
+    cirq.testing.assert_equivalent_repr(calibration)
+
+
 def test_calibration_timestamp_str():
     calibration = cg.Calibration(_CALIBRATION_DATA)
     assert (calibration.timestamp_str(

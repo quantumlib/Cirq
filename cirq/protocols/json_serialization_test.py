@@ -276,7 +276,6 @@ def test_mutually_exclusive_blacklist():
 NOT_YET_SERIALIZABLE = [
     'AsymmetricDepolarizingChannel',
     'AxisAngleDecomposition',
-    'Calibration',
     'CalibrationLayer',
     'CalibrationResult',
     'CircuitDag',
