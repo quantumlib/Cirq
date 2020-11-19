@@ -62,30 +62,30 @@ class Hierarchy_tree:
             fidelity: total value of E*V
         """
 
-        edges_count = len(list(self.device_graph.edges))
+        edges_count = len(self.device_graph.edges)
         omega = 1.0
         inside_edges = 0
         outside_edges = 0
         total_edges = 0
-        """ compute inside edges """
+        # Compute inside edges 
         for c1 in com1:
             for c2 in com2:
-                if (self.device_graph.has_edge(c1, c2)):
+                if self.device_graph.has_edge(c1, c2):
                     inside_edges += 1
         for i in range(len(com1) - 1):
             for j in range(i + 1, len(com1), 1):
-                if (self.device_graph.has_edge(com1[i], com1[j])):
+                if self.device_graph.has_edge(com1[i], com1[j]):
                     inside_edges += 1
         for i in range(len(com2) - 1):
             for j in range(i + 1, len(com2), 1):
-                if (self.device_graph.has_edge(com2[i], com2[j])):
+                if self.device_graph.has_edge(com2[i], com2[j]):
                     inside_edges += 1
-        """ compute total edges """
+        # Compute total edges 
         for c1 in com1:
             total_edges += len(list(c1.neighbors()))
         for c2 in com2:
             total_edges += len(list(c2.neighbors()))
-        """ compute outside edges """
+        # Compute outside edges 
         outside_edges = total_edges - 2 * inside_edges
 
         Qmerged = float(inside_edges / edges_count) - pow(
@@ -126,23 +126,23 @@ class Hierarchy_tree:
         idx1 = 0
         idx2 = 1
         Qmerged = 0.0
-        Fmax = - np.inf
+        Fmax = -np.inf
 
         for i in range(len(communities) - 1):
             for j in range(i + 1, len(communities), 1):
                 fidelity = self.find_edge_among_coms(communities[i],
                                                      communities[j])
-                if (fidelity != 0.0):
+                if fidelity != 0.0:
                     F, qmerged = self.compute_F(communities[i], communities[j],
                                                 Qvalues[i], Qvalues[j],
                                                 fidelity)
-                    if (F > Fmax):
+                    if F > Fmax:
                         Fmax = F
                         idx1 = i
                         idx2 = j
                         Qmerged = qmerged
 
-        if (idx1 > idx2):
+        if idx1 > idx2:
             return idx1, idx2, Qmerged
         else:
             return idx2, idx1, Qmerged
@@ -151,23 +151,14 @@ class Hierarchy_tree:
         tree = nx.DiGraph()
         label = 0
         communities = []
-        #for n in list(self.device_graph.nodes):
-        #tree.add_node(n)   #(label, data = [n])
-        #label = label + 1
 
         communities = [[i] for i in list(self.device_graph.nodes)]
         Qvalues = [0.0] * len(communities)
 
         while len(communities) > 1:
             idx1, idx2, Qmerged = self.compute_new_node(communities, Qvalues)
-            # new_node = []
-            # new_node.append(communities[idx1])
-            # new_node.append(communities[idx2])
             new_node_list = communities[idx1] + communities[idx2]
-            #print(new_node_list)
-            #tree[tuple(new_node_idx)] = new_node
             new_node = tuple(new_node_list)
-            #tree.add_node(new_node) #(label , data = new_node_idx)
             tree.add_edge(new_node, tuple(communities[idx1]))
             tree.add_edge(new_node, tuple(communities[idx2]))
 
@@ -201,12 +192,11 @@ class Qubits_partitioning:
                         lambda op: op.gate == self.twoQ_gate_type))) / float(
                             len(circuit.all_qubits()))
             cnot_density.append(density)
-        """ computing indices regarding descending order of cnot densities """
+        # Computing indices regarding descending order of cnot densities
         idxs = np.argsort(cnot_density)
         idxs_descending = np.flip(idxs)
-        """ reorder list of program_circuits """
+        # Reorder list of program_circuits 
         circuits_temp = []  #copy.deepcopy(self.program_circuits)
-        #self.program_circuits.clear()
         for id in idxs_descending:
             circuits_temp.append(self.program_circuits[id])
 
@@ -247,9 +237,7 @@ class Qubits_partitioning:
         find best candidate based on average fidelity
         """
         best_cand = cands[0]
-        max_f = - np.inf
-        # if len(cands)==1:
-        #     return tuple(best_cand)
+        max_f = -np.inf
 
         for cand in cands:
             epst = self.compute_EPST(cand, cir)
@@ -262,7 +250,7 @@ class Qubits_partitioning:
     def qubits_allocation(
             self,
             desc_prog_circuits: List[circuits.Circuit]) -> List[List[ops.Qid]]:
-        #self.circuits_descending()
+       
         partition = []
 
         for cir in desc_prog_circuits:
@@ -280,7 +268,7 @@ class Qubits_partitioning:
                                 exist = 1
                                 break
                             elif set(c).issubset(leaf):
-                                """ keep independent candidates"""
+                                # Keep independent candidates
                                 exist = 1
                                 break
                         if not exist:
@@ -294,7 +282,7 @@ class Qubits_partitioning:
 
             best_cand = self.find_best_candidate(candidates, cir)
             partition.append(best_cand)
-            """ remove nodes from tree & relabel remaining nodes"""
+            # Remove nodes from tree & relabel remaining nodes
             successors = list(self.tree.successors(best_cand))
             self.tree.remove_nodes_from(successors)
             self.tree.remove_node(best_cand)
@@ -326,11 +314,11 @@ class X_SWAP:
     def generate_2qGates_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_prog_circuits:
-            """ remove single qubit gates before creating dag """
+            # Remove single qubit gates before creating dag 
             singleq_gates = list(
                 c.findall_operations(lambda op: op.gate != self.twoQ_gate_type))
             c.batch_remove(singleq_gates)
-            """ create dag """
+            # Create dag 
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
         return cir_dags
@@ -338,7 +326,7 @@ class X_SWAP:
     def generate_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_program_circuits:
-            """ create dag """
+            # Create dag 
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
         return cir_dags
@@ -359,7 +347,7 @@ class X_SWAP:
 
     def generate_front_layers(
             self, cir_dags: cirq.CircuitDag) -> List[List[ops.Operation]]:
-        """ check all dags are empty """
+        # Check all dags are empty 
         counter = 0
         for dag in cir_dags:
             nodes = list(dag.ordered_nodes())
@@ -367,7 +355,7 @@ class X_SWAP:
                 counter = counter + 1
         if counter == len(cir_dags):
             return None
-        """ set of nodes """
+        # Set of nodes 
         flayers = []
         for dag in cir_dags:
             fl = []
@@ -404,7 +392,7 @@ class X_SWAP:
             for j in range(len(logical_qubits)):
                 self.l_to_ph[(logical_qubits[j], i)] = self.partitions[i][j]
                 self.ph_to_l[self.partitions[i][j]] = (logical_qubits[j], i)
-        """ manage unused qubits and map them to a unreal program with id = -1 """
+        # Manage unused qubits and map them to a unreal program with id = -1 
         l_qubits = cirq.LineQubit.range(total_ph_qubits - total_l_qubits)
         i = 0
         for ph_q in list(self.device_graph.nodes):
@@ -533,7 +521,7 @@ class X_SWAP:
                                                   s)
                 cost = H_cost + gain_cost
 
-                if (cost < min_cost):
+                if cost < min_cost:
                     min_cost = cost
                     best_swap = s
         return best_swap
@@ -545,8 +533,8 @@ class X_SWAP:
 
         flayers = self.generate_front_layers(dags)
         while flayers != None:
-            """ solve hardware-compliant gates 
-            i specify program index """
+            # Solve hardware-compliant gates 
+            # i specify program index 
             require_swap = 0
 
             for i in range(len(flayers)):
@@ -561,7 +549,7 @@ class X_SWAP:
 
                         schedule.append(g(phq))
                         dags[i].remove_node(n)
-                        # update front layer
+                        # Update front layer
                         flayers[i].remove(n)
                     else:
                         ph0 = self.l_to_ph[(n.val.qubits[0], i)]
@@ -575,13 +563,13 @@ class X_SWAP:
                             schedule.append(g(phq0, phq1))
 
                             dags[i].remove_node(n)
-                            # update front layer
+                            # Update front layer
                             flayers[i].remove(n)
                         else:
-                            """ require SWAP """
+                            # Rrequire SWAP 
                             require_swap = 1
-            """ solve hardware-incompliant gates by inserting SWAPs """
-            if (require_swap):
+            # Solve hardware-incompliant gates by inserting SWAPs 
+            if require_swap:
                 swap_candidate_lists = []
                 for i in range(len(flayers)):
                     if len(flayers[i]) == 0:
@@ -590,14 +578,15 @@ class X_SWAP:
                     critical_node_gates = flayers[i].copy()  # to do ??
                     swap_candidates = self.obtain_swaps(critical_node_gates, i)
                     swap_candidate_lists.append(swap_candidates)
-                """ find best SWAP """
-                """ list of 2 pairs: show each qubit belongs to which program id"""
+                # Find best SWAP
+                # List of 2 pairs: show each qubit belongs to which program id
                 best_swap = self.find_best_swap(swap_candidate_lists, flayers)
+                print(f"best swap: {best_swap}")
 
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
                 schedule.append(cirq.SWAP(ph0, ph1))
-                """ update mapping """
+                # Update mapping 
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
                 self.l_to_ph[best_swap[0]] = ph1
