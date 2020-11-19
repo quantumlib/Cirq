@@ -19,7 +19,7 @@ import pandas as pd
 import sympy
 from matplotlib import pyplot as plt
 
-from cirq import circuits, devices, ops, study, value, work
+from cirq import circuits, ops, study, value
 from cirq._compat import proper_repr
 
 if TYPE_CHECKING:
@@ -35,9 +35,9 @@ class ExperimentType(enum.Enum):
 _T2_COLUMNS = ['delay_ns', 0, 1]
 
 
-def t2_decay(sampler: work.Sampler,
+def t2_decay(sampler: 'cirq.Sampler',
              *,
-             qubit: devices.GridQubit,
+             qubit: 'cirq.Qid',
              experiment_type: 'ExperimentType' = ExperimentType.RAMSEY,
              num_points: int,
              max_delay: 'cirq.DURATION_LIKE',
@@ -235,7 +235,7 @@ def _create_tabulation(measurements: pd.DataFrame) -> pd.DataFrame:
     return tabulation
 
 
-def _cpmg_circuit(qubit: devices.GridQubit, delay_var: sympy.Symbol,
+def _cpmg_circuit(qubit: 'cirq.Qid', delay_var: sympy.Symbol,
                   max_pulses: int) -> 'cirq.Circuit':
     """Creates a CPMG circuit for a given qubit.
 
