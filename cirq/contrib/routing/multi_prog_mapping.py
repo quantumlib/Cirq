@@ -28,7 +28,7 @@ from cirq import circuits, ops, value
 SWAPTypeLogical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 
 
-class Hierarchy_tree:
+class HierarchyTree:
     """
     Create a dendrogram tree using coupling graph and calibration data. 
     Each node of this tree shows which physical qubits are better to be in same group.
@@ -82,9 +82,9 @@ class Hierarchy_tree:
                     inside_edges += 1
         # Compute total edges 
         for c1 in com1:
-            total_edges += len(list(c1.neighbors()))
+            total_edges += len(c1.neighbors())
         for c2 in com2:
-            total_edges += len(list(c2.neighbors()))
+            total_edges += len(c2.neighbors())
         # Compute outside edges 
         outside_edges = total_edges - 2 * inside_edges
 
@@ -172,7 +172,7 @@ class Hierarchy_tree:
         return tree
 
 
-class Qubits_partitioning:
+class QubitsPartitioning:
 
     def __init__(self, tree: nx.DiGraph(),
                  program_circuits: List[circuits.Circuit], single_er: dict(),
@@ -295,7 +295,7 @@ class Qubits_partitioning:
         return partition
 
 
-class X_SWAP:
+class XSWAP:
 
     def __init__(self,
                  device_graph: nx.Graph,
@@ -606,12 +606,12 @@ class X_SWAP:
 def multi_prog_map(device_graph: nx.Graph, single_er: dict(), two_er: dict(),
                    prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
-    treeObj = Hierarchy_tree(device_graph, single_er, two_er)
+    treeObj = HierarchyTree(device_graph, single_er, two_er)
     tree = treeObj.tree_construction()
     print("tree")
     print(tree.nodes)
 
-    parObj = Qubits_partitioning(tree, prog_circuits, single_er, two_er,
+    parObj = QubitsPartitioning(tree, prog_circuits, single_er, two_er,
                                  twoQ_gate_type)
     desc_cirs = parObj.circuits_descending()
 
@@ -620,7 +620,7 @@ def multi_prog_map(device_graph: nx.Graph, single_er: dict(), two_er: dict(),
     print("partitions:")
     print(partitions)
 
-    xswap = X_SWAP(device_graph, desc_cirs, partitions, twoQ_gate_type)
+    xswap = XSWAP(device_graph, desc_cirs, partitions, twoQ_gate_type)
     schedule = xswap.insert_SWAP_and_generate_schedule()
     print("schedule:")
     print(schedule)
