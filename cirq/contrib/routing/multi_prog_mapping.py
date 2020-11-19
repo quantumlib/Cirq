@@ -25,7 +25,7 @@ import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
 
 
-SWAP_type_logical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
+SWAPTypeLogical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 
 
 class Hierarchy_tree:
