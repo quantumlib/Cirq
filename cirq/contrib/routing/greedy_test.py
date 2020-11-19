@@ -28,5 +28,3 @@ def test_bad_args():
     with pytest.raises(ValueError):
         route_circuit_greedily(circuit, device_graph, max_num_empty_steps=0)
 
-
-test_bad_args()
