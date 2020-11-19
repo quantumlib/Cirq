@@ -51,8 +51,8 @@ class Calibration(abc.Mapping):
     """
 
     def __init__(self,
-                 calibration: v2.metrics_pb2.MetricsSnapshot = v2.metrics_pb2.
-                 MetricsSnapshot(),
+                 calibration: v2.metrics_pb2.MetricsSnapshot = (
+                     v2.metrics_pb2.MetricsSnapshot()),
                  metric_dict: Optional[
                      Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
                 ) -> None:
@@ -128,19 +128,17 @@ class Calibration(abc.Mapping):
 
     def _json_dict_(self):
         rtn = []
-        count = 0
         for key in self._metric_dict:
-            metric_dict = {}
-            rtn.append(metric_dict)
-            metric_dict['name'] = key
-            cur_dict = self._metric_dict[key]
-            metric_dict['targets'] = [
-                [v2.qubit_to_proto_id(q) for q in k] for k in cur_dict
-            ]
-            metric_dict['values'] = [
-                [val for val in cur_dict[k]] for k in cur_dict
-            ]
-            count += 1
+            current_metric = {}
+            current_metric['name'] = key
+            targets = []
+            values = []
+            for target, value in self._metric_dict[key].items():
+                targets.append([v2.qubit_to_proto_id(q) for q in target])
+                values.append(value)
+            current_metric['targets'] = targets
+            current_metric['values'] = values
+            rtn.append(current_metric)
         return {'cirq_type': 'Calibration', 'metrics': rtn}
 
     def timestamp_str(self,
