@@ -1,4 +1,4 @@
-# Copyright 2019 The Cirq Developers
+# Copyright 2020 The Cirq Developers
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,10 +25,19 @@ import itertools
 from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
                     Set, Tuple, TYPE_CHECKING)
 
-SWAP_type_logical = [Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
+SWAP_type_logical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 
 
 class Hierarchy_tree:
+    """
+    Create a dendrogram tree using coupling graph and calibration data. 
+    Each node of this tree shows which physical qubits are better to be in same group.
+
+    Args:
+        device_graph: coupling graph of physical device
+        single_er: a dictionary that shows operation error of single-qubit gates
+        two_er: a dictionary that shows operation error of two-qubits gates
+    """
 
     def __init__(self, device_graph: nx.Graph, single_er: dict(),
                  two_er: dict()):
@@ -38,6 +47,21 @@ class Hierarchy_tree:
 
     def compute_F(self, com1: List[ops.Qid], com2: List[ops.Qid], Q1: float,
                   Q2: float, fidelity: float) -> (float, float):
+        """
+        Computes the reward function F, F = Qmerged - Qorigin + (omega)*E*V
+        Qorigin, Qmerged denote the modularity of the original partition and the new partition after merging the two communities.
+        w is a weight parameter.
+        E denotes the average fidelity of two-qubits gates (e.g. CNOTs).
+        V denotes the average fidelity of readout operations on the qubits connecting the two communities.
+
+        Args:
+            com1: first community
+            com2: second community
+            Q1: original value of Q for first community
+            Q2: original value of Q for second community
+            fidelity: total value of E*V
+        """
+
         edges_count = len(list(self.device_graph.edges))
         omega = 1.0
         inside_edges = 0
@@ -73,6 +97,14 @@ class Hierarchy_tree:
 
     def find_edge_among_coms(self, com1: List[ops.Qid],
                              com2: List[ops.Qid]) -> float:
+        """
+        Computes fidelity of merging two communities.
+
+        Args:
+            com1: first community
+            com2: second community
+        """
+
         fidelity = 0.0
         for c1 in com1:
             for c2 in com2:
@@ -397,10 +429,10 @@ class X_SWAP:
         self, phy_edge: (ops.Qid, ops.Qid)) -> SWAP_type_logical:
         log_pid0 = self.ph_to_l[phy_edge[0]]
         log_pid1 = self.ph_to_l[phy_edge[1]]
-        return [log_pid0, log_pid1]
+        return (log_pid0, log_pid1)
 
     def obtain_swaps(self, node_gates: cirq.CircuitDag.nodes,
-                     pid: int) -> [SWAP_type_logical]:
+                     pid: int) -> List[SWAP_type_logical]:
         swaps = []
         for n in node_gates:
             g = n.val
@@ -489,7 +521,7 @@ class X_SWAP:
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
-    def find_best_swap(self, swap_candidate_lists: [SWAP_type_logical],
+    def find_best_swap(self, swap_candidate_lists: List[List[SWAP_type_logical]],
                        flayers: List[List[ops.Operation]]) -> SWAP_type_logical:
         min_cost = inf
         best_swap = None
