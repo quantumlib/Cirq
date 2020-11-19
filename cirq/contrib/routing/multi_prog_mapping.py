@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
+from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
+                    Set, Tuple, TYPE_CHECKING)
+                    
 import networkx as nx
 import numpy as np
 import math
@@ -21,9 +25,6 @@ import cirq
 import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
 
-import itertools
-from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
-                    Set, Tuple, TYPE_CHECKING)
 
 SWAP_type_logical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 

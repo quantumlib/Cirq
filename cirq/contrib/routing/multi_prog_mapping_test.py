@@ -16,7 +16,7 @@ import pytest
 
 import cirq
 import cirq.contrib.routing as ccr
-from cirq.contrib.routing.multi_prog_mapping import *
+from cirq.contrib.routing.multi_prog_mapping import (multi_prog_map, prepare_couplingGraph_errorValues)
 
 
 def test_bad_args():
@@ -24,4 +24,5 @@ def test_bad_args():
     device_graph = ccr.get_grid_device_graph(3, 2)
 
     with pytest.raises(TypeError):
-        multi_prog_map(circuit, device_graph)
+        #multi_prog_map(circuit, device_graph)
+        prepare_couplingGraph_errorValues(device_graph)
