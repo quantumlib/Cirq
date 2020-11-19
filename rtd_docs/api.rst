@@ -189,6 +189,7 @@ Circuits, Operations, and Moments.
     cirq.flatten_op_tree
     cirq.freeze_op_tree
     cirq.transform_op_tree
+    cirq.AbstractCircuit
     cirq.Circuit
     cirq.CircuitDag
     cirq.FrozenCircuit
