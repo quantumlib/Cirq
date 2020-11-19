@@ -15,11 +15,10 @@
 import itertools
 from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
                     Set, Tuple, TYPE_CHECKING)
-                    
+
 import networkx as nx
 import numpy as np
-import math
-from numpy import inf
+#import math
 
 import cirq
 import cirq.contrib.routing as ccr
@@ -127,7 +126,7 @@ class Hierarchy_tree:
         idx1 = 0
         idx2 = 1
         Qmerged = 0.0
-        Fmax = -math.inf
+        Fmax = - np.inf
 
         for i in range(len(communities) - 1):
             for j in range(i + 1, len(communities), 1):
@@ -248,7 +247,7 @@ class Qubits_partitioning:
         find best candidate based on average fidelity
         """
         best_cand = cands[0]
-        max_f = -inf
+        max_f = - np.inf
         # if len(cands)==1:
         #     return tuple(best_cand)
 
@@ -483,7 +482,7 @@ class X_SWAP:
                                 edge[0],
                                 edge[1],
                                 cutoff=len(self.partitions[pidx])))
-        distance = inf
+        distance = np.inf
         for p in paths:
             if self.partitions[pidx] in p:
                 if len(p) < distance:
@@ -524,7 +523,7 @@ class X_SWAP:
 
     def find_best_swap(self, swap_candidate_lists: List[List[SWAP_type_logical]],
                        flayers: List[List[ops.Operation]]) -> SWAP_type_logical:
-        min_cost = inf
+        min_cost = np.inf
         best_swap = None
         for swaps in swap_candidate_lists:
             for s in swaps:
