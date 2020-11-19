@@ -43,15 +43,15 @@ class WaitGate(raw_types.Gate):
         self.duration = value.Duration(duration)
         if not protocols.is_parameterized(self.duration) and self.duration < 0:
             raise ValueError('duration < 0')
-        if qid_shape is None and num_qubits is None:
-            # Assume one qubit for backwards compatibility
-            num_qubits = 1
-            qid_shape = (2,)
-        elif qid_shape is None:
-            qid_shape = (2,) * num_qubits
-        elif num_qubits is None:
+        if qid_shape is None:
+            if num_qubits is None:
+                # Assume one qubit for backwards compatibility
+                qid_shape = (2,)
+            else:
+                qid_shape = (2,) * num_qubits
+        if num_qubits is None:
             num_qubits = len(qid_shape)
-        if num_qubits == 0:
+        if not qid_shape:
             raise ValueError('Waiting on an empty set of qubits.')
         if num_qubits != len(qid_shape):
             raise ValueError('len(qid_shape) != num_qubits')
