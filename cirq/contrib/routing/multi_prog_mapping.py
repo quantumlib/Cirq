@@ -189,7 +189,7 @@ class QubitsPartitioning:
             density = len(
                 list(
                     circuit.findall_operations(
-                        lambda op: op.gate == self.twoQ_gate_type))) / float(
+                        lambda op: op.gate == self.twoQ_gate_type) )) / float(
                             len(circuit.all_qubits()))
             cnot_density.append(density)
         # Computing indices regarding descending order of cnot densities
@@ -316,7 +316,7 @@ class XSWAP:
         for c in self.desc_prog_circuits:
             # Remove single qubit gates before creating dag 
             singleq_gates = list(
-                c.findall_operations(lambda op: op.gate != self.twoQ_gate_type))
+                c.findall_operations_with_gate_type(self.twoQ_gate_type))
             c.batch_remove(singleq_gates)
             # Create dag 
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
