@@ -426,13 +426,13 @@ class X_SWAP:
         return (phy0, phy1)
 
     def phy_to_log_edge(
-        self, phy_edge: (ops.Qid, ops.Qid)) -> SWAP_type_logical:
+        self, phy_edge: (ops.Qid, ops.Qid)) -> SWAPTypeLogical:
         log_pid0 = self.ph_to_l[phy_edge[0]]
         log_pid1 = self.ph_to_l[phy_edge[1]]
         return (log_pid0, log_pid1)
 
     def obtain_swaps(self, node_gates: cirq.CircuitDag.nodes,
-                     pid: int) -> List[SWAP_type_logical]:
+                     pid: int) -> List[SWAPTypeLogical]:
         swaps = []
         for n in node_gates:
             g = n.val
@@ -445,7 +445,7 @@ class X_SWAP:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(self, swap: SWAP_type_logical) -> (dict(), dict()):
+    def update_mapping(self, swap: SWAPTypeLogical) -> (dict(), dict()):
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -491,7 +491,7 @@ class X_SWAP:
 
     def compute_gainCost(self, flayers: List[List[ops.Operation]],
                          new_l_ph: dict(), new_ph_l: dict(),
-                         swap: SWAP_type_logical) -> float:
+                         swap: SWAPTypeLogical) -> float:
         gain_cost = 0
 
         for i in range(len(flayers)):
@@ -521,8 +521,8 @@ class X_SWAP:
             gain_cost = gain_cost + float(1 / len(flayers[i])) * cost_i
         return gain_cost
 
-    def find_best_swap(self, swap_candidate_lists: List[List[SWAP_type_logical]],
-                       flayers: List[List[ops.Operation]]) -> SWAP_type_logical:
+    def find_best_swap(self, swap_candidate_lists: List[List[SWAPTypeLogical]],
+                       flayers: List[List[ops.Operation]]) -> SWAPTypeLogical:
         min_cost = np.inf
         best_swap = None
         for swaps in swap_candidate_lists:
