@@ -16,7 +16,8 @@ import pytest
 
 import cirq
 import cirq.contrib.routing as ccr
-from cirq.contrib.routing.multi_prog_mapping import (multi_prog_map, prepare_couplingGraph_errorValues)
+from cirq.contrib.routing.multi_prog_mapping import (
+    multi_prog_map, prepare_couplingGraph_errorValues)
 
 
 def test_bad_args():

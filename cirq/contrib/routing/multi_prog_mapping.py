@@ -12,6 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+This module implements a multi-program mapping algorithm that is introduced in https://arxiv.org/abs/2004.12854.
+To improve overall throughput and resource utilization, we can map muliple programs to a specific quantum chip at the same time. 
+This paper proposes a new approach to map concurrent quantum programs. This approachhas some critical components. 
+The first one is the Community Detection Assisted Partition (CDAP) algorithm, which partitions physical qubits for 
+concurrent quantum programs by considering both physical typology (device graph) and the error rates (calibration data), 
+avoiding the waste of robust resources. The second one is the X-SWAP scheme that enables inter-program SWAP operations besides 
+intra-program SWAPs to reduce the SWAP overheads.
+ 
+"""
+
 import itertools
 from typing import (Callable, cast, Dict, Iterable, List, Optional, Sequence,
                     Set, Tuple, TYPE_CHECKING)
@@ -23,7 +34,6 @@ import numpy as np
 import cirq
 import cirq.contrib.routing as ccr
 from cirq import circuits, ops, value
-
 
 SWAPTypeLogical = Tuple[Tuple[ops.Qid, int], Tuple[ops.Qid, int]]
 
@@ -39,8 +49,9 @@ class HierarchyTree:
         two_er: a dictionary that shows operation error of two-qubits gates
     """
 
-    def __init__(self, device_graph: nx.Graph, single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
-                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ]):
+    def __init__(self, device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
+                                                               List[float]],
+                 two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]]):
         self.device_graph = device_graph
         self.single_er = single_er
         self.two_er = two_er
@@ -67,7 +78,7 @@ class HierarchyTree:
         inside_edges = 0
         outside_edges = 0
         total_edges = 0
-        # Compute inside edges 
+        # Compute inside edges
         for c1 in com1:
             for c2 in com2:
                 if self.device_graph.has_edge(c1, c2):
@@ -80,12 +91,12 @@ class HierarchyTree:
             for j in range(i + 1, len(com2), 1):
                 if self.device_graph.has_edge(com2[i], com2[j]):
                     inside_edges += 1
-        # Compute total edges 
+        # Compute total edges
         for c1 in com1:
             total_edges += len(c1.neighbors())
         for c2 in com2:
             total_edges += len(c2.neighbors())
-        # Compute outside edges 
+        # Compute outside edges
         outside_edges = total_edges - 2 * inside_edges
 
         Qmerged = float(inside_edges / edges_count) - pow(
@@ -175,8 +186,10 @@ class HierarchyTree:
 class QubitsPartitioning:
 
     def __init__(self, tree: nx.DiGraph(),
-                 program_circuits: List[circuits.Circuit], single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
-                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ], twoQ_gate_type: ops.Operation):
+                 program_circuits: List[circuits.Circuit],
+                 single_er: Dict[Tuple[ops.Qid,], List[float]],
+                 two_er: Dict[Tuple[ops.Qid, ops.Qid],
+                              List[float]], twoQ_gate_type: ops.Operation):
         self.tree = tree
         self.program_circuits = program_circuits
         self.single_er = single_er
@@ -189,13 +202,13 @@ class QubitsPartitioning:
             density = len(
                 list(
                     circuit.findall_operations(
-                        lambda op: op.gate == self.twoQ_gate_type) )) / float(
+                        lambda op: op.gate == self.twoQ_gate_type))) / float(
                             len(circuit.all_qubits()))
             cnot_density.append(density)
         # Computing indices regarding descending order of cnot densities
         idxs = np.argsort(cnot_density)
         idxs_descending = np.flip(idxs)
-        # Reorder list of program_circuits 
+        # Reorder list of program_circuits
         circuits_temp = []  #copy.deepcopy(self.program_circuits)
         for id in idxs_descending:
             circuits_temp.append(self.program_circuits[id])
@@ -250,7 +263,7 @@ class QubitsPartitioning:
     def qubits_allocation(
             self,
             desc_prog_circuits: List[circuits.Circuit]) -> List[List[ops.Qid]]:
-       
+
         partition = []
 
         for cir in desc_prog_circuits:
@@ -314,11 +327,11 @@ class XSWAP:
     def generate_2qGates_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_prog_circuits:
-            # Remove single qubit gates before creating dag 
+            # Remove single qubit gates before creating dag
             singleq_gates = list(
                 c.findall_operations_with_gate_type(self.twoQ_gate_type))
             c.batch_remove(singleq_gates)
-            # Create dag 
+            # Create dag
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
         return cir_dags
@@ -326,7 +339,7 @@ class XSWAP:
     def generate_dags(self) -> cirq.CircuitDag:
         cir_dags = []
         for c in self.desc_program_circuits:
-            # Create dag 
+            # Create dag
             cir_dags.append(cirq.CircuitDag.from_circuit(c))
 
         return cir_dags
@@ -347,7 +360,7 @@ class XSWAP:
 
     def generate_front_layers(
             self, cir_dags: cirq.CircuitDag) -> List[List[ops.Operation]]:
-        # Check all dags are empty 
+        # Check all dags are empty
         counter = 0
         for dag in cir_dags:
             nodes = list(dag.ordered_nodes())
@@ -355,7 +368,7 @@ class XSWAP:
                 counter = counter + 1
         if counter == len(cir_dags):
             return None
-        # Set of nodes 
+        # Set of nodes
         flayers = []
         for dag in cir_dags:
             fl = []
@@ -392,7 +405,7 @@ class XSWAP:
             for j in range(len(logical_qubits)):
                 self.l_to_ph[(logical_qubits[j], i)] = self.partitions[i][j]
                 self.ph_to_l[self.partitions[i][j]] = (logical_qubits[j], i)
-        # Manage unused qubits and map them to a unreal program with id = -1 
+        # Manage unused qubits and map them to a unreal program with id = -1
         l_qubits = cirq.LineQubit.range(total_ph_qubits - total_l_qubits)
         i = 0
         for ph_q in list(self.device_graph.nodes):
@@ -413,8 +426,7 @@ class XSWAP:
         phy1 = self.l_to_ph[(log_edge[1], pid)]
         return (phy0, phy1)
 
-    def phy_to_log_edge(
-        self, phy_edge: (ops.Qid, ops.Qid)) -> SWAPTypeLogical:
+    def phy_to_log_edge(self, phy_edge: (ops.Qid, ops.Qid)) -> SWAPTypeLogical:
         log_pid0 = self.ph_to_l[phy_edge[0]]
         log_pid1 = self.ph_to_l[phy_edge[1]]
         return (log_pid0, log_pid1)
@@ -433,7 +445,10 @@ class XSWAP:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(self, swap: SWAPTypeLogical) -> Tuple[ Dict[ Tuple[ops.Qid, int], ops.Qid ], Dict[ ops.Qid, Tuple[ops.Qid, int] ] ]:
+    def update_mapping(
+        self, swap: SWAPTypeLogical
+    ) -> Tuple[Dict[Tuple[ops.Qid, int], ops.Qid], Dict[ops.Qid, Tuple[ops.Qid,
+                                                                       int]]]:
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -446,10 +461,9 @@ class XSWAP:
 
         return new_l_ph, new_ph_l
 
-    def compute_H(
-        self, flayers: List[List[ops.Operation]], new_l_ph: Dict[ Tuple[ops.Qid, int], ops.Qid ],
-        new_ph_l: Dict[ ops.Qid, Tuple[ops.Qid, int] ]
-    ) -> float:
+    def compute_H(self, flayers: List[List[ops.Operation]],
+                  new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
+                  new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]]) -> float:
         H_cost = 0
         for i in range(len(flayers)):
             if len(flayers[i]) == 0:
@@ -478,7 +492,8 @@ class XSWAP:
         return distance
 
     def compute_gainCost(self, flayers: List[List[ops.Operation]],
-                         new_l_ph: Dict[ Tuple[ops.Qid, int], ops.Qid ], new_ph_l: Dict[ ops.Qid, Tuple[ops.Qid, int] ],
+                         new_l_ph: Dict[Tuple[ops.Qid, int], ops.Qid],
+                         new_ph_l: Dict[ops.Qid, Tuple[ops.Qid, int]],
                          swap: SWAPTypeLogical) -> float:
         gain_cost = 0
 
@@ -533,8 +548,8 @@ class XSWAP:
 
         flayers = self.generate_front_layers(dags)
         while flayers != None:
-            # Solve hardware-compliant gates 
-            # i specify program index 
+            # Solve hardware-compliant gates
+            # i specify program index
             require_swap = 0
 
             for i in range(len(flayers)):
@@ -566,9 +581,9 @@ class XSWAP:
                             # Update front layer
                             flayers[i].remove(n)
                         else:
-                            # Rrequire SWAP 
+                            # Rrequire SWAP
                             require_swap = 1
-            # Solve hardware-incompliant gates by inserting SWAPs 
+            # Solve hardware-incompliant gates by inserting SWAPs
             if require_swap:
                 swap_candidate_lists = []
                 for i in range(len(flayers)):
@@ -586,7 +601,7 @@ class XSWAP:
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
                 schedule.append(cirq.SWAP(ph0, ph1))
-                # Update mapping 
+                # Update mapping
                 ph0 = self.l_to_ph[best_swap[0]]
                 ph1 = self.l_to_ph[best_swap[1]]
                 self.l_to_ph[best_swap[0]] = ph1
@@ -603,8 +618,9 @@ class XSWAP:
 ############################################################
 
 
-def multi_prog_map(device_graph: nx.Graph, single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
-                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ],
+def multi_prog_map(device_graph: nx.Graph, single_er: Dict[Tuple[ops.Qid,],
+                                                           List[float]],
+                   two_er: Dict[Tuple[ops.Qid, ops.Qid], List[float]],
                    prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
     treeObj = HierarchyTree(device_graph, single_er, two_er)
@@ -613,7 +629,7 @@ def multi_prog_map(device_graph: nx.Graph, single_er: Dict[ Tuple[ops.Qid, ], Li
     print(tree.nodes)
 
     parObj = QubitsPartitioning(tree, prog_circuits, single_er, two_er,
-                                 twoQ_gate_type)
+                                twoQ_gate_type)
     desc_cirs = parObj.circuits_descending()
 
     partitions = parObj.qubits_allocation(desc_cirs)
