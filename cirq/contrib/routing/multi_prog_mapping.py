@@ -39,8 +39,8 @@ class HierarchyTree:
         two_er: a dictionary that shows operation error of two-qubits gates
     """
 
-    def __init__(self, device_graph: nx.Graph, single_er: dict(),
-                 two_er: dict()):
+    def __init__(self, device_graph: nx.Graph, single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
+                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ]):
         self.device_graph = device_graph
         self.single_er = single_er
         self.two_er = two_er
@@ -175,8 +175,8 @@ class HierarchyTree:
 class QubitsPartitioning:
 
     def __init__(self, tree: nx.DiGraph(),
-                 program_circuits: List[circuits.Circuit], single_er: dict(),
-                 two_er: dict(), twoQ_gate_type: ops.Operation):
+                 program_circuits: List[circuits.Circuit], single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
+                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ], twoQ_gate_type: ops.Operation):
         self.tree = tree
         self.program_circuits = program_circuits
         self.single_er = single_er
@@ -433,7 +433,7 @@ class XSWAP:
                 swaps.append(self.phy_to_log_edge((phy_qs[1], ne)))
         return swaps
 
-    def update_mapping(self, swap: SWAPTypeLogical) -> (dict(), dict()):
+    def update_mapping(self, swap: SWAPTypeLogical) -> Tuple[ Dict[ Tuple[ops.Qid, int], ops.Qid ], Dict[ ops.Qid, Tuple[ops.Qid, int] ] ]:
         new_ph_l = self.ph_to_l.copy()
         new_l_ph = self.l_to_ph.copy()
 
@@ -447,8 +447,8 @@ class XSWAP:
         return new_l_ph, new_ph_l
 
     def compute_H(
-        self, flayers: List[List[ops.Operation]], new_l_ph: dict(),
-        new_ph_l: dict()
+        self, flayers: List[List[ops.Operation]], new_l_ph: Dict[ Tuple[ops.Qid, int], ops.Qid ],
+        new_ph_l: Dict[ ops.Qid, Tuple[ops.Qid, int] ]
     ) -> float:
         H_cost = 0
         for i in range(len(flayers)):
@@ -478,7 +478,7 @@ class XSWAP:
         return distance
 
     def compute_gainCost(self, flayers: List[List[ops.Operation]],
-                         new_l_ph: dict(), new_ph_l: dict(),
+                         new_l_ph: Dict[ Tuple[ops.Qid, int], ops.Qid ], new_ph_l: Dict[ ops.Qid, Tuple[ops.Qid, int] ],
                          swap: SWAPTypeLogical) -> float:
         gain_cost = 0
 
@@ -603,7 +603,8 @@ class XSWAP:
 ############################################################
 
 
-def multi_prog_map(device_graph: nx.Graph, single_er: dict(), two_er: dict(),
+def multi_prog_map(device_graph: nx.Graph, single_er: Dict[ Tuple[ops.Qid, ], List[float] ],
+                 two_er: Dict[ Tuple[ops.Qid, ops.Qid], List[float] ],
                    prog_circuits: List[circuits.Circuit]) -> None:
     twoQ_gate_type = cirq.CZ
     treeObj = HierarchyTree(device_graph, single_er, two_er)
