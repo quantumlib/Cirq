@@ -14,7 +14,7 @@
 
 from typing import Optional
 
-import pytest
+import pytest, sympy
 import numpy as np
 
 import cirq
@@ -199,7 +199,7 @@ cirq.CircuitGate(cirq.FrozenCircuit([
                           cirq.H(y),
                           cirq.CX(y, x),
                           name='new_gate',
-                          exp_modulus=2)
+                          exp_modulus=8)
 
     assert str(cg) == """\
 new_gate:
@@ -216,7 +216,7 @@ cirq.CircuitGate(cirq.FrozenCircuit([
     cirq.Moment(
         cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
     ),
-]), name='new_gate', exp_modulus=2)"""
+]), name='new_gate', exp_modulus=8)"""
 
 
 # Test CircuitGates in Circuits.
@@ -353,6 +353,30 @@ def test_no_exp_modulus_for_measurement():
         _ = cirq.CircuitGate(cirq.measure(cirq.LineQubit(0)), exp_modulus=2)
 
 
+def test_no_measurement_in_loops():
+    a = cirq.LineQubit(0)
+    with pytest.raises(NotImplementedError):
+        _ = cirq.CircuitGate(cirq.measure(a, key='m')).on(a).repeat(2)
+
+    op = cirq.CircuitGate(cirq.X(a)).on(a).repeat(2)
+    with pytest.raises(NotImplementedError):
+        _ = op.with_gate(cirq.CircuitGate(cirq.measure(a, key='m')))
+
+
+def test_exp_modulus_validation():
+    a = cirq.LineQubit(0)
+
+    with pytest.raises(ValueError):
+        _ = cirq.CircuitGate(cirq.S(a), exp_modulus=2)
+
+    with pytest.raises(ValueError):
+        _ = cirq.CircuitGate(cirq.S(a), exp_modulus=6)
+
+    cg = cirq.CircuitGate(cirq.S(a), exp_modulus=4)
+    op = cg.on(a).repeat(4)
+    assert op.repetitions == 0
+
+
 def test_terminal_matches():
     a, b = cirq.LineQubit.range(2)
     cg = cirq.CircuitGate(
@@ -395,6 +419,64 @@ def test_nonterminal_in_circuit_gate():
 
     c = cirq.Circuit(cirq.X(a), cg.on(a, b))
     assert not c.are_all_measurements_terminal()
+
+
+# Test CircuitOperation behaviors.
+
+
+def test_measurement_key_mapping():
+    a, b = cirq.LineQubit.range(2)
+    cg = cirq.CircuitGate(
+        cirq.H(a),
+        cirq.X(b),
+        cirq.measure(a, key='m1'),
+        cirq.measure(b, key='m2'),
+    )
+
+    op = cg.on(a, b).with_measurement_key_mapping({'m1': 'p1', 'm2': 'p2'})
+    assert cirq.measurement_keys(op) == {'p1', 'p2'}
+
+    simulator = cirq.Simulator()
+    result = simulator.simulate(cirq.Circuit(op))
+    assert all(key in result.measurements for key in {'p1', 'p2'})
+
+
+def test_param_values():
+    a = cirq.LineQubit(0)
+    cg = cirq.CircuitGate(
+        cirq.X(a)**sympy.Symbol('x'),
+        cirq.measure(a, key='m1'),
+    )
+
+    op = cg.on(a).with_params({'x': 2})
+    sub_ops = cirq.decompose(op)
+    print(sub_ops)
+    assert (cirq.X**2).on(a) in sub_ops
+
+    simulator = cirq.Simulator()
+    result = simulator.simulate(cirq.Circuit(op))
+    assert result.measurements['m1'] == 0
+
+
+def test_repetitions():
+    a, b = cirq.LineQubit.range(2)
+    fc = cirq.FrozenCircuit(
+        cirq.X(a)**0.4,
+        cirq.S(b),
+    )
+    op_noexp = cirq.CircuitGate(fc).on(a, b).repeat(13)
+    op_exp = cirq.CircuitGate(fc, exp_modulus=20).on(a, b).repeat(13)
+    assert op_noexp.repetitions == 13
+    assert op_exp.repetitions == -7
+    assert cirq.allclose_up_to_global_phase(cirq.unitary(op_exp),
+                                            cirq.unitary(op_noexp))
+
+    op_noexp = op_noexp**5
+    op_exp = op_exp**5
+    assert op_noexp.repetitions == 65
+    assert op_exp.repetitions == 5
+    assert cirq.allclose_up_to_global_phase(cirq.unitary(op_exp),
+                                            cirq.unitary(op_noexp))
 
 
 # Demonstrate applications.
