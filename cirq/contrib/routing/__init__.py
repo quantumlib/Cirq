@@ -28,5 +28,9 @@ from cirq.contrib.routing.utils import (
     ops_are_consistent_with_device_graph,
 )
 
-from cirq.contrib.routing.multi_prog_mapping import *
-from cirq.contrib.routing.util import *
+from cirq.contrib.routing.multi_prog_mapping import (
+    Hierarchy_tree,
+    Qubits_partitioning,
+    X_SWAP,
+)
+
