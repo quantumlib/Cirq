@@ -90,7 +90,8 @@ def test_run_shell_does_not_deadlock_on_large_outputs():
         r"""print((('e' * 99) + '\n') * 10000, file=sys.stderr)"""
         '"',
         out=None,
-        err=None) == (None, None, 0)
+        err=None,
+    ) == (None, None, 0)
 
 
 @only_on_posix
