@@ -170,18 +170,23 @@ def test_circuit_gate_json_dict():
 def test_string_format():
     x, y, z = cirq.LineQubit.range(3)
 
-    cg = cirq.CircuitGate(cirq.X(x), cirq.H(y), cirq.CX(y, z),
-                          cirq.measure(x, y, z, key='m'))
+    cg0 = cirq.CircuitGate()
+    assert str(cg0) == f"""\
+CircuitGate_{hash(cg0) % int(1e7):06d}:
+[                  ]"""
 
-    assert str(cg) == """\
-CircuitGate:
+    cg1 = cirq.CircuitGate(cirq.X(x), cirq.H(y), cirq.CX(y, z),
+                           cirq.measure(x, y, z, key='m'))
+
+    assert str(cg1) == f"""\
+CircuitGate_{hash(cg1) % int(1e7):06d}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
 [           │   │         ]
 [ 2: ───────X───M──────── ]"""
 
-    assert repr(cg) == """\
+    assert repr(cg1) == """\
 cirq.CircuitGate(cirq.FrozenCircuit([
     cirq.Moment(
         cirq.X(cirq.LineQubit(0)),
@@ -195,19 +200,24 @@ cirq.CircuitGate(cirq.FrozenCircuit([
     ),
 ]))"""
 
-    cg = cirq.CircuitGate(cirq.X(x),
-                          cirq.H(y),
-                          cirq.CX(y, x),
-                          name='new_gate',
-                          exp_modulus=8)
+    op1 = cg1.on(x, y, z)
+    assert str(op1) == str(cg1) + '(0, 1, 2)'
+    assert repr(op1) == f"""\
+{cg1!r}.on(cirq.LineQubit(0), cirq.LineQubit(1), cirq.LineQubit(2))"""
 
-    assert str(cg) == """\
+    cg2 = cirq.CircuitGate(cirq.X(x),
+                           cirq.H(y),
+                           cirq.CX(y, x),
+                           name='new_gate',
+                           exp_modulus=8)
+
+    assert str(cg2) == """\
 new_gate:
 [ 0: ───X───X─── ]
 [           │    ]
 [ 1: ───H───@─── ]"""
 
-    assert repr(cg) == """\
+    assert repr(cg2) == """\
 cirq.CircuitGate(cirq.FrozenCircuit([
     cirq.Moment(
         cirq.X(cirq.LineQubit(0)),
@@ -217,6 +227,29 @@ cirq.CircuitGate(cirq.FrozenCircuit([
         cirq.CNOT(cirq.LineQubit(1), cirq.LineQubit(0)),
     ),
 ]), name='new_gate', exp_modulus=8)"""
+
+    op2 = cg2.on(x, z).repeat(3)
+    assert str(op2) == str(cg2) + """(0, 2, loops=3)"""
+    assert repr(op2) == f"""\
+{cg2!r}.on(cirq.LineQubit(0), cirq.LineQubit(2)).repeat(3)"""
+
+    cg3 = cirq.CircuitGate(
+        cirq.X(x)**sympy.Symbol('b'),
+        cirq.measure(x),
+    )
+
+    assert str(cg3) == f"""\
+CircuitGate_{hash(cg3) % int(1e7):06d}:
+[ 0: ───X^b───M─── ]"""
+
+    op3 = cg3.on(y).with_measurement_key_mapping({
+        'm': 'p'
+    }).with_params({'b': 2})
+    assert str(op3) == str(cg3) + f"""\
+(1, key_map={{'m': 'p'}}, params={{'b': 2}})"""
+    assert repr(op3) == f"""\
+{cg3!r}.on(cirq.LineQubit(1))\
+.with_measurement_key_mapping({{'m': 'p'}}).with_params({{'b': 2}})"""
 
 
 # Test CircuitGates in Circuits.
@@ -436,9 +469,17 @@ def test_measurement_key_mapping():
     op = cg.on(a, b).with_measurement_key_mapping({'m1': 'p1', 'm2': 'p2'})
     assert cirq.measurement_keys(op) == {'p1', 'p2'}
 
+    new_op = op.with_measurement_key_mapping({'p1': 'x1'})
+    assert cirq.measurement_keys(new_op) == {'x1', 'p2'}
+    direct_op = cirq.with_measurement_key_mapping(cg.on(a, b), {
+        'm1': 'x1',
+        'm2': 'p2',
+    })
+    assert cirq.measurement_keys(new_op) == cirq.measurement_keys(direct_op)
+
     simulator = cirq.Simulator()
-    result = simulator.simulate(cirq.Circuit(op))
-    assert all(key in result.measurements for key in {'p1', 'p2'})
+    result = simulator.simulate(cirq.Circuit(new_op))
+    assert all(key in result.measurements for key in {'x1', 'p2'})
 
 
 def test_param_values():
@@ -477,6 +518,21 @@ def test_repetitions():
     assert op_exp.repetitions == 5
     assert cirq.allclose_up_to_global_phase(cirq.unitary(op_exp),
                                             cirq.unitary(op_noexp))
+
+    with pytest.raises(TypeError):
+        _ = op_exp.repeat(1.5)
+
+
+def test_with_gate_validation():
+    a, b = cirq.LineQubit.range(2)
+    cg = cirq.CircuitGate(cirq.H(a), cirq.X(b))
+    op = cg.on(a, b).repeat(3)
+
+    with pytest.raises(TypeError):
+        _ = op.with_gate(cirq.X)
+
+    new_op = op.with_gate(cirq.CircuitGate(cirq.CX(a, b)))
+    assert new_op.repetitions == 3
 
 
 # Demonstrate applications.

@@ -136,7 +136,12 @@ class CircuitGate(ops.Gate):
         return f'cirq.CircuitGate({base_repr})'
 
     def __str__(self) -> str:
-        header = 'CircuitGate:' if self.name is None else f'{self.name}:'
+        # TODO: support out-of-line subcircuit definition in string format.
+        if self.name is None:
+            # In the absence of a name, use a unique ID.
+            header = f'CircuitGate_{hash(self) % int(1e7):06d}:'
+        else:
+            header = f'{self.name}:'
         msg_lines = str(self.circuit).split('\n')
         msg_width = max([len(header) - 4] + [len(line) for line in msg_lines])
         full_msg = '\n'.join([
@@ -233,14 +238,26 @@ class CircuitOperation(ops.GateOperation):
 
     def __repr__(self):
         base_repr = super().__repr__()
-        if self._measurement_key_map:
+        if self.measurement_key_map:
             base_repr += (
-                f'.with_measurement_key_mapping({self._measurement_key_map})')
-        if self._param_values:
-            base_repr += f'.with_params({self._param_values})'
-        if self._repetitions:
-            base_repr += f'.repeat({self._repetitions})'
+                f'.with_measurement_key_mapping({self.measurement_key_map})')
+        if self.param_values:
+            base_repr += f'.with_params({self.param_values})'
+        if self.repetitions != 1:
+            base_repr += f'.repeat({self.repetitions})'
         return base_repr
+
+    def __str__(self):
+        # TODO: support out-of-line subcircuit definition in string format.
+        base_str = str(self.gate)
+        args = [str(e) for e in self.qubits]
+        if self.measurement_key_map:
+            args.append(f'key_map={self.measurement_key_map}')
+        if self.param_values:
+            args.append(f'params={self.param_values}')
+        if self.repetitions != 1:
+            args.append(f'loops={self.repetitions}')
+        return f'{base_str}({", ".join(args)})'
 
     def base_operation(self) -> 'CircuitOperation':
         """Returns a copy of this operation with only the wrapped gate.
@@ -252,9 +269,9 @@ class CircuitOperation(ops.GateOperation):
     def copy(self) -> 'CircuitOperation':
         """Returns a copy of this operation."""
         new_op = self.base_operation()
-        new_op._measurement_key_map = self._measurement_key_map.copy()
-        new_op._param_values = self._param_values.copy()
-        new_op._repetitions = self._repetitions
+        new_op._measurement_key_map = self.measurement_key_map.copy()
+        new_op._param_values = self.param_values.copy()
+        new_op._repetitions = self.repetitions
         return new_op
 
     def with_gate(self, new_gate: 'cirq.Gate') -> 'CircuitOperation':
@@ -271,8 +288,8 @@ class CircuitOperation(ops.GateOperation):
         new_op._gate = new_gate
         return new_op
 
-    def with_measurement_key_mapping(self, key_map: Dict[str, str]
-                                    ) -> 'CircuitOperation':
+    def with_measurement_key_mapping(
+            self, key_map: Dict[str, str]) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Parameter values and repetitions are preserved. The provided key_map
@@ -283,21 +300,21 @@ class CircuitOperation(ops.GateOperation):
         new_op = self.copy()
         new_op._measurement_key_map = {
             k: (key_map[v] if v in key_map else v)
-            for k, v in self._measurement_key_map.items()
+            for k, v in self.measurement_key_map.items()
         }
         new_op._measurement_key_map.update({
             key: val
             for key, val in key_map.items()
-            if key not in self._measurement_key_map.values()
+            if key not in self.measurement_key_map.values()
         })
         return new_op
 
-    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]
-                                      ) -> 'CircuitOperation':
+    def _with_measurement_key_mapping_(
+            self, key_map: Dict[str, str]) -> 'CircuitOperation':
         return self.with_measurement_key_mapping(key_map)
 
-    def with_params(self, param_values: Dict[sympy.Symbol, Any]
-                   ) -> 'CircuitOperation':
+    def with_params(
+            self, param_values: Dict[sympy.Symbol, Any]) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Key mappings and repetitions are preserved. The provided param_values
@@ -309,12 +326,12 @@ class CircuitOperation(ops.GateOperation):
         new_op._param_values = {
             key: (val if not protocols.is_parameterized(val) else
                   protocols.resolve_parameters(val, param_values))
-            for key, val in self._param_values.items()
+            for key, val in self.param_values.items()
         }
         new_op._param_values.update({
             key: val
             for key, val in param_values.items()
-            if key not in self._param_values.values()
+            if key not in self.param_values.values()
         })
         return new_op
 
@@ -323,6 +340,8 @@ class CircuitOperation(ops.GateOperation):
 
         Key mappings and parameter values are preserved.
         """
+        if not isinstance(repetitions, int):
+            raise TypeError('Only integer repetitions are allowed.')
         if protocols.is_measurement(self.circuit):
             raise NotImplementedError(
                 'Loops over measurements are not supported.')
@@ -342,8 +361,8 @@ class CircuitOperation(ops.GateOperation):
 
     def _measurement_keys_(self) -> AbstractSet[str]:
         base_keys = protocols.measurement_keys(self.gate)
-        return set(self._measurement_key_map[key] if key in
-                   self._measurement_key_map else key for key in base_keys)
+        return set(self.measurement_key_map[key] if key in
+                   self.measurement_key_map else key for key in base_keys)
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         result = self.circuit.unfreeze()
@@ -355,13 +374,13 @@ class CircuitOperation(ops.GateOperation):
             }
             result = result.transform_qubits(lambda q: qmap[q])
 
-        if self._repetitions < 0:
+        if self.repetitions < 0:
             result = result**-1
 
-        if self._measurement_key_map:
+        if self.measurement_key_map:
             result = protocols.with_measurement_key_mapping(
-                result, self._measurement_key_map)
-        if self._param_values:
-            result = protocols.resolve_parameters(result, self._param_values)
+                result, self.measurement_key_map)
+        if self.param_values:
+            result = protocols.resolve_parameters(result, self.param_values)
 
-        return list(result.all_operations()) * abs(self._repetitions)
+        return list(result.all_operations()) * abs(self.repetitions)
