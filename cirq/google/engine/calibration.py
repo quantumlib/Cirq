@@ -46,6 +46,9 @@ class Calibration(abc.Mapping):
 
         `calibration['t1']`
 
+    This class can be instantiated either from a `MetricsSnapshot` proto
+    or from a dictionary of metric values.
+
     Attributes:
         timestamp: The time that this calibration was run, in milliseconds since
             the epoch.
