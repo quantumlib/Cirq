@@ -381,16 +381,19 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         return out
 
     def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+        def angle_to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
+            """Divides angle_rads by symbolic or numerical pi."""
+            pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
+            return angle_rads / pi
+
         q0, q1 = qubits
-        q0_z_exponent_before = self.phase_angles_before[0] / np.pi
-        q1_z_exponent_before = self.phase_angles_before[1] / np.pi
-        q0_z_exponent_after = self.phase_angles_after[0] / np.pi
-        q1_z_exponent_after = self.phase_angles_after[1] / np.pi
-        yield cirq.Z(q0)**q0_z_exponent_before
-        yield cirq.Z(q1)**q1_z_exponent_before
+        before = self.phase_angles_before
+        after = self.phase_angles_after
+        yield cirq.Z(q0)**angle_to_exponent(before[0])
+        yield cirq.Z(q1)**angle_to_exponent(before[1])
         yield FSimGate(self.theta, self.phi).on(q0, q1)
-        yield cirq.Z(q0)**q0_z_exponent_after
-        yield cirq.Z(q1)**q1_z_exponent_after
+        yield cirq.Z(q0)**angle_to_exponent(after[0])
+        yield cirq.Z(q1)**angle_to_exponent(after[1])
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Tuple[str, ...]:
