@@ -139,7 +139,7 @@ class CircuitGate(ops.Gate):
         # TODO: support out-of-line subcircuit definition in string format.
         if self.name is None:
             # In the absence of a name, use a unique ID.
-            header = f'CircuitGate_{hash(self) % int(1e7):06d}:'
+            header = f'CircuitGate_{hash(self) % int(1e6):06d}:'
         else:
             header = f'{self.name}:'
         msg_lines = str(self.circuit).split('\n')
@@ -288,8 +288,8 @@ class CircuitOperation(ops.GateOperation):
         new_op._gate = new_gate
         return new_op
 
-    def with_measurement_key_mapping(
-            self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def with_measurement_key_mapping(self, key_map: Dict[str, str]
+                                    ) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Parameter values and repetitions are preserved. The provided key_map
@@ -309,12 +309,12 @@ class CircuitOperation(ops.GateOperation):
         })
         return new_op
 
-    def _with_measurement_key_mapping_(
-            self, key_map: Dict[str, str]) -> 'CircuitOperation':
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]
+                                      ) -> 'CircuitOperation':
         return self.with_measurement_key_mapping(key_map)
 
-    def with_params(
-            self, param_values: Dict[sympy.Symbol, Any]) -> 'CircuitOperation':
+    def with_params(self, param_values: Dict[sympy.Symbol, Any]
+                   ) -> 'CircuitOperation':
         """Returns a copy of this operation with an updated key mapping.
 
         Key mappings and repetitions are preserved. The provided param_values

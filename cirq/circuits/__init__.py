@@ -32,7 +32,9 @@ from cirq.circuits.circuit_dag import (
     Unique,
 )
 from cirq.circuits.circuit_gate import (
-    CircuitGate,)
+    CircuitGate,
+    CircuitOperation,
+)
 from cirq.circuits.frozen_circuit import (
     FrozenCircuit,)
 from cirq.circuits.insert_strategy import (

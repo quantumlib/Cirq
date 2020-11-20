@@ -98,6 +98,7 @@ class _ResolverCache:
                 'CrossEntropyResultDict': CrossEntropyResultDict,
                 'Circuit': cirq.Circuit,
                 'CircuitGate': cirq.CircuitGate,
+                'CircuitOperation': cirq.CircuitOperation,
                 'CliffordState': cirq.CliffordState,
                 'CliffordTableau': cirq.CliffordTableau,
                 'DepolarizingChannel': cirq.DepolarizingChannel,

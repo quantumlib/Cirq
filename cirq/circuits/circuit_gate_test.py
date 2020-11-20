@@ -172,14 +172,14 @@ def test_string_format():
 
     cg0 = cirq.CircuitGate()
     assert str(cg0) == f"""\
-CircuitGate_{hash(cg0) % int(1e7):06d}:
-[                  ]"""
+CircuitGate_{hash(cg0) % int(1e6):06d}:
+[                 ]"""
 
     cg1 = cirq.CircuitGate(cirq.X(x), cirq.H(y), cirq.CX(y, z),
                            cirq.measure(x, y, z, key='m'))
 
     assert str(cg1) == f"""\
-CircuitGate_{hash(cg1) % int(1e7):06d}:
+CircuitGate_{hash(cg1) % int(1e6):06d}:
 [ 0: ───X───────M('m')─── ]
 [               │         ]
 [ 1: ───H───@───M──────── ]
@@ -239,7 +239,7 @@ cirq.CircuitGate(cirq.FrozenCircuit([
     )
 
     assert str(cg3) == f"""\
-CircuitGate_{hash(cg3) % int(1e7):06d}:
+CircuitGate_{hash(cg3) % int(1e6):06d}:
 [ 0: ───X^b───M─── ]"""
 
     op3 = cg3.on(y).with_measurement_key_mapping({

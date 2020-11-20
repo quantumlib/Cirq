@@ -192,6 +192,7 @@ Circuits, Operations, and Moments.
     cirq.Circuit
     cirq.CircuitDag
     cirq.CircuitGate
+    cirq.CircuitOperation
     cirq.FrozenCircuit
     cirq.GateOperation
     cirq.InsertStrategy
