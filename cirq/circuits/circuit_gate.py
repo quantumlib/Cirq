@@ -355,8 +355,6 @@ class CircuitOperation(ops.GateOperation):
         return new_op
 
     def __pow__(self, power: int) -> 'CircuitOperation':
-        if not isinstance(power, int):
-            return NotImplemented
         return self.repeat(power)
 
     def _measurement_keys_(self) -> AbstractSet[str]:
