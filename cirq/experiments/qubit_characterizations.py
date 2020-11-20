@@ -15,12 +15,15 @@
 import dataclasses
 import itertools
 
-from typing import Any, Iterator, List, Optional, Sequence, Tuple
+from typing import Any, Iterator, List, Optional, Sequence, Tuple, TYPE_CHECKING
 import numpy as np
 import sympy
 
 from matplotlib import pyplot as plt
-from cirq import circuits, devices, ops, protocols, study, work
+from cirq import circuits, ops, protocols, study
+
+if TYPE_CHECKING:
+    import cirq
 
 
 @dataclasses.dataclass
@@ -214,8 +217,8 @@ class TomographyResult:
         return axes
 
 
-def rabi_oscillations(sampler: work.Sampler,
-                      qubit: devices.GridQubit,
+def rabi_oscillations(sampler: 'cirq.Sampler',
+                      qubit: 'cirq.Qid',
                       max_angle: float = 2 * np.pi,
                       *,
                       repetitions: int = 1000,
@@ -255,8 +258,8 @@ def rabi_oscillations(sampler: work.Sampler,
 
 
 def single_qubit_randomized_benchmarking(
-        sampler: work.Sampler,
-        qubit: devices.GridQubit,
+        sampler: 'cirq.Sampler',
+        qubit: 'cirq.Qid',
         use_xy_basis: bool = True,
         *,
         num_clifford_range: Sequence[int] = range(10, 100, 10),
@@ -314,9 +317,9 @@ def single_qubit_randomized_benchmarking(
 
 
 def two_qubit_randomized_benchmarking(
-        sampler: work.Sampler,
-        first_qubit: devices.GridQubit,
-        second_qubit: devices.GridQubit,
+        sampler: 'cirq.Sampler',
+        first_qubit: 'cirq.Qid',
+        second_qubit: 'cirq.Qid',
         *,
         num_clifford_range: Sequence[int] = range(5, 50, 5),
         num_circuits: int = 20,
@@ -372,9 +375,9 @@ def two_qubit_randomized_benchmarking(
     return RandomizedBenchMarkResult(num_clifford_range, gnd_probs)
 
 
-def single_qubit_state_tomography(sampler: work.Sampler,
-                                  qubit: devices.GridQubit,
-                                  circuit: circuits.Circuit,
+def single_qubit_state_tomography(sampler: 'cirq.Sampler',
+                                  qubit: 'cirq.Qid',
+                                  circuit: 'cirq.AbstractCircuit',
                                   repetitions: int = 1000) -> TomographyResult:
     """Single-qubit state tomography.
 
@@ -419,10 +422,10 @@ def single_qubit_state_tomography(sampler: work.Sampler,
     return TomographyResult(rho)
 
 
-def two_qubit_state_tomography(sampler: work.Sampler,
-                               first_qubit: devices.GridQubit,
-                               second_qubit: devices.GridQubit,
-                               circuit: circuits.Circuit,
+def two_qubit_state_tomography(sampler: 'cirq.Sampler',
+                               first_qubit: 'cirq.Qid',
+                               second_qubit: 'cirq.Qid',
+                               circuit: 'cirq.AbstractCircuit',
                                repetitions: int = 1000) -> TomographyResult:
     r"""Two-qubit state tomography.
 
@@ -556,7 +559,7 @@ def _indices_after_basis_rot(i: int, j: int
     return mat_idx, indices, signs
 
 
-def _two_qubit_clifford_matrices(q_0: devices.GridQubit, q_1: devices.GridQubit,
+def _two_qubit_clifford_matrices(q_0: 'cirq.Qid', q_1: 'cirq.Qid',
                                  cliffords: Cliffords) -> np.ndarray:
     mats = []
 
@@ -586,23 +589,21 @@ def _two_qubit_clifford_matrices(q_0: devices.GridQubit, q_1: devices.GridQubit,
     return np.array(mats)
 
 
-def _random_single_q_clifford(qubit: devices.GridQubit, num_cfds: int,
-                              cfds: Sequence[Sequence[ops.Gate]],
-                              cfd_matrices: np.ndarray) -> circuits.Circuit:
+def _random_single_q_clifford(qubit: 'cirq.Qid', num_cfds: int,
+                              cfds: Sequence[Sequence['cirq.Gate']],
+                              cfd_matrices: np.ndarray) -> 'cirq.Circuit':
     clifford_group_size = 24
     gate_ids = list(np.random.choice(clifford_group_size, num_cfds))
-    gate_sequence = []  # type: List[ops.Gate]
-    for gate_id in gate_ids:
-        gate_sequence.extend(cfds[gate_id])
+    gate_sequence = [gate for gate_id in gate_ids for gate in cfds[gate_id]]
     idx = _find_inv_matrix(_gate_seq_to_mats(gate_sequence), cfd_matrices)
     gate_sequence.extend(cfds[idx])
     circuit = circuits.Circuit(gate(qubit) for gate in gate_sequence)
     return circuit
 
 
-def _random_two_q_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                           num_cfds: int, cfd_matrices: np.ndarray,
-                           cliffords: Cliffords) -> circuits.Circuit:
+def _random_two_q_clifford(q_0: 'cirq.Qid', q_1: 'cirq.Qid', num_cfds: int,
+                           cfd_matrices: np.ndarray,
+                           cliffords: Cliffords) -> 'cirq.Circuit':
     clifford_group_size = 11520
     idx_list = list(np.random.choice(clifford_group_size, num_cfds))
     circuit = circuits.Circuit()
@@ -659,16 +660,15 @@ def _matrix_bar_plot(mat: np.ndarray,
         ax.set_title(title)
 
 
-def _gate_seq_to_mats(gate_seq: Sequence[ops.Gate]) -> np.ndarray:
+def _gate_seq_to_mats(gate_seq: Sequence['cirq.Gate']) -> np.ndarray:
     mat_rep = protocols.unitary(gate_seq[0])
     for gate in gate_seq[1:]:
         mat_rep = np.dot(protocols.unitary(gate), mat_rep)
     return mat_rep
 
 
-def _two_qubit_clifford(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                        idx: int,
-                        cliffords: Cliffords) -> Iterator[ops.OP_TREE]:
+def _two_qubit_clifford(q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx: int,
+                        cliffords: Cliffords) -> Iterator['cirq.OP_TREE']:
     """Generates a two-qubit Clifford gate.
 
     An integer (idx) from 0 to 11519 is used to generate a two-qubit Clifford
@@ -722,18 +722,18 @@ def _split_two_q_clifford_idx(idx: int):
     return (idx_0, idx_1, idx_2)
 
 
-def _two_qubit_clifford_starters(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                                 idx_0: int, idx_1: int,
-                                 cliffords: Cliffords) -> Iterator[ops.OP_TREE]:
+def _two_qubit_clifford_starters(q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_0: int,
+                                 idx_1: int, cliffords: Cliffords
+                                ) -> Iterator['cirq.OP_TREE']:
     """Fulfills part (a) for two-qubit Cliffords."""
     c1 = cliffords.c1_in_xy
     yield _single_qubit_gates(c1[idx_0], q_0)
     yield _single_qubit_gates(c1[idx_1], q_1)
 
 
-def _two_qubit_clifford_mixers(q_0: devices.GridQubit, q_1: devices.GridQubit,
-                               idx_2: int,
-                               cliffords: Cliffords) -> Iterator[ops.OP_TREE]:
+def _two_qubit_clifford_mixers(q_0: 'cirq.Qid', q_1: 'cirq.Qid', idx_2: int,
+                               cliffords: Cliffords
+                              ) -> Iterator['cirq.OP_TREE']:
     """Fulfills parts (b-d) for two-qubit Cliffords."""
     s1 = cliffords.s1
     s1_x = cliffords.s1_x
@@ -764,8 +764,8 @@ def _two_qubit_clifford_mixers(q_0: devices.GridQubit, q_1: devices.GridQubit,
         yield _single_qubit_gates(s1_x[idx_4], q_1)
 
 
-def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
-                        qubit: devices.GridQubit) -> Iterator[ops.OP_TREE]:
+def _single_qubit_gates(gate_seq: Sequence['cirq.Gate'],
+                        qubit: 'cirq.Qid') -> Iterator['cirq.OP_TREE']:
     for gate in gate_seq:
         yield gate(qubit)
 
@@ -773,8 +773,8 @@ def _single_qubit_gates(gate_seq: Sequence[ops.Gate],
 def _single_qubit_cliffords() -> Cliffords:
     X, Y, Z = ops.X, ops.Y, ops.Z
 
-    c1_in_xy = []  # type: List[List[ops.Gate]]
-    c1_in_xz = []  # type: List[List[ops.Gate]]
+    c1_in_xy: List[List['cirq.Gate']] = []
+    c1_in_xz: List[List['cirq.Gate']] = []
 
     for phi_0, phi_1 in itertools.product([1.0, 0.5, -0.5], [0.0, 0.5, -0.5]):
         c1_in_xy.append([X**phi_0, Y**phi_1])
@@ -807,20 +807,20 @@ def _single_qubit_cliffords() -> Cliffords:
     for z0, x, z1 in phi_xz:
         c1_in_xz.append([Z**z0, X**x, Z**z1])
 
-    s1 = [
+    s1: List[List['cirq.Gate']] = [
         [X**0.0],
         [Y**0.5, X**0.5],
         [X**-0.5, Y**-0.5],
-    ]  # type: List[List[ops.Gate]]
-    s1_x = [
+    ]
+    s1_x: List[List['cirq.Gate']] = [
         [X**0.5],
         [X**0.5, Y**0.5, X**0.5],
         [Y**-0.5],
-    ]  # type: List[List[ops.Gate]]
-    s1_y = [
+    ]
+    s1_y: List[List['cirq.Gate']] = [
         [Y**0.5],
         [X**-0.5, Y**-0.5, X**0.5],
         [Y, X**0.5],
-    ]  # type: List[List[ops.Gate]]
+    ]
 
     return Cliffords(c1_in_xy, c1_in_xz, s1, s1_x, s1_y)

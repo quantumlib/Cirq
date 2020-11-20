@@ -375,13 +375,11 @@ def test_cpmg_circuit():
     t = sympy.Symbol('t')
     circuit = t2._cpmg_circuit(q, t, 2)
     expected = cirq.Circuit(
-        cirq.Y(q)**0.5,
-        cirq.WaitGate(cirq.Duration(nanos=t))(q), cirq.X(q),
-        cirq.WaitGate(cirq.Duration(nanos=2 * t * sympy.Symbol('pulse_0')))(q),
+        cirq.Y(q)**0.5, cirq.wait(q, nanos=t), cirq.X(q),
+        cirq.wait(q, nanos=2 * t * sympy.Symbol('pulse_0')),
         cirq.X(q)**sympy.Symbol('pulse_0'),
-        cirq.WaitGate(cirq.Duration(nanos=2 * t * sympy.Symbol('pulse_1')))(q),
-        cirq.X(q)**sympy.Symbol('pulse_1'),
-        cirq.WaitGate(cirq.Duration(nanos=t))(q))
+        cirq.wait(q, nanos=2 * t * sympy.Symbol('pulse_1')),
+        cirq.X(q)**sympy.Symbol('pulse_1'), cirq.wait(q, nanos=t))
     assert circuit == expected
 
 
