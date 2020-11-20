@@ -381,6 +381,13 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         return out
 
     def _decompose_(self, qubits) -> 'cirq.OP_TREE':
+        """Decomposes self into Z rotations and FSimGate.
+
+        Note that Z rotations returned by this method have unusual global phase
+        in that one of their eigenvalues is 1. This ensures the decomposition
+        agrees with the matrix specified in class docstring. In particular, it
+        makes the top level element of the matrix equal to 1.
+        """
         def angle_to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
             """Divides angle_rads by symbolic or numerical pi."""
             pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
