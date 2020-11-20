@@ -1002,7 +1002,7 @@ def test_final_state_vector_is_not_last_object():
 
     q = cirq.LineQubit(0)
     initial_state = np.array([1, 0], dtype=np.complex64)
-    circuit = cirq.Circuit(cirq.WaitGate(0)(q))
+    circuit = cirq.Circuit(cirq.wait(q))
     result = sim.simulate(circuit, initial_state=initial_state)
     assert result.state_vector() is not initial_state
     assert not np.shares_memory(result.state_vector(), initial_state)

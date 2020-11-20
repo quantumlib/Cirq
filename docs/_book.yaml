@@ -46,6 +46,8 @@ upper_tabs:
         path: /cirq/circuits
       - title: "Simulation"
         path: /cirq/simulation
+      - title: "Ecosystem"
+        path: /cirq/ecosystem
 
       ####  FURTHER TOPICS  ####
       - heading: "Further topics"

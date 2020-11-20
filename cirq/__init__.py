@@ -64,6 +64,7 @@ from cirq._version import (
 # Flattened sub-modules.
 
 from cirq.circuits import (
+    AbstractCircuit,
     Circuit,
     CircuitDag,
     FrozenCircuit,
@@ -274,6 +275,7 @@ from cirq.ops import (
     TwoQubitDiagonalGate,
     TwoQubitGate,
     VirtualTag,
+    wait,
     WaitGate,
     X,
     XPowGate,
