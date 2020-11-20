@@ -67,7 +67,7 @@ def t1_decay(sampler: 'cirq.Sampler',
 
     circuit = circuits.Circuit(
         ops.X(qubit),
-        ops.WaitGate(value.Duration(nanos=var)).on(qubit),
+        ops.wait(qubit, nanos=var),
         ops.measure(qubit, key='output'),
     )
 

@@ -685,7 +685,7 @@ def test_serialize_deserialize_meas(qubits, qubit_ids, key, invert_mask):
 
 
 def test_serialize_deserialize_wait_gate():
-    op = cirq.WaitGate(duration=cirq.Duration(nanos=50.0))(cirq.GridQubit(1, 2))
+    op = cirq.wait(cirq.GridQubit(1, 2), nanos=50.0)
     proto = op_proto({
         'gate': {
             'id': 'wait'
