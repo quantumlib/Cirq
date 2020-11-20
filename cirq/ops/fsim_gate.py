@@ -228,7 +228,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     specify the same gate and therefore the two instances will compare as
     equal up to numerical error. Another consequence of the non-injective
     character of the second parametrization is the fact that the properties
-    phase_angles_before and phase_angles_after may return different phase
+    rz_angles_before and rz_angles_after may return different phase
     angles than the ones used in the call to from_fsim_rz.
     """
 
@@ -271,9 +271,9 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     @staticmethod
     def from_fsim_rz(
             theta: Union[float, sympy.Basic], phi: Union[float, sympy.Basic],
-            phase_angles_before: Tuple[Union[float, sympy.
+            rz_angles_before: Tuple[Union[float, sympy.
                                              Basic], Union[float, sympy.Basic]],
-            phase_angles_after: Tuple[Union[float, sympy.
+            rz_angles_after: Tuple[Union[float, sympy.
                                             Basic], Union[float, sympy.Basic]]
     ) -> 'PhasedFSimGate':
         """Creates PhasedFSimGate using an alternate parametrization.
@@ -283,20 +283,20 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
                 See class docstring above for details.
             phi: Controlled phase angle, in radians. See class docstring
                 above for details.
-            phase_angles_before: 2-tuple of phase angles to apply to each qubit
+            rz_angles_before: 2-tuple of phase angles to apply to each qubit
                 before the core FSimGate. See class docstring for details.
-            phase_angles_after: 2-tuple of phase angles to apply to each qubit
+            rz_angles_after: 2-tuple of phase angles to apply to each qubit
                 after the core FSimGate. See class docstring for details.
         """
-        b0, b1 = phase_angles_before
-        a0, a1 = phase_angles_after
+        b0, b1 = rz_angles_before
+        a0, a1 = rz_angles_after
         gamma = (-b0 - b1 - a0 - a1) / 2.0
         zeta = (b0 - b1 + a0 - a1) / 2.0
         chi = (b0 - b1 - a0 + a1) / 2.0
         return PhasedFSimGate(theta, zeta, chi, gamma, phi)
 
     @property
-    def phase_angles_before(
+    def rz_angles_before(
             self
     ) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
         """Returns 2-tuple of phase angles applied to qubits before FSimGate."""
@@ -305,7 +305,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         return b0, b1
 
     @property
-    def phase_angles_after(
+    def rz_angles_after(
             self
     ) -> Tuple[Union[float, sympy.Basic], Union[float, sympy.Basic]]:
         """Returns 2-tuple of phase angles applied to qubits after FSimGate."""
@@ -394,8 +394,8 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
             return angle_rads / pi
 
         q0, q1 = qubits
-        before = self.phase_angles_before
-        after = self.phase_angles_after
+        before = self.rz_angles_before
+        after = self.rz_angles_after
         yield cirq.Z(q0)**angle_to_exponent(before[0])
         yield cirq.Z(q1)**angle_to_exponent(before[1])
         yield FSimGate(self.theta, self.phi).on(q0, q1)
