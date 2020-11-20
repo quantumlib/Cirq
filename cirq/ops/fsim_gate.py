@@ -205,8 +205,8 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     where b0 and b1 are phase angles to be applied before the core FSimGate,
     a0 and a1 are phase angles to be applied after FSimGate and theta and
     phi specify the core FSimGate. Use the static factory function
-    PhasedFSimGate.from_phase_angles_and_fsim to instantiate the gate
-    using this parametrization.
+    PhasedFSimGate.from_fsim_rz to instantiate the gate using this
+    parametrization.
 
     Note that the theta and phi parameters in the two parametrizations are
     the same.
@@ -217,19 +217,19 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     of PhasedFSimGate. Therefore, the second parametrization is not injective.
     Specifically, for any d
 
-        cirq.PhasedFSimGate.from_phase_angles_and_fsim(
+        cirq.PhasedFSimGate.from_fsim_rz(
             theta, phi, (b0, b1), (a0, a1))
 
     and
 
-        cirq.PhasedFSimGate.from_phase_angles_and_fsim(
+        cirq.PhasedFSimGate.from_fsim_rz(
             theta, phi, (b0 + d, b1 + d), (a0 - d, a1 - d))
 
     specify the same gate and therefore the two instances will compare as
     equal up to numerical error. Another consequence of the non-injective
     character of the second parametrization is the fact that the properties
     phase_angles_before and phase_angles_after may return different phase
-    angles than the ones used in the call to from_phase_angles_and_fsim.
+    angles than the ones used in the call to from_fsim_rz.
     """
 
     def __init__(
@@ -269,7 +269,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         self.phi = canonicalize(phi)
 
     @staticmethod
-    def from_phase_angles_and_fsim(
+    def from_fsim_rz(
             theta: Union[float, sympy.Basic], phi: Union[float, sympy.Basic],
             phase_angles_before: Tuple[Union[float, sympy.
                                              Basic], Union[float, sympy.Basic]],

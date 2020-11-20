@@ -271,9 +271,9 @@ def test_phased_fsim_init():
                              (1, 2, (3, 4), (5, 7)),
                              (np.pi / 5, np.pi / 6, (0.1, 0.2), (0.3, 0.5)),
                          ))
-def test_phased_fsim_from_phase_angles_and_fsim(theta, phi, phase_angles_before,
+def test_phased_fsim_from_fsim_rz(theta, phi, phase_angles_before,
                                                 phase_angles_after):
-    f = cirq.PhasedFSimGate.from_phase_angles_and_fsim(theta, phi,
+    f = cirq.PhasedFSimGate.from_fsim_rz(theta, phi,
                                                        phase_angles_before,
                                                        phase_angles_after)
     q0, q1 = cirq.LineQubit.range(2)
@@ -297,10 +297,10 @@ def test_phased_fsim_from_phase_angles_and_fsim(theta, phi, phase_angles_before,
 ))
 def test_phased_fsim_recreate_from_phase_angles(phase_angles_before,
                                                 phase_angles_after):
-    f = cirq.PhasedFSimGate.from_phase_angles_and_fsim(np.pi / 3, np.pi / 5,
+    f = cirq.PhasedFSimGate.from_fsim_rz(np.pi / 3, np.pi / 5,
                                                        phase_angles_before,
                                                        phase_angles_after)
-    f2 = cirq.PhasedFSimGate.from_phase_angles_and_fsim(f.theta, f.phi,
+    f2 = cirq.PhasedFSimGate.from_fsim_rz(f.theta, f.phi,
                                                         f.phase_angles_before,
                                                         f.phase_angles_after)
     assert cirq.approx_eq(f, f2)
@@ -315,7 +315,7 @@ def test_phased_fsim_recreate_from_phase_angles(phase_angles_before,
 ))
 def test_phased_fsim_phase_angle_symmetry(phase_angles_before,
                                           phase_angles_after):
-    f = cirq.PhasedFSimGate.from_phase_angles_and_fsim(np.pi / 3, np.pi / 5,
+    f = cirq.PhasedFSimGate.from_fsim_rz(np.pi / 3, np.pi / 5,
                                                        phase_angles_before,
                                                        phase_angles_after)
     for d in (-10, -7, -2 * np.pi, -0.2, 0, 0.1, 0.2, np.pi, 8, 20):
@@ -323,7 +323,7 @@ def test_phased_fsim_phase_angle_symmetry(phase_angles_before,
                                 phase_angles_before[1] + d)
         phase_angles_after2 = (phase_angles_after[0] - d,
                                phase_angles_after[1] - d)
-        f2 = cirq.PhasedFSimGate.from_phase_angles_and_fsim(
+        f2 = cirq.PhasedFSimGate.from_fsim_rz(
             np.pi / 3, np.pi / 5, phase_angles_before2, phase_angles_after2)
         assert cirq.approx_eq(f, f2)
 
