@@ -92,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
+    cirq.PhasedFSimGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
