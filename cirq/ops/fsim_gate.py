@@ -174,20 +174,10 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
 
     The unitary matrix of PhasedFSimGate(θ, ζ, χ, γ, φ) is:
 
-        [[1,           0,             0,           0],
-         [0,    f1 cos(θ), -i f2 sin(θ),           0],
-         [0, -i f3 sin(θ),    f4 cos(θ),           0],
-         [0,           0,             0, f5 exp(-iφ)]]
-
-    where the phase factors are
-
-        f1 = exp(-iγ - iζ)
-        f2 = exp(-iγ + iχ)
-        f3 = exp(-iγ - iχ)
-        f4 = exp(-iγ + iζ)
-        f5 = exp(-2iγ).
-
-    Note that the phase factors are not independent.
+        [[1,                       0,                       0,            0],
+         [0,    exp(-iγ - iζ) cos(θ), -i exp(-iγ + iχ) sin(θ),            0],
+         [0, -i exp(-iγ - iχ) sin(θ),    exp(-iγ + iζ) cos(θ),            0],
+         [0,                       0,                       0, exp(-2iγ-iφ)]].
 
     This parametrization follows eq (18) in https://arxiv.org/abs/2010.07965.
     See also eq (43) in https://arxiv.org/abs/1910.11333 for an older variant
@@ -195,41 +185,39 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     different names and opposite sign. Specifically, ∆+ angle corresponds to
     -γ, ∆- corresponds to -ζ and ∆-,off corresponds to -χ.
 
-    There is another useful parametrization of PhasedFSimGate based on the fact
-    that the gate is equivalent up to global phase to the following circuit:
+    Another useful parametrization of PhasedFSimGate is based on the fact that
+    the gate is equivalent up to global phase to the following circuit:
 
-        0: ───Rz(b0)───FSim(theta, phi)───Rz(a0)───
+        0: ───Rz(α0)───FSim(θ, φ)───Rz(β0)───
                        │
-        1: ───Rz(b1)───FSim(theta, phi)───Rz(a1)───
+        1: ───Rz(α1)───FSim(θ, φ)───Rz(β1)───
 
-    where b0 and b1 are phase angles to be applied before the core FSimGate,
-    a0 and a1 are phase angles to be applied after FSimGate and theta and
-    phi specify the core FSimGate. Use the static factory function
-    PhasedFSimGate.from_fsim_rz to instantiate the gate using this
-    parametrization.
+    where α0 and α1 are Rz angles to be applied before the core FSimGate,
+    β0 and β1 are Rz angles to be applied after FSimGate and θ and φ specify
+    the core FSimGate. Use the static factory function from_fsim_rz to
+    instantiate the gate using this parametrization.
 
-    Note that the theta and phi parameters in the two parametrizations are
-    the same.
+    Note that the θ and φ parameters in the two parametrizations are the same.
 
     The matrix above is block diagonal where the middle block may be any
     element of U(2) and the bottom right block may be any element of U(1).
     Consequently, five real parameters are required to specify an instance
     of PhasedFSimGate. Therefore, the second parametrization is not injective.
-    Specifically, for any d
+    Indeed, for any angle δ
 
-        cirq.PhasedFSimGate.from_fsim_rz(
-            theta, phi, (b0, b1), (a0, a1))
+        cirq.PhasedFSimGate.from_fsim_rz(θ, φ, (α0, α1), (β0, β1))
 
     and
 
-        cirq.PhasedFSimGate.from_fsim_rz(
-            theta, phi, (b0 + d, b1 + d), (a0 - d, a1 - d))
+        cirq.PhasedFSimGate.from_fsim_rz(θ, φ,
+                                         (α0 + δ, α1 + δ),
+                                         (β0 - δ, β1 - δ))
 
     specify the same gate and therefore the two instances will compare as
     equal up to numerical error. Another consequence of the non-injective
     character of the second parametrization is the fact that the properties
-    rz_angles_before and rz_angles_after may return different phase
-    angles than the ones used in the call to from_fsim_rz.
+    rz_angles_before and rz_angles_after may return different Rz angles
+    than the ones used in the call to from_fsim_rz.
     """
 
     def __init__(
