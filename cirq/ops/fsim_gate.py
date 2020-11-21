@@ -374,7 +374,7 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         Note that Z rotations returned by this method have unusual global phase
         in that one of their eigenvalues is 1. This ensures the decomposition
         agrees with the matrix specified in class docstring. In particular, it
-        makes the top level element of the matrix equal to 1.
+        makes the top left element of the matrix equal to 1.
         """
 
         def to_exponent(angle_rads: Union[float, sympy.Basic]
