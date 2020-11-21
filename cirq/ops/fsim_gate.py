@@ -260,9 +260,9 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     def from_fsim_rz(
             theta: Union[float, sympy.Basic], phi: Union[float, sympy.Basic],
             rz_angles_before: Tuple[Union[float, sympy.
-                                             Basic], Union[float, sympy.Basic]],
+                                          Basic], Union[float, sympy.Basic]],
             rz_angles_after: Tuple[Union[float, sympy.
-                                            Basic], Union[float, sympy.Basic]]
+                                         Basic], Union[float, sympy.Basic]]
     ) -> 'PhasedFSimGate':
         """Creates PhasedFSimGate using an alternate parametrization.
 
@@ -376,7 +376,9 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         agrees with the matrix specified in class docstring. In particular, it
         makes the top level element of the matrix equal to 1.
         """
-        def angle_to_exponent(angle_rads: Union[float, sympy.Basic]) -> Union[float, sympy.Basic]:
+
+        def to_exponent(angle_rads: Union[float, sympy.Basic]
+                       ) -> Union[float, sympy.Basic]:
             """Divides angle_rads by symbolic or numerical pi."""
             pi = sympy.pi if protocols.is_parameterized(angle_rads) else np.pi
             return angle_rads / pi
@@ -384,11 +386,11 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         q0, q1 = qubits
         before = self.rz_angles_before
         after = self.rz_angles_after
-        yield cirq.Z(q0)**angle_to_exponent(before[0])
-        yield cirq.Z(q1)**angle_to_exponent(before[1])
+        yield cirq.Z(q0)**to_exponent(before[0])
+        yield cirq.Z(q1)**to_exponent(before[1])
         yield FSimGate(self.theta, self.phi).on(q0, q1)
-        yield cirq.Z(q0)**angle_to_exponent(after[0])
-        yield cirq.Z(q1)**angle_to_exponent(after[1])
+        yield cirq.Z(q0)**to_exponent(after[0])
+        yield cirq.Z(q1)**to_exponent(after[1])
 
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> Tuple[str, ...]:
