@@ -47,6 +47,7 @@ landing_page:
 
     - heading: GitHub
       description: See more examples on the <a href="https://github.com/quantumlib/Cirq/tree/master/examples">Cirq GitHub</a>.
+      list:
       - heading: Hello Qubit
         description: Simple first program showing how to create a quantum circuit.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py
