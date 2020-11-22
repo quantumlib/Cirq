@@ -19,30 +19,29 @@ landing_page:
     - heading: Intermediate
       description: Use Cirq for intermediate-level subroutines and algorithms.
       items:
-      - heading: Shor's Algorithm
-        description: Factor numbers using a quantum computer.
-        path: /cirq/tutorials/shor
-
-
-    - heading: Advanced
-      description: Utilize Cirq features to implement advanced quantum algorithms.
-      items:
       - heading: Quantum Variational Algorithm
         description: Use the variational quantum eigensolver to find the ground state of the Ising model.
         path: /cirq/tutorials/variational_algorithm
       - heading: Approximate Optimization
         description: Use a quantum computer to find approximately optimal cuts in a graph.
         path: /cirq/tutorials/qaoa
-      - heading: Hidden Linear Function
-        description: Find a hidden vector with a constant depth quantum circuit.
-        path: /cirq/tutorials/hidden_linear_function
-
       - heading: Quantum Walks
         description: Demonstration of classical and quantum random walks on a graph.
         path: /cirq/tutorials/quantum_walks
+
+
+    - heading: Advanced
+      description: Utilize Cirq features to implement advanced quantum algorithms.
+      items:
+      - heading: Hidden Linear Function
+        description: Find a hidden vector with a constant depth quantum circuit.
+        path: /cirq/tutorials/hidden_linear_function
       - heading: Rabi Oscillation
         description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
         path: /cirq/tutorials/rabi_oscillations
+      - heading: Shor's Algorithm
+        description: Factor numbers using a quantum computer.
+        path: /cirq/tutorials/shor
 
 
     - heading: GitHub
