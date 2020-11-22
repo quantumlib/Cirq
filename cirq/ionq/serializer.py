@@ -196,7 +196,7 @@ class Serializer:
     def _serialize_cnot_pow_gate(self, gate: 'cirq.CNotPowGate',
                                  targets: Sequence[int]) -> Optional[dict]:
         if self._near_mod_n(gate.exponent, 1, 2):
-            return {'gate': 'cnot', 'targets': targets}
+            return {'gate': 'cnot', 'control': targets[0], 'target': targets[1]}
         return None
 
     def _near_mod_n(self, e: float, t: float, n: float) -> bool:

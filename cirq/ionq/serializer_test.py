@@ -173,7 +173,8 @@ def test_serialize_cnot_gate():
         'qubits': 2,
         'circuit': [{
             'gate': 'cnot',
-            'targets': [0, 1]
+            'control': 0,
+            'target': 1
         }]
     }
 
