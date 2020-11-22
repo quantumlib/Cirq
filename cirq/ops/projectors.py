@@ -3,8 +3,8 @@ from typing import Any, Dict, Iterable, List, Tuple, TYPE_CHECKING, Union
 import numpy as np
 
 from cirq import value
-from cirq.ops import raw_types
 from cirq.qis import states
+from cirq.qis import STATE_VECTOR_LIKE
 
 if TYPE_CHECKING:
     import cirq
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 @value.value_equality
-class Projector(raw_types.Gate):
+class Projector():
     """A non-unitary gate that projects onto one or more qubits.
 
     The input is a matrix representing the basis of the space we project onto.
@@ -26,7 +26,7 @@ class Projector(raw_types.Gate):
     """
 
     def __init__(self,
-                 projection_basis: Union[List[List[float]], np.ndarray],
+                 projection_basis: Union[STATE_VECTOR_LIKE],
                  qid_shape: Tuple[int, ...] = (2,),
                  enforce_orthonormal_basis: bool = False):
         """
@@ -43,7 +43,7 @@ class Projector(raw_types.Gate):
         Raises:
             ValueError: If the basis vector is empty.
         """
-        projection_array = np.asarray(projection_basis)
+        projection_array = np.vstack([states.to_valid_state_vector(x, qid_shape=qid_shape) for x in projection_basis])
 
         if len(projection_array.shape) != 2:
             raise ValueError('The input projection_basis must be a 2D array')
@@ -69,12 +69,6 @@ class Projector(raw_types.Gate):
     def _qid_shape_(self) -> Tuple[int, ...]:
         return self._qid_shape
 
-    def _has_unitary_(self) -> bool:
-        return False
-
-    def _is_parameterized_(self) -> bool:
-        return False
-
     def _channel_(self) -> Iterable[np.ndarray]:
         # Make rows into columns
         A = self._projection_basis.T
@@ -83,21 +77,10 @@ class Projector(raw_types.Gate):
         # Projector to the range (column space) of A
         return (A @ pseudoinverse,)
 
-    def _has_channel_(self) -> bool:
-        return True
-
     def __repr__(self) -> str:
         return ("cirq.Projector(projection_basis=" +
                 f"{self._projection_basis.tolist()})," +
                 f"qid_shape={self._qid_shape})")
-
-    def _circuit_diagram_info_(self, args: 'protocols.CircuitDiagramInfoArgs'
-                              ) -> Tuple[str, ...]:
-        dirac_basis = ",".join([
-            states.dirac_notation(v, args.precision)
-            for v in self._projection_basis
-        ])
-        return (f"P({dirac_basis})",) + ("P",) * (len(self._qid_shape) - 1)
 
     def _json_dict_(self) -> Dict[str, Any]:
         return {
