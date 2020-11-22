@@ -350,8 +350,8 @@ class Engine:
             parameter sweep.
         """
         if params_list is None:
-            params_list = [dict()] * len(programs)
-        if len(programs) != len(params_list):
+            params_list = [None] * len(programs)
+        elif len(programs) != len(params_list):
             raise ValueError('Number of circuits and sweeps must match')
         if not processor_ids:
             raise ValueError('Processor id must be specified.')

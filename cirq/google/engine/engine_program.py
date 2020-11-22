@@ -160,7 +160,7 @@ class EngineProgram:
         if self.result_type != ResultType.Batch:
             raise ValueError('Can only use run_batch() in batch mode.')
         if params_list is None:
-            params_list = [dict()] * self.batch_size()
+            params_list = [None] * self.batch_size()
         if not job_id:
             job_id = engine_base._make_random_id('job-')
         if not processor_ids:
