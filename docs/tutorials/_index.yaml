@@ -12,6 +12,41 @@ landing_page:
     - heading: Beginner
       description: Explore Cirq through introductory quantum information examples.
       items:
+      - heading: Basics
+        description: Learn the basics of Cirq.
+        path: /cirq/tutorials/basics
+
+    - heading: Intermediate
+      description: Use Cirq for intermediate-level subroutines and algorithms.
+      items:
+      - heading: Shor's Algorithm
+        description: Factor numbers using a quantum computer.
+        path: /cirq/tutorials/shor
+
+
+    - heading: Advanced
+      description: Utilize Cirq features to implement advanced quantum algorithms.
+      items:
+      - heading: Quantum Variational Algorithm
+        description: Use the variational quantum eigensolver to find the ground state of the Ising model.
+        path: /cirq/tutorials/variational_algorithm
+      - heading: Approximate Optimization
+        description: Use a quantum computer to find approximately optimal cuts in a graph.
+        path: /cirq/tutorials/qaoa
+      - heading: Hidden Linear Function
+        description: Find a hidden vector with a constant depth quantum circuit.
+        path: /cirq/tutorials/hidden_linear_function
+
+      - heading: Quantum Walks
+        description: Demonstration of classical and quantum random walks on a graph.
+        path: /cirq/tutorials/quantum_walks
+      - heading: Rabi Oscillation
+        description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
+        path: /cirq/tutorials/rabi_oscillations
+
+
+    - heading: GitHub
+      description: See more examples on the <a href="https://github.com/quantumlib/Cirq/tree/master/examples">Cirq GitHub</a>.
       - heading: Hello Qubit
         description: Simple first program showing how to create a quantum circuit.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hello_qubit.py
@@ -61,9 +96,6 @@ landing_page:
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
 
-    - heading: Intermediate
-      description: Use Cirq for intermediate-level subroutines and algorithms.
-      items:
       - heading: Arithmetic
         description: Algorithms for adding and multiplying numbers represented by quantum states.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/basic_arithmetic.py
@@ -90,15 +122,12 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/phase_estimator.py
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
-      - heading: Shor's Algorithm
-        description: Factor numbers using a quantum computer.
-        path: /cirq/tutorials/shor
-
       - heading: Swap Networks
         description: Algorithm for efficiently emulating full connectivity on a limited connectivity grid of qubits.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/swap_networks.py
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
+
       - heading: Direct Fidelity
         description: Direct fidelity estimation to distinguish a desired state fromt he actual state using few Pauli measurements.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/direct_fidelity_estimation.py
@@ -109,29 +138,8 @@ landing_page:
         path: https://github.com/quantumlib/Cirq/blob/master/examples/cross_entropy_benchmarking_example.py
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
-
-
-    - heading: Advanced
-      description: Utilize Cirq features to implement advanced quantum algorithms.
-      items:
-      - heading: Quantum Variational Algorithm
-        description: Use the variational quantum eigensolver to find the ground state of the Ising model.
-        path: /cirq/tutorials/variational_algorithm
-      - heading: Approximate Optimization
-        description: Use a quantum computer to find approximately optimal cuts in a graph.
-        path: /cirq/tutorials/qaoa
-      - heading: Hidden Linear Function
-        description: Find a hidden vector with a constant depth quantum circuit.
-        path: /cirq/tutorials/hidden_linear_function
-
-      - heading: Quantum Walks
-        description: Demonstration of classical and quantum random walks on a graph.
-        path: /cirq/tutorials/quantum_walks
       - heading: HHL
         description: Algorithm for solving linear systems using quantum phase estimation.
         path: https://github.com/quantumlib/Cirq/blob/master/examples/hhl.py
         icon:
           path: /site-assets/images/cards/github-card-16x9.png
-      - heading: Rabi Oscillation
-        description: Example of using sweeps and symbols to show rotation of a qubit by different angles.
-        path: /cirq/tutorials/rabi_oscillations
