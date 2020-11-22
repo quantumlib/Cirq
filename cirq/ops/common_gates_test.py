@@ -20,9 +20,7 @@ import cirq
 
 H = np.array([[1, 1], [1, -1]]) * np.sqrt(0.5)
 HH = cirq.kron(H, H)
-QFT2 = np.array([[1, 1, 1, 1],
-                 [1, 1j, -1, -1j],
-                 [1, -1, 1, -1],
+QFT2 = np.array([[1, 1, 1, 1], [1, 1j, -1, -1j], [1, -1, 1, -1],
                  [1, -1j, -1, 1j]]) * 0.5
 
 
@@ -87,11 +85,9 @@ def test_cz_repr():
 
 
 def test_cz_unitary():
-    assert np.allclose(cirq.unitary(cirq.CZ),
-                       np.array([[1, 0, 0, 0],
-                                 [0, 1, 0, 0],
-                                 [0, 0, 1, 0],
-                                 [0, 0, 0, -1]]))
+    assert np.allclose(
+        cirq.unitary(cirq.CZ),
+        np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]]))
 
     assert np.allclose(
         cirq.unitary(cirq.CZ**0.5),
@@ -216,41 +212,32 @@ def test_rot_gates_eq():
         lambda p: cirq.CNOT**p,
     ]
     for gate in gates:
-        eq.add_equality_group(gate(3.5),
-                              gate(-0.5))
+        eq.add_equality_group(gate(3.5), gate(-0.5))
         eq.make_equality_group(lambda: gate(0))
         eq.make_equality_group(lambda: gate(0.5))
 
     eq.add_equality_group(cirq.XPowGate(), cirq.XPowGate(exponent=1), cirq.X)
     eq.add_equality_group(cirq.YPowGate(), cirq.YPowGate(exponent=1), cirq.Y)
     eq.add_equality_group(cirq.ZPowGate(), cirq.ZPowGate(exponent=1), cirq.Z)
-    eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift=-0.5),
-                          cirq.ZPowGate(exponent=5,
-                                        global_shift=-0.5))
-    eq.add_equality_group(cirq.ZPowGate(exponent=3,
-                                        global_shift=-0.5))
-    eq.add_equality_group(cirq.ZPowGate(exponent=1,
-                                        global_shift=-0.1))
-    eq.add_equality_group(cirq.ZPowGate(exponent=5,
-                                        global_shift=-0.1))
+    eq.add_equality_group(cirq.ZPowGate(exponent=1, global_shift=-0.5),
+                          cirq.ZPowGate(exponent=5, global_shift=-0.5))
+    eq.add_equality_group(cirq.ZPowGate(exponent=3, global_shift=-0.5))
+    eq.add_equality_group(cirq.ZPowGate(exponent=1, global_shift=-0.1))
+    eq.add_equality_group(cirq.ZPowGate(exponent=5, global_shift=-0.1))
     eq.add_equality_group(cirq.CNotPowGate(), cirq.CXPowGate(),
                           cirq.CNotPowGate(exponent=1), cirq.CNOT)
-    eq.add_equality_group(cirq.CZPowGate(),
-                          cirq.CZPowGate(exponent=1), cirq.CZ)
+    eq.add_equality_group(cirq.CZPowGate(), cirq.CZPowGate(exponent=1), cirq.CZ)
 
 
 def test_z_unitary():
-    assert np.allclose(cirq.unitary(cirq.Z),
-                       np.array([[1, 0], [0, -1]]))
+    assert np.allclose(cirq.unitary(cirq.Z), np.array([[1, 0], [0, -1]]))
     assert np.allclose(cirq.unitary(cirq.Z**0.5), np.array([[1, 0], [0, 1j]]))
     assert np.allclose(cirq.unitary(cirq.Z**0), np.array([[1, 0], [0, 1]]))
     assert np.allclose(cirq.unitary(cirq.Z**-0.5), np.array([[1, 0], [0, -1j]]))
 
 
 def test_y_unitary():
-    assert np.allclose(cirq.unitary(cirq.Y),
-                       np.array([[0, -1j], [1j, 0]]))
+    assert np.allclose(cirq.unitary(cirq.Y), np.array([[0, -1j], [1j, 0]]))
 
     assert np.allclose(cirq.unitary(cirq.Y**0.5),
                        np.array([[1 + 1j, -1 - 1j], [1 + 1j, 1 + 1j]]) / 2)
@@ -262,8 +249,7 @@ def test_y_unitary():
 
 
 def test_x_unitary():
-    assert np.allclose(cirq.unitary(cirq.X),
-                       np.array([[0, 1], [1, 0]]))
+    assert np.allclose(cirq.unitary(cirq.X), np.array([[0, 1], [1, 0]]))
 
     assert np.allclose(cirq.unitary(cirq.X**0.5),
                        np.array([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]) / 2)
@@ -287,7 +273,7 @@ def test_h_init():
 
 def test_h_str():
     assert str(cirq.H) == 'H'
-    assert str(cirq.H**0.5) == 'H^0.5'
+    assert str(cirq.H**0.5) == 'H**0.5'
 
 
 def test_x_act_on_tableau():
@@ -622,10 +608,11 @@ def test_act_on_consistency(input_gate, assert_implemented):
 
 
 def test_runtime_types_of_rot_gates():
-    for gate_type in [lambda p: cirq.CZPowGate(exponent=p),
-                      lambda p: cirq.XPowGate(exponent=p),
-                      lambda p: cirq.YPowGate(exponent=p),
-                      lambda p: cirq.ZPowGate(exponent=p)]:
+    for gate_type in [
+            lambda p: cirq.CZPowGate(exponent=p), lambda p: cirq.XPowGate(
+                exponent=p), lambda p: cirq.YPowGate(exponent=p), lambda p: cirq
+            .ZPowGate(exponent=p)
+    ]:
         p = gate_type(sympy.Symbol('a'))
         assert cirq.unitary(p, None) is None
         assert cirq.pow(p, 2, None) == gate_type(2 * sympy.Symbol('a'))
@@ -707,10 +694,10 @@ def test_cnot_keyword_arguments():
     b = cirq.NamedQubit('b')
 
     eq_tester = cirq.testing.EqualsTester()
-    eq_tester.add_equality_group(cirq.CNOT(a, b),
-                                 cirq.CNOT(control=a, target=b))
-    eq_tester.add_equality_group(cirq.CNOT(b, a),
-                                 cirq.CNOT(control=b, target=a))
+    eq_tester.add_equality_group(cirq.CNOT(a, b), cirq.CNOT(control=a,
+                                                            target=b))
+    eq_tester.add_equality_group(cirq.CNOT(b, a), cirq.CNOT(control=b,
+                                                            target=a))
 
 
 def test_cnot_keyword_not_equal():

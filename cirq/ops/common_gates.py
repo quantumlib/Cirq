@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 """Quantum gates that are commonly used in the literature.
 
 This module creates Gate instances for the following gates:
@@ -47,8 +46,7 @@ imports.
 
 
 @value.value_equality
-class XPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate):
+class XPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A gate that rotates around the X axis of the Bloch sphere.
 
     The unitary matrix of ``XPowGate(exponent=t)`` is:
@@ -211,8 +209,7 @@ class XPowGate(eigen_gate.EigenGate,
             return f'Rx({angle_str})'
 
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('X',),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=('X',), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -237,8 +234,7 @@ class XPowGate(eigen_gate.EigenGate,
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
         return cirq.ops.phased_x_gate.PhasedXPowGate(
-            exponent=self._exponent,
-            phase_exponent=phase_turns * 2)
+            exponent=self._exponent, phase_exponent=phase_turns * 2)
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -268,15 +264,13 @@ class XPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.X'
             return '(cirq.X**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.XPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.XPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
 
 @value.value_equality
-class YPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate):
+class YPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A gate that rotates around the Y axis of the Bloch sphere.
 
     The unitary matrix of ``YPowGate(exponent=t)`` is:
@@ -407,8 +401,7 @@ class YPowGate(eigen_gate.EigenGate,
             return f'Ry({angle_str})'
 
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('Y',),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=('Y',), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -432,9 +425,9 @@ class YPowGate(eigen_gate.EigenGate,
 
     def _phase_by_(self, phase_turns, qubit_index):
         """See `cirq.SupportsPhase`."""
-        return cirq.ops.phased_x_gate.PhasedXPowGate(
-            exponent=self._exponent,
-            phase_exponent=0.5 + phase_turns * 2)
+        return cirq.ops.phased_x_gate.PhasedXPowGate(exponent=self._exponent,
+                                                     phase_exponent=0.5 +
+                                                     phase_turns * 2)
 
     def _has_stabilizer_effect_(self) -> Optional[bool]:
         if self._is_parameterized_():
@@ -464,15 +457,13 @@ class YPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.Y'
             return '(cirq.Y**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.YPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.YPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
 
 @value.value_equality
-class ZPowGate(eigen_gate.EigenGate,
-               gate_features.SingleQubitGate):
+class ZPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     """A gate that rotates around the Z axis of the Bloch sphere.
 
     The unitary matrix of ``ZPowGate(exponent=t)`` is:
@@ -647,18 +638,14 @@ class ZPowGate(eigen_gate.EigenGate,
 
         e = self._diagram_exponent(args)
         if e in [-0.25, 0.25]:
-            return protocols.CircuitDiagramInfo(
-                wire_symbols=('T',),
-                exponent=cast(float, e) * 4)
+            return protocols.CircuitDiagramInfo(wire_symbols=('T',),
+                                                exponent=cast(float, e) * 4)
 
         if e in [-0.5, 0.5]:
-            return protocols.CircuitDiagramInfo(
-                wire_symbols=('S',),
-                exponent=cast(float, e) * 2)
+            return protocols.CircuitDiagramInfo(wire_symbols=('S',),
+                                                exponent=cast(float, e) * 2)
 
-        return protocols.CircuitDiagramInfo(
-            wire_symbols=('Z',),
-            exponent=e)
+        return protocols.CircuitDiagramInfo(wire_symbols=('Z',), exponent=e)
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -715,10 +702,9 @@ class ZPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.Z'
             return '(cirq.Z**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.ZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.ZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
     def _commutes_on_qids_(self, qids: 'Sequence[cirq.Qid]', other: Any,
                            atol: float
@@ -753,15 +739,9 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _eigen_components(self):
         s = np.sqrt(2)
 
-        component0 = np.array([
-            [3 + 2 * s, 1 + s],
-            [1 + s, 1]
-        ]) / (4 + 2 * s)
+        component0 = np.array([[3 + 2 * s, 1 + s], [1 + s, 1]]) / (4 + 2 * s)
 
-        component1 = np.array([
-            [3 - 2 * s, 1 - s],
-            [1 - s, 1]
-        ]) / (4 - 2 * s)
+        component1 = np.array([[3 - 2 * s, 1 - s], [1 - s, 1]]) / (4 - 2 * s)
 
         return [(0, component0), (1, component1)]
 
@@ -861,8 +841,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('H',),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=('H',), exponent=self._diagram_exponent(args))
 
     def _qasm_(self, args: 'cirq.QasmArgs',
                qubits: Tuple['cirq.Qid', ...]) -> Optional[str]:
@@ -891,7 +870,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
     def __str__(self) -> str:
         if self._exponent == 1:
             return 'H'
-        return f'H^{self._exponent}'
+        return f'H**{self._exponent}'
 
     def __repr__(self) -> str:
         if self._global_shift == 0:
@@ -902,8 +881,7 @@ class HPowGate(eigen_gate.EigenGate, gate_features.SingleQubitGate):
                 f'global_shift={self._global_shift!r})')
 
 
-class CZPowGate(eigen_gate.EigenGate,
-                gate_features.TwoQubitGate,
+class CZPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate,
                 gate_features.InterchangeableQubitsGate):
     """A gate that applies a phase to the |11⟩ state of two qubits.
 
@@ -1091,10 +1069,9 @@ class CZPowGate(eigen_gate.EigenGate,
             if self._exponent == 1:
                 return 'cirq.CZ'
             return '(cirq.CZ**{})'.format(proper_repr(self._exponent))
-        return (
-            'cirq.CZPowGate(exponent={}, '
-            'global_shift={!r})'
-        ).format(proper_repr(self._exponent), self._global_shift)
+        return ('cirq.CZPowGate(exponent={}, '
+                'global_shift={!r})').format(proper_repr(self._exponent),
+                                             self._global_shift)
 
 
 class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
@@ -1138,14 +1115,12 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
 
     def _eigen_components(self):
         return [
-            (0, np.array([[1, 0, 0, 0],
-                          [0, 1, 0, 0],
-                          [0, 0, 0.5, 0.5],
-                          [0, 0, 0.5, 0.5]])),
-            (1, np.array([[0, 0, 0, 0],
-                          [0, 0, 0, 0],
-                          [0, 0, 0.5, -0.5],
-                          [0, 0, -0.5, 0.5]])),
+            (0,
+             np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0.5, 0.5],
+                       [0, 0, 0.5, 0.5]])),
+            (1,
+             np.array([[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0.5, -0.5],
+                       [0, 0, -0.5, 0.5]])),
         ]
 
     def _trace_distance_bound_(self) -> Optional[float]:
@@ -1156,8 +1131,7 @@ class CXPowGate(eigen_gate.EigenGate, gate_features.TwoQubitGate):
     def _circuit_diagram_info_(self, args: 'cirq.CircuitDiagramInfoArgs'
                               ) -> 'cirq.CircuitDiagramInfo':
         return protocols.CircuitDiagramInfo(
-            wire_symbols=('@', 'X'),
-            exponent=self._diagram_exponent(args))
+            wire_symbols=('@', 'X'), exponent=self._diagram_exponent(args))
 
     def _apply_unitary_(self, args: 'protocols.ApplyUnitaryArgs'
                        ) -> Optional[np.ndarray]:
