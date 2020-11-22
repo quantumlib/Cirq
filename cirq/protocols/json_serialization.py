@@ -149,6 +149,7 @@ class _ResolverCache:
                 'PhaseDampingChannel': cirq.PhaseDampingChannel,
                 'PhaseFlipChannel': cirq.PhaseFlipChannel,
                 'PhaseGradientGate': cirq.PhaseGradientGate,
+                'PhasedFSimGate': cirq.PhasedFSimGate,
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,

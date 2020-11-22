@@ -72,6 +72,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.identity_each
     cirq.qft
     cirq.riswap
+    cirq.wait
     .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
@@ -91,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
+    cirq.PhasedFSimGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
@@ -189,6 +191,7 @@ Circuits, Operations, and Moments.
     cirq.flatten_op_tree
     cirq.freeze_op_tree
     cirq.transform_op_tree
+    cirq.AbstractCircuit
     cirq.Circuit
     cirq.CircuitDag
     cirq.FrozenCircuit

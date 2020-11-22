@@ -650,7 +650,7 @@ def test_wait_gate():
         }]
     })
     q = cirq.GridQubit(1, 2)
-    op = cirq.WaitGate(cirq.Duration(nanos=20)).on(q)
+    op = cirq.wait(q, nanos=20)
     assert gate_set.serialize_op(op) == proto
     assert gate_set.deserialize_op(proto) == op
 
