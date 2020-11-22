@@ -323,7 +323,7 @@ def _all_operations(q0, q1, q2, q3, q4, include_measurements=True):
         cirq.PhasedXPowGate(phase_exponent=0.111, exponent=0.25).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.333, exponent=0.5).on(q1),
         cirq.PhasedXPowGate(phase_exponent=0.777, exponent=-0.5).on(q1),
-        cirq.WaitGate(0).on(q0),
+        cirq.wait(q0, nanos=0),
         cirq.measure(q0, key='xX'),
         cirq.measure(q2, key='x_a'),
         cirq.measure(q3, key='X'),

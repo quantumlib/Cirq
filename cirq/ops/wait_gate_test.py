@@ -48,7 +48,7 @@ def test_protocols():
     c = cirq.WaitGate(cirq.Duration(millis=2))
     q = cirq.LineQubit(0)
 
-    cirq.testing.assert_implements_consistent_protocols(cirq.WaitGate(0).on(q))
+    cirq.testing.assert_implements_consistent_protocols(cirq.wait(q, nanos=0))
     cirq.testing.assert_implements_consistent_protocols(c.on(q))
     cirq.testing.assert_implements_consistent_protocols(p.on(q))
 
@@ -65,6 +65,24 @@ def test_protocols():
     assert cirq.inverse(p) == p
     assert cirq.decompose(c.on(q)) == []
     assert cirq.decompose(p.on(q)) == []
+
+
+def test_qid_shape():
+    assert cirq.qid_shape(cirq.WaitGate(0, qid_shape=(2, 3))) == (2, 3)
+    assert cirq.qid_shape(cirq.WaitGate(0, num_qubits=3)) == (2, 2, 2)
+    with pytest.raises(ValueError, match='empty set of qubits'):
+        cirq.WaitGate(0, num_qubits=0)
+    with pytest.raises(ValueError, match='num_qubits'):
+        cirq.WaitGate(0, qid_shape=(2, 2), num_qubits=1)
+
+
+def test_json():
+    q0, q1 = cirq.GridQubit.rect(1, 2)
+    qtrit = cirq.GridQid(1, 2, dimension=3)
+    cirq.testing.assert_json_roundtrip_works(cirq.wait(q0, nanos=10))
+    cirq.testing.assert_json_roundtrip_works(cirq.wait(q0, q1, nanos=10))
+    cirq.testing.assert_json_roundtrip_works(cirq.wait(qtrit, nanos=10))
+    cirq.testing.assert_json_roundtrip_works(cirq.wait(qtrit, q1, nanos=10))
 
 
 def test_str():
