@@ -13,7 +13,6 @@
 # limitations under the License.
 
 import pytest
-from codeowners import CodeOwners
 
 CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
 
@@ -24,26 +23,6 @@ BASE_MAINTAINERS = {
 GOOGLE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@wcourtney")}
 
 
-def _parse_owners():
-    with open(".github/CODEOWNERS") as f:
-        contents = f.read()
-        return CodeOwners(contents)
-
-
-owners = _parse_owners()
-
-
-def only_on_linux(func):
-    import sys
-    if sys.platform != 'linux':
-        return None
-    return func
-
-
-# for some reason the codeowners library does not publish all the wheels
-# for Mac and Windows. Eventually we could write our own codeowners parser,
-# but for now it is good enough.
-@only_on_linux
 @pytest.mark.parametrize("pattern,expected", [
     ("any_file", BASE_MAINTAINERS),
     ("in/any/dir/any_file.py", BASE_MAINTAINERS),
@@ -55,4 +34,15 @@ def only_on_linux(func):
     ("docs/tutorials/google/bla.md", GOOGLE_MAINTAINERS),
 ])
 def test_codeowners(pattern, expected):
-    assert set(owners.of(pattern)) == expected
+    # for some reason the codeowners library does not publish all the wheels
+    # for Mac and Windows. Eventually we could write our own codeowners parser,
+    # but for now it is good enough. If codeowners is not installed, this test
+    # will be skipped
+    try:
+        from codeowners import CodeOwners
+    except:
+        pytest.skip("Skipping as codeowners not installed.")
+
+    with open(".github/CODEOWNERS") as f:
+        owners = CodeOwners(f.read())
+        assert set(owners.of(pattern)) == expected
