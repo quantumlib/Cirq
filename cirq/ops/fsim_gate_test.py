@@ -328,10 +328,10 @@ def test_phased_fsim_eq():
     eq.add_equality_group(cirq.PhasedFSimGate(1, 2, 3, 4, 5),
                           cirq.PhasedFSimGate(1, 2, 3, 4, 5))
     eq.add_equality_group(cirq.PhasedFSimGate(2, 1, 3, 4, 5))
-    eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 0),
+                          cirq.PhasedFSimGate(0, 0, 1, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 0, 0, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 1, 0, 0, 0))
-    eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 1, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 1, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 1))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, 0, 0))
@@ -344,6 +344,12 @@ def test_phased_fsim_eq():
     eq.add_equality_group(
         cirq.PhasedFSimGate(1, 0, 0, 4, 5).on(a, b),
         cirq.PhasedFSimGate(1, 0, 0, 4, 5).on(b, a))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(np.pi / 2, 0, 0, 4, 5).on(a, b),
+        cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5).on(b, a))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(np.pi, 0, 0, 4, 5).on(a, b),
+        cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5).on(b, a))
 
 
 @pytest.mark.parametrize('gate, interchangeable', (
@@ -351,6 +357,8 @@ def test_phased_fsim_eq():
     (cirq.PhasedFSimGate(1, 2, 0, 4, 5), False),
     (cirq.PhasedFSimGate(1, 0, 3, 4, 5), False),
     (cirq.PhasedFSimGate(1, 0, 0, 4, 5), True),
+    (cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5), True),
+    (cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5), True),
     (cirq.PhasedFSimGate(1, -np.pi, 0, 4, 5), True),
     (cirq.PhasedFSimGate(1, 0, np.pi, 4, 5), True),
     (cirq.PhasedFSimGate(1, np.pi / 2, 0, 4, 5), False),

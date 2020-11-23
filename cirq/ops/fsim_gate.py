@@ -301,16 +301,25 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
         return a0, a1
 
+    def _zeta_insensitive(self) -> bool:
+        return self.theta in (-np.pi / 2, np.pi / 2)
+
+    def _chi_insensitive(self) -> bool:
+        return self.theta in (-np.pi, 0.0, np.pi)
+
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         """Returns a key that differs between non-interchangeable qubits."""
-        # PhasedFSimGate is symmetric with respect to qubit swap
-        # if and only if zeta and chi are integer multiples of pi.
-        r = (-np.pi, 0.0, np.pi)
-        if self.zeta in r and self.chi in r:
+        x_axis = (-np.pi, 0.0, np.pi)
+        if ((self.zeta in x_axis or self._zeta_insensitive()) and
+            (self.chi in x_axis or self._chi_insensitive())):
             return 0
         return index
 
     def _value_equality_values_(self) -> Any:
+        if self._zeta_insensitive():
+            return (self.theta, 0.0, self.chi, self.gamma, self.phi)
+        if self._chi_insensitive():
+            return (self.theta, self.zeta, 0.0, self.gamma, self.phi)
         return (self.theta, self.zeta, self.chi, self.gamma, self.phi)
 
     def _is_parameterized_(self) -> bool:
