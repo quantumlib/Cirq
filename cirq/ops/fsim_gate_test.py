@@ -324,17 +324,44 @@ def test_phased_fsim_phase_angle_symmetry(rz_angles_before, rz_angles_after):
 def test_phased_fsim_eq():
     eq = cirq.testing.EqualsTester()
     a, b = cirq.LineQubit.range(2)
+    r, s = sympy.Symbol('r'), sympy.Symbol('s')
 
     eq.add_equality_group(cirq.PhasedFSimGate(1, 2, 3, 4, 5),
                           cirq.PhasedFSimGate(1, 2, 3, 4, 5))
     eq.add_equality_group(cirq.PhasedFSimGate(2, 1, 3, 4, 5))
-    eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 0),
-                          cirq.PhasedFSimGate(0, 0, 1, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 0, 0, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 1, 0, 0, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 1, 0))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 1))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, 0, r))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, 0, s))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, r, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, 0, s, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, r, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, 1, s, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, r, 0, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(1, s, 0, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(r, 1, 0, 0, 0))
+    eq.add_equality_group(cirq.PhasedFSimGate(s, 1, 0, 0, 0))
+
+    # Regions of insensitivity to zeta and chi
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(np.pi / 2, 0, 0, 4, 5),
+        cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5))
+    eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 0),
+                          cirq.PhasedFSimGate(0, 0, 1, 0, 0))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(np.pi, 0, 0, 4, 5),
+        cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(sympy.pi / 2, 0, 0, 4, 5),
+        cirq.PhasedFSimGate(sympy.pi / 2, 2, 0, 4, 5))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(sympy.pi, 0, 0, 4, 5),
+        cirq.PhasedFSimGate(sympy.pi, 0, 3, 4, 5))
+
+    # Symmetries under qubit exchange
     eq.add_equality_group(cirq.PhasedFSimGate(1, 2, 3, 4, 5).on(a, b))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 2, 3, 4, 5).on(b, a))
     eq.add_equality_group(cirq.PhasedFSimGate(1, 0, 3, 4, 5).on(a, b))
@@ -345,11 +372,15 @@ def test_phased_fsim_eq():
         cirq.PhasedFSimGate(1, 0, 0, 4, 5).on(a, b),
         cirq.PhasedFSimGate(1, 0, 0, 4, 5).on(b, a))
     eq.add_equality_group(
-        cirq.PhasedFSimGate(np.pi / 2, 0, 0, 4, 5).on(a, b),
-        cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5).on(b, a))
+        cirq.PhasedFSimGate(1, -np.pi, np.pi, 4, 5).on(a, b),
+        cirq.PhasedFSimGate(1, -np.pi, np.pi, 4, 5).on(b, a))
     eq.add_equality_group(
-        cirq.PhasedFSimGate(np.pi, 0, 0, 4, 5).on(a, b),
-        cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5).on(b, a))
+        cirq.PhasedFSimGate(1, sympy.pi, -sympy.pi, r, 5).on(a, b),
+        cirq.PhasedFSimGate(1, sympy.pi, -sympy.pi, r, 5).on(b, a))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(sympy.pi / 3, 2, 0, 4, 5).on(a, b))
+    eq.add_equality_group(
+        cirq.PhasedFSimGate(sympy.pi / 3, 2, 0, 4, 5).on(b, a))
 
 
 @pytest.mark.parametrize('gate, interchangeable', (
@@ -641,10 +672,9 @@ def test_phased_fsim_unitary():
         cirq.unitary(cirq.PhasedFSimGate(-np.pi, 1, 0, 2, 3)),
         cirq.unitary(cirq.PhasedFSimGate(-np.pi, 1, 0.1, 2, 3)),
         atol=1e-8)
-    np.testing.assert_allclose(
-        cirq.unitary(cirq.PhasedFSimGate(0, 1, 1, 2, 3)),
-        cirq.unitary(cirq.PhasedFSimGate(0, 1, 2, 2, 3)),
-        atol=1e-8)
+    np.testing.assert_allclose(cirq.unitary(cirq.PhasedFSimGate(0, 1, 1, 2, 3)),
+                               cirq.unitary(cirq.PhasedFSimGate(0, 1, 2, 2, 3)),
+                               atol=1e-8)
     np.testing.assert_allclose(
         cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, -0.5, 1, 2, 3)),
         cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, -0.2, 1, 2, 3)),

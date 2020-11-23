@@ -307,14 +307,15 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         return a0, a1
 
     def _zeta_insensitive(self) -> bool:
-        return self.theta in (-np.pi / 2, np.pi / 2)
+        return self.theta in (-np.pi / 2, np.pi / 2, -sympy.pi / 2,
+                              sympy.pi / 2)
 
     def _chi_insensitive(self) -> bool:
-        return self.theta in (-np.pi, 0.0, np.pi)
+        return self.theta in (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
 
     def qubit_index_to_equivalence_group_key(self, index: int) -> int:
         """Returns a key that differs between non-interchangeable qubits."""
-        x_axis = (-np.pi, 0.0, np.pi)
+        x_axis = (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
         if ((self.zeta in x_axis or self._zeta_insensitive()) and
             (self.chi in x_axis or self._chi_insensitive())):
             return 0
