@@ -317,3 +317,38 @@ def test_ionq_client_get_job_retry(mock_get):
                                           default_target='simulator')
     _ = client.get_job('job_id')
     assert mock_get.call_count == 2
+
+
+@mock.patch('requests.put')
+def test_ionq_client_cancel_job(mock_put):
+    mock_put.return_value.ok = True
+    mock_put.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart')
+    response = client.cancel_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json'
+    }
+    mock_put.assert_called_with(
+        'http://example.com/v0.1/jobs/job_id/status/cancel',
+        headers=expected_headers)
+
+
+@mock.patch('requests.delete')
+def test_ionq_client_delete_job(mock_delete):
+    mock_delete.return_value.ok = True
+    mock_delete.return_value.json.return_value = {'foo': 'bar'}
+    client = ionq.ionq_client._IonQClient(remote_host='http://example.com',
+                                          api_key='to_my_heart')
+    response = client.delete_job(job_id='job_id')
+    assert response == {'foo': 'bar'}
+
+    expected_headers = {
+        'Authorization': 'apiKey to_my_heart',
+        'Content-Type': 'application/json'
+    }
+    mock_delete.assert_called_with('http://example.com/v0.1/jobs/job_id',
+                                   headers=expected_headers)

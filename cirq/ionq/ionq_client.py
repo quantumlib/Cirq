@@ -18,25 +18,7 @@ import urllib
 from typing import Callable, cast, Optional
 import requests
 
-
-class IonQException(Exception):
-    """An exception for errors coming from IonQ's API.
-
-    Attributes:
-        status_code: A http status code, if coming from an http response
-            with a failing status.
-    """
-
-    def __init__(self, message, status_code: int = None):
-        super().__init__(f'Status code: {status_code}, Message: \'{message}\'')
-        self.status_code = status_code
-
-
-class IonQNotFoundException(IonQException):
-    """An exception for errors from IonQ's API when a resource is not found."""
-
-    def __init__(self, message):
-        super().__init__(message, status_code=requests.codes.not_found)
+from cirq.ionq import ionq_exceptions
 
 
 class _IonQClient:
@@ -143,15 +125,15 @@ class _IonQClient:
                 if response.ok:
                     return response
                 if response.status_code == requests.codes.unauthorized:
-                    raise IonQException(
+                    raise ionq_exceptions.IonQException(
                         '"Not authorized" returned by IonQ API. Check to '
                         'ensure you have supplied the correct API key.',
                         response.status_code)
                 if response.status_code == requests.codes.not_found:
-                    raise IonQNotFoundException(
+                    raise ionq_exceptions.IonQNotFoundException(
                         'IonQ could not find requested resource.')
                 if (response.status_code not in self.RETRIABLE_STATUS_CODES):
-                    raise IonQException(
+                    raise ionq_exceptions.IonQException(
                         'Non-retry-able error making request to IonQ API. '
                         f'Status: {response.status_code} '
                         f'Error :{response.reason}', response.status_code)
@@ -226,10 +208,10 @@ class _IonQClient:
         """Get the job from the IonQ API.
 
         Args:
-            job_id: The UUID of the job (returned when the job is created).
+            job_id: The UUID of the job (returned when the job was created).
 
         Returns:
-            A `cirq.ionq.IonQJob` corresponding to the job.
+            The json body of the response a dict.
 
         Raises:
             IonQNotFoundException: If a job with the given job_id does not
@@ -240,5 +222,40 @@ class _IonQClient:
         def request():
             return requests.get(f'{self.url}/jobs/{job_id}',
                                 headers=self.headers)
+
+        return self._make_request(request).json()
+
+    def cancel_job(self, job_id: str):
+        """Cancel a job on the IonQ API.
+
+        Args:
+            job_id: The UUID of the job (returned when the job was created).
+
+        Note that the IonQ API v0.1 can cancel a completed job, which updates
+        its status to canceled.
+
+        Returns:
+            The json body of the response as a dict.
+        """
+
+        def request():
+            return requests.put(f'{self.url}/jobs/{job_id}/status/cancel',
+                                headers=self.headers)
+
+        return self._make_request(request).json()
+
+    def delete_job(self, job_id: str):
+        """Permanently delete the job on the IonQ API.
+
+        Args:
+            job_id: The UUID of the job (returned when the job was created).
+
+        Returns:
+            The json body of the response as a dict.
+        """
+
+        def request():
+            return requests.delete(f'{self.url}/jobs/{job_id}',
+                                   headers=self.headers)
 
         return self._make_request(request).json()
