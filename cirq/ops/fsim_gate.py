@@ -301,6 +301,15 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
         return a0, a1
 
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        # PhasedFSimGate is symmetric with respect to qubit swap
+        # if and only if zeta and chi are integer multiples of pi.
+        r = (-np.pi, 0.0, np.pi)
+        if self.zeta in r and self.chi in r:
+            return 0
+        return index
+
     def _value_equality_values_(self) -> Any:
         return (self.theta, self.zeta, self.chi, self.gamma, self.phi)
 
