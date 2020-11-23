@@ -15,8 +15,13 @@
 import pytest
 from codeowners import CodeOwners
 
-CIRQ_MAINTAINERS = {('TEAM', "@quantumlib/cirq-maintainers"),
-                    ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")}
+CIRQ_MAINTAINERS = ('TEAM', "@quantumlib/cirq-maintainers")
+
+BASE_MAINTAINERS = {
+    CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")
+}
+
+GOOGLE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@wcourtney")}
 
 
 def _parse_owners():
@@ -28,9 +33,15 @@ def _parse_owners():
 owners = _parse_owners()
 
 
-@pytest.mark.parametrize("pattern,expected",
-                         [("any_file", CIRQ_MAINTAINERS),
-                          ("in/any/dir/any_file.py", CIRQ_MAINTAINERS),
-                          ("cirq/contrib/bla.py", CIRQ_MAINTAINERS)])
+@pytest.mark.parametrize("pattern,expected", [
+    ("any_file", BASE_MAINTAINERS),
+    ("in/any/dir/any_file.py", BASE_MAINTAINERS),
+    ("cirq/contrib/bla.py", BASE_MAINTAINERS),
+    ("cirq/google/test.py", GOOGLE_MAINTAINERS),
+    ("cirq/google/in/any/dir/test.py", GOOGLE_MAINTAINERS),
+    ("platforms/google/protos_as_well.proto", GOOGLE_MAINTAINERS),
+    ("docs/google/notebook.ipynb", GOOGLE_MAINTAINERS),
+    ("docs/tutorials/google/bla.md", GOOGLE_MAINTAINERS),
+])
 def test_codeowners(pattern, expected):
     assert set(owners.of(pattern)) == expected
