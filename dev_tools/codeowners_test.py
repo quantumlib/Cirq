@@ -20,18 +20,41 @@ BASE_MAINTAINERS = {
     CIRQ_MAINTAINERS, ('USERNAME', "@vtomole"), ('USERNAME', "@cduck")
 }
 
-GOOGLE_MAINTAINERS = {CIRQ_MAINTAINERS, ('USERNAME', "@wcourtney")}
+GOOGLE_TEAM = {('USERNAME', "@wcourtney")}
+
+GOOGLE_MAINTAINERS = BASE_MAINTAINERS.union(GOOGLE_TEAM)
+
+IONQ_TEAM = {('USERNAME', u)
+             for u in ["@dabacon", "@ColemanCollins", "@nakardo", "@gmauricio"]}
+IONQ_MAINTAINERS = BASE_MAINTAINERS.union(IONQ_TEAM)
+
+PASQAL_TEAM = {('USERNAME', u) for u in ["@HGSilveri"]}
+
+PASQAL_MAINTAINERS = BASE_MAINTAINERS.union(PASQAL_TEAM)
+
+AQT_TEAM = {('USERNAME', u) for u in ["@ma5x", "@pschindler"]}
+
+AQT_MAINTAINERS = BASE_MAINTAINERS.union(AQT_TEAM)
+
+
+def _vendor_module_testcases(mod_name, expected_group):
+    return [
+        (f"cirq/{mod_name}/test.py", expected_group),
+        (f"cirq/{mod_name}/in/any/dir/test.py", expected_group),
+        (f"platforms/{mod_name}/protos_as_well.proto", expected_group),
+        (f"docs/{mod_name}/notebook.ipynb", expected_group),
+        (f"docs/tutorials/{mod_name}/bla.md", expected_group),
+    ]
 
 
 @pytest.mark.parametrize("pattern,expected", [
     ("any_file", BASE_MAINTAINERS),
     ("in/any/dir/any_file.py", BASE_MAINTAINERS),
     ("cirq/contrib/bla.py", BASE_MAINTAINERS),
-    ("cirq/google/test.py", GOOGLE_MAINTAINERS),
-    ("cirq/google/in/any/dir/test.py", GOOGLE_MAINTAINERS),
-    ("platforms/google/protos_as_well.proto", GOOGLE_MAINTAINERS),
-    ("docs/google/notebook.ipynb", GOOGLE_MAINTAINERS),
-    ("docs/tutorials/google/bla.md", GOOGLE_MAINTAINERS),
+    *_vendor_module_testcases("aqt", AQT_MAINTAINERS),
+    *_vendor_module_testcases("ionq", IONQ_MAINTAINERS),
+    *_vendor_module_testcases("google", GOOGLE_MAINTAINERS),
+    *_vendor_module_testcases("pasqal", PASQAL_MAINTAINERS),
 ])
 def test_codeowners(pattern, expected):
     # for some reason the codeowners library does not publish all the wheels
