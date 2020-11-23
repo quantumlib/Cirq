@@ -40,6 +40,9 @@ def only_on_linux(func):
     return func
 
 
+# for some reason the codeowners library does not publish all the wheels
+# for Mac and Windows. Eventually we could write our own codeowners parser,
+# but for now it is good enough.
 @only_on_linux
 @pytest.mark.parametrize("pattern,expected", [
     ("any_file", BASE_MAINTAINERS),
