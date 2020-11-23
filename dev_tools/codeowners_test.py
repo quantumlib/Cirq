@@ -33,6 +33,14 @@ def _parse_owners():
 owners = _parse_owners()
 
 
+def only_on_linux(func):
+    import sys
+    if sys.platform != 'linux':
+        return None
+    return func
+
+
+@only_on_linux
 @pytest.mark.parametrize("pattern,expected", [
     ("any_file", BASE_MAINTAINERS),
     ("in/any/dir/any_file.py", BASE_MAINTAINERS),
