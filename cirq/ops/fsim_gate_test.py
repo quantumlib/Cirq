@@ -346,20 +346,16 @@ def test_phased_fsim_eq():
     eq.add_equality_group(cirq.PhasedFSimGate(s, 1, 0, 0, 0))
 
     # Regions of insensitivity to zeta and chi
-    eq.add_equality_group(
-        cirq.PhasedFSimGate(np.pi / 2, 0, 0, 4, 5),
-        cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5))
+    eq.add_equality_group(cirq.PhasedFSimGate(np.pi / 2, 0, 0, 4, 5),
+                          cirq.PhasedFSimGate(np.pi / 2, 2, 0, 4, 5))
     eq.add_equality_group(cirq.PhasedFSimGate(0, 0, 0, 0, 0),
                           cirq.PhasedFSimGate(0, 0, 1, 0, 0))
-    eq.add_equality_group(
-        cirq.PhasedFSimGate(np.pi, 0, 0, 4, 5),
-        cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5))
-    eq.add_equality_group(
-        cirq.PhasedFSimGate(sympy.pi / 2, 0, 0, 4, 5),
-        cirq.PhasedFSimGate(sympy.pi / 2, 2, 0, 4, 5))
-    eq.add_equality_group(
-        cirq.PhasedFSimGate(sympy.pi, 0, 0, 4, 5),
-        cirq.PhasedFSimGate(sympy.pi, 0, 3, 4, 5))
+    eq.add_equality_group(cirq.PhasedFSimGate(np.pi, 0, 0, 4, 5),
+                          cirq.PhasedFSimGate(np.pi, 0, 3, 4, 5))
+    eq.add_equality_group(cirq.PhasedFSimGate(sympy.pi / 2, 0, 0, 4, 5),
+                          cirq.PhasedFSimGate(sympy.pi / 2, 2, 0, 4, 5))
+    eq.add_equality_group(cirq.PhasedFSimGate(sympy.pi, 0, 0, 4, 5),
+                          cirq.PhasedFSimGate(sympy.pi, 0, 3, 4, 5))
 
     # Symmetries under qubit exchange
     eq.add_equality_group(cirq.PhasedFSimGate(1, 2, 3, 4, 5).on(a, b))
