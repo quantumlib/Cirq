@@ -39,7 +39,7 @@ ipykernel
 # For verifying rst
 rstcheck~=3.3.1
 
-# for verifying codeowners
+# for verifying github's code owners file
 codeowners
 
 # For testing time specific logic
