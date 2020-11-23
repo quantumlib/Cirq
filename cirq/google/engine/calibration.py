@@ -132,10 +132,14 @@ class Calibration(abc.Mapping):
                     current_value = current_metric.values.add()
                     if isinstance(value, float):
                         current_value.double_val = value
-                    if isinstance(value, int):
+                    elif isinstance(value, int):
                         current_value.int64_val = value
-                    if isinstance(value, str):
+                    elif isinstance(value, str):
                         current_value.str_val = value
+                    else:
+                        raise ValueError(f'Unsupported metric value {value}. '
+                                         'Must be int, float, or str to '
+                                         'convert to proto.')
         return proto
 
     @classmethod
