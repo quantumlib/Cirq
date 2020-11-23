@@ -459,6 +459,7 @@ aa │
   │
     """)
 
+
 def test_commutes():
     a = cirq.NamedQubit('a')
     b = cirq.NamedQubit('b')
