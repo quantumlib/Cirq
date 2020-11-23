@@ -218,6 +218,11 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     character of the second parametrization is the fact that the properties
     rz_angles_before and rz_angles_after may return different Rz angles
     than the ones used in the call to from_fsim_rz.
+
+    This gate is generally not symmetric under exchange of qubits. It becomes
+    symmetric if both of the following conditions are satisfied:
+     * ζ = kπ or θ = π/2 + lπ for k and l integers,
+     * χ = kπ or θ = lπ for k and l integers.
     """
 
     def __init__(
