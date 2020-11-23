@@ -499,7 +499,7 @@ def test_proto_with_waitgate():
     wait_device = cg.SerializableDevice.from_proto(proto=wait_proto,
                                                    gate_sets=[wait_gateset])
     q0 = cirq.GridQubit(1, 1)
-    wait_op = cirq.WaitGate(duration=cirq.Duration(nanos=25))(q0)
+    wait_op = cirq.wait(q0, nanos=25)
     wait_device.validate_operation(wait_op)
 
     assert str(wait_proto) == """\
@@ -564,7 +564,7 @@ def test_adding_gates_multiple_times():
     wait_device = cg.SerializableDevice.from_proto(
         proto=wait_proto, gate_sets=[waiting_for_godot])
     q0 = cirq.GridQubit(0, 0)
-    wait_op = cirq.WaitGate(duration=cirq.Duration(nanos=25))(q0)
+    wait_op = cirq.wait(q0, nanos=25)
     wait_device.validate_operation(wait_op)
 
     assert str(wait_proto) == """\

@@ -461,6 +461,23 @@ def test_tagged_operation():
     assert op.with_qubits(q2).qubits == (q2,)
 
 
+def test_tagged_measurement():
+    a = cirq.LineQubit(0)
+    op = cirq.measure(a, key='m').with_tags('tag')
+
+    remap_op = cirq.with_measurement_key_mapping(op, {'m': 'k'})
+    assert remap_op.tags == ('tag',)
+    assert cirq.measurement_keys(remap_op) == {'k'}
+    assert cirq.with_measurement_key_mapping(op, {'x': 'k'}) == op
+
+
+def test_cannot_remap_non_measurement_gate():
+    a = cirq.LineQubit(0)
+    op = cirq.X(a).with_tags('tag')
+
+    assert cirq.with_measurement_key_mapping(op, {'m': 'k'}) is NotImplemented
+
+
 def test_circuit_diagram():
 
     class TaggyTag:
