@@ -1,4 +1,4 @@
-name: Release cirq-unstable to PyPi
+name: Pre-release cirq to PyPi
 
 on:
   push:

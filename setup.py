@@ -28,10 +28,11 @@ description = ('A framework for creating, editing, and invoking '
 # README file as long_description.
 long_description = io.open('README.rst', encoding='utf-8').read()
 
-# If CIRQ_UNSTABLE_VERSION is set then we use cirq-unstable as the name of the package
-# and update the version to this value.
+# If CIRQ_UNSTABLE_VERSION is set then we update the version to this value.
+# As it contains "dev" it will be a pre-release version on PyPi. See
+# https://packaging.python.org/guides/distributing-packages-using-setuptools/#pre-release-versioning
+# for more details.
 if 'CIRQ_UNSTABLE_VERSION' in os.environ:
-    name = 'cirq-unstable'
     __version__ = os.environ['CIRQ_UNSTABLE_VERSION']
     long_description = (
         "**This is a development version of Cirq and may be "

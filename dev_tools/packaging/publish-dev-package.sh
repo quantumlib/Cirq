@@ -112,7 +112,7 @@ cd "$(git rev-parse --show-toplevel)"
 tmp_package_dir=$(mktemp -d "/tmp/publish-dev-package_package.XXXXXXXXXXXXXXXX")
 trap "{ rm -rf ${tmp_package_dir}; }" EXIT
 
-# Configure to push to cirq-unstable and not cirq.
+# Configure to push to a pre-release package of cirq.
 export CIRQ_UNSTABLE_VERSION=$(dev_tools/packaging/generate-dev-version-id.sh)
 
 # Produce packages.
