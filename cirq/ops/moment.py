@@ -409,26 +409,24 @@ class Moment:
                         diagram.vertical_line(x2, y1, y2)
 
         return diagram.render()
-    
-    def _commutes_(
-            self, 
-            other: Any,
-            *,
-            atol: Union[int, float] = 1e-8
-    ) -> Union[bool, NotImplementedType]:
+
+    def _commutes_(self, other: Any, *, atol: Union[int, float] = 1e-8
+                  ) -> Union[bool, NotImplementedType]:
         """Determines whether Moment commutes with the Operation.
 
         Args:
             other: An Operation object. Other types are not implemented yet.
-                In case a different type is specified, NotImplemented is returned.
-            atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1 have a
-                magnitude less than this tolerance, v1 and v2 can be reported as
-                commuting. Defaults to 1e-8.
+                In case a different type is specified, NotImplemented is
+                returned.
+            atol: Absolute error tolerance. If all entries in v1@v2 - v2@v1
+                have a magnitude less than this tolerance, v1 and v2 can be
+                reported as commuting. Defaults to 1e-8.
 
         Returns:
-            True: The Moment and Operation commute OR they don't have shared quibits.
+            True: The Moment and Operation commute OR they don't have shared
+            quibits.
             False: The two values do not commute.
-            NotImplemented: In case we don't know how to check this, e.g. 
+            NotImplemented: In case we don't know how to check this, e.g.
                 the parameter type is not supported yet.
         """
         if not isinstance(other, ops.Operation):
@@ -439,17 +437,15 @@ class Moment:
             if not other_qubits.intersection(set(op.qubits)):
                 continue
 
-            commutes = protocols.commutes(
-                op, 
-                other, 
-                atol=atol, 
-                default=NotImplemented)
-            
+            commutes = protocols.commutes(op,
+                                          other,
+                                          atol=atol,
+                                          default=NotImplemented)
+
             if not commutes or commutes is NotImplemented:
                 return commutes
 
         return True
-            
 
 class _SortByValFallbackToType:
 

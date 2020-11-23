@@ -467,6 +467,8 @@ def test_commutes():
 
     moment = cirq.Moment([cirq.X(a), cirq.Y(b), cirq.H(c)])
 
+    assert NotImplemented == cirq.commutes(moment, a, default=NotImplemented)
+
     assert cirq.commutes(moment, cirq.X(a))
     assert cirq.commutes(moment, cirq.Y(b))
     assert cirq.commutes(moment, cirq.H(c))
@@ -476,4 +478,3 @@ def test_commutes():
     assert not cirq.commutes(moment, cirq.H(a))
     assert not cirq.commutes(moment, cirq.H(b))
     assert not cirq.commutes(moment, cirq.X(c))
-    
