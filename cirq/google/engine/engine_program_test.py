@@ -227,7 +227,6 @@ def test_run_batch_no_sweeps(create_job):
                             repetitions=10,
                             processor_ids=['lazykitty'])
     assert job._job == qtypes.QuantumJob()
-    print(create_job.call_args[1]['run_context'])
     batch_run_context = v2.batch_pb2.BatchRunContext()
     create_job.call_args[1]['run_context'].Unpack(batch_run_context)
     assert len(batch_run_context.run_contexts) == 1
