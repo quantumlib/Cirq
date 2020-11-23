@@ -211,7 +211,7 @@ class _IonQClient:
             job_id: The UUID of the job (returned when the job was created).
 
         Returns:
-            The json body of the response a dict.
+            The json body of the response as a dict.
 
         Raises:
             IonQNotFoundException: If a job with the given job_id does not
