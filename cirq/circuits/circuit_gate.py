@@ -220,12 +220,23 @@ class CircuitOperation(ops.GateOperation):
 
     @property
     def measurement_key_map(self) -> Dict[str, str]:
-        """The deferred measurement key mapping for this operation's gate."""
+        """The deferred measurement key mapping for this operation's gate.
+
+        The keys of this map correspond to measurement keys as they are defined
+        in the "inner" circuit (self.circuit) while the values are the keys
+        reported to the "outer" circuit (the circuit containing this operation).
+        """
         return self._measurement_key_map
 
     @property
     def param_values(self) -> Dict[sympy.Symbol, Any]:
-        """The deferred parameter values for this operation's gate."""
+        """The deferred parameter values for this operation's gate.
+
+        The keys of this map correspond to parameters as they are defined in
+        the "inner" circuit (self.circuit) while the values are parameters
+        (or values) used when applying this operation as part of a larger
+        circuit.
+        """
         return self._param_values
 
     @property
@@ -299,8 +310,7 @@ class CircuitOperation(ops.GateOperation):
         """
         new_op = self.copy()
         new_op._measurement_key_map = {
-            k: (key_map[v] if v in key_map else v)
-            for k, v in self.measurement_key_map.items()
+            k: key_map.get(v, v) for k, v in self.measurement_key_map.items()
         }
         new_op._measurement_key_map.update({
             key: val
@@ -348,9 +358,9 @@ class CircuitOperation(ops.GateOperation):
         new_op = self.copy()
         new_op._repetitions *= repetitions
         if self.gate.exp_modulus is not None:
-            # Map repetitions to [-exp_modulus / 2, exp_modulus / 2)
+            # Map repetitions to (-exp_modulus / 2, exp_modulus / 2]
             new_op._repetitions %= self.gate.exp_modulus
-            if new_op._repetitions >= self.gate.exp_modulus / 2:
+            if new_op._repetitions > self.gate.exp_modulus // 2:
                 new_op._repetitions -= self.gate.exp_modulus
         return new_op
 
@@ -359,8 +369,7 @@ class CircuitOperation(ops.GateOperation):
 
     def _measurement_keys_(self) -> AbstractSet[str]:
         base_keys = protocols.measurement_keys(self.gate)
-        return set(self.measurement_key_map[key] if key in
-                   self.measurement_key_map else key for key in base_keys)
+        return {self.measurement_key_map.get(key, key) for key in base_keys}
 
     def _decompose_(self) -> 'cirq.OP_TREE':
         result = self.circuit.unfreeze()
