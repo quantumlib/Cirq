@@ -626,6 +626,30 @@ def test_phased_fsim_unitary():
         cirq.unitary(cirq.PhasedFSimGate(theta=-np.pi / 2, zeta=0.2)),
         atol=1e-8)
 
+    # Zeta insensitivity region
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(-np.pi / 2, 0, 1, 2, 3)),
+        cirq.unitary(cirq.PhasedFSimGate(-np.pi / 2, 0.1, 1, 2, 3)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, 1, 1, 2, 3)),
+        cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, 2, 1, 2, 3)),
+        atol=1e-8)
+
+    # Chi insensitivity region
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(-np.pi, 1, 0, 2, 3)),
+        cirq.unitary(cirq.PhasedFSimGate(-np.pi, 1, 0.1, 2, 3)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(0, 1, 1, 2, 3)),
+        cirq.unitary(cirq.PhasedFSimGate(0, 1, 2, 2, 3)),
+        atol=1e-8)
+    np.testing.assert_allclose(
+        cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, -0.5, 1, 2, 3)),
+        cirq.unitary(cirq.PhasedFSimGate(np.pi / 2, -0.2, 1, 2, 3)),
+        atol=1e-8)
+
 
 @pytest.mark.parametrize('theta, phi', (
     (0, 0),
