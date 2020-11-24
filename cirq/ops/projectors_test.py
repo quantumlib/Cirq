@@ -160,7 +160,8 @@ def test_repr():
     q0 = cirq.NamedQubit('q0')
     d = cirq.Projector({q0: [[1.0, 0.0]]})
 
-    assert d.__repr__() == ("cirq.Projector(projection_bases={" +
+    assert d.__repr__() == (
+        "cirq.Projector(projection_bases={" +
         "cirq.NamedQubit('q0'): array([[1.+0.j, 0.+0.j]], dtype=complex64)})")
 
 
@@ -175,18 +176,18 @@ def test_expectation_from_state_vector_basis_states_empty():
     q0 = cirq.NamedQubit('q0')
     d = cirq.Projector({})
 
-    np.testing.assert_allclose(d.expectation_from_state_vector(
-        np.array([1.0, 0.0]), {q0: 0}), 1.0)
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 1.0)
 
 
 def test_expectation_from_state_vector_basis_states_single_dim():
     q0 = cirq.NamedQubit('q0')
     d = cirq.Projector({q0: [[1.0, 0.0]]})
 
-    np.testing.assert_allclose(d.expectation_from_state_vector(
-        np.array([1.0, 0.0]), {q0: 0}), 1.0)
-    np.testing.assert_allclose(d.expectation_from_state_vector(
-        np.array([0.0, 1.0]), {q0: 0}), 0.0)
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(np.array([1.0, 0.0]), {q0: 0}), 1.0)
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(np.array([0.0, 1.0]), {q0: 0}), 0.0)
 
 
 def test_expectation_from_state_vector_basis_states_three_dims():
@@ -195,28 +196,39 @@ def test_expectation_from_state_vector_basis_states_three_dims():
     q2 = cirq.NamedQubit('q2')
     d = cirq.Projector({q0: [[1.0, 0.0]], q1: [[0.0, 1.0]]})
 
-    np.testing.assert_allclose(d.expectation_from_state_vector(
-        np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-        {q0: 0, q1: 1, q2: 2}), 0.0)
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(
+            np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), {
+                q0: 0,
+                q1: 1,
+                q2: 2
+            }), 0.0)
 
-    np.testing.assert_allclose(d.expectation_from_state_vector(
-        np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
-        {q0: 0, q1: 2, q2: 1}), 1.0)
+    np.testing.assert_allclose(
+        d.expectation_from_state_vector(
+            np.array([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]), {
+                q0: 0,
+                q1: 2,
+                q2: 1
+            }), 1.0)
 
 
 def test_expectation_from_density_matrix_basis_states_empty():
     q0 = cirq.NamedQubit('q0')
     d = cirq.Projector({})
 
-    np.testing.assert_allclose(d.expectation_from_density_matrix(
-        np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 1.0)
+    np.testing.assert_allclose(
+        d.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]),
+                                          {q0: 0}), 1.0)
 
 
 def test_expectation_from_density_matrix_basis_states_single_dim():
     q0 = cirq.NamedQubit('q0')
     d = cirq.Projector({q0: [[1.0, 0.0]]})
 
-    np.testing.assert_allclose(d.expectation_from_density_matrix(
-        np.array([[1.0, 0.0], [0.0, 0.0]]), {q0: 0}), 1.0)
-    np.testing.assert_allclose(d.expectation_from_density_matrix(
-        np.array([[0.0, 0.0], [0.0, 1.0]]), {q0: 0}), 0.0)
+    np.testing.assert_allclose(
+        d.expectation_from_density_matrix(np.array([[1.0, 0.0], [0.0, 0.0]]),
+                                          {q0: 0}), 1.0)
+    np.testing.assert_allclose(
+        d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 1.0]]),
+                                          {q0: 0}), 0.0)

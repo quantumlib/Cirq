@@ -99,7 +99,10 @@ class Projector():
                                       atol: float = 1e-7,
                                       check_preconditions: bool = True
                                      ) -> float:
-        dims = [np.prod(qid_shape_from_proj_key(proj_key)) for proj_key in qubit_map.keys()]
+        dims = [
+            np.prod(qid_shape_from_proj_key(proj_key))
+            for proj_key in qubit_map.keys()
+        ]
         state_vector = state_vector.reshape(dims)
 
         for proj_key, i in qubit_map.items():
@@ -125,7 +128,10 @@ class Projector():
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True
                                        ) -> float:
-        dims = [np.prod(qid_shape_from_proj_key(proj_key)) for proj_key in qubit_map.keys()]
+        dims = [
+            np.prod(qid_shape_from_proj_key(proj_key))
+            for proj_key in qubit_map.keys()
+        ]
         state = state.reshape(dims + dims)
 
         for proj_key, i in qubit_map.items():
@@ -142,7 +148,7 @@ class Projector():
             state = np.tensordot(P, state, axes=(1, i))
             state = np.tensordot(state, P.T.conj(), axes=(i, 0))
 
-        state = np.reshape(state, [np.prod(dims)]*2)
+        state = np.reshape(state, [np.prod(dims)] * 2)
         return np.trace(state)
 
     def __repr__(self) -> str:
