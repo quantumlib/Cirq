@@ -195,6 +195,11 @@ class Moment:
                 return op
         raise KeyError("Moment doesn't act on given qubit")
 
+    def _with_measurement_key_mapping_(self, key_map: Dict[str, str]):
+        return Moment(
+            protocols.with_measurement_key_mapping(op, key_map) if protocols.
+            is_measurement(op) else op for op in self.operations)
+
     def __copy__(self):
         return type(self)(self.operations)
 

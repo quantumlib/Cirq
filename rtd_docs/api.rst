@@ -72,6 +72,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.identity_each
     cirq.qft
     cirq.riswap
+    cirq.wait
     .. autoclass:: cirq.CCNotPowGate
     cirq.CCXPowGate
     cirq.CCZPowGate
@@ -91,6 +92,7 @@ Unitary effects that can be applied to one or more qubits.
     cirq.MatrixGate
     cirq.Operation
     cirq.PhaseGradientGate
+    cirq.PhasedFSimGate
     cirq.PhasedISwapPowGate
     cirq.PhasedXPowGate
     cirq.PhasedXZGate
@@ -189,6 +191,7 @@ Circuits, Operations, and Moments.
     cirq.flatten_op_tree
     cirq.freeze_op_tree
     cirq.transform_op_tree
+    cirq.AbstractCircuit
     cirq.Circuit
     cirq.CircuitDag
     cirq.FrozenCircuit
@@ -364,6 +367,7 @@ the magic methods that can be implemented.
     cirq.trace_distance_bound
     cirq.trace_distance_from_angle_list
     cirq.unitary
+    cirq.with_measurement_key_mapping
     cirq.ApplyChannelArgs
     cirq.ApplyMixtureArgs
     cirq.ApplyUnitaryArgs
@@ -526,6 +530,8 @@ Functionality specific to quantum hardware and services from Google.
     cirq.google.AnnealSequenceSearchStrategy
     cirq.google.Bristlecone
     cirq.google.Calibration
+    cirq.google.CalibrationLayer
+    cirq.google.CalibrationResult
     cirq.google.CalibrationTag
     cirq.google.ConvertToSqrtIswapGates
     cirq.google.ConvertToSycamoreGates
@@ -716,6 +722,7 @@ Quantum Information Science
     cirq.one_hot
     cirq.to_valid_density_matrix
     cirq.to_valid_state_vector
+    cirq.validate_density_matrix
     cirq.validate_indices
     cirq.validate_normalized_state_vector
     cirq.validate_qid_shape
