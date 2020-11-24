@@ -34,6 +34,16 @@ from cirq._compat import proper_repr
 from cirq.ops import gate_features
 
 
+def _zero_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+    """Returns True iff param, assumed to be in [-pi, pi], is 0 (mod pi)."""
+    return param in (-np.pi, 0.0, np.pi, -sympy.pi, sympy.pi)
+
+
+def _half_pi_mod_pi(param: Union[float, sympy.Basic]) -> bool:
+    """Returns True iff param, assumed to be in [-pi, pi], is pi/2 (mod pi)."""
+    return param in (-np.pi / 2, np.pi / 2, -sympy.pi / 2, sympy.pi / 2)
+
+
 @value.value_equality(approximate=True)
 class FSimGate(gate_features.TwoQubitGate,
                gate_features.InterchangeableQubitsGate):
@@ -218,6 +228,11 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
     character of the second parametrization is the fact that the properties
     rz_angles_before and rz_angles_after may return different Rz angles
     than the ones used in the call to from_fsim_rz.
+
+    This gate is generally not symmetric under exchange of qubits. It becomes
+    symmetric if both of the following conditions are satisfied:
+     * ζ = kπ or θ = π/2 + lπ for k and l integers,
+     * χ = kπ or θ = lπ for k and l integers.
     """
 
     def __init__(
@@ -301,7 +316,24 @@ class PhasedFSimGate(gate_features.TwoQubitGate,
         a1 = (-self.gamma - self.zeta + self.chi) / 2.0
         return a0, a1
 
+    def _zeta_insensitive(self) -> bool:
+        return _half_pi_mod_pi(self.theta)
+
+    def _chi_insensitive(self) -> bool:
+        return _zero_mod_pi(self.theta)
+
+    def qubit_index_to_equivalence_group_key(self, index: int) -> int:
+        """Returns a key that differs between non-interchangeable qubits."""
+        if ((_zero_mod_pi(self.zeta) or self._zeta_insensitive()) and
+            (_zero_mod_pi(self.chi) or self._chi_insensitive())):
+            return 0
+        return index
+
     def _value_equality_values_(self) -> Any:
+        if self._zeta_insensitive():
+            return (self.theta, 0.0, self.chi, self.gamma, self.phi)
+        if self._chi_insensitive():
+            return (self.theta, self.zeta, 0.0, self.gamma, self.phi)
         return (self.theta, self.zeta, self.chi, self.gamma, self.phi)
 
     def _is_parameterized_(self) -> bool:
