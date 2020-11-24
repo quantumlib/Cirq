@@ -32,6 +32,134 @@ def _to_any(proto):
     return any_proto
 
 
+_BATCH_PROGRAM_V2 = _to_any(
+    Merge(
+        """programs { language {
+  gate_set: "xmon"
+}
+circuit {
+  scheduling_strategy: MOMENT_BY_MOMENT
+  moments {
+    operations {
+      gate {
+        id: "xy"
+      }
+      args {
+        key: "axis_half_turns"
+        value {
+          arg_value {
+            float_value: 0.0
+          }
+        }
+      }
+      args {
+        key: "half_turns"
+        value {
+          arg_value {
+            float_value: 0.5
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+  moments {
+    operations {
+      gate {
+        id: "meas"
+      }
+      args {
+        key: "invert_mask"
+        value {
+          arg_value {
+            bool_values {
+            }
+          }
+        }
+      }
+      args {
+        key: "key"
+        value {
+          arg_value {
+            string_value: "result"
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+}
+}
+""", v2.batch_pb2.BatchProgram()))
+
+_PROGRAM_V2 = _to_any(
+    Merge(
+        """language {
+  gate_set: "xmon"
+}
+circuit {
+  scheduling_strategy: MOMENT_BY_MOMENT
+  moments {
+    operations {
+      gate {
+        id: "xy"
+      }
+      args {
+        key: "axis_half_turns"
+        value {
+          arg_value {
+            float_value: 0.0
+          }
+        }
+      }
+      args {
+        key: "half_turns"
+        value {
+          arg_value {
+            float_value: 0.5
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+  moments {
+    operations {
+      gate {
+        id: "meas"
+      }
+      args {
+        key: "invert_mask"
+        value {
+          arg_value {
+            bool_values {
+            }
+          }
+        }
+      }
+      args {
+        key: "key"
+        value {
+          arg_value {
+            string_value: "result"
+          }
+        }
+      }
+      qubits {
+        id: "5_2"
+      }
+    }
+  }
+}
+""", v2.program_pb2.Program()))
+
+
 @mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
 def test_run_sweeps_delegation(create_job):
     create_job.return_value = ('steve', qtypes.QuantumJob())
@@ -84,13 +212,24 @@ def test_run_calibration_no_processors(create_job):
         _ = program.run_calibration(job_id='spot')
 
 
-def test_run_batch_no_sweeps():
-    program = cg.EngineProgram('no-meow',
-                               'no-meow',
-                               EngineContext(),
-                               result_type=ResultType.Batch)
-    with pytest.raises(ValueError, match='No parameter list specified'):
-        _ = program.run_batch(repetitions=1, processor_ids=['lazykitty'])
+@mock.patch('cirq.google.engine.engine_client.EngineClient.create_job')
+def test_run_batch_no_sweeps(create_job):
+    # Running with no sweeps is fine. Uses program's batch size to create
+    # proper empty sweeps.
+    create_job.return_value = ('kittens', qtypes.QuantumJob())
+    program = cg.EngineProgram(
+        'my-meow',
+        'my-meow',
+        _program=qtypes.QuantumProgram(code=_BATCH_PROGRAM_V2),
+        context=EngineContext(),
+        result_type=ResultType.Batch)
+    job = program.run_batch(job_id='steve',
+                            repetitions=10,
+                            processor_ids=['lazykitty'])
+    assert job._job == qtypes.QuantumJob()
+    batch_run_context = v2.batch_pb2.BatchRunContext()
+    create_job.call_args[1]['run_context'].Unpack(batch_run_context)
+    assert len(batch_run_context.run_contexts) == 1
 
 
 def test_run_batch_no_processors():
@@ -118,7 +257,7 @@ def test_run_batch_not_in_batch_mode():
                               params_list=resolver_list)
 
 
-def test_run__in_batch_mode():
+def test_run_in_batch_mode():
     program = cg.EngineProgram('no-meow',
                                'no-meow',
                                EngineContext(),
@@ -352,70 +491,8 @@ def test_get_circuit_v2(get_program):
         cirq.X(cirq.GridQubit(5, 2))**0.5,
         cirq.measure(cirq.GridQubit(5, 2), key='result'))
 
-    program_proto = Merge(
-        """language {
-  gate_set: "xmon"
-}
-circuit {
-  scheduling_strategy: MOMENT_BY_MOMENT
-  moments {
-    operations {
-      gate {
-        id: "xy"
-      }
-      args {
-        key: "axis_half_turns"
-        value {
-          arg_value {
-            float_value: 0.0
-          }
-        }
-      }
-      args {
-        key: "half_turns"
-        value {
-          arg_value {
-            float_value: 0.5
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
-    }
-  }
-  moments {
-    operations {
-      gate {
-        id: "meas"
-      }
-      args {
-        key: "invert_mask"
-        value {
-          arg_value {
-            bool_values {
-            }
-          }
-        }
-      }
-      args {
-        key: "key"
-        value {
-          arg_value {
-            string_value: "result"
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
-    }
-  }
-}
-""", v2.program_pb2.Program())
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = qtypes.QuantumProgram(
-        code=_to_any(program_proto))
+    get_program.return_value = qtypes.QuantumProgram(code=_PROGRAM_V2)
     assert program.get_circuit() == circuit
     get_program.assert_called_once_with('a', 'b', True)
 
@@ -426,71 +503,8 @@ def test_get_circuit_batch(get_program):
         cirq.X(cirq.GridQubit(5, 2))**0.5,
         cirq.measure(cirq.GridQubit(5, 2), key='result'))
 
-    program_proto = Merge(
-        """programs { language {
-  gate_set: "xmon"
-}
-circuit {
-  scheduling_strategy: MOMENT_BY_MOMENT
-  moments {
-    operations {
-      gate {
-        id: "xy"
-      }
-      args {
-        key: "axis_half_turns"
-        value {
-          arg_value {
-            float_value: 0.0
-          }
-        }
-      }
-      args {
-        key: "half_turns"
-        value {
-          arg_value {
-            float_value: 0.5
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
-    }
-  }
-  moments {
-    operations {
-      gate {
-        id: "meas"
-      }
-      args {
-        key: "invert_mask"
-        value {
-          arg_value {
-            bool_values {
-            }
-          }
-        }
-      }
-      args {
-        key: "key"
-        value {
-          arg_value {
-            string_value: "result"
-          }
-        }
-      }
-      qubits {
-        id: "5_2"
-      }
-    }
-  }
-}
-}
-""", v2.batch_pb2.BatchProgram())
     program = cg.EngineProgram('a', 'b', EngineContext())
-    get_program.return_value = qtypes.QuantumProgram(
-        code=_to_any(program_proto))
+    get_program.return_value = qtypes.QuantumProgram(code=_BATCH_PROGRAM_V2)
     with pytest.raises(ValueError, match='A program number must be specified'):
         program.get_circuit()
     with pytest.raises(ValueError,
@@ -498,6 +512,41 @@ circuit {
         program.get_circuit(1)
     assert program.get_circuit(0) == circuit
     get_program.assert_called_once_with('a', 'b', True)
+
+
+@mock.patch('cirq.google.engine.engine_client.EngineClient.get_program')
+def test_get_batch_size(get_program):
+    # Has to fetch from engine if not _program specified.
+    program = cg.EngineProgram('a',
+                               'b',
+                               EngineContext(),
+                               result_type=ResultType.Batch)
+    get_program.return_value = qtypes.QuantumProgram(code=_BATCH_PROGRAM_V2)
+    assert program.batch_size() == 1
+
+    # If _program specified, uses that value.
+    program = cg.EngineProgram(
+        'a',
+        'b',
+        EngineContext(),
+        _program=qtypes.QuantumProgram(code=_BATCH_PROGRAM_V2),
+        result_type=ResultType.Batch)
+    assert program.batch_size() == 1
+
+    with pytest.raises(ValueError, match='ResultType.Program'):
+        program = cg.EngineProgram('a',
+                                   'b',
+                                   EngineContext(),
+                                   result_type=ResultType.Program)
+        _ = program.batch_size()
+
+    with pytest.raises(ValueError, match='cirq.google.api.v2.Program'):
+        get_program.return_value = qtypes.QuantumProgram(code=_PROGRAM_V2)
+        program = cg.EngineProgram('a',
+                                   'b',
+                                   EngineContext(),
+                                   result_type=ResultType.Batch)
+        _ = program.batch_size()
 
 
 @pytest.fixture(scope='session', autouse=True)
