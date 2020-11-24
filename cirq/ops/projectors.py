@@ -54,28 +54,30 @@ class Projector():
         self._projection_bases = {}
         for qubits, projection_basis in projection_bases.items():
             qid_shape = qid_shape_from_proj_key(qubits)
-            projection_array = np.vstack([states.to_valid_state_vector(x, qid_shape=qid_shape) for x in projection_basis])
+            projection_array = np.vstack([
+                states.to_valid_state_vector(x, qid_shape=qid_shape)
+                for x in projection_basis
+            ])
 
             if enforce_orthonormal_basis:
                 B = projection_array @ projection_array.T.conj()
                 if not np.allclose(B, np.eye(projection_array.shape[0])):
                     raise ValueError('The basis must be orthonormal')
 
-            if np.linalg.matrix_rank(projection_array) < projection_array.shape[0]:
-                raise ValueError('Vectors in basis must be linearly independent')
-
-            if np.prod(qid_shape) != projection_array.shape[1]:
+            if np.linalg.matrix_rank(
+                    projection_array) < projection_array.shape[0]:
                 raise ValueError(
-                    "Invalid shape " +
-                    f"{np.array(projection_array).shape} for qid_shape {qid_shape}")
+                    'Vectors in basis must be linearly independent')
 
             self._projection_bases[qubits] = projection_array
 
     def _projection_bases_(self) -> np.ndarray:
         return self._projection_bases
 
-    def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None) -> Iterable[np.ndarray]:
-        proj_keys = self._projection_bases.keys() if proj_keys is None else proj_keys
+    def matrix(self, proj_keys: Optional[Iterable[ProjKey]] = None
+              ) -> Iterable[np.ndarray]:
+        proj_keys = self._projection_bases.keys(
+        ) if proj_keys is None else proj_keys
         factors = []
         for proj_key in proj_keys:
             if proj_key not in self._projection_bases:
@@ -90,15 +92,68 @@ class Projector():
                 factors.append(A @ pseudoinverse)
         return linalg.kron(*factors)
 
+    def expectation_from_state_vector(self,
+                                      state_vector: np.ndarray,
+                                      qubit_map: Mapping[ProjKey, int],
+                                      *,
+                                      atol: float = 1e-7,
+                                      check_preconditions: bool = True
+                                     ) -> float:
+        dims = [np.prod(qid_shape_from_proj_key(proj_key)) for proj_key in qubit_map.keys()]
+        state_vector = state_vector.reshape(dims)
+
+        for proj_key, i in qubit_map.items():
+            if proj_key not in self._projection_bases:
+                continue
+
+            # Make rows into columns
+            A = self._projection_bases[proj_key].T
+            # Left pseudo-inverse
+            pseudoinverse = np.linalg.pinv(A)
+            # Projector to the range (column space) of A
+            P = A @ pseudoinverse
+
+            state_vector = np.tensordot(P, state_vector, axes=(1, i))
+
+        state_vector = np.reshape(state_vector, np.prod(dims))
+        return np.dot(state_vector, state_vector)
+
+    def expectation_from_density_matrix(self,
+                                        state: np.ndarray,
+                                        qubit_map: Mapping[ProjKey, int],
+                                        *,
+                                        atol: float = 1e-7,
+                                        check_preconditions: bool = True
+                                       ) -> float:
+        dims = [np.prod(qid_shape_from_proj_key(proj_key)) for proj_key in qubit_map.keys()]
+        state = state.reshape(dims + dims)
+
+        for proj_key, i in qubit_map.items():
+            if proj_key not in self._projection_bases:
+                continue
+
+            # Make rows into columns
+            A = self._projection_bases[proj_key].T
+            # Left pseudo-inverse
+            pseudoinverse = np.linalg.pinv(A)
+            # Projector to the range (column space) of A
+            P = A @ pseudoinverse
+
+            state = np.tensordot(P, state, axes=(1, i))
+            state = np.tensordot(state, P.T.conj(), axes=(i, 0))
+
+        state = np.reshape(state, [np.prod(dims)]*2)
+        return np.trace(state)
 
     def __repr__(self) -> str:
         return f"cirq.Projector(projection_bases={self._projection_bases})"
 
     def _json_dict_(self) -> Dict[str, Any]:
-         return {
+        return {
             'cirq_type': self.__class__.__name__,
             # JSON requires mappings to have string keys.
-            'projection_bases': list(self._projection_bases.items())}
+            'projection_bases': list(self._projection_bases.items())
+        }
 
     @classmethod
     def _from_json_dict_(cls, projection_bases, **kwargs):
