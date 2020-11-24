@@ -1,4 +1,5 @@
-from typing import Any, Dict, Iterable, Mapping, Sequence, List, Optional, Tuple, TYPE_CHECKING, TypeVar, Union
+from typing import (Any, Dict, Iterable, Mapping, Sequence, List, Optional,
+    Tuple, TYPE_CHECKING, TypeVar, Union)
 
 import numpy as np
 
