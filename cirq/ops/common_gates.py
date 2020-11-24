@@ -106,9 +106,9 @@ class XPowGate(eigen_gate.EigenGate,
         if isinstance(args, clifford.ActOnStabilizerCHFormArgs):
             if protocols.is_parameterized(self) or self.exponent % 0.5 != 0:
                 return NotImplemented
-            assert all(
-                gate._act_on_(args) for gate in  # type: ignore
-                [H, ZPowGate(exponent=self._exponent), H])
+            assert H._act_on_(args)
+            assert ZPowGate(exponent=self._exponent)._act_on_(args)
+            assert H._act_on_(args)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift *
                                        self.exponent)
