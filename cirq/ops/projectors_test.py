@@ -8,58 +8,82 @@ import cirq
 
 
 def test_projector_qubit():
-    zero_projector = cirq.Projector([[1.0, 0.0]])
-    one_projector = cirq.Projector([[0.0, 1.0]])
+    q0 = cirq.NamedQubit('q0')
 
-    np.testing.assert_allclose(cirq.channel(zero_projector),
-                               ([[1.0, 0.0], [0.0, 0.0]],))
+    zero_projector = cirq.Projector({q0: [[1.0, 0.0]]})
+    one_projector = cirq.Projector({q0: [[0.0, 1.0]]})
 
-    np.testing.assert_allclose(cirq.channel(one_projector),
-                               ([[0.0, 0.0], [0.0, 1.0]],))
+    np.testing.assert_allclose(zero_projector.matrix(),
+                               [[1.0, 0.0], [0.0, 0.0]])
+
+    np.testing.assert_allclose(one_projector.matrix(),
+                               [[0.0, 0.0], [0.0, 1.0]])
 
 
 def test_projector_from_np_array():
-    zero_projector = cirq.Projector(np.array([[1.0, 0.0]]))
-    np.testing.assert_allclose(cirq.channel(zero_projector),
-                               ([[1.0, 0.0], [0.0, 0.0]],))
+    q0 = cirq.NamedQubit('q0')
+
+    zero_projector = cirq.Projector({q0: np.array([[1.0, 0.0]])})
+    np.testing.assert_allclose(zero_projector.matrix(),
+                              [[1.0, 0.0], [0.0, 0.0]])
 
 
 def test_projector_plus():
-    plus_projector = cirq.Projector([[1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]])
+    q0 = cirq.NamedQubit('q0')
 
-    np.testing.assert_allclose(cirq.channel(plus_projector),
-                               ([[0.5, 0.5], [0.5, 0.5]],))
+    plus_projector = cirq.Projector({q0: [[1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]]})
+
+    np.testing.assert_allclose(plus_projector.matrix(),
+                              [[0.5, 0.5], [0.5, 0.5]])
 
 
 def test_projector_overcomplete_basis():
+    q0 = cirq.NamedQubit('q0')
+
     with pytest.raises(ValueError,
-                       match="Vectors in basis must be linearly independent"):
-        cirq.Projector([[1.0, 0.0], [0.0, 1.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]])
+                      match="Vectors in basis must be linearly independent"):
+        cirq.Projector({q0: [[1.0, 0.0], [0.0, 1.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]]})
 
 
 def test_projector_non_orthonormal_basis():
-    cirq.Projector([[1.0, 0.0]], enforce_orthonormal_basis=True)
-    cirq.Projector([[1.0, 0.0], [0.0, 1.0]], enforce_orthonormal_basis=True)
-    cirq.Projector([[1.0j / math.sqrt(2), 1.0 / math.sqrt(2)],
-                    [1.0 / math.sqrt(2), 1.0j / math.sqrt(2)]],
-                   enforce_orthonormal_basis=True)
+    q0 = cirq.NamedQubit('q0')
+
+    cirq.Projector({q0: [[1.0, 0.0]]}, enforce_orthonormal_basis=True)
+    cirq.Projector({q0: [[1.0, 0.0], [0.0, 1.0]]}, enforce_orthonormal_basis=True)
+    cirq.Projector({q0: [[1.0j / math.sqrt(2), 1.0 / math.sqrt(2)],
+                    [1.0 / math.sqrt(2), 1.0j / math.sqrt(2)]]},
+                  enforce_orthonormal_basis=True)
 
     with pytest.raises(ValueError, match="The basis must be orthonormal"):
-        cirq.Projector([[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]], enforce_orthonormal_basis=True)
+        cirq.Projector({q0: [[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]]}, enforce_orthonormal_basis=True)
     with pytest.raises(ValueError, match="The basis must be orthonormal"):
-        cirq.Projector([[1.0j / math.sqrt(2), 1.0 / math.sqrt(2)],
-                        [1.0 / math.sqrt(2), -1.0j / math.sqrt(2)]],
-                       enforce_orthonormal_basis=True)
+        cirq.Projector({q0: [[1.0j / math.sqrt(2), 1.0 / math.sqrt(2)],
+                        [1.0 / math.sqrt(2), -1.0j / math.sqrt(2)]]},
+                      enforce_orthonormal_basis=True)
     with pytest.raises(ValueError, match="State_vector is not normalized"):
-        cirq.Projector([[2.0, 0.0]], enforce_orthonormal_basis=True)
+        cirq.Projector({q0: [[2.0, 0.0]]}, enforce_orthonormal_basis=True)
     with pytest.raises(ValueError, match="The basis must be orthonormal"):
-        cirq.Projector([[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]],
-                       enforce_orthonormal_basis=True)
+        cirq.Projector({q0: [[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]]},
+                      enforce_orthonormal_basis=True)
+
+
+def test_projector_missing_qubit():
+    q0, q1 = cirq.LineQubit.range(2)
+    proj = cirq.Projector({q0: [[1.0, 0.0]]})
+
+    np.testing.assert_allclose(proj.matrix(), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(proj.matrix([q0]), [[1.0, 0.0], [0.0, 0.0]])
+    np.testing.assert_allclose(proj.matrix([q1]), [[1.0, 0.0], [0.0, 1.0]])
+
+    np.testing.assert_allclose(proj.matrix([q0, q1]), np.diag([1.0, 1.0, 0.0, 0.0]))
+    np.testing.assert_allclose(proj.matrix([q1, q0]), np.diag([1.0, 0.0, 1.0, 0.0]))
 
 
 def test_equality():
-    obj1 = cirq.Projector([[1.0, 0.0]])
-    obj2 = cirq.Projector([[0.0, 1.0]])
+    q0 = cirq.NamedQubit('q0')
+
+    obj1 = cirq.Projector({q0: [[1.0, 0.0]]})
+    obj2 = cirq.Projector({q0: [[0.0, 1.0]]})
 
     assert obj1 == obj1
     assert obj1 != obj2
@@ -68,67 +92,63 @@ def test_equality():
 
 
 def test_projector_dim2_qubit():
-    dim2_projector = cirq.Projector([[1.0, 0.0], [0.0, 1.0]])
-    not_colinear_projector = cirq.Projector([[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]])
-    complex_projector = cirq.Projector([[1.0j, 0.0], [1. / math.sqrt(2), 1.0 / math.sqrt(2)]])
+    q0 = cirq.NamedQubit('q0')
 
-    np.testing.assert_allclose(cirq.channel(dim2_projector),
-                               ([[1.0, 0.0], [0.0, 1.0]],),
-                               atol=1e-6)
+    dim2_projector = cirq.Projector({q0: [[1.0, 0.0], [0.0, 1.0]]})
+    not_colinear_projector = cirq.Projector({q0: [[1.0, 0.0], [1.0 / math.sqrt(2), 1.0 / math.sqrt(2)]]})
+    complex_projector = cirq.Projector({q0: [[1.0j, 0.0], [1. / math.sqrt(2), 1.0 / math.sqrt(2)]]})
 
-    np.testing.assert_allclose(cirq.channel(not_colinear_projector),
-                               ([[1.0, 0.0], [0.0, 1.0]],),
-                               atol=1e-6)
+    np.testing.assert_allclose(dim2_projector.matrix(),
+                              [[1.0, 0.0], [0.0, 1.0]],
+                              atol=1e-6)
 
-    np.testing.assert_allclose(cirq.channel(complex_projector),
-                               ([[1.0, 0.0], [0.0, 1.0]],),
-                               atol=1e-6)
+    np.testing.assert_allclose(not_colinear_projector.matrix(),
+                              [[1.0, 0.0], [0.0, 1.0]],
+                              atol=1e-6)
+
+    np.testing.assert_allclose(complex_projector.matrix(),
+                              [[1.0, 0.0], [0.0, 1.0]],
+                              atol=1e-6)
 
 
 def test_projector_qutrit():
-    zero_projector = cirq.Projector([[1.0, 0.0, 0.0]], qid_shape=[3])
-    one_projector = cirq.Projector([[0.0, 1.0, 0.0]], qid_shape=[3])
-    two_projector = cirq.Projector([[0.0, 0.0, 1.0]], qid_shape=[3])
+    q0, = cirq.LineQid.range(1, dimension=3)
+
+    zero_projector = cirq.Projector({q0: [[1.0, 0.0, 0.0]]})
+    one_projector = cirq.Projector({q0: [[0.0, 1.0, 0.0]]})
+    two_projector = cirq.Projector({q0: [[0.0, 0.0, 1.0]]})
 
     np.testing.assert_allclose(
-        cirq.channel(zero_projector),
-        ([[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]],))
+        zero_projector.matrix(),
+        [[1.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
 
     np.testing.assert_allclose(
-        cirq.channel(one_projector),
-        ([[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]],))
+        one_projector.matrix(),
+        [[0.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 0.0]])
 
     np.testing.assert_allclose(
-        cirq.channel(two_projector),
-        ([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]],))
-
-
-def test_bad_constructors():
-    with pytest.raises(
-            ValueError,
-            match=re.escape("Expected a bool or int entry for each qudit")):
-        cirq.Projector([[1.0, 0.0]], qid_shape=[2, 2])
+        two_projector.matrix(),
+        [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
 
 
 def test_get_values():
-    d = cirq.Projector([[1.0, 0.0]])
+    q0 = cirq.NamedQubit('q0')
+    d = cirq.Projector({q0: [[1.0, 0.0]]})
 
-    np.testing.assert_allclose(d._projection_basis_(), [[1.0, 0.0]])
-    assert d._qid_shape_() == (2,)
+    assert len(d._projection_bases_()) == 1
+    assert np.allclose(d._projection_bases_()[q0], [[1.0, 0.0]])
 
 
 def test_repr():
-    d = cirq.Projector([[1.0, 0.0]])
+    q0 = cirq.NamedQubit('q0')
+    d = cirq.Projector({q0: [[1.0, 0.0]]})
 
-    assert d.__repr__(
-    ) == "cirq.Projector(projection_basis=[[(1+0j), 0j]]),qid_shape=(2,))"
+    assert d.__repr__() == "cirq.Projector(projection_bases={cirq.NamedQubit('q0'): array([[1.+0.j, 0.+0.j]], dtype=complex64)})"
 
 
 def test_consistency_with_existing():
     a, b = cirq.LineQubit.range(2)
     mx = (cirq.KET_IMAG(a) * cirq.KET_IMAG(b)).projector()
-    ii_proj = cirq.Projector([[.5, .5j, .5j, -.5]], qid_shape=(
-        2,
-        2,
-    ))
-    np.testing.assert_allclose(mx, cirq.channel(ii_proj)[0])
+    ii_proj = cirq.Projector({(a, b): [[.5, .5j, .5j, -.5]]})
+    np.testing.assert_allclose(mx, ii_proj.matrix())
+
