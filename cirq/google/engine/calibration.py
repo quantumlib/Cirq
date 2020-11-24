@@ -148,8 +148,7 @@ class Calibration(abc.Mapping):
     def _from_json_dict_(cls, metrics: str, **kwargs) -> 'Calibration':
         """Magic method for the JSON serialization protocol."""
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
-        json_format.ParseDict(metrics, metric_proto)
-        return cls(metric_proto)
+        return cls(json_format.ParseDict(metrics, metric_proto))
 
     def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
