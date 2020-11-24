@@ -61,8 +61,10 @@ class Calibration(abc.Mapping):
                      Dict[str, Dict[Tuple['cirq.GridQubit', ...], Any]]] = None
                 ) -> None:
         self.timestamp = calibration.timestamp_ms
-        self._metric_dict = (metrics or
-                             self._compute_metric_dict(calibration.metrics))
+        if metrics is None:
+            self._metric_dict = self._compute_metric_dict(calibration.metrics)
+        else:
+            self._metric_dict = metrics
 
     def _compute_metric_dict(
             self, metrics: v2.metrics_pb2.MetricsSnapshot
@@ -146,14 +148,14 @@ class Calibration(abc.Mapping):
     def _from_json_dict_(cls, metrics: str, **kwargs):
         """Magic method for the JSON serialization protocol."""
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
-        json_format.Parse(metrics, metric_proto)
+        json_format.ParseDict(metrics, metric_proto)
         return cls(metric_proto)
 
     def _json_dict_(self):
         """Magic method for the JSON serialization protocol."""
         return {
             'cirq_type': 'Calibration',
-            'metrics': json_format.MessageToJson(self.to_proto())
+            'metrics': json_format.MessageToDict(self.to_proto())
         }
 
     def timestamp_str(self,
