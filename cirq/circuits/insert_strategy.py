@@ -22,6 +22,7 @@ class InsertStrategy:
     NEW_THEN_INLINE = None  # type: InsertStrategy
     INLINE = None  # type: InsertStrategy
     EARLIEST = None  # type: InsertStrategy
+    EARLIEST_AFTER = None  # type: InsertStrategy
 
     def __init__(self, name: str, doc: str):
         self.name = name
@@ -76,4 +77,17 @@ InsertStrategy.EARLIEST = InsertStrategy(
     If the moment just before the insert location has conflicting operations,
     or the insert index is 0, then the operation is inserted into a new moment
     at the desired location.
+    """)
+
+InsertStrategy.EARLIEST_AFTER = InsertStrategy(
+    'EARLIEST_AFTER',
+    """
+    Scans forward from the insert location until a moment without operations
+    touching qubits affected by the operation to insert is found. The operation
+    is added into the moment at that location.
+
+    If the scan reaches the end of the circuit without finding any available
+    moments, the operation is added into the last moment of the circuit.
+
+    The operation is never added into moments before the insert location.
     """)

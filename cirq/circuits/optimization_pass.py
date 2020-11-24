@@ -21,6 +21,7 @@ from collections import defaultdict
 
 from cirq import ops
 from cirq.circuits.circuit import Circuit
+from cirq.circuits.insert_strategy import InsertStrategy
 
 if TYPE_CHECKING:
     import cirq
@@ -120,43 +121,44 @@ class PointOptimizer:
         """
 
     def optimize_circuit(self, circuit: Circuit):
-        frontier: Dict['Qid', int] = defaultdict(lambda: 0)
-        i = 0
-        while i < len(circuit):  # Note: circuit may mutate as we go.
+        moment_new_ops = defaultdict(
+            list)  # type: Dict[int, List['cirq.Operation']]
+        circuit_len = len(circuit)
+        for i in range(circuit_len):
+            moment_new_ops[i] = []
             for op in circuit[i].operations:
-                # Don't touch stuff inserted by previous optimizations.
-                if any(frontier[q] > i for q in op.qubits):
-                    continue
-
-                # Skip if an optimization removed the circuit underneath us.
-                if i >= len(circuit):
-                    continue
-                # Skip if an optimization removed the op we're considering.
-                if op not in circuit[i].operations:
-                    continue
                 opt = self.optimization_at(circuit, i, op)
-                # Skip if the optimization did nothing.
                 if opt is None:
-                    continue
+                    # keep the old operation if the optimization did nothing.
+                    moment_new_ops[i].append(op)
+                    circuit.clear_operations_touching(
+                        op.qubits, [i])
+                else:
+                    # Clear target area, and insert new operations.
+                    circuit.clear_operations_touching(
+                        opt.clear_qubits,
+                        [e for e in range(i, i + opt.clear_span)])
+                    new_operations = self.post_clean_up(
+                        cast(Tuple[ops.Operation], opt.new_operations))
 
-                # Clear target area, and insert new operations.
-                circuit.clear_operations_touching(
-                    opt.clear_qubits,
-                    [e for e in range(i, i + opt.clear_span)])
-                new_operations = self.post_clean_up(
-                    cast(Tuple[ops.Operation], opt.new_operations))
+                    flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
 
-                flat_new_operations = tuple(ops.flatten_to_ops(new_operations))
+                    new_qubits = set()
+                    for flat_op in flat_new_operations:
+                        for q in flat_op.qubits:
+                            new_qubits.add(q)
 
-                new_qubits = set()
-                for flat_op in flat_new_operations:
-                    for q in flat_op.qubits:
-                        new_qubits.add(q)
+                    if not new_qubits.issubset(set(opt.clear_qubits)):
+                        raise ValueError(
+                            'New operations in PointOptimizer should not act on new'
+                            ' qubits.')
+                    moment_new_ops[i].extend(flat_new_operations)
+        frontier = 0
+        for i in range(circuit_len):
+            new_frontier = circuit.insert(frontier, moment_new_ops[i], InsertStrategy.EARLIEST_AFTER)
+            if frontier < new_frontier:
+                frontier = new_frontier
 
-                if not new_qubits.issubset(set(opt.clear_qubits)):
-                    raise ValueError(
-                        'New operations in PointOptimizer should not act on new'
-                        ' qubits.')
 
-                circuit.insert_at_frontier(flat_new_operations, i, frontier)
-            i += 1
+
+
