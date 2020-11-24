@@ -16,7 +16,7 @@
 import time
 from typing import Optional, Union, TYPE_CHECKING
 
-from cirq.ionq import results
+from cirq.ionq import ionq_exceptions, results
 from cirq.value import digits
 from cirq._doc import document
 
@@ -34,12 +34,17 @@ class Job:
 
     Note that this is mutable, when calls to get status or results are made
     the job updates itself to the results returned from the API.
+
+    If a job is canceled or deleted, only the job id and the status remain
+    valid.
     """
 
-    TERMINAL_STATES = ('completed', 'canceled', 'failed')
+    TERMINAL_STATES = ('completed', 'canceled', 'failed', 'deleted')
     document(
         TERMINAL_STATES,
-        'States of the IonQ API job from which the job cannot transition.')
+        'States of the IonQ API job from which the job cannot transition. '
+        'Note that deleted can only exist in a return call from a delete '
+        '(subsequent calls will return not found).')
 
     NON_TERMINAL_STATES = ('ready', 'submitted', 'running')
     document(
@@ -48,6 +53,12 @@ class Job:
 
     ALL_STATES = TERMINAL_STATES + NON_TERMINAL_STATES
     document(ALL_STATES, 'All states that an IonQ API job can exist in.')
+
+    UNSUCCESSFUL_STATES = ('canceled', 'failed', 'deleted')
+    document(
+        UNSUCCESSFUL_STATES,
+        'States of the IonQ API job when it was not successful and so does '
+        'not have any data associated with it beyond an id and a status.')
 
     def __init__(self, client: 'cirq.ionq.ionq_client._IonQClient',
                  job_dict: dict):
@@ -70,6 +81,11 @@ class Job:
         if self._job['status'] not in self.TERMINAL_STATES:
             self._job = self._client.get_job(self.job_id())
 
+    def _check_if_unsuccessful(self):
+        if self.status() in self.UNSUCCESSFUL_STATES:
+            raise ionq_exceptions.IonQUnsuccessfulJobException(
+                self.job_id(), self.status())
+
     def job_id(self) -> str:
         """Returns the job id (UID) for the job.
 
@@ -83,6 +99,12 @@ class Job:
         This will get a new job if the status of the job previously was
         determined to not be in a terminal state. A full list of states is
         given in  `cirq.ionq.IonQJob.ALL_STATES`.
+
+        Raises:
+            IonQException: If the API is not able to get the status of the job.
+
+        Returns:
+            The job status.
         """
         self._refresh_job()
         return self._job['status']
@@ -93,25 +115,51 @@ class Job:
         Returns:
             'qpu' or 'simulator' depending on where the job was run or is
             running.
+
+        Raises:
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or
+                deleted.
+            IonQException: If unable to get the status of the job from the API.
         """
+        self._check_if_unsuccessful()
         return self._job['target']
+
 
     def name(self) -> str:
         """Returns the name of the job which was supplied during job creation.
 
         This is different than the `job_id`.
+
+        Raises:
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or
+                deleted.
+            IonQException: If unable to get the status of the job from the API.
         """
+        self._check_if_unsuccessful()
         return self._job['name']
 
     def num_qubits(self) -> int:
-        """Returns the number of qubits for the job."""
+        """Returns the number of qubits for the job.
+
+        Raises:
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or
+                deleted.
+            IonQException: If unable to get the status of the job from the API.
+        """
+        self._check_if_unsuccessful()
         return int(self._job['qubits'])
 
     def repetitions(self) -> Optional[int]:
         """Returns the number of repetitions for the job.
 
         If run on the simulator this will return None.
+
+        Raises:
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or
+                deleted.
+            IonQException: If unable to get the status of the job from the API.
         """
+        self._check_if_unsuccessful()
         if 'metadata' in self._job and 'shots' in self._job['metadata']:
             return int(self._job['metadata']['shots'])
         return None
@@ -130,8 +178,9 @@ class Job:
             processor or a simulator.
 
         Raises:
-            RuntimeError: if the job was not successfully completed (cancelled
-                or failed).
+            IonQUnsuccessfulJob: If the job has failed, been canceled, or
+                deleted.
+            IonQException: If unable to get the results from the API.
         """
         time_waited_seconds = 0
         while time_waited_seconds < timeout_seconds:
@@ -162,6 +211,22 @@ class Job:
             }
             return results.SimulatorResult(probabilities=probabilities,
                                            num_qubits=self.num_qubits())
+
+    def cancel(self):
+        """Cancel the given job.
+
+        This mutates the job to only have a job id and status `canceled`.
+        """
+        self._job = self._client.cancel_job(job_id=self.job_id())
+
+    def delete(self):
+        """Delete the given job.
+
+        This mutates the job to only have a job id and status `deleted`.
+        Subsequence attempts to get the job with this job id will return
+        not found.
+        """
+        self._job = self._client.delete_job(job_id=self.job_id())
 
     def __str__(self) -> str:
         return f'cirq.ionq.Job(job_id={self.job_id()})'
