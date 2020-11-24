@@ -61,7 +61,8 @@ class Projector():
 
             if enforce_orthonormal_basis:
                 B = projection_array @ projection_array.T.conj()
-                if not np.allclose(B, np.eye(projection_array.shape[0])):
+                if not np.allclose(
+                        B, np.eye(projection_array.shape[0]), atol=1e-6):
                     raise ValueError('The basis must be orthonormal')
 
             if np.linalg.matrix_rank(
