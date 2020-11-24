@@ -145,13 +145,13 @@ class Calibration(abc.Mapping):
         return proto
 
     @classmethod
-    def _from_json_dict_(cls, metrics: str, **kwargs):
+    def _from_json_dict_(cls, metrics: str, **kwargs) -> 'Calibration':
         """Magic method for the JSON serialization protocol."""
         metric_proto = v2.metrics_pb2.MetricsSnapshot()
         json_format.ParseDict(metrics, metric_proto)
         return cls(metric_proto)
 
-    def _json_dict_(self):
+    def _json_dict_(self) -> Dict[str, Any]:
         """Magic method for the JSON serialization protocol."""
         return {
             'cirq_type': 'Calibration',
