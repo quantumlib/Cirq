@@ -40,7 +40,7 @@ class Serializer:
                 to that parameter. Defaults to 1e-8.
         """
         self.atol = atol
-        self.dispatch: Dict[Type['cirq.Gate'], Callable] = {
+        self._dispatch: Dict[Type['cirq.Gate'], Callable] = {
             common_gates.XPowGate: self._serialize_x_pow_gate,
             common_gates.YPowGate: self._serialize_y_pow_gate,
             common_gates.ZPowGate: self._serialize_z_pow_gate,
@@ -94,8 +94,8 @@ class Serializer:
         gate_type = type(gate)
         # Check all superclasses.
         for gate_mro_type in gate_type.mro():
-            if gate_mro_type in self.dispatch:
-                serialized_op = self.dispatch[gate_mro_type](gate, targets)
+            if gate_mro_type in self._dispatch:
+                serialized_op = self._dispatch[gate_mro_type](gate, targets)
                 if serialized_op:
                     return serialized_op
         raise ValueError(f'Gate {gate} acting on {targets} cannot be '
