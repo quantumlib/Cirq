@@ -130,7 +130,7 @@ class Projector():
 
     def expectation_from_density_matrix(self,
                                         state: np.ndarray,
-                                        qid_map: Mapping[raw_types.Qid, int],
+                                        qid_map: Mapping[ProjKey, int],
                                         *,
                                         atol: float = 1e-7,
                                         check_preconditions: bool = True

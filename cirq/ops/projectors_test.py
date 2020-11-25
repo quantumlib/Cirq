@@ -104,8 +104,8 @@ def test_projector_from_state_missing_qid():
         d.expectation_from_state_vector(np.array([[0.0, 0.0]]), qid_map={q1: 0})
 
     with pytest.raises(ValueError, match="Missing qid: q0"):
-        d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 0.0]]), qid_map={q1: 0})
-
+        d.expectation_from_density_matrix(np.array([[0.0, 0.0], [0.0, 0.0]]),
+                                          qid_map={q1: 0})
 
 def test_equality():
     q0 = cirq.NamedQubit('q0')
