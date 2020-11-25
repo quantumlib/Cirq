@@ -16,6 +16,9 @@
   },
   "tags":
   [
-    "tag1"
+    "tag1",
+    {
+      "cirq_type": "PhysicalZTag"
+    }
   ]
 }
