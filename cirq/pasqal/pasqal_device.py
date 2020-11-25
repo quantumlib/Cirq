@@ -101,11 +101,13 @@ class PasqalDevice(cirq.devices.Device):
                                cirq.ops.YPowGate, cirq.ops.ZPowGate))
 
         if not valid_op:  # To prevent further checking if already passed
-            if (isinstance(
-                    op.gate,
-                (cirq.ops.HPowGate, cirq.ops.CNotPowGate, cirq.ops.CZPowGate,
-                 cirq.ops.CCZPowGate, cirq.ops.CCXPowGate)) and
-                    not cirq.is_parameterized(op)):
+            if (isinstance(op.gate, (
+                    cirq.ops.HPowGate,
+                    cirq.ops.CNotPowGate,
+                    cirq.ops.CZPowGate,
+                    cirq.ops.CCZPowGate,
+                    cirq.ops.CCXPowGate,
+            )) and not cirq.is_parameterized(op)):
                 expo = op.gate.exponent
                 valid_op = np.isclose(expo, np.around(expo, decimals=0))
 

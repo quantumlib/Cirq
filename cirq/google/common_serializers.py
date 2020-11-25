@@ -46,16 +46,19 @@ _DEFAULT_ATOL = 1e-6
 
 
 def _near_mod_n(e, t, n, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod n."""
     if isinstance(e, sympy.Symbol):
         return False
     return abs((e - t + 1) % n - 1) <= atol
 
 
 def _near_mod_2pi(e, t, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod 2 * pi."""
     return _near_mod_n(e, t, n=2 * np.pi, atol=atol)
 
 
 def _near_mod_2(e, t, atol=_DEFAULT_ATOL):
+    """Returns whether a value, e, translated by t, is equal to 0 mod 2."""
     return _near_mod_n(e, t, n=2, atol=atol)
 
 
