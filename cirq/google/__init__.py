@@ -87,12 +87,3 @@ from cirq.google.op_serializer import (
 
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
-
-
-def _register_json_resolver():
-    from cirq.protocols.json_serialization import DEFAULT_RESOLVERS
-    from cirq.google.json_resolver_cache import RESOLVER_CACHE
-    DEFAULT_RESOLVERS.append(RESOLVER_CACHE)
-
-
-_register_json_resolver()

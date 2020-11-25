@@ -18,6 +18,7 @@ from cirq._import import ModuleType
 #  - cirq.mod.json_test_data should export a TestSpec of type
 #       ModuleJsonTestSpec
 #  - a resolver cache for the exposed types
+from cirq.protocols.json_serialization import ObjectFactory
 
 
 @dataclass
@@ -33,7 +34,7 @@ class ModuleJsonTestSpec:
     # these public class names are exposed but do not need to be serialized
     should_not_be_serialized: List[str]
     # points to the resolver cache's dict for this module
-    resolver_cache: Dict[str, Type]
+    resolver_cache: Dict[str, ObjectFactory]
 
     def __repr__(self):
         return self.name

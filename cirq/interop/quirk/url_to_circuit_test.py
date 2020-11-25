@@ -79,15 +79,15 @@ def test_parse_with_qubits():
 
     assert quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["H"],["•","X"]]}',
-        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
-            cirq.H(a),
-            cirq.X(b).controlled_by(a))
+        qubits=cirq.GridQubit.rect(4, 4),
+    ) == cirq.Circuit(cirq.H(a),
+                      cirq.X(b).controlled_by(a))
 
     assert quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["H"],["•",1,"X"]]}',
-        qubits=cirq.GridQubit.rect(4, 4)) == cirq.Circuit(
-            cirq.H(a),
-            cirq.X(c).controlled_by(a))
+        qubits=cirq.GridQubit.rect(4, 4),
+    ) == cirq.Circuit(cirq.H(a),
+                      cirq.X(c).controlled_by(a))
 
     with pytest.raises(IndexError, match="qubits specified"):
         _ = quirk_url_to_circuit(
@@ -103,12 +103,13 @@ def test_extra_cell_makers():
                 identifier='iswap',
                 size=2,
                 maker=lambda args: cirq.ISWAP(*args.qubits))
-        ]) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
+        ],
+    ) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
 
     assert cirq.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"]]}',
-        extra_cell_makers={'iswap': cirq.ISWAP}) == cirq.Circuit(
-            cirq.ISWAP(*cirq.LineQubit.range(2)))
+        extra_cell_makers={'iswap': cirq.ISWAP},
+    ) == cirq.Circuit(cirq.ISWAP(*cirq.LineQubit.range(2)))
 
     assert cirq.quirk_url_to_circuit(
         'http://algassert.com/quirk#circuit={"cols":[["iswap"], ["toffoli"]]}',

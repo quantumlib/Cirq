@@ -17,6 +17,7 @@ import numbers
 import pathlib
 from typing import (
     Any,
+    Callable,
     cast,
     Dict,
     IO,
@@ -35,20 +36,33 @@ import sympy
 from typing_extensions import Protocol
 
 from cirq._doc import doc_private
+from cirq.json_resolver_cache import _cirq_class_resolver_dictionary
 from cirq.type_workarounds import NotImplementedType
 
-import cirq.json_resolver_cache
+ObjectFactory = Union[Type, Callable[..., Any]]
+
+JsonResolver = Callable[[str], Optional[ObjectFactory]]
 
 
-class JsonResolver(Protocol):
-    """Protocol for json resolver functions passed to read_json."""
+def lazy_resolver(dict_factory: Callable[[], Dict[str, ObjectFactory]]
+                 ) -> JsonResolver:
+    """A lazy JsonResolver based on a dict_factory.
 
-    def __call__(self, cirq_type: str) -> Optional[Type]:
-        ...
+      It only calls dict_factory when the first key is accessed.
+
+      Args:
+          dict_factory: a callable that generates an instance of the
+            class resolution map - it is assumed to be cached
+      """
+
+    def json_resolver(cirq_type: str) -> Optional[ObjectFactory]:
+        return dict_factory().get(cirq_type, None)
+
+    return json_resolver
 
 
 DEFAULT_RESOLVERS: List[JsonResolver] = [
-    cirq.json_resolver_cache.RESOLVER_CACHE
+    lazy_resolver(_cirq_class_resolver_dictionary),
 ]
 """A default list of 'JsonResolver' functions for use in read_json.
 
@@ -272,8 +286,9 @@ def _cirq_object_hook(d, resolvers: Sequence[JsonResolver]):
         raise ValueError("Could not resolve type '{}' "
                          "during deserialization".format(d['cirq_type']))
 
-    if hasattr(cls, '_from_json_dict_'):
-        return cls._from_json_dict_(**d)
+    from_json_dict = getattr(cls, '_from_json_dict_', None)
+    if from_json_dict is not None:
+        return from_json_dict(**d)
 
     del d['cirq_type']
     return cls(**d)
