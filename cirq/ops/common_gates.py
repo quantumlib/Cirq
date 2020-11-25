@@ -338,20 +338,20 @@ class YPowGate(eigen_gate.EigenGate,
                 return NotImplemented
             effective_exponent = self._exponent % 2
             state = args.state
+            Z = ZPowGate()
             if effective_exponent == 0.5:
-                assert all(
-                    gate._act_on_(args)  # type: ignore
-                    for gate in [ZPowGate(), H])
+                assert Z._act_on_(args)
+                assert H._act_on_(args)
                 state.omega *= (1 + 1j) / (2**0.5)
             elif effective_exponent == 1:
-                assert all(
-                    gate._act_on_(args) for gate in  # type: ignore
-                    [ZPowGate(), H, ZPowGate(), H])
+                assert Z._act_on_(args)
+                assert H._act_on_(args)
+                assert Z._act_on_(args)
+                assert H._act_on_(args)
                 state.omega *= 1j
             elif effective_exponent == 1.5:
-                assert all(
-                    gate._act_on_(args)  # type: ignore
-                    for gate in [H, ZPowGate()])
+                assert H._act_on_(args)
+                assert Z._act_on_(args)
                 state.omega *= (1 - 1j) / (2**0.5)
             # Adjust the global phase based on the global_shift parameter.
             args.state.omega *= np.exp(1j * np.pi * self.global_shift *
