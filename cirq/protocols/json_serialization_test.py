@@ -34,6 +34,8 @@ from cirq.protocols.json_serialization import RESOLVER_CACHE
 TEST_DATA_PATH = pathlib.Path(__file__).parent / 'json_test_data'
 TEST_DATA_REL = 'cirq/protocols/json_test_data'
 
+SEPARATE_MODULES = ['cirq.google']
+
 
 def test_line_qubit_roundtrip():
     q1 = cirq.LineQubit(12)
@@ -108,6 +110,32 @@ Q0, Q1, Q2, Q3, Q4 = QUBITS
 # Note that even the following doesn't work because theta gets
 # multiplied by 1/pi:
 #   cirq.Circuit(cirq.rx(sympy.Symbol('theta')).on(Q0)),
+
+
+def _get_testspec_for_modules():
+    modules = []
+    for m in SEPARATE_MODULES:
+        import importlib.util
+        if importlib.util.find_spec(m) is not None:
+            test_module_name = f"{m}.json_test_data"
+            if importlib.util.find_spec(test_module_name) is None:
+                raise ValueError(f"{m} module is missing json_test_data "
+                                 f"package, please set it up.")
+            test_module = importlib.import_module(test_module_name)
+            if not hasattr(test_module, "TestSpec"):
+                raise ValueError(f"{test_module_name} module is missing "
+                                 f"TestSpec, please set it up.")
+            modules.append(test_module.TestSpec)
+    return modules
+
+
+def _get_excluded_classes_from_modules():
+    excluded_class_names = set()
+    for m in _get_testspec_for_modules():
+        excluded_class_names = excluded_class_names.union(
+            m.excluded_class_names)
+    return list(excluded_class_names)
+
 
 SHOULDNT_BE_SERIALIZED = [
     # Intermediate states with work buffers and unknown external prng guts.
@@ -208,18 +236,9 @@ SHOULDNT_BE_SERIALIZED = [
     'Unique',
     'DEFAULT_RESOLVERS',
 
-    # Quantum Engine
-    'Engine',
-    'EngineJob',
-    'EngineProcessor',
-    'EngineProgram',
-    'EngineTimeSlot',
-    'QuantumEngineSampler',
-    'NAMED_GATESETS',
-
     # enums
     'ProtoVersion'
-]
+] + _get_excluded_classes_from_modules()
 
 
 def _get_all_public_classes(module) -> Iterator[Tuple[str, Type]]:
@@ -344,15 +363,25 @@ NOT_YET_SERIALIZABLE = [
 ]
 
 
-def _find_classes_that_should_serialize() -> Set[Tuple[str, Type]]:
-    result: Set[Tuple[str, Type]] = set()
-    result.update(_get_all_public_classes(cirq))
-    result.update(_get_all_public_classes(cirq.google))
-    result.update(_get_all_public_classes(cirq.work))
+def _find_classes_that_should_serialize(
+) -> Set[Tuple[pathlib.Path, str, Type]]:
+    result: Set[Tuple[pathlib.Path, str, Type]] = set()
+    result.update({(TEST_DATA_PATH, name, obj)
+                   for name, obj in _get_all_public_classes(cirq)})
+    result.update({(TEST_DATA_PATH, name, obj)
+                   for name, obj in _get_all_public_classes(cirq.work)})
 
+    ## TODO: figure out how to connect the test-data-path with the resolver cache
     for k, v in RESOLVER_CACHE.cirq_class_resolver_dictionary.items():
         t = v if isinstance(v, type) else None
-        result.add((k, t))
+        result.add((TEST_DATA_PATH, k, t))
+
+    for m in _get_testspec_for_modules():
+        result.update({(m.test_file_path, name, obj)
+                       for name, obj in _get_all_public_classes(m.module)})
+        result.update({(m.test_file_path, name, obj)
+                       for name, obj in _get_all_public_classes(m.module)})
+
     return result
 
 
@@ -443,14 +472,15 @@ def _write_test_data(key: str, *test_instances: Any):
         f.write(']')
 
 
-@pytest.mark.parametrize('cirq_obj_name,cls',
+@pytest.mark.parametrize('test_data_path,cirq_obj_name,cls',
                          _find_classes_that_should_serialize())
-def test_json_test_data_coverage(cirq_obj_name: str, cls):
+def test_json_test_data_coverage(test_data_path: pathlib.Path,
+                                 cirq_obj_name: str, cls):
     if cirq_obj_name in NOT_YET_SERIALIZABLE:
         return pytest.xfail(reason="Not serializable (yet)")
 
-    json_path = TEST_DATA_PATH / f'{cirq_obj_name}.json'
-    json_path2 = TEST_DATA_PATH / f'{cirq_obj_name}.json_inward'
+    json_path = test_data_path / f'{cirq_obj_name}.json'
+    json_path2 = test_data_path / f'{cirq_obj_name}.json_inward'
 
     if not json_path.exists() and not json_path2.exists():
         # coverage: ignore
@@ -491,7 +521,7 @@ def test_json_test_data_coverage(cirq_obj_name: str, cls):
                 f"the SHOULDNT_BE_SERIALIZED list in the "
                 f"cirq/protocols/json_serialization_test.py source file."))
 
-    repr_file = TEST_DATA_PATH / f'{cirq_obj_name}.repr'
+    repr_file = test_data_path / f'{cirq_obj_name}.repr'
     if repr_file.exists() and cls is not None:
         objs = _eval_repr_data_file(repr_file)
         if not isinstance(objs, list):

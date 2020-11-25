@@ -86,9 +86,6 @@ class _ResolverCache:
                 'CCXPowGate': cirq.CCXPowGate,
                 'CCZPowGate': cirq.CCZPowGate,
                 'CNotPowGate': cirq.CNotPowGate,
-                'CalibrationLayer': cirq.google.CalibrationLayer,
-                'CalibrationResult': cirq.google.CalibrationResult,
-                'CalibrationTag': cirq.google.CalibrationTag,
                 'ControlledGate': cirq.ControlledGate,
                 'ControlledOperation': cirq.ControlledOperation,
                 'CSwapGate': cirq.CSwapGate,
@@ -108,7 +105,6 @@ class _ResolverCache:
                 'MutableDensePauliString': cirq.MutableDensePauliString,
                 'MutablePauliString': cirq.MutablePauliString,
                 'GateOperation': cirq.GateOperation,
-                'GateTabulation': cirq.google.GateTabulation,
                 'GeneralizedAmplitudeDampingChannel':
                 cirq.GeneralizedAmplitudeDampingChannel,
                 'GlobalPhaseOperation': cirq.GlobalPhaseOperation,
@@ -153,7 +149,6 @@ class _ResolverCache:
                 'PhasedISwapPowGate': cirq.PhasedISwapPowGate,
                 'PhasedXPowGate': cirq.PhasedXPowGate,
                 'PhasedXZGate': cirq.PhasedXZGate,
-                'PhysicalZTag': cirq.google.PhysicalZTag,
                 'RandomGateChannel': cirq.RandomGateChannel,
                 'QuantumFourierTransformGate': cirq.QuantumFourierTransformGate,
                 'ResetChannel': cirq.ResetChannel,
@@ -164,9 +159,7 @@ class _ResolverCache:
                 cirq.experiments.SingleQubitReadoutCalibrationResult,
                 'StabilizerStateChForm': cirq.StabilizerStateChForm,
                 'SwapPowGate': cirq.SwapPowGate,
-                'SycamoreGate': cirq.google.SycamoreGate,
                 'TaggedOperation': cirq.TaggedOperation,
-                'ThreeDQubit': cirq.pasqal.ThreeDQubit,
                 'Result': cirq.Result,
                 'TrialResult': cirq.TrialResult,
                 'TwoDQubit': cirq.pasqal.TwoDQubit,
@@ -197,6 +190,12 @@ class _ResolverCache:
                 'sympy.Rational': sympy.Rational,
                 'complex': complex,
             }
+
+        try:
+            import cirq.google
+            self._crd.update(cirq.google._json_serialization_cache())
+        except:
+            pass
         return self._crd
 
 

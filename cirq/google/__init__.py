@@ -87,3 +87,14 @@ from cirq.google.op_serializer import (
 
 from cirq.google.serializable_gate_set import (
     SerializableGateSet,)
+
+
+def _json_serialization_cache():
+    return {
+        # 'SycamoreGate': SycamoreGate,
+        # 'GateTabulation': GateTabulation,
+        # 'PhysicalZTag': PhysicalZTag,
+        # 'CalibrationLayer': CalibrationLayer,
+        # 'CalibrationResult': CalibrationResult,
+        # 'CalibrationTag': CalibrationTag,
+    }
