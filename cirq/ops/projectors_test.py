@@ -284,11 +284,15 @@ def test_internal_consistency():
     P = d.matrix(proj_keys=[q1, q0])
 
     projected_state = np.matmul(P, state_vector)
-    actual0 = np.linalg.norm(projected_state, ord=2) ** 2
+    actual0 = np.linalg.norm(projected_state, ord=2)**2
 
-    actual1 = d.expectation_from_state_vector(state_vector, qubit_map={q1:0, q0:1})
+    actual1 = d.expectation_from_state_vector(state_vector,
+                                              qubit_map={
+                                                  q1: 0,
+                                                  q0: 1
+                                              })
 
-    actual2 = d.expectation_from_density_matrix(state, qubit_map={q1:0, q0:1})
+    actual2 = d.expectation_from_density_matrix(state, qubit_map={q1: 0, q0: 1})
 
     np.testing.assert_allclose(actual0, actual1, atol=1e-6)
     np.testing.assert_allclose(actual0, actual2, atol=1e-6)
