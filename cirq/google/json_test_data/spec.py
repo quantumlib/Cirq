@@ -13,7 +13,7 @@ TestSpec = JsonSerializationTestSpec(
         'Calibration', 'Sycamore23', 'XMON', 'FSIM_GATESET', 'SYC_GATESET',
         'Sycamore', 'CalibrationLayer', 'SerializableDevice',
         'SerializableGateSet', 'CalibrationResult', 'SQRT_ISWAP_GATESET',
-        'XmonDevice', 'SerializableGateSet', 'SerializableDevice', 'XMON'
+        'XmonDevice', 'SerializableDevice', 'XMON'
     ],
     shouldnt_be_serialized=[
         'Engine',
