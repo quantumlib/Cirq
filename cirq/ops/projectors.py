@@ -119,6 +119,7 @@ class Projector():
             P = A @ pseudoinverse
 
             state_vector = np.tensordot(P, state_vector, axes=(1, i))
+            state_vector = np.moveaxis(state_vector, 0, i)
 
         state_vector = np.reshape(state_vector, np.prod(dims))
         return np.dot(state_vector, state_vector)
@@ -134,7 +135,7 @@ class Projector():
             np.prod(qid_shape_from_proj_key(proj_key))
             for proj_key in qubit_map.keys()
         ]
-        state = state.reshape(dims + dims)
+        state = state.reshape(dims * 2)
 
         for proj_key, i in qubit_map.items():
             if proj_key not in self._projection_bases:
@@ -148,7 +149,9 @@ class Projector():
             P = A @ pseudoinverse
 
             state = np.tensordot(P, state, axes=(1, i))
-            state = np.tensordot(state, P.T.conj(), axes=(i, 0))
+            state = np.moveaxis(state, 0, i)
+            state = np.tensordot(state, P.T.conj(), axes=(len(dims) + i, 0))
+            state = np.moveaxis(state, -1, len(dims) + i)
 
         state = np.reshape(state, [np.prod(dims)] * 2)
         return np.trace(state)
